@@ -949,6 +949,49 @@ class Os extends MY_Controller
         }
     }
 
+    public function zerarProdutos()
+    {
+        $idOs = $this->input->post('idOs');
+
+        if (! is_numeric($idOs)) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(400)
+                ->set_output(json_encode(['result' => false]));
+        }
+
+        $os = $this->os_model->getById($idOs);
+        if ($os == null) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(404)
+                ->set_output(json_encode(['result' => false]));
+        }
+
+        $this->db->set('preco', 0.00);
+        $this->db->set('subTotal', 0.00);
+        $this->db->where('os_id', $idOs);
+        if ($this->db->update('produtos_os')) {
+            $this->db->set('desconto', 0.00);
+            $this->db->set('valor_desconto', 0.00);
+            $this->db->set('tipo_desconto', null);
+            $this->db->where('idOs', $idOs);
+            $this->db->update('os');
+
+            log_info('Zerou o valor dos produtos de uma OS. ID (OS): ' . $idOs);
+
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(200)
+                ->set_output(json_encode(['result' => true]));
+        } else {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(500)
+                ->set_output(json_encode(['result' => false]));
+        }
+    }
+
     public function editarServico()
     {
         $this->load->library('form_validation');

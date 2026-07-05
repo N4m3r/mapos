@@ -266,6 +266,13 @@
                                     </table>
                                 </div>
                             </div>
+                            <?php if (strtolower($result->status) != "cancelado") { ?>
+                                <div class="span12" style="margin-left: 0; text-align: right">
+                                    <button type="button" class="button btn btn-warning" id="btnZerarProdutos">
+                                        <span class="button__icon"><i class='bx bx-dollar-circle'></i></span> <span class="button__text2">Zerar valor dos produtos</span>
+                                    </button>
+                                </div>
+                            <?php } ?>
                         </div>
 
                         <!--Serviços-->
@@ -1337,6 +1344,53 @@
                 return false;
             }
 
+        });
+
+        $(document).on('click', '#btnZerarProdutos', function (event) {
+            event.preventDefault();
+            var idOS = "<?php echo $result->idOs ?>";
+            Swal.fire({
+                title: "Zerar valor dos produtos?",
+                text: "O preço de todos os produtos desta OS será definido como R$ 0,00. Esta ação não pode ser desfeita.",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Sim, zerar",
+                cancelButtonText: "Cancelar"
+            }).then(function (result) {
+                if (result.value) {
+                    $("#divProdutos").html("<div class='progress progress-info progress-striped active'><div class='bar' style='width: 100%'></div></div>");
+                    $.ajax({
+                        type: "POST",
+                        url: "<?php echo base_url(); ?>index.php/os/zerarProdutos",
+                        data: "idOs=" + idOS,
+                        dataType: 'json',
+                        success: function (data) {
+                            if (data.result == true) {
+                                loadContentAsync("#divProdutos", "<?php echo current_url(); ?>", "#divProdutos");
+                                loadContentAsync("#divValorTotal", "<?php echo current_url(); ?>", "#divValorTotal");
+                                $("#resultado").val('');
+                                $("#desconto").val('');
+                            } else {
+                                loadContentAsync("#divProdutos", "<?php echo current_url(); ?>", "#divProdutos");
+                                Swal.fire({
+                                    type: "error",
+                                    title: "Atenção",
+                                    text: "Ocorreu um erro ao tentar zerar o valor dos produtos."
+                                });
+                            }
+                        },
+                        error: function () {
+                            loadContentAsync("#divProdutos", "<?php echo current_url(); ?>", "#divProdutos");
+                            Swal.fire({
+                                type: "error",
+                                title: "Atenção",
+                                text: "Ocorreu um erro ao tentar zerar o valor dos produtos."
+                            });
+                        }
+                    });
+                }
+            });
+            return false;
         });
 
         $(document).on('click', '.servico', function (event) {
