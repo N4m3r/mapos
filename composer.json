@@ -13,7 +13,10 @@
         "phpoffice/phpword": "^0.18.3",
         "piggly/php-pix": "^2.0.2",
         "vlucas/phpdotenv": "^5.6.1",
-        "codephix/asaas-sdk": "^2.0.10"
+        "codephix/asaas-sdk": "^2.0.10",
+        "nfephp-org/sped-nfe": "^5.2",
+        "nfephp-org/sped-da": "^1.1",
+        "hadder/nfse-nacional": "^1.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.68.1",

@@ -50,6 +50,24 @@
                             <input id="descricao" type="text" name="descricao" value="<?php echo $result->descricao; ?>" />
                         </div>
                     </div>
+                    <div class="control-group">
+                        <label for="ncm" class="control-label">NCM <small>(fiscal)</small></label>
+                        <div class="controls">
+                            <input id="ncm" type="text" name="ncm" maxlength="8" value="<?php echo $result->ncm ?? ''; ?>" placeholder="8 dígitos - obrigatório p/ NF-e" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="cest" class="control-label">CEST <small>(fiscal)</small></label>
+                        <div class="controls">
+                            <input id="cest" type="text" name="cest" maxlength="7" value="<?php echo $result->cest ?? ''; ?>" placeholder="Opcional - só p/ produtos com ST" />
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="cfop" class="control-label">CFOP <small>(fiscal)</small></label>
+                        <div class="controls">
+                            <input id="cfop" type="text" name="cfop" maxlength="4" value="<?php echo $result->cfop ?? ''; ?>" placeholder="Deixe em branco p/ usar o padrão da config" />
+                        </div>
+                    </div>
 
                     <div class="control-group">
                         <label class="control-label">Tipo de Movimento</label>

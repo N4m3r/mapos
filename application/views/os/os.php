@@ -181,6 +181,9 @@
                                 if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dOs') && $editavel) {
                                     echo '<a href="#modal-excluir" role="button" data-toggle="modal" os="' . $r->idOs . '" class="btn-nwe4" title="Excluir OS"><i class="bx bx-trash-alt"></i></a>  ';
                                 }
+                                if (in_array($r->status, ['Finalizado', 'Faturado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) {
+                                    echo '<a style="margin-right: 1%" href="#modal-nfse" role="button" data-toggle="modal" data-os="' . $r->idOs . '" class="btn-nwe5 btn-transmitir-nfse" title="Transmitir NFS-e"><i class="bx bx-receipt bx-xs"></i></a>';
+                                }
                                 echo '</td>';
                                 echo '</tr>';
                             } ?>
@@ -210,6 +213,37 @@
             </div>
         </form>
     </div>
+
+    <!-- Modal Transmitir NFS-e -->
+    <div id="modal-nfse" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h5>Transmitir NFS-e (Padrão Nacional)</h5>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="nfseIdOs" value="" />
+            <div id="nfseConfirmacao">
+                <h5 style="text-align:center">Transmitir a NFS-e dos serviços desta OS?</h5>
+            </div>
+            <div id="nfseRetorno"></div>
+            <div id="nfseAcoes" style="display:none;text-align:center;margin-top:10px">
+                <a id="nfseBtnXml" href="#" class="button btn btn-info">
+                    <span class="button__icon"><i class='bx bx-code-alt'></i></span><span class="button__text2">Baixar XML</span>
+                </a>
+                <a id="nfseBtnDanfe" href="#" target="_blank" class="button btn btn-inverse">
+                    <span class="button__icon"><i class='bx bx-printer'></i></span><span class="button__text2">Imprimir DANFSe</span>
+                </a>
+            </div>
+        </div>
+        <div class="modal-footer" style="display:flex;justify-content:center">
+            <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true">
+                <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Fechar</span>
+            </button>
+            <button id="btnTransmitirNfse" class="button btn btn-success">
+                <span class="button__icon"><i class='bx bx-send'></i></span><span class="button__text2">Transmitir</span>
+            </button>
+        </div>
+    </div>
 </div>
 
 <script type="text/javascript">
@@ -217,6 +251,40 @@
         $(document).on('click', 'a', function(event) {
             var os = $(this).attr('os');
             $('#idOs').val(os);
+        });
+        $(document).on('click', '.btn-transmitir-nfse', function() {
+            $('#nfseIdOs').val($(this).data('os'));
+            $('#nfseConfirmacao').show();
+            $('#nfseRetorno').html('');
+            $('#nfseAcoes').hide();
+            $('#btnTransmitirNfse').show().attr('disabled', false);
+        });
+        $(document).on('click', '#btnTransmitirNfse', function() {
+            var btn = $(this);
+            btn.attr('disabled', true);
+            $('#nfseConfirmacao').hide();
+            $('#nfseRetorno').html('<div class="alert alert-info">Transmitindo para o Sefin Nacional, aguarde...</div>');
+
+            $.post('<?php echo site_url('nfe/emitirNfse') ?>/' + $('#nfseIdOs').val(), {}, function(data) {
+                if (data.success) {
+                    $('#nfseRetorno').html('<div class="alert alert-success">' + data.message + '</div>');
+                    if (data.urlXml) {
+                        $('#nfseBtnXml').attr('href', data.urlXml).show();
+                    } else {
+                        $('#nfseBtnXml').hide();
+                    }
+                    $('#nfseBtnDanfe').attr('href', data.urlDanfe);
+                    $('#nfseAcoes').show();
+                    btn.hide();
+                } else {
+                    $('#nfseRetorno').html('<div class="alert alert-danger">' + data.message + '</div>');
+                    btn.attr('disabled', false);
+                    $('#nfseConfirmacao').show();
+                }
+            }, 'json').fail(function() {
+                $('#nfseRetorno').html('<div class="alert alert-danger">Falha de comunicação com o servidor.</div>');
+                btn.attr('disabled', false);
+            });
         });
         $(document).on('click', '#excluir-notificacao', function(event) {
             event.preventDefault();

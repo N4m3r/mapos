@@ -154,6 +154,17 @@
                     </li>
                 <?php } ?>
 
+                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vNfe')) { ?>
+                    <li class="<?php if (isset($menuNfe)) {
+                        echo 'active';
+                    }; ?>">
+                        <a class="tip-bottom" title="" href="<?= site_url('nfe') ?>"><i class='bx bx-receipt iconX'></i>
+                            <span class="title">Notas Fiscais</span>
+                            <span class="title-tooltip">NF-e / NFS-e</span>
+                        </a>
+                    </li>
+                <?php } ?>
+
                 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) { ?>
                     <li class="<?php if (isset($menuAtribuir)) {
                         echo 'active';

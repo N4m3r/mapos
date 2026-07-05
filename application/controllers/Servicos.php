@@ -67,6 +67,7 @@ class Servicos extends MY_Controller
                 'nome' => set_value('nome'),
                 'descricao' => set_value('descricao'),
                 'preco' => $preco,
+                'codigo_servico_municipio' => preg_replace('/\D/', '', (string) $this->input->post('codigo_servico_municipio')),
             ];
 
             if ($this->servicos_model->add('servicos', $data) == true) {
@@ -100,6 +101,7 @@ class Servicos extends MY_Controller
                 'nome' => $this->input->post('nome'),
                 'descricao' => $this->input->post('descricao'),
                 'preco' => $preco,
+                'codigo_servico_municipio' => preg_replace('/\D/', '', (string) $this->input->post('codigo_servico_municipio')),
             ];
 
             if ($this->servicos_model->edit('servicos', $data, 'idServicos', $this->input->post('idServicos')) == true) {

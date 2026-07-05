@@ -29,6 +29,12 @@
                             <input id="descricao" type="text" name="descricao" value="<?php echo $result->descricao ?>" />
                         </div>
                     </div>
+                    <div class="control-group">
+                        <label for="codigo_servico_municipio" class="control-label">Cód. Tributação Nacional <small>(NFS-e)</small></label>
+                        <div class="controls">
+                            <input id="codigo_servico_municipio" type="text" name="codigo_servico_municipio" maxlength="6" value="<?php echo $result->codigo_servico_municipio ?? '' ?>" placeholder="6 dígitos (item da LC 116), ex: 140101" />
+                        </div>
+                    </div>
                     <div class="form-actions">
                         <div class="span12">
                             <div class="span6 offset3" style="display:flex;justify-content: center">

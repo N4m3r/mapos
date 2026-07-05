@@ -99,6 +99,18 @@
                             </div>
                         </div>
                         <div class="control-group">
+                            <label for="ie" class="control-label">Inscrição Estadual</label>
+                            <div class="controls">
+                                <input id="ie" type="text" name="ie" value="<?php echo set_value('ie'); ?>" placeholder="ISENTO se não contribuinte" />
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="im" class="control-label">Inscrição Municipal</label>
+                            <div class="controls">
+                                <input id="im" type="text" name="im" value="<?php echo set_value('im'); ?>" />
+                            </div>
+                        </div>
+                        <div class="control-group">
                             <label for="nomeCliente" class="control-label">Nome/Razão Social<span class="required">*</span></label>
                             <div class="controls">
                                 <input id="nomeCliente" type="text" name="nomeCliente" value="<?php echo set_value('nomeCliente'); ?>" />

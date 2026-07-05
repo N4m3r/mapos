@@ -139,6 +139,10 @@
                                 echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/vendas/imprimirTermica/' . $r->idVendas . '" target="_blank" class="btn-nwe6" title="Imprimir Não Fiscal"><i class="bx bx-printer bx-xs"></i></a>';
                             }
 
+                            if ($r->faturado == 1 && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) {
+                                echo '<a style="margin-right: 1%" href="#modal-nfe" role="button" data-toggle="modal" data-venda="' . $r->idVendas . '" class="btn-nwe5 btn-transmitir-nfe" title="Transmitir NF-e"><i class="bx bx-receipt bx-xs"></i></a>';
+                            }
+
                             $editavel = $this->vendas_model->isEditable($r->idVendas);
 
                             if ($r->faturado != 1 || $editavel) {
@@ -178,11 +182,74 @@
     </form>
 </div>
 
+<!-- Modal Transmitir NF-e -->
+<div id="modal-nfe" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h5>Transmitir NF-e</h5>
+    </div>
+    <div class="modal-body">
+        <input type="hidden" id="nfeIdVenda" value="" />
+        <div id="nfeConfirmacao">
+            <h5 style="text-align:center">Transmitir a NF-e desta venda para a SEFAZ?</h5>
+        </div>
+        <div id="nfeRetorno"></div>
+        <div id="nfeAcoes" style="display:none;text-align:center;margin-top:10px">
+            <a id="nfeBtnXml" href="#" class="button btn btn-info">
+                <span class="button__icon"><i class='bx bx-code-alt'></i></span><span class="button__text2">Baixar XML</span>
+            </a>
+            <a id="nfeBtnDanfe" href="#" target="_blank" class="button btn btn-inverse">
+                <span class="button__icon"><i class='bx bx-printer'></i></span><span class="button__text2">Imprimir DANFE</span>
+            </a>
+        </div>
+    </div>
+    <div class="modal-footer" style="display:flex;justify-content:center">
+        <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true">
+            <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Fechar</span>
+        </button>
+        <button id="btnTransmitirNfe" class="button btn btn-success">
+            <span class="button__icon"><i class='bx bx-send'></i></span><span class="button__text2">Transmitir</span>
+        </button>
+    </div>
+</div>
+
 <script type="text/javascript">
     $(document).ready(function() {
         $(document).on('click', 'a', function(event) {
             var venda = $(this).attr('venda');
             $('#idVenda').val(venda);
+        });
+
+        $(document).on('click', '.btn-transmitir-nfe', function() {
+            $('#nfeIdVenda').val($(this).data('venda'));
+            $('#nfeConfirmacao').show();
+            $('#nfeRetorno').html('');
+            $('#nfeAcoes').hide();
+            $('#btnTransmitirNfe').show().attr('disabled', false);
+        });
+
+        $('#btnTransmitirNfe').on('click', function() {
+            var btn = $(this);
+            btn.attr('disabled', true);
+            $('#nfeConfirmacao').hide();
+            $('#nfeRetorno').html('<div class="alert alert-info">Transmitindo para a SEFAZ, aguarde...</div>');
+
+            $.post('<?= site_url('nfe/emitirNfe') ?>/' + $('#nfeIdVenda').val(), {}, function(data) {
+                if (data.success) {
+                    $('#nfeRetorno').html('<div class="alert alert-success">' + data.message + '</div>');
+                    $('#nfeBtnXml').attr('href', data.urlXml);
+                    $('#nfeBtnDanfe').attr('href', data.urlDanfe);
+                    $('#nfeAcoes').show();
+                    btn.hide();
+                } else {
+                    $('#nfeRetorno').html('<div class="alert alert-danger">' + data.message + '</div>');
+                    btn.attr('disabled', false);
+                    $('#nfeConfirmacao').show();
+                }
+            }, 'json').fail(function() {
+                $('#nfeRetorno').html('<div class="alert alert-danger">Falha de comunicação com o servidor.</div>');
+                btn.attr('disabled', false);
+            });
         });
     });
 </script>
