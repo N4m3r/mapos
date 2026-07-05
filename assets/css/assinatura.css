@@ -1,0 +1,176 @@
+/**
+ * Estilos do Sistema de Assinatura Digital
+ * MAPOS OS
+ */
+
+/* Container principal */
+.assinatura-container {
+    background: #f9f9f9;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.assinatura-container h5 {
+    margin: 0 0 15px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+    color: #2d335b;
+}
+
+/* Canvas wrapper - IMPORTANTE para mobile */
+.assinatura-canvas-wrapper {
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    touch-action: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    -khtml-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+}
+
+.assinatura-canvas-wrapper canvas {
+    display: block;
+    background: #ffffff;
+    touch-action: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    cursor: crosshair;
+}
+
+.assinatura-canvas-wrapper:hover {
+    border-color: #2d335b !important;
+}
+
+/* Botões */
+.assinatura-botoes {
+    text-align: right;
+}
+
+.assinatura-botoes .btn {
+    margin-left: 5px;
+}
+
+/* Campos adicionais */
+.assinatura-campos {
+    margin-top: 10px;
+}
+
+.assinatura-campos label {
+    font-weight: normal;
+    font-size: 12px;
+    color: #666;
+}
+
+/* Preview */
+#assinatura-preview img {
+    max-width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 5px;
+    background: #fff;
+}
+
+/* Responsividade para mobile */
+@media (max-width: 768px) {
+    .assinatura-container {
+        padding: 10px;
+    }
+
+    .assinatura-canvas-wrapper canvas {
+        width: 100% !important;
+        height: 120px !important;
+    }
+
+    .assinatura-campos .span6 {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-bottom: 10px;
+    }
+
+    .assinatura-botoes {
+        text-align: center;
+    }
+
+    .assinatura-botoes .btn {
+        margin: 2px;
+    }
+}
+
+/* Estados do canvas */
+.assinatura-canvas-wrapper.desenhando {
+    border-color: #2d335b !important;
+    box-shadow: 0 0 5px rgba(45, 51, 91, 0.3);
+}
+
+.assinatura-canvas-wrapper.vazio {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100"><text x="50%" y="50%" font-family="Arial" font-size="12" fill="#ccc" text-anchor="middle" dominant-baseline="middle">Assine aqui</text></svg>');
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Modais de assinatura */
+.modal-assinatura .modal-body {
+    text-align: center;
+}
+
+.modal-assinatura .assinatura-canvas-wrapper {
+    display: inline-block;
+    margin: 0 auto;
+}
+
+/* Alertas de validação */
+.assinatura-alerta {
+    display: none;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.assinatura-alerta.erro {
+    display: block;
+    background: #f2dede;
+    border: 1px solid #ebccd1;
+    color: #a94442;
+}
+
+.assinatura-alerta.sucesso {
+    display: block;
+    background: #dff0d8;
+    border: 1px solid #d6e9c6;
+    color: #3c763d;
+}
+
+/* Galeria de assinaturas salvas */
+.assinaturas-salvas {
+    margin-top: 20px;
+}
+
+.assinatura-salva-item {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #fff;
+}
+
+.assinatura-salva-item img {
+    max-width: 100%;
+    border: 1px solid #eee;
+    background: #fff;
+}
+
+.assinatura-salva-item .assinatura-info {
+    margin-top: 8px;
+    font-size: 11px;
+    color: #666;
+}
+
+.assinatura-salva-item .assinatura-info strong {
+    color: #333;
+}

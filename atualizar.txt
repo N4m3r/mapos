@@ -1,0 +1,85 @@
+-- SQL para atualizar o banco de dados do MAP-OS
+-- Sistema de Check-in, Assinaturas e Fotos
+-- Este script pode ser executado mesmo se as tabelas já existirem
+
+-- =====================================================
+-- TABELA: os_checkin (Check-in/Check-out da OS)
+-- =====================================================
+DROP TABLE IF EXISTS `os_checkin`;
+
+CREATE TABLE `os_checkin` (
+    `idCheckin` INT(11) NOT NULL AUTO_INCREMENT,
+    `os_id` INT(11) NOT NULL,
+    `usuarios_id` INT(11) NOT NULL,
+    `data_entrada` DATETIME NULL,
+    `data_saida` DATETIME NULL,
+    `latitude_entrada` DECIMAL(10,8) NULL,
+    `longitude_entrada` DECIMAL(11,8) NULL,
+    `latitude_saida` DECIMAL(10,8) NULL,
+    `longitude_saida` DECIMAL(11,8) NULL,
+    `observacao_entrada` TEXT NULL,
+    `observacao_saida` TEXT NULL,
+    `status` VARCHAR(30) NOT NULL DEFAULT 'Em Andamento',
+    `data_cadastro` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `data_atualizacao` DATETIME NULL,
+    PRIMARY KEY (`idCheckin`),
+    INDEX `idx_os_id` (`os_id`),
+    INDEX `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- =====================================================
+-- TABELA: os_assinaturas (Assinaturas Digitais)
+-- =====================================================
+DROP TABLE IF EXISTS `os_assinaturas`;
+
+CREATE TABLE `os_assinaturas` (
+    `idAssinatura` INT(11) NOT NULL AUTO_INCREMENT,
+    `os_id` INT(11) NOT NULL,
+    `checkin_id` INT(11) NULL,
+    `tipo` VARCHAR(20) NOT NULL COMMENT 'tecnico_entrada, tecnico_saida, cliente_saida',
+    `assinatura` VARCHAR(255) NOT NULL COMMENT 'Caminho da imagem da assinatura',
+    `nome_assinante` VARCHAR(100) NULL,
+    `documento_assinante` VARCHAR(20) NULL,
+    `data_assinatura` DATETIME NOT NULL,
+    `ip_address` VARCHAR(45) NULL,
+    `data_cadastro` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`idAssinatura`),
+    INDEX `idx_os_id` (`os_id`),
+    INDEX `idx_tipo` (`tipo`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- =====================================================
+-- TABELA: os_fotos_atendimento (Fotos do Atendimento)
+-- =====================================================
+DROP TABLE IF EXISTS `os_fotos_atendimento`;
+
+CREATE TABLE `os_fotos_atendimento` (
+    `idFoto` INT(11) NOT NULL AUTO_INCREMENT,
+    `os_id` INT(11) NOT NULL,
+    `checkin_id` INT(11) NULL,
+    `usuarios_id` INT(11) NOT NULL,
+    `arquivo` VARCHAR(255) NOT NULL,
+    `path` VARCHAR(255) NOT NULL,
+    `url` VARCHAR(255) NOT NULL,
+    `descricao` TEXT NULL,
+    `etapa` VARCHAR(20) NOT NULL DEFAULT 'durante' COMMENT 'entrada, durante, saida',
+    `tamanho` INT(11) NULL,
+    `tipo_arquivo` VARCHAR(10) NULL,
+    `data_upload` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`idFoto`),
+    INDEX `idx_os_id` (`os_id`),
+    INDEX `idx_etapa` (`etapa`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- =====================================================
+-- FIM DO SCRIPT
+-- =====================================================
+-- Instrucoes:
+-- 1. Acesse o phpMyAdmin
+-- 2. Selecione o banco de dados do MAP-OS
+-- 3. Va em "Importar" ou "SQL"
+-- 4. Cole o codigo acima e execute
+--
+-- OU execute via linha de comando:
+-- mysql -u usuario -p nome_do_banco < atualizar.txt
+-- =====================================================

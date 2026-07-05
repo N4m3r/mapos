@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat application/logs/*.log)",
+      "Bash(ls -la assets/assinaturas/*/)",
+      "Bash(grep -n \"CREATE TABLE.*os_assinaturas\" -A 20 application/logs/*.sql)",
+      "Bash(php -r \"require 'index.php'; echo 'OK';\")",
+      "Bash(ls -la application/database/migrations/*dashboard* application/controllers/Dashboard.php application/models/Dashboard_model.php application/views/dashboard/index.php application/views/tema/menu.php)",
+      "Bash(php index.php tools migrate)"
+    ]
+  }
+}
