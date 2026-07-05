@@ -29,3 +29,10 @@ ci_sessions/
 uploads
 application/.env
 assets/userImage
+
+# Dados de runtime (não versionar)
+assets/anexos/
+# Módulo fiscal: certificado A1 e XMLs autorizados nunca vão para o repositório
+# (mantém a pasta e o .htaccess de proteção rastreados)
+application/arquivos_fiscais/certificado/
+application/arquivos_fiscais/xml/
