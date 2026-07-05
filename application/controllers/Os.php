@@ -390,6 +390,14 @@ class Os extends MY_Controller
             $this->data['totalProdutos'] = $return['totalProdutos'];
         }
 
+        // Nota fiscal de serviço (NFS-e) ativa desta OS, se houver.
+        // Protegido: o módulo fiscal pode ainda não ter sido migrado neste ambiente.
+        $this->data['notaFiscal'] = null;
+        if ($this->db->table_exists('notas_fiscais')) {
+            $this->load->model('nfe_model');
+            $this->data['notaFiscal'] = $this->nfe_model->getNotaAtiva('nfse', 'os_id', $os_id);
+        }
+
         return $this->layout();
     }
 
