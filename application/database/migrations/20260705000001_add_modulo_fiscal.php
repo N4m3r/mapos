@@ -110,12 +110,14 @@ class Migration_add_modulo_fiscal extends CI_Migration {
             'ultima_atualizacao' => [
                 'type' => 'TIMESTAMP',
                 'null' => false,
-                'default' => 'CURRENT_TIMESTAMP',
             ],
         ]);
         $this->dbforge->add_key('id', true);
         $this->dbforge->create_table('configuracoes_nfe', true);
         $this->db->query('ALTER TABLE `configuracoes_nfe` ENGINE = InnoDB');
+        // CURRENT_TIMESTAMP nao pode ser definido via dbforge (ele escapa o valor);
+        // aplicado aqui com SQL cru para virar palavra-chave e nao string literal.
+        $this->db->query('ALTER TABLE `configuracoes_nfe` MODIFY `ultima_atualizacao` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
 
         // Registro único de configuração
         $existe = $this->db->get('configuracoes_nfe');
@@ -218,12 +220,12 @@ class Migration_add_modulo_fiscal extends CI_Migration {
             'data_cadastro' => [
                 'type' => 'TIMESTAMP',
                 'null' => false,
-                'default' => 'CURRENT_TIMESTAMP',
             ],
         ]);
         $this->dbforge->add_key('idNota', true);
         $this->dbforge->create_table('notas_fiscais', true);
         $this->db->query('ALTER TABLE `notas_fiscais` ENGINE = InnoDB');
+        $this->db->query('ALTER TABLE `notas_fiscais` MODIFY `data_cadastro` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP');
         $this->db->query('ALTER TABLE `notas_fiscais` ADD INDEX `idx_vendas_id` (`vendas_id`)');
         $this->db->query('ALTER TABLE `notas_fiscais` ADD INDEX `idx_os_id` (`os_id`)');
         $this->db->query('ALTER TABLE `notas_fiscais` ADD INDEX `idx_chave` (`chave`)');

@@ -56,6 +56,18 @@
                     <a title="Enviar por E-mail" class="button btn btn-mini btn-warning" href="<?php echo site_url() ?>/os/enviar_email/<?php echo $result->idOs; ?>">
                         <span class="button__icon"><i class="bx bx-envelope"></i></span> <span class="button__text">Via E-mail</span>
                     </a>
+
+                    <?php
+                    $notaFiscal = isset($notaFiscal) ? $notaFiscal : null;
+                    if ($notaFiscal && $notaFiscal->status === 'autorizada') { ?>
+                        <a title="Imprimir DANFSe" target="_blank" class="button btn btn-mini btn-inverse" href="<?php echo site_url('nfe/danfe/' . $notaFiscal->idNota); ?>">
+                            <span class="button__icon"><i class="bx bx-receipt"></i></span> <span class="button__text">NFS-e nº <?php echo $notaFiscal->numero; ?></span>
+                        </a>
+                    <?php } elseif (in_array($result->status, ['Finalizado', 'Faturado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) { ?>
+                        <a title="Transmitir NFS-e" href="#modal-nfse" role="button" data-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-mini btn-success btn-transmitir-nfse">
+                            <span class="button__icon"><i class="bx bx-receipt"></i></span> <span class="button__text">Emitir NFS-e</span>
+                        </a>
+                    <?php } ?>
                 </div>
             </div>
             <div class="widget-content nopadding tab-content">
@@ -2325,3 +2337,85 @@
 <!-- Scripts do Sistema de Check-in -->
 <script src="<?php echo base_url(); ?>assets/js/assinatura-canvas.js"></script>
 <script src="<?php echo base_url(); ?>assets/js/checkin-fotos.js"></script>
+
+<!-- Modal Transmitir NFS-e -->
+<div id="modal-nfse" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h5>Transmitir NFS-e (Padrão Nacional)</h5>
+    </div>
+    <div class="modal-body">
+        <input type="hidden" id="nfseIdOs" value="" />
+        <div id="nfseConfirmacao">
+            <h5 style="text-align:center">Transmitir a NFS-e dos serviços desta OS?</h5>
+        </div>
+        <div id="nfseRetorno"></div>
+        <div id="nfseAcoes" style="display:none;text-align:center;margin-top:10px">
+            <a id="nfseBtnXml" href="#" class="button btn btn-info">
+                <span class="button__icon"><i class='bx bx-code-alt'></i></span><span class="button__text2">Baixar XML</span>
+            </a>
+            <a id="nfseBtnDanfe" href="#" target="_blank" class="button btn btn-inverse">
+                <span class="button__icon"><i class='bx bx-printer'></i></span><span class="button__text2">Imprimir DANFSe</span>
+            </a>
+        </div>
+    </div>
+    <div class="modal-footer" style="display:flex;justify-content:center">
+        <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true">
+            <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Fechar</span>
+        </button>
+        <button id="btnTransmitirNfse" class="button btn btn-success">
+            <span class="button__icon"><i class='bx bx-send'></i></span><span class="button__text2">Transmitir</span>
+        </button>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        var nfseEmitida = false;
+
+        $(document).on('click', '.btn-transmitir-nfse', function() {
+            $('#nfseIdOs').val($(this).data('os'));
+            $('#nfseConfirmacao').show();
+            $('#nfseRetorno').html('');
+            $('#nfseAcoes').hide();
+            $('#btnTransmitirNfse').show().attr('disabled', false);
+        });
+
+        $('#btnTransmitirNfse').on('click', function() {
+            var btn = $(this);
+            btn.attr('disabled', true);
+            $('#nfseConfirmacao').hide();
+            $('#nfseRetorno').html('<div class="alert alert-info">Transmitindo para o Sefin Nacional, aguarde...</div>');
+
+            $.post('<?php echo site_url('nfe/emitirNfse') ?>/' + $('#nfseIdOs').val(), {}, function(data) {
+                if (data.success) {
+                    nfseEmitida = true;
+                    $('#nfseRetorno').html('<div class="alert alert-success">' + data.message + '</div>');
+                    if (data.urlXml) {
+                        $('#nfseBtnXml').attr('href', data.urlXml).show();
+                    } else {
+                        $('#nfseBtnXml').hide();
+                    }
+                    $('#nfseBtnDanfe').attr('href', data.urlDanfe);
+                    $('#nfseAcoes').show();
+                    btn.hide();
+                } else {
+                    $('#nfseRetorno').html('<div class="alert alert-danger">' + data.message + '</div>');
+                    btn.attr('disabled', false);
+                    $('#nfseConfirmacao').show();
+                }
+            }, 'json').fail(function() {
+                $('#nfseRetorno').html('<div class="alert alert-danger">Falha de comunicação com o servidor.</div>');
+                btn.attr('disabled', false);
+            });
+        });
+
+        // Ao fechar o modal após emitir com sucesso, recarrega para atualizar a barra de ações
+        // (cobre Bootstrap 2 "hidden" e Bootstrap 3+ "hidden.bs.modal")
+        $('#modal-nfse').on('hidden hidden.bs.modal', function() {
+            if (nfseEmitida) {
+                window.location.reload();
+            }
+        });
+    });
+</script>
