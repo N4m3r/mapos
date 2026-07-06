@@ -155,8 +155,25 @@ $chaveFmt = trim(chunk_split($d['chave'], 4, ' '));
     <div class="sec">Transportador / Volumes Transportados</div>
     <table style="border-top:0">
         <tr>
-            <td><span class="rot">Modalidade do Frete</span><?= html_escape($modFrete) ?></td>
-            <td class="c"><span class="rot">Valor Aprox. Tributos</span><?= $fmt($d['vTotTrib']) ?></td>
+            <td style="width:32%"><span class="rot">Razão Social</span><?= html_escape($d['transpNome']) ?>&nbsp;</td>
+            <td style="width:20%"><span class="rot">Frete por Conta</span><?= html_escape($modFrete) ?></td>
+            <td><span class="rot">Código ANTT</span><?= html_escape($d['veicAntt']) ?>&nbsp;</td>
+            <td><span class="rot">Placa do Veículo</span><?= html_escape($d['veicPlaca']) ?>&nbsp;</td>
+            <td style="width:7%"><span class="rot">UF</span><?= html_escape($d['veicUF']) ?>&nbsp;</td>
+            <td><span class="rot">CNPJ / CPF</span><?= html_escape($d['transpDoc']) ?>&nbsp;</td>
+        </tr>
+        <tr>
+            <td colspan="3"><span class="rot">Endereço</span><?= html_escape($d['transpEnd']) ?>&nbsp;</td>
+            <td><span class="rot">Município</span><?= html_escape($d['transpMun']) ?>&nbsp;</td>
+            <td colspan="2"><span class="rot">UF / Inscrição Estadual</span><?= html_escape(trim($d['transpUF'] . ' ' . $d['transpIE'])) ?>&nbsp;</td>
+        </tr>
+        <tr>
+            <td><span class="rot">Quantidade</span><?= html_escape($d['volQtd']) ?>&nbsp;</td>
+            <td><span class="rot">Espécie</span><?= html_escape($d['volEsp']) ?>&nbsp;</td>
+            <td><span class="rot">Marca</span><?= html_escape($d['volMarca']) ?>&nbsp;</td>
+            <td><span class="rot">Numeração</span><?= html_escape($d['volNum']) ?>&nbsp;</td>
+            <td><span class="rot">Peso Bruto</span><?= html_escape($d['volPesoB']) ?>&nbsp;</td>
+            <td><span class="rot">Peso Líquido</span><?= html_escape($d['volPesoL']) ?>&nbsp;</td>
         </tr>
     </table>
 
@@ -197,6 +214,17 @@ $chaveFmt = trim(chunk_split($d['chave'], 4, ' '));
                 </tr>
             <?php endforeach; ?>
         </tbody>
+    </table>
+
+    <!-- Cálculo do ISSQN -->
+    <div class="sec">Cálculo do ISSQN</div>
+    <table style="border-top:0">
+        <tr>
+            <td style="width:25%"><span class="rot">Inscrição Municipal</span><?= html_escape($d['issInscMun'] ?: (isset($emitente->im) ? $emitente->im : '')) ?>&nbsp;</td>
+            <td class="r" style="width:25%"><span class="rot">Valor Total dos Serviços</span><?= $fmt($d['issVServ'] ?: 0) ?></td>
+            <td class="r"><span class="rot">Base de Cálculo do ISSQN</span><?= $fmt($d['issVBC'] ?: 0) ?></td>
+            <td class="r"><span class="rot">Valor do ISSQN</span><?= $fmt($d['issVISS'] ?: 0) ?></td>
+        </tr>
     </table>
 
     <!-- Dados adicionais -->
