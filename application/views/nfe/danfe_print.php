@@ -29,7 +29,15 @@ $chaveFmt = trim(chunk_split($d['chave'], 4, ' '));
     <title>DANFE - NF-e <?= html_escape($d['numero']) ?></title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: Arial, Helvetica, sans-serif; font-size: 9px; color: #000; margin: 0; padding: 8px; }
+        body { font-family: Arial, Helvetica, sans-serif; font-size: 9px; color: #000; margin: 0; padding: 0; }
+        /* Folha A4 na tela (visualização) */
+        .folha-a4 { width: 210mm; min-height: 297mm; margin: 12px auto; padding: 8mm; background: #fff; box-shadow: 0 0 8px rgba(0,0,0,.35); }
+        @media screen { body { background: #d9d9d9; } }
+        @media print {
+            body { background: #fff; }
+            .folha-a4 { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
+            @page { size: A4 portrait; margin: 8mm; }
+        }
         table { border-collapse: collapse; width: 100%; }
         td, th { border: 1px solid #000; padding: 2px 3px; vertical-align: top; }
         .no-border, .no-border td { border: none; }
@@ -48,6 +56,7 @@ $chaveFmt = trim(chunk_split($d['chave'], 4, ' '));
 </head>
 
 <body>
+    <div class="folha-a4">
     <!-- Canhoto -->
     <table>
         <tr>
@@ -239,6 +248,7 @@ $chaveFmt = trim(chunk_split($d['chave'], 4, ' '));
     <div class="c" style="font-size:7px;margin-top:3px">
         <?= html_escape($d['xMotivo']) ?> — Documento impresso pelo MapOS. Consulte a autenticidade no portal da NF-e.
     </div>
+    </div><!-- /folha-a4 -->
 
     <script>window.onload = function () { window.print(); };</script>
 </body>
