@@ -823,46 +823,89 @@ class Nfe extends MY_Controller
             return $node ? trim($node->nodeValue) : '';
         };
 
-        // Itens (produtos)
+        // Itens (produtos) com dados fiscais
         $itens = [];
         foreach ($xp->query('//n:infNFe/n:det') as $det) {
             $gi = function ($rel) use ($xp, $det) {
                 $node = $xp->query($rel, $det)->item(0);
                 return $node ? trim($node->nodeValue) : '';
             };
+            // CST/CSOSN: no Simples é o CSOSN; senão o CST do ICMS
+            $cst = $gi('.//n:imposto//n:CSOSN') ?: $gi('.//n:imposto//n:CST');
             $itens[] = [
                 'codigo' => $gi('.//n:prod/n:cProd'),
                 'descricao' => $gi('.//n:prod/n:xProd'),
                 'ncm' => $gi('.//n:prod/n:NCM'),
+                'cst' => $cst,
                 'cfop' => $gi('.//n:prod/n:CFOP'),
                 'unidade' => $gi('.//n:prod/n:uCom'),
                 'quantidade' => $gi('.//n:prod/n:qCom'),
                 'vUnit' => $gi('.//n:prod/n:vUnCom'),
                 'vTotal' => $gi('.//n:prod/n:vProd'),
+                'vBcIcms' => $gi('.//n:imposto//n:ICMS//n:vBC'),
+                'vIcms' => $gi('.//n:imposto//n:ICMS//n:vICMS'),
+                'pIcms' => $gi('.//n:imposto//n:ICMS//n:pICMS'),
+                'vIpi' => $gi('.//n:imposto//n:IPI//n:vIPI'),
+                'pIpi' => $gi('.//n:imposto//n:IPI//n:pIPI'),
             ];
         }
+
+        $end = function ($base) use ($g) {
+            return [
+                'lgr' => $g($base . '/n:xLgr'),
+                'nro' => $g($base . '/n:nro'),
+                'cpl' => $g($base . '/n:xCpl'),
+                'bairro' => $g($base . '/n:xBairro'),
+                'mun' => $g($base . '/n:xMun'),
+                'uf' => $g($base . '/n:UF'),
+                'cep' => $g($base . '/n:CEP'),
+                'fone' => $g($base . '/n:fone'),
+            ];
+        };
+
+        $tot = fn ($campo) => $g('//n:total/n:ICMSTot/n:' . $campo);
 
         $d = [
             'chave' => preg_replace('/^NFe/', '', $g('//n:infNFe/@Id')),
             'numero' => $g('//n:ide/n:nNF') ?: (string) $nota->numero,
             'serie' => $g('//n:ide/n:serie'),
             'dhEmi' => $g('//n:ide/n:dhEmi'),
+            'dhSaiEnt' => $g('//n:ide/n:dhSaiEnt'),
             'natOp' => $g('//n:ide/n:natOp'),
+            'tpNF' => $g('//n:ide/n:tpNF'),
             'ambiente' => $g('//n:ide/n:tpAmb') ?: (string) $nota->ambiente,
+            // Emitente
             'emitNome' => $g('//n:emit/n:xNome'),
             'emitCnpj' => $g('//n:emit/n:CNPJ'),
             'emitIE' => $g('//n:emit/n:IE'),
-            'emitEnd' => trim($g('//n:emit/n:enderEmit/n:xLgr') . ', ' . $g('//n:emit/n:enderEmit/n:nro') . ' - ' . $g('//n:emit/n:enderEmit/n:xBairro') . ' - ' . $g('//n:emit/n:enderEmit/n:xMun') . '/' . $g('//n:emit/n:enderEmit/n:UF')),
+            'emitFone' => $g('//n:emit/n:enderEmit/n:fone'),
+            'emitEnd' => $end('//n:emit/n:enderEmit'),
+            // Destinatário
             'destNome' => $g('//n:dest/n:xNome'),
             'destDoc' => $g('//n:dest/n:CNPJ') ?: $g('//n:dest/n:CPF'),
             'destIE' => $g('//n:dest/n:IE'),
-            'destEnd' => trim($g('//n:dest/n:enderDest/n:xLgr') . ', ' . $g('//n:dest/n:enderDest/n:nro') . ' - ' . $g('//n:dest/n:enderDest/n:xBairro') . ' - ' . $g('//n:dest/n:enderDest/n:xMun') . '/' . $g('//n:dest/n:enderDest/n:UF')),
-            'vProd' => $g('//n:total/n:ICMSTot/n:vProd'),
-            'vDesc' => $g('//n:total/n:ICMSTot/n:vDesc'),
-            'vNF' => $g('//n:total/n:ICMSTot/n:vNF'),
+            'destEnd' => $end('//n:dest/n:enderDest'),
+            // Totais
+            'vBC' => $tot('vBC'),
+            'vICMS' => $tot('vICMS'),
+            'vBCST' => $tot('vBCST'),
+            'vST' => $tot('vST'),
+            'vProd' => $tot('vProd'),
+            'vFrete' => $tot('vFrete'),
+            'vSeg' => $tot('vSeg'),
+            'vDesc' => $tot('vDesc'),
+            'vIPI' => $tot('vIPI'),
+            'vPIS' => $tot('vPIS'),
+            'vCOFINS' => $tot('vCOFINS'),
+            'vOutro' => $tot('vOutro'),
+            'vNF' => $tot('vNF'),
+            'vTotTrib' => $tot('vTotTrib'),
+            // Transporte / fatura / pagamento
+            'modFrete' => $g('//n:transp/n:modFrete'),
             'infCpl' => $g('//n:infAdic/n:infCpl'),
             'protocolo' => $g('//n:protNFe/n:infProt/n:nProt'),
             'dhProt' => $g('//n:protNFe/n:infProt/n:dhRecbto'),
+            'xMotivo' => $g('//n:protNFe/n:infProt/n:xMotivo'),
             'itens' => $itens,
         ];
 

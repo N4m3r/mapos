@@ -1,170 +1,214 @@
 <?php
-// DANFE (NF-e / produtos) no mesmo estilo da impressão da OS.
-$fmt = fn ($v) => 'R$ ' . number_format((float) $v, 2, ',', '.');
+// DANFE (NF-e / produtos) — layout completo, a partir do XML autorizado.
+$fmt = fn ($v) => number_format((float) $v, 2, ',', '.');
 $dt = function ($iso) {
     $t = strtotime((string) $iso);
-    return $t ? date('d/m/Y H:i', $t) : $iso;
+    return $t ? date('d/m/Y', $t) : '';
+};
+$hr = function ($iso) {
+    $t = strtotime((string) $iso);
+    return $t ? date('H:i:s', $t) : '';
 };
 $homolog = (string) ($d['ambiente'] ?? '') === '2';
+$e = $d['emitEnd'];
+$dst = $d['destEnd'];
+$modFrete = match ((string) $d['modFrete']) {
+    '0' => '0 - Por conta do emitente',
+    '1' => '1 - Por conta do destinatário',
+    '2' => '2 - Por conta de terceiros',
+    '9' => '9 - Sem frete',
+    default => (string) $d['modFrete'],
+};
+$chaveFmt = trim(chunk_split($d['chave'], 4, ' '));
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
-    <title>DANFE - NF-e <?= html_escape($d['numero']) ?> - <?= html_escape($d['destNome']) ?></title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="<?= base_url() ?>assets/css/bootstrap5.3.2.min.css" />
-    <link rel="stylesheet" href="<?= base_url() ?>assets/font-awesome/css/font-awesome.css" />
-    <link rel="stylesheet" href="<?= base_url() ?>assets/css/imprimir.css">
+    <meta charset="utf-8">
+    <title>DANFE - NF-e <?= html_escape($d['numero']) ?></title>
     <style>
-        .via { display: none; }
-        .danfse-chave { font-family: monospace; letter-spacing: 1px; word-break: break-all; text-align: center; }
-        .tarja-homolog { background: #fff3cd; border: 1px solid #ffe08a; padding: 6px; text-align: center; font-weight: bold; margin: 6px 0; }
+        * { box-sizing: border-box; }
+        body { font-family: Arial, Helvetica, sans-serif; font-size: 9px; color: #000; margin: 0; padding: 8px; }
+        table { border-collapse: collapse; width: 100%; }
+        td, th { border: 1px solid #000; padding: 2px 3px; vertical-align: top; }
+        .no-border, .no-border td { border: none; }
+        .rot { font-size: 6.5px; text-transform: uppercase; display: block; color: #000; }
+        .b { font-weight: bold; }
+        .c { text-align: center; }
+        .r { text-align: right; }
+        .lg { font-size: 15px; font-weight: bold; }
+        .danfe-box { text-align: center; }
+        .sec { background: #ddd; font-weight: bold; text-transform: uppercase; font-size: 8px; padding: 1px 3px; border: 1px solid #000; margin-top: 3px; }
+        .chave { font-family: 'Courier New', monospace; font-size: 11px; letter-spacing: 1px; text-align: center; font-weight: bold; }
+        .canhoto { font-size: 8px; }
+        .tarja { background: #fff3cd; border: 1px solid #ffe08a; text-align: center; font-weight: bold; padding: 3px; margin: 3px 0; }
+        @media print { body { padding: 0; } .noprint { display: none; } }
     </style>
 </head>
 
 <body>
-    <div class="main-page">
-        <div class="sub-page">
-            <header>
-                <?php if ($emitente == null) : ?>
-                    <div class="alert alert-danger" role="alert">Configure os dados do emitente.</div>
-                <?php else : ?>
-                    <div class="imgLogo" class="align-middle">
-                        <?php if (!empty($emitente->url_logo)) : ?>
-                            <img src="<?= $emitente->url_logo ?>" class="img-fluid" style="width:140px;">
-                        <?php endif; ?>
-                    </div>
-                    <div class="emitente">
-                        <span style="font-size: 16px;"><b><?= html_escape($emitente->nome) ?></b></span></br>
-                        <span class="align-middle">CNPJ: <?= html_escape($d['emitCnpj'] ?: $emitente->cnpj) ?> — IE: <?= html_escape($d['emitIE']) ?></span></br>
-                        <span class="align-middle"><?= html_escape($d['emitEnd']) ?></span>
-                    </div>
-                    <div class="contatoEmitente">
-                        <span style="font-weight: bold;">Tel: <?= html_escape($emitente->telefone) ?></span></br>
-                        <span style="font-weight: bold;"><?= html_escape($emitente->email) ?></span>
-                    </div>
+    <!-- Canhoto -->
+    <table>
+        <tr>
+            <td style="width:78%" class="canhoto">
+                RECEBEMOS DE <b><?= html_escape($d['emitNome']) ?></b> OS PRODUTOS/SERVIÇOS CONSTANTES DA NOTA FISCAL ELETRÔNICA INDICADA AO LADO
+                <table style="margin-top:2px">
+                    <tr>
+                        <td style="width:60%"><span class="rot">Data de Recebimento</span>&nbsp;</td>
+                        <td><span class="rot">Identificação e Assinatura do Recebedor</span>&nbsp;</td>
+                    </tr>
+                </table>
+            </td>
+            <td class="c"><span class="rot">NF-e</span><br><span class="b">Nº <?= html_escape($d['numero']) ?></span><br>Série <?= html_escape($d['serie']) ?></td>
+        </tr>
+    </table>
+
+    <?php if ($homolog) : ?>
+        <div class="tarja">NF-e EMITIDA EM AMBIENTE DE HOMOLOGAÇÃO — SEM VALOR FISCAL</div>
+    <?php endif; ?>
+
+    <!-- Cabeçalho: emitente | DANFE | chave -->
+    <table style="margin-top:3px">
+        <tr>
+            <td style="width:42%">
+                <?php if (!empty($emitente->url_logo)) : ?>
+                    <img src="<?= $emitente->url_logo ?>" style="max-height:40px;max-width:120px;float:left;margin-right:6px">
                 <?php endif; ?>
-            </header>
-
-            <section>
-                <div class="title">
-                    DANFE — NF-e Nº <?= html_escape($d['numero']) ?> / Série <?= html_escape($d['serie']) ?>
-                    <span class="emissao">Emissão: <?= html_escape($dt($d['dhEmi'])) ?></span>
+                <span class="lg"><?= html_escape($d['emitNome']) ?></span><br>
+                <?= html_escape(trim($e['lgr'] . ', ' . $e['nro'] . ($e['cpl'] ? ' ' . $e['cpl'] : ''))) ?><br>
+                <?= html_escape($e['bairro']) ?> - <?= html_escape($e['mun']) ?>/<?= html_escape($e['uf']) ?><br>
+                CEP <?= html_escape($e['cep']) ?> - Fone <?= html_escape($e['fone']) ?>
+            </td>
+            <td style="width:16%" class="danfe-box">
+                <span class="b" style="font-size:13px">DANFE</span>
+                <span class="rot">Documento Auxiliar da Nota Fiscal Eletrônica</span>
+                <div style="margin-top:4px;text-align:left">
+                    <?= (string) $d['tpNF'] === '0' ? '<b>0</b>' : '0' ?> - Entrada<br>
+                    <?= (string) $d['tpNF'] === '1' ? '<b>1</b>' : '1' ?> - Saída
                 </div>
+                <div style="margin-top:4px"><span class="b">Nº <?= html_escape($d['numero']) ?></span><br>Série <?= html_escape($d['serie']) ?><br>Fl. 1/1</div>
+            </td>
+            <td>
+                <span class="rot">Controle do Fisco / Chave de Acesso</span>
+                <div class="chave"><?= html_escape($chaveFmt) ?></div>
+                <div class="c" style="margin-top:4px;font-size:8px">Consulte pela chave de acesso em<br>www.nfe.fazenda.gov.br/portal ou no site da SEFAZ</div>
+            </td>
+        </tr>
+    </table>
 
-                <?php if ($homolog) : ?>
-                    <div class="tarja-homolog">AMBIENTE DE HOMOLOGAÇÃO — SEM VALOR FISCAL</div>
-                <?php endif; ?>
+    <table style="border-top:0">
+        <tr>
+            <td style="width:58%"><span class="rot">Natureza da Operação</span><?= html_escape($d['natOp']) ?></td>
+            <td><span class="rot">Protocolo de Autorização de Uso</span><?= html_escape($d['protocolo']) ?> - <?= html_escape($dt($d['dhProt']) . ' ' . $hr($d['dhProt'])) ?></td>
+        </tr>
+        <tr>
+            <td><span class="rot">Inscrição Estadual</span><?= html_escape($d['emitIE']) ?></td>
+            <td><span class="rot">CNPJ</span><?= html_escape($d['emitCnpj']) ?></td>
+        </tr>
+    </table>
 
-                <div class="subtitle">DADOS DA NF-e</div>
-                <div class="tabela">
-                    <table class="table table-bordered">
-                        <tbody>
-                            <tr>
-                                <td style="width:60%"><b>Natureza da Operação:</b> <?= html_escape($d['natOp']) ?></td>
-                                <td><b>Protocolo de Autorização:</b> <?= html_escape($d['protocolo']) ?> <?= $d['dhProt'] ? '(' . html_escape($dt($d['dhProt'])) . ')' : '' ?></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+    <!-- Destinatário -->
+    <div class="sec">Destinatário / Remetente</div>
+    <table style="border-top:0">
+        <tr>
+            <td style="width:55%"><span class="rot">Nome / Razão Social</span><?= html_escape($d['destNome']) ?></td>
+            <td style="width:25%"><span class="rot">CNPJ / CPF</span><?= html_escape($d['destDoc']) ?></td>
+            <td><span class="rot">Data de Emissão</span><?= html_escape($dt($d['dhEmi'])) ?></td>
+        </tr>
+        <tr>
+            <td><span class="rot">Endereço</span><?= html_escape(trim($dst['lgr'] . ', ' . $dst['nro'])) ?></td>
+            <td><span class="rot">Bairro / Município</span><?= html_escape(trim($dst['bairro'] . ' - ' . $dst['mun'])) ?></td>
+            <td><span class="rot">Data de Saída/Entrada</span><?= html_escape($dt($d['dhSaiEnt'])) ?></td>
+        </tr>
+        <tr>
+            <td><span class="rot">CEP</span><?= html_escape($dst['cep']) ?></td>
+            <td><span class="rot">UF / Inscrição Estadual</span><?= html_escape($dst['uf']) ?> - <?= html_escape($d['destIE'] ?: 'ISENTO') ?></td>
+            <td><span class="rot">Hora de Saída</span><?= html_escape($hr($d['dhSaiEnt'])) ?></td>
+        </tr>
+    </table>
 
-                <div class="subtitle">CHAVE DE ACESSO</div>
-                <div class="tabela">
-                    <table class="table table-bordered">
-                        <tbody>
-                            <tr><td class="danfse-chave"><?= html_escape($d['chave']) ?></td></tr>
-                        </tbody>
-                    </table>
-                </div>
+    <!-- Cálculo do imposto -->
+    <div class="sec">Cálculo do Imposto</div>
+    <table style="border-top:0">
+        <tr>
+            <td class="c"><span class="rot">BC do ICMS</span><?= $fmt($d['vBC']) ?></td>
+            <td class="c"><span class="rot">Valor do ICMS</span><?= $fmt($d['vICMS']) ?></td>
+            <td class="c"><span class="rot">BC ICMS ST</span><?= $fmt($d['vBCST']) ?></td>
+            <td class="c"><span class="rot">Valor ICMS ST</span><?= $fmt($d['vST']) ?></td>
+            <td class="c"><span class="rot">V. Total Produtos</span><b><?= $fmt($d['vProd']) ?></b></td>
+        </tr>
+        <tr>
+            <td class="c"><span class="rot">V. Frete</span><?= $fmt($d['vFrete']) ?></td>
+            <td class="c"><span class="rot">V. Seguro</span><?= $fmt($d['vSeg']) ?></td>
+            <td class="c"><span class="rot">Desconto</span><?= $fmt($d['vDesc']) ?></td>
+            <td class="c"><span class="rot">Outras Desp. / IPI</span><?= $fmt($d['vOutro']) ?> / <?= $fmt($d['vIPI']) ?></td>
+            <td class="c"><span class="rot">V. Total da Nota</span><b><?= $fmt($d['vNF']) ?></b></td>
+        </tr>
+    </table>
 
-                <div class="subtitle">DESTINATÁRIO</div>
-                <div class="tabela">
-                    <table class="table table-bordered">
-                        <tbody>
-                            <tr>
-                                <td style="width:60%"><b>Nome/Razão Social:</b> <?= html_escape($d['destNome']) ?></td>
-                                <td><b>CNPJ/CPF:</b> <?= html_escape($d['destDoc']) ?></td>
-                            </tr>
-                            <?php if (!empty(trim($d['destEnd'], ', -/'))) : ?>
-                                <tr>
-                                    <td><b>Endereço:</b> <?= html_escape($d['destEnd']) ?></td>
-                                    <td><b>IE:</b> <?= html_escape($d['destIE'] ?: 'ISENTO') ?></td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
+    <!-- Transportador -->
+    <div class="sec">Transportador / Volumes Transportados</div>
+    <table style="border-top:0">
+        <tr>
+            <td><span class="rot">Modalidade do Frete</span><?= html_escape($modFrete) ?></td>
+            <td class="c"><span class="rot">Valor Aprox. Tributos</span><?= $fmt($d['vTotTrib']) ?></td>
+        </tr>
+    </table>
 
-                <div class="subtitle">PRODUTOS / SERVIÇOS</div>
-                <div class="tabela">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr class="table-secondary">
-                                <th>CÓD.</th>
-                                <th>DESCRIÇÃO</th>
-                                <th class="text-center">NCM</th>
-                                <th class="text-center">CFOP</th>
-                                <th class="text-center">UN</th>
-                                <th class="text-end">QTD</th>
-                                <th class="text-end">V. UNIT.</th>
-                                <th class="text-end">V. TOTAL</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($d['itens'] as $it) : ?>
-                                <tr>
-                                    <td><?= html_escape($it['codigo']) ?></td>
-                                    <td><?= html_escape($it['descricao']) ?></td>
-                                    <td class="text-center"><?= html_escape($it['ncm']) ?></td>
-                                    <td class="text-center"><?= html_escape($it['cfop']) ?></td>
-                                    <td class="text-center"><?= html_escape($it['unidade']) ?></td>
-                                    <td class="text-end"><?= number_format((float) $it['quantidade'], 2, ',', '.') ?></td>
-                                    <td class="text-end"><?= $fmt($it['vUnit']) ?></td>
-                                    <td class="text-end"><?= $fmt($it['vTotal']) ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+    <!-- Produtos -->
+    <div class="sec">Dados dos Produtos / Serviços</div>
+    <table style="border-top:0">
+        <thead>
+            <tr style="background:#eee">
+                <th>Código</th>
+                <th>Descrição</th>
+                <th class="c">NCM/SH</th>
+                <th class="c">CST</th>
+                <th class="c">CFOP</th>
+                <th class="c">Un</th>
+                <th class="r">Qtd</th>
+                <th class="r">V. Unit</th>
+                <th class="r">V. Total</th>
+                <th class="r">BC ICMS</th>
+                <th class="r">V. ICMS</th>
+                <th class="r">Alíq</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($d['itens'] as $it) : ?>
+                <tr>
+                    <td><?= html_escape($it['codigo']) ?></td>
+                    <td><?= html_escape($it['descricao']) ?></td>
+                    <td class="c"><?= html_escape($it['ncm']) ?></td>
+                    <td class="c"><?= html_escape($it['cst']) ?></td>
+                    <td class="c"><?= html_escape($it['cfop']) ?></td>
+                    <td class="c"><?= html_escape($it['unidade']) ?></td>
+                    <td class="r"><?= $fmt($it['quantidade']) ?></td>
+                    <td class="r"><?= $fmt($it['vUnit']) ?></td>
+                    <td class="r"><?= $fmt($it['vTotal']) ?></td>
+                    <td class="r"><?= $fmt($it['vBcIcms'] ?: 0) ?></td>
+                    <td class="r"><?= $fmt($it['vIcms'] ?: 0) ?></td>
+                    <td class="r"><?= $it['pIcms'] !== '' ? $fmt($it['pIcms']) . '%' : '-' ?></td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
 
-                <div class="subtitle">TOTAIS</div>
-                <div class="tabela">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr class="table-secondary">
-                                <th class="text-center">VALOR DOS PRODUTOS</th>
-                                <th class="text-center">DESCONTO</th>
-                                <th class="text-center">VALOR TOTAL DA NOTA</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="text-center"><?= $fmt($d['vProd']) ?></td>
-                                <td class="text-center"><?= $fmt($d['vDesc'] ?: 0) ?></td>
-                                <td class="text-center"><b><?= $fmt($d['vNF']) ?></b></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+    <!-- Dados adicionais -->
+    <div class="sec">Dados Adicionais</div>
+    <table style="border-top:0">
+        <tr>
+            <td style="width:65%;height:60px"><span class="rot">Informações Complementares</span><?= nl2br(html_escape($d['infCpl'])) ?></td>
+            <td><span class="rot">Reservado ao Fisco</span>&nbsp;</td>
+        </tr>
+    </table>
 
-                <?php if (!empty($d['infCpl'])) : ?>
-                    <div class="subtitle">DADOS ADICIONAIS</div>
-                    <div class="tabela">
-                        <table class="table table-bordered">
-                            <tbody>
-                                <tr><td style="font-size:11px"><?= nl2br(html_escape($d['infCpl'])) ?></td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php endif; ?>
-            </section>
-        </div>
+    <div class="c" style="font-size:7px;margin-top:3px">
+        <?= html_escape($d['xMotivo']) ?> — Documento impresso pelo MapOS. Consulte a autenticidade no portal da NF-e.
     </div>
 
-    <script>
-        window.onload = function () { window.print(); };
-    </script>
+    <script>window.onload = function () { window.print(); };</script>
 </body>
 
 </html>
