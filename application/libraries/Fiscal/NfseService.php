@@ -42,7 +42,7 @@ class NfseService
      * $servicos: itens de servicos_os + servicos (result do Os_model::getServicos)
      * Retorna: ['sucesso', 'chave', 'numero_dps', 'motivo', 'xml']
      */
-    public function emitir(object $os, array $servicos, int $numeroDps): array
+    public function emitir(object $os, array $servicos, int $numeroDps, array $opcoes = []): array
     {
         if (empty($servicos)) {
             throw new Exception('A OS não possui serviços lançados para emissão da NFS-e.');
@@ -68,8 +68,13 @@ class NfseService
             $descricoes[] = trim($servico->nome . (empty($servico->descricao) ? '' : ' - ' . $servico->descricao))
                 . ' (' . number_format($quantidade, 0) . 'x)';
         }
+        // Override do código de tributação vindo do wizard de emissão
+        $cTribNacOpcao = preg_replace('/\D/', '', (string) ($opcoes['ctribnac'] ?? ''));
+        if (strlen($cTribNacOpcao) === 6) {
+            $cTribNac = $cTribNacOpcao;
+        }
         if ($cTribNac === null) {
-            throw new Exception('Nenhum serviço da OS possui o Código de Tributação Nacional (6 dígitos). Cadastre-o em Serviços antes de emitir.');
+            throw new Exception('Nenhum serviço da OS possui o Código de Tributação Nacional (6 dígitos). Informe-o no momento da emissão ou cadastre-o em Serviços.');
         }
         $total = round($total, 2);
 
@@ -113,20 +118,39 @@ class NfseService
         $std->infDPS->serv->locPrest->cLocPrestacao = (string) $this->config->codigo_municipio;
         $std->infDPS->serv->cServ = new stdClass();
         $std->infDPS->serv->cServ->cTribNac = $cTribNac;
-        $std->infDPS->serv->cServ->xDescServ = mb_substr(
-            'OS nr. ' . $os->idOs . ': ' . implode('; ', $descricoes),
-            0,
-            2000
-        );
+
+        // Descrição do serviço: usa a informada no wizard, senão a montada a partir da OS.
+        $descOpcao = trim((string) ($opcoes['desc_servico'] ?? ''));
+        $descServico = $descOpcao !== ''
+            ? $descOpcao
+            : 'OS nr. ' . $os->idOs . ': ' . implode('; ', $descricoes);
+        // Informações complementares anexadas à descrição (a DPS nacional não tem campo próprio).
+        $infComplementar = trim((string) ($opcoes['info_complementar'] ?? ''));
+        if ($infComplementar !== '') {
+            $descServico .= ' | Obs.: ' . $infComplementar;
+        }
+        $std->infDPS->serv->cServ->xDescServ = mb_substr($descServico, 0, 2000);
 
         // valores
+        $tpRet = isset($opcoes['tp_ret_issqn']) && $opcoes['tp_ret_issqn'] !== ''
+            ? (int) $opcoes['tp_ret_issqn']
+            : (int) $this->config->tp_ret_issqn;
+        $aliquota = isset($opcoes['aliquota_iss']) && $opcoes['aliquota_iss'] !== ''
+            ? (float) str_replace(',', '.', (string) $opcoes['aliquota_iss'])
+            : (float) $this->config->aliquota_iss;
+
         $std->infDPS->valores = new stdClass();
         $std->infDPS->valores->vServPrest = new stdClass();
         $std->infDPS->valores->vServPrest->vServ = number_format($total, 2, '.', '');
         $std->infDPS->valores->trib = new stdClass();
         $std->infDPS->valores->trib->tribMun = new stdClass();
         $std->infDPS->valores->trib->tribMun->tribISSQN = 1; // operação tributável
-        $std->infDPS->valores->trib->tribMun->tpRetISSQN = (int) $this->config->tp_ret_issqn;
+        if ($aliquota > 0) {
+            // Alíquota aplicada do ISSQN (layout nacional). No Simples Nacional
+            // costuma ser dispensável (ISS apurado no DAS) — validar em homologação.
+            $std->infDPS->valores->trib->tribMun->pAliqAplic = number_format($aliquota, 2, '.', '');
+        }
+        $std->infDPS->valores->trib->tribMun->tpRetISSQN = $tpRet;
         $std->infDPS->valores->trib->totTrib = new stdClass();
         $std->infDPS->valores->trib->totTrib->indTotTrib = 0;
 

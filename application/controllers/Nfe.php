@@ -182,7 +182,8 @@ class Nfe extends MY_Controller
             $itens,
             ['vendas_id' => $idVenda],
             (float) ($venda->valorTotal ?? 0),
-            "venda {$idVenda}"
+            "venda {$idVenda}",
+            ['info_complementar' => (string) $this->input->post('info_complementar')]
         );
     }
 
@@ -226,7 +227,8 @@ class Nfe extends MY_Controller
             $itens,
             ['os_id' => $idOs],
             round($valorTotal, 2),
-            "OS {$idOs}"
+            "OS {$idOs}",
+            ['info_complementar' => (string) $this->input->post('info_complementar')]
         );
     }
 
@@ -235,7 +237,7 @@ class Nfe extends MY_Controller
      * $origem  = objeto com dados do cliente/documento (getById de venda ou OS)
      * $vinculo = ['vendas_id' => X] ou ['os_id' => Y]
      */
-    private function processarNfe($origem, array $itens, array $vinculo, float $valorTotal, string $rotuloLog)
+    private function processarNfe($origem, array $itens, array $vinculo, float $valorTotal, string $rotuloLog, array $opcoes = [])
     {
         $config = $this->nfe_model->getConfig();
         $emitente = $this->mapos_model->getEmitente();
@@ -260,7 +262,7 @@ class Nfe extends MY_Controller
                 'usuarios_id' => $this->session->userdata('id_admin'),
             ], $vinculo));
 
-            $resultado = $service->emitir($origem, $itens, $numero);
+            $resultado = $service->emitir($origem, $itens, $numero, $opcoes);
 
             if (!$resultado['sucesso']) {
                 $this->nfe_model->updateNota($idNota, [
@@ -355,7 +357,14 @@ class Nfe extends MY_Controller
                 'usuarios_id' => $this->session->userdata('id_admin'),
             ]);
 
-            $resultado = $service->emitir($os, $servicos, $numero);
+            $opcoes = [
+                'info_complementar' => (string) $this->input->post('info_complementar'),
+                'ctribnac' => (string) $this->input->post('ctribnac'),
+                'desc_servico' => (string) $this->input->post('desc_servico'),
+                'tp_ret_issqn' => (string) $this->input->post('tp_ret_issqn'),
+                'aliquota_iss' => (string) $this->input->post('aliquota_iss'),
+            ];
+            $resultado = $service->emitir($os, $servicos, $numero, $opcoes);
 
             if (!$resultado['sucesso']) {
                 $this->nfe_model->updateNota($idNota, [
@@ -394,6 +403,97 @@ class Nfe extends MY_Controller
 
             return $this->jsonResponse(false, $e->getMessage());
         }
+    }
+
+    /**
+     * Dados para o passo de revisão do wizard de emissão (via AJAX, JSON).
+     * $tipo = 'nfe' (produtos) ou 'nfse' (serviços) de uma OS.
+     */
+    public function previewOs($idOs = null, $tipo = 'nfse')
+    {
+        if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) {
+            return $this->jsonResponse(false, 'Sem permissão.');
+        }
+        if (!$idOs || !is_numeric($idOs) || !in_array($tipo, ['nfe', 'nfse'])) {
+            return $this->jsonResponse(false, 'Parâmetros inválidos.');
+        }
+
+        $this->load->model('os_model');
+        $os = $this->os_model->getById($idOs);
+        if (!$os) {
+            return $this->jsonResponse(false, 'OS não encontrada.');
+        }
+
+        $config = $this->nfe_model->getConfig();
+        $itens = [];
+        $avisos = [];
+        $defaults = [];
+        $total = 0.0;
+
+        if ($tipo === 'nfe') {
+            foreach ($this->os_model->getProdutos($idOs) as $p) {
+                $sub = (float) $p->quantidade * (float) $p->preco;
+                $total += $sub;
+                $ncm = preg_replace('/\D/', '', (string) ($p->ncm ?? ''));
+                if (strlen($ncm) !== 8) {
+                    $avisos[] = "Produto \"{$p->descricao}\" está sem NCM válido (8 dígitos).";
+                }
+                $itens[] = [
+                    'descricao' => $p->descricao,
+                    'quantidade' => (float) $p->quantidade,
+                    'preco' => (float) $p->preco,
+                    'subtotal' => $sub,
+                ];
+            }
+            if (empty($itens)) {
+                $avisos[] = 'Esta OS não possui produtos. Use "Emitir NFS-e" para os serviços.';
+            }
+        } else {
+            $cTribNac = '';
+            foreach ($this->os_model->getServicos($idOs) as $s) {
+                $preco = (float) ($s->preco ?: $s->precoVenda);
+                $qtd = (float) ($s->quantidade ?: 1);
+                $sub = $preco * $qtd;
+                $total += $sub;
+                $codigo = preg_replace('/\D/', '', (string) ($s->codigo_servico_municipio ?? ''));
+                if ($cTribNac === '' && strlen($codigo) === 6) {
+                    $cTribNac = $codigo;
+                }
+                $itens[] = [
+                    'descricao' => trim($s->nome . (empty($s->descricao) ? '' : ' - ' . $s->descricao)),
+                    'quantidade' => $qtd,
+                    'preco' => $preco,
+                    'subtotal' => $sub,
+                ];
+            }
+            if (empty($itens)) {
+                $avisos[] = 'Esta OS não possui serviços lançados.';
+            }
+            if ($cTribNac === '') {
+                $avisos[] = 'Nenhum serviço tem Código de Tributação Nacional cadastrado. Informe abaixo.';
+            }
+            $defaults = [
+                'ctribnac' => $cTribNac,
+                'aliquota_iss' => number_format((float) $config->aliquota_iss, 2, '.', ''),
+                'tp_ret_issqn' => (int) $config->tp_ret_issqn,
+                'desc_servico' => 'OS nr. ' . $os->idOs,
+            ];
+        }
+
+        return $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'success' => true,
+                'ambiente' => (int) $config->ambiente,
+                'cliente' => [
+                    'nome' => $os->nomeCliente,
+                    'documento' => $os->documento,
+                ],
+                'itens' => $itens,
+                'total' => round($total, 2),
+                'avisos' => $avisos,
+                'defaults' => $defaults,
+            ]));
     }
 
     /**

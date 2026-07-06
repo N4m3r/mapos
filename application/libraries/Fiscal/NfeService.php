@@ -57,7 +57,7 @@ class NfeService
      * $itens: itens_de_vendas + produtos (result do Vendas_model::getProdutos)
      * Retorna: ['sucesso', 'chave', 'protocolo', 'cstat', 'motivo', 'xml']
      */
-    public function emitir(object $venda, array $itens, int $numero): array
+    public function emitir(object $venda, array $itens, int $numero, array $opcoes = []): array
     {
         $this->validarEmitente();
         if (empty($itens)) {
@@ -278,9 +278,11 @@ class NfeService
         } else {
             $refDoc = '';
         }
+        $infComplementar = trim((string) ($opcoes['info_complementar'] ?? ''));
         $std = new stdClass();
         $std->infCpl = 'DOCUMENTO EMITIDO POR ME OU EPP OPTANTE PELO SIMPLES NACIONAL. '
-            . 'NAO GERA DIREITO A CREDITO FISCAL DE IPI.' . ($refDoc !== '' ? ' ' . $refDoc . '.' : '');
+            . 'NAO GERA DIREITO A CREDITO FISCAL DE IPI.' . ($refDoc !== '' ? ' ' . $refDoc . '.' : '')
+            . ($infComplementar !== '' ? ' ' . $infComplementar : '');
         $make->taginfAdic($std);
 
         if (!$make->monta()) {
