@@ -294,12 +294,14 @@ class Nfe extends MY_Controller
                 'urlXml' => site_url("nfe/xml/{$idNota}"),
                 'urlDanfe' => site_url("nfe/danfe/{$idNota}"),
             ]);
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
+            $tecnico = $e->getMessage();
             if ($idNota) {
-                $this->nfe_model->updateNota($idNota, ['status' => 'erro', 'motivo' => $e->getMessage()]);
+                $this->nfe_model->updateNota($idNota, ['status' => 'erro', 'motivo' => $tecnico]);
             }
+            log_message('error', 'Falha na emissão fiscal: ' . $tecnico);
 
-            return $this->jsonResponse(false, $e->getMessage());
+            return $this->jsonResponse(false, $this->traduzErroFiscal($e));
         }
     }
 
@@ -396,12 +398,14 @@ class Nfe extends MY_Controller
                 'urlXml' => $xmlPath ? site_url("nfe/xml/{$idNota}") : null,
                 'urlDanfe' => site_url("nfe/danfe/{$idNota}"),
             ]);
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
+            $tecnico = $e->getMessage();
             if ($idNota) {
-                $this->nfe_model->updateNota($idNota, ['status' => 'erro', 'motivo' => $e->getMessage()]);
+                $this->nfe_model->updateNota($idNota, ['status' => 'erro', 'motivo' => $tecnico]);
             }
+            log_message('error', 'Falha na emissão fiscal: ' . $tecnico);
 
-            return $this->jsonResponse(false, $e->getMessage());
+            return $this->jsonResponse(false, $this->traduzErroFiscal($e));
         }
     }
 
@@ -666,9 +670,28 @@ class Nfe extends MY_Controller
             log_info("Cancelou a nota fiscal nº {$nota->numero} ({$nota->tipo})");
 
             return $this->jsonResponse(true, 'Nota cancelada com sucesso.');
-        } catch (Exception $e) {
-            return $this->jsonResponse(false, $e->getMessage());
+        } catch (\Throwable $e) {
+            log_message('error', 'Falha no cancelamento fiscal: ' . $e->getMessage());
+
+            return $this->jsonResponse(false, $this->traduzErroFiscal($e));
         }
+    }
+
+    /**
+     * Converte erros técnicos (assinatura/OpenSSL/certificado) em mensagens
+     * acionáveis para o usuário; os demais erros passam com a própria mensagem.
+     */
+    private function traduzErroFiscal(\Throwable $e): string
+    {
+        $baixo = strtolower($e->getMessage());
+        $chaves = ['invalid digest', 'digital envelope', 'assinatura', 'unsupported', 'legacy', 'pkcs12', 'certificad', 'openssl'];
+        foreach ($chaves as $chave) {
+            if (str_contains($baixo, $chave)) {
+                return \Libraries\Fiscal\CertificadoHelper::traduzErroCertificado($e->getMessage());
+            }
+        }
+
+        return $e->getMessage();
     }
 
     /**

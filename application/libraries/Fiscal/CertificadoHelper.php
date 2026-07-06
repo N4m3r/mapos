@@ -65,13 +65,53 @@ class CertificadoHelper
         $conteudo = file_get_contents($path);
         $senha = self::descriptografar($senhaCriptografada);
 
-        $certificado = Certificate::readPfx($conteudo, $senha);
+        try {
+            $certificado = Certificate::readPfx($conteudo, $senha);
+        } catch (\Throwable $e) {
+            throw new Exception(self::traduzErroCertificado($e->getMessage()));
+        }
 
         if ($certificado->isExpired()) {
             throw new Exception('O certificado digital está VENCIDO (validade: ' . $certificado->getValidTo()->format('d/m/Y') . ')');
         }
 
+        // Valida que a chave privada realmente assina sob o OpenSSL atual.
+        // Certificados A1 ICP-Brasil usam algoritmos legados que o OpenSSL 3
+        // (PHP 8.1+) desativa por padrão, causando "invalid digest" só na hora
+        // de transmitir. Aqui o problema é detectado cedo, com mensagem clara.
+        try {
+            $certificado->sign('mapos-teste-assinatura', OPENSSL_ALGO_SHA1);
+        } catch (\Throwable $e) {
+            throw new Exception(self::traduzErroCertificado($e->getMessage()));
+        }
+
         return $certificado;
+    }
+
+    /**
+     * Traduz erros comuns de OpenSSL/certificado em mensagens acionáveis.
+     */
+    public static function traduzErroCertificado(string $erro): string
+    {
+        $baixo = strtolower($erro);
+        if (str_contains($baixo, 'invalid digest')
+            || str_contains($baixo, 'unsupported')
+            || str_contains($baixo, 'digital envelope')
+            || str_contains($baixo, 'legacy')
+            || str_contains($baixo, 'algorithm')) {
+            return 'O certificado A1 não pôde ser usado para assinar neste servidor. '
+                . 'Isso costuma acontecer porque o OpenSSL 3 (PHP 8.1+) desativa os algoritmos legados '
+                . 'usados pelos certificados ICP-Brasil. Soluções: (1) reconverter o certificado com '
+                . 'algoritmo moderno — openssl pkcs12 -in seu.pfx -nodes -legacy -out tmp.pem && '
+                . 'openssl pkcs12 -in tmp.pem -export -out novo.pfx — e reenviar o novo.pfx; ou '
+                . '(2) habilitar o "legacy provider" no openssl.cnf do servidor. '
+                . 'Detalhe técnico: ' . $erro;
+        }
+        if (str_contains($baixo, 'mac verify') || str_contains($baixo, 'password')) {
+            return 'Senha do certificado incorreta (falha ao abrir o .pfx). Reenvie o certificado com a senha correta em Configurações Fiscais. Detalhe: ' . $erro;
+        }
+
+        return 'Falha ao carregar o certificado digital: ' . $erro;
     }
 
     /**
