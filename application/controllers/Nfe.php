@@ -302,18 +302,37 @@ class Nfe extends MY_Controller
         try {
             $service = new NfeService($config, $emitente);
 
-            $numero = $this->nfe_model->reservarNumero('proximo_numero_nfe');
-
-            $idNota = $this->nfe_model->addNota(array_merge([
-                'tipo' => 'nfe',
-                'numero' => $numero,
-                'serie' => $config->serie_nfe,
-                'status' => 'pendente',
-                'ambiente' => $config->ambiente,
-                'valor_total' => $valorTotal,
-                'data_emissao' => date('Y-m-d H:i:s'),
-                'usuarios_id' => $this->session->userdata('id_admin'),
-            ], $vinculo));
+            // Reaproveita o número de uma nota rejeitada/erro da mesma origem
+            // (retransmissão após correção), em vez de queimar um número novo.
+            $campo = array_key_first($vinculo);
+            $reaproveitar = $this->nfe_model->getNotaReaproveitavel('nfe', $campo, $vinculo[$campo]);
+            if ($reaproveitar) {
+                $numero = (int) $reaproveitar->numero;
+                $idNota = $reaproveitar->idNota;
+                $this->nfe_model->updateNota($idNota, [
+                    'status' => 'pendente',
+                    'motivo' => null,
+                    'chave' => null,
+                    'protocolo' => null,
+                    'xml_path' => null,
+                    'valor_total' => $valorTotal,
+                    'ambiente' => $config->ambiente,
+                    'data_emissao' => date('Y-m-d H:i:s'),
+                    'usuarios_id' => $this->session->userdata('id_admin'),
+                ]);
+            } else {
+                $numero = $this->nfe_model->reservarNumero('proximo_numero_nfe');
+                $idNota = $this->nfe_model->addNota(array_merge([
+                    'tipo' => 'nfe',
+                    'numero' => $numero,
+                    'serie' => $config->serie_nfe,
+                    'status' => 'pendente',
+                    'ambiente' => $config->ambiente,
+                    'valor_total' => $valorTotal,
+                    'data_emissao' => date('Y-m-d H:i:s'),
+                    'usuarios_id' => $this->session->userdata('id_admin'),
+                ], $vinculo));
+            }
 
             $resultado = $service->emitir($origem, $itens, $numero, $opcoes);
 
@@ -393,24 +412,41 @@ class Nfe extends MY_Controller
             $servicos = $this->os_model->getServicos($idOs);
             $service = new NfseService($config, $emitente);
 
-            $numero = $this->nfe_model->reservarNumero('proximo_numero_dps');
-
             $valorTotal = 0.0;
             foreach ($servicos as $s) {
                 $valorTotal += ((float) ($s->quantidade ?? 1) ?: 1) * (float) ($s->preco ?? $s->precoVenda);
             }
 
-            $idNota = $this->nfe_model->addNota([
-                'tipo' => 'nfse',
-                'os_id' => $idOs,
-                'numero' => $numero,
-                'serie' => $config->serie_dps,
-                'status' => 'pendente',
-                'ambiente' => $config->ambiente,
-                'valor_total' => round($valorTotal, 2),
-                'data_emissao' => date('Y-m-d H:i:s'),
-                'usuarios_id' => $this->session->userdata('id_admin'),
-            ]);
+            // Reaproveita o número de uma DPS rejeitada/erro da mesma OS
+            // (retransmissão após correção), em vez de queimar um número novo.
+            $reaproveitar = $this->nfe_model->getNotaReaproveitavel('nfse', 'os_id', $idOs);
+            if ($reaproveitar) {
+                $numero = (int) $reaproveitar->numero;
+                $idNota = $reaproveitar->idNota;
+                $this->nfe_model->updateNota($idNota, [
+                    'status' => 'pendente',
+                    'motivo' => null,
+                    'chave' => null,
+                    'xml_path' => null,
+                    'valor_total' => round($valorTotal, 2),
+                    'ambiente' => $config->ambiente,
+                    'data_emissao' => date('Y-m-d H:i:s'),
+                    'usuarios_id' => $this->session->userdata('id_admin'),
+                ]);
+            } else {
+                $numero = $this->nfe_model->reservarNumero('proximo_numero_dps');
+                $idNota = $this->nfe_model->addNota([
+                    'tipo' => 'nfse',
+                    'os_id' => $idOs,
+                    'numero' => $numero,
+                    'serie' => $config->serie_dps,
+                    'status' => 'pendente',
+                    'ambiente' => $config->ambiente,
+                    'valor_total' => round($valorTotal, 2),
+                    'data_emissao' => date('Y-m-d H:i:s'),
+                    'usuarios_id' => $this->session->userdata('id_admin'),
+                ]);
+            }
 
             $opcoes = [
                 'info_complementar' => (string) $this->input->post('info_complementar'),

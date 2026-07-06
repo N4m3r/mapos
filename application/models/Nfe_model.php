@@ -76,6 +76,21 @@ class Nfe_model extends CI_Model
     }
 
     /**
+     * Última nota rejeitada/erro de uma origem (OS/Venda), para reaproveitar o
+     * número ao retransmitir após corrigir os dados — evita queimar numeração.
+     */
+    public function getNotaReaproveitavel($tipo, $campo, $id)
+    {
+        return $this->db
+            ->where('tipo', $tipo)
+            ->where($campo, $id)
+            ->where_in('status', ['rejeitada', 'erro'])
+            ->order_by('idNota', 'DESC')
+            ->get('notas_fiscais')
+            ->row();
+    }
+
+    /**
      * Todas as notas fiscais (qualquer status) de uma OS ou Venda,
      * para a aba de consulta dentro do documento de origem.
      */

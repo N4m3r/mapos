@@ -5,6 +5,7 @@
 $notas = isset($notas) ? $notas : [];
 $boletos = isset($boletos) ? $boletos : [];
 $podeCancelar = $this->permission->checkPermission($this->session->userdata('permissao'), 'dNfe');
+$podeEmitir = $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe');
 $podeGerarBoleto = $this->permission->checkPermission($this->session->userdata('permissao'), 'aCobranca');
 $podeVerBoleto = $this->permission->checkPermission($this->session->userdata('permissao'), 'vCobranca');
 $this->load->config('payment_gateways');
@@ -98,6 +99,12 @@ $gwConfig = $this->config->item('payment_gateways');
                             <?php } ?>
                             <?php if ($nota->status === 'autorizada' && $podeCancelar) { ?>
                                 <a href="<?php echo site_url('nfe/gerenciar?status=autorizada'); ?>" class="btn-nwe4" title="Cancelar (na tela de Notas Fiscais)"><i class="bx bx-x-circle bx-xs"></i></a>
+                            <?php } ?>
+                            <?php if (in_array($nota->status, ['rejeitada', 'erro']) && $podeEmitir && !empty($nota->os_id)) {
+                                $classeRetransmitir = $nota->tipo === 'nfe' ? 'btn-transmitir-nfe' : 'btn-transmitir-nfse';
+                                $modalRetransmitir = $nota->tipo === 'nfe' ? '#modal-nfe' : '#modal-nfse';
+                                ?>
+                                <a href="<?php echo $modalRetransmitir; ?>" role="button" data-toggle="modal" class="btn-nwe3 <?php echo $classeRetransmitir; ?>" data-os="<?php echo $nota->os_id; ?>" title="Corrigir e retransmitir (mantém o nº <?php echo $nota->numero; ?>)"><i class="bx bx-refresh bx-xs"></i></a>
                             <?php } ?>
                         </td>
                     </tr>
