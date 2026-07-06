@@ -15,7 +15,7 @@ class NfseService
 {
     private object $config;   // linha de configuracoes_nfe
     private object $emitente; // linha da tabela emitente
-    private Tools $tools;
+    private NfseTools $tools;
 
     private const VER_APLIC = 'MapOS_Fiscal_1.0';
 
@@ -34,7 +34,12 @@ class NfseService
         $toolsConfig->tpamb = (int) $config->ambiente;
         $toolsConfig->prefeitura = (string) $config->codigo_municipio;
 
-        $this->tools = new Tools(json_encode($toolsConfig), $certificado);
+        // NfseTools = Tools do hadder com o sign() sobrescrito pelo assinador
+        // próprio (RSA-SHA1 via openssl_private_encrypt), contornando o bloqueio
+        // de SHA1 do servidor. O material do certificado vem do próprio .pfx.
+        $this->tools = new NfseTools(json_encode($toolsConfig), $certificado);
+        $material = CertificadoHelper::lerChaveECert($config->certificado_path, $config->senha_certificado);
+        $this->tools->definirMaterial($material['pkey'], $material['cert']);
     }
 
     /**
