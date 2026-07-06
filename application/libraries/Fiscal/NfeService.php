@@ -269,10 +269,18 @@ class NfeService
         $std->vPag = number_format($totalProdutos - $desconto, 2, '.', '');
         $make->tagdetPag($std);
 
-        // informações adicionais exigidas do Simples Nacional
+        // informações adicionais exigidas do Simples Nacional.
+        // A origem pode ser uma Venda (idVendas) ou uma Ordem de Serviço (idOs).
+        if (isset($venda->idVendas)) {
+            $refDoc = 'Venda nr. ' . $venda->idVendas;
+        } elseif (isset($venda->idOs)) {
+            $refDoc = 'Ordem de Servico nr. ' . $venda->idOs;
+        } else {
+            $refDoc = '';
+        }
         $std = new stdClass();
         $std->infCpl = 'DOCUMENTO EMITIDO POR ME OU EPP OPTANTE PELO SIMPLES NACIONAL. '
-            . 'NAO GERA DIREITO A CREDITO FISCAL DE IPI. Venda nr. ' . $venda->idVendas . '.';
+            . 'NAO GERA DIREITO A CREDITO FISCAL DE IPI.' . ($refDoc !== '' ? ' ' . $refDoc . '.' : '');
         $make->taginfAdic($std);
 
         if (!$make->monta()) {

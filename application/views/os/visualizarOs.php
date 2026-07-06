@@ -65,8 +65,20 @@
                             <span class="button__icon"><i class="bx bx-receipt"></i></span> <span class="button__text">NFS-e nº <?php echo $notaFiscal->numero; ?></span>
                         </a>
                     <?php } elseif (in_array($result->status, ['Finalizado', 'Faturado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) { ?>
-                        <a title="Transmitir NFS-e" href="#modal-nfse" role="button" data-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-mini btn-success btn-transmitir-nfse">
+                        <a title="Transmitir NFS-e (serviços)" href="#modal-nfse" role="button" data-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-mini btn-success btn-transmitir-nfse">
                             <span class="button__icon"><i class="bx bx-receipt"></i></span> <span class="button__text">Emitir NFS-e</span>
+                        </a>
+                    <?php } ?>
+
+                    <?php
+                    $notaFiscalNfe = isset($notaFiscalNfe) ? $notaFiscalNfe : null;
+                    if ($notaFiscalNfe && $notaFiscalNfe->status === 'autorizada') { ?>
+                        <a title="Imprimir DANFE" target="_blank" class="button btn btn-mini btn-inverse" href="<?php echo site_url('nfe/danfe/' . $notaFiscalNfe->idNota); ?>">
+                            <span class="button__icon"><i class="bx bx-box"></i></span> <span class="button__text">NF-e nº <?php echo $notaFiscalNfe->numero; ?></span>
+                        </a>
+                    <?php } elseif (in_array($result->status, ['Finalizado', 'Faturado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) { ?>
+                        <a title="Transmitir NF-e (produtos)" href="#modal-nfe" role="button" data-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-mini btn-primary btn-transmitir-nfe">
+                            <span class="button__icon"><i class="bx bx-box"></i></span> <span class="button__text">Emitir NF-e</span>
                         </a>
                     <?php } ?>
 
@@ -1964,6 +1976,86 @@
         // (cobre Bootstrap 2 "hidden" e Bootstrap 3+ "hidden.bs.modal")
         $('#modal-nfse').on('hidden hidden.bs.modal', function() {
             if (nfseEmitida) {
+                window.location.reload();
+            }
+        });
+    });
+</script>
+
+<!-- Modal Transmitir NF-e (produtos) -->
+<div id="modal-nfe" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h5>Transmitir NF-e (produtos)</h5>
+    </div>
+    <div class="modal-body">
+        <input type="hidden" id="nfeIdOs" value="" />
+        <div id="nfeConfirmacao">
+            <h5 style="text-align:center">Transmitir a NF-e dos produtos desta OS para a SEFAZ?</h5>
+        </div>
+        <div id="nfeRetorno"></div>
+        <div id="nfeAcoes" style="display:none;text-align:center;margin-top:10px">
+            <a id="nfeBtnXml" href="#" class="button btn btn-info">
+                <span class="button__icon"><i class='bx bx-code-alt'></i></span><span class="button__text2">Baixar XML</span>
+            </a>
+            <a id="nfeBtnDanfe" href="#" target="_blank" class="button btn btn-inverse">
+                <span class="button__icon"><i class='bx bx-printer'></i></span><span class="button__text2">Imprimir DANFE</span>
+            </a>
+        </div>
+    </div>
+    <div class="modal-footer" style="display:flex;justify-content:center">
+        <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true">
+            <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Fechar</span>
+        </button>
+        <button id="btnTransmitirNfe" class="button btn btn-primary">
+            <span class="button__icon"><i class='bx bx-send'></i></span><span class="button__text2">Transmitir</span>
+        </button>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        var nfeEmitida = false;
+
+        $(document).on('click', '.btn-transmitir-nfe', function() {
+            $('#nfeIdOs').val($(this).data('os'));
+            $('#nfeConfirmacao').show();
+            $('#nfeRetorno').html('');
+            $('#nfeAcoes').hide();
+            $('#btnTransmitirNfe').show().attr('disabled', false);
+        });
+
+        $('#btnTransmitirNfe').on('click', function() {
+            var btn = $(this);
+            btn.attr('disabled', true);
+            $('#nfeConfirmacao').hide();
+            $('#nfeRetorno').html('<div class="alert alert-info">Transmitindo para a SEFAZ, aguarde...</div>');
+
+            $.post('<?php echo site_url('nfe/emitirNfeOs') ?>/' + $('#nfeIdOs').val(), {}, function(data) {
+                if (data.success) {
+                    nfeEmitida = true;
+                    $('#nfeRetorno').html('<div class="alert alert-success">' + data.message + '</div>');
+                    if (data.urlXml) {
+                        $('#nfeBtnXml').attr('href', data.urlXml).show();
+                    } else {
+                        $('#nfeBtnXml').hide();
+                    }
+                    $('#nfeBtnDanfe').attr('href', data.urlDanfe);
+                    $('#nfeAcoes').show();
+                    btn.hide();
+                } else {
+                    $('#nfeRetorno').html('<div class="alert alert-danger">' + data.message + '</div>');
+                    btn.attr('disabled', false);
+                    $('#nfeConfirmacao').show();
+                }
+            }, 'json').fail(function() {
+                $('#nfeRetorno').html('<div class="alert alert-danger">Falha de comunicação com o servidor.</div>');
+                btn.attr('disabled', false);
+            });
+        });
+
+        $('#modal-nfe').on('hidden hidden.bs.modal', function() {
+            if (nfeEmitida) {
                 window.location.reload();
             }
         });

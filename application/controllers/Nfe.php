@@ -175,6 +175,68 @@ class Nfe extends MY_Controller
             return $this->jsonResponse(false, "Esta venda já possui a NF-e nº {$notaExistente->numero} ({$notaExistente->status}). Cancele-a antes de emitir outra.");
         }
 
+        $itens = $this->vendas_model->getProdutos($idVenda);
+
+        return $this->processarNfe(
+            $venda,
+            $itens,
+            ['vendas_id' => $idVenda],
+            (float) ($venda->valorTotal ?? 0),
+            "venda {$idVenda}"
+        );
+    }
+
+    /**
+     * Transmite a NF-e (modelo 55) dos PRODUTOS de uma OS. Chamada via AJAX, retorna JSON.
+     * (Os serviços da OS são faturados separadamente via NFS-e.)
+     */
+    public function emitirNfeOs($idOs = null)
+    {
+        if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) {
+            return $this->jsonResponse(false, 'Você não tem permissão para emitir notas fiscais.');
+        }
+        if (!$idOs || !is_numeric($idOs)) {
+            return $this->jsonResponse(false, 'OS inválida.');
+        }
+
+        $this->load->model('os_model');
+
+        $os = $this->os_model->getById($idOs);
+        if (!$os) {
+            return $this->jsonResponse(false, 'OS não encontrada.');
+        }
+
+        $notaExistente = $this->nfe_model->getNotaAtiva('nfe', 'os_id', $idOs);
+        if ($notaExistente) {
+            return $this->jsonResponse(false, "Esta OS já possui a NF-e nº {$notaExistente->numero} ({$notaExistente->status}). Cancele-a antes de emitir outra.");
+        }
+
+        $itens = $this->os_model->getProdutos($idOs);
+        if (empty($itens)) {
+            return $this->jsonResponse(false, 'Esta OS não possui produtos para emitir NF-e. Para os serviços, use "Emitir NFS-e".');
+        }
+
+        $valorTotal = 0.0;
+        foreach ($itens as $item) {
+            $valorTotal += (float) $item->quantidade * (float) $item->preco;
+        }
+
+        return $this->processarNfe(
+            $os,
+            $itens,
+            ['os_id' => $idOs],
+            round($valorTotal, 2),
+            "OS {$idOs}"
+        );
+    }
+
+    /**
+     * Núcleo comum de emissão de NF-e (produtos), usado por Vendas e OS.
+     * $origem  = objeto com dados do cliente/documento (getById de venda ou OS)
+     * $vinculo = ['vendas_id' => X] ou ['os_id' => Y]
+     */
+    private function processarNfe($origem, array $itens, array $vinculo, float $valorTotal, string $rotuloLog)
+    {
         $config = $this->nfe_model->getConfig();
         $emitente = $this->mapos_model->getEmitente();
         if (!$emitente) {
@@ -183,24 +245,22 @@ class Nfe extends MY_Controller
 
         $idNota = null;
         try {
-            $itens = $this->vendas_model->getProdutos($idVenda);
             $service = new NfeService($config, $emitente);
 
             $numero = $this->nfe_model->reservarNumero('proximo_numero_nfe');
 
-            $idNota = $this->nfe_model->addNota([
+            $idNota = $this->nfe_model->addNota(array_merge([
                 'tipo' => 'nfe',
-                'vendas_id' => $idVenda,
                 'numero' => $numero,
                 'serie' => $config->serie_nfe,
                 'status' => 'pendente',
                 'ambiente' => $config->ambiente,
-                'valor_total' => (float) ($venda->valorTotal ?? 0),
+                'valor_total' => $valorTotal,
                 'data_emissao' => date('Y-m-d H:i:s'),
                 'usuarios_id' => $this->session->userdata('id_admin'),
-            ]);
+            ], $vinculo));
 
-            $resultado = $service->emitir($venda, $itens, $numero);
+            $resultado = $service->emitir($origem, $itens, $numero);
 
             if (!$resultado['sucesso']) {
                 $this->nfe_model->updateNota($idNota, [
@@ -223,7 +283,7 @@ class Nfe extends MY_Controller
                 'data_autorizacao' => date('Y-m-d H:i:s'),
             ]);
 
-            log_info("Emitiu NF-e nº {$numero} (chave {$resultado['chave']}) da venda {$idVenda}");
+            log_info("Emitiu NF-e nº {$numero} (chave {$resultado['chave']}) da {$rotuloLog}");
 
             return $this->jsonResponse(true, "NF-e nº {$numero} autorizada com sucesso!", [
                 'idNota' => $idNota,

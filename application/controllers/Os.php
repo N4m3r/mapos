@@ -308,12 +308,14 @@ class Os extends MY_Controller
         $this->load->model('mapos_model');
         $this->data['emitente'] = $this->mapos_model->getEmitente();
 
-        // Nota fiscal de serviço (NFS-e) ativa desta OS, se houver.
+        // Notas fiscais ativas desta OS (produtos = NF-e, serviços = NFS-e).
         // Protegido: o módulo fiscal pode ainda não ter sido migrado neste ambiente.
         $this->data['notaFiscal'] = null;
+        $this->data['notaFiscalNfe'] = null;
         if ($this->db->table_exists('notas_fiscais')) {
             $this->load->model('nfe_model');
             $this->data['notaFiscal'] = $this->nfe_model->getNotaAtiva('nfse', 'os_id', $this->uri->segment(3));
+            $this->data['notaFiscalNfe'] = $this->nfe_model->getNotaAtiva('nfe', 'os_id', $this->uri->segment(3));
         }
 
         $this->data['view'] = 'os/editarOs';
@@ -398,12 +400,14 @@ class Os extends MY_Controller
             $this->data['totalProdutos'] = $return['totalProdutos'];
         }
 
-        // Nota fiscal de serviço (NFS-e) ativa desta OS, se houver.
+        // Notas fiscais ativas desta OS (produtos = NF-e, serviços = NFS-e).
         // Protegido: o módulo fiscal pode ainda não ter sido migrado neste ambiente.
         $this->data['notaFiscal'] = null;
+        $this->data['notaFiscalNfe'] = null;
         if ($this->db->table_exists('notas_fiscais')) {
             $this->load->model('nfe_model');
             $this->data['notaFiscal'] = $this->nfe_model->getNotaAtiva('nfse', 'os_id', $os_id);
+            $this->data['notaFiscalNfe'] = $this->nfe_model->getNotaAtiva('nfe', 'os_id', $os_id);
         }
 
         return $this->layout();
