@@ -168,14 +168,20 @@ class NfseService
         $std->infDPS->valores->trib = new stdClass();
         $std->infDPS->valores->trib->tribMun = new stdClass();
         $std->infDPS->valores->trib->tribMun->tribISSQN = 1; // operação tributável
-        if ($aliquota > 0) {
-            // Alíquota aplicada do ISSQN (layout nacional). No Simples Nacional
-            // costuma ser dispensável (ISS apurado no DAS) — validar em homologação.
-            $std->infDPS->valores->trib->tribMun->pAliqAplic = number_format($aliquota, 2, '.', '');
-        }
         $std->infDPS->valores->trib->tribMun->tpRetISSQN = $tpRet;
+        if ($aliquota > 0) {
+            // Alíquota do ISSQN (campo pAliq — igual à NFS-e autorizada de Manaus)
+            $std->infDPS->valores->trib->tribMun->pAliq = number_format($aliquota, 2, '.', '');
+        }
+
+        // Total de tributos: ME/EPP/MEI (optante) usa o percentual do Simples
+        // (pTotTribSN) e NÃO pode enviar indTotTrib (rejeição E0712).
         $std->infDPS->valores->trib->totTrib = new stdClass();
-        $std->infDPS->valores->trib->totTrib->indTotTrib = 0;
+        if (in_array((int) $this->config->op_simp_nac, [2, 3], true)) {
+            $std->infDPS->valores->trib->totTrib->pTotTribSN = number_format($aliquota > 0 ? $aliquota : 0, 2, '.', '');
+        } else {
+            $std->infDPS->valores->trib->totTrib->indTotTrib = 0;
+        }
 
         $dps = new Dps($std);
         $resposta = $this->tools->enviaDps($dps->render());
