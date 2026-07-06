@@ -699,10 +699,20 @@ class Nfe extends MY_Controller
                 $danfe = new NFePHP\DA\NFe\Danfe(file_get_contents($nota->xml_path));
                 $pdf = $danfe->render($this->logoEmitente($this->mapos_model->getEmitente()));
             } else {
-                $config = $this->nfe_model->getConfig();
-                $emitente = $this->mapos_model->getEmitente();
-                $service = new NfseService($config, $emitente);
-                $pdf = $service->danfse($nota->chave);
+                // Tenta baixar o DANFSe oficial do Sefin; se vier vazio/erro
+                // (comum em homologação), gera localmente a partir do XML salvo.
+                $pdf = null;
+                try {
+                    $config = $this->nfe_model->getConfig();
+                    $emitente = $this->mapos_model->getEmitente();
+                    $service = new NfseService($config, $emitente);
+                    $pdf = $service->danfse($nota->chave);
+                } catch (\Throwable $e) {
+                    log_message('error', 'Download DANFSe do Sefin falhou, gerando local: ' . $e->getMessage());
+                }
+                if (empty($pdf)) {
+                    $pdf = $this->danfseLocal($nota);
+                }
             }
 
             $this->output
@@ -714,6 +724,66 @@ class Nfe extends MY_Controller
             $this->session->set_flashdata('error', 'Falha ao gerar o PDF: ' . $e->getMessage());
             redirect('nfe/gerenciar');
         }
+    }
+
+    /**
+     * Gera o DANFSe localmente a partir do XML autorizado salvo (via mpdf),
+     * quando o download oficial do Sefin Nacional não está disponível.
+     */
+    private function danfseLocal($nota)
+    {
+        if (empty($nota->xml_path) || !is_file($nota->xml_path)) {
+            throw new Exception('XML da NFS-e não encontrado para gerar o DANFSe localmente.');
+        }
+        $dom = new \DOMDocument();
+        if (!$dom->loadXML(file_get_contents($nota->xml_path))) {
+            throw new Exception('XML da NFS-e inválido.');
+        }
+        $xp = new \DOMXPath($dom);
+        $xp->registerNamespace('n', 'http://www.sped.fazenda.gov.br/nfse');
+        $g = function ($path) use ($xp) {
+            $node = $xp->query($path)->item(0);
+            return $node ? trim($node->nodeValue) : '';
+        };
+
+        $d = [
+            'chave' => preg_replace('/^NFS/', '', $g('//n:infNFSe/@Id')),
+            'numero' => $g('//n:infNFSe/n:nNFSe') ?: (string) $nota->numero,
+            'dhProc' => $g('//n:infNFSe/n:dhProc'),
+            'competencia' => $g('//n:DPS//n:dCompet'),
+            'ambiente' => $g('//n:infNFSe/n:ambGer') ?: (string) $nota->ambiente,
+            'prestNome' => $g('//n:infNFSe/n:emit/n:xNome'),
+            'prestCnpj' => $g('//n:infNFSe/n:emit/n:CNPJ'),
+            'prestIM' => $g('//n:infNFSe/n:emit/n:IM'),
+            'prestEnd' => trim($g('//n:infNFSe/n:emit/n:enderNac/n:xLgr') . ', ' . $g('//n:infNFSe/n:emit/n:enderNac/n:nro') . ' - ' . $g('//n:infNFSe/n:emit/n:enderNac/n:xBairro')),
+            'prestMun' => $g('//n:infNFSe/n:xLocEmi'),
+            'tomaNome' => $g('//n:DPS//n:toma/n:xNome'),
+            'tomaDoc' => $g('//n:DPS//n:toma/n:CNPJ') ?: $g('//n:DPS//n:toma/n:CPF'),
+            'servDesc' => $g('//n:DPS//n:serv/n:cServ/n:xDescServ'),
+            'cTribNac' => $g('//n:DPS//n:serv/n:cServ/n:cTribNac'),
+            'cTribMun' => $g('//n:DPS//n:serv/n:cServ/n:cTribMun'),
+            'xTribNac' => $g('//n:infNFSe/n:xTribNac'),
+            'vServ' => $g('//n:DPS//n:vServPrest/n:vServ') ?: $g('//n:infNFSe/n:valores/n:vBC'),
+            'vISS' => $g('//n:infNFSe/n:valores/n:vISSQN'),
+            'vLiq' => $g('//n:infNFSe/n:valores/n:vLiq'),
+            'pAliq' => $g('//n:infNFSe/n:valores/n:pAliqAplic'),
+        ];
+
+        $emitente = $this->mapos_model->getEmitente();
+        $logo = '';
+        if (!empty($emitente->url_logo)) {
+            $arq = FCPATH . 'assets/uploads/' . basename($emitente->url_logo);
+            if (is_file($arq)) {
+                $logo = $arq;
+            }
+        }
+
+        $html = $this->load->view('nfe/danfse_pdf', ['d' => $d, 'emitente' => $emitente, 'logo' => $logo], true);
+
+        $mpdf = new \Mpdf\Mpdf(['format' => 'A4', 'tempDir' => sys_get_temp_dir()]);
+        $mpdf->WriteHTML($html);
+
+        return $mpdf->Output('', 'S');
     }
 
     /**
