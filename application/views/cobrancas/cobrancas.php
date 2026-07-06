@@ -9,6 +9,12 @@
                 <i class="fas fa-cash-register"></i>
             </span>
             <h5>Cobranças</h5>
+            <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'cNfe')) { ?>
+                <a href="<?= site_url('cobrancas/configCora') ?>" class="button btn btn-mini btn-success" style="float:right; margin: 6px 10px 0 0; max-width: 220px">
+                    <span class="button__icon"><i class='bx bx-dollar-circle'></i></span>
+                    <span class="button__text2">Configurar Cobrança Cora</span>
+                </a>
+            <?php } ?>
     </div>
     <div class="widget-box">
         <h5 style="padding: 3px 0"></h5>
