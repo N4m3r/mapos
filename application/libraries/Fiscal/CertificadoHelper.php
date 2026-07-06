@@ -79,10 +79,19 @@ class CertificadoHelper
         // Certificados A1 ICP-Brasil usam algoritmos legados que o OpenSSL 3
         // (PHP 8.1+) desativa por padrão, causando "invalid digest" só na hora
         // de transmitir. Aqui o problema é detectado cedo, com mensagem clara.
+        // A NF-e exige assinatura SHA1; testamos SHA1 e, na falha, SHA256 para
+        // distinguir "chave/PFX legado" de "SHA1 bloqueado por política".
         try {
             $certificado->sign('mapos-teste-assinatura', OPENSSL_ALGO_SHA1);
         } catch (\Throwable $e) {
-            throw new Exception(self::traduzErroCertificado($e->getMessage()));
+            $sha256ok = false;
+            try {
+                $certificado->sign('mapos-teste-assinatura', OPENSSL_ALGO_SHA256);
+                $sha256ok = true;
+            } catch (\Throwable $e2) {
+                // nem SHA256 assina → problema é a chave/PFX
+            }
+            throw new Exception(self::traduzErroCertificado($e->getMessage(), $sha256ok));
         }
 
         return $certificado;
@@ -90,21 +99,40 @@ class CertificadoHelper
 
     /**
      * Traduz erros comuns de OpenSSL/certificado em mensagens acionáveis.
+     * $sha256ok = true indica que a chave assina em SHA256 mas falhou em SHA1
+     * (aponta para SHA1 bloqueado por política, não para PFX legado).
      */
-    public static function traduzErroCertificado(string $erro): string
+    public static function traduzErroCertificado(string $erro, bool $sha256ok = false): string
     {
+        // Idempotente: se a mensagem já foi traduzida, devolve como está
+        // (evita "Detalhe técnico" aninhado quando o erro passa por mais de um catch).
+        if (str_contains($erro, 'não pôde ser usado para assinar')
+            || str_contains($erro, 'SHA1 está bloqueada')
+            || str_contains($erro, 'Senha do certificado incorreta')) {
+            return $erro;
+        }
+
         $baixo = strtolower($erro);
+
+        if ($sha256ok && (str_contains($baixo, 'invalid digest') || str_contains($baixo, 'digital envelope') || str_contains($baixo, 'unsupported'))) {
+            return 'A chave do certificado funciona (assina em SHA256), mas a assinatura SHA1 está bloqueada '
+                . 'pela política de criptografia deste servidor — e a NF-e exige SHA1. '
+                . 'Peça ao provedor/administrador para liberar assinaturas SHA1 no OpenSSL '
+                . '(ex.: política de criptografia do sistema / openssl.cnf). '
+                . 'Reconverter o certificado NÃO resolve este caso. Detalhe técnico: ' . $erro;
+        }
+
         if (str_contains($baixo, 'invalid digest')
             || str_contains($baixo, 'unsupported')
             || str_contains($baixo, 'digital envelope')
             || str_contains($baixo, 'legacy')
             || str_contains($baixo, 'algorithm')) {
             return 'O certificado A1 não pôde ser usado para assinar neste servidor. '
-                . 'Isso costuma acontecer porque o OpenSSL 3 (PHP 8.1+) desativa os algoritmos legados '
-                . 'usados pelos certificados ICP-Brasil. Soluções: (1) reconverter o certificado com '
+                . 'Provável causa: o OpenSSL 3 (PHP 8.1+) desativa os algoritmos legados '
+                . 'usados pelos certificados ICP-Brasil. Solução: reconverter o certificado com '
                 . 'algoritmo moderno — openssl pkcs12 -in seu.pfx -nodes -legacy -out tmp.pem && '
-                . 'openssl pkcs12 -in tmp.pem -export -out novo.pfx — e reenviar o novo.pfx; ou '
-                . '(2) habilitar o "legacy provider" no openssl.cnf do servidor. '
+                . 'openssl pkcs12 -in tmp.pem -export -out novo.pfx — e reenviar o novo.pfx; '
+                . 'ou habilitar o "legacy provider" no openssl.cnf do servidor. '
                 . 'Detalhe técnico: ' . $erro;
         }
         if (str_contains($baixo, 'mac verify') || str_contains($baixo, 'password')) {
