@@ -295,6 +295,15 @@ class NfeService
             . ($infComplementar !== '' ? ' ' . $infComplementar : '');
         $make->taginfAdic($std);
 
+        // Responsável técnico — obrigatório em várias SEFAZ (ex.: AM, rejeição 972).
+        // Usa os dados do próprio emitente como responsável pelo sistema emissor.
+        $std = new stdClass();
+        $std->CNPJ = $this->somenteNumeros($this->emitente->cnpj);
+        $std->xContato = mb_substr(trim((string) $this->emitente->nome), 0, 60) ?: 'Responsavel Tecnico';
+        $std->email = trim((string) $this->emitente->email) ?: 'contato@exemplo.com.br';
+        $std->fone = $this->somenteNumeros($this->emitente->telefone);
+        $make->taginfRespTec($std);
+
         // O método de montagem mudou de nome entre versões do sped-nfe
         // (monta() nas mais novas, montaNFe() nas anteriores).
         $montou = method_exists($make, 'monta') ? $make->monta() : $make->montaNFe();
