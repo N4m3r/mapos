@@ -88,17 +88,21 @@ $tomaEndereco = trim(($os->rua ?? '') . ', ' . ($os->numero ?? '') . ' - ' . ($o
 
             <div class="bloco">
                 <div class="cab">Prestador de Serviços</div>
-                <?php if (!empty($emitente->url_logo)) { ?>
-                    <div class="corpo" style="text-align:center;border-bottom:1px solid #eceff1">
-                        <img src="<?= $emitente->url_logo ?>" alt="Logo" style="max-height:50px;max-width:180px">
+                <div style="display:flex;align-items:stretch">
+                    <?php if (!empty($emitente->url_logo)) { ?>
+                        <div style="width:170px;padding:8px;display:flex;align-items:center;justify-content:center;border-right:1px solid #cfd8dc">
+                            <img src="<?= $emitente->url_logo ?>" alt="Logo" style="max-height:70px;max-width:150px">
+                        </div>
+                    <?php } ?>
+                    <div style="flex:1">
+                        <div class="corpo grid">
+                            <div class="cel" style="flex:2"><span class="rot">Nome / Razão Social</span><?= html_escape($emitente->nome ?? '—') ?></div>
+                            <div class="cel"><span class="rot">CNPJ</span><?= html_escape($emitente->cnpj ?? '—') ?></div>
+                            <div class="cel"><span class="rot">Inscrição Municipal</span><?= html_escape($config->inscricao_municipal ?: '—') ?></div>
+                        </div>
+                        <div class="corpo" style="border-top:1px solid #eceff1"><span class="rot">Endereço</span><?= html_escape($emitEndereco) ?></div>
                     </div>
-                <?php } ?>
-                <div class="corpo grid">
-                    <div class="cel" style="flex:2"><span class="rot">Nome / Razão Social</span><?= html_escape($emitente->nome ?? '—') ?></div>
-                    <div class="cel"><span class="rot">CNPJ</span><?= html_escape($emitente->cnpj ?? '—') ?></div>
-                    <div class="cel"><span class="rot">Inscrição Municipal</span><?= html_escape($config->inscricao_municipal ?: '—') ?></div>
                 </div>
-                <div class="corpo" style="border-top:1px solid #eceff1"><span class="rot">Endereço</span><?= html_escape($emitEndereco) ?></div>
             </div>
 
             <div class="bloco">
