@@ -106,6 +106,9 @@
             <li><a href="<?= site_url('mapos/configurar') ?>">Sistema</a></li>
             <li><a href="<?= site_url('usuarios') ?>">Usuários</a></li>
             <li><a href="<?= site_url('mapos/emitente') ?>">Emitente</a></li>
+            <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'cNfe')) { ?>
+              <li><a href="<?= site_url('cobrancas/configCora') ?>">Cobrança Cora (API)</a></li>
+            <?php } ?>
             <li><a href="<?= site_url('permissoes') ?>">Permissões</a></li>
             <li><a href="<?= site_url('auditoria') ?>">Auditoria</a></li>
             <li><a href="<?= site_url('mapos/emails') ?>">Emails</a></li>
