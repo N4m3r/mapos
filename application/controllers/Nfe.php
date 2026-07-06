@@ -697,12 +697,20 @@ class Nfe extends MY_Controller
                 if (empty($nota->xml_path) || !file_exists($nota->xml_path)) {
                     throw new Exception('XML da NF-e não encontrado em disco.');
                 }
-                $danfe = new NFePHP\DA\NFe\Danfe(file_get_contents($nota->xml_path));
-                $pdf = $danfe->render($this->logoEmitente($this->mapos_model->getEmitente()));
-                $this->output
-                    ->set_content_type('application/pdf')
-                    ->set_header('Content-Disposition: inline; filename="nota_' . $nota->numero . '.pdf"')
-                    ->set_output($pdf);
+                // Por padrão imprime o DANFE em HTML (estilo da OS). O PDF oficial
+                // (sped-da, com código de barras) fica em nfe/danfe/{id}/oficial.
+                if ($modo === 'oficial') {
+                    $danfe = new NFePHP\DA\NFe\Danfe(file_get_contents($nota->xml_path));
+                    $pdf = $danfe->render($this->logoEmitente($this->mapos_model->getEmitente()));
+                    $this->output
+                        ->set_content_type('application/pdf')
+                        ->set_header('Content-Disposition: inline; filename="nota_' . $nota->numero . '.pdf"')
+                        ->set_output($pdf);
+
+                    return;
+                }
+
+                $this->danfeHtml($nota);
 
                 return;
             }
@@ -796,6 +804,70 @@ class Nfe extends MY_Controller
             'emitente' => $emitente,
             'configuration' => $configuration,
         ]);
+    }
+
+    /**
+     * Renderiza o DANFE (NF-e / produtos) como página HTML no estilo da
+     * impressão da OS, a partir do XML autorizado salvo. Impresso pelo navegador.
+     */
+    private function danfeHtml($nota)
+    {
+        $dom = new \DOMDocument();
+        if (!$dom->loadXML(file_get_contents($nota->xml_path))) {
+            throw new Exception('XML da NF-e inválido.');
+        }
+        $xp = new \DOMXPath($dom);
+        $xp->registerNamespace('n', 'http://www.portalfiscal.inf.br/nfe');
+        $g = function ($path) use ($xp) {
+            $node = $xp->query($path)->item(0);
+            return $node ? trim($node->nodeValue) : '';
+        };
+
+        // Itens (produtos)
+        $itens = [];
+        foreach ($xp->query('//n:infNFe/n:det') as $det) {
+            $gi = function ($rel) use ($xp, $det) {
+                $node = $xp->query($rel, $det)->item(0);
+                return $node ? trim($node->nodeValue) : '';
+            };
+            $itens[] = [
+                'codigo' => $gi('.//n:prod/n:cProd'),
+                'descricao' => $gi('.//n:prod/n:xProd'),
+                'ncm' => $gi('.//n:prod/n:NCM'),
+                'cfop' => $gi('.//n:prod/n:CFOP'),
+                'unidade' => $gi('.//n:prod/n:uCom'),
+                'quantidade' => $gi('.//n:prod/n:qCom'),
+                'vUnit' => $gi('.//n:prod/n:vUnCom'),
+                'vTotal' => $gi('.//n:prod/n:vProd'),
+            ];
+        }
+
+        $d = [
+            'chave' => preg_replace('/^NFe/', '', $g('//n:infNFe/@Id')),
+            'numero' => $g('//n:ide/n:nNF') ?: (string) $nota->numero,
+            'serie' => $g('//n:ide/n:serie'),
+            'dhEmi' => $g('//n:ide/n:dhEmi'),
+            'natOp' => $g('//n:ide/n:natOp'),
+            'ambiente' => $g('//n:ide/n:tpAmb') ?: (string) $nota->ambiente,
+            'emitNome' => $g('//n:emit/n:xNome'),
+            'emitCnpj' => $g('//n:emit/n:CNPJ'),
+            'emitIE' => $g('//n:emit/n:IE'),
+            'emitEnd' => trim($g('//n:emit/n:enderEmit/n:xLgr') . ', ' . $g('//n:emit/n:enderEmit/n:nro') . ' - ' . $g('//n:emit/n:enderEmit/n:xBairro') . ' - ' . $g('//n:emit/n:enderEmit/n:xMun') . '/' . $g('//n:emit/n:enderEmit/n:UF')),
+            'destNome' => $g('//n:dest/n:xNome'),
+            'destDoc' => $g('//n:dest/n:CNPJ') ?: $g('//n:dest/n:CPF'),
+            'destIE' => $g('//n:dest/n:IE'),
+            'destEnd' => trim($g('//n:dest/n:enderDest/n:xLgr') . ', ' . $g('//n:dest/n:enderDest/n:nro') . ' - ' . $g('//n:dest/n:enderDest/n:xBairro') . ' - ' . $g('//n:dest/n:enderDest/n:xMun') . '/' . $g('//n:dest/n:enderDest/n:UF')),
+            'vProd' => $g('//n:total/n:ICMSTot/n:vProd'),
+            'vDesc' => $g('//n:total/n:ICMSTot/n:vDesc'),
+            'vNF' => $g('//n:total/n:ICMSTot/n:vNF'),
+            'infCpl' => $g('//n:infAdic/n:infCpl'),
+            'protocolo' => $g('//n:protNFe/n:infProt/n:nProt'),
+            'dhProt' => $g('//n:protNFe/n:infProt/n:dhRecbto'),
+            'itens' => $itens,
+        ];
+
+        $emitente = $this->mapos_model->getEmitente();
+        $this->load->view('nfe/danfe_print', ['d' => $d, 'emitente' => $emitente]);
     }
 
     /**
