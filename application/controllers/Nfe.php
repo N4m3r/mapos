@@ -760,7 +760,7 @@ class Nfe extends MY_Controller
             'numero' => $g('//n:infNFSe/n:nNFSe') ?: (string) $nota->numero,
             'dhProc' => $g('//n:infNFSe/n:dhProc'),
             'competencia' => $g('//n:DPS//n:dCompet'),
-            'ambiente' => $g('//n:infNFSe/n:ambGer') ?: (string) $nota->ambiente,
+            'ambiente' => (string) $nota->ambiente,
             'prestNome' => $g('//n:infNFSe/n:emit/n:xNome'),
             'prestCnpj' => $g('//n:infNFSe/n:emit/n:CNPJ'),
             'prestIM' => $g('//n:infNFSe/n:emit/n:IM'),
