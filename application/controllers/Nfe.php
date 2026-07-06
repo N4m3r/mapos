@@ -678,7 +678,7 @@ class Nfe extends MY_Controller
     /**
      * DANFE (NF-e, gerado localmente) ou DANFSe (NFS-e, baixado do Sefin Nacional)
      */
-    public function danfe($idNota = null)
+    public function danfe($idNota = null, $modo = null)
     {
         if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'vNfe')) {
             $this->session->set_flashdata('error', 'Você não tem permissão para visualizar Notas Fiscais.');
@@ -706,17 +706,14 @@ class Nfe extends MY_Controller
                 return;
             }
 
-            // NFS-e: tenta o DANFSe oficial do Sefin (PDF). Em homologação costuma vir vazio.
-            $pdfSefin = null;
-            try {
+            // NFS-e: por padrão, imprime o DANFSe HTML (estilo da OS) — rápido e
+            // sem chamada de rede. O PDF oficial do Sefin só é buscado quando pedido
+            // explicitamente em nfe/danfe/{id}/oficial.
+            if ($modo === 'oficial') {
                 $config = $this->nfe_model->getConfig();
                 $emitente = $this->mapos_model->getEmitente();
                 $service = new NfseService($config, $emitente);
                 $pdfSefin = $service->danfse($nota->chave);
-            } catch (\Throwable $e) {
-                log_message('error', 'Download DANFSe do Sefin falhou, usando layout local: ' . $e->getMessage());
-            }
-            if (!empty($pdfSefin)) {
                 $this->output
                     ->set_content_type('application/pdf')
                     ->set_header('Content-Disposition: inline; filename="nota_' . $nota->numero . '.pdf"')
@@ -725,11 +722,10 @@ class Nfe extends MY_Controller
                 return;
             }
 
-            // Fallback: página HTML do DANFSe no mesmo estilo da impressão da OS.
             $this->danfseHtml($nota);
         } catch (\Throwable $e) {
             log_message('error', 'Falha ao gerar DANFE/DANFSe: ' . $e->getMessage());
-            $this->session->set_flashdata('error', 'Falha ao gerar o PDF: ' . $e->getMessage());
+            $this->session->set_flashdata('error', 'Falha ao gerar o documento: ' . $e->getMessage());
             redirect('nfe/gerenciar');
         }
     }
