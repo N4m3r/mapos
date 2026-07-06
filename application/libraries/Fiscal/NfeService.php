@@ -366,6 +366,37 @@ class NfeService
     }
 
     /**
+     * Consulta o status do serviço da SEFAZ autorizadora (UF do emitente).
+     * É o teste real de ponta a ponta: assina, faz TLS com o certificado e
+     * recebe resposta da SEFAZ. Retorna ['cstat' => ..., 'motivo' => ...].
+     */
+    public function statusSefaz(): array
+    {
+        $resposta = $this->tools()->sefazStatus($this->siglaUf(), (int) $this->config->ambiente);
+        $st = new Standardize();
+        $r = $st->toStd($resposta);
+
+        return [
+            'cstat' => (string) ($r->cStat ?? ''),
+            'motivo' => (string) ($r->xMotivo ?? ''),
+        ];
+    }
+
+    /**
+     * Dados do titular do certificado carregado (para exibir no teste).
+     */
+    public function dadosCertificado(): array
+    {
+        $cert = CertificadoHelper::carregar($this->config->certificado_path, $this->config->senha_certificado);
+
+        return [
+            'titular' => method_exists($cert, 'getCompanyName') ? (string) $cert->getCompanyName() : '',
+            'validade' => $cert->getValidTo()->format('d/m/Y'),
+            'valido_de' => $cert->getValidFrom()->format('d/m/Y'),
+        ];
+    }
+
+    /**
      * Cancela uma NF-e autorizada (prazo legal de 24h).
      */
     public function cancelar(string $chave, string $protocolo, string $justificativa): array

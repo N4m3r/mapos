@@ -70,6 +70,17 @@
                     </div>
 
                     <div class="control-group">
+                        <label class="control-label">Validação</label>
+                        <div class="controls">
+                            <button type="button" id="btnTestarCert" class="button btn btn-primary" <?= empty($configNfe->certificado_path) ? 'disabled' : '' ?>>
+                                <span class="button__icon"><i class="bx bx-check-shield"></i></span><span class="button__text2">Testar Certificado</span>
+                            </button>
+                            <span class="hint">Testa o certificado <strong>já salvo</strong>: leitura, senha, validade, assinatura digital e comunicação com a SEFAZ. Se acabou de enviar um certificado novo, salve antes de testar.</span>
+                            <div id="testeCertResultado" style="margin-top:10px"></div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
                         <label class="control-label" for="ambiente">Ambiente</label>
                         <div class="controls">
                             <select name="ambiente" id="ambiente">
@@ -201,3 +212,30 @@
         </div>
     </div>
 </div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#btnTestarCert').on('click', function() {
+            var btn = $(this);
+            btn.attr('disabled', true);
+            $('#testeCertResultado').html('<div class="alert alert-info">Testando o certificado, aguarde...</div>');
+
+            $.get('<?= site_url('nfe/testarCertificado') ?>', function(data) {
+                btn.attr('disabled', false);
+                var html = '<div class="alert alert-' + (data.success ? 'success' : 'danger') + '">' + data.message + '</div>';
+                if (data.checks && data.checks.length) {
+                    html += '<ul style="list-style:none;padding-left:0;margin:0">';
+                    $.each(data.checks, function(i, c) {
+                        var icon = c.ok === true ? '✅' : (c.ok === false ? '❌' : '⚠️');
+                        html += '<li style="margin-bottom:4px">' + icon + ' <strong>' + c.titulo + ':</strong> ' + c.detalhe + '</li>';
+                    });
+                    html += '</ul>';
+                }
+                $('#testeCertResultado').html(html);
+            }, 'json').fail(function() {
+                btn.attr('disabled', false);
+                $('#testeCertResultado').html('<div class="alert alert-danger">Falha de comunicação com o servidor.</div>');
+            });
+        });
+    });
+</script>

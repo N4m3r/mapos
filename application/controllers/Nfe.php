@@ -152,6 +152,53 @@ class Nfe extends MY_Controller
     }
 
     /**
+     * Testa o certificado configurado, passo a passo. Chamada via AJAX, retorna JSON.
+     * Checa: leitura + senha, validade, assinatura (OpenSSL) e comunicação com a SEFAZ.
+     */
+    public function testarCertificado()
+    {
+        if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'cNfe')) {
+            return $this->jsonResponse(false, 'Sem permissão.');
+        }
+
+        $config = $this->nfe_model->getConfig();
+        $emitente = $this->mapos_model->getEmitente();
+        $checks = [];
+
+        // 1) Certificado + senha + validade + assinatura (CertificadoHelper::carregar
+        //    já faz readPfx, checa expiração e faz um teste de assinatura SHA1).
+        try {
+            $service = new NfeService($config, $emitente);
+            $dados = $service->dadosCertificado();
+
+            $checks[] = ['ok' => true, 'titulo' => 'Certificado e senha', 'detalhe' => 'Arquivo lido e senha correta.' . ($dados['titular'] ? ' Titular: ' . $dados['titular'] . '.' : '')];
+            $checks[] = ['ok' => true, 'titulo' => 'Validade', 'detalhe' => 'Válido de ' . $dados['valido_de'] . ' até ' . $dados['validade'] . '.'];
+            $checks[] = ['ok' => true, 'titulo' => 'Assinatura digital (OpenSSL)', 'detalhe' => 'Assinatura de teste gerada com sucesso.'];
+        } catch (\Throwable $e) {
+            $checks[] = ['ok' => false, 'titulo' => 'Certificado', 'detalhe' => $this->traduzErroFiscal($e)];
+
+            return $this->jsonResponse(false, 'O certificado NÃO passou no teste. Veja os detalhes abaixo.', ['checks' => $checks]);
+        }
+
+        // 2) Comunicação real com a SEFAZ (status do serviço). Best-effort:
+        //    se falhar (rede/lib/UF), reporta como aviso sem reprovar o certificado.
+        try {
+            $service = new NfeService($config, $emitente);
+            $status = $service->statusSefaz();
+            $emOperacao = $status['cstat'] === '107';
+            $checks[] = [
+                'ok' => $emOperacao ? true : null,
+                'titulo' => 'Comunicação com a SEFAZ (' . ($config->ambiente == 2 ? 'Homologação' : 'Produção') . ')',
+                'detalhe' => '[' . $status['cstat'] . '] ' . $status['motivo'] . ($emOperacao ? '' : ' (o certificado comunicou; a SEFAZ pode estar fora do ar no momento)'),
+            ];
+        } catch (\Throwable $e) {
+            $checks[] = ['ok' => null, 'titulo' => 'Comunicação com a SEFAZ', 'detalhe' => 'Não foi possível testar agora: ' . $e->getMessage()];
+        }
+
+        return $this->jsonResponse(true, 'Certificado válido e pronto para assinar.', ['checks' => $checks]);
+    }
+
+    /**
      * Transmite a NF-e (modelo 55) de uma venda. Chamada via AJAX, retorna JSON.
      */
     public function emitirNfe($idVenda = null)
