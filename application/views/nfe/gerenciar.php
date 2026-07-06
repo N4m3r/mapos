@@ -96,6 +96,24 @@
                                     echo '<a href="#modal-cancelar-nota" role="button" data-toggle="modal" data-nota="' . $nota->idNota . '" data-numero="' . $nota->numero . '" class="btn-nwe4 btn-cancelar-nota" title="Cancelar Nota"><i class="bx bx-x-circle bx-xs"></i></a>';
                                 }
                             }
+                        } elseif (in_array($nota->status, ['rejeitada', 'erro'])) {
+                            // Editar a origem (OS ou Venda) para corrigir os dados
+                            $editarUrl = ($nota->tipo === 'nfe' && !empty($nota->vendas_id))
+                                ? site_url('vendas/editar/' . $nota->vendas_id)
+                                : site_url('os/editar/' . $nota->os_id);
+                            echo '<a style="margin-right:1%" href="' . $editarUrl . '" class="btn-nwe3" title="Editar origem para corrigir os dados"><i class="bx bx-edit bx-xs"></i></a>';
+
+                            // Retransmitir (mantém o mesmo número)
+                            if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) {
+                                if ($nota->tipo === 'nfse') {
+                                    $endpoint = site_url('nfe/emitirNfse/' . $nota->os_id);
+                                } elseif (!empty($nota->os_id)) {
+                                    $endpoint = site_url('nfe/emitirNfeOs/' . $nota->os_id);
+                                } else {
+                                    $endpoint = site_url('nfe/emitirNfe/' . $nota->vendas_id);
+                                }
+                                echo '<a href="#modal-retransmitir" role="button" data-toggle="modal" data-endpoint="' . $endpoint . '" data-numero="' . $nota->numero . '" class="btn-nwe5 btn-retransmitir" title="Retransmitir (mantém o nº ' . $nota->numero . ')"><i class="bx bx-refresh bx-xs"></i></a>';
+                            }
                         }
                         echo '</td>';
                         echo '</tr>';
@@ -130,8 +148,73 @@
     </div>
 </div>
 
+<!-- Modal de retransmissão -->
+<div id="modal-retransmitir" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h5>Retransmitir Nota Fiscal</h5>
+    </div>
+    <div class="modal-body">
+        <input type="hidden" id="retransmitirEndpoint" value="" />
+        <p>Retransmitir a nota <strong id="retransmitirNumero"></strong>? O <strong>mesmo número</strong> será reaproveitado. Corrija os dados na origem (OS/Venda) antes, se necessário.</p>
+        <div id="retransmitirRetorno"></div>
+        <div id="retransmitirAcoes" style="display:none;text-align:center;margin-top:10px">
+            <a id="retransmitirBtnDanfe" href="#" target="_blank" class="button btn btn-inverse">
+                <span class="button__icon"><i class='bx bx-printer'></i></span><span class="button__text2">Imprimir</span>
+            </a>
+        </div>
+    </div>
+    <div class="modal-footer" style="display:flex;justify-content:center">
+        <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true">
+            <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Fechar</span>
+        </button>
+        <button id="btnConfirmarRetransmitir" class="button btn btn-success">
+            <span class="button__icon"><i class='bx bx-send'></i></span><span class="button__text2">Retransmitir</span>
+        </button>
+    </div>
+</div>
+
 <script type="text/javascript">
     $(document).ready(function() {
+        var retransmitirOk = false;
+
+        $(document).on('click', '.btn-retransmitir', function() {
+            retransmitirOk = false;
+            $('#retransmitirEndpoint').val($(this).data('endpoint'));
+            $('#retransmitirNumero').text('nº ' + $(this).data('numero'));
+            $('#retransmitirRetorno').html('');
+            $('#retransmitirAcoes').hide();
+            $('#btnConfirmarRetransmitir').show().attr('disabled', false);
+        });
+
+        $('#btnConfirmarRetransmitir').on('click', function() {
+            var btn = $(this);
+            btn.attr('disabled', true);
+            $('#retransmitirRetorno').html('<div class="alert alert-info">Retransmitindo, aguarde...</div>');
+
+            $.post($('#retransmitirEndpoint').val(), {}, function(data) {
+                if (data.success) {
+                    retransmitirOk = true;
+                    $('#retransmitirRetorno').html('<div class="alert alert-success">' + data.message + '</div>');
+                    if (data.urlDanfe) {
+                        $('#retransmitirBtnDanfe').attr('href', data.urlDanfe);
+                        $('#retransmitirAcoes').show();
+                    }
+                    btn.hide();
+                } else {
+                    $('#retransmitirRetorno').html('<div class="alert alert-danger">' + data.message + '</div>');
+                    btn.attr('disabled', false);
+                }
+            }, 'json').fail(function() {
+                $('#retransmitirRetorno').html('<div class="alert alert-danger">Falha de comunicação com o servidor.</div>');
+                btn.attr('disabled', false);
+            });
+        });
+
+        $('#modal-retransmitir').on('hidden hidden.bs.modal', function() {
+            if (retransmitirOk) { window.location.reload(); }
+        });
+
         $(document).on('click', '.btn-cancelar-nota', function() {
             $('#cancelarIdNota').val($(this).data('nota'));
             $('#cancelarNumeroNota').text('nº ' + $(this).data('numero'));
