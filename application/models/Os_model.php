@@ -129,7 +129,17 @@ class Os_model extends CI_Model
 
     public function getServicos($id = null)
     {
-        $this->db->select('servicos_os.*, servicos.nome, servicos.preco as precoVenda, servicos.codigo_servico_municipio, servicos.codigo_tributacao_municipal');
+        // Seleciona os campos fiscais só se as colunas existirem (a migration do
+        // módulo fiscal pode ainda não ter sido rodada neste ambiente) — evita
+        // quebrar a visualização da OS por coluna inexistente.
+        $select = 'servicos_os.*, servicos.nome, servicos.preco as precoVenda';
+        if ($this->db->field_exists('codigo_servico_municipio', 'servicos')) {
+            $select .= ', servicos.codigo_servico_municipio';
+        }
+        if ($this->db->field_exists('codigo_tributacao_municipal', 'servicos')) {
+            $select .= ', servicos.codigo_tributacao_municipal';
+        }
+        $this->db->select($select);
         $this->db->from('servicos_os');
         $this->db->join('servicos', 'servicos.idServicos = servicos_os.servicos_id');
         $this->db->where('os_id', $id);
