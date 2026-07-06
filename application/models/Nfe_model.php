@@ -75,6 +75,23 @@ class Nfe_model extends CI_Model
             ->row();
     }
 
+    /**
+     * Todas as notas fiscais (qualquer status) de uma OS ou Venda,
+     * para a aba de consulta dentro do documento de origem.
+     */
+    public function getNotasByOrigem($campo, $id)
+    {
+        if (!in_array($campo, ['os_id', 'vendas_id'])) {
+            return [];
+        }
+
+        return $this->db
+            ->where($campo, $id)
+            ->order_by('idNota', 'DESC')
+            ->get('notas_fiscais')
+            ->result();
+    }
+
     public function getNotas($porPagina = 0, $inicio = 0, $status = null)
     {
         $this->db->select('notas_fiscais.*, clientes.nomeCliente');

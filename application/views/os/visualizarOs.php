@@ -674,6 +674,22 @@
     </div>
 </div>
 
+<?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vNfe')) { ?>
+<div class="row-fluid" style="margin-top: 0">
+    <div class="span12">
+        <div class="widget-box">
+            <div class="widget-title">
+                <span class="icon"><i class="bx bx-file"></i></span>
+                <h5>Notas Fiscais Emitidas</h5>
+            </div>
+            <div class="widget-content">
+                <?php echo $this->load->view('os/_notas_fiscais', ['notas' => (isset($notasFiscais) ? $notasFiscais : [])], true); ?>
+            </div>
+        </div>
+    </div>
+</div>
+<?php } ?>
+
 <?= $modalGerarPagamento ?>
 
 <!-- Modal visualizar anexo -->

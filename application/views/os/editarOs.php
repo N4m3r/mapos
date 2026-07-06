@@ -92,6 +92,9 @@
                         <li id="tabAnexos"><a href="#tab5" data-toggle="tab">Anexos</a></li>
                         <li id="tabAnotacoes"><a href="#tab6" data-toggle="tab">Anotações</a></li>
                         <li id="tabCheckin"><a href="#tab7" data-toggle="tab">Check-in</a></li>
+                        <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vNfe')) { ?>
+                            <li id="tabNotas"><a href="#tab8" data-toggle="tab">Notas Fiscais</a></li>
+                        <?php } ?>
                     </ul>
                     <div class="tab-content">
                         <div class="tab-pane active" id="tab1">
@@ -629,6 +632,16 @@
                             </div>
                         </div>
                         <!-- Fim tab check-in -->
+
+                        <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vNfe')) { ?>
+                            <div class="tab-pane" id="tab8">
+                                <div class="span12" style="padding: 1%; margin-left: 0">
+                                    <h5 style="margin-bottom:10px"><i class="bx bx-file"></i> Notas Fiscais Emitidas</h5>
+                                    <?php echo $this->load->view('os/_notas_fiscais', ['notas' => (isset($notasFiscais) ? $notasFiscais : [])], true); ?>
+                                </div>
+                            </div>
+                        <?php } ?>
+                        <!-- Fim tab notas fiscais -->
                     </div>
                 </div>
                 &nbsp

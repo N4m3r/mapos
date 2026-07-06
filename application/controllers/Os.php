@@ -312,10 +312,12 @@ class Os extends MY_Controller
         // Protegido: o módulo fiscal pode ainda não ter sido migrado neste ambiente.
         $this->data['notaFiscal'] = null;
         $this->data['notaFiscalNfe'] = null;
+        $this->data['notasFiscais'] = [];
         if ($this->db->table_exists('notas_fiscais')) {
             $this->load->model('nfe_model');
             $this->data['notaFiscal'] = $this->nfe_model->getNotaAtiva('nfse', 'os_id', $this->uri->segment(3));
             $this->data['notaFiscalNfe'] = $this->nfe_model->getNotaAtiva('nfe', 'os_id', $this->uri->segment(3));
+            $this->data['notasFiscais'] = $this->nfe_model->getNotasByOrigem('os_id', $this->uri->segment(3));
         }
 
         $this->data['view'] = 'os/editarOs';
@@ -404,10 +406,12 @@ class Os extends MY_Controller
         // Protegido: o módulo fiscal pode ainda não ter sido migrado neste ambiente.
         $this->data['notaFiscal'] = null;
         $this->data['notaFiscalNfe'] = null;
+        $this->data['notasFiscais'] = [];
         if ($this->db->table_exists('notas_fiscais')) {
             $this->load->model('nfe_model');
             $this->data['notaFiscal'] = $this->nfe_model->getNotaAtiva('nfse', 'os_id', $os_id);
             $this->data['notaFiscalNfe'] = $this->nfe_model->getNotaAtiva('nfe', 'os_id', $os_id);
+            $this->data['notasFiscais'] = $this->nfe_model->getNotasByOrigem('os_id', $os_id);
         }
 
         return $this->layout();
