@@ -698,27 +698,35 @@ class Nfe extends MY_Controller
                 }
                 $danfe = new NFePHP\DA\NFe\Danfe(file_get_contents($nota->xml_path));
                 $pdf = $danfe->render($this->logoEmitente($this->mapos_model->getEmitente()));
-            } else {
-                // Tenta baixar o DANFSe oficial do Sefin; se vier vazio/erro
-                // (comum em homologação), gera localmente a partir do XML salvo.
-                $pdf = null;
-                try {
-                    $config = $this->nfe_model->getConfig();
-                    $emitente = $this->mapos_model->getEmitente();
-                    $service = new NfseService($config, $emitente);
-                    $pdf = $service->danfse($nota->chave);
-                } catch (\Throwable $e) {
-                    log_message('error', 'Download DANFSe do Sefin falhou, gerando local: ' . $e->getMessage());
-                }
-                if (empty($pdf)) {
-                    $pdf = $this->danfseLocal($nota);
-                }
+                $this->output
+                    ->set_content_type('application/pdf')
+                    ->set_header('Content-Disposition: inline; filename="nota_' . $nota->numero . '.pdf"')
+                    ->set_output($pdf);
+
+                return;
             }
 
-            $this->output
-                ->set_content_type('application/pdf')
-                ->set_header('Content-Disposition: inline; filename="nota_' . $nota->numero . '.pdf"')
-                ->set_output($pdf);
+            // NFS-e: tenta o DANFSe oficial do Sefin (PDF). Em homologação costuma vir vazio.
+            $pdfSefin = null;
+            try {
+                $config = $this->nfe_model->getConfig();
+                $emitente = $this->mapos_model->getEmitente();
+                $service = new NfseService($config, $emitente);
+                $pdfSefin = $service->danfse($nota->chave);
+            } catch (\Throwable $e) {
+                log_message('error', 'Download DANFSe do Sefin falhou, usando layout local: ' . $e->getMessage());
+            }
+            if (!empty($pdfSefin)) {
+                $this->output
+                    ->set_content_type('application/pdf')
+                    ->set_header('Content-Disposition: inline; filename="nota_' . $nota->numero . '.pdf"')
+                    ->set_output($pdfSefin);
+
+                return;
+            }
+
+            // Fallback: página HTML do DANFSe no mesmo estilo da impressão da OS.
+            $this->danfseHtml($nota);
         } catch (\Throwable $e) {
             log_message('error', 'Falha ao gerar DANFE/DANFSe: ' . $e->getMessage());
             $this->session->set_flashdata('error', 'Falha ao gerar o PDF: ' . $e->getMessage());
@@ -727,10 +735,11 @@ class Nfe extends MY_Controller
     }
 
     /**
-     * Gera o DANFSe localmente a partir do XML autorizado salvo (via mpdf),
-     * quando o download oficial do Sefin Nacional não está disponível.
+     * Renderiza o DANFSe como página HTML no estilo da impressão da OS,
+     * a partir do XML autorizado salvo, quando o download do Sefin não está
+     * disponível (ex.: homologação). Impresso pelo navegador.
      */
-    private function danfseLocal($nota)
+    private function danfseHtml($nota)
     {
         if (empty($nota->xml_path) || !is_file($nota->xml_path)) {
             throw new Exception('XML da NFS-e não encontrado para gerar o DANFSe localmente.');
@@ -770,20 +779,13 @@ class Nfe extends MY_Controller
         ];
 
         $emitente = $this->mapos_model->getEmitente();
-        $logo = '';
-        if (!empty($emitente->url_logo)) {
-            $arq = FCPATH . 'assets/uploads/' . basename($emitente->url_logo);
-            if (is_file($arq)) {
-                $logo = $arq;
-            }
-        }
+        $configuration = $this->data['configuration'] ?? [];
 
-        $html = $this->load->view('nfe/danfse_pdf', ['d' => $d, 'emitente' => $emitente, 'logo' => $logo], true);
-
-        $mpdf = new \Mpdf\Mpdf(['format' => 'A4', 'tempDir' => sys_get_temp_dir()]);
-        $mpdf->WriteHTML($html);
-
-        return $mpdf->Output('', 'S');
+        $this->load->view('nfe/danfse_print', [
+            'd' => $d,
+            'emitente' => $emitente,
+            'configuration' => $configuration,
+        ]);
     }
 
     /**
