@@ -73,6 +73,36 @@ $config['payment_gateways'] = [
             'charged_back' => 'Foi feito um estorno no cartão de crédito do comprador',
         ],
     ],
+    'Cora' => [
+        'name' => 'Cora (Boleto + PIX)',
+        'library_name' => 'Cora',
+        // Emitido exclusivamente a partir de uma nota fiscal (NF-e/NFS-e);
+        // fica fora do seletor genérico "Gerar Pagamento".
+        'fiscal_only' => true,
+        'production' => isset($_ENV['PAYMENT_GATEWAYS_CORA_PRODUCTION']) ? filter_var($_ENV['PAYMENT_GATEWAYS_CORA_PRODUCTION'], FILTER_VALIDATE_BOOLEAN) : false,
+        'credentials' => [
+            'client_id' => $_ENV['PAYMENT_GATEWAYS_CORA_CLIENT_ID'] ?? '',
+            // Certificado (PEM) e chave privada emitidos pela Cora (mTLS).
+            'certificate_path' => $_ENV['PAYMENT_GATEWAYS_CORA_CERT_PATH'] ?? (APPPATH . 'arquivos_fiscais/cora/certificate.pem'),
+            'private_key_path' => $_ENV['PAYMENT_GATEWAYS_CORA_KEY_PATH'] ?? (APPPATH . 'arquivos_fiscais/cora/private-key.key'),
+        ],
+        'timeout' => $_ENV['PAYMENT_GATEWAYS_CORA_TIMEOUT'] ?? 30,
+        'boleto_expiration' => $_ENV['PAYMENT_GATEWAYS_CORA_BOLETO_EXPIRATION'] ?? 'P3D',
+        'payment_methods' => [
+            [
+                'name' => 'Boleto + PIX',
+                'value' => 'boleto',
+            ],
+        ],
+        'transaction_status' => [
+            'OPEN' => 'Aguardando pagamento',
+            'IN_PAYMENT' => 'Pagamento em processamento',
+            'PAID' => 'Pago',
+            'LATE' => 'Vencido',
+            'CANCELLED' => 'Cancelado',
+            'DRAFT' => 'Rascunho',
+        ],
+    ],
     'Asaas' => [
         'name' => 'Asaas',
         'library_name' => 'Asaas',

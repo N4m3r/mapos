@@ -48,6 +48,43 @@ class Cobrancas_model extends CI_Model
         return $this->db->query("SELECT DISTINCT `cobrancas`.*,`clientes`.*,`vendas`.* FROM `cobrancas`,`clientes`,`vendas` WHERE `charge_id` = $id AND `vendas`.`idVendas` = `cobrancas`.`vendas_id`")->row();
     }
 
+    /**
+     * Cobrança ativa (não cancelada) vinculada a uma nota fiscal.
+     * Usada para bloquear boleto duplicado e exibir o boleto na OS.
+     */
+    public function getByNota($idNota)
+    {
+        return $this->db
+            ->where('nota_id', $idNota)
+            ->where_not_in('status', ['CANCELLED', 'cancelada'])
+            ->order_by('idCobranca', 'DESC')
+            ->limit(1)
+            ->get('cobrancas')
+            ->row();
+    }
+
+    /**
+     * Mapa de cobranças indexado por nota_id, para a aba de notas da OS.
+     */
+    public function getByNotaIds(array $ids)
+    {
+        $mapa = [];
+        if (empty($ids)) {
+            return $mapa;
+        }
+        $rows = $this->db
+            ->where_in('nota_id', $ids)
+            ->order_by('idCobranca', 'ASC')
+            ->get('cobrancas')
+            ->result();
+        foreach ($rows as $row) {
+            // A última cobrança (maior id) prevalece por nota.
+            $mapa[$row->nota_id] = $row;
+        }
+
+        return $mapa;
+    }
+
     public function add($table, $data, $returnId = false)
     {
         $this->db->insert($table, $data);

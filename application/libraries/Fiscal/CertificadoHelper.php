@@ -13,6 +13,7 @@ class CertificadoHelper
 {
     public const DIR_CERTIFICADO = APPPATH . 'arquivos_fiscais' . DIRECTORY_SEPARATOR . 'certificado' . DIRECTORY_SEPARATOR;
     public const DIR_XML = APPPATH . 'arquivos_fiscais' . DIRECTORY_SEPARATOR . 'xml' . DIRECTORY_SEPARATOR;
+    public const DIR_CORA = APPPATH . 'arquivos_fiscais' . DIRECTORY_SEPARATOR . 'cora' . DIRECTORY_SEPARATOR;
 
     private static function chave(): string
     {
@@ -91,6 +92,36 @@ class CertificadoHelper
         if (!move_uploaded_file($tmpFile, $destino)) {
             throw new Exception('Falha ao salvar o arquivo do certificado');
         }
+
+        return $destino;
+    }
+
+    /**
+     * Salva o certificado (PEM) ou a chave privada (KEY) do mTLS da Cora em
+     * caminho fixo dentro do diretório fiscal protegido. Devolve o caminho salvo.
+     * $tipo: 'certificado' (.pem/.crt/.cer) ou 'chave' (.key/.pem).
+     */
+    public static function salvarArquivoCora(string $tmpFile, string $nomeOriginal, string $tipo): string
+    {
+        if (! is_dir(self::DIR_CORA)) {
+            mkdir(self::DIR_CORA, 0750, true);
+        }
+        $ext = strtolower(pathinfo($nomeOriginal, PATHINFO_EXTENSION));
+        if ($tipo === 'certificado') {
+            if (! in_array($ext, ['pem', 'crt', 'cer'])) {
+                throw new Exception('O certificado da Cora deve ser um arquivo .pem');
+            }
+            $destino = self::DIR_CORA . 'certificate.pem';
+        } else {
+            if (! in_array($ext, ['key', 'pem'])) {
+                throw new Exception('A chave privada da Cora deve ser um arquivo .key');
+            }
+            $destino = self::DIR_CORA . 'private-key.key';
+        }
+        if (! move_uploaded_file($tmpFile, $destino)) {
+            throw new Exception('Falha ao salvar o arquivo da Cora (' . $tipo . ')');
+        }
+        @chmod($destino, 0640);
 
         return $destino;
     }

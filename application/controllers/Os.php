@@ -313,11 +313,13 @@ class Os extends MY_Controller
         $this->data['notaFiscal'] = null;
         $this->data['notaFiscalNfe'] = null;
         $this->data['notasFiscais'] = [];
+        $this->data['boletosPorNota'] = [];
         if ($this->db->table_exists('notas_fiscais')) {
             $this->load->model('nfe_model');
             $this->data['notaFiscal'] = $this->nfe_model->getNotaAtiva('nfse', 'os_id', $this->uri->segment(3));
             $this->data['notaFiscalNfe'] = $this->nfe_model->getNotaAtiva('nfe', 'os_id', $this->uri->segment(3));
             $this->data['notasFiscais'] = $this->nfe_model->getNotasByOrigem('os_id', $this->uri->segment(3));
+            $this->data['boletosPorNota'] = $this->carregarBoletosPorNota($this->data['notasFiscais']);
         }
 
         $this->data['view'] = 'os/editarOs';
@@ -407,11 +409,13 @@ class Os extends MY_Controller
         $this->data['notaFiscal'] = null;
         $this->data['notaFiscalNfe'] = null;
         $this->data['notasFiscais'] = [];
+        $this->data['boletosPorNota'] = [];
         if ($this->db->table_exists('notas_fiscais')) {
             $this->load->model('nfe_model');
             $this->data['notaFiscal'] = $this->nfe_model->getNotaAtiva('nfse', 'os_id', $os_id);
             $this->data['notaFiscalNfe'] = $this->nfe_model->getNotaAtiva('nfe', 'os_id', $os_id);
             $this->data['notasFiscais'] = $this->nfe_model->getNotasByOrigem('os_id', $os_id);
+            $this->data['boletosPorNota'] = $this->carregarBoletosPorNota($this->data['notasFiscais']);
         }
 
         return $this->layout();
@@ -478,6 +482,21 @@ class Os extends MY_Controller
         }
 
         return $chave;
+    }
+
+    /**
+     * Mapa de boletos (cobranças) indexado por nota_id, para exibir o boleto
+     * Cora vinculado a cada nota fiscal na aba de Notas Fiscais da OS.
+     */
+    private function carregarBoletosPorNota($notas)
+    {
+        if (empty($notas) || ! $this->db->field_exists('nota_id', 'cobrancas')) {
+            return [];
+        }
+        $ids = array_map(fn ($n) => $n->idNota, $notas);
+        $this->load->model('cobrancas_model');
+
+        return $this->cobrancas_model->getByNotaIds($ids);
     }
 
     public function imprimir()

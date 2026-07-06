@@ -23,6 +23,9 @@ $this->load->config('payment_gateways');
                             <select id="gateway_de_pagamento" class="form-control span12" name="gateway_de_pagamento" required>
                                 <option value="" selected>Escolha o gateway de pagamento</option>
                                 <?php foreach ($this->config->item('payment_gateways') as $paymentGateway) : ?>
+                                    <?php if (! empty($paymentGateway['fiscal_only'])) {
+                                        continue;
+                                    } ?>
                                     <option value="<?php echo $paymentGateway['library_name']; ?>"><?php echo $paymentGateway['name']; ?></option>
                                 <?php endforeach ?>
                             </select>

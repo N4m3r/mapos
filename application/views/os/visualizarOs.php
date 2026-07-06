@@ -683,7 +683,7 @@
                 <h5>Notas Fiscais Emitidas</h5>
             </div>
             <div class="widget-content">
-                <?php echo $this->load->view('os/_notas_fiscais', ['notas' => (isset($notasFiscais) ? $notasFiscais : [])], true); ?>
+                <?php echo $this->load->view('os/_notas_fiscais', ['notas' => (isset($notasFiscais) ? $notasFiscais : []), 'boletos' => (isset($boletosPorNota) ? $boletosPorNota : [])], true); ?>
             </div>
         </div>
     </div>

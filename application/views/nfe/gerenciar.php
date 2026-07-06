@@ -12,6 +12,10 @@
                         <span class="button__icon"><i class='bx bx-cog'></i></span>
                         <span class="button__text2">Configurações Fiscais</span>
                     </a>
+                    <a href="<?= site_url('cobrancas/configCora') ?>" class="button btn btn-mini btn-success" style="max-width: 220px; margin-top: 6px">
+                        <span class="button__icon"><i class='bx bx-dollar-circle'></i></span>
+                        <span class="button__text2">Configurar Cobrança Cora</span>
+                    </a>
                 <?php } ?>
             </div>
             <div class="span2">

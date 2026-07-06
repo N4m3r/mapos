@@ -1,5 +1,7 @@
 <?php
 
+use Libraries\Fiscal\CertificadoHelper;
+
 if (! defined('BASEPATH')) {
     exit('No direct script access allowed');
 }
@@ -77,6 +79,190 @@ class Cobrancas extends MY_Controller
                     ->set_status_header(500)
                     ->set_output(json_encode(['message' => $expMsg]));
             }
+        }
+    }
+
+    /**
+     * Tela de configuração do banco Cora (credenciais mTLS + ambiente).
+     * Guarda em configuracoes_cora e sobe o certificado/chave por upload.
+     */
+    public function configCora()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'cNfe')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para configurar a cobrança Cora.');
+            redirect(base_url());
+        }
+
+        $this->load->model('Cora_model');
+        $this->load->library('form_validation');
+        $this->data['custom_error'] = '';
+
+        if ($this->input->post()) {
+            $this->form_validation->set_rules('boleto_expiration', 'Vencimento do boleto', 'required|trim|max_length[10]');
+
+            if ($this->form_validation->run() == true) {
+                try {
+                    $data = [
+                        'ativo' => $this->input->post('ativo') ? 1 : 0,
+                        'producao' => $this->input->post('producao') ? 1 : 0,
+                        'client_id' => trim((string) $this->input->post('client_id')),
+                        'boleto_expiration' => $this->input->post('boleto_expiration') ?: 'P3D',
+                    ];
+
+                    // Upload do certificado (.pem) — só quando enviado.
+                    if (! empty($_FILES['certificado']['name'])) {
+                        if ($_FILES['certificado']['error'] !== UPLOAD_ERR_OK) {
+                            throw new Exception('Falha no upload do certificado (código ' . $_FILES['certificado']['error'] . ')');
+                        }
+                        $data['certificado_path'] = CertificadoHelper::salvarArquivoCora(
+                            $_FILES['certificado']['tmp_name'],
+                            $_FILES['certificado']['name'],
+                            'certificado'
+                        );
+                    }
+
+                    // Upload da chave privada (.key) — só quando enviada.
+                    if (! empty($_FILES['chave']['name'])) {
+                        if ($_FILES['chave']['error'] !== UPLOAD_ERR_OK) {
+                            throw new Exception('Falha no upload da chave privada (código ' . $_FILES['chave']['error'] . ')');
+                        }
+                        $data['chave_path'] = CertificadoHelper::salvarArquivoCora(
+                            $_FILES['chave']['tmp_name'],
+                            $_FILES['chave']['name'],
+                            'chave'
+                        );
+                    }
+
+                    $this->Cora_model->saveConfig($data);
+                    log_info('Atualizou a configuração da cobrança Cora.');
+                    $this->session->set_flashdata('success', 'Configurações da Cora salvas com sucesso!');
+                    redirect('cobrancas/configCora');
+                } catch (Exception $e) {
+                    $this->data['custom_error'] = '<div class="alert alert-danger">' . html_escape($e->getMessage()) . '</div>';
+                }
+            } else {
+                $this->data['custom_error'] = (validation_errors() ? '<div class="alert alert-danger">' . validation_errors() . '</div>' : '');
+            }
+        }
+
+        $this->data['configCora'] = $this->Cora_model->getConfig();
+        $this->data['view'] = 'cobrancas/configCora';
+
+        return $this->layout();
+    }
+
+    /**
+     * Testa a conexão/credenciais com a Cora (obtém um token). Retorna JSON.
+     */
+    public function testarCora()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'cNfe')) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(403)
+                ->set_output(json_encode(['message' => 'Sem permissão.']));
+        }
+
+        try {
+            $this->load->library('Gateways/Cora', null, 'PaymentGateway');
+            $this->PaymentGateway->testarConexao();
+
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(200)
+                ->set_output(json_encode(['message' => 'Conexão com a Cora estabelecida com sucesso!']));
+        } catch (\Exception $e) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(500)
+                ->set_output(json_encode(['message' => $e->getMessage()]));
+        }
+    }
+
+    /**
+     * Gera um boleto híbrido (boleto + PIX) da Cora a partir de uma nota
+     * fiscal autorizada (NF-e = produtos, NFS-e = serviços). O valor já sai
+     * líquido do ISS retido quando a configuração fiscal indicar retenção.
+     */
+    public function gerarPorNota()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'aCobranca')) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(403)
+                ->set_output(json_encode(['message' => 'Você não tem permissão para gerar cobrança!']));
+        }
+
+        $notaId = $this->input->post('nota_id');
+        if (! $notaId || ! is_numeric($notaId)) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(400)
+                ->set_output(json_encode(['message' => 'Nota fiscal inválida.']));
+        }
+
+        $this->load->library('Gateways/Cora', null, 'PaymentGateway');
+
+        try {
+            $cobranca = $this->PaymentGateway->gerarBoletoParaNota($notaId);
+
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(200)
+                ->set_output(json_encode($cobranca));
+        } catch (\Exception $e) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(500)
+                ->set_output(json_encode(['message' => $e->getMessage()]));
+        }
+    }
+
+    /**
+     * Sincroniza o status de uma cobrança com o gateway e devolve JSON,
+     * para atualizar o acompanhamento do boleto sem sair da tela da OS.
+     */
+    public function verificarPagamento()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eCobranca')) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(403)
+                ->set_output(json_encode(['message' => 'Você não tem permissão para atualizar cobrança!']));
+        }
+
+        $id = $this->input->post('idCobranca');
+        if (! $id || ! is_numeric($id)) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(400)
+                ->set_output(json_encode(['message' => 'Cobrança inválida.']));
+        }
+
+        try {
+            $this->cobrancas_model->atualizarStatus($id);
+            $cobranca = $this->cobrancas_model->getById($id);
+            $this->load->config('payment_gateways');
+            $this->load->helper('general');
+            $label = $cobranca->status;
+            try {
+                $label = getCobrancaTransactionStatus(
+                    $this->config->item('payment_gateways'),
+                    $cobranca->payment_gateway,
+                    $cobranca->status
+                );
+            } catch (\Throwable $ignored) {
+            }
+
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(200)
+                ->set_output(json_encode(['status' => $cobranca->status, 'label' => $label]));
+        } catch (\Exception $e) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(500)
+                ->set_output(json_encode(['message' => $e->getMessage()]));
         }
     }
 
