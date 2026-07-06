@@ -776,6 +776,17 @@ class Nfe extends MY_Controller
             'vISS' => $g('//n:infNFSe/n:valores/n:vISSQN'),
             'vLiq' => $g('//n:infNFSe/n:valores/n:vLiq'),
             'pAliq' => $g('//n:infNFSe/n:valores/n:pAliqAplic'),
+            // Informações adicionais presentes no XML
+            'nDFSe' => $g('//n:infNFSe/n:nDFSe'),
+            'nDPS' => $g('//n:DPS//n:nDPS'),
+            'serieDps' => $g('//n:DPS//n:serie'),
+            'dhEmi' => $g('//n:DPS//n:dhEmi'),
+            'municipioIncid' => $g('//n:infNFSe/n:xLocIncid'),
+            'cLocIncid' => $g('//n:infNFSe/n:cLocIncid'),
+            'municipioPrest' => $g('//n:infNFSe/n:xLocPrestacao'),
+            'opSimpNac' => $g('//n:DPS//n:prest/n:regTrib/n:opSimpNac'),
+            'tpRet' => $g('//n:DPS//n:tribMun/n:tpRetISSQN'),
+            'pTotTribSN' => $g('//n:DPS//n:totTrib/n:pTotTribSN'),
         ];
 
         $emitente = $this->mapos_model->getEmitente();

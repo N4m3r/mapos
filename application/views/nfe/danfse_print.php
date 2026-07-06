@@ -6,6 +6,17 @@ $dt = function ($iso) {
     return $t ? date('d/m/Y H:i', $t) : $iso;
 };
 $homolog = (string) ($d['ambiente'] ?? '') === '2';
+$regimeSN = match ((string) ($d['opSimpNac'] ?? '')) {
+    '1' => 'Não optante',
+    '2' => 'Optante - MEI',
+    '3' => 'Optante pelo Simples Nacional - ME/EPP',
+    default => '-',
+};
+$retencao = match ((string) ($d['tpRet'] ?? '')) {
+    '1' => 'Não retido',
+    '2' => 'Retido pelo tomador',
+    default => '-',
+};
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -65,6 +76,24 @@ $homolog = (string) ($d['ambiente'] ?? '') === '2';
                     <div class="tarja-homolog">AMBIENTE DE HOMOLOGAÇÃO — SEM VALOR FISCAL</div>
                 <?php endif; ?>
 
+                <div class="subtitle">DADOS DA NFS-e</div>
+                <div class="tabela">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <td><b>Competência:</b> <?= html_escape(date('m/Y', strtotime($d['competencia']))) ?></td>
+                                <td><b>DPS:</b> Nº <?= html_escape($d['nDPS']) ?> / Série <?= html_escape($d['serieDps']) ?></td>
+                                <td><b>Nº DFSe:</b> <?= html_escape($d['nDFSe']) ?></td>
+                            </tr>
+                            <tr>
+                                <td><b>Município de Incidência do ISS:</b> <?= html_escape($d['municipioIncid']) ?> (<?= html_escape($d['cLocIncid']) ?>)</td>
+                                <td><b>Local da Prestação:</b> <?= html_escape($d['municipioPrest']) ?></td>
+                                <td><b>Data de Emissão:</b> <?= html_escape($dt($d['dhEmi'])) ?></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
                 <div class="subtitle">CHAVE DE ACESSO DA NFS-e</div>
                 <div class="tabela">
                     <table class="table table-bordered">
@@ -99,6 +128,23 @@ $homolog = (string) ($d['ambiente'] ?? '') === '2';
                             </tr>
                             <?php if (!empty($d['xTribNac'])) : ?>
                                 <tr><td colspan="2"><b>Item da lista:</b> <?= html_escape($d['xTribNac']) ?></td></tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="subtitle">TRIBUTAÇÃO</div>
+                <div class="tabela">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <td style="width:50%"><b>Regime de Tributação:</b> <?= html_escape($regimeSN) ?></td>
+                                <td><b>Retenção do ISS:</b> <?= html_escape($retencao) ?></td>
+                            </tr>
+                            <?php if ($d['pTotTribSN'] !== '') : ?>
+                                <tr>
+                                    <td colspan="2"><b>Total aprox. de tributos (Simples Nacional):</b> <?= number_format((float) $d['pTotTribSN'], 2, ',', '.') ?>% — conforme Lei 12.741/2012</td>
+                                </tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
