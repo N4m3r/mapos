@@ -322,7 +322,10 @@ class NfeService
         $xml = $make->getXML();
         $chave = $make->getChave();
 
-        $xmlAssinado = $this->tools()->signNFe($xml);
+        // Assinatura RSA-SHA1 pelo assinador próprio (Signer), que contorna
+        // servidores que bloqueiam SHA1 em openssl_sign. Gera assinatura padrão.
+        $material = CertificadoHelper::lerChaveECert($this->config->certificado_path, $this->config->senha_certificado);
+        $xmlAssinado = Signer::sign($xml, 'infNFe', $material['pkey'], $material['cert']);
 
         // envio síncrono
         $resposta = $this->tools()->sefazEnviaLote([$xmlAssinado], (string) time(), 1);

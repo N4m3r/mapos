@@ -84,17 +84,45 @@ class CertificadoHelper
         try {
             $certificado->sign('mapos-teste-assinatura', OPENSSL_ALGO_SHA1);
         } catch (\Throwable $e) {
-            $sha256ok = false;
+            // SHA1 via EVP falhou. Se SHA256 funciona, a chave é boa e o MapOS
+            // assina a NF-e com o assinador próprio (Signer, RSA cru) que contorna
+            // o bloqueio de SHA1 do servidor → segue sem travar. Só falha de vez
+            // quando nem SHA256 assina (chave/PFX realmente inválido).
             try {
                 $certificado->sign('mapos-teste-assinatura', OPENSSL_ALGO_SHA256);
-                $sha256ok = true;
             } catch (\Throwable $e2) {
-                // nem SHA256 assina → problema é a chave/PFX
+                throw new Exception(self::traduzErroCertificado($e->getMessage(), false));
             }
-            throw new Exception(self::traduzErroCertificado($e->getMessage(), $sha256ok));
         }
 
         return $certificado;
+    }
+
+    /**
+     * Extrai a chave privada (PEM) e o certificado (PEM) do .pfx, para uso pelo
+     * assinador próprio (Signer). Reutiliza a senha criptografada salva.
+     * Retorna ['pkey' => ..., 'cert' => ...].
+     */
+    public static function lerChaveECert(?string $path, ?string $senhaCriptografada): array
+    {
+        if (empty($path) || empty($senhaCriptografada)) {
+            throw new Exception('Certificado digital não configurado. Acesse Notas Fiscais > Configurações.');
+        }
+        if (!file_exists($path)) {
+            throw new Exception('Arquivo do certificado não encontrado em disco: ' . basename($path));
+        }
+        $conteudo = file_get_contents($path);
+        $senha = self::descriptografar($senhaCriptografada);
+
+        $certs = [];
+        if (!openssl_pkcs12_read($conteudo, $certs, $senha)) {
+            throw new Exception(self::traduzErroCertificado('Falha ao ler o .pfx: ' . (openssl_error_string() ?: 'erro desconhecido')));
+        }
+        if (empty($certs['pkey']) || empty($certs['cert'])) {
+            throw new Exception('O certificado não contém chave privada e/ou certificado válidos.');
+        }
+
+        return ['pkey' => $certs['pkey'], 'cert' => $certs['cert']];
     }
 
     /**

@@ -173,7 +173,13 @@ class Nfe extends MY_Controller
 
             $checks[] = ['ok' => true, 'titulo' => 'Certificado e senha', 'detalhe' => 'Arquivo lido e senha correta.' . ($dados['titular'] ? ' Titular: ' . $dados['titular'] . '.' : '')];
             $checks[] = ['ok' => true, 'titulo' => 'Validade', 'detalhe' => 'Válido de ' . $dados['valido_de'] . ' até ' . $dados['validade'] . '.'];
-            $checks[] = ['ok' => true, 'titulo' => 'Assinatura digital (OpenSSL)', 'detalhe' => 'Assinatura de teste gerada com sucesso.'];
+
+            // Testa o caminho REAL de assinatura da NF-e (assinador interno RSA-SHA1,
+            // que contorna o bloqueio de SHA1 do servidor).
+            $material = \Libraries\Fiscal\CertificadoHelper::lerChaveECert($config->certificado_path, $config->senha_certificado);
+            $xmlTeste = '<teste xmlns="http://teste"><infTeste Id="TESTE1">ok</infTeste></teste>';
+            \Libraries\Fiscal\Signer::sign($xmlTeste, 'infTeste', $material['pkey'], $material['cert']);
+            $checks[] = ['ok' => true, 'titulo' => 'Assinatura RSA-SHA1 (assinador interno)', 'detalhe' => 'Assinatura de teste gerada com sucesso — contorna o bloqueio de SHA1 do servidor.'];
         } catch (\Throwable $e) {
             $checks[] = ['ok' => false, 'titulo' => 'Certificado', 'detalhe' => $this->traduzErroFiscal($e)];
 
