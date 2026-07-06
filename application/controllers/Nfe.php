@@ -451,6 +451,7 @@ class Nfe extends MY_Controller
             $opcoes = [
                 'info_complementar' => (string) $this->input->post('info_complementar'),
                 'ctribnac' => (string) $this->input->post('ctribnac'),
+                'ctribmun' => (string) $this->input->post('ctribmun'),
                 'desc_servico' => (string) $this->input->post('desc_servico'),
                 'tp_ret_issqn' => (string) $this->input->post('tp_ret_issqn'),
                 'aliquota_iss' => (string) $this->input->post('aliquota_iss'),

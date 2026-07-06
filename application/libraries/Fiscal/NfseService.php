@@ -123,6 +123,12 @@ class NfseService
         $std->infDPS->serv->locPrest->cLocPrestacao = (string) $this->config->codigo_municipio;
         $std->infDPS->serv->cServ = new stdClass();
         $std->infDPS->serv->cServ->cTribNac = $cTribNac;
+        // Código de Tributação Municipal (3 dígitos), exigido por alguns
+        // municípios (ex.: Manaus) junto do nacional — resolve E0312.
+        $cTribMun = preg_replace('/\D/', '', (string) ($opcoes['ctribmun'] ?? ''));
+        if ($cTribMun !== '') {
+            $std->infDPS->serv->cServ->cTribMun = str_pad($cTribMun, 3, '0', STR_PAD_LEFT);
+        }
 
         // Descrição do serviço: usa a informada no wizard, senão a montada a partir da OS.
         $descOpcao = trim((string) ($opcoes['desc_servico'] ?? ''));

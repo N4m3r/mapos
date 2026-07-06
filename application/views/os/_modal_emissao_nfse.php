@@ -37,6 +37,11 @@
                 <?php $this->load->view('nfe/_datalist_ctribnac'); ?>
             </div>
             <div class="control-group">
+                <label for="nfseCtribmun"><strong>Cód. Tributação Municipal (3 dígitos)</strong></label>
+                <input type="text" id="nfseCtribmun" maxlength="3" class="span12" autocomplete="off" placeholder="Opcional — alguns municípios (ex.: Manaus) exigem" />
+                <span style="color:#999;font-size:11px">Se der erro E0312, informe aqui o código municipal do serviço (veja com sua prefeitura/contador ou simule no Emissor Nacional).</span>
+            </div>
+            <div class="control-group">
                 <label for="nfseAliquota"><strong>Alíquota ISS (%)</strong></label>
                 <input type="text" id="nfseAliquota" class="span12" placeholder="Ex: 3.00" />
                 <span style="color:#999;font-size:11px">No Simples Nacional o ISS é apurado no DAS; este valor é informativo na nota.</span>
@@ -166,6 +171,7 @@
 
             $.post('<?php echo site_url('nfe/emitirNfse'); ?>/' + $('#nfseIdOs').val(), {
                 ctribnac: $('#nfseCtribnac').val(),
+                ctribmun: $('#nfseCtribmun').val(),
                 aliquota_iss: $('#nfseAliquota').val(),
                 tp_ret_issqn: $('#nfseTpRet').val(),
                 desc_servico: $('#nfseDesc').val(),
