@@ -109,6 +109,11 @@ class NfseService
         }
         $std->infDPS->prest->regTrib = new stdClass();
         $std->infDPS->prest->regTrib->opSimpNac = (int) $this->config->op_simp_nac;
+        // Regime de apuração do Simples Nacional — exigido quando optante (MEI/ME/EPP).
+        // 1 = regra geral (mesmo valor da NFS-e autorizada da JJ em Manaus).
+        if (in_array((int) $this->config->op_simp_nac, [2, 3], true)) {
+            $std->infDPS->prest->regTrib->regApTribSN = 1;
+        }
         $std->infDPS->prest->regTrib->regEspTrib = (int) $this->config->reg_esp_trib;
 
         // tomador
