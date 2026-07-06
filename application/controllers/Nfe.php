@@ -315,6 +315,7 @@ class Nfe extends MY_Controller
                     'chave' => null,
                     'protocolo' => null,
                     'xml_path' => null,
+                    'serie' => $config->serie_nfe,
                     'valor_total' => $valorTotal,
                     'ambiente' => $config->ambiente,
                     'data_emissao' => date('Y-m-d H:i:s'),
