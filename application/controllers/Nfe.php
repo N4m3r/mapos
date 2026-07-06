@@ -538,7 +538,7 @@ class Nfe extends MY_Controller
                 $service = new NfeService($data['config'], $data['emitente']);
                 $xml = $service->montarXmlRascunho($os, $produtos, (int) ($data['config']->proximo_numero_nfe ?? 1));
                 $danfe = new \NFePHP\DA\NFe\Danfe($xml);
-                $pdf = $danfe->render();
+                $pdf = $danfe->render($this->logoEmitente($data['emitente']));
                 $this->output
                     ->set_content_type('application/pdf')
                     ->set_header('Content-Disposition: inline; filename="previa_danfe_os' . $idOs . '.pdf"')
@@ -600,7 +600,7 @@ class Nfe extends MY_Controller
                     throw new Exception('XML da NF-e não encontrado em disco.');
                 }
                 $danfe = new NFePHP\DA\NFe\Danfe(file_get_contents($nota->xml_path));
-                $pdf = $danfe->render();
+                $pdf = $danfe->render($this->logoEmitente($this->mapos_model->getEmitente()));
             } else {
                 $config = $this->nfe_model->getConfig();
                 $emitente = $this->mapos_model->getEmitente();
@@ -669,6 +669,24 @@ class Nfe extends MY_Controller
         } catch (Exception $e) {
             return $this->jsonResponse(false, $e->getMessage());
         }
+    }
+
+    /**
+     * Devolve o logo do emitente como data-URI (base64) para o sped-da (DANFE),
+     * ou string vazia se não houver logo/arquivo. O sped-da aceita
+     * 'data://text/plain;base64,...' no parâmetro do render().
+     */
+    private function logoEmitente($emitente)
+    {
+        if (empty($emitente) || empty($emitente->url_logo)) {
+            return '';
+        }
+        $arquivo = FCPATH . 'assets/uploads/' . basename($emitente->url_logo);
+        if (!is_file($arquivo)) {
+            return '';
+        }
+
+        return 'data://text/plain;base64,' . base64_encode(file_get_contents($arquivo));
     }
 
     private function jsonResponse($sucesso, $mensagem, array $extra = [])

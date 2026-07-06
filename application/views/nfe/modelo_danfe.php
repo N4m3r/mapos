@@ -54,6 +54,9 @@ $homolog = (int) $config->ambiente === 2;
             <tr>
                 <td style="width:55%">
                     <span class="rot">Emitente</span>
+                    <?php if (!empty($emitente->url_logo)) { ?>
+                        <img src="<?= $emitente->url_logo ?>" alt="Logo" style="max-height:45px;max-width:150px;float:left;margin:0 8px 4px 0">
+                    <?php } ?>
                     <span class="titulo"><?= html_escape($emitente->nome ?? '—') ?></span><br>
                     <?= html_escape(trim(($emitente->rua ?? '') . ', ' . ($emitente->numero ?? '') . ' - ' . ($emitente->bairro ?? ''))) ?><br>
                     <?= html_escape(trim(($emitente->cidade ?? '') . '/' . ($emitente->uf ?? '') . ' - CEP ' . ($emitente->cep ?? ''))) ?><br>
