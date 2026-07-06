@@ -760,7 +760,9 @@ class Nfe extends MY_Controller
             'numero' => $g('//n:infNFSe/n:nNFSe') ?: (string) $nota->numero,
             'dhProc' => $g('//n:infNFSe/n:dhProc'),
             'competencia' => $g('//n:DPS//n:dCompet'),
-            'ambiente' => (string) $nota->ambiente,
+            // tpAmb do XML é o campo correto de ambiente (1=Produção, 2=Homologação).
+            // NÃO usar ambGer (1=Prefeitura, 2=Sist. Nacional) — não indica homologação.
+            'ambiente' => $g('//n:DPS//n:tpAmb') ?: (string) $nota->ambiente,
             'prestNome' => $g('//n:infNFSe/n:emit/n:xNome'),
             'prestCnpj' => $g('//n:infNFSe/n:emit/n:CNPJ'),
             'prestIM' => $g('//n:infNFSe/n:emit/n:IM'),
