@@ -1610,4 +1610,85 @@ class Os extends MY_Controller
 
         echo json_encode($historico);
     }
+
+    /**
+     * Gera (ou regenera) o link público e temporário de aprovação de uma OS.
+     * Retorna JSON com a URL para ser enviada ao cliente.
+     */
+    public function gerarLinkAprovacao()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(403)
+                ->set_output(json_encode(['result' => false, 'mensagem' => 'Sem permissão.']));
+        }
+
+        $osId = $this->input->post('idOs');
+        if (! is_numeric($osId) || ! $this->os_model->getById($osId)) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(404)
+                ->set_output(json_encode(['result' => false, 'mensagem' => 'OS não encontrada.']));
+        }
+
+        $this->load->model('aprovacao_model');
+        if (! $this->aprovacao_model->suportado()) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(400)
+                ->set_output(json_encode(['result' => false, 'mensagem' => 'Recurso indisponível: execute a atualização do banco (updates/update_os_aprovacao.sql).']));
+        }
+
+        $dias = (int) $this->input->post('dias') ?: 7;
+        $info = $this->aprovacao_model->gerarLink($osId, $dias);
+
+        if (! $info) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(500)
+                ->set_output(json_encode(['result' => false, 'mensagem' => 'Erro ao gerar o link.']));
+        }
+
+        log_info('Gerou link de aprovação para a OS #' . $osId);
+
+        return $this->output
+            ->set_content_type('application/json')
+            ->set_status_header(200)
+            ->set_output(json_encode([
+                'result' => true,
+                'url' => site_url('aprovacao/' . $info['token']),
+                'expira' => date('d/m/Y', strtotime($info['expira'])),
+            ]));
+    }
+
+    /**
+     * Revoga o link de aprovação ativo de uma OS.
+     */
+    public function revogarLinkAprovacao()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(403)
+                ->set_output(json_encode(['result' => false, 'mensagem' => 'Sem permissão.']));
+        }
+
+        $osId = $this->input->post('idOs');
+        if (! is_numeric($osId)) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(400)
+                ->set_output(json_encode(['result' => false]));
+        }
+
+        $this->load->model('aprovacao_model');
+        $this->aprovacao_model->revogarLink($osId);
+        log_info('Revogou link de aprovação da OS #' . $osId);
+
+        return $this->output
+            ->set_content_type('application/json')
+            ->set_status_header(200)
+            ->set_output(json_encode(['result' => true]));
+    }
 }

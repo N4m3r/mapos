@@ -95,6 +95,16 @@
                     <?php endif; ?>
 
                     <?php
+                    // Link público e temporário de aprovação da OS pelo cliente.
+                    // Só aparece se a migration do módulo já foi aplicada (coluna aprovacao_token).
+                    $aprovacaoSuportada = $this->db->field_exists('aprovacao_token', 'os');
+                    if ($aprovacaoSuportada && $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) { ?>
+                        <a title="Gerar link de aprovação para o cliente" href="#modal-aprovacao" role="button" data-toggle="modal" class="button btn btn-mini btn-primary">
+                            <span class="button__icon"><i class="bx bx-check-shield"></i></span> <span class="button__text">Link Aprovação</span>
+                        </a>
+                    <?php } ?>
+
+                    <?php
                     // Botões de Check-in/Check-out do Atendimento
                     // Verifica permissão específica vBtnAtendimento OU permissão geral de editar OS (eOs)
                     // OU permissões de técnico específicas (eTecnicoCheckin/eTecnicoCheckout)
@@ -748,6 +758,160 @@
         <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true" style="color: #FFF">Fechar</button>
     </div>
 </div>
+<?php
+// ------- Modal: Link de aprovação da OS (temporário) -------
+if (isset($aprovacaoSuportada) && $aprovacaoSuportada && $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
+    $apToken = $result->aprovacao_token ?? null;
+    $apStatus = $result->aprovacao_status ?? null;
+    $apExpira = $result->aprovacao_expira ?? null;
+    $apUrl = $apToken ? site_url('aprovacao/' . $apToken) : '';
+    $zapAprov = preg_replace('/[^0-9]/', '', $result->celular_cliente ?? '');
+?>
+    <div id="modal-aprovacao" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4><i class="bx bx-check-shield"></i> Link de Aprovação &mdash; OS #<?php echo $result->idOs; ?></h4>
+        </div>
+        <div class="modal-body">
+            <p>Gere um link temporário para o cliente aprovar ou reprovar esta Ordem de Serviço. O link deixa de funcionar após a decisão do cliente ou ao expirar.</p>
+
+            <?php if ($apStatus === 'aprovado' || $apStatus === 'reprovado') { ?>
+                <div class="alert <?php echo $apStatus === 'aprovado' ? 'alert-success' : 'alert-error'; ?>">
+                    OS <?php echo $apStatus === 'aprovado' ? 'APROVADA' : 'REPROVADA'; ?>
+                    <?php echo $result->aprovacao_nome ? ' por ' . html_escape($result->aprovacao_nome) : ''; ?>
+                    <?php echo $result->aprovacao_data ? ' em ' . date('d/m/Y H:i', strtotime($result->aprovacao_data)) : ''; ?>.
+                    <?php echo (! empty($result->aprovacao_obs)) ? '<br>Motivo: ' . html_escape($result->aprovacao_obs) : ''; ?>
+                </div>
+            <?php } elseif ($apStatus === 'pendente') { ?>
+                <div class="alert alert-info">Link ativo, aguardando decisão do cliente<?php echo $apExpira ? '. Válido até ' . date('d/m/Y', strtotime($apExpira)) : ''; ?>.</div>
+            <?php } ?>
+
+            <div class="control-group">
+                <label class="control-label" for="apDias">Validade do link (dias)</label>
+                <div class="controls">
+                    <input type="number" id="apDias" value="7" min="1" max="90" style="width:80px">
+                </div>
+            </div>
+
+            <div id="apLinkBox" style="<?php echo $apUrl ? '' : 'display:none'; ?>">
+                <label><strong>Link para o cliente</strong></label>
+                <div class="input-append" style="width:100%">
+                    <input type="text" id="apLink" readonly value="<?php echo html_escape($apUrl); ?>" style="width:75%">
+                    <button class="btn" type="button" id="apCopiar"><i class="bx bx-copy"></i> Copiar</button>
+                </div>
+                <?php if (! empty($zapAprov)) { ?>
+                    <a id="apWhats" target="_blank" class="btn btn-success" style="color:#fff;margin-top:8px" href="#">
+                        <i class="bx bxl-whatsapp"></i> Enviar por WhatsApp
+                    </a>
+                <?php } ?>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true" style="color:#fff">Fechar</button>
+            <?php if ($apToken) { ?>
+                <button class="btn" type="button" id="apRevogar" style="color:#fff;background:#8a6d3b">Revogar link</button>
+            <?php } ?>
+            <button class="btn btn-primary" type="button" id="apGerar" style="color:#fff">
+                <i class="bx bx-link"></i> <?php echo $apToken ? 'Gerar novo link' : 'Gerar link'; ?>
+            </button>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $(function() {
+            var apIdOs = "<?php echo $result->idOs; ?>";
+            var apZap = "<?php echo $zapAprov; ?>";
+            var apCliente = <?php echo json_encode($result->nomeCliente); ?>;
+
+            function apMontarWhats(url) {
+                if (!apZap) return;
+                var msg = 'Ola ' + apCliente + ', segue o link para aprovacao da sua Ordem de Servico #' + apIdOs + ': ' + url;
+                $('#apWhats').attr('href', 'https://api.whatsapp.com/send?phone=55' + apZap + '&text=' + encodeURIComponent(msg));
+            }
+            apMontarWhats($('#apLink').val());
+
+            $('#apGerar').on('click', function() {
+                var btn = $(this).addClass('disabled').prop('disabled', true);
+                $.ajax({
+                    type: 'POST',
+                    url: '<?php echo site_url('os/gerarLinkAprovacao'); ?>',
+                    dataType: 'json',
+                    data: {
+                        idOs: apIdOs,
+                        dias: $('#apDias').val()
+                    },
+                    success: function(data) {
+                        if (data.result) {
+                            $('#apLink').val(data.url);
+                            $('#apLinkBox').show();
+                            apMontarWhats(data.url);
+                            swal({
+                                type: 'success',
+                                title: 'Link gerado!',
+                                text: 'Válido até ' + data.expira + '. Copie e envie ao cliente.'
+                            });
+                        } else {
+                            swal({
+                                type: 'error',
+                                title: 'Atenção',
+                                text: data.mensagem || 'Erro ao gerar o link.'
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        var m = (xhr.responseJSON && xhr.responseJSON.mensagem) ? xhr.responseJSON.mensagem : 'Erro ao gerar o link.';
+                        swal({
+                            type: 'error',
+                            title: 'Atenção',
+                            text: m
+                        });
+                    },
+                    complete: function() {
+                        btn.removeClass('disabled').prop('disabled', false);
+                    }
+                });
+            });
+
+            $('#apRevogar').on('click', function() {
+                swal({
+                    title: 'Revogar link?',
+                    text: 'O link atual deixará de funcionar.',
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sim, revogar',
+                    cancelButtonText: 'Cancelar'
+                }, function() {
+                    $.ajax({
+                        type: 'POST',
+                        url: '<?php echo site_url('os/revogarLinkAprovacao'); ?>',
+                        dataType: 'json',
+                        data: {
+                            idOs: apIdOs
+                        },
+                        success: function(data) {
+                            if (data.result) {
+                                $('#apLink').val('');
+                                $('#apLinkBox').hide();
+                                swal('Revogado!', 'O link foi desativado.', 'success');
+                            }
+                        }
+                    });
+                });
+            });
+
+            $('#apCopiar').on('click', function() {
+                var input = document.getElementById('apLink');
+                input.select();
+                input.setSelectionRange(0, 99999);
+                try {
+                    document.execCommand('copy');
+                    $(this).html('<i class="bx bx-check"></i> Copiado');
+                } catch (e) {}
+            });
+        });
+    </script>
+<?php } ?>
+
 <script src="https://cdn.rawgit.com/cozmo/jsQR/master/dist/jsQR.js"></script>
 <script type="text/javascript">
     // Função auxiliar para carregamento assíncrono de conteúdo

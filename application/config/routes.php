@@ -50,6 +50,10 @@ if (filter_var($_ENV['API_ENABLED'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
     require APPPATH . 'config/routes_api.php';
 }
 
+// Rota pública de aprovação de OS (link temporário enviado ao cliente)
+$route['aprovacao/confirmar'] = 'aprovacao/confirmar';
+$route['aprovacao/(:any)'] = 'aprovacao/index/$1';
+
 // Rotas do Relatório de Atendimentos
 $route['relatorioatendimentos'] = 'relatorioatendimentos';
 $route['relatorioatendimentos/listar'] = 'relatorioatendimentos/listar';
