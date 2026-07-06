@@ -909,6 +909,8 @@ class Nfe extends MY_Controller
             'itens' => $itens,
         ];
 
+        $d['barcodeSvg'] = $this->barcodeChave($d['chave']);
+
         $emitente = $this->mapos_model->getEmitente();
         $this->load->view('nfe/danfe_print', ['d' => $d, 'emitente' => $emitente]);
     }
@@ -983,6 +985,41 @@ class Nfe extends MY_Controller
         }
 
         return $e->getMessage();
+    }
+
+    /**
+     * Gera o código de barras Code128-C da chave de acesso (44 dígitos) como SVG,
+     * usando o gerador de barcode do mpdf. Vazio se não for possível.
+     */
+    private function barcodeChave($chave)
+    {
+        $chave = preg_replace('/\D/', '', (string) $chave);
+        if (strlen($chave) !== 44 || !class_exists(\Mpdf\Barcode\Code128::class)) {
+            return '';
+        }
+        try {
+            $bc = new \Mpdf\Barcode\Code128($chave, 'C');
+            $bd = $bc->getData();
+            $altura = 50;
+            $x = 0.0;
+            $rects = '';
+            foreach ($bd['bcode'] as $bar) {
+                $w = (float) $bar['w'];
+                if (!empty($bar['t'])) {
+                    $rects .= '<rect x="' . round($x, 3) . '" y="0" width="' . round($w, 3) . '" height="' . $altura . '"/>';
+                }
+                $x += $w;
+            }
+            if ($rects === '' || $x <= 0) {
+                return '';
+            }
+
+            return '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="' . $altura . '" '
+                . 'viewBox="0 0 ' . round($x, 3) . ' ' . $altura . '" preserveAspectRatio="none" fill="#000">'
+                . $rects . '</svg>';
+        } catch (\Throwable $e) {
+            return '';
+        }
     }
 
     /**

@@ -90,9 +90,13 @@ $chaveFmt = trim(chunk_split($d['chave'], 4, ' '));
                 <div style="margin-top:4px"><span class="b">Nº <?= html_escape($d['numero']) ?></span><br>Série <?= html_escape($d['serie']) ?><br>Fl. 1/1</div>
             </td>
             <td>
-                <span class="rot">Controle do Fisco / Chave de Acesso</span>
+                <span class="rot">Controle do Fisco</span>
+                <?php if (!empty($d['barcodeSvg'])) : ?>
+                    <div style="height:42px;margin:2px 0"><?= $d['barcodeSvg'] ?></div>
+                <?php endif; ?>
+                <span class="rot">Chave de Acesso</span>
                 <div class="chave"><?= html_escape($chaveFmt) ?></div>
-                <div class="c" style="margin-top:4px;font-size:8px">Consulte pela chave de acesso em<br>www.nfe.fazenda.gov.br/portal ou no site da SEFAZ</div>
+                <div class="c" style="margin-top:3px;font-size:8px">Consulte pela chave de acesso em<br>www.nfe.fazenda.gov.br/portal ou no site da SEFAZ</div>
             </td>
         </tr>
     </table>
