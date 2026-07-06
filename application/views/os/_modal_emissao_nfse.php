@@ -33,7 +33,8 @@
         <div id="nfsePasso2" style="display:none">
             <div class="control-group">
                 <label for="nfseCtribnac"><strong>Código de Tributação Nacional</strong></label>
-                <input type="text" id="nfseCtribnac" maxlength="6" class="span12" placeholder="6 dígitos (item da LC 116), ex: 140101" />
+                <input type="text" id="nfseCtribnac" maxlength="6" class="span12" list="listaCtribnac" autocomplete="off" placeholder="Digite p/ sugestões (ex: 010701 = suporte em informática)" />
+                <?php $this->load->view('nfe/_datalist_ctribnac'); ?>
             </div>
             <div class="control-group">
                 <label for="nfseAliquota"><strong>Alíquota ISS (%)</strong></label>
