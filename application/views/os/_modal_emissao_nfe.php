@@ -21,6 +21,11 @@
                     <tfoot><tr><th colspan="3" style="text-align:right">Total</th><th id="nfeTotal"></th></tr></tfoot>
                 </table>
                 <div id="nfeAvisos"></div>
+                <div style="text-align:center;margin:8px 0">
+                    <button type="button" id="nfeVerPrevia" class="button btn btn-mini btn-inverse">
+                        <span class="button__icon"><i class="bx bx-show"></i></span><span class="button__text2">Ver prévia do documento (DANFE)</span>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -121,6 +126,10 @@
             }, 'json').fail(function() {
                 $('#nfePreviewLoading').removeClass('alert-info').addClass('alert-danger').text('Falha ao carregar os dados da OS.');
             });
+        });
+
+        $('#nfeVerPrevia').on('click', function() {
+            window.open('<?php echo site_url('nfe/modeloPreview'); ?>/' + $('#nfeIdOs').val() + '/nfe', '_blank');
         });
 
         $('#nfeBtnAvancar').on('click', function() { nfeMostrarPasso(2); });

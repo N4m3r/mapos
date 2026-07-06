@@ -497,6 +497,44 @@ class Nfe extends MY_Controller
     }
 
     /**
+     * Prévia VISUAL (HTML) de como a nota vai sair, antes de emitir.
+     * Apenas ilustrativa — marcada como SEM VALOR FISCAL.
+     * $tipo = 'nfe' (DANFE / produtos) ou 'nfse' (DANFSe / serviços) de uma OS.
+     */
+    public function modeloPreview($idOs = null, $tipo = 'nfse')
+    {
+        if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) {
+            show_error('Sem permissão para visualizar a prévia.', 403);
+            return;
+        }
+        if (!$idOs || !is_numeric($idOs) || !in_array($tipo, ['nfe', 'nfse'])) {
+            show_error('Parâmetros inválidos.', 400);
+            return;
+        }
+
+        $this->load->model('os_model');
+        $os = $this->os_model->getById($idOs);
+        if (!$os) {
+            show_error('OS não encontrada.', 404);
+            return;
+        }
+
+        $data = [
+            'os' => $os,
+            'emitente' => $this->mapos_model->getEmitente(),
+            'config' => $this->nfe_model->getConfig(),
+        ];
+
+        if ($tipo === 'nfe') {
+            $data['produtos'] = $this->os_model->getProdutos($idOs);
+            $this->load->view('nfe/modelo_danfe', $data);
+        } else {
+            $data['servicos'] = $this->os_model->getServicos($idOs);
+            $this->load->view('nfe/modelo_danfse', $data);
+        }
+    }
+
+    /**
      * Download do XML autorizado
      */
     public function xml($idNota = null)
