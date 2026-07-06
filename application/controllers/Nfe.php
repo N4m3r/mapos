@@ -526,12 +526,36 @@ class Nfe extends MY_Controller
         ];
 
         if ($tipo === 'nfe') {
-            $data['produtos'] = $this->os_model->getProdutos($idOs);
-            $this->load->view('nfe/modelo_danfe', $data);
-        } else {
-            $data['servicos'] = $this->os_model->getServicos($idOs);
-            $this->load->view('nfe/modelo_danfse', $data);
+            $produtos = $this->os_model->getProdutos($idOs);
+
+            // 1ª opção: DANFE real (design oficial) via sped-da, a partir de um
+            // XML de rascunho (não assinado). Requer as libs do composer e dados
+            // completos (NCM etc.). Em qualquer falha, cai no mockup HTML.
+            try {
+                if (!class_exists(\NFePHP\DA\NFe\Danfe::class)) {
+                    throw new Exception('Bibliotecas fiscais não instaladas (rode composer install).');
+                }
+                $service = new NfeService($data['config'], $data['emitente']);
+                $xml = $service->montarXmlRascunho($os, $produtos, (int) ($data['config']->proximo_numero_nfe ?? 1));
+                $danfe = new \NFePHP\DA\NFe\Danfe($xml);
+                $pdf = $danfe->render();
+                $this->output
+                    ->set_content_type('application/pdf')
+                    ->set_header('Content-Disposition: inline; filename="previa_danfe_os' . $idOs . '.pdf"')
+                    ->set_output($pdf);
+
+                return;
+            } catch (\Throwable $e) {
+                $data['produtos'] = $produtos;
+                $data['previaAviso'] = 'Prévia aproximada (o DANFE oficial fica disponível quando o composer estiver instalado e os dados completos). Detalhe: ' . $e->getMessage();
+                $this->load->view('nfe/modelo_danfe', $data);
+
+                return;
+            }
         }
+
+        $data['servicos'] = $this->os_model->getServicos($idOs);
+        $this->load->view('nfe/modelo_danfse', $data);
     }
 
     /**

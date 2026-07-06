@@ -19,8 +19,8 @@ class NfeService
 {
     private object $config;      // linha de configuracoes_nfe
     private object $emitente;    // linha da tabela emitente
-    private Certificate $certificado;
-    private Tools $tools;
+    private ?Certificate $certificado = null;
+    private ?Tools $tools = null; // carregado sob demanda (assinar/transmitir)
 
     private const CODIGOS_UF = [
         'AC' => 12, 'AL' => 27, 'AP' => 16, 'AM' => 13, 'BA' => 29, 'CE' => 23,
@@ -34,30 +34,40 @@ class NfeService
     {
         $this->config = $config;
         $this->emitente = $emitente;
-        $this->certificado = CertificadoHelper::carregar($config->certificado_path, $config->senha_certificado);
-
-        $uf = $this->siglaUf();
-
-        $toolsConfig = json_encode([
-            'atualizacao' => date('Y-m-d H:i:s'),
-            'tpAmb' => (int) $config->ambiente,
-            'razaosocial' => $emitente->nome,
-            'cnpj' => $this->somenteNumeros($emitente->cnpj),
-            'siglaUF' => $uf,
-            'schemes' => 'PL_009_V4',
-            'versao' => '4.00',
-        ]);
-
-        $this->tools = new Tools($toolsConfig, $this->certificado);
-        $this->tools->model('55');
     }
 
     /**
-     * Monta, assina e transmite a NF-e de uma venda.
-     * $itens: itens_de_vendas + produtos (result do Vendas_model::getProdutos)
-     * Retorna: ['sucesso', 'chave', 'protocolo', 'cstat', 'motivo', 'xml']
+     * Inicializa (uma vez) o Tools da NFePHP com o certificado.
+     * Só é necessário para assinar/transmitir — a montagem do XML (rascunho) não usa.
      */
-    public function emitir(object $venda, array $itens, int $numero, array $opcoes = []): array
+    private function tools(): Tools
+    {
+        if ($this->tools === null) {
+            $this->certificado = CertificadoHelper::carregar($this->config->certificado_path, $this->config->senha_certificado);
+
+            $toolsConfig = json_encode([
+                'atualizacao' => date('Y-m-d H:i:s'),
+                'tpAmb' => (int) $this->config->ambiente,
+                'razaosocial' => $this->emitente->nome,
+                'cnpj' => $this->somenteNumeros($this->emitente->cnpj),
+                'siglaUF' => $this->siglaUf(),
+                'schemes' => 'PL_009_V4',
+                'versao' => '4.00',
+            ]);
+
+            $this->tools = new Tools($toolsConfig, $this->certificado);
+            $this->tools->model('55');
+        }
+
+        return $this->tools;
+    }
+
+    /**
+     * Monta o objeto Make da NF-e (sem assinar/transmitir).
+     * Reutilizado pela emissão e pela prévia (rascunho). Lança exceção se os dados forem inválidos.
+     * $itens: itens_de_vendas + produtos (result do Vendas_model::getProdutos)
+     */
+    private function construirMake(object $venda, array $itens, int $numero, array $opcoes = []): Make
     {
         $this->validarEmitente();
         if (empty($itens)) {
@@ -290,13 +300,32 @@ class NfeService
             throw new Exception('Erros na montagem do XML da NF-e: ' . $erros);
         }
 
+        return $make;
+    }
+
+    /**
+     * Monta o XML de rascunho (sem assinar/transmitir) — usado na prévia do DANFE.
+     */
+    public function montarXmlRascunho(object $venda, array $itens, int $numero, array $opcoes = []): string
+    {
+        return $this->construirMake($venda, $itens, $numero, $opcoes)->getXML();
+    }
+
+    /**
+     * Monta, assina e transmite a NF-e.
+     * Retorna: ['sucesso', 'chave', 'protocolo', 'cstat', 'motivo', 'xml']
+     */
+    public function emitir(object $venda, array $itens, int $numero, array $opcoes = []): array
+    {
+        $make = $this->construirMake($venda, $itens, $numero, $opcoes);
+
         $xml = $make->getXML();
         $chave = $make->getChave();
 
-        $xmlAssinado = $this->tools->signNFe($xml);
+        $xmlAssinado = $this->tools()->signNFe($xml);
 
         // envio síncrono
-        $resposta = $this->tools->sefazEnviaLote([$xmlAssinado], (string) time(), 1);
+        $resposta = $this->tools()->sefazEnviaLote([$xmlAssinado], (string) time(), 1);
 
         $st = new Standardize();
         $retorno = $st->toStd($resposta);
@@ -344,7 +373,7 @@ class NfeService
         if (mb_strlen($justificativa) < 15) {
             throw new Exception('A justificativa do cancelamento deve ter no mínimo 15 caracteres.');
         }
-        $resposta = $this->tools->sefazCancela($chave, $justificativa, $protocolo);
+        $resposta = $this->tools()->sefazCancela($chave, $justificativa, $protocolo);
 
         $st = new Standardize();
         $retorno = $st->toStd($resposta);
@@ -357,7 +386,7 @@ class NfeService
             return ['sucesso' => false, 'cstat' => $cStat, 'motivo' => $xMotivo, 'xml' => null];
         }
 
-        $xmlEvento = Complements::toAuthorize($this->tools->lastRequest, $resposta);
+        $xmlEvento = Complements::toAuthorize($this->tools()->lastRequest, $resposta);
 
         return ['sucesso' => true, 'cstat' => $cStat, 'motivo' => $xMotivo, 'xml' => $xmlEvento];
     }

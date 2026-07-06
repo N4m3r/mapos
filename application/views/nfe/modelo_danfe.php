@@ -44,6 +44,9 @@ $homolog = (int) $config->ambiente === 2;
         <div class="aviso">
             PRÉVIA ILUSTRATIVA — este documento NÃO é uma NF-e. Serve apenas para conferir o layout antes de emitir.
             <?= $homolog ? ' (Ambiente configurado: HOMOLOGAÇÃO)' : '' ?>
+            <?php if (!empty($previaAviso)) { ?>
+                <div style="font-weight:normal;font-size:10px;margin-top:4px;color:#666"><?= html_escape($previaAviso) ?></div>
+            <?php } ?>
         </div>
 
         <!-- Cabeçalho: emitente + bloco DANFE -->
