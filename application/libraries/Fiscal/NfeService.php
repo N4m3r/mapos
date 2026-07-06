@@ -295,7 +295,10 @@ class NfeService
             . ($infComplementar !== '' ? ' ' . $infComplementar : '');
         $make->taginfAdic($std);
 
-        if (!$make->monta()) {
+        // O método de montagem mudou de nome entre versões do sped-nfe
+        // (monta() nas mais novas, montaNFe() nas anteriores).
+        $montou = method_exists($make, 'monta') ? $make->monta() : $make->montaNFe();
+        if (!$montou) {
             $erros = implode('; ', array_map(fn ($e) => is_string($e) ? $e : json_encode($e), $make->getErrors()));
             throw new Exception('Erros na montagem do XML da NF-e: ' . $erros);
         }
