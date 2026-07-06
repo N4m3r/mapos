@@ -169,8 +169,9 @@ class NfseService
         $std->infDPS->valores->trib->tribMun = new stdClass();
         $std->infDPS->valores->trib->tribMun->tribISSQN = 1; // operação tributável
         $std->infDPS->valores->trib->tribMun->tpRetISSQN = $tpRet;
-        if ($aliquota > 0) {
-            // Alíquota do ISSQN (campo pAliq — igual à NFS-e autorizada de Manaus)
+        // Alíquota (pAliq) só é permitida quando o ISS é RETIDO (tpRetISSQN=2).
+        // No Simples Nacional sem retenção, informar alíquota gera a rejeição E0625.
+        if ($aliquota > 0 && $tpRet === 2) {
             $std->infDPS->valores->trib->tribMun->pAliq = number_format($aliquota, 2, '.', '');
         }
 
