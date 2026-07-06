@@ -544,6 +544,7 @@ class Nfe extends MY_Controller
             }
         } else {
             $cTribNac = '';
+            $cTribMun = '';
             foreach ($this->os_model->getServicos($idOs) as $s) {
                 $preco = (float) ($s->preco ?: $s->precoVenda);
                 $qtd = (float) ($s->quantidade ?: 1);
@@ -552,6 +553,7 @@ class Nfe extends MY_Controller
                 $codigo = preg_replace('/\D/', '', (string) ($s->codigo_servico_municipio ?? ''));
                 if ($cTribNac === '' && strlen($codigo) === 6) {
                     $cTribNac = $codigo;
+                    $cTribMun = preg_replace('/\D/', '', (string) ($s->codigo_tributacao_municipal ?? ''));
                 }
                 $itens[] = [
                     'descricao' => trim($s->nome . (empty($s->descricao) ? '' : ' - ' . $s->descricao)),
@@ -568,6 +570,7 @@ class Nfe extends MY_Controller
             }
             $defaults = [
                 'ctribnac' => $cTribNac,
+                'ctribmun' => $cTribMun,
                 'aliquota_iss' => number_format((float) $config->aliquota_iss, 2, '.', ''),
                 'tp_ret_issqn' => (int) $config->tp_ret_issqn,
                 'desc_servico' => 'OS nr. ' . $os->idOs,

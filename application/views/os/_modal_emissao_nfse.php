@@ -146,6 +146,7 @@
                 $('#nfseAvisos').html(avisos);
                 // pré-preenche o passo 2 com os defaults
                 $('#nfseCtribnac').val(data.defaults.ctribnac || '');
+                $('#nfseCtribmun').val(data.defaults.ctribmun || '');
                 $('#nfseAliquota').val(data.defaults.aliquota_iss || '');
                 $('#nfseTpRet').val(data.defaults.tp_ret_issqn || 1);
                 $('#nfseDesc').val(data.defaults.desc_servico || '');

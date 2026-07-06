@@ -36,6 +36,12 @@
                             <?php $this->load->view('nfe/_datalist_ctribnac'); ?>
                         </div>
                     </div>
+                    <div class="control-group">
+                        <label for="codigo_tributacao_municipal" class="control-label">Cód. Tributação Municipal <small>(NFS-e)</small></label>
+                        <div class="controls">
+                            <input id="codigo_tributacao_municipal" type="text" name="codigo_tributacao_municipal" maxlength="3" value="<?php echo $result->codigo_tributacao_municipal ?? '' ?>" placeholder="3 dígitos — exigido por alguns municípios (ex.: Manaus)" />
+                        </div>
+                    </div>
                     <div class="form-actions">
                         <div class="span12">
                             <div class="span6 offset3" style="display:flex;justify-content: center">

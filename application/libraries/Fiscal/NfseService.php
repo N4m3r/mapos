@@ -58,14 +58,17 @@ class NfseService
             throw new Exception('O cliente da OS não possui CPF/CNPJ cadastrado.');
         }
 
-        // código de tributação nacional: exige ao menos um serviço com código
+        // códigos de tributação: pega o do primeiro serviço com código cadastrado
         $cTribNac = null;
+        $cTribMunCad = '';
         $descricoes = [];
         $total = 0.0;
         foreach ($servicos as $servico) {
             $codigo = preg_replace('/\D/', '', (string) ($servico->codigo_servico_municipio ?? ''));
             if ($cTribNac === null && strlen($codigo) === 6) {
                 $cTribNac = $codigo;
+                // usa o código municipal do MESMO serviço que forneceu o nacional
+                $cTribMunCad = preg_replace('/\D/', '', (string) ($servico->codigo_tributacao_municipal ?? ''));
             }
             $quantidade = (float) ($servico->quantidade ?? 1) ?: 1;
             $preco = (float) ($servico->preco ?? $servico->precoVenda);
@@ -125,7 +128,11 @@ class NfseService
         $std->infDPS->serv->cServ->cTribNac = $cTribNac;
         // Código de Tributação Municipal (3 dígitos), exigido por alguns
         // municípios (ex.: Manaus) junto do nacional — resolve E0312.
+        // Prioriza o informado no wizard; senão usa o cadastrado no serviço.
         $cTribMun = preg_replace('/\D/', '', (string) ($opcoes['ctribmun'] ?? ''));
+        if ($cTribMun === '') {
+            $cTribMun = $cTribMunCad;
+        }
         if ($cTribMun !== '') {
             $std->infDPS->serv->cServ->cTribMun = str_pad($cTribMun, 3, '0', STR_PAD_LEFT);
         }
