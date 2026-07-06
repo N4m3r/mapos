@@ -255,14 +255,37 @@ class NfseService
 
     /**
      * Baixa o PDF do DANFSe direto do Sefin Nacional.
+     * A biblioteca devolve o conteúdo "cru" — aqui garantimos que é um PDF
+     * (decodificando base64/gzip se preciso) ou lançamos um erro legível.
      */
     public function danfse(string $chave): string
     {
-        $pdf = $this->tools->consultarDanfse($chave);
-        if (!is_string($pdf) || $pdf === '') {
-            throw new Exception('Não foi possível obter o DANFSe no Sefin Nacional: ' . json_encode($pdf));
+        $retorno = $this->tools->consultarDanfse($chave);
+
+        if (is_array($retorno)) {
+            $erro = $retorno['erro'] ?? $retorno['erros'] ?? $retorno;
+            throw new Exception('Sefin Nacional não retornou o DANFSe: ' . (is_string($erro) ? $erro : json_encode($erro, JSON_UNESCAPED_UNICODE)));
+        }
+        if (!is_string($retorno) || $retorno === '') {
+            throw new Exception('Sefin Nacional retornou vazio para o DANFSe (chave ' . $chave . ').');
         }
 
-        return $pdf;
+        // Já é um PDF?
+        if (strncmp($retorno, '%PDF', 4) === 0) {
+            return $retorno;
+        }
+        // Veio em base64?
+        $b64 = base64_decode(trim($retorno), true);
+        if ($b64 !== false && strncmp($b64, '%PDF', 4) === 0) {
+            return $b64;
+        }
+        // Veio comprimido (gzip)?
+        $gz = @gzdecode($retorno);
+        if ($gz !== false && strncmp($gz, '%PDF', 4) === 0) {
+            return $gz;
+        }
+
+        // Não é PDF — provavelmente uma mensagem de erro do Sefin.
+        throw new Exception('O Sefin não retornou um PDF válido do DANFSe. Resposta: ' . mb_substr(trim($retorno), 0, 300));
     }
 }

@@ -709,7 +709,8 @@ class Nfe extends MY_Controller
                 ->set_content_type('application/pdf')
                 ->set_header('Content-Disposition: inline; filename="nota_' . $nota->numero . '.pdf"')
                 ->set_output($pdf);
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
+            log_message('error', 'Falha ao gerar DANFE/DANFSe: ' . $e->getMessage());
             $this->session->set_flashdata('error', 'Falha ao gerar o PDF: ' . $e->getMessage());
             redirect('nfe/gerenciar');
         }
