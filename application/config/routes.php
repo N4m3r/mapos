@@ -54,6 +54,12 @@ if (filter_var($_ENV['API_ENABLED'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
 $route['aprovacao/confirmar'] = 'aprovacao/confirmar';
 $route['aprovacao/(:any)'] = 'aprovacao/index/$1';
 
+// Rota pública de aceite do serviço realizado (link temporário + assinatura)
+$route['aceite/confirmar'] = 'aceite/confirmar';
+$route['aceite/foto/(:any)/(:num)'] = 'aceite/foto/$1/$2';
+$route['aceite/assinatura/(:any)/(:num)'] = 'aceite/assinatura/$1/$2';
+$route['aceite/(:any)'] = 'aceite/index/$1';
+
 // Rotas do Relatório de Atendimentos
 $route['relatorioatendimentos'] = 'relatorioatendimentos';
 $route['relatorioatendimentos/listar'] = 'relatorioatendimentos/listar';

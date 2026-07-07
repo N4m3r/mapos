@@ -115,6 +115,16 @@
                     <?php } ?>
 
                     <?php
+                    // Link público de ACEITE do serviço realizado (pós-execução, com assinatura).
+                    // Só aparece com a migration aplicada (coluna aceite_token) e OS concluída.
+                    $aceiteSuportado = $this->db->field_exists('aceite_token', 'os');
+                    if ($aceiteSuportado && in_array($result->status, ['Finalizado', 'Faturado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) { ?>
+                        <a title="Solicitar aceite do serviço realizado ao cliente" href="#modal-aceite" role="button" data-toggle="modal" class="button btn btn-mini btn-success">
+                            <span class="button__icon"><i class="bx bx-badge-check"></i></span> <span class="button__text">Link Aceite</span>
+                        </a>
+                    <?php } ?>
+
+                    <?php
                     // Botões de Check-in/Check-out do Atendimento
                     // Verifica permissão específica vBtnAtendimento OU permissão geral de editar OS (eOs)
                     // OU permissões de técnico específicas (eTecnicoCheckin/eTecnicoCheckout)
@@ -957,6 +967,130 @@ if (isset($aprovacaoSuportada) && $aprovacaoSuportada && $this->permission->chec
             $('#apWhats').attr('target', '').on('click', function(e) {
                 e.preventDefault();
                 enviarWhatsApp('<?php echo site_url('whatsapp/enviarLinkAprovacao'); ?>/<?php echo $result->idOs; ?>', this, 'Enviando...');
+            });
+        });
+    </script>
+<?php } ?>
+
+<?php
+// ------- Modal: Link de aceite do serviço realizado -------
+if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, ['Finalizado', 'Faturado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
+    $acToken = $result->aceite_token ?? null;
+    $acStatus = $result->aceite_status ?? null;
+    $acExpira = $result->aceite_expira ?? null;
+    $acUrl = $acToken ? site_url('aceite/' . $acToken) : '';
+?>
+    <div id="modal-aceite" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4><i class="bx bx-badge-check"></i> Aceite do Serviço &mdash; OS #<?php echo $result->idOs; ?></h4>
+        </div>
+        <div class="modal-body">
+            <p>Gere um link para o cliente confirmar o aceite do serviço realizado e assinar digitalmente. O link deixa de funcionar após a decisão do cliente ou ao expirar.</p>
+
+            <?php if ($acStatus === 'aceito' || $acStatus === 'recusado') { ?>
+                <div class="alert <?php echo $acStatus === 'aceito' ? 'alert-success' : 'alert-error'; ?>">
+                    Serviço <?php echo $acStatus === 'aceito' ? 'ACEITO' : 'RECUSADO'; ?>
+                    <?php echo $result->aceite_nome ? ' por ' . html_escape($result->aceite_nome) : ''; ?>
+                    <?php echo $result->aceite_data ? ' em ' . date('d/m/Y H:i', strtotime($result->aceite_data)) : ''; ?>.
+                    <?php echo (! empty($result->aceite_obs)) ? '<br>Motivo: ' . html_escape($result->aceite_obs) : ''; ?>
+                </div>
+            <?php } elseif ($acStatus === 'pendente') { ?>
+                <div class="alert alert-info">Link ativo, aguardando o aceite do cliente<?php echo $acExpira ? '. Válido até ' . date('d/m/Y', strtotime($acExpira)) : ''; ?>.</div>
+            <?php } ?>
+
+            <div class="control-group">
+                <label class="control-label" for="acDias">Validade do link (dias)</label>
+                <div class="controls">
+                    <input type="number" id="acDias" value="7" min="1" max="90" style="width:80px">
+                </div>
+            </div>
+
+            <div id="acLinkBox" style="<?php echo $acUrl ? '' : 'display:none'; ?>">
+                <label><strong>Link para o cliente</strong></label>
+                <div class="input-append" style="width:100%">
+                    <input type="text" id="acLink" readonly value="<?php echo html_escape($acUrl); ?>" style="width:75%">
+                    <button class="btn" type="button" id="acCopiar"><i class="bx bx-copy"></i> Copiar</button>
+                </div>
+                <button id="acWhats" class="btn btn-success" style="color:#fff;margin-top:8px" type="button">
+                    <i class="bx bxl-whatsapp"></i> Enviar por WhatsApp
+                </button>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true" style="color:#fff">Fechar</button>
+            <?php if ($acToken) { ?>
+                <button class="btn" type="button" id="acRevogar" style="color:#fff;background:#8a6d3b">Revogar link</button>
+            <?php } ?>
+            <button class="btn btn-primary" type="button" id="acGerar" style="color:#fff">
+                <i class="bx bx-link"></i> <?php echo $acToken ? 'Gerar novo link' : 'Gerar link'; ?>
+            </button>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $(function() {
+            var acIdOs = "<?php echo $result->idOs; ?>";
+
+            $('#acGerar').on('click', function() {
+                var btn = $(this).addClass('disabled').prop('disabled', true);
+                $.ajax({
+                    type: 'POST',
+                    url: '<?php echo site_url('os/gerarLinkAceite'); ?>',
+                    dataType: 'json',
+                    data: { idOs: acIdOs, dias: $('#acDias').val() }
+                }).done(function(data) {
+                    if (data.result) {
+                        $('#acLink').val(data.url);
+                        $('#acLinkBox').show();
+                        swal({ type: 'success', title: 'Link gerado!', text: 'Válido até ' + data.expira + '.' });
+                    } else {
+                        swal({ type: 'error', title: 'Atenção', text: data.mensagem || 'Erro ao gerar o link.' });
+                    }
+                }).fail(function(xhr) {
+                    var m = (xhr.responseJSON && xhr.responseJSON.mensagem) ? xhr.responseJSON.mensagem : 'Erro ao gerar o link.';
+                    swal({ type: 'error', title: 'Atenção', text: m });
+                }).always(function() {
+                    btn.removeClass('disabled').prop('disabled', false);
+                });
+            });
+
+            $('#acWhats').on('click', function() {
+                var btn = $(this).addClass('disabled').prop('disabled', true);
+                $.ajax({
+                    type: 'POST',
+                    url: '<?php echo site_url('whatsapp/enviarLinkAceite'); ?>/' + acIdOs,
+                    dataType: 'json'
+                }).done(function(data) {
+                    swal({ type: data.result ? 'success' : 'error', title: data.result ? 'Enviado!' : 'Atenção', text: data.mensagem || '' });
+                    if (data.result && data.url) { $('#acLink').val(data.url); $('#acLinkBox').show(); }
+                }).fail(function(xhr) {
+                    var m = (xhr.responseJSON && xhr.responseJSON.mensagem) ? xhr.responseJSON.mensagem : 'Falha ao enviar pelo WhatsApp.';
+                    swal({ type: 'error', title: 'Atenção', text: m });
+                }).always(function() {
+                    btn.removeClass('disabled').prop('disabled', false);
+                });
+            });
+
+            $('#acRevogar').on('click', function() {
+                swal({
+                    title: 'Revogar link?', text: 'O link atual deixará de funcionar.', type: 'warning',
+                    showCancelButton: true, confirmButtonText: 'Sim, revogar', cancelButtonText: 'Cancelar'
+                }, function() {
+                    $.ajax({
+                        type: 'POST', url: '<?php echo site_url('os/revogarLinkAceite'); ?>', dataType: 'json',
+                        data: { idOs: acIdOs }
+                    }).done(function(data) {
+                        if (data.result) { $('#acLink').val(''); $('#acLinkBox').hide(); swal('Revogado!', 'O link foi desativado.', 'success'); }
+                    });
+                });
+            });
+
+            $('#acCopiar').on('click', function() {
+                var input = document.getElementById('acLink');
+                input.select();
+                input.setSelectionRange(0, 99999);
+                try { document.execCommand('copy'); $(this).html('<i class="bx bx-check"></i> Copiado'); } catch (e) {}
             });
         });
     </script>

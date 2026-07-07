@@ -1525,8 +1525,8 @@ class Os extends MY_Controller
         $this->pagination->initialize($config);
         $this->data['pagination'] = $this->pagination->create_links();
 
-        // Carregar lista de técnicos disponíveis
-        $this->data['tecnicos'] = $this->tecnico_model->getTecnicosDisponiveis();
+        // Carregar lista de técnicos (apenas usuários de grupos com permissão de técnico)
+        $this->data['tecnicos'] = $this->tecnico_model->getTecnicosPorPermissao();
 
         // Ativar menu
         $this->data['menuAtribuir'] = 'Atribuir';
@@ -1556,9 +1556,15 @@ class Os extends MY_Controller
 
         $this->load->model('tecnico_model');
 
+        if (! $this->tecnico_model->isTecnicoValido($tecnico_id)) {
+            $this->session->set_flashdata('error', 'Usuário selecionado não é um técnico válido.');
+            redirect('os/atribuir');
+        }
+
         $atribuido_por = $this->session->userdata('idUsuarios');
 
         if ($this->tecnico_model->atribuirTecnico($os_id, $tecnico_id, $atribuido_por, $observacao)) {
+            $this->notificarTecnicoAtribuicao($os_id, $tecnico_id);
             $this->session->set_flashdata('success', 'Técnico atribuído à OS #' . $os_id . ' com sucesso!');
             log_info('Atribuiu técnico ' . $tecnico_id . ' à OS #' . $os_id);
         } else {
@@ -1566,6 +1572,61 @@ class Os extends MY_Controller
         }
 
         redirect('os/atribuir');
+    }
+
+    /**
+     * Notifica o técnico (WhatsApp via Evolution API + e-mail na fila) quando
+     * recebe uma OS. Blindado: qualquer falha só é registrada e não impede a
+     * atribuição.
+     */
+    private function notificarTecnicoAtribuicao($os_id, $tecnico_id)
+    {
+        try {
+            $this->load->model('usuarios_model');
+            $this->load->model('mapos_model');
+            $tecnico = $this->usuarios_model->getById($tecnico_id);
+            $os = $this->os_model->getById($os_id);
+            if (! $tecnico || ! $os) {
+                return;
+            }
+
+            $emitente = $this->mapos_model->getEmitente();
+            $endereco = trim(($os->rua ?? '') . ' ' . ($os->numero ?? '') . ' ' . ($os->bairro ?? '') . ' ' . ($os->cidade ?? ''));
+            $msg = "Olá {$tecnico->nome}! Você recebeu a OS #{$os_id}."
+                . "\nCliente: " . ($os->nomeCliente ?? '')
+                . "\nEquipamento/Defeito: " . strip_tags((string) ($os->defeito ?? ''))
+                . ($endereco !== '' ? "\nEndereço: {$endereco}" : '')
+                . ($emitente ? "\n\n{$emitente->nome}" : '');
+
+            // WhatsApp (se a Evolution API estiver ativa)
+            $zap = $tecnico->celular ?: $tecnico->telefone;
+            if (! empty($zap)) {
+                $this->load->library('evolution_api');
+                if ($this->evolution_api->estaAtivo()) {
+                    $this->evolution_api->enviarTexto($zap, $msg);
+                    log_info('Notificou técnico #' . $tecnico_id . ' por WhatsApp da OS #' . $os_id);
+                }
+            }
+
+            // E-mail na fila
+            if (! empty($tecnico->email) && $emitente) {
+                $this->load->model('email_model');
+                $headers = [
+                    'From' => $emitente->email,
+                    'Subject' => 'Nova OS atribuída a você - #' . $os_id,
+                    'Return-Path' => '',
+                ];
+                $this->email_model->add('email_queue', [
+                    'to' => $tecnico->email,
+                    'message' => nl2br(htmlspecialchars($msg)),
+                    'status' => 'pending',
+                    'date' => date('Y-m-d H:i:s'),
+                    'headers' => serialize($headers),
+                ]);
+            }
+        } catch (\Exception $e) {
+            log_info('Falha ao notificar técnico da OS #' . $os_id . ': ' . $e->getMessage());
+        }
     }
 
     /**
@@ -1694,6 +1755,86 @@ class Os extends MY_Controller
         $this->load->model('aprovacao_model');
         $this->aprovacao_model->revogarLink($osId);
         log_info('Revogou link de aprovação da OS #' . $osId);
+
+        return $this->output
+            ->set_content_type('application/json')
+            ->set_status_header(200)
+            ->set_output(json_encode(['result' => true]));
+    }
+
+    /**
+     * Gera (ou regenera) o link público de ACEITE do serviço realizado.
+     * Retorna JSON com a URL para envio ao cliente.
+     */
+    public function gerarLinkAceite()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(403)
+                ->set_output(json_encode(['result' => false, 'mensagem' => 'Sem permissão.']));
+        }
+
+        $osId = $this->input->post('idOs');
+        if (! is_numeric($osId) || ! $this->os_model->getById($osId)) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(404)
+                ->set_output(json_encode(['result' => false, 'mensagem' => 'OS não encontrada.']));
+        }
+
+        $this->load->model('aceite_model');
+        if (! $this->aceite_model->suportado()) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(400)
+                ->set_output(json_encode(['result' => false, 'mensagem' => 'Recurso indisponível: execute a atualização do banco (updates/update_os_aceite.sql).']));
+        }
+
+        $dias = (int) $this->input->post('dias') ?: 7;
+        $info = $this->aceite_model->gerarLink($osId, $dias);
+        if (! $info) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(500)
+                ->set_output(json_encode(['result' => false, 'mensagem' => 'Erro ao gerar o link.']));
+        }
+
+        log_info('Gerou link de aceite para a OS #' . $osId);
+
+        return $this->output
+            ->set_content_type('application/json')
+            ->set_status_header(200)
+            ->set_output(json_encode([
+                'result' => true,
+                'url' => site_url('aceite/' . $info['token']),
+                'expira' => date('d/m/Y', strtotime($info['expira'])),
+            ]));
+    }
+
+    /**
+     * Revoga o link de aceite ativo de uma OS.
+     */
+    public function revogarLinkAceite()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(403)
+                ->set_output(json_encode(['result' => false, 'mensagem' => 'Sem permissão.']));
+        }
+
+        $osId = $this->input->post('idOs');
+        if (! is_numeric($osId)) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(400)
+                ->set_output(json_encode(['result' => false]));
+        }
+
+        $this->load->model('aceite_model');
+        $this->aceite_model->revogarLink($osId);
+        log_info('Revogou link de aceite da OS #' . $osId);
 
         return $this->output
             ->set_content_type('application/json')

@@ -252,6 +252,56 @@ class Tecnico_model extends CI_Model
     }
 
     /**
+     * Ids dos grupos de permissao (permissoes.idPermissao) que possuem uma
+     * determinada atividade habilitada (=1). As permissoes ficam serializadas
+     * no campo permissoes.permissoes (mesmo formato de Permission.php).
+     *
+     * @return int[]
+     */
+    public function getGruposComPermissao($atividade)
+    {
+        $grupos = [];
+        $query = $this->db->select('idPermissao, permissoes')->get('permissoes');
+        foreach (($query ? $query->result() : []) as $p) {
+            $perms = @unserialize($p->permissoes);
+            if (is_array($perms) && ! empty($perms[$atividade])) {
+                $grupos[] = (int) $p->idPermissao;
+            }
+        }
+
+        return $grupos;
+    }
+
+    /**
+     * Tecnicos de verdade: usuarios ativos cujos grupos possuem a atividade
+     * informada (por padrao vTecnicoDashboard). Faz fallback para todos os
+     * usuarios ativos se nenhum grupo tiver a permissao (evita lista vazia).
+     */
+    public function getTecnicosPorPermissao($atividade = 'vTecnicoDashboard')
+    {
+        $grupos = $this->getGruposComPermissao($atividade);
+        if (empty($grupos)) {
+            return $this->getTecnicosDisponiveis();
+        }
+
+        return $this->getTecnicosAtivos($grupos);
+    }
+
+    /**
+     * Verifica se um usuario e tecnico (esta na lista filtrada por permissao).
+     */
+    public function isTecnicoValido($usuario_id, $atividade = 'vTecnicoDashboard')
+    {
+        foreach ($this->getTecnicosPorPermissao($atividade) as $t) {
+            if ((int) $t->idUsuarios === (int) $usuario_id) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Obter historico de atribuicoes de uma OS
      */
     public function getHistoricoAtribuicoes($os_id)

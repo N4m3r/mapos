@@ -169,4 +169,53 @@ class Whatsapp extends MY_Controller
             return $this->json(['result' => false, 'mensagem' => $e->getMessage()], 400);
         }
     }
+
+    /**
+     * Envia o link público de ACEITE do serviço realizado ao celular do cliente.
+     * Gera o link se ainda não existir um ativo.
+     */
+    public function enviarLinkAceite($idOs = null)
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
+            return $this->json(['result' => false, 'mensagem' => 'Sem permissão.'], 403);
+        }
+
+        $this->load->model('os_model');
+        $this->load->model('aceite_model');
+
+        $os = is_numeric($idOs) ? $this->os_model->getById($idOs) : null;
+        if (! $os) {
+            return $this->json(['result' => false, 'mensagem' => 'OS não encontrada.'], 404);
+        }
+        if (! $this->aceite_model->suportado()) {
+            return $this->json(['result' => false, 'mensagem' => 'Recurso indisponível: execute a atualização do banco (updates/update_os_aceite.sql).'], 400);
+        }
+        if (empty($os->celular_cliente)) {
+            return $this->json(['result' => false, 'mensagem' => 'Cliente sem celular cadastrado.'], 400);
+        }
+
+        // Reaproveita o token ativo; só gera um novo se não houver/estiver expirado.
+        $token = $os->aceite_token ?? null;
+        $situacao = $this->aceite_model->situacao($os);
+        if (empty($token) || in_array($situacao, ['invalido', 'expirado'], true)) {
+            $info = $this->aceite_model->gerarLink($idOs, 7);
+            if (! $info) {
+                return $this->json(['result' => false, 'mensagem' => 'Erro ao gerar o link de aceite.'], 500);
+            }
+            $token = $info['token'];
+        }
+
+        $url = site_url('aceite/' . $token);
+        $mensagem = 'Olá ' . $os->nomeCliente . '! Seu serviço (OS #' . $idOs . ') foi concluído. '
+            . 'Confirme o aceite e assine pelo link:' . "\n" . $url;
+
+        try {
+            $this->evolution_api->enviarTexto($os->celular_cliente, $mensagem);
+            log_info('Enviou link de aceite por WhatsApp (Evolution) da OS #' . $idOs);
+
+            return $this->json(['result' => true, 'mensagem' => 'Link de aceite enviado por WhatsApp!', 'url' => $url]);
+        } catch (\Exception $e) {
+            return $this->json(['result' => false, 'mensagem' => $e->getMessage()], 400);
+        }
+    }
 }
