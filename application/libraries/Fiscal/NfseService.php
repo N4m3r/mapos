@@ -125,6 +125,23 @@ class NfseService
         }
         $std->infDPS->toma->xNome = mb_substr($os->nomeCliente, 0, 150);
 
+        // Endereço do tomador — obrigatório quando o ISS é retido (E0237) e
+        // recomendado sempre. O cadastro de cliente não guarda o código IBGE,
+        // então assume-se o município do emitente (caso comum: tomador local).
+        $tomaRua = trim((string) ($os->rua ?? ''));
+        $tomaCep = preg_replace('/\D/', '', (string) ($os->cep ?? ''));
+        if ($tomaRua !== '' && strlen($tomaCep) === 8) {
+            $std->infDPS->toma->end = new stdClass();
+            $std->infDPS->toma->end->xLgr = mb_substr($tomaRua, 0, 255);
+            $std->infDPS->toma->end->nro = mb_substr(trim((string) ($os->numero ?? '')) ?: 'S/N', 0, 60);
+            if (!empty($os->bairro)) {
+                $std->infDPS->toma->end->xBairro = mb_substr((string) $os->bairro, 0, 60);
+            }
+            $std->infDPS->toma->end->endNac = new stdClass();
+            $std->infDPS->toma->end->endNac->cMun = (string) $this->config->codigo_municipio;
+            $std->infDPS->toma->end->endNac->CEP = $tomaCep;
+        }
+
         // serviço
         $std->infDPS->serv = new stdClass();
         $std->infDPS->serv->locPrest = new stdClass();
