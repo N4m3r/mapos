@@ -60,7 +60,16 @@ class CertificadoHelper
             throw new Exception('Certificado digital não configurado. Acesse Notas Fiscais > Configurações.');
         }
         if (!file_exists($path)) {
-            throw new Exception('Arquivo do certificado não encontrado em disco: ' . basename($path));
+            // O caminho salvo pode ser de outro ambiente (deploy/migração de servidor).
+            // Tenta o local padrão pelo nome do arquivo antes de desistir.
+            $alternativo = self::DIR_CERTIFICADO . basename($path);
+            if (file_exists($alternativo)) {
+                $path = $alternativo;
+            } else {
+                throw new Exception('Arquivo do certificado (' . basename($path) . ') não está no servidor. '
+                    . 'Reenvie o certificado A1 em Notas Fiscais > Configurações Fiscais. '
+                    . '(Um deploy pode ter removido a pasta arquivos_fiscais — veja como preservá-la.)');
+            }
         }
         $conteudo = file_get_contents($path);
         $senha = self::descriptografar($senhaCriptografada);
@@ -109,7 +118,16 @@ class CertificadoHelper
             throw new Exception('Certificado digital não configurado. Acesse Notas Fiscais > Configurações.');
         }
         if (!file_exists($path)) {
-            throw new Exception('Arquivo do certificado não encontrado em disco: ' . basename($path));
+            // O caminho salvo pode ser de outro ambiente (deploy/migração de servidor).
+            // Tenta o local padrão pelo nome do arquivo antes de desistir.
+            $alternativo = self::DIR_CERTIFICADO . basename($path);
+            if (file_exists($alternativo)) {
+                $path = $alternativo;
+            } else {
+                throw new Exception('Arquivo do certificado (' . basename($path) . ') não está no servidor. '
+                    . 'Reenvie o certificado A1 em Notas Fiscais > Configurações Fiscais. '
+                    . '(Um deploy pode ter removido a pasta arquivos_fiscais — veja como preservá-la.)');
+            }
         }
         $conteudo = file_get_contents($path);
         $senha = self::descriptografar($senhaCriptografada);
