@@ -40,65 +40,6 @@
                     </a>
                 </li>
 
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vDashboard') ||
-                          $this->permission->checkPermission($this->session->userdata('permissao'), 'cPermissao')) { ?>
-                    <li class="<?php if (isset($menuDashboard)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('dashboard') ?>"><i class='bx bx-dashboard iconX'></i>
-                            <span class="title">Dashboard</span>
-                            <span class="title-tooltip">Dashboard</span>
-                        </a>
-                    </li>
-                <?php } ?>
-
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vRelatorioCompleto') ||
-                          $this->permission->checkPermission($this->session->userdata('permissao'), 'cPermissao')) { ?>
-                    <li class="submenu <?php if (isset($menuRelatorios)) {
-                        echo 'active open';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="#"><i class='bx bx-line-chart iconX'></i>
-                            <span class="title">Relatórios</span>
-                            <span class="title-tooltip">Relatórios</span>
-                            <i class='bx bx-chevron-down arrow'></i>
-                        </a>
-                        <ul style="display: <?php echo isset($menuRelatorios) ? 'block' : 'none'; ?>;">
-                            <li class="<?php if (isset($menuRelAtendimentos)) {
-                                echo 'active';
-                            }; ?>">
-                                <a href="<?= site_url('dashboard/relatorio_atendimentos') ?>">
-                                    <i class='bx bx-time iconX'></i>
-                                    <span class="title">Atendimentos</span>
-                                </a>
-                            </li>
-                            <li class="<?php if (isset($menuRelFinanceiro)) {
-                                echo 'active';
-                            }; ?>">
-                                <a href="<?= site_url('dashboard/relatorio_financeiro') ?>">
-                                    <i class='bx bx-dollar-circle iconX'></i>
-                                    <span class="title">Financeiro</span>
-                                </a>
-                            </li>
-                            <li class="<?php if (isset($menuRelProdutos)) {
-                                echo 'active';
-                            }; ?>">
-                                <a href="<?= site_url('dashboard/relatorio_produtos') ?>">
-                                    <i class='bx bx-package iconX'></i>
-                                    <span class="title">Produtos</span>
-                                </a>
-                            </li>
-                            <li class="<?php if (isset($menuRelClientes)) {
-                                echo 'active';
-                            }; ?>">
-                                <a href="<?= site_url('dashboard/relatorio_clientes') ?>">
-                                    <i class='bx bx-user-check iconX'></i>
-                                    <span class="title">Clientes</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                <?php } ?>
-
                 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vCliente')) { ?>
                     <li class="<?php if (isset($menuClientes)) {
                         echo 'active';
