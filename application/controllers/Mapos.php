@@ -454,6 +454,11 @@ class Mapos extends MY_Controller {
                 'EMAIL_SMTP_PORT' => $this->input->post('EMAIL_SMTP_PORT'),
                 'EMAIL_SMTP_USER' => $this->input->post('EMAIL_SMTP_USER'),
                 'EMAIL_SMTP_PASS' => $this->input->post('EMAIL_SMTP_PASS'),
+                'WHATSAPP_EVOLUTION_ENABLED' => $this->input->post('WHATSAPP_EVOLUTION_ENABLED'),
+                'WHATSAPP_EVOLUTION_URL' => $this->input->post('WHATSAPP_EVOLUTION_URL'),
+                'WHATSAPP_EVOLUTION_APIKEY' => $this->input->post('WHATSAPP_EVOLUTION_APIKEY'),
+                'WHATSAPP_EVOLUTION_INSTANCE' => $this->input->post('WHATSAPP_EVOLUTION_INSTANCE'),
+                'WHATSAPP_EVOLUTION_AUTO_STATUS' => $this->input->post('WHATSAPP_EVOLUTION_AUTO_STATUS'),
             ];
 
             if (!$this->editDontEnv($dataDotEnv)) {

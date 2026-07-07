@@ -4,6 +4,10 @@ Todas as alterações serão documentadas neste arquivo
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Notificação por WhatsApp via Evolution API (envio programático server-side): envio automático da OS por mudança de status, botão de envio manual na OS, envio do link de aprovação e do link de cobrança/pagamento. Configuração (URL, API Key, instância, status automáticos) na aba Configurar Sistema, com botão de teste de conexão. O link click-to-chat continua como fallback quando a integração está desativada.
+
 ## [4.52.0] - 2025-02-01
 ### Added
 - Action de release no GitHub. [@Pr3d4dor](https://github.com/Pr3d4dor)

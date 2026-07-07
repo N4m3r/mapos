@@ -325,6 +325,63 @@ class Os_model extends CI_Model
         return $textoBase;
     }
 
+    /**
+     * Versão "crua" de criarTextoWhats: substitui as tags e remove HTML, mas
+     * NÃO faz urlencode/htmlentities. Usada no envio via Evolution API, onde o
+     * texto vai no corpo JSON (não numa URL).
+     */
+    public function montarTextoWhats($textoBase, $troca)
+    {
+        $procura = ['{CLIENTE_NOME}', '{NUMERO_OS}', '{STATUS_OS}', '{VALOR_OS}', '{DESCRI_PRODUTOS}', '{EMITENTE}', '{TELEFONE_EMITENTE}', '{OBS_OS}', '{DEFEITO_OS}', '{LAUDO_OS}', '{DATA_FINAL}', '{DATA_INICIAL}', '{DATA_GARANTIA}'];
+
+        return strip_tags(str_replace($procura, $troca, $textoBase));
+    }
+
+    /**
+     * Monta a mensagem de notificação (texto cru) de uma OS a partir do
+     * template configurado, centralizando a construção do array de tags que
+     * antes era duplicada na view visualizarOs.php.
+     *
+     * @param int         $idOs
+     * @param string      $textoBase Template (configuracoes.notifica_whats)
+     * @param object|null $emitente  Emitente; se null, é carregado do mapos_model
+     */
+    public function montarNotificacaoOs($idOs, $textoBase, $emitente = null)
+    {
+        $os = $this->getById($idOs);
+        if (! $os) {
+            return '';
+        }
+
+        if ($emitente === null) {
+            $this->load->model('mapos_model');
+            $emitente = $this->mapos_model->getEmitente();
+        }
+
+        $valores = $this->valorTotalOS($idOs);
+        $total = ($os->desconto != 0 && $valores['valor_desconto'] != 0)
+            ? $valores['valor_desconto']
+            : ($valores['totalProdutos'] + $valores['totalServico']);
+
+        $troca = [
+            $os->nomeCliente,
+            $os->idOs,
+            $os->status,
+            'R$ ' . number_format($total, 2, ',', '.'),
+            strip_tags($os->descricaoProduto),
+            ($emitente ? $emitente->nome : ''),
+            ($emitente ? $emitente->telefone : ''),
+            strip_tags($os->observacoes),
+            strip_tags($os->defeito),
+            strip_tags($os->laudoTecnico),
+            date('d/m/Y', strtotime($os->dataFinal)),
+            date('d/m/Y', strtotime($os->dataInicial)),
+            $os->garantia . ' dias',
+        ];
+
+        return $this->montarTextoWhats($textoBase, $troca);
+    }
+
     public function valorTotalOS($id = null)
     {
         $totalServico = 0;

@@ -141,6 +141,45 @@
                         </tr>
                     </tbody>
                 </table>
+
+                <?php
+                $this->load->library('evolution_api');
+                $temLink = ! empty($result->payment_url) || ! empty($result->link);
+                if ($this->evolution_api->estaAtivo() && ! empty($result->celular) && $temLink) { ?>
+                    <a href="#" id="enviarCobrancaWhatsApp" class="btn btn-success" style="color:#fff" data-cobranca="<?php echo $result->idCobranca; ?>">
+                        <i class="bx bxl-whatsapp"></i> Enviar por WhatsApp
+                    </a>
+                <?php } ?>
             </div>
         </div>
     </div>
+
+<?php
+if ($this->evolution_api->estaAtivo()) { ?>
+    <script type="text/javascript">
+        $(function() {
+            $('#enviarCobrancaWhatsApp').on('click', function(e) {
+                e.preventDefault();
+                var $btn = $(this);
+                var htmlOriginal = $btn.html();
+                $btn.addClass('disabled').html('<i class="bx bx-loader bx-spin"></i> Enviando...');
+                $.ajax({
+                    type: 'POST',
+                    url: '<?php echo site_url('whatsapp/enviarCobranca'); ?>/' + $btn.data('cobranca'),
+                    dataType: 'json'
+                }).done(function(data) {
+                    swal({
+                        type: data.result ? 'success' : 'error',
+                        title: data.result ? 'Enviado!' : 'Atenção',
+                        text: data.mensagem || ''
+                    });
+                }).fail(function(xhr) {
+                    var m = (xhr.responseJSON && xhr.responseJSON.mensagem) ? xhr.responseJSON.mensagem : 'Falha ao enviar pelo WhatsApp.';
+                    swal({ type: 'error', title: 'Atenção', text: m });
+                }).always(function() {
+                    $btn.removeClass('disabled').html(htmlOriginal);
+                });
+            });
+        });
+    </script>
+<?php } ?>

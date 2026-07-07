@@ -44,13 +44,23 @@
 
                     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
                         $this->load->model('os_model');
+                        $this->load->library('evolution_api');
+                        $whatsappApiAtivo = $this->evolution_api->estaAtivo();
                         $zapnumber = preg_replace("/[^0-9]/", "", $result->celular_cliente);
                         $troca = [$result->nomeCliente, $result->idOs, $result->status, 'R$ ' . ($result->desconto != 0 && $result->valor_desconto != 0 ? number_format($result->valor_desconto, 2, ',', '.') : number_format($totalProdutos + $totalServico, 2, ',', '.')), strip_tags($result->descricaoProduto), ($emitente ? $emitente->nome : ''), ($emitente ? $emitente->telefone : ''), strip_tags($result->observacoes), strip_tags($result->defeito), strip_tags($result->laudoTecnico), date('d/m/Y', strtotime($result->dataFinal)), date('d/m/Y', strtotime($result->dataInicial)), $result->garantia . ' dias'];
                         $texto_de_notificacao = $this->os_model->criarTextoWhats($texto_de_notificacao, $troca);
                         if (!empty($zapnumber)) {
-                            echo '<a title="Enviar Por WhatsApp" class="button btn btn-mini btn-success" id="enviarWhatsApp" target="_blank" href="https://api.whatsapp.com/send?phone=55' . $zapnumber . '&text=' . $texto_de_notificacao . '">
+                            if ($whatsappApiAtivo) {
+                                // Envio direto (server-side) pela Evolution API.
+                                echo '<a title="Enviar Por WhatsApp (Evolution API)" class="button btn btn-mini btn-success" id="enviarWhatsAppApi" href="#" data-os="' . $result->idOs . '">
                                 <span class="button__icon"><i class="bx bxl-whatsapp"></i></span> <span class="button__text">WhatsApp</span>
                             </a>';
+                            } else {
+                                // Fallback: link click-to-chat (abre o WhatsApp).
+                                echo '<a title="Enviar Por WhatsApp" class="button btn btn-mini btn-success" id="enviarWhatsApp" target="_blank" href="https://api.whatsapp.com/send?phone=55' . $zapnumber . '&text=' . $texto_de_notificacao . '">
+                                <span class="button__icon"><i class="bx bxl-whatsapp"></i></span> <span class="button__text">WhatsApp</span>
+                            </a>';
+                            }
                         }
                     } ?>
 
@@ -907,6 +917,46 @@ if (isset($aprovacaoSuportada) && $aprovacaoSuportada && $this->permission->chec
                     document.execCommand('copy');
                     $(this).html('<i class="bx bx-check"></i> Copiado');
                 } catch (e) {}
+            });
+        });
+    </script>
+<?php } ?>
+
+<?php if (! empty($whatsappApiAtivo)) { ?>
+    <script type="text/javascript">
+        $(function() {
+            function enviarWhatsApp(url, botao, textoEnviando) {
+                var $btn = $(botao);
+                var htmlOriginal = $btn.html();
+                $btn.addClass('disabled').prop('disabled', true).html('<i class="bx bx-loader bx-spin"></i> ' + textoEnviando);
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    dataType: 'json'
+                }).done(function(data) {
+                    swal({
+                        type: data.result ? 'success' : 'error',
+                        title: data.result ? 'Enviado!' : 'Atenção',
+                        text: data.mensagem || ''
+                    });
+                }).fail(function(xhr) {
+                    var m = (xhr.responseJSON && xhr.responseJSON.mensagem) ? xhr.responseJSON.mensagem : 'Falha ao enviar pelo WhatsApp.';
+                    swal({ type: 'error', title: 'Atenção', text: m });
+                }).always(function() {
+                    $btn.removeClass('disabled').prop('disabled', false).html(htmlOriginal);
+                });
+            }
+
+            // Notificação da OS via Evolution API.
+            $('#enviarWhatsAppApi').on('click', function(e) {
+                e.preventDefault();
+                enviarWhatsApp('<?php echo site_url('whatsapp/enviarOs'); ?>/' + $(this).data('os'), this, 'Enviando...');
+            });
+
+            // Link de aprovação via Evolution API (envio direto, sem abrir o WhatsApp).
+            $('#apWhats').attr('target', '').on('click', function(e) {
+                e.preventDefault();
+                enviarWhatsApp('<?php echo site_url('whatsapp/enviarLinkAprovacao'); ?>/<?php echo $result->idOs; ?>', this, 'Enviando...');
             });
         });
     </script>

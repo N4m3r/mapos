@@ -331,6 +331,54 @@
                                 Para riscado use: ~palavra~
                                 </span>
                         </div>
+
+                        <hr>
+                        <h4 style="margin-left: 0;"><i class='bx bxl-whatsapp'></i> Envio automático por WhatsApp (Evolution API)</h4>
+                        <p class="help-block">Quando ativo, o Mapos envia a notificação direto pela Evolution API (sem abrir o WhatsApp Web). Deixe desativado para manter apenas o link click-to-chat.</p>
+                        <div class="control-group">
+                            <label for="WHATSAPP_EVOLUTION_ENABLED" class="control-label">Ativar Evolution API</label>
+                            <div class="controls">
+                                <select name="WHATSAPP_EVOLUTION_ENABLED" id="WHATSAPP_EVOLUTION_ENABLED">
+                                    <option value="false">Desativar</option>
+                                    <option value="true" <?= filter_var($_ENV['WHATSAPP_EVOLUTION_ENABLED'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 'selected' : ''; ?>>Ativar</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="WHATSAPP_EVOLUTION_URL" class="control-label">URL da instância</label>
+                            <div class="controls">
+                                <input type="text" name="WHATSAPP_EVOLUTION_URL" id="WHATSAPP_EVOLUTION_URL" placeholder="https://evo.suaempresa.com" value="<?= $_ENV['WHATSAPP_EVOLUTION_URL'] ?? '' ?>">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="WHATSAPP_EVOLUTION_APIKEY" class="control-label">API Key</label>
+                            <div class="controls">
+                                <input type="text" name="WHATSAPP_EVOLUTION_APIKEY" id="WHATSAPP_EVOLUTION_APIKEY" value="<?= $_ENV['WHATSAPP_EVOLUTION_APIKEY'] ?? '' ?>">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="WHATSAPP_EVOLUTION_INSTANCE" class="control-label">Instância</label>
+                            <div class="controls">
+                                <input type="text" name="WHATSAPP_EVOLUTION_INSTANCE" id="WHATSAPP_EVOLUTION_INSTANCE" value="<?= $_ENV['WHATSAPP_EVOLUTION_INSTANCE'] ?? '' ?>">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="WHATSAPP_EVOLUTION_AUTO_STATUS" class="control-label">Status que enviam automático</label>
+                            <div class="controls">
+                                <input type="text" name="WHATSAPP_EVOLUTION_AUTO_STATUS" id="WHATSAPP_EVOLUTION_AUTO_STATUS" placeholder="Ex.: Finalizado,Faturado" value="<?= $_ENV['WHATSAPP_EVOLUTION_AUTO_STATUS'] ?? '' ?>">
+                                <span class="help-inline">Separe por vírgula. Vazio = não envia automaticamente (só pelo botão).</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="controls">
+                                <button type="button" id="btnTestarWhatsapp" class="button btn btn-success">
+                                    <span class="button__icon"><i class='bx bx-plug'></i></span><span class="button__text2">Testar conexão</span>
+                                </button>
+                                <span id="testarWhatsappResultado" style="margin-left:10px;"></span>
+                                <span class="help-block">Salve as alterações antes de testar — o teste usa as credenciais já salvas.</span>
+                            </div>
+                        </div>
+
                         <div class="form-actions">
                             <div class="span8">
                                 <div class="span9">
@@ -562,6 +610,27 @@
             if ($(this).val() != "0")
                 document.getElementById("notifica_whats").value += $(this).val();
             $(this).prop('selectedIndex', 0);
+        });
+
+        $('#btnTestarWhatsapp').click(function() {
+            var $btn = $(this);
+            var $out = $('#testarWhatsappResultado');
+            $btn.prop('disabled', true);
+            $out.html('<i class="bx bx-loader bx-spin"></i> Testando...');
+            $.ajax({
+                url: '<?= site_url('whatsapp/testar') ?>',
+                type: 'POST',
+                dataType: 'json'
+            }).done(function(data) {
+                var cor = data.result ? 'green' : '#c09853';
+                $out.html('<span style="color:' + cor + '">' + (data.mensagem || '') + '</span>');
+            }).fail(function(xhr) {
+                var msg = 'Falha ao testar a conexão.';
+                try { msg = JSON.parse(xhr.responseText).mensagem || msg; } catch (e) {}
+                $out.html('<span style="color:#b94a48">' + msg + '</span>');
+            }).always(function() {
+                $btn.prop('disabled', false);
+            });
         });
     });
 </script>

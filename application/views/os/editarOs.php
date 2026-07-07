@@ -44,13 +44,21 @@
                     </div>
                     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
                         $this->load->model('os_model');
+                        $this->load->library('evolution_api');
+                        $whatsappApiAtivo = $this->evolution_api->estaAtivo();
                         $zapnumber = preg_replace("/[^0-9]/", "", $result->celular_cliente);
                         $troca = [$result->nomeCliente, $result->idOs, $result->status, 'R$ ' . ($result->desconto != 0 && $result->valor_desconto != 0 ? number_format($result->valor_desconto, 2, ',', '.') : number_format($totalProdutos + $totalServico, 2, ',', '.')), strip_tags($result->descricaoProduto), ($emitente ? $emitente->nome : ''), ($emitente ? $emitente->telefone : ''), strip_tags($result->observacoes), strip_tags($result->defeito), strip_tags($result->laudoTecnico), date('d/m/Y', strtotime($result->dataFinal)), date('d/m/Y', strtotime($result->dataInicial)), $result->garantia . ' dias'];
                         $texto_de_notificacao = $this->os_model->criarTextoWhats($texto_de_notificacao, $troca);
                         if (!empty($zapnumber)) {
-                            echo '<a title="Via WhatsApp" class="button btn btn-mini btn-success" id="enviarWhatsApp" target="_blank" href="https://wa.me/send?phone=55' . $zapnumber . '&text=' . $texto_de_notificacao . '" ' . ($zapnumber == '' ? 'disabled' : '') . '>
+                            if ($whatsappApiAtivo) {
+                                echo '<a title="Via WhatsApp (Evolution API)" class="button btn btn-mini btn-success" id="enviarWhatsAppApi" href="#" data-os="' . $result->idOs . '">
                                 <span class="button__icon"><i class="bx bxl-whatsapp"></i></span> <span class="button__text">WhatsApp</span>
                             </a>';
+                            } else {
+                                echo '<a title="Via WhatsApp" class="button btn btn-mini btn-success" id="enviarWhatsApp" target="_blank" href="https://wa.me/send?phone=55' . $zapnumber . '&text=' . $texto_de_notificacao . '">
+                                <span class="button__icon"><i class="bx bxl-whatsapp"></i></span> <span class="button__text">WhatsApp</span>
+                            </a>';
+                            }
                         }
                     } ?>
                     <a title="Enviar por E-mail" class="button btn btn-mini btn-warning" href="<?php echo site_url() ?>/os/enviar_email/<?php echo $result->idOs; ?>">
@@ -2362,6 +2370,35 @@
 <!-- Scripts do Sistema de Check-in -->
 <script src="<?php echo base_url(); ?>assets/js/assinatura-canvas.js"></script>
 <script src="<?php echo base_url(); ?>assets/js/checkin-fotos.js"></script>
+
+<?php if (! empty($whatsappApiAtivo)) { ?>
+    <script type="text/javascript">
+        $(function() {
+            $('#enviarWhatsAppApi').on('click', function(e) {
+                e.preventDefault();
+                var $btn = $(this);
+                var htmlOriginal = $btn.html();
+                $btn.addClass('disabled').html('<i class="bx bx-loader bx-spin"></i> Enviando...');
+                $.ajax({
+                    type: 'POST',
+                    url: '<?php echo site_url('whatsapp/enviarOs'); ?>/' + $btn.data('os'),
+                    dataType: 'json'
+                }).done(function(data) {
+                    swal({
+                        type: data.result ? 'success' : 'error',
+                        title: data.result ? 'Enviado!' : 'Atenção',
+                        text: data.mensagem || ''
+                    });
+                }).fail(function(xhr) {
+                    var m = (xhr.responseJSON && xhr.responseJSON.mensagem) ? xhr.responseJSON.mensagem : 'Falha ao enviar pelo WhatsApp.';
+                    swal({ type: 'error', title: 'Atenção', text: m });
+                }).always(function() {
+                    $btn.removeClass('disabled').html(htmlOriginal);
+                });
+            });
+        });
+    </script>
+<?php } ?>
 
 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) {
     echo $this->load->view('os/_modal_emissao_nfse', [], true);
