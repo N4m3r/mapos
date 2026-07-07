@@ -168,6 +168,11 @@ class Clientes extends MY_Controller
             }
 
             if ($this->clientes_model->edit('clientes', $data, 'idClientes', $this->input->post('idClientes')) == true) {
+                // Vínculos multi-CNPJ do portal (clientes que este login acessa).
+                $this->clientes_model->setVinculos(
+                    (int) $this->input->post('idClientes'),
+                    (array) $this->input->post('clientes_vinculados')
+                );
                 $this->session->set_flashdata('success', 'Cliente editado com sucesso!');
                 log_info('Alterou um cliente. ID' . $this->input->post('idClientes'));
                 redirect(site_url('clientes/editar/') . $this->input->post('idClientes'));
@@ -176,7 +181,11 @@ class Clientes extends MY_Controller
             }
         }
 
-        $this->data['result'] = $this->clientes_model->getById($this->uri->segment(3));
+        $id = $this->uri->segment(3);
+        $this->data['result'] = $this->clientes_model->getById($id);
+        $this->data['clientesDisponiveis'] = $this->clientes_model->getAllExceto($id);
+        $this->data['vinculosAtuais'] = $this->clientes_model->getVinculos($id);
+        $this->data['vinculosSuportado'] = $this->clientes_model->vinculosSuportado();
         $this->data['view'] = 'clientes/editarCliente';
 
         return $this->layout();

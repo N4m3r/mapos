@@ -35,6 +35,83 @@ class Clientes_model extends CI_Model
         return $this->db->get('clientes')->row();
     }
 
+    /**
+     * O recurso de vínculos multi-CNPJ só funciona se a tabela já existir.
+     * Evita erro fatal em ambientes ainda não migrados (mesmo padrão de
+     * Aprovacao_model::suportado()).
+     */
+    public function vinculosSuportado()
+    {
+        return $this->db->table_exists('clientes_vinculos');
+    }
+
+    /**
+     * Ids dos clientes vinculados a um login principal (apenas os vínculos,
+     * sem incluir o próprio master).
+     *
+     * @return int[]
+     */
+    public function getVinculos($masterId)
+    {
+        if (! $this->vinculosSuportado() || empty($masterId)) {
+            return [];
+        }
+
+        $this->db->select('cliente_id');
+        $this->db->where('cliente_master_id', $masterId);
+        $rows = $this->db->get('clientes_vinculos')->result();
+
+        return array_map(function ($r) {
+            return (int) $r->cliente_id;
+        }, $rows);
+    }
+
+    /**
+     * Substitui o conjunto de vínculos de um login principal (delete + reinsert).
+     * Ignora o próprio master e valores inválidos/duplicados.
+     */
+    public function setVinculos($masterId, array $clienteIds)
+    {
+        if (! $this->vinculosSuportado() || empty($masterId)) {
+            return false;
+        }
+
+        $this->db->where('cliente_master_id', $masterId);
+        $this->db->delete('clientes_vinculos');
+
+        $limpos = [];
+        foreach ($clienteIds as $cid) {
+            $cid = (int) $cid;
+            if ($cid > 0 && $cid != $masterId && ! in_array($cid, $limpos, true)) {
+                $limpos[] = $cid;
+            }
+        }
+
+        foreach ($limpos as $cid) {
+            $this->db->insert('clientes_vinculos', [
+                'cliente_master_id' => $masterId,
+                'cliente_id' => $cid,
+            ]);
+        }
+
+        return true;
+    }
+
+    /**
+     * Lista de clientes (id + nome + documento) exceto o informado, para o
+     * multi-select de vínculos na tela de edição.
+     */
+    public function getAllExceto($id)
+    {
+        $this->db->select('idClientes, nomeCliente, documento');
+        if ($id) {
+            $this->db->where('idClientes !=', $id);
+        }
+        $this->db->order_by('nomeCliente', 'asc');
+
+        return $this->db->get('clientes')->result();
+    }
+
     public function add($table, $data)
     {
         $this->db->insert($table, $data);

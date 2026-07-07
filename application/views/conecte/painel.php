@@ -1,5 +1,17 @@
 <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
 
+<?php $qtdPendentes = isset($pendentesAprovacao) ? count($pendentesAprovacao) : 0; ?>
+<?php if ($qtdPendentes > 0) { ?>
+    <div class="span12" style="margin-left: 0">
+        <div class="alert alert-warning" style="display:flex;align-items:center;justify-content:space-between">
+            <span><i class='bx bx-bell'></i> Você tem <strong><?= $qtdPendentes ?></strong> Ordem(ns) de Serviço pendente(s) de aprovação.</span>
+            <a href="<?= base_url() ?>index.php/mine/aprovacoes" class="button btn btn-warning btn-mini">
+                <span class="button__text2">Revisar agora</span>
+            </a>
+        </div>
+    </div>
+<?php } ?>
+
 <div class="quick-actions_homepage">
     <ul class="cardBox">
         <li class="card">
@@ -30,6 +42,26 @@
             </a>
             <a href="<?php echo base_url() ?>index.php/mine/cobrancas">
                 <div style="font-size: 1.2em" class="numbers">Cobranças&nbsp;&nbsp;&nbsp;&nbsp;</div>
+            </a>
+        </li>
+        <li class="card">
+            <a href="<?php echo base_url() ?>index.php/mine/notas">
+                <div class="lord-icon05">
+                    <i class='bx bx-receipt iconBx05'></i>
+                </div>
+            </a>
+            <a href="<?php echo base_url() ?>index.php/mine/notas">
+                <div style="font-size: 1.2em" class="numbers">Notas Fiscais</div>
+            </a>
+        </li>
+        <li class="card">
+            <a href="<?php echo base_url() ?>index.php/mine/aprovacoes">
+                <div class="lord-icon04">
+                    <i class='bx bx-check-double iconBx04'></i>
+                </div>
+            </a>
+            <a href="<?php echo base_url() ?>index.php/mine/aprovacoes">
+                <div style="font-size: 1.2em" class="numbers">Aprovações<?= $qtdPendentes > 0 ? ' <span class="badge" style="background:#f0ad4e">' . $qtdPendentes . '</span>' : '' ?></div>
             </a>
         </li>
         <li class="card">

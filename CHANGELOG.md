@@ -7,6 +7,7 @@ e [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 ### Added
 - Notificação por WhatsApp via Evolution API (envio programático server-side): envio automático da OS por mudança de status, botão de envio manual na OS, envio do link de aprovação e do link de cobrança/pagamento. Configuração (URL, API Key, instância, status automáticos) na aba Configurar Sistema, com botão de teste de conexão. O link click-to-chat continua como fallback quando a integração está desativada.
+- Portal do cliente multi-CNPJ: um login (cliente) pode ser vinculado a vários outros clientes/CNPJs (multi-select na edição do cliente) e passa a ver de forma agregada, na Área do Cliente, as OS, compras, cobranças, notas fiscais (com download de DANFE/XML) e as OS pendentes de aprovação — podendo aprovar/reprovar direto pelo portal. Requer rodar `updates/update_clientes_vinculos.sql`.
 
 ## [4.52.0] - 2025-02-01
 ### Added

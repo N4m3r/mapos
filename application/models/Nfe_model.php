@@ -133,4 +133,47 @@ class Nfe_model extends CI_Model
 
         return $this->db->count_all_results('notas_fiscais');
     }
+
+    /**
+     * Notas fiscais de um conjunto de clientes (portal multi-CNPJ). A nota liga
+     * ao cliente via OS ou Venda (COALESCE), como em getNotas().
+     *
+     * @param int[]       $clienteIds
+     * @param string|null $status     ex.: 'autorizada' (null = todas)
+     */
+    public function getNotasByClientes(array $clienteIds, $status = 'autorizada')
+    {
+        if (empty($clienteIds)) {
+            return [];
+        }
+
+        $this->db->select('notas_fiscais.*, clientes.nomeCliente, COALESCE(vendas.clientes_id, os.clientes_id) AS clientes_id', false);
+        $this->db->from('notas_fiscais');
+        $this->db->join('vendas', 'vendas.idVendas = notas_fiscais.vendas_id', 'left');
+        $this->db->join('os', 'os.idOs = notas_fiscais.os_id', 'left');
+        $this->db->join('clientes', 'clientes.idClientes = COALESCE(vendas.clientes_id, os.clientes_id)', 'left', false);
+        $this->db->where_in('COALESCE(vendas.clientes_id, os.clientes_id)', $clienteIds, false);
+        if ($status) {
+            $this->db->where('notas_fiscais.status', $status);
+        }
+        $this->db->order_by('notas_fiscais.idNota', 'DESC');
+
+        return $this->db->get()->result();
+    }
+
+    /**
+     * Uma nota com o clientes_id resolvido (via OS/Venda), para checagem de
+     * posse (ownership) no portal do cliente.
+     */
+    public function getNotaComCliente($idNota)
+    {
+        $this->db->select('notas_fiscais.*, COALESCE(vendas.clientes_id, os.clientes_id) AS clientes_id', false);
+        $this->db->from('notas_fiscais');
+        $this->db->join('vendas', 'vendas.idVendas = notas_fiscais.vendas_id', 'left');
+        $this->db->join('os', 'os.idOs = notas_fiscais.os_id', 'left');
+        $this->db->where('notas_fiscais.idNota', $idNota);
+        $this->db->limit(1);
+
+        return $this->db->get()->row();
+    }
 }

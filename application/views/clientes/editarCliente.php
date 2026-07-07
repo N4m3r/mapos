@@ -206,6 +206,23 @@
                         </div>
                     </div>
                 </div>
+
+                <?php if (! empty($vinculosSuportado)) { ?>
+                    <div class="control-group">
+                        <label for="clientes_vinculados" class="control-label">Acesso multi-CNPJ no portal</label>
+                        <div class="controls">
+                            <select id="clientes_vinculados" name="clientes_vinculados[]" multiple size="6" style="width:100%">
+                                <?php foreach ($clientesDisponiveis as $c) {
+                                    $sel = in_array((int) $c->idClientes, array_map('intval', (array) $vinculosAtuais)) ? 'selected' : '';
+                                    $doc = trim((string) $c->documento);
+                                    echo '<option value="' . $c->idClientes . '" ' . $sel . '>' . htmlspecialchars($c->nomeCliente) . ($doc !== '' ? ' — ' . htmlspecialchars($doc) : '') . '</option>';
+                                } ?>
+                            </select>
+                            <span class="help-inline">Quando este cliente logar na Área do Cliente, ele também verá as OS, cobranças, notas e aprovações dos clientes/CNPJs selecionados acima. Segure Ctrl (ou Cmd) para marcar vários.</span>
+                        </div>
+                    </div>
+                <?php } ?>
+
                 <div class="form-actions">
                     <div class="span12">
                         <div class="span6 offset3" style="display:flex;justify-content: center">

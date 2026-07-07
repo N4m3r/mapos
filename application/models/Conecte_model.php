@@ -24,7 +24,7 @@ class Conecte_model extends CI_Model
     {
         $this->db->from('os');
         $this->db->join('usuarios', 'os.usuarios_id = usuarios.idUsuarios', 'left');
-        $this->db->where('clientes_id', $cliente);
+        $this->db->where_in('clientes_id', (array) $cliente);
         $this->db->limit(10);
         $this->db->order_by('idOs', 'desc');
 
@@ -37,7 +37,7 @@ class Conecte_model extends CI_Model
         $this->db->from('vendas');
         $this->db->join('usuarios', 'usuarios.idUsuarios = vendas.usuarios_id');
         $this->db->order_by('idVendas', 'desc');
-        $this->db->where('clientes_id', $cliente);
+        $this->db->where_in('clientes_id', (array) $cliente);
         $this->db->limit(10);
         $this->db->order_by('idVendas', 'desc');
 
@@ -50,7 +50,7 @@ class Conecte_model extends CI_Model
         $this->db->from($table);
         $this->db->join('usuarios', 'vendas.usuarios_id = usuarios.idUsuarios', 'left');
         $this->db->order_by('idVendas', 'desc');
-        $this->db->where('clientes_id', $cliente);
+        $this->db->where_in('clientes_id', (array) $cliente);
         $this->db->limit($perpage, $start);
         $this->db->order_by('idVendas', 'desc');
         if ($where) {
@@ -69,7 +69,7 @@ class Conecte_model extends CI_Model
         $this->db->select($fields);
         $this->db->from($table);
         $this->db->join('clientes', 'cobrancas.clientes_id = clientes.idClientes', 'left');
-        $this->db->where('clientes_id', $cliente);
+        $this->db->where_in('cobrancas.clientes_id', (array) $cliente);
         $this->db->order_by('expire_at', 'desc');
         $this->db->limit($perpage, $start);
         $this->db->order_by('idCobranca', 'desc');
@@ -89,7 +89,7 @@ class Conecte_model extends CI_Model
         $this->db->select($fields);
         $this->db->from($table);
         $this->db->join('usuarios', 'os.usuarios_id = usuarios.idUsuarios', 'left');
-        $this->db->where('clientes_id', $cliente);
+        $this->db->where_in('clientes_id', (array) $cliente);
         $this->db->limit($perpage, $start);
         $this->db->order_by('idOs', 'desc');
         if ($where) {
@@ -101,6 +101,46 @@ class Conecte_model extends CI_Model
         $result = ! $one ? $query->result() : $query->row();
 
         return $result;
+    }
+
+    /**
+     * Ids acessíveis por um login principal: ele próprio + os clientes/CNPJs
+     * vinculados (tabela clientes_vinculos). Sempre inclui o master.
+     *
+     * @return int[]
+     */
+    public function getVinculados($masterId)
+    {
+        $ids = [(int) $masterId];
+        if ($this->db->table_exists('clientes_vinculos') && ! empty($masterId)) {
+            $this->db->select('cliente_id');
+            $this->db->where('cliente_master_id', $masterId);
+            foreach ($this->db->get('clientes_vinculos')->result() as $r) {
+                $ids[] = (int) $r->cliente_id;
+            }
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    /**
+     * OS pendentes de aprovação (aprovacao_status = 'pendente') de um conjunto
+     * de clientes. Retorna [] se o módulo de aprovação ainda não foi migrado.
+     */
+    public function getOsPendentesAprovacao($clientes)
+    {
+        if (! $this->db->field_exists('aprovacao_status', 'os')) {
+            return [];
+        }
+
+        $this->db->select('os.*, clientes.nomeCliente, clientes.documento');
+        $this->db->from('os');
+        $this->db->join('clientes', 'clientes.idClientes = os.clientes_id', 'left');
+        $this->db->where_in('os.clientes_id', (array) $clientes);
+        $this->db->where('os.aprovacao_status', 'pendente');
+        $this->db->order_by('os.idOs', 'desc');
+
+        return $this->db->get()->result();
     }
 
     public function getById($id)
@@ -118,7 +158,7 @@ class Conecte_model extends CI_Model
 
     public function count($table, $cliente)
     {
-        $this->db->where('clientes_id', $cliente);
+        $this->db->where_in('clientes_id', (array) $cliente);
 
         return $this->db->count_all_results($table);
     }

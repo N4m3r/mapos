@@ -18,6 +18,18 @@ class Mine extends CI_Controller
         $this->load->view('conecte/login');
     }
 
+    /**
+     * Ids de clientes que o login atual pode enxergar: ele próprio + os CNPJs
+     * vinculados (tabela clientes_vinculos). Base do portal multi-CNPJ.
+     * Calculado por requisição (sempre fresco).
+     *
+     * @return int[]
+     */
+    private function clientesPermitidos()
+    {
+        return $this->Conecte_model->getVinculados($this->session->userdata('cliente_id'));
+    }
+
     public function sair()
     {
         $this->session->sess_destroy();
@@ -277,9 +289,12 @@ class Mine extends CI_Controller
             redirect('mine');
         }
 
+        $permitidos = $this->clientesPermitidos();
+
         $data['menuPainel'] = 'painel';
-        $data['compras'] = $this->Conecte_model->getLastCompras($this->session->userdata('cliente_id'));
-        $data['os'] = $this->Conecte_model->getLastOs($this->session->userdata('cliente_id'));
+        $data['compras'] = $this->Conecte_model->getLastCompras($permitidos);
+        $data['os'] = $this->Conecte_model->getLastOs($permitidos);
+        $data['pendentesAprovacao'] = $this->Conecte_model->getOsPendentesAprovacao($permitidos);
         $data['output'] = 'conecte/painel';
         $this->load->view('conecte/template', $data);
     }
@@ -370,8 +385,10 @@ class Mine extends CI_Controller
         $data['menuVendas'] = 'vendas';
         $this->load->library('pagination');
 
+        $permitidos = $this->clientesPermitidos();
+
         $config['base_url'] = base_url() . 'index.php/mine/compras/';
-        $config['total_rows'] = $this->Conecte_model->count('vendas', $this->session->userdata('cliente_id'));
+        $config['total_rows'] = $this->Conecte_model->count('vendas', $permitidos);
         $config['per_page'] = 10;
         $config['next_link'] = 'Próxima';
         $config['prev_link'] = 'Anterior';
@@ -394,7 +411,7 @@ class Mine extends CI_Controller
 
         $this->pagination->initialize($config);
 
-        $data['results'] = $this->Conecte_model->getCompras('vendas', '*', '', $config['per_page'], $this->uri->segment(3), '', '', $this->session->userdata('cliente_id'));
+        $data['results'] = $this->Conecte_model->getCompras('vendas', '*', '', $config['per_page'], $this->uri->segment(3), '', '', $permitidos);
 
         $data['output'] = 'conecte/compras';
         $this->load->view('conecte/template', $data);
@@ -409,10 +426,12 @@ class Mine extends CI_Controller
         $this->load->library('pagination');
         $this->load->config('payment_gateways');
 
+        $permitidos = $this->clientesPermitidos();
+
         $data['menuCobrancas'] = 'cobrancas';
 
         $config['base_url'] = base_url() . 'index.php/mine/cobrancas/';
-        $config['total_rows'] = $this->Conecte_model->count('cobrancas', $this->session->userdata('cliente_id'));
+        $config['total_rows'] = $this->Conecte_model->count('cobrancas', $permitidos);
         $config['per_page'] = 10;
         $config['next_link'] = 'Próxima';
         $config['prev_link'] = 'Anterior';
@@ -435,7 +454,7 @@ class Mine extends CI_Controller
 
         $this->pagination->initialize($config);
 
-        $data['results'] = $this->Conecte_model->getCobrancas('cobrancas', '*', '', $config['per_page'], $this->uri->segment(3), '', '', $this->session->userdata('cliente_id'));
+        $data['results'] = $this->Conecte_model->getCobrancas('cobrancas', '*', '', $config['per_page'], $this->uri->segment(3), '', '', $permitidos);
         $data['output'] = 'conecte/cobrancas';
 
         $this->load->view('conecte/template', $data);
@@ -492,11 +511,13 @@ class Mine extends CI_Controller
             redirect('mine');
         }
 
+        $permitidos = $this->clientesPermitidos();
+
         $data['menuOs'] = 'os';
         $this->load->library('pagination');
 
         $config['base_url'] = base_url() . 'index.php/mine/os/';
-        $config['total_rows'] = $this->Conecte_model->count('os', $this->session->userdata('cliente_id'));
+        $config['total_rows'] = $this->Conecte_model->count('os', $permitidos);
         $config['per_page'] = 10;
         $config['next_link'] = 'Próxima';
         $config['prev_link'] = 'Anterior';
@@ -519,10 +540,141 @@ class Mine extends CI_Controller
 
         $this->pagination->initialize($config);
 
-        $data['results'] = $this->Conecte_model->getOs('os', '*', '', $config['per_page'], $this->uri->segment(3), '', '', $this->session->userdata('cliente_id'));
+        $data['results'] = $this->Conecte_model->getOs('os', '*', '', $config['per_page'], $this->uri->segment(3), '', '', $permitidos);
 
         $data['output'] = 'conecte/os';
         $this->load->view('conecte/template', $data);
+    }
+
+    /**
+     * Lista as notas fiscais (autorizadas) dos CNPJs acessíveis pelo login.
+     */
+    public function notas()
+    {
+        if (! session_id() || ! $this->session->userdata('conectado')) {
+            redirect('mine');
+        }
+
+        $this->load->model('nfe_model');
+        $data['menuNotas'] = 'notas';
+        $data['results'] = $this->nfe_model->getNotasByClientes($this->clientesPermitidos(), 'autorizada');
+        $data['output'] = 'conecte/notas';
+        $this->load->view('conecte/template', $data);
+    }
+
+    /**
+     * Verifica se uma nota (por idNota) pertence a um dos clientes acessíveis.
+     */
+    private function notaPermitida($nota)
+    {
+        return $nota && in_array((int) $nota->clientes_id, $this->clientesPermitidos());
+    }
+
+    /**
+     * Download do XML de uma nota autorizada (com checagem de posse).
+     */
+    public function notaXml($idNota = null)
+    {
+        if (! session_id() || ! $this->session->userdata('conectado')) {
+            redirect('mine');
+        }
+
+        $this->load->model('nfe_model');
+        $nota = is_numeric($idNota) ? $this->nfe_model->getNotaComCliente($idNota) : null;
+        if (! $this->notaPermitida($nota)) {
+            $this->session->set_flashdata('error', 'Nota não encontrada ou não pertence ao cliente logado.');
+            redirect('mine/notas');
+        }
+        if (empty($nota->xml_path) || ! is_file($nota->xml_path)) {
+            $this->session->set_flashdata('error', 'XML não encontrado para esta nota.');
+            redirect('mine/notas');
+        }
+
+        $this->load->helper('download');
+        force_download(basename($nota->xml_path), file_get_contents($nota->xml_path));
+    }
+
+    /**
+     * DANFE (NF-e) / DANFSe (NFS-e) em HTML, com checagem de posse. Reutiliza o
+     * helper danfe e as mesmas views do módulo fiscal.
+     */
+    public function notaDanfe($idNota = null)
+    {
+        if (! session_id() || ! $this->session->userdata('conectado')) {
+            redirect('mine');
+        }
+
+        $this->load->model('nfe_model');
+        $this->load->model('mapos_model');
+        $nota = is_numeric($idNota) ? $this->nfe_model->getNotaComCliente($idNota) : null;
+        if (! $this->notaPermitida($nota) || $nota->status !== 'autorizada') {
+            $this->session->set_flashdata('error', 'Nota não encontrada, não autorizada ou não pertence ao cliente logado.');
+            redirect('mine/notas');
+        }
+
+        try {
+            $this->load->helper('danfe');
+            $emitente = $this->mapos_model->getEmitente();
+            if ($nota->tipo === 'nfe') {
+                $this->load->view('nfe/danfe_print', ['d' => danfe_nfe_data($nota), 'emitente' => $emitente]);
+            } else {
+                $this->load->view('nfe/danfse_print', ['d' => danfe_nfse_data($nota), 'emitente' => $emitente, 'configuration' => []]);
+            }
+        } catch (\Throwable $e) {
+            log_message('error', 'Portal: falha ao gerar DANFE/DANFSe: ' . $e->getMessage());
+            $this->session->set_flashdata('error', 'Não foi possível gerar o documento da nota.');
+            redirect('mine/notas');
+        }
+    }
+
+    /**
+     * Lista as OS pendentes de aprovação dos CNPJs acessíveis pelo login.
+     */
+    public function aprovacoes()
+    {
+        if (! session_id() || ! $this->session->userdata('conectado')) {
+            redirect('mine');
+        }
+
+        $data['menuAprovacoes'] = 'aprovacoes';
+        $data['results'] = $this->Conecte_model->getOsPendentesAprovacao($this->clientesPermitidos());
+        $data['output'] = 'conecte/aprovacoes';
+        $this->load->view('conecte/template', $data);
+    }
+
+    /**
+     * Registra a decisão (aprovar/reprovar) de uma OS pelo cliente logado.
+     * Valida posse antes de decidir. Reutiliza Aprovacao_model::registrarDecisao.
+     */
+    public function aprovarOs()
+    {
+        if (! session_id() || ! $this->session->userdata('conectado')) {
+            redirect('mine');
+        }
+
+        $idOs = $this->input->post('idOs');
+        $decisao = $this->input->post('decisao') === 'aprovado' ? 'aprovado' : 'reprovado';
+        $obs = trim((string) $this->input->post('obs'));
+
+        $this->load->model('os_model');
+        $this->load->model('aprovacao_model');
+
+        $os = is_numeric($idOs) ? $this->os_model->getById($idOs) : null;
+        if (! $os || ! in_array($os->idClientes, $this->clientesPermitidos())) {
+            $this->session->set_flashdata('error', 'OS não encontrada ou não pertence ao cliente logado.');
+            redirect('mine/aprovacoes');
+        }
+        if (! $this->aprovacao_model->suportado() || $this->aprovacao_model->situacao($os) !== 'pendente') {
+            $this->session->set_flashdata('error', 'Esta OS não está pendente de aprovação.');
+            redirect('mine/aprovacoes');
+        }
+
+        $nome = $this->session->userdata('nome') ?: 'Cliente';
+        $this->aprovacao_model->registrarDecisao($idOs, $decisao, $nome, $obs, $this->input->ip_address());
+        log_info('Cliente ' . $nome . ' ' . $decisao . ' a OS #' . $idOs . ' pelo portal.');
+
+        $this->session->set_flashdata('success', 'OS #' . $idOs . ' ' . ($decisao === 'aprovado' ? 'aprovada' : 'reprovada') . ' com sucesso!');
+        redirect('mine/aprovacoes');
     }
 
     public function visualizarOs($id = null)
@@ -551,7 +703,7 @@ class Mine extends CI_Controller
         );
         $data['chaveFormatada'] = $this->formatarChave($data['pix_key']);
 
-        if ($data['result']->idClientes != $this->session->userdata('cliente_id')) {
+        if (! in_array($data['result']->idClientes, $this->clientesPermitidos())) {
             $this->session->set_flashdata('error', 'Esta OS não pertence ao cliente logado.');
             redirect('mine/painel');
         }
@@ -655,9 +807,9 @@ class Mine extends CI_Controller
             $data['pix_key'],
             $data['emitente']
         );
-        $data['chaveFormatada'] = $this->formatarChave($data['pix_key']);      
+        $data['chaveFormatada'] = $this->formatarChave($data['pix_key']);
 
-        if ($data['result']->idClientes != $this->session->userdata('cliente_id')) {
+        if (! in_array($data['result']->idClientes, $this->clientesPermitidos())) {
             $this->session->set_flashdata('error', 'Esta OS não pertence ao cliente logado.');
             redirect('mine/painel');
         }
@@ -689,8 +841,8 @@ class Mine extends CI_Controller
             $data['emitente']
         );
         $data['chaveFormatada'] = $this->formatarChave($data['pix_key']);
-        
-        if ($data['result']->clientes_id != $this->session->userdata('cliente_id')) {
+
+        if (! in_array($data['result']->clientes_id, $this->clientesPermitidos())) {
             $this->session->set_flashdata('error', 'Esta OS não pertence ao cliente logado.');
             redirect('mine/painel');
         }
@@ -723,7 +875,7 @@ class Mine extends CI_Controller
         $data['qrCode'] = $this->vendas_model->getQrCode($id, $data['pix_key'], $data['emitente']);
         $data['chaveFormatada'] = $this->formatarChave($data['pix_key']);
 
-        if ($data['result']->clientes_id != $this->session->userdata('cliente_id')) {
+        if (! in_array($data['result']->clientes_id, $this->clientesPermitidos())) {
             $this->session->set_flashdata('error', 'Esta venda não pertence ao cliente logado.');
             redirect('mine/painel');
         }
@@ -845,7 +997,7 @@ class Mine extends CI_Controller
             $this->data['servicos'] = $this->os_model->getServicos($id);
             $this->data['anexos'] = $this->os_model->getAnexos($id);
 
-            if ($this->data['result']->idClientes != $this->session->userdata('cliente_id')) {
+            if (! in_array($this->data['result']->idClientes, $this->clientesPermitidos())) {
                 $this->session->set_flashdata('error', 'Esta OS não pertence ao cliente logado.');
                 redirect('mine/painel');
             }

@@ -82,6 +82,12 @@
                     <li class="<?php if (isset($menuCobrancas)) {
                                     echo 'active';
                                 }; ?>"><a class="tip-bottom" title="" href="<?php echo base_url() ?>index.php/mine/cobrancas"><i class='bx bx-credit-card-front iconX'></i> <span class="title">Cobranças</span></a></li>
+                    <li class="<?php if (isset($menuNotas)) {
+                                    echo 'active';
+                                }; ?>"><a class="tip-bottom" title="" href="<?php echo base_url() ?>index.php/mine/notas"><i class='bx bx-receipt iconX'></i> <span class="title">Notas Fiscais</span></a></li>
+                    <li class="<?php if (isset($menuAprovacoes)) {
+                                    echo 'active';
+                                }; ?>"><a class="tip-bottom" title="" href="<?php echo base_url() ?>index.php/mine/aprovacoes"><i class='bx bx-check-double iconX'></i> <span class="title">Aprovações</span></a></li>
                 </ul>
             </div>
 
