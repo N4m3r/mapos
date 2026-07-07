@@ -205,6 +205,46 @@ class Nfe extends MY_Controller
     }
 
     /**
+     * Salva apenas o certificado (.pfx) e a senha, via AJAX, sem exigir os
+     * demais campos da configuração. Depois o usuário roda "Testar Certificado".
+     */
+    public function salvarCertificado()
+    {
+        if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'cNfe')) {
+            return $this->jsonResponse(false, 'Sem permissão para configurar o módulo fiscal.');
+        }
+
+        try {
+            $data = [];
+
+            if (!empty($_FILES['certificado']['name'])) {
+                if ($_FILES['certificado']['error'] !== UPLOAD_ERR_OK) {
+                    return $this->jsonResponse(false, 'Falha no upload do certificado (código ' . $_FILES['certificado']['error'] . ').');
+                }
+                $data['certificado_path'] = CertificadoHelper::salvarPfx(
+                    $_FILES['certificado']['tmp_name'],
+                    $_FILES['certificado']['name']
+                );
+            }
+
+            $senha = $this->input->post('senha_certificado');
+            if ($senha !== null && $senha !== '') {
+                $data['senha_certificado'] = CertificadoHelper::criptografar($senha);
+            }
+
+            if (empty($data)) {
+                return $this->jsonResponse(false, 'Selecione o arquivo do certificado (.pfx) e/ou informe a senha.');
+            }
+
+            $this->nfe_model->saveConfig($data);
+
+            return $this->jsonResponse(true, 'Certificado e senha salvos com sucesso. Agora clique em "Testar Certificado".');
+        } catch (\Throwable $e) {
+            return $this->jsonResponse(false, $this->traduzErroFiscal($e));
+        }
+    }
+
+    /**
      * Transmite a NF-e (modelo 55) de uma venda. Chamada via AJAX, retorna JSON.
      */
     public function emitirNfe($idVenda = null)

@@ -70,12 +70,16 @@
                     </div>
 
                     <div class="control-group">
-                        <label class="control-label">Validação</label>
+                        <label class="control-label">Certificado</label>
                         <div class="controls">
+                            <button type="button" id="btnSalvarCert" class="button btn btn-success">
+                                <span class="button__icon"><i class="bx bx-save"></i></span><span class="button__text2">Salvar Certificado</span>
+                            </button>
                             <button type="button" id="btnTestarCert" class="button btn btn-primary" <?= empty($configNfe->certificado_path) ? 'disabled' : '' ?>>
                                 <span class="button__icon"><i class="bx bx-check-shield"></i></span><span class="button__text2">Testar Certificado</span>
                             </button>
-                            <span class="hint">Testa o certificado <strong>já salvo</strong>: leitura, senha, validade, assinatura digital e comunicação com a SEFAZ. Se acabou de enviar um certificado novo, salve antes de testar.</span>
+                            <span class="hint"><strong>1)</strong> Selecione o .pfx + senha e clique em <strong>Salvar Certificado</strong>. <strong>2)</strong> Depois clique em <strong>Testar Certificado</strong> (leitura, senha, validade, assinatura e comunicação com a SEFAZ). Isso não mexe nos demais campos.</span>
+                            <div id="salvarCertResultado" style="margin-top:8px"></div>
                             <div id="testeCertResultado" style="margin-top:10px"></div>
                         </div>
                     </div>
@@ -215,6 +219,37 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
+        $('#btnSalvarCert').on('click', function() {
+            var btn = $(this);
+            var fd = new FormData();
+            var arquivo = $('#certificado')[0].files[0];
+            if (arquivo) { fd.append('certificado', arquivo); }
+            fd.append('senha_certificado', $('#senha_certificado').val());
+
+            btn.attr('disabled', true);
+            $('#salvarCertResultado').html('<div class="alert alert-info">Salvando o certificado, aguarde...</div>');
+
+            $.ajax({
+                url: '<?= site_url('nfe/salvarCertificado') ?>',
+                type: 'POST',
+                data: fd,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function(data) {
+                    btn.attr('disabled', false);
+                    $('#salvarCertResultado').html('<div class="alert alert-' + (data.success ? 'success' : 'danger') + '">' + data.message + '</div>');
+                    if (data.success) {
+                        $('#btnTestarCert').attr('disabled', false);
+                    }
+                },
+                error: function() {
+                    btn.attr('disabled', false);
+                    $('#salvarCertResultado').html('<div class="alert alert-danger">Falha de comunicação com o servidor.</div>');
+                }
+            });
+        });
+
         $('#btnTestarCert').on('click', function() {
             var btn = $(this);
             btn.attr('disabled', true);
