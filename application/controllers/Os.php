@@ -385,6 +385,11 @@ class Os extends MY_Controller
         $this->data['anotacoes'] = $this->os_model->getAnotacoes($this->uri->segment(3));
         $this->data['editavel'] = $this->os_model->isEditable($this->uri->segment(3));
 
+        // Exibição de valores: o técnico não precisa ver os valores da OS,
+        // então ficam ocultos para esse perfil mesmo que tenha edição (eOs).
+        $this->data['permissao_eOs'] = $this->permission->checkPermission($permissao, 'eOs')
+            && ! $this->permission->checkPermission($permissao, 'vTecnicoDashboard');
+
         // Dados do sistema de checkin
         $os_id = $this->uri->segment(3);
         $this->data['checkins'] = $this->checkin_model->getAllByOs($os_id);
@@ -545,7 +550,8 @@ class Os extends MY_Controller
         }
         
         $this->data['imprimirAnexo'] = isset($_ENV['IMPRIMIR_ANEXOS']) ? (filter_var($_ENV['IMPRIMIR_ANEXOS'] ?? false, FILTER_VALIDATE_BOOLEAN)) : false;
-        $this->data['permissao_eOs'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs');
+        $this->data['permissao_eOs'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')
+            && ! $this->permission->checkPermission($this->session->userdata('permissao'), 'vTecnicoDashboard');
 
         $this->load->view('os/imprimirOs', $this->data);
     }
@@ -574,7 +580,8 @@ class Os extends MY_Controller
             $this->data['emitente']
         );
         $this->data['chaveFormatada'] = $this->formatarChave($this->data['configuration']['pix_key']);
-        $this->data['permissao_eOs'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs');
+        $this->data['permissao_eOs'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')
+            && ! $this->permission->checkPermission($this->session->userdata('permissao'), 'vTecnicoDashboard');
 
         $this->load->view('os/imprimirOsTermica', $this->data);
     }

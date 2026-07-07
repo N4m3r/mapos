@@ -1,3 +1,8 @@
+<?php
+// Exibição de valores: definido no controller (Os::visualizar) como
+// eOs && !técnico. Default defensivo caso a view seja renderizada sem ele.
+$permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
+?>
 <link href="<?= base_url('assets/css/custom.css'); ?>" rel="stylesheet">
 
 <!-- Scripts do Sistema de Check-in (carregados antes dos modais) -->
@@ -625,7 +630,7 @@
                                     <tr>
                                         <th>PRODUTO</th>
                                         <th>QTD</th>
-                                        <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) { ?>
+                                        <?php if ($permissao_eOs) { ?>
                                         <th>UNT</th>
                                         <th>SUBTOTAL</th>
                                         <?php } ?>
@@ -636,13 +641,13 @@
                                         echo '<tr>';
                                         echo '<td>' . $p->descricao . '</td>';
                                         echo '<td>' . $p->quantidade . '</td>';
-                                        if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
+                                        if ($permissao_eOs) {
                                             echo '<td>R$ ' . $p->preco ?: $p->precoVenda . '</td>';
                                             echo '<td>R$ ' . number_format($p->subTotal, 2, ',', '.') . '</td>';
                                         }
                                         echo '</tr>';
                                     } ?>
-                                    <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) { ?>
+                                    <?php if ($permissao_eOs) { ?>
                                     <tr>
                                         <td></td>
                                         <td colspan="2" style="text-align: right"><strong>TOTAL:</strong></td>
@@ -659,7 +664,7 @@
                                     <tr>
                                         <th>SERVIÇO</th>
                                         <th>QTD</th>
-                                        <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) { ?>
+                                        <?php if ($permissao_eOs) { ?>
                                         <th>UNT</th>
                                         <th>SUBTOTAL</th>
                                         <?php } ?>
@@ -673,13 +678,13 @@
                                         echo '<tr>';
                                         echo '<td>' . $s->nome . '</td>';
                                         echo '<td>' . ($s->quantidade ?: 1) . '</td>';
-                                        if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
+                                        if ($permissao_eOs) {
                                             echo '<td>R$ ' . $preco . '</td>';
                                             echo '<td>R$ ' . number_format($subtotal, 2, ',', '.') . '</td>';
                                         }
                                         echo '</tr>';
                                     } ?>
-                                    <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) { ?>
+                                    <?php if ($permissao_eOs) { ?>
                                     <tr>
                                         <td colspan="3" style="text-align: right"><strong>TOTAL:</strong></td>
                                         <td><strong>R$ <?php echo number_format($totalServico, 2, ',', '.'); ?></strong>
@@ -689,7 +694,7 @@
                                 </tbody>
                             </table>
                         <?php } ?>
-                        <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) { ?>
+                        <?php if ($permissao_eOs) { ?>
                         <table class="table table-bordered table-condensed">
                             <?php if ($totalProdutos != 0 || $totalServico != 0) {
                                 if ($result->valor_desconto != 0) {
