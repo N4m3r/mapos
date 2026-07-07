@@ -151,14 +151,23 @@ class CertificadoHelper
     public static function traduzErroCertificado(string $erro, bool $sha256ok = false): string
     {
         // Idempotente: se a mensagem já foi traduzida, devolve como está
-        // (evita "Detalhe técnico" aninhado quando o erro passa por mais de um catch).
+        // (evita mensagens aninhadas quando o erro passa por mais de um catch).
         if (str_contains($erro, 'não pôde ser usado para assinar')
             || str_contains($erro, 'SHA1 está bloqueada')
+            || str_contains($erro, 'bibliotecas fiscais (NFePHP)')
+            || str_contains($erro, 'Falha ao carregar o certificado digital')
             || str_contains($erro, 'Senha do certificado incorreta')) {
             return $erro;
         }
 
         $baixo = strtolower($erro);
+
+        // Bibliotecas do composer ausentes no servidor.
+        if (str_contains($baixo, 'not found') && (str_contains($baixo, 'nfephp') || str_contains($baixo, 'class '))) {
+            return 'As bibliotecas fiscais (NFePHP) não estão instaladas no servidor. '
+                . 'Rode "composer install --no-dev" na raiz do projeto (a pasta application/vendor '
+                . 'não vem do Git e pode ter sido removida por um deploy). Detalhe: ' . $erro;
+        }
 
         if ($sha256ok && (str_contains($baixo, 'invalid digest') || str_contains($baixo, 'digital envelope') || str_contains($baixo, 'unsupported'))) {
             return 'A chave do certificado funciona (assina em SHA256), mas a assinatura SHA1 está bloqueada '
