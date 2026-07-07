@@ -193,21 +193,60 @@ class CertificadoHelper
      */
     public static function salvarPfx(string $tmpFile, string $nomeOriginal): string
     {
-        foreach ([self::DIR_CERTIFICADO, self::DIR_XML] as $dir) {
-            if (!is_dir($dir)) {
-                mkdir($dir, 0750, true);
-            }
-        }
         $ext = strtolower(pathinfo($nomeOriginal, PATHINFO_EXTENSION));
         if (!in_array($ext, ['pfx', 'p12'])) {
             throw new Exception('O certificado deve ser um arquivo .pfx ou .p12 (modelo A1)');
         }
+
+        // Garante que a pasta protegida e as subpastas existem (podem ter sido
+        // removidas por um deploy) antes de salvar o certificado.
+        self::protegerBase();
+        self::garantirDiretorio(self::DIR_CERTIFICADO);
+        self::garantirDiretorio(self::DIR_XML);
+
         $destino = self::DIR_CERTIFICADO . 'certificado.' . $ext;
-        if (!move_uploaded_file($tmpFile, $destino)) {
-            throw new Exception('Falha ao salvar o arquivo do certificado');
+        // move_uploaded_file é o correto para upload HTTP; copy é fallback.
+        if (!@move_uploaded_file($tmpFile, $destino) && !@copy($tmpFile, $destino)) {
+            throw new Exception('Falha ao salvar o certificado em ' . $destino
+                . '. Verifique a permissão de escrita da pasta application/arquivos_fiscais no servidor.');
         }
+        @chmod($destino, 0640);
 
         return $destino;
+    }
+
+    /**
+     * Cria um diretório (recursivo) garantindo que ele exista ao final.
+     */
+    private static function garantirDiretorio(string $dir): void
+    {
+        if (!is_dir($dir) && !@mkdir($dir, 0750, true) && !is_dir($dir)) {
+            throw new Exception('Não foi possível criar a pasta "' . $dir . '". '
+                . 'Dê permissão de escrita ao servidor web em application/arquivos_fiscais.');
+        }
+    }
+
+    /**
+     * Garante a pasta base arquivos_fiscais e sua proteção (.htaccess + index)
+     * — recriadas caso um deploy tenha removido a pasta.
+     */
+    private static function protegerBase(): void
+    {
+        $base = APPPATH . 'arquivos_fiscais' . DIRECTORY_SEPARATOR;
+        self::garantirDiretorio($base);
+
+        $htaccess = $base . '.htaccess';
+        if (!file_exists($htaccess)) {
+            @file_put_contents(
+                $htaccess,
+                "<IfModule mod_authz_core.c>\n    Require all denied\n</IfModule>\n"
+                . "<IfModule !mod_authz_core.c>\n    Order deny,allow\n    Deny from all\n</IfModule>\n"
+            );
+        }
+        $index = $base . 'index.html';
+        if (!file_exists($index)) {
+            @file_put_contents($index, "<!DOCTYPE html><title>403 Forbidden</title><p>Acesso negado.</p>");
+        }
     }
 
     /**
@@ -242,9 +281,8 @@ class CertificadoHelper
 
     public static function salvarXml(string $nomeArquivo, string $conteudo): string
     {
-        if (!is_dir(self::DIR_XML)) {
-            mkdir(self::DIR_XML, 0750, true);
-        }
+        self::protegerBase();
+        self::garantirDiretorio(self::DIR_XML);
         $path = self::DIR_XML . $nomeArquivo;
         file_put_contents($path, $conteudo);
 
