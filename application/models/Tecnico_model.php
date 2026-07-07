@@ -263,7 +263,14 @@ class Tecnico_model extends CI_Model
         $grupos = [];
         $query = $this->db->select('idPermissao, permissoes')->get('permissoes');
         foreach (($query ? $query->result() : []) as $p) {
-            $perms = @unserialize($p->permissoes);
+            // Desserializa de forma resiliente (blobs podem estar corrompidos com
+            // "Extra data"): suprime o warning para não derrubar a página.
+            set_error_handler(static function () {
+                return true;
+            });
+            $perms = unserialize((string) $p->permissoes);
+            restore_error_handler();
+
             if (is_array($perms) && ! empty($perms[$atividade])) {
                 $grupos[] = (int) $p->idPermissao;
             }

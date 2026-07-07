@@ -68,10 +68,35 @@ class Permission
             $this->CI->db->limit(1);
             $array = $this->CI->db->get($this->table)->row_array();
 
-            if (count($array) > 0) {
-                $array = unserialize($array[$this->select]);
-                //Atribui as permissoes ao atributo permissions
-                $this->permissions = [$array];
+            if (is_array($array) && count($array) > 0) {
+                $raw = isset($array[$this->select]) ? (string) $array[$this->select] : '';
+
+                // Desserializa de forma resiliente: blobs de permissão podem estar
+                // corrompidos (ex.: "Extra data" ao final). O unserialize retorna
+                // o array válido do início mesmo assim; suprimimos o warning para
+                // não derrubar a página (o Whoops o converteria em fatal).
+                set_error_handler(static function () {
+                    return true;
+                });
+                $permissoes = unserialize($raw);
+                restore_error_handler();
+
+                if (! is_array($permissoes)) {
+                    $permissoes = [];
+                }
+
+                // Auto-corrige o registro no banco quando o valor salvo estava
+                // corrompido mas foi possível recuperar as permissões (não sobrescreve
+                // com vazio para não perder dados de um blob ilegível).
+                if (! empty($permissoes)) {
+                    $limpo = serialize($permissoes);
+                    if ($limpo !== $raw) {
+                        $this->CI->db->where($this->pk, $id);
+                        $this->CI->db->update($this->table, [$this->select => $limpo]);
+                    }
+                }
+
+                $this->permissions = [$permissoes];
 
                 return true;
             }
