@@ -44,8 +44,16 @@
                     </div>
                     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
                         $this->load->model('os_model');
-                        $this->load->library('evolution_api');
-                        $whatsappApiAtivo = $this->evolution_api->estaAtivo();
+                        // Carrega a lib de forma resiliente (não quebra a página se o
+                        // módulo WhatsApp/Evolution ainda não estiver implantado).
+                        $whatsappApiAtivo = false;
+                        $ciWpp = &get_instance();
+                        if (file_exists(APPPATH . 'libraries/Evolution_api.php')) {
+                            $ciWpp->load->library('evolution_api');
+                            if (isset($ciWpp->evolution_api) && method_exists($ciWpp->evolution_api, 'estaAtivo')) {
+                                $whatsappApiAtivo = $ciWpp->evolution_api->estaAtivo();
+                            }
+                        }
                         $zapnumber = preg_replace("/[^0-9]/", "", $result->celular_cliente);
                         $troca = [$result->nomeCliente, $result->idOs, $result->status, 'R$ ' . ($result->desconto != 0 && $result->valor_desconto != 0 ? number_format($result->valor_desconto, 2, ',', '.') : number_format($totalProdutos + $totalServico, 2, ',', '.')), strip_tags($result->descricaoProduto), ($emitente ? $emitente->nome : ''), ($emitente ? $emitente->telefone : ''), strip_tags($result->observacoes), strip_tags($result->defeito), strip_tags($result->laudoTecnico), date('d/m/Y', strtotime($result->dataFinal)), date('d/m/Y', strtotime($result->dataInicial)), $result->garantia . ' dias'];
                         $texto_de_notificacao = $this->os_model->criarTextoWhats($texto_de_notificacao, $troca);

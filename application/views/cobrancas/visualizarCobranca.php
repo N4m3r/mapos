@@ -143,9 +143,18 @@
                 </table>
 
                 <?php
-                $this->load->library('evolution_api');
+                // Carrega a lib de forma resiliente (não quebra se o módulo
+                // WhatsApp/Evolution ainda não estiver implantado).
+                $whatsappApiAtivo = false;
+                $ciWpp = &get_instance();
+                if (file_exists(APPPATH . 'libraries/Evolution_api.php')) {
+                    $ciWpp->load->library('evolution_api');
+                    if (isset($ciWpp->evolution_api) && method_exists($ciWpp->evolution_api, 'estaAtivo')) {
+                        $whatsappApiAtivo = $ciWpp->evolution_api->estaAtivo();
+                    }
+                }
                 $temLink = ! empty($result->payment_url) || ! empty($result->link);
-                if ($this->evolution_api->estaAtivo() && ! empty($result->celular) && $temLink) { ?>
+                if ($whatsappApiAtivo && ! empty($result->celular) && $temLink) { ?>
                     <a href="#" id="enviarCobrancaWhatsApp" class="btn btn-success" style="color:#fff" data-cobranca="<?php echo $result->idCobranca; ?>">
                         <i class="bx bxl-whatsapp"></i> Enviar por WhatsApp
                     </a>
@@ -155,7 +164,7 @@
     </div>
 
 <?php
-if ($this->evolution_api->estaAtivo()) { ?>
+if (! empty($whatsappApiAtivo)) { ?>
     <script type="text/javascript">
         $(function() {
             $('#enviarCobrancaWhatsApp').on('click', function(e) {

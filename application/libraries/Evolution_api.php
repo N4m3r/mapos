@@ -24,8 +24,27 @@ class Evolution_api
     public function __construct()
     {
         $this->ci = &get_instance();
-        $this->ci->load->config('whatsapp');
-        $this->config = $this->ci->config->item('whatsapp')['evolution'];
+
+        // Carrega o config de forma resiliente: se o arquivo ainda não estiver
+        // implantado, a biblioteca assume valores padrão (desativada) em vez de
+        // derrubar a página.
+        $evolution = [];
+        if (file_exists(APPPATH . 'config/whatsapp.php')) {
+            $this->ci->load->config('whatsapp', false);
+            $whatsapp = $this->ci->config->item('whatsapp');
+            if (is_array($whatsapp) && isset($whatsapp['evolution'])) {
+                $evolution = $whatsapp['evolution'];
+            }
+        }
+
+        $this->config = array_merge([
+            'enabled' => false,
+            'url' => '',
+            'apikey' => '',
+            'instance' => '',
+            'timeout' => 30,
+            'auto_status' => [],
+        ], $evolution);
     }
 
     /**
