@@ -243,9 +243,17 @@
                         $('#btnTestarCert').attr('disabled', false);
                     }
                 },
-                error: function() {
+                error: function(xhr) {
                     btn.attr('disabled', false);
-                    $('#salvarCertResultado').html('<div class="alert alert-danger">Falha de comunicação com o servidor.</div>');
+                    var msg = 'Falha de comunicação (HTTP ' + xhr.status + ').';
+                    if (xhr.status === 404) {
+                        msg += ' O endpoint "salvarCertificado" não existe no servidor — falta o deploy do arquivo Nfe.php e limpar o cache do PHP (OPcache).';
+                    } else if (xhr.status === 413) {
+                        msg += ' O arquivo é grande demais para o limite de upload do servidor.';
+                    } else if (xhr.responseText) {
+                        msg += ' Resposta do servidor: ' + $('<div>').text(xhr.responseText.substring(0, 300)).html();
+                    }
+                    $('#salvarCertResultado').html('<div class="alert alert-danger">' + msg + '</div>');
                 }
             });
         });
