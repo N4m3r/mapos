@@ -226,6 +226,14 @@
             if (arquivo) { fd.append('certificado', arquivo); }
             fd.append('senha_certificado', $('#senha_certificado').val());
 
+            // O ajaxSetup global (csrf.js) não consegue injetar o token em FormData;
+            // anexamos manualmente para o CSRF do CodeIgniter não bloquear (403).
+            var csrfName = $('meta[name="csrf-token-name"]').attr('content');
+            var csrfCookie = $('meta[name="csrf-cookie-name"]').attr('content');
+            if (csrfName && typeof getCookie === 'function') {
+                fd.append(csrfName, getCookie(csrfCookie));
+            }
+
             btn.attr('disabled', true);
             $('#salvarCertResultado').html('<div class="alert alert-info">Salvando o certificado, aguarde...</div>');
 
