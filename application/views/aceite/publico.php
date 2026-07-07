@@ -142,10 +142,10 @@ $totalFotos = count($fotos_etapa['entrada']) + count($fotos_etapa['durante']) + 
                     <?php if (! empty($os->defeito) || ! empty($os->laudoTecnico)) { ?>
                         <div class="ac-section-title">Serviço executado</div>
                         <?php if (! empty($os->defeito)) { ?>
-                            <div class="ac-field" style="margin-bottom:10px"><label>Defeito relatado</label><span><?= nl2br(html_escape($os->defeito)) ?></span></div>
+                            <div class="ac-field" style="margin-bottom:10px"><label>Defeito relatado</label><span><?= nl2br(html_escape(strip_tags($os->defeito))) ?></span></div>
                         <?php } ?>
                         <?php if (! empty($os->laudoTecnico)) { ?>
-                            <div class="ac-field"><label>Laudo técnico</label><span><?= nl2br(html_escape($os->laudoTecnico)) ?></span></div>
+                            <div class="ac-field"><label>Laudo técnico</label><span><?= nl2br(html_escape(strip_tags($os->laudoTecnico))) ?></span></div>
                         <?php } ?>
                     <?php } ?>
 

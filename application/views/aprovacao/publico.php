@@ -297,10 +297,10 @@ $emitente = isset($emitente) ? $emitente : null;
                     <?php if (! empty($os->descricaoProduto) || ! empty($os->defeito)) { ?>
                         <div class="ap-section-title">Descrição / Defeito relatado</div>
                         <?php if (! empty($os->descricaoProduto)) { ?>
-                            <div class="ap-field" style="margin-bottom:10px"><label>Equipamento / Produto</label><span><?= nl2br(html_escape($os->descricaoProduto)) ?></span></div>
+                            <div class="ap-field" style="margin-bottom:10px"><label>Equipamento / Produto</label><span><?= nl2br(html_escape(strip_tags($os->descricaoProduto))) ?></span></div>
                         <?php } ?>
                         <?php if (! empty($os->defeito)) { ?>
-                            <div class="ap-field"><label>Defeito relatado</label><span><?= nl2br(html_escape($os->defeito)) ?></span></div>
+                            <div class="ap-field"><label>Defeito relatado</label><span><?= nl2br(html_escape(strip_tags($os->defeito))) ?></span></div>
                         <?php } ?>
                     <?php } ?>
 
