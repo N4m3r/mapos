@@ -1504,7 +1504,9 @@ class Os extends MY_Controller
      */
     public function toggleAutomacao()
     {
-        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'cAutomacao')) {
+        $perm = $this->session->userdata('permissao');
+        if (! $this->permission->checkPermission($perm, 'cAutomacao')
+            && ! $this->permission->checkPermission($perm, 'cSistema')) {
             return $this->output->set_content_type('application/json')->set_status_header(403)
                 ->set_output(json_encode(['success' => false, 'message' => 'Sem permissão para alterar a automação.']));
         }

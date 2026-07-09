@@ -18,7 +18,11 @@ class Automacao extends MY_Controller
     {
         parent::__construct();
 
-        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'cAutomacao')) {
+        // Aceita a permissão específica de automação OU a de sistema (admin),
+        // para não trancar quem já é admin mas ainda não recebeu cAutomacao.
+        $perm = $this->session->userdata('permissao');
+        if (! $this->permission->checkPermission($perm, 'cAutomacao')
+            && ! $this->permission->checkPermission($perm, 'cSistema')) {
             $this->session->set_flashdata('error', 'Você não tem permissão para configurar automações.');
             redirect(base_url());
         }

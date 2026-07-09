@@ -132,7 +132,9 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                     // Liga/desliga a automação (NFS-e + boleto) na aprovação, só desta OS.
                     $automacaoSuportada = $this->db->field_exists('automacao_override', 'os');
                     $automacaoGlobalAtiva = (($this->data['configuration']['automacao_aprovacao_ativa'] ?? '0') === '1');
-                    if ($automacaoSuportada && $this->permission->checkPermission($this->session->userdata('permissao'), 'cAutomacao')) {
+                    $permUsuario = $this->session->userdata('permissao');
+                    $podeAutomacao = $this->permission->checkPermission($permUsuario, 'cAutomacao') || $this->permission->checkPermission($permUsuario, 'cSistema');
+                    if ($automacaoSuportada && $podeAutomacao) {
                         $override = $result->automacao_override; // null | 0 | 1
                         if ($override !== null && $override !== '') {
                             $automacaoNestaOs = ((int) $override === 1);
