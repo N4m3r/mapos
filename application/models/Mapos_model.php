@@ -453,9 +453,14 @@ class Mapos_model extends CI_Model
     {
         try {
             foreach ($data as $key => $valor) {
-                $this->db->set('valor', $valor);
-                $this->db->where('config', $key);
-                $this->db->update('configuracoes');
+                // Upsert: atualiza a config existente ou cria se ainda não existir.
+                // (Sem isso, salvar uma config nunca semeada não persistia nada.)
+                $existe = $this->db->where('config', $key)->count_all_results('configuracoes');
+                if ($existe > 0) {
+                    $this->db->where('config', $key)->update('configuracoes', ['valor' => $valor]);
+                } else {
+                    $this->db->insert('configuracoes', ['config' => $key, 'valor' => $valor]);
+                }
             }
         } catch (Exception $e) {
             return false;
