@@ -221,6 +221,7 @@ class Autoaprovacao
             '{os_observacoes}' => $os->observacoes ?? '',
             '{os_defeito}' => $os->defeito ?? '',
             '{os_laudo}' => $os->laudoTecnico ?? '',
+            '{os_aprovador}' => $os->aprovacao_nome ?? '',
         ];
 
         return strtr($texto, $mapa);

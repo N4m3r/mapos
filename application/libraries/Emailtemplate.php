@@ -180,6 +180,7 @@ class Emailtemplate
             $tags['os_data_inicial'] = $this->formatDate($this->prop($os, 'dataInicial'));
             $tags['os_data_final'] = $this->formatDate($this->prop($os, 'dataFinal'));
             $tags['os_garantia'] = $this->prop($os, 'garantia') ?: '—';
+            $tags['os_aprovador'] = $this->prop($os, 'aprovacao_nome');
 
             $produtos = $this->blocoAtivo('produtos', $blocos) ? ($context['produtos'] ?? []) : [];
             $servicos = $this->blocoAtivo('servicos', $blocos) ? ($context['servicos'] ?? []) : [];

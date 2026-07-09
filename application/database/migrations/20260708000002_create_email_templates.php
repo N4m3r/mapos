@@ -71,7 +71,7 @@ class Migration_create_email_templates extends CI_Migration
             'descricao' => 'Enviado ao cliente ao compartilhar/notificar uma Ordem de Serviço.',
             'assunto' => 'Ordem de Serviço #{{os_numero}} - {{empresa_nome}}',
             'corpo' => $this->defaultCorpoOs(),
-            'tags' => 'cliente_nome, cliente_email, empresa_nome, os_numero, os_status, os_data_inicial, os_data_final, os_garantia, os_detalhes_html, os_itens_html, os_valor_total, data_atual',
+            'tags' => 'cliente_nome, cliente_email, empresa_nome, os_numero, os_status, os_data_inicial, os_data_final, os_garantia, os_aprovador, os_detalhes_html, os_itens_html, os_valor_total, data_atual',
             'data_criacao' => $agora,
             'data_atualizacao' => $agora,
         ]);

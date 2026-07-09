@@ -30,7 +30,7 @@ $tokenHash = $this->security->get_csrf_hash();
             <p style="color:#6b7191; font-size:12px; margin-top:0">
                 Campos vazios usam o padrão do módulo fiscal / do serviço. Você pode usar tags da OS:
                 <code>{os_numero}</code>, <code>{os_descricao}</code>, <code>{os_observacoes}</code>,
-                <code>{os_defeito}</code>, <code>{os_laudo}</code>.
+                <code>{os_defeito}</code>, <code>{os_laudo}</code>, <code>{os_aprovador}</code>.
             </p>
 
             <div class="control-group">

@@ -132,7 +132,7 @@ SELECT
 {{os_itens_html}}
 <p class="total">Total: <strong>{{os_valor_total}}</strong></p>
 <p>Qualquer dúvida, estamos à disposição.</p>',
-    'cliente_nome, cliente_email, empresa_nome, os_numero, os_status, os_data_inicial, os_data_final, os_garantia, os_detalhes_html, os_itens_html, os_valor_total, data_atual',
+    'cliente_nome, cliente_email, empresa_nome, os_numero, os_status, os_data_inicial, os_data_final, os_garantia, os_aprovador, os_detalhes_html, os_itens_html, os_valor_total, data_atual',
     1, NOW(), NOW()
 WHERE NOT EXISTS (SELECT 1 FROM `email_templates` WHERE `slug` = 'os');
 
