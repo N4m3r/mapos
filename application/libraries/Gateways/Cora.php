@@ -344,6 +344,14 @@ class Cora extends BasePaymentGateway
             throw new \Exception('Erro ao salvar cobrança!');
         }
 
+        // Envio automático do boleto por e-mail conforme o gatilho "cobranca_gerada".
+        // Falha aqui nunca deve impedir a geração do boleto.
+        try {
+            $this->enviarPorEmail($novoId, 'cobranca_gerada');
+        } catch (\Throwable $e) {
+            log_info('Falha no envio automático do boleto (cobrança ' . $novoId . '): ' . $e->getMessage());
+        }
+
         return $data;
     }
 
@@ -405,9 +413,57 @@ class Cora extends BasePaymentGateway
             } catch (\Throwable $e) {
                 log_info('Falha na baixa automática Cora (cobrança ' . $cobranca->idCobranca . '): ' . $e->getMessage());
             }
+
+            // Notifica o cliente que o pagamento foi confirmado (gatilho pagamento_confirmado).
+            $this->notificarPagamento($cobranca);
         }
 
         return $ok;
+    }
+
+    /**
+     * Notifica o cliente do pagamento confirmado por e-mail e/ou WhatsApp,
+     * conforme o gatilho "pagamento_confirmado". Best-effort (nunca lança).
+     */
+    private function notificarPagamento($cobranca)
+    {
+        try {
+            $this->ci->load->model('notification_triggers_model');
+            $trigger = $this->ci->notification_triggers_model->getByEvento('pagamento_confirmado');
+            if (! $trigger || (int) $trigger->ativo !== 1) {
+                return;
+            }
+            $canais = Notification_triggers_model::toList($trigger->canais);
+            $dest = Notification_triggers_model::toList($trigger->destinatarios);
+            $paraCliente = in_array('cliente', $dest, true);
+
+            $nome = $cobranca->nomeCliente ?? '';
+            $valor = 'R$ ' . number_format(((float) ($cobranca->total ?? 0)) / 100, 2, ',', '.');
+            $texto = 'Olá' . ($nome ? ', ' . $nome : '') . '! Confirmamos o recebimento do pagamento de ' . $valor . '. Obrigado!';
+
+            if ($paraCliente && in_array('email', $canais, true) && ! empty($cobranca->email)) {
+                $this->ci->load->model('email_model');
+                $emitente = $this->ci->mapos_model->getEmitente();
+                $assunto = 'Pagamento confirmado' . (! empty($emitente->nome) ? ' - ' . $emitente->nome : '');
+                $headers = ['From' => $emitente->email ?? '', 'Subject' => $assunto, 'Return-Path' => ''];
+                $this->ci->email_model->add('email_queue', [
+                    'to' => $cobranca->email,
+                    'message' => '<p>' . htmlspecialchars($texto) . '</p>',
+                    'status' => 'pending',
+                    'date' => date('Y-m-d H:i:s'),
+                    'headers' => serialize($headers),
+                ]);
+            }
+
+            if ($paraCliente && in_array('whatsapp', $canais, true) && ! empty($cobranca->celular)) {
+                $this->ci->load->library('evolution_api');
+                if ($this->ci->evolution_api->estaAtivo()) {
+                    $this->ci->evolution_api->enviarTexto($cobranca->celular, $texto);
+                }
+            }
+        } catch (\Throwable $e) {
+            log_info('Falha ao notificar pagamento (cobrança ' . ($cobranca->idCobranca ?? '?') . '): ' . $e->getMessage());
+        }
     }
 
     /**
@@ -485,7 +541,7 @@ class Cora extends BasePaymentGateway
         return 'CANCELLED';
     }
 
-    public function enviarPorEmail($id)
+    public function enviarPorEmail($id, $evento = 'cobranca_enviada')
     {
         $cobranca = $this->ci->cobrancas_model->getById($id);
         if (! $cobranca) {
@@ -495,6 +551,13 @@ class Cora extends BasePaymentGateway
         $emitente = $this->ci->mapos_model->getEmitente();
         if (! $emitente) {
             throw new \Exception('Emitente não configurado!');
+        }
+
+        // Gatilho de cobrança: se desativado ou sem canal de e-mail, não envia.
+        $this->ci->load->model('notification_triggers_model');
+        $trigger = $this->ci->notification_triggers_model->getByEvento($evento);
+        if ($trigger && ((int) $trigger->ativo !== 1 || ! in_array('email', Notification_triggers_model::toList($trigger->canais), true))) {
+            return;
         }
 
         $html = $this->ci->load->view(
@@ -547,7 +610,7 @@ class Cora extends BasePaymentGateway
         ];
 
         // Anexos conforme o gatilho de cobrança (boleto e/ou nota fiscal).
-        $anexos = $this->anexosCobranca($cobranca);
+        $anexos = $this->anexosCobranca($cobranca, $evento);
         if (! empty($anexos) && $this->ci->db->field_exists('attachments', 'email_queue')) {
             $emailData['attachments'] = json_encode($anexos);
         }
@@ -578,11 +641,11 @@ class Cora extends BasePaymentGateway
      * (default: boleto). Boleto vai como URL pública (baixada no envio); a nota
      * fiscal é gerada em PDF a partir do XML autorizado.
      */
-    private function anexosCobranca($cobranca)
+    private function anexosCobranca($cobranca, $evento = 'cobranca_enviada')
     {
         $tipos = ['boleto'];
         $this->ci->load->model('notification_triggers_model');
-        $trigger = $this->ci->notification_triggers_model->getByEvento('cobranca_enviada');
+        $trigger = $this->ci->notification_triggers_model->getByEvento($evento);
         if ($trigger) {
             $tipos = Notification_triggers_model::toList($trigger->anexos);
         }
