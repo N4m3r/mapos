@@ -34,13 +34,14 @@ class Cora extends BasePaymentGateway
 
         $this->coraConfig = $this->resolverConfig();
 
-        if ($this->coraConfig['production'] === true) {
-            $this->tokenUrl = 'https://matls-clients.api.cora.com.br/token';
-            $this->baseUrl = 'https://api.cora.com.br';
-        } else {
-            $this->tokenUrl = 'https://matls-clients.api.stage.cora.com.br/token';
-            $this->baseUrl = 'https://api.stage.cora.com.br';
-        }
+        // Integração Direta (mTLS): TODAS as chamadas passam pelo host
+        // matls-clients — é lá que o certificado do cliente autentica cada
+        // requisição. (O host api[.stage].cora.com.br é o da modalidade Parceria.)
+        $host = $this->coraConfig['production'] === true
+            ? 'https://matls-clients.api.cora.com.br'
+            : 'https://matls-clients.api.stage.cora.com.br';
+        $this->tokenUrl = $host . '/token';
+        $this->baseUrl = $host;
     }
 
     /**
