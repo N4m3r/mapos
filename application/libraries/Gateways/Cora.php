@@ -111,6 +111,52 @@ class Cora extends BasePaymentGateway
         return [$cert, $key];
     }
 
+    /**
+     * Valida, antes de chamar a Cora, se o par certificado/chave é utilizável
+     * para mTLS. Dá mensagens claras para os erros mais comuns.
+     */
+    private function validarCertificados($certPath, $keyPath)
+    {
+        $certPem = @file_get_contents($certPath);
+        $keyPem = @file_get_contents($keyPath);
+        if ($certPem === false || trim($certPem) === '') {
+            throw new \Exception('Não foi possível ler o arquivo do certificado (.pem). Reenvie o arquivo.');
+        }
+        if ($keyPem === false || trim($keyPem) === '') {
+            throw new \Exception('Não foi possível ler o arquivo da chave privada (.key). Reenvie o arquivo.');
+        }
+        if (! function_exists('openssl_x509_read')) {
+            return; // OpenSSL indisponível: deixa o cURL validar.
+        }
+
+        // Detecta arquivos trocados (.key enviado no campo do .pem, etc.)
+        $ehCert = strpos($certPem, 'BEGIN CERTIFICATE') !== false;
+        $keyTemCert = strpos($keyPem, 'BEGIN CERTIFICATE') !== false;
+        $keyTemChave = strpos($keyPem, 'PRIVATE KEY') !== false;
+        $certTemChave = strpos($certPem, 'PRIVATE KEY') !== false;
+
+        if (! $ehCert) {
+            $dica = $certTemChave ? ' Parece que você enviou a CHAVE no lugar do certificado.' : '';
+            throw new \Exception('O arquivo enviado como Certificado (.pem) não contém um certificado PEM válido.' . $dica);
+        }
+        if (! $keyTemChave) {
+            $dica = $keyTemCert ? ' Parece que você enviou o CERTIFICADO no lugar da chave.' : '';
+            throw new \Exception('O arquivo enviado como Chave privada (.key) não contém uma chave PEM válida.' . $dica);
+        }
+
+        $cert = @openssl_x509_read($certPem);
+        if ($cert === false) {
+            throw new \Exception('O certificado (.pem) não pôde ser lido pelo OpenSSL. Confirme que é o arquivo gerado pela Cora, em formato PEM.');
+        }
+        $priv = @openssl_pkey_get_private($keyPem);
+        if ($priv === false) {
+            throw new \Exception('A chave privada (.key) é inválida ou está protegida por senha. Envie a chave PEM sem senha, exatamente como a Cora gerou.');
+        }
+        if (@openssl_x509_check_private_key($cert, $priv) !== true) {
+            throw new \Exception('O certificado (.pem) e a chave (.key) não formam um par. Reenvie os DOIS arquivos da mesma integração e do mesmo ambiente (Stage/Produção).');
+        }
+    }
+
     private function tokenCacheFile()
     {
         $ambiente = $this->coraConfig['production'] === true ? 'prod' : 'stage';
@@ -132,8 +178,11 @@ class Cora extends BasePaymentGateway
         [$cert, $key] = $this->certPaths();
         $clientId = $this->coraConfig['credentials']['client_id'] ?? '';
         if (empty($clientId)) {
-            throw new \Exception('client_id da Cora não configurado (PAYMENT_GATEWAYS_CORA_CLIENT_ID).');
+            throw new \Exception('client_id da Cora não configurado. Preencha em Configurar Cobrança Cora.');
         }
+
+        // Valida o par cert/chave antes de tentar a conexão (erros mais claros).
+        $this->validarCertificados($cert, $key);
 
         $ch = curl_init($this->tokenUrl);
         curl_setopt_array($ch, [
@@ -150,11 +199,20 @@ class Cora extends BasePaymentGateway
         ]);
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErrNo = curl_errno($ch);
         $curlErr = curl_error($ch);
         curl_close($ch);
 
         if ($response === false) {
-            throw new \Exception('Falha de conexão com a Cora (token): ' . $curlErr);
+            $dica = '';
+            if (in_array($curlErrNo, [58, 35, 83])) {
+                $dica = ' (problema no certificado/chave cliente — confira se o .pem e o .key são do mesmo par e ambiente)';
+            } elseif (in_array($curlErrNo, [6, 7, 28])) {
+                $dica = ' (o servidor não conseguiu alcançar a Cora — verifique internet/firewall de saída HTTPS)';
+            } elseif ($curlErrNo === 60) {
+                $dica = ' (falha ao validar o certificado do servidor da Cora — cadeia de CA do servidor)';
+            }
+            throw new \Exception('Falha de conexão com a Cora (cURL ' . $curlErrNo . '): ' . $curlErr . $dica);
         }
         $data = json_decode($response, true);
         if ($httpCode < 200 || $httpCode >= 300 || empty($data['access_token'])) {

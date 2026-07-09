@@ -177,12 +177,24 @@ $(document).on('click', '#btn-testar-cora', function () {
             $res.html("<span style='color:#4d9c79'><i class='bx bx-check-circle'></i> " + data.message + "</span>");
         },
         error: function (xhr) {
-            var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Erro ao testar conexão.';
-            $res.html("<span style='color:#CD0000'><i class='bx bx-x-circle'></i> " + msg + "</span>");
+            $res.html("<span style='color:#CD0000'><i class='bx bx-x-circle'></i> " + coraErroMsg(xhr, 'testar conexão') + "</span>");
         },
         complete: function () { $btn.prop('disabled', false); }
     });
 });
+
+// Extrai a mensagem de erro real do XHR (JSON, ou HTML de 403/500).
+function coraErroMsg(xhr, acao) {
+    if (xhr.responseJSON && xhr.responseJSON.message) {
+        return xhr.responseJSON.message;
+    }
+    if (xhr.status === 403) {
+        return 'Sessão/CSRF expirada (HTTP 403). Recarregue a página (F5) e tente de novo.';
+    }
+    var txt = (xhr.responseText || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    if (txt.length > 200) { txt = txt.substring(0, 200) + '…'; }
+    return 'Erro ao ' + acao + ' (HTTP ' + xhr.status + ').' + (txt ? ' ' + txt : '');
+}
 
 $(document).on('click', '#btn-copiar-webhook', function (e) {
     e.preventDefault();
@@ -210,8 +222,7 @@ $(document).on('click', '#btn-registrar-webhook', function () {
             $res.html("<span style='color:#4d9c79'><i class='bx bx-check-circle'></i> " + data.message + "</span>");
         },
         error: function (xhr) {
-            var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Erro ao registrar webhook.';
-            $res.html("<span style='color:#CD0000'><i class='bx bx-x-circle'></i> " + msg + "</span>");
+            $res.html("<span style='color:#CD0000'><i class='bx bx-x-circle'></i> " + coraErroMsg(xhr, 'registrar webhook') + "</span>");
         },
         complete: function () { $btn.prop('disabled', false); }
     });
