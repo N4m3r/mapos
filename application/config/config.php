@@ -457,6 +457,12 @@ $config['csrf_exclude_uris'] = [
     'checkin/uploadMultiplo',
     'webhook/cora',
     'emailtemplates/preview',
+    // Endpoints AJAX (JSON) do Cora — protegidos por login + permissão.
+    // Isentos de CSRF para evitar 403 quando o cookie CSRF é httpOnly.
+    'cobrancas/testarCora',
+    'cobrancas/registrarWebhookCora',
+    'cobrancas/gerarPorNota',
+    'cobrancas/verificarPagamento',
 ];
 
 /*
