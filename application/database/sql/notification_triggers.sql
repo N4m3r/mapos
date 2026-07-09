@@ -64,3 +64,19 @@ WHERE NOT EXISTS (SELECT 1 FROM `notification_triggers` WHERE `evento`='nota_emi
 INSERT INTO `notification_triggers` (`evento`,`nome`,`descricao`,`grupo`,`ativo`,`canais`,`destinatarios`,`blocos`,`anexos`,`template_slug`,`data_criacao`,`data_atualizacao`)
 SELECT 'cliente_novo','Cliente cadastrado (boas-vindas)','Ao cadastrar um novo cliente.','Cliente',0,'email','cliente',NULL,NULL,NULL,NOW(),NOW()
 WHERE NOT EXISTS (SELECT 1 FROM `notification_triggers` WHERE `evento`='cliente_novo');
+
+-- 4) Coluna de anexos na fila de e-mail (adiciona só se não existir)
+SET @col_existe := (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'email_queue'
+      AND COLUMN_NAME = 'attachments'
+);
+SET @ddl := IF(
+    @col_existe = 0,
+    'ALTER TABLE `email_queue` ADD COLUMN `attachments` TEXT NULL AFTER `headers`',
+    'DO 0'
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;

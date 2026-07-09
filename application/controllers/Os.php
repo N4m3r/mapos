@@ -174,7 +174,7 @@ class Os extends MY_Controller
 
                 // Notificação automática por WhatsApp quando o status inicial
                 // já estiver na lista configurada (resiliente a falhas).
-                $this->notificarWhatsAppAutomatico($os, $emitente);
+                $this->notificarWhatsAppAutomatico($os, $emitente, 'os_aberta');
 
                 $this->session->set_flashdata('success', 'OS adicionada com sucesso, você pode adicionar produtos ou serviços a essa OS nas abas de Produtos e Serviços!');
                 log_info('Adicionou uma OS. ID: ' . $id);
@@ -292,7 +292,7 @@ class Os extends MY_Controller
                 // Notificação automática por WhatsApp (Evolution API) quando o
                 // status atual está na lista configurada. Falha aqui NUNCA deve
                 // impedir a edição da OS — só registra no log e segue.
-                $this->notificarWhatsAppAutomatico($os, $emitente);
+                $this->notificarWhatsAppAutomatico($os, $emitente, 'os_editada');
 
                 $this->session->set_flashdata('success', 'Os editada com sucesso!');
                 log_info('Alterou uma OS. ID: ' . $this->input->post('idOs'));
@@ -1926,26 +1926,47 @@ class Os extends MY_Controller
      * @param object $os       OS já carregada (getById), com celular_cliente e status
      * @param object $emitente Emitente para preencher as tags do template
      */
-    private function notificarWhatsAppAutomatico($os, $emitente)
+    private function notificarWhatsAppAutomatico($os, $emitente, $evento = null)
     {
         try {
             $this->load->library('evolution_api');
             if (! $this->evolution_api->estaAtivo()) {
                 return;
             }
-            if (! $this->evolution_api->disparaAutomaticoPara($os->status)) {
-                return;
-            }
-            if (empty($os->celular_cliente)) {
-                log_info('WhatsApp automático ignorado: cliente sem celular. OS #' . $os->idOs);
 
+            // Com gatilho configurado: respeita ativo + canal WhatsApp + destinatários.
+            // Sem gatilho: mantém o comportamento por auto_status do config.
+            $destCliente = true;
+            $destTecnico = false;
+            if ($evento) {
+                $this->load->model('notification_triggers_model');
+                $trigger = $this->notification_triggers_model->getByEvento($evento);
+                if ($trigger) {
+                    $canais = Notification_triggers_model::toList($trigger->canais);
+                    if ((int) $trigger->ativo !== 1 || ! in_array('whatsapp', $canais, true)) {
+                        return;
+                    }
+                    $dest = Notification_triggers_model::toList($trigger->destinatarios);
+                    $destCliente = in_array('cliente', $dest, true);
+                    $destTecnico = in_array('tecnico', $dest, true);
+                } elseif (! $this->evolution_api->disparaAutomaticoPara($os->status)) {
+                    return;
+                }
+            } elseif (! $this->evolution_api->disparaAutomaticoPara($os->status)) {
                 return;
             }
 
             $template = $this->data['configuration']['notifica_whats'] ?? '';
             $mensagem = $this->os_model->montarNotificacaoOs($os->idOs, $template, $emitente);
-            $this->evolution_api->enviarTexto($os->celular_cliente, $mensagem);
-            log_info('Notificação automática por WhatsApp enviada. OS #' . $os->idOs);
+
+            if ($destCliente && ! empty($os->celular_cliente)) {
+                $this->evolution_api->enviarTexto($os->celular_cliente, $mensagem);
+                log_info('Notificação WhatsApp (cliente) enviada. OS #' . $os->idOs);
+            }
+            if ($destTecnico && ! empty($os->telefone_usuario)) {
+                $this->evolution_api->enviarTexto($os->telefone_usuario, $mensagem);
+                log_info('Notificação WhatsApp (técnico) enviada. OS #' . $os->idOs);
+            }
         } catch (\Exception $e) {
             log_info('Falha na notificação automática por WhatsApp da OS #' . ($os->idOs ?? '?') . ': ' . $e->getMessage());
         }

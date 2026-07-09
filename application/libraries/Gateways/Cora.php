@@ -537,13 +537,22 @@ class Cora extends BasePaymentGateway
         if (empty($destinatarios)) {
             throw new \Exception('Cliente sem e-mail válido para envio da cobrança.');
         }
-        $this->ci->email_model->add('email_queue', [
+
+        $emailData = [
             'to' => implode(', ', $destinatarios),
             'message' => $html,
             'status' => 'pending',
             'date' => date('Y-m-d H:i:s'),
             'headers' => serialize($headers),
-        ]);
+        ];
+
+        // Anexos conforme o gatilho de cobrança (boleto e/ou nota fiscal).
+        $anexos = $this->anexosCobranca($cobranca);
+        if (! empty($anexos) && $this->ci->db->field_exists('attachments', 'email_queue')) {
+            $emailData['attachments'] = json_encode($anexos);
+        }
+
+        $this->ci->email_model->add('email_queue', $emailData);
     }
 
     /* ------------------------------------------------------------------ */
@@ -558,5 +567,73 @@ class Cora extends BasePaymentGateway
     protected function gerarCobrancaLink($id, $tipo)
     {
         throw new \Exception('A Cora não emite link de pagamento avulso; gere o boleto/PIX a partir da nota fiscal.');
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Anexos do e-mail de cobrança                                        */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Monta a lista de anexos do e-mail conforme o gatilho "cobranca_enviada"
+     * (default: boleto). Boleto vai como URL pública (baixada no envio); a nota
+     * fiscal é gerada em PDF a partir do XML autorizado.
+     */
+    private function anexosCobranca($cobranca)
+    {
+        $tipos = ['boleto'];
+        $this->ci->load->model('notification_triggers_model');
+        $trigger = $this->ci->notification_triggers_model->getByEvento('cobranca_enviada');
+        if ($trigger) {
+            $tipos = Notification_triggers_model::toList($trigger->anexos);
+        }
+
+        $anexos = [];
+
+        if (in_array('boleto', $tipos, true)) {
+            $url = ! empty($cobranca->pdf) ? $cobranca->pdf : (! empty($cobranca->link) ? $cobranca->link : '');
+            if ($url) {
+                $anexos[] = ['url' => $url, 'nome' => 'boleto.pdf'];
+            }
+        }
+
+        if (in_array('nota_fiscal', $tipos, true) && ! empty($cobranca->nota_id)) {
+            $pdfPath = $this->anexoNotaFiscalPdf($cobranca->nota_id);
+            if ($pdfPath) {
+                $anexos[] = ['path' => $pdfPath, 'nome' => 'nota-fiscal.pdf'];
+            }
+        }
+
+        return $anexos;
+    }
+
+    /**
+     * Gera o PDF da nota fiscal (DANFE) a partir do XML autorizado e devolve o
+     * caminho de um arquivo temporário, ou null se não for possível.
+     * NFS-e (serviço) fica para etapa futura — depende do PDF do provedor.
+     */
+    private function anexoNotaFiscalPdf($notaId)
+    {
+        try {
+            $this->ci->load->model('nfe_model');
+            $nota = $this->ci->nfe_model->getNotaById($notaId);
+            if (! $nota || empty($nota->xml_path) || ! file_exists($nota->xml_path)) {
+                return null;
+            }
+
+            if ($nota->tipo === 'nfe' && class_exists('\NFePHP\DA\NFe\Danfe')) {
+                $danfe = new \NFePHP\DA\NFe\Danfe(file_get_contents($nota->xml_path));
+                $pdf = $danfe->render();
+                $dest = tempnam(sys_get_temp_dir(), 'mapnf_');
+                if ($dest !== false && file_put_contents($dest, $pdf) !== false) {
+                    return $dest;
+                }
+            }
+
+            return null;
+        } catch (\Throwable $e) {
+            log_message('error', 'Falha ao gerar PDF da NF para anexo (nota ' . $notaId . '): ' . $e->getMessage());
+
+            return null;
+        }
     }
 }
