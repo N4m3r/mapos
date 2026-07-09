@@ -157,6 +157,18 @@
                             </div>
                         </div>
                         <div class="control-group">
+                            <label for="tp_ret_issqn" class="control-label">ISS na NFS-e</label>
+                            <div class="controls">
+                                <?php $issCliente = isset($result->tp_ret_issqn) ? (string) $result->tp_ret_issqn : ''; ?>
+                                <select id="tp_ret_issqn" name="tp_ret_issqn">
+                                    <option value="" <?php echo $issCliente === '' ? 'selected' : ''; ?>>— padrão (config fiscal) —</option>
+                                    <option value="1" <?php echo $issCliente === '1' ? 'selected' : ''; ?>>Não retido</option>
+                                    <option value="2" <?php echo $issCliente === '2' ? 'selected' : ''; ?>>Retido</option>
+                                </select>
+                                <span class="help-inline">Usado na emissão da nota de serviço deste cliente.</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
                             <label for="senha" class="control-label">Senha</label>
                             <div class="controls">
                                 <input id="senha" type="password" name="senha" value="" placeholder="Não preencha se não quiser alterar." />

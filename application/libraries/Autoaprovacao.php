@@ -150,7 +150,7 @@ class Autoaprovacao
                 'ctribnac' => (string) $this->cfg('automacao_ctribnac'),
                 'ctribmun' => (string) $this->cfg('automacao_ctribmun'),
                 'desc_servico' => $this->resolverTagsOs((string) $this->cfg('automacao_desc_servico'), $os),
-                'tp_ret_issqn' => (string) $this->cfg('automacao_tp_ret_issqn'),
+                'tp_ret_issqn' => $this->tpRetIssqn($os),
                 'aliquota_iss' => (string) $this->cfg('automacao_aliquota_iss'),
             ];
 
@@ -231,5 +231,19 @@ class Autoaprovacao
         $row = $this->CI->db->where('config', $chave)->limit(1)->get('configuracoes')->row();
 
         return $row ? $row->valor : '';
+    }
+
+    /**
+     * Retenção de ISS: prioriza a definição do cliente (clientes.tp_ret_issqn),
+     * caindo no padrão global da automação e, por fim, no padrão do config fiscal.
+     */
+    private function tpRetIssqn($os)
+    {
+        $cliente = isset($os->tp_ret_issqn) ? (string) $os->tp_ret_issqn : '';
+        if ($cliente === '1' || $cliente === '2') {
+            return $cliente;
+        }
+
+        return (string) $this->cfg('automacao_tp_ret_issqn');
     }
 }

@@ -65,7 +65,23 @@ PREPARE stmt2 FROM @ddl_os;
 EXECUTE stmt2;
 DEALLOCATE PREPARE stmt2;
 
--- 4) Permissão "cAutomacao": conceda pela tela Configurações > Permissões
+-- 4) Retenção de ISS por cliente (NFS-e): null=padrão | 1=não retido | 2=retido
+SET @col_iss := (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'clientes'
+      AND COLUMN_NAME = 'tp_ret_issqn'
+);
+SET @ddl_iss := IF(
+    @col_iss = 0,
+    'ALTER TABLE `clientes` ADD COLUMN `tp_ret_issqn` TINYINT(1) NULL DEFAULT NULL AFTER `automacao_aprovacao`',
+    'DO 0'
+);
+PREPARE stmt3 FROM @ddl_iss;
+EXECUTE stmt3;
+DEALLOCATE PREPARE stmt3;
+
+-- 5) Permissão "cAutomacao": conceda pela tela Configurações > Permissões
 --    (marque "Automação" nos grupos desejados). Para liberar automaticamente a
 --    todos os grupos que já são admin (têm "Sistema"), rode o bloco abaixo:
 -- UPDATE `permissoes`
