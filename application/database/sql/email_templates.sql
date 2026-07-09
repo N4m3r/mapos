@@ -7,10 +7,22 @@ SET NAMES utf8mb4;
 
 -- ------------------------------------------------------------
 -- 1) Coluna de e-mail secundário (financeiro) do cliente
---    Se der erro "Duplicate column", a coluna já existe: ignore.
+--    Adiciona apenas se ainda não existir (não gera erro se já existe).
 -- ------------------------------------------------------------
-ALTER TABLE `clientes`
-    ADD COLUMN `email_secundario` VARCHAR(255) NULL DEFAULT NULL AFTER `email`;
+SET @col_existe := (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'clientes'
+      AND COLUMN_NAME = 'email_secundario'
+);
+SET @ddl := IF(
+    @col_existe = 0,
+    'ALTER TABLE `clientes` ADD COLUMN `email_secundario` VARCHAR(255) NULL DEFAULT NULL AFTER `email`',
+    'DO 0'
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- ------------------------------------------------------------
 -- 2) Tabela de modelos de e-mail
