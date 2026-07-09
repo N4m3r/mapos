@@ -641,7 +641,7 @@ class Cora extends BasePaymentGateway
             'trigger' => 'paid',
         ];
 
-        $result = $this->request('POST', '/endpoints', $body, [
+        $result = $this->request('POST', '/endpoints/', $body, [
             'Idempotency-Key: ' . $this->idempotencyKey('webhook-' . $url),
         ]);
 
