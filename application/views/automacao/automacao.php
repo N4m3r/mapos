@@ -2,6 +2,17 @@
 $tokenName = $this->security->get_csrf_token_name();
 $tokenHash = $this->security->get_csrf_hash();
 ?>
+<style>
+    .automacao-form input,
+    .automacao-form textarea,
+    .automacao-form select {
+        color: #1e293b !important;
+    }
+    .automacao-form input::placeholder,
+    .automacao-form textarea::placeholder {
+        color: #94a3b8 !important;
+    }
+</style>
 <div class="widget-box">
     <div class="widget-title" style="margin: -20px 0 0">
         <span class="icon"><i class="fas fa-robot"></i></span>
@@ -15,7 +26,7 @@ $tokenHash = $this->security->get_csrf_hash();
             (checkbox na ficha do cliente).
         </div>
 
-        <form action="<?= site_url('automacao/salvar') ?>" method="post">
+        <form action="<?= site_url('automacao/salvar') ?>" method="post" class="automacao-form">
             <input type="hidden" name="<?= $tokenName ?>" value="<?= $tokenHash ?>">
 
             <div class="control-group">
