@@ -3,21 +3,28 @@ $tokenName = $this->security->get_csrf_token_name();
 $tokenHash = $this->security->get_csrf_hash();
 ?>
 <style>
-    /* Inputs/textarea têm fundo claro → letra preta. */
-    .automacao-form input,
+    /* Textareas ficam com fundo claro (o tema não os escurece) → letra preta. */
     .automacao-form textarea {
         color: #1e293b !important;
     }
-    .automacao-form input::placeholder,
     .automacao-form textarea::placeholder {
         color: #94a3b8 !important;
     }
-    /* O select tem fundo escuro (tema) → letra branca; opções em fundo claro → escuras. */
+    /* Inputs e select recebem fundo escuro do tema → letra branca. */
+    .automacao-form input,
     .automacao-form select {
         color: #ffffff !important;
     }
+    .automacao-form input::placeholder {
+        color: #b8c0d0 !important;
+    }
     .automacao-form select option {
         color: #1e293b;
+    }
+    /* Se o Chrome preencher automaticamente (fundo claro), mantém letra escura. */
+    .automacao-form input:-webkit-autofill {
+        -webkit-text-fill-color: #1e293b !important;
+        -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
     }
 </style>
 <div class="widget-box">
