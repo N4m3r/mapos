@@ -376,7 +376,7 @@ class Cora extends BasePaymentGateway
         $result = $this->request('GET', '/v2/invoices/' . $cobranca->charge_id);
         $status = $result['status'] ?? $cobranca->status;
 
-        $ok = $this->ci->cobrancas_model->edit('cobrancas', ['status' => $status], 'idCobranca', $id);
+        $ok = $this->aplicarStatus($cobranca, $status);
         if ($ok) {
             $this->ci->session->set_flashdata('success', 'Cobrança atualizada com sucesso!');
             log_info('Alterou um status de cobrança Cora. ID ' . $id);
@@ -386,6 +386,78 @@ class Cora extends BasePaymentGateway
         }
 
         return $status;
+    }
+
+    /**
+     * Grava o novo status e, se for pagamento (PAID), dá baixa automática no
+     * lançamento financeiro — uma única vez (não repete se já estava PAID).
+     */
+    private function aplicarStatus($cobranca, $status)
+    {
+        $jaEstavaPago = $cobranca->status === 'PAID';
+
+        $ok = $this->ci->cobrancas_model->edit('cobrancas', ['status' => $status], 'idCobranca', $cobranca->idCobranca);
+
+        if ($ok && $status === 'PAID' && ! $jaEstavaPago) {
+            try {
+                $baixados = $this->ci->cobrancas_model->darBaixaLancamento($cobranca);
+                log_info('Baixa automática Cora (cobrança ' . $cobranca->idCobranca . '): ' . $baixados . ' lançamento(s).');
+            } catch (\Throwable $e) {
+                log_info('Falha na baixa automática Cora (cobrança ' . $cobranca->idCobranca . '): ' . $e->getMessage());
+            }
+        }
+
+        return $ok;
+    }
+
+    /**
+     * Processa uma notificação de webhook da Cora. Não confia no corpo do POST:
+     * reconsulta a fatura na API para confirmar o status real e então aplica.
+     * Retorna o status final, ou null se a fatura não pertencer a este sistema.
+     */
+    public function processarWebhook($invoiceId)
+    {
+        if (empty($invoiceId)) {
+            return null;
+        }
+
+        $cobranca = $this->ci->cobrancas_model->getByChargeId($invoiceId);
+        if (! $cobranca) {
+            // Fatura desconhecida (não é nossa) — nada a fazer.
+            return null;
+        }
+
+        $result = $this->request('GET', '/v2/invoices/' . $invoiceId);
+        $status = $result['status'] ?? $cobranca->status;
+
+        $this->aplicarStatus($cobranca, $status);
+        log_info('Webhook Cora processado. Invoice ' . $invoiceId . ' -> ' . $status);
+
+        return $status;
+    }
+
+    /**
+     * Registra na Cora o endpoint de webhook para o evento invoice.paid.
+     * Salva o id do endpoint em configuracoes_cora. Retorna o id do endpoint.
+     */
+    public function registrarWebhook($url)
+    {
+        $body = [
+            'url' => $url,
+            'resource' => 'invoice',
+            'trigger' => 'paid',
+        ];
+
+        $result = $this->request('POST', '/endpoints', $body, [
+            'Idempotency-Key: ' . $this->idempotencyKey('webhook-' . $url),
+        ]);
+
+        $endpointId = $result['id'] ?? ($result['endpoint_id'] ?? '');
+        if ($endpointId && $this->ci->Cora_model->getConfig()) {
+            $this->ci->Cora_model->saveConfig(['webhook_endpoint_id' => $endpointId]);
+        }
+
+        return $endpointId;
     }
 
     public function confirmarPagamento($id)

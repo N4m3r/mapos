@@ -6,6 +6,8 @@ $clientId = $cfg->client_id ?? '';
 $expiracao = $cfg->boleto_expiration ?? 'P3D';
 $certPath = $cfg->certificado_path ?? '';
 $chavePath = $cfg->chave_path ?? '';
+$webhookId = $cfg->webhook_endpoint_id ?? '';
+$webhookUrl = site_url('webhook/cora');
 $pronto = $ativo && $clientId && $certPath && $chavePath;
 ?>
 <style>
@@ -125,6 +127,36 @@ $pronto = $ativo && $clientId && $certPath && $chavePath;
                         <span id="resultado-teste-cora" style="margin-left:10px"></span>
                     </div>
                 </form>
+
+                <hr>
+                <h5>Baixa automática (Webhook)</h5>
+                <div class="alert alert-info" style="font-size:12px">
+                    Registre o webhook para que a Cora avise este sistema assim que o boleto/PIX for pago —
+                    a cobrança é marcada como <strong>Paga</strong> e o lançamento financeiro recebe baixa automaticamente.
+                    O servidor precisa estar acessível pela internet (HTTPS) nesta URL.
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="webhook_url">URL do webhook</label>
+                    <div class="controls">
+                        <input type="text" id="webhook_url" value="<?= html_escape($webhookUrl) ?>" style="width:360px" readonly />
+                        <a href="#" class="btn btn-mini" id="btn-copiar-webhook"><i class="bx bx-copy"></i> Copiar</a>
+                        <span class="hint">
+                            <?php if (! empty($webhookId)) { ?>
+                                <span style="color:#4d9c79"><i class="bx bx-check-circle"></i> Webhook registrado (id: <?= html_escape($webhookId) ?>).</span>
+                            <?php } else { ?>
+                                Ainda não registrado na Cora.
+                            <?php } ?>
+                        </span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">&nbsp;</label>
+                    <div class="controls">
+                        <button type="button" id="btn-registrar-webhook" class="btn btn-warning"><i class="bx bx-link"></i> Registrar webhook na Cora</button>
+                        <span id="resultado-webhook-cora" style="margin-left:10px"></span>
+                        <span class="hint">Salve as credenciais antes de registrar. Registrar de novo apenas atualiza o cadastro.</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -146,6 +178,39 @@ $(document).on('click', '#btn-testar-cora', function () {
         },
         error: function (xhr) {
             var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Erro ao testar conexão.';
+            $res.html("<span style='color:#CD0000'><i class='bx bx-x-circle'></i> " + msg + "</span>");
+        },
+        complete: function () { $btn.prop('disabled', false); }
+    });
+});
+
+$(document).on('click', '#btn-copiar-webhook', function (e) {
+    e.preventDefault();
+    var url = $('#webhook_url').val();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url);
+    } else {
+        var el = document.getElementById('webhook_url');
+        el.select(); document.execCommand('copy');
+    }
+    $(this).html("<i class='bx bx-check'></i> Copiado");
+});
+
+$(document).on('click', '#btn-registrar-webhook', function () {
+    var $btn = $(this);
+    var $res = $('#resultado-webhook-cora');
+    $btn.prop('disabled', true);
+    $res.html("<span style='color:#888'><i class='bx bx-loader bx-spin'></i> Registrando...</span>");
+    $.ajax({
+        type: 'POST',
+        url: '<?= site_url('cobrancas/registrarWebhookCora') ?>',
+        dataType: 'json',
+        data: {},
+        success: function (data) {
+            $res.html("<span style='color:#4d9c79'><i class='bx bx-check-circle'></i> " + data.message + "</span>");
+        },
+        error: function (xhr) {
+            var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Erro ao registrar webhook.';
             $res.html("<span style='color:#CD0000'><i class='bx bx-x-circle'></i> " + msg + "</span>");
         },
         complete: function () { $btn.prop('disabled', false); }

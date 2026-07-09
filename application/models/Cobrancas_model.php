@@ -49,6 +49,56 @@ class Cobrancas_model extends CI_Model
     }
 
     /**
+     * Cobrança pelo id da fatura do gateway (charge_id), com dados do cliente.
+     * Usada pelo webhook para localizar a cobrança que foi paga.
+     */
+    public function getByChargeId($chargeId)
+    {
+        $this->db->select('cobrancas.*, clientes.*');
+        $this->db->from('cobrancas');
+        $this->db->where('cobrancas.charge_id', $chargeId);
+        $this->db->join('clientes', 'clientes.idClientes = cobrancas.clientes_id', 'left');
+        $this->db->limit(1);
+
+        return $this->db->get()->row();
+    }
+
+    /**
+     * Dá baixa no(s) lançamento(s) financeiro(s) da OS/venda de origem da
+     * cobrança (marca como recebido). Best-effort: se não achar lançamento,
+     * apenas não faz nada. Retorna a quantidade de lançamentos baixados.
+     */
+    public function darBaixaLancamento($cobranca)
+    {
+        if (! $cobranca) {
+            return 0;
+        }
+        if (! $this->db->table_exists('lancamentos')) {
+            return 0;
+        }
+
+        $update = [
+            'baixado' => 1,
+            'data_pagamento' => date('Y-m-d'),
+            'forma_pgto' => 'Boleto/PIX (Cora)',
+        ];
+
+        $this->db->where('baixado', 0);
+        if (! empty($cobranca->vendas_id)) {
+            // Venda: lançamento vinculado por vendas_id.
+            $this->db->where('vendas_id', $cobranca->vendas_id);
+        } elseif (! empty($cobranca->os_id)) {
+            // OS: lançamento de faturamento segue a convenção exata "Fatura de OS - #<id>".
+            $this->db->where('descricao', 'Fatura de OS - #' . $cobranca->os_id);
+        } else {
+            return 0;
+        }
+        $this->db->update('lancamentos');
+
+        return $this->db->affected_rows();
+    }
+
+    /**
      * Cobrança ativa (não cancelada) vinculada a uma nota fiscal.
      * Usada para bloquear boleto duplicado e exibir o boleto na OS.
      */

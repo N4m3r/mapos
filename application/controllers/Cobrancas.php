@@ -152,6 +152,40 @@ class Cobrancas extends MY_Controller
     }
 
     /**
+     * Registra na Cora o webhook (invoice.paid) apontando para este sistema,
+     * habilitando a baixa automática do pagamento. Retorna JSON.
+     */
+    public function registrarWebhookCora()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'cNfe')) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(403)
+                ->set_output(json_encode(['message' => 'Sem permissão.']));
+        }
+
+        try {
+            $url = site_url('webhook/cora');
+            $this->load->library('Gateways/Cora', null, 'PaymentGateway');
+            $endpointId = $this->PaymentGateway->registrarWebhook($url);
+
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(200)
+                ->set_output(json_encode([
+                    'message' => 'Webhook registrado na Cora com sucesso! Baixa automática ativada.',
+                    'endpoint_id' => $endpointId,
+                    'url' => $url,
+                ]));
+        } catch (\Exception $e) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(500)
+                ->set_output(json_encode(['message' => $e->getMessage()]));
+        }
+    }
+
+    /**
      * Testa a conexão/credenciais com a Cora (obtém um token). Retorna JSON.
      */
     public function testarCora()
