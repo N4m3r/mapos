@@ -399,19 +399,22 @@ class Cora extends BasePaymentGateway
             $issRetido = round(((float) $nota->valor_total) * ((float) $config->aliquota_iss) / 100, 2);
         }
         $valorBoleto = round(((float) $nota->valor_total) - $issRetido, 2);
-        if ($valorBoleto <= 0) {
-            throw new \Exception('Valor do boleto inválido (menor ou igual a zero após retenção de ISS).');
+        // A Cora exige valor mínimo de R$ 5,00 por boleto.
+        if ($valorBoleto < 5) {
+            throw new \Exception('Valor do boleto abaixo do mínimo da Cora (R$ 5,00)' . ($issRetido > 0 ? ' após abater o ISS retido' : '') . '.');
         }
 
         $tipoLabel = $nota->tipo === 'nfe' ? 'NF-e' : 'NFS-e';
         $descricao = $tipoLabel . ' nº ' . $nota->numero . ($tipoOrigem === PaymentGateway::PAYMENT_TYPE_OS ? " - OS #$origemId" : " - Venda #$origemId");
+        $descricaoServico = $descricao . ($issRetido > 0 ? ' (líquido de ISS retido R$ ' . number_format($issRetido, 2, ',', '.') . ')' : '');
 
         $documento = preg_replace('/[^0-9]/', '', $entity->documento);
         $body = [
             'code' => 'NOTA-' . $idNota,
             'customer' => [
-                'name' => $entity->nomeCliente,
-                'email' => $entity->email,
+                // A Cora limita name/description; truncamos para não rejeitar.
+                'name' => mb_substr((string) $entity->nomeCliente, 0, 60),
+                'email' => mb_substr((string) $entity->email, 0, 60),
                 'document' => [
                     'identity' => $documento,
                     'type' => strlen($documento) > 11 ? 'CNPJ' : 'CPF',
@@ -428,19 +431,21 @@ class Cora extends BasePaymentGateway
             ],
             'services' => [
                 [
-                    'name' => $descricao,
-                    'description' => $descricao . ($issRetido > 0 ? ' (líquido de ISS retido R$ ' . number_format($issRetido, 2, ',', '.') . ')' : ''),
+                    'name' => mb_substr($descricao, 0, 60),
+                    'description' => mb_substr($descricaoServico, 0, 100),
                     'amount' => getMoneyAsCents($valorBoleto),
                 ],
             ],
             'payment_terms' => [
                 'due_date' => (new DateTime())->add(new DateInterval($this->coraConfig['boleto_expiration']))->format('Y-m-d'),
+                // interest.rate é obrigatório na v2; 0 = sem juros.
+                'interest' => ['rate' => 0],
             ],
             'payment_forms' => ['BANK_SLIP', 'PIX'],
         ];
 
         // Idempotency-Key estável por nota evita boletos duplicados em reenvio.
-        $result = $this->request('POST', '/v2/invoices', $body, [
+        $result = $this->request('POST', '/v2/invoices/', $body, [
             'Idempotency-Key: ' . $this->idempotencyKey('nota-' . $idNota),
         ]);
 
