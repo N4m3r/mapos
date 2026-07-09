@@ -263,6 +263,8 @@
                         </div>
                     </div>
                 <?php endif; ?>
+
+                <?php $this->load->view('os/_aprovacao_info', ['result' => $result]); ?>
             </section>
             <footer>
                 <div class="detalhes">
@@ -571,6 +573,8 @@
                             </div>
                         </div>
                     <?php endif; ?>
+
+                    <?php $this->load->view('os/_aprovacao_info', ['result' => $result]); ?>
                 </section>
                 <footer>
                     <div class="detalhes">

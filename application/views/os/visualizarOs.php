@@ -711,6 +711,8 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                             } ?>
                         </table>
                         <?php } ?>
+
+                        <?php $this->load->view('os/_aprovacao_info', ['result' => $result]); ?>
                     </div>
                 </div>
             </div>

@@ -279,6 +279,7 @@ $totalProdutos = 0; ?>
                             <?php endif ?>
                         <?php } ?>
                     </table>
+                    <?php $this->load->view('os/_aprovacao_info', ['result' => $result]); ?>
                     <table class="table table-bordered table-condensed" style="font-size: 15px">
                         <tbody>
                             <tr>
@@ -509,6 +510,7 @@ $totalProdutos = 0; ?>
                                 <?php endif ?>
                             <?php } ?>
                         </table>
+                        <?php $this->load->view('os/_aprovacao_info', ['result' => $result]); ?>
                         <table class="table table-bordered table-condensed" style="font-size: 15px">
                             <tbody>
                                 <tr>
