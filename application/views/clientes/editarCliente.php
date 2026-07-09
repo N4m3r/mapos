@@ -142,6 +142,12 @@
                             </div>
                         </div>
                         <div class="control-group">
+                            <label for="email_secundario" class="control-label">Email secundário (cobrança/financeiro)</label>
+                            <div class="controls">
+                                <input id="email_secundario" type="text" name="email_secundario" value="<?php echo isset($result->email_secundario) ? $result->email_secundario : ''; ?>" placeholder="Recebe cópia de cobranças e boletos da NF" />
+                            </div>
+                        </div>
+                        <div class="control-group">
                             <label for="senha" class="control-label">Senha</label>
                             <div class="controls">
                                 <input id="senha" type="password" name="senha" value="" placeholder="Não preencha se não quiser alterar." />

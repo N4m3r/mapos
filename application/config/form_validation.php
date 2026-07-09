@@ -28,6 +28,11 @@ $config = [
             'rules' => 'trim|valid_email',
         ],
         [
+            'field' => 'email_secundario',
+            'label' => 'Email secundário',
+            'rules' => 'trim|valid_email',
+        ],
+        [
             'field' => 'rua',
             'label' => 'Rua',
             'rules' => 'trim',

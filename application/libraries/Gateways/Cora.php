@@ -519,8 +519,12 @@ class Cora extends BasePaymentGateway
             'Subject' => $assunto,
             'Return-Path' => '',
         ];
+        $destinatarios = emails_cobranca($cobranca);
+        if (empty($destinatarios)) {
+            throw new \Exception('Cliente sem e-mail válido para envio da cobrança.');
+        }
         $this->ci->email_model->add('email_queue', [
-            'to' => $cobranca->email,
+            'to' => implode(', ', $destinatarios),
             'message' => $html,
             'status' => 'pending',
             'date' => date('Y-m-d H:i:s'),

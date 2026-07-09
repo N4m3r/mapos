@@ -141,6 +141,12 @@
                             </div>
                         </div>
                         <div class="control-group">
+                            <label for="email_secundario" class="control-label">Email secundário (cobrança/financeiro)</label>
+                            <div class="controls">
+                                <input id="email_secundario" type="text" name="email_secundario" value="<?php echo set_value('email_secundario'); ?>" autocomplete="off" placeholder="Recebe cópia de cobranças e boletos da NF" />
+                            </div>
+                        </div>
+                        <div class="control-group">
                             <label for="senha" class="control-label">Senha</label>
                             <div class="controls">
                                 <input class="form-control" id="senha" type="password" name="senha" autocomplete="new-password" value="<?php echo set_value('senha'); ?>" />

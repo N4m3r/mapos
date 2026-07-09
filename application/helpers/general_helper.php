@@ -2,6 +2,32 @@
 
 use Piggly\Pix\Parser;
 
+if (! function_exists('emails_cobranca')) {
+    /**
+     * Destinatários de e-mail de cobrança/boleto de uma cobrança.
+     *
+     * Retorna o e-mail principal do cliente somado ao e-mail secundário
+     * (financeiro), quando cadastrado, sem duplicar e apenas os válidos.
+     *
+     * @param object $cobranca Registro de cobrança já com os dados do cliente
+     *                         (campos `email` e `email_secundario`), como o
+     *                         retornado por Cobrancas_model::getById().
+     * @return array Lista de e-mails válidos e únicos.
+     */
+    function emails_cobranca($cobranca)
+    {
+        $destinatarios = [];
+        foreach (['email', 'email_secundario'] as $campo) {
+            $valor = isset($cobranca->$campo) ? trim((string) $cobranca->$campo) : '';
+            if ($valor !== '' && filter_var($valor, FILTER_VALIDATE_EMAIL)) {
+                $destinatarios[] = $valor;
+            }
+        }
+
+        return array_values(array_unique($destinatarios));
+    }
+}
+
 if (! function_exists('convertUrlToUploadsPath')) {
     function convertUrlToUploadsPath($url)
     {
