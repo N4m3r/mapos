@@ -172,21 +172,26 @@ class Emailtemplate
 
         // Ordem de serviço.
         if ($os) {
+            // Blocos marcados no gatilho (null = sem restrição = mostra tudo).
+            $blocos = isset($context['blocos']) && is_array($context['blocos']) ? $context['blocos'] : null;
+
             $tags['os_numero'] = $this->prop($os, 'idOs');
             $tags['os_status'] = $this->prop($os, 'status');
             $tags['os_data_inicial'] = $this->formatDate($this->prop($os, 'dataInicial'));
             $tags['os_data_final'] = $this->formatDate($this->prop($os, 'dataFinal'));
             $tags['os_garantia'] = $this->prop($os, 'garantia') ?: '—';
 
-            $produtos = $context['produtos'] ?? [];
-            $servicos = $context['servicos'] ?? [];
+            $produtos = $this->blocoAtivo('produtos', $blocos) ? ($context['produtos'] ?? []) : [];
+            $servicos = $this->blocoAtivo('servicos', $blocos) ? ($context['servicos'] ?? []) : [];
             list($itensHtml, $total) = $this->osItens($produtos, $servicos);
             $tags['os_itens_html'] = $itensHtml;
 
             $valorDesconto = (float) $this->prop($os, 'valor_desconto');
             $temDesconto = $this->prop($os, 'desconto') && $valorDesconto != 0;
-            $tags['os_valor_total'] = 'R$ ' . number_format($temDesconto ? $valorDesconto : $total, 2, ',', '.');
-            $tags['os_detalhes_html'] = $this->osDetalhes($os);
+            $tags['os_valor_total'] = $this->blocoAtivo('valores', $blocos)
+                ? 'R$ ' . number_format($temDesconto ? $valorDesconto : $total, 2, ',', '.')
+                : '';
+            $tags['os_detalhes_html'] = $this->osDetalhes($os, $blocos);
         }
 
         // Cobrança / boleto.
@@ -217,23 +222,42 @@ class Emailtemplate
     /* Blocos HTML gerados                                                 */
     /* ------------------------------------------------------------------ */
 
-    protected function osDetalhes($os)
+    protected function osDetalhes($os, $blocos = null)
     {
+        // Cada seção é controlada por um bloco do gatilho (a descrição segue
+        // junto com o bloco "dados").
         $secoes = [
-            'Descrição' => $this->prop($os, 'descricaoProduto'),
-            'Defeito Apresentado' => $this->prop($os, 'defeito'),
-            'Observações' => $this->prop($os, 'observacoes'),
-            'Laudo Técnico' => $this->prop($os, 'laudoTecnico'),
+            'dados' => ['Descrição', $this->prop($os, 'descricaoProduto')],
+            'defeito' => ['Defeito Apresentado', $this->prop($os, 'defeito')],
+            'observacoes' => ['Observações', $this->prop($os, 'observacoes')],
+            'laudo' => ['Laudo Técnico', $this->prop($os, 'laudoTecnico')],
         ];
 
         $html = '';
-        foreach ($secoes as $titulo => $conteudo) {
+        foreach ($secoes as $bloco => $secao) {
+            list($titulo, $conteudo) = $secao;
+            if (! $this->blocoAtivo($bloco, $blocos)) {
+                continue;
+            }
             if ($conteudo !== null && trim((string) $conteudo) !== '') {
                 $html .= '<h2>' . $titulo . '</h2><p>' . htmlspecialchars_decode((string) $conteudo) . '</p>';
             }
         }
 
         return $html;
+    }
+
+    /**
+     * Um bloco está ativo quando não há restrição ($blocos null) ou quando ele
+     * consta na lista de blocos marcados no gatilho.
+     */
+    protected function blocoAtivo($nome, $blocos)
+    {
+        if ($blocos === null) {
+            return true;
+        }
+
+        return in_array($nome, $blocos, true);
     }
 
     protected function osItens($produtos, $servicos)

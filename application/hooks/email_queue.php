@@ -16,15 +16,33 @@ if (! defined('BASEPATH')) {
  */
 function dispatch_email_queue()
 {
-    // Intervalo mínimo entre disparos automáticos (segundos).
-    $intervalo = 120;
-
     // Em CLI o envio continua sendo feito por "php index.php email/process".
     if (is_cli()) {
         return;
     }
 
     $lockFile = APPPATH . 'cache/email_queue.lock';
+
+    // Curto-circuito barato: se disparou há menos que o piso (30s), nem consulta
+    // o banco para descobrir o intervalo configurado.
+    if (is_file($lockFile) && (time() - filemtime($lockFile)) < 30) {
+        return;
+    }
+
+    // Intervalo configurável em Configurações > Notificações (piso de 30s).
+    $intervalo = 120;
+    try {
+        $CI = &get_instance();
+        if (! isset($CI->db)) {
+            $CI->load->database();
+        }
+        $row = $CI->db->where('config', 'notif_intervalo_disparo')->limit(1)->get('configuracoes')->row();
+        if ($row && (int) $row->valor >= 30) {
+            $intervalo = (int) $row->valor;
+        }
+    } catch (\Throwable $e) {
+        $intervalo = 120;
+    }
 
     // Se o último disparo foi há menos que o intervalo, não faz nada.
     if (is_file($lockFile) && (time() - filemtime($lockFile)) < $intervalo) {

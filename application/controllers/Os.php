@@ -169,7 +169,7 @@ class Os extends MY_Controller
                             array_push($remetentes, $os->email);
                             break;
                     }
-                    $this->enviarOsPorEmail($idOs, $remetentes, 'Ordem de Serviço - Criada');
+                    $this->enviarOsPorEmail($idOs, $remetentes, 'Ordem de Serviço - Criada', 'os_aberta');
                 }
 
                 // Notificação automática por WhatsApp quando o status inicial
@@ -286,7 +286,7 @@ class Os extends MY_Controller
                             array_push($remetentes, $os->email);
                             break;
                     }
-                    $this->enviarOsPorEmail($idOs, $remetentes, 'Ordem de Serviço - Editada');
+                    $this->enviarOsPorEmail($idOs, $remetentes, 'Ordem de Serviço - Editada', 'os_editada');
                 }
 
                 // Notificação automática por WhatsApp (Evolution API) quando o
@@ -1389,7 +1389,7 @@ class Os extends MY_Controller
         echo json_encode($json);
     }
 
-    private function enviarOsPorEmail($idOs, $remetentes, $assunto)
+    private function enviarOsPorEmail($idOs, $remetentes, $assunto, $evento = null)
     {
         $dados = [];
 
@@ -1407,16 +1407,36 @@ class Os extends MY_Controller
             return false;
         }
 
+        // Gatilho de notificação (se informado): controla ativo, canal de e-mail,
+        // destinatários, blocos e modelo. Sem gatilho, mantém o comportamento anterior.
+        $blocos = null;
+        $slug = 'os';
+        if ($evento) {
+            $this->load->model('notification_triggers_model');
+            $trigger = $this->notification_triggers_model->getByEvento($evento);
+            if ($trigger) {
+                $canais = Notification_triggers_model::toList($trigger->canais);
+                if ((int) $trigger->ativo !== 1 || ! in_array('email', $canais, true)) {
+                    return false; // gatilho desativado ou sem canal de e-mail
+                }
+                $slug = $trigger->template_slug ?: 'os';
+                $blocosList = Notification_triggers_model::toList($trigger->blocos);
+                $blocos = empty($blocosList) ? null : $blocosList;
+                $remetentes = $this->destinatariosOs($trigger, $dados['result'], $emitente);
+            }
+        }
+
         $html = $this->load->view('os/emails/os', $dados, true);
 
         // Modelo configurável de e-mail (fallback para a view padrão acima).
         $this->load->library('emailtemplate');
-        $render = $this->emailtemplate->render('os', [
+        $render = $this->emailtemplate->render($slug, [
             'emitente' => $emitente,
             'os' => $dados['result'],
             'cliente' => $dados['result'],
             'produtos' => $dados['produtos'],
             'servicos' => $dados['servicos'],
+            'blocos' => $blocos,
         ]);
         if ($render !== null && ! $render['ativo']) {
             // Envio de e-mail de OS desativado em Configurações > Modelos de E-mail.
@@ -1447,6 +1467,35 @@ class Os extends MY_Controller
         }
 
         return true;
+    }
+
+    /**
+     * Monta os e-mails de destino de uma OS conforme os destinatários marcados
+     * no gatilho (cliente, e-mail secundário, técnico, emitente).
+     */
+    private function destinatariosOs($trigger, $os, $emitente)
+    {
+        $dest = Notification_triggers_model::toList($trigger->destinatarios);
+        $emails = [];
+
+        if (in_array('cliente', $dest, true) && ! empty($os->email)) {
+            $emails[] = $os->email;
+        }
+        if (in_array('cliente_secundario', $dest, true) && ! empty($os->email_secundario)) {
+            $emails[] = $os->email_secundario;
+        }
+        if (in_array('emitente', $dest, true) && ! empty($emitente->email)) {
+            $emails[] = $emitente->email;
+        }
+        if (in_array('tecnico', $dest, true) && ! empty($os->usuarios_id)) {
+            $this->load->model('usuarios_model');
+            $tecnico = $this->usuarios_model->getById($os->usuarios_id);
+            if ($tecnico && ! empty($tecnico->email)) {
+                $emails[] = $tecnico->email;
+            }
+        }
+
+        return $emails;
     }
 
     public function adicionarAnotacao()
