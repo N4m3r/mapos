@@ -48,3 +48,26 @@ WHERE NOT EXISTS (SELECT 1 FROM `configuracoes` WHERE `config` = 'automacao_aliq
 INSERT INTO `configuracoes` (`config`, `valor`)
 SELECT 'automacao_tp_ret_issqn', ''
 WHERE NOT EXISTS (SELECT 1 FROM `configuracoes` WHERE `config` = 'automacao_tp_ret_issqn');
+
+-- 3) Override por OS (null=herda do cliente | 1=ativa | 0=desativa nesta OS)
+SET @col_os := (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'os'
+      AND COLUMN_NAME = 'automacao_override'
+);
+SET @ddl_os := IF(
+    @col_os = 0,
+    'ALTER TABLE `os` ADD COLUMN `automacao_override` TINYINT(1) NULL DEFAULT NULL',
+    'DO 0'
+);
+PREPARE stmt2 FROM @ddl_os;
+EXECUTE stmt2;
+DEALLOCATE PREPARE stmt2;
+
+-- 4) Permissão "cAutomacao": conceda pela tela Configurações > Permissões
+--    (marque "Automação" nos grupos desejados). Para liberar automaticamente a
+--    todos os grupos que já são admin (têm "Sistema"), rode o bloco abaixo:
+-- UPDATE `permissoes`
+--   SET `permissoes` = ...  -- (dados serializados; prefira a tela de Permissões)
+

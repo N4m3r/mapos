@@ -129,6 +129,47 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                     <?php } ?>
 
                     <?php
+                    // Liga/desliga a automação (NFS-e + boleto) na aprovação, só desta OS.
+                    $automacaoSuportada = $this->db->field_exists('automacao_override', 'os');
+                    $automacaoGlobalAtiva = (($this->data['configuration']['automacao_aprovacao_ativa'] ?? '0') === '1');
+                    if ($automacaoSuportada && $this->permission->checkPermission($this->session->userdata('permissao'), 'cAutomacao')) {
+                        $override = $result->automacao_override; // null | 0 | 1
+                        if ($override !== null && $override !== '') {
+                            $automacaoNestaOs = ((int) $override === 1);
+                        } else {
+                            $automacaoNestaOs = ! empty($result->automacao_aprovacao); // herda do cliente
+                        }
+                        ?>
+                        <a title="<?= $automacaoGlobalAtiva ? 'Ativar/desativar a automação de aprovação só nesta OS' : 'Automação global desligada (Configurações > Automação)' ?>"
+                           href="#" id="btnToggleAutomacao" data-idos="<?= $result->idOs ?>" data-valor="<?= $automacaoNestaOs ? 0 : 1 ?>"
+                           class="button btn btn-mini <?= $automacaoNestaOs ? 'btn-success' : 'btn-inverse' ?>">
+                            <span class="button__icon"><i class="bx bx-slider"></i></span>
+                            <span class="button__text">Automação: <?= $automacaoNestaOs ? 'ON' : 'OFF' ?></span>
+                        </a>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function () {
+                                var btn = document.getElementById('btnToggleAutomacao');
+                                if (!btn) return;
+                                btn.addEventListener('click', function (e) {
+                                    e.preventDefault();
+                                    var body = new URLSearchParams();
+                                    body.append('idOs', btn.getAttribute('data-idos'));
+                                    body.append('valor', btn.getAttribute('data-valor'));
+                                    body.append('<?= $this->security->get_csrf_token_name() ?>', '<?= $this->security->get_csrf_hash() ?>');
+                                    fetch('<?= site_url('os/toggleAutomacao') ?>', {
+                                        method: 'POST',
+                                        headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
+                                        body: body.toString()
+                                    }).then(function (r) { return r.json(); }).then(function (j) {
+                                        if (j && j.success) { location.reload(); }
+                                        else { alert(j && j.message ? j.message : 'Falha ao alterar a automação.'); }
+                                    }).catch(function () { alert('Falha ao alterar a automação.'); });
+                                });
+                            });
+                        </script>
+                    <?php } ?>
+
+                    <?php
                     // Link público de ACEITE do serviço realizado (pós-execução, com assinatura).
                     // Só aparece com a migration aplicada (coluna aceite_token) e OS concluída.
                     $aceiteSuportado = $this->db->field_exists('aceite_token', 'os');

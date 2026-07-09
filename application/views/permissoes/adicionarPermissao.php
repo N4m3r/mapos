@@ -650,6 +650,12 @@
                                                     <span class="lbl"> Sistema</span>
                                                 </label>
                                             </td>
+                                            <td>
+                                                <label>
+                                                    <input name="cAutomacao" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Automação (aprovação → NFS-e/boleto)</span>
+                                                </label>
+                                            </td>
                                         </tr>
                                         </tbody>
                                     </table>

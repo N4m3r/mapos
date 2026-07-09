@@ -50,9 +50,16 @@ class Autoaprovacao
             if (isset($os->aprovacao_status) && $os->aprovacao_status !== 'aprovado') {
                 return null;
             }
-            // Cliente precisa estar habilitado para a automação.
-            if (empty($os->automacao_aprovacao)) {
-                return null;
+            // Elegibilidade: override da OS tem prioridade sobre a flag do cliente.
+            //   os.automacao_override: null = herda do cliente | 1 = força ativo | 0 = desativa nesta OS
+            //   clientes.automacao_aprovacao: flag do cliente
+            $override = isset($os->automacao_override) ? $os->automacao_override : null;
+            if ($override !== null && $override !== '') {
+                if ((int) $override !== 1) {
+                    return null; // desativado explicitamente nesta OS
+                }
+            } elseif (empty($os->automacao_aprovacao)) {
+                return null; // cliente não habilitado e sem override
             }
 
             // Já existe NFS-e ativa? Não emite outra; se autorizada, segue para o boleto.

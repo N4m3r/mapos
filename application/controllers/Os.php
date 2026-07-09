@@ -1498,6 +1498,31 @@ class Os extends MY_Controller
         return $emails;
     }
 
+    /**
+     * Liga/desliga a automação de aprovação (NFS-e + boleto) apenas para esta OS.
+     * POST: idOs, valor (0 = desativar nesta OS, 1 = ativar nesta OS). Retorna JSON.
+     */
+    public function toggleAutomacao()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'cAutomacao')) {
+            return $this->output->set_content_type('application/json')->set_status_header(403)
+                ->set_output(json_encode(['success' => false, 'message' => 'Sem permissão para alterar a automação.']));
+        }
+
+        $idOs = $this->input->post('idOs');
+        $valor = (string) $this->input->post('valor');
+        if (! $idOs || ! is_numeric($idOs) || ! in_array($valor, ['0', '1'], true)) {
+            return $this->output->set_content_type('application/json')->set_status_header(400)
+                ->set_output(json_encode(['success' => false, 'message' => 'Parâmetros inválidos.']));
+        }
+
+        $this->os_model->edit('os', ['automacao_override' => (int) $valor], 'idOs', $idOs);
+        log_info('Alterou a automação da OS #' . $idOs . ' para ' . ($valor === '1' ? 'ativa' : 'desativada'));
+
+        return $this->output->set_content_type('application/json')
+            ->set_output(json_encode(['success' => true, 'valor' => (int) $valor]));
+    }
+
     public function adicionarAnotacao()
     {
         $this->load->library('form_validation');

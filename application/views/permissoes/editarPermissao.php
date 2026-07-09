@@ -986,7 +986,12 @@
                                             <span class="lbl"> Sistema</span>
                                         </label>
                                     </td>
-                                    <td></td>
+                                    <td>
+                                        <label>
+                                            <input <?php echo (isset($permissoes['cAutomacao']) && $permissoes['cAutomacao'] == 1) ? 'checked' : ''; ?> name="cAutomacao" class="marcar" type="checkbox" value="1" />
+                                            <span class="lbl"> Automação (aprovação → NFS-e/boleto)</span>
+                                        </label>
+                                    </td>
                                 </tr>
                             </table>
                         </div>
