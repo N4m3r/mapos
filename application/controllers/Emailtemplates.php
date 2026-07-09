@@ -79,7 +79,7 @@ class Emailtemplates extends MY_Controller
         redirect(site_url('emailtemplates/editar/' . $id));
     }
 
-    public function layout()
+    public function editarLayout()
     {
         $this->data['menuConfiguracoes'] = 'Email';
         $this->data['layout'] = $this->emailtemplate->getLayout();
@@ -105,7 +105,7 @@ class Emailtemplates extends MY_Controller
         } else {
             $this->session->set_flashdata('error', 'Ocorreu um erro ao salvar o layout.');
         }
-        redirect(site_url('emailtemplates/layout'));
+        redirect(site_url('emailtemplates/editarLayout'));
     }
 
     /**

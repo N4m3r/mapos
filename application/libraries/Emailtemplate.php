@@ -180,7 +180,7 @@ class Emailtemplate
 
             $produtos = $context['produtos'] ?? [];
             $servicos = $context['servicos'] ?? [];
-            [$itensHtml, $total] = $this->osItens($produtos, $servicos);
+            list($itensHtml, $total) = $this->osItens($produtos, $servicos);
             $tags['os_itens_html'] = $itensHtml;
 
             $valorDesconto = (float) $this->prop($os, 'valor_desconto');

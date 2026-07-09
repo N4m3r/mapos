@@ -58,7 +58,7 @@
             O layout global define o cabeçalho, o rodapé e o CSS aplicados a <strong>todos</strong>
             os e-mails, deixando o envio com a identidade visual da empresa.
         </p>
-        <a href="<?= site_url('emailtemplates/layout') ?>" class="button btn btn-primary">
+        <a href="<?= site_url('emailtemplates/editarLayout') ?>" class="button btn btn-primary">
             <span class="button__icon"><i class="bx bx-palette"></i></span>
             <span class="button__text2">Editar layout e CSS</span>
         </a>
