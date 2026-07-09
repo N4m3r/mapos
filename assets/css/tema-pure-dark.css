@@ -5,7 +5,12 @@
 input[type="search"],
 select,
 input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+textarea,
 .row-fluid input[class*="span"],
+.row-fluid textarea[class*="span"],
 input[type="number"],
 select[class*="span"],
 .row-fluid select[class*="span"] {
