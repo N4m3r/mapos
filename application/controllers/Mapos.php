@@ -89,7 +89,25 @@ class Mapos extends MY_Controller {
         }
 
         $this->load->dbutil();
+
+        // Monta a lista apenas com tabelas que realmente podem ser lidas. Sem
+        // isso, se um SELECT * falhar (tabela ilegível/view quebrada), o
+        // utilitário de backup do CI chama num_rows() em `false` e dá erro fatal.
+        $dbDebugOriginal = $this->db->db_debug;
+        $this->db->db_debug = false;
+        $tabelas = [];
+        foreach ($this->db->list_tables() as $tabela) {
+            $teste = $this->db->query('SELECT 1 FROM ' . $this->db->protect_identifiers($tabela) . ' LIMIT 1');
+            if ($teste !== false) {
+                $tabelas[] = $tabela;
+            } else {
+                log_message('error', 'Backup: ignorando tabela ilegível: ' . $tabela);
+            }
+        }
+        $this->db->db_debug = $dbDebugOriginal;
+
         $prefs = [
+            'tables' => $tabelas,
             'format' => 'zip',
             'foreign_key_checks' => false,
             'filename' => 'backup' . date('d-m-Y') . '.sql',
