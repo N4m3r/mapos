@@ -128,9 +128,11 @@ $pronto = $ativo && $clientId && $certPath && $chavePath;
                     <div class="form-actions">
                         <button type="submit" class="btn btn-success"><i class="bx bx-save"></i> Salvar Configurações</button>
                         <button type="button" id="btn-testar-cora" class="btn btn-info"><i class="bx bx-plug"></i> Testar Conexão</button>
+                        <button type="button" id="btn-diagnostico-cora" class="btn"><i class="bx bx-search-alt"></i> Diagnóstico</button>
                         <span id="resultado-teste-cora" style="margin-left:10px"></span>
                     </div>
                 </form>
+                <pre id="diagnostico-cora" style="display:none;margin-top:10px;max-height:340px;overflow:auto;background:#1e1e1e;color:#dcdcdc;padding:10px;border-radius:4px;font-size:12px"></pre>
 
                 <hr>
                 <h5>Baixa automática (Webhook)</h5>
@@ -199,6 +201,26 @@ function coraErroMsg(xhr, acao) {
     if (txt.length > 200) { txt = txt.substring(0, 200) + '…'; }
     return 'Erro ao ' + acao + ' (HTTP ' + xhr.status + ').' + (txt ? ' ' + txt : '');
 }
+
+$(document).on('click', '#btn-diagnostico-cora', function () {
+    var $btn = $(this);
+    var $out = $('#diagnostico-cora');
+    $btn.prop('disabled', true);
+    $out.show().text('Coletando diagnóstico...');
+    $.ajax({
+        type: 'POST',
+        url: '<?= site_url('cobrancas/diagnosticarCora') ?>',
+        dataType: 'json',
+        data: {},
+        success: function (data) {
+            $out.text(JSON.stringify(data, null, 2));
+        },
+        error: function (xhr) {
+            $out.text(coraErroMsg(xhr, 'gerar diagnóstico'));
+        },
+        complete: function () { $btn.prop('disabled', false); }
+    });
+});
 
 $(document).on('click', '#btn-copiar-webhook', function (e) {
     e.preventDefault();

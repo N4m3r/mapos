@@ -194,6 +194,34 @@ class Cobrancas extends MY_Controller
     }
 
     /**
+     * Diagnóstico: mostra o que o sistema envia à Cora e a resposta crua dela.
+     */
+    public function diagnosticarCora()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'cNfe')) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(403)
+                ->set_output(json_encode(['message' => 'Sem permissão.']));
+        }
+
+        try {
+            $this->load->library('Gateways/Cora', null, 'PaymentGateway');
+            $info = $this->PaymentGateway->diagnostico();
+
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(200)
+                ->set_output(json_encode($info, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        } catch (\Exception $e) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(500)
+                ->set_output(json_encode(['message' => $e->getMessage()]));
+        }
+    }
+
+    /**
      * Testa a conexão/credenciais com a Cora (obtém um token). Retorna JSON.
      */
     public function testarCora()

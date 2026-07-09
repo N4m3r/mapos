@@ -460,6 +460,7 @@ $config['csrf_exclude_uris'] = [
     // Endpoints AJAX (JSON) do Cora — protegidos por login + permissão.
     // Isentos de CSRF para evitar 403 quando o cookie CSRF é httpOnly.
     'cobrancas/testarCora',
+    'cobrancas/diagnosticarCora',
     'cobrancas/registrarWebhookCora',
     'cobrancas/gerarPorNota',
     'cobrancas/verificarPagamento',

@@ -93,6 +93,75 @@ class Cora extends BasePaymentGateway
         return true;
     }
 
+    /**
+     * Coleta tudo que o sistema envia para a Cora e a resposta crua dela,
+     * sem lançar exceção. Serve para o usuário validar (na tela) se as
+     * credenciais estão sendo enviadas corretamente.
+     */
+    public function diagnostico()
+    {
+        $clientId = $this->coraConfig['credentials']['client_id'] ?? '';
+        $cert = $this->coraConfig['credentials']['certificate_path'] ?? '';
+        $key = $this->coraConfig['credentials']['private_key_path'] ?? '';
+
+        $info = [
+            'ambiente' => $this->coraConfig['production'] === true ? 'Produção' : 'Stage (homologação)',
+            'token_url' => $this->tokenUrl,
+            'client_id_enviado' => $clientId,
+            'client_id_tamanho' => strlen($clientId),
+            'certificado_path' => $cert,
+            'chave_path' => $key,
+            'certificado_existe' => is_file($cert),
+            'chave_existe' => is_file($key),
+        ];
+
+        if (is_file($cert) && function_exists('openssl_x509_parse')) {
+            $parsed = @openssl_x509_parse((string) file_get_contents($cert));
+            if (is_array($parsed)) {
+                $info['certificado_subject'] = isset($parsed['subject']) ? json_encode($parsed['subject'], JSON_UNESCAPED_UNICODE) : '';
+                $info['certificado_issuer'] = isset($parsed['issuer']) ? json_encode($parsed['issuer'], JSON_UNESCAPED_UNICODE) : '';
+                $info['certificado_valido_ate'] = isset($parsed['validTo_time_t']) ? date('d/m/Y', $parsed['validTo_time_t']) : '';
+            }
+        }
+
+        if (is_file($cert) && is_file($key) && function_exists('openssl_x509_check_private_key')) {
+            $c = @openssl_x509_read((string) file_get_contents($cert));
+            $k = @openssl_pkey_get_private((string) file_get_contents($key));
+            $info['par_certificado_chave_confere'] = ($c && $k && @openssl_x509_check_private_key($c, $k)) ? 'SIM' : 'NÃO';
+        }
+
+        // Chamada real ao /token (sem cache), capturando tudo.
+        if (is_file($cert) && is_file($key)) {
+            $ch = curl_init($this->tokenUrl);
+            curl_setopt_array($ch, [
+                CURLOPT_POST => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_SSLCERT => $cert,
+                CURLOPT_SSLKEY => $key,
+                CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'],
+                CURLOPT_POSTFIELDS => http_build_query([
+                    'grant_type' => 'client_credentials',
+                    'client_id' => $clientId,
+                ]),
+                CURLOPT_TIMEOUT => (int) ($this->coraConfig['timeout'] ?? 30),
+            ]);
+            $response = curl_exec($ch);
+            $info['http_status'] = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $info['curl_errno'] = curl_errno($ch);
+            $info['curl_error'] = curl_error($ch);
+            curl_close($ch);
+
+            $info['resposta_cora'] = is_string($response) ? mb_substr($response, 0, 600) : '(sem corpo)';
+            $d = is_string($response) ? json_decode($response, true) : null;
+            $info['autenticou'] = ! empty($d['access_token']) ? 'SIM' : 'NÃO';
+        } else {
+            $info['resposta_cora'] = 'Certificado ou chave ausente em disco — não foi possível chamar a Cora.';
+            $info['autenticou'] = 'NÃO';
+        }
+
+        return $info;
+    }
+
     /* ------------------------------------------------------------------ */
     /* Autenticação (mTLS + client_credentials, com cache de token)        */
     /* ------------------------------------------------------------------ */
