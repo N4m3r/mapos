@@ -147,6 +147,15 @@
                             </div>
                         </div>
                         <div class="control-group">
+                            <label class="control-label">Automação na aprovação</label>
+                            <div class="controls">
+                                <label for="automacao_aprovacao" style="display:flex; align-items:center; gap:8px;">
+                                    <input id="automacao_aprovacao" type="checkbox" name="automacao_aprovacao" value="1" <?php echo set_value('automacao_aprovacao') ? 'checked' : ''; ?> />
+                                    Ao aprovar a OS, emitir NFS-e e gerar boleto automaticamente
+                                </label>
+                            </div>
+                        </div>
+                        <div class="control-group">
                             <label for="senha" class="control-label">Senha</label>
                             <div class="controls">
                                 <input class="form-control" id="senha" type="password" name="senha" autocomplete="new-password" value="<?php echo set_value('senha'); ?>" />

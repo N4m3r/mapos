@@ -96,6 +96,14 @@ class Aprovacao extends CI_Controller
 
         log_info('OS #' . $os->idOs . ' teve aprovação "' . $decisao . '" registrada por ' . $nome . ' via link público.');
 
+        // Automação opcional na aprovação: emite NFS-e e gera boleto (se ligada
+        // globalmente e habilitada para o cliente). É best-effort — nunca
+        // interrompe o fluxo de aprovação.
+        if ($decisao === 'aprovado') {
+            $this->load->library('autoaprovacao');
+            $this->autoaprovacao->executar($os->idOs);
+        }
+
         redirect('aprovacao/' . $token);
     }
 }

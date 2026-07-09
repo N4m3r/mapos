@@ -114,6 +114,7 @@
             <li><a href="<?= site_url('mapos/emails') ?>">Emails</a></li>
             <li><a href="<?= site_url('emailtemplates') ?>">Modelos de E-mail</a></li>
             <li><a href="<?= site_url('notificacoes') ?>">Notificações / Gatilhos</a></li>
+            <li><a href="<?= site_url('automacao') ?>">Automação (aprovação)</a></li>
             <li><a href="<?= site_url('mapos/backup') ?>">Backup</a></li>
           </ul>
         </li>
