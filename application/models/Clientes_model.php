@@ -114,6 +114,7 @@ class Clientes_model extends CI_Model
 
     public function add($table, $data)
     {
+        $data = $this->filtrarColunas($table, $data);
         $this->db->insert($table, $data);
         if ($this->db->affected_rows() == '1') {
             return $this->db->insert_id($table);
@@ -124,6 +125,7 @@ class Clientes_model extends CI_Model
 
     public function edit($table, $data, $fieldID, $ID)
     {
+        $data = $this->filtrarColunas($table, $data);
         $this->db->where($fieldID, $ID);
         $this->db->update($table, $data);
 
@@ -132,6 +134,21 @@ class Clientes_model extends CI_Model
         }
 
         return false;
+    }
+
+    /**
+     * Mantém em $data apenas as chaves que são colunas reais da tabela. Evita
+     * que o INSERT/UPDATE quebre inteiro quando uma migration ainda não foi
+     * aplicada (ex.: email_secundario, automacao_aprovacao, tp_ret_issqn).
+     */
+    private function filtrarColunas($table, array $data)
+    {
+        $colunas = $this->db->list_fields($table);
+        if (empty($colunas)) {
+            return $data;
+        }
+
+        return array_intersect_key($data, array_flip($colunas));
     }
 
     public function delete($table, $fieldID, $ID)
