@@ -109,6 +109,8 @@ class Cobrancas extends MY_Controller
                         'boleto_expiration' => $this->input->post('boleto_expiration') ?: 'P3D',
                     ];
 
+                    $enviados = [];
+
                     // Upload do certificado (.pem) — só quando enviado.
                     if (! empty($_FILES['certificado']['name'])) {
                         if ($_FILES['certificado']['error'] !== UPLOAD_ERR_OK) {
@@ -119,6 +121,7 @@ class Cobrancas extends MY_Controller
                             $_FILES['certificado']['name'],
                             'certificado'
                         );
+                        $enviados[] = 'certificado (.pem)';
                     }
 
                     // Upload da chave privada (.key) — só quando enviada.
@@ -131,11 +134,16 @@ class Cobrancas extends MY_Controller
                             $_FILES['chave']['name'],
                             'chave'
                         );
+                        $enviados[] = 'chave (.key)';
                     }
 
                     $this->Cora_model->saveConfig($data);
                     log_info('Atualizou a configuração da cobrança Cora.');
-                    $this->session->set_flashdata('success', 'Configurações da Cora salvas com sucesso!');
+                    $msg = 'Configurações da Cora salvas com sucesso!';
+                    if ($enviados) {
+                        $msg .= ' Upload concluído: ' . implode(' e ', $enviados) . '.';
+                    }
+                    $this->session->set_flashdata('success', $msg);
                     redirect('cobrancas/configCora');
                 } catch (Exception $e) {
                     $this->data['custom_error'] = '<div class="alert alert-danger">' . html_escape($e->getMessage()) . '</div>';

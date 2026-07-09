@@ -217,7 +217,17 @@ class Cora extends BasePaymentGateway
         $data = json_decode($response, true);
         if ($httpCode < 200 || $httpCode >= 300 || empty($data['access_token'])) {
             $msg = $data['message'] ?? $data['error_description'] ?? $response;
-            throw new \Exception('Erro ao autenticar na Cora: ' . $msg);
+            $dica = '';
+            if ($httpCode === 401 || $httpCode === 403 || stripos((string) $msg, 'authorized') !== false || stripos((string) $msg, 'unauthorized') !== false) {
+                $amb = $this->coraConfig['production'] === true ? 'Produção' : 'Stage (homologação)';
+                $cidMask = strlen($clientId) > 10
+                    ? substr($clientId, 0, 6) . '…' . substr($clientId, -4)
+                    : $clientId;
+                $dica = ' — O certificado foi aceito, mas a Cora recusou as credenciais.'
+                    . ' Confira se o client_id, o certificado (.pem) e a chave (.key) são TODOS da MESMA integração e do ambiente selecionado (' . $amb . ').'
+                    . ' client_id em uso: ' . $cidMask . '.';
+            }
+            throw new \Exception('Erro ao autenticar na Cora (HTTP ' . $httpCode . '): ' . $msg . $dica);
         }
 
         $expiresIn = (int) ($data['expires_in'] ?? 3600);

@@ -91,8 +91,10 @@ $pronto = $ativo && $clientId && $certPath && $chavePath;
                         <label class="control-label" for="certificado">Certificado (.pem)</label>
                         <div class="controls">
                             <input type="file" id="certificado" name="certificado" accept=".pem,.crt,.cer" />
-                            <?php if (! empty($certPath)) { ?>
-                                <span class="hint">Enviado: <?= html_escape(basename($certPath)) ?> (envie novamente apenas para substituir)</span>
+                            <?php if (! empty($certPath) && is_file($certPath)) { ?>
+                                <span class="hint" style="color:#4d9c79"><i class="bx bx-check-circle"></i> Arquivo em disco: <?= html_escape(basename($certPath)) ?> (<?= number_format(filesize($certPath)) ?> bytes). Envie de novo só para substituir.</span>
+                            <?php } elseif (! empty($certPath)) { ?>
+                                <span class="hint" style="color:#CD0000"><i class="bx bx-error-circle"></i> Registrado no banco, mas o arquivo não está em disco. Reenvie o certificado.</span>
                             <?php } else { ?>
                                 <span class="hint">Nenhum certificado enviado ainda.</span>
                             <?php } ?>
@@ -103,8 +105,10 @@ $pronto = $ativo && $clientId && $certPath && $chavePath;
                         <label class="control-label" for="chave">Chave privada (.key)</label>
                         <div class="controls">
                             <input type="file" id="chave" name="chave" accept=".key,.pem" />
-                            <?php if (! empty($chavePath)) { ?>
-                                <span class="hint">Enviada: <?= html_escape(basename($chavePath)) ?> (envie novamente apenas para substituir)</span>
+                            <?php if (! empty($chavePath) && is_file($chavePath)) { ?>
+                                <span class="hint" style="color:#4d9c79"><i class="bx bx-check-circle"></i> Arquivo em disco: <?= html_escape(basename($chavePath)) ?> (<?= number_format(filesize($chavePath)) ?> bytes). Envie de novo só para substituir.</span>
+                            <?php } elseif (! empty($chavePath)) { ?>
+                                <span class="hint" style="color:#CD0000"><i class="bx bx-error-circle"></i> Registrada no banco, mas o arquivo não está em disco. Reenvie a chave.</span>
                             <?php } else { ?>
                                 <span class="hint">Nenhuma chave enviada ainda.</span>
                             <?php } ?>
