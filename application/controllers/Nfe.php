@@ -541,6 +541,128 @@ class Nfe extends MY_Controller
     }
 
     /**
+     * Substitui uma NFS-e autorizada por uma nova (grupo subst do Padrão Nacional).
+     * A original fica com status "substituida"; a nova referencia a chave dela.
+     * POST: cMotivo, xMotivo (e info_complementar opcional). Retorna JSON.
+     */
+    public function substituirNfse($idNotaOriginal = null)
+    {
+        if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) {
+            return $this->jsonResponse(false, 'Você não tem permissão para emitir notas fiscais.');
+        }
+
+        $original = $this->nfe_model->getNotaById($idNotaOriginal);
+        if (!$original || $original->tipo !== 'nfse') {
+            return $this->jsonResponse(false, 'NFS-e original não encontrada.');
+        }
+        if ($original->status !== 'autorizada') {
+            return $this->jsonResponse(false, 'Só é possível substituir uma NFS-e autorizada.');
+        }
+        if (empty($original->chave)) {
+            return $this->jsonResponse(false, 'A NFS-e original não tem chave de acesso para substituição.');
+        }
+        if (empty($original->os_id)) {
+            return $this->jsonResponse(false, 'A NFS-e original não está vinculada a uma OS.');
+        }
+
+        $cMotivo = preg_replace('/\D/', '', (string) $this->input->post('cMotivo'));
+        $xMotivo = trim((string) $this->input->post('xMotivo'));
+        if ($cMotivo === '') {
+            return $this->jsonResponse(false, 'Informe o motivo da substituição.');
+        }
+        if ($cMotivo === '99' && mb_strlen($xMotivo) < 15) {
+            return $this->jsonResponse(false, 'Para o motivo "Outros" (99), a descrição deve ter no mínimo 15 caracteres.');
+        }
+
+        $this->load->model('os_model');
+        $os = $this->os_model->getById($original->os_id);
+        if (!$os) {
+            return $this->jsonResponse(false, 'OS da nota original não encontrada.');
+        }
+
+        $config = $this->nfe_model->getConfig();
+        $emitente = $this->mapos_model->getEmitente();
+        if (!$emitente) {
+            return $this->jsonResponse(false, 'Emitente não cadastrado. Configure em Configurações > Emitente.');
+        }
+
+        $idNota = null;
+        try {
+            $servicos = $this->os_model->getServicos($original->os_id);
+            $service = new NfseService($config, $emitente);
+
+            $valorTotal = 0.0;
+            foreach ($servicos as $s) {
+                $valorTotal += ((float) ($s->quantidade ?? 1) ?: 1) * (float) ($s->preco ?? $s->precoVenda);
+            }
+
+            $numero = $this->nfe_model->reservarNumero('proximo_numero_dps');
+            $idNota = $this->nfe_model->addNota([
+                'tipo' => 'nfse',
+                'os_id' => $original->os_id,
+                'numero' => $numero,
+                'serie' => $config->serie_dps,
+                'status' => 'pendente',
+                'ambiente' => $config->ambiente,
+                'valor_total' => round($valorTotal, 2),
+                'data_emissao' => date('Y-m-d H:i:s'),
+                'usuarios_id' => $this->session->userdata('id_admin'),
+                'substitui_nota_id' => $original->idNota,
+            ]);
+
+            $opcoes = [
+                'info_complementar' => (string) $this->input->post('info_complementar'),
+                'subst' => [
+                    'chSubstda' => $original->chave,
+                    'cMotivo' => $cMotivo,
+                    'xMotivo' => $xMotivo,
+                ],
+            ];
+            $resultado = $service->emitir($os, $servicos, $numero, $opcoes);
+
+            if (!$resultado['sucesso']) {
+                $this->nfe_model->updateNota($idNota, ['status' => 'rejeitada', 'motivo' => $resultado['motivo']]);
+
+                return $this->jsonResponse(false, 'Substituição rejeitada pelo Sefin Nacional: ' . $resultado['motivo']);
+            }
+
+            $xmlPath = null;
+            if (!empty($resultado['xml'])) {
+                $xmlPath = CertificadoHelper::salvarXml("nfse_subst_dps{$numero}_" . date('YmdHis') . '.xml', $resultado['xml']);
+            }
+            $this->nfe_model->updateNota($idNota, [
+                'status' => 'autorizada',
+                'chave' => $resultado['chave'],
+                'motivo' => 'Substitui a NFS-e nº ' . $original->numero,
+                'xml_path' => $xmlPath,
+                'data_autorizacao' => date('Y-m-d H:i:s'),
+            ]);
+
+            // Marca a nota original como substituída
+            $this->nfe_model->updateNota($original->idNota, [
+                'status' => 'substituida',
+                'motivo' => 'Substituída pela NFS-e nº ' . $numero . ' (motivo ' . $cMotivo . ')',
+            ]);
+
+            log_info("Substituiu a NFS-e nº {$original->numero} pela nº {$numero} (OS {$original->os_id})");
+
+            return $this->jsonResponse(true, "NFS-e nº {$original->numero} substituída pela nº {$numero} com sucesso!", [
+                'idNota' => $idNota,
+                'chave' => $resultado['chave'],
+                'urlDanfe' => site_url("nfe/danfe/{$idNota}"),
+            ]);
+        } catch (\Throwable $e) {
+            $tecnico = $e->getMessage();
+            if ($idNota) {
+                $this->nfe_model->updateNota($idNota, ['status' => 'erro', 'motivo' => $tecnico]);
+            }
+            log_message('error', 'Falha na substituição fiscal: ' . $tecnico);
+
+            return $this->jsonResponse(false, $this->traduzErroFiscal($e));
+        }
+    }
+
+    /**
      * Dados para o passo de revisão do wizard de emissão (via AJAX, JSON).
      * $tipo = 'nfe' (produtos) ou 'nfse' (serviços) de uma OS.
      */

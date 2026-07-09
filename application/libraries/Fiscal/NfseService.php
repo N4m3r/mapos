@@ -97,6 +97,18 @@ class NfseService
         $std->infDPS->tpEmit = 1; // emitida pelo prestador
         $std->infDPS->cLocEmi = (string) $this->config->codigo_municipio;
 
+        // Substituição de NFS-e: quando informado, esta DPS substitui a nota
+        // cuja chave está em chSubstda (grupo subst). cMotivo/xMotivo obrigatórios.
+        $subst = $opcoes['subst'] ?? null;
+        if (is_array($subst) && !empty($subst['chSubstda']) && !empty($subst['cMotivo'])) {
+            $std->infDPS->subst = new stdClass();
+            $std->infDPS->subst->chSubstda = preg_replace('/\D/', '', (string) $subst['chSubstda']);
+            $std->infDPS->subst->cMotivo = str_pad((string) $subst['cMotivo'], 2, '0', STR_PAD_LEFT);
+            if (!empty($subst['xMotivo'])) {
+                $std->infDPS->subst->xMotivo = mb_substr((string) $subst['xMotivo'], 0, 255);
+            }
+        }
+
         // prestador
         $std->infDPS->prest = new stdClass();
         $std->infDPS->prest->CNPJ = preg_replace('/\D/', '', (string) $this->emitente->cnpj);

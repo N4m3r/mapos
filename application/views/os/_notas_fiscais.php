@@ -37,6 +37,7 @@ $gwConfig = $this->config->item('payment_gateways');
                         'autorizada' => '#4d9c79',
                         'rejeitada' => '#f24c6f',
                         'cancelada' => '#CD0000',
+                        'substituida' => '#9b59b6',
                         'erro' => '#FF7F00',
                         default => '#AEB404',
                     };

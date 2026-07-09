@@ -69,7 +69,7 @@ class Nfe_model extends CI_Model
         return $this->db
             ->where('tipo', $tipo)
             ->where($campo, $id)
-            ->where_not_in('status', ['cancelada', 'rejeitada', 'erro'])
+            ->where_not_in('status', ['cancelada', 'rejeitada', 'erro', 'substituida'])
             ->order_by('idNota', 'DESC')
             ->get('notas_fiscais')
             ->row();

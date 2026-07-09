@@ -21,7 +21,7 @@
             <div class="span2">
                 <select name="status" class="span12">
                     <option value="">Todos os status</option>
-                    <?php foreach (['autorizada', 'rejeitada', 'cancelada', 'erro', 'pendente'] as $st) { ?>
+                    <?php foreach (['autorizada', 'rejeitada', 'cancelada', 'substituida', 'erro', 'pendente'] as $st) { ?>
                         <option value="<?= $st ?>" <?= $this->input->get('status') == $st ? 'selected' : '' ?>><?= ucfirst($st) ?></option>
                     <?php } ?>
                 </select>
@@ -68,6 +68,7 @@
                             'autorizada' => '#4d9c79',
                             'rejeitada' => '#f24c6f',
                             'cancelada' => '#CD0000',
+                            'substituida' => '#9b59b6',
                             'erro' => '#FF7F00',
                             default => '#AEB404',
                         };
@@ -92,6 +93,10 @@
                             }
                             if ($nota->status === 'autorizada') {
                                 echo '<a style="margin-right:1%" href="' . site_url('nfe/danfe/' . $nota->idNota) . '" target="_blank" class="btn-nwe6" title="Imprimir ' . ($nota->tipo === 'nfe' ? 'DANFE' : 'DANFSe') . '"><i class="bx bx-printer bx-xs"></i></a>';
+                                // Substituir NFS-e (só Padrão Nacional / serviços)
+                                if ($nota->tipo === 'nfse' && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) {
+                                    echo '<a style="margin-right:1%" href="#modal-substituir-nota" role="button" data-toggle="modal" data-nota="' . $nota->idNota . '" data-numero="' . $nota->numero . '" class="btn-nwe3 btn-substituir-nota" title="Substituir NFS-e"><i class="bx bx-transfer bx-xs"></i></a>';
+                                }
                                 if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dNfe')) {
                                     echo '<a href="#modal-cancelar-nota" role="button" data-toggle="modal" data-nota="' . $nota->idNota . '" data-numero="' . $nota->numero . '" class="btn-nwe4 btn-cancelar-nota" title="Cancelar Nota"><i class="bx bx-x-circle bx-xs"></i></a>';
                                 }
@@ -174,9 +179,85 @@
     </div>
 </div>
 
+<!-- Modal de substituição de NFS-e -->
+<div id="modal-substituir-nota" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h5>Substituir NFS-e</h5>
+    </div>
+    <div class="modal-body">
+        <input type="hidden" id="substituirIdNota" value="" />
+        <p>Substituir a NFS-e <strong id="substituirNumero"></strong> por uma <strong>nova</strong> NFS-e (com os dados atuais da OS). A original ficará marcada como <strong>substituída</strong>.</p>
+        <label for="substituirMotivo">Motivo da substituição:</label>
+        <select id="substituirMotivo" class="span12">
+            <option value="99">99 - Outros (descreva abaixo)</option>
+            <option value="1">01 - Desenquadramento de NFS-e do Simples Nacional</option>
+            <option value="2">02 - Enquadramento de NFS-e no Simples Nacional</option>
+            <option value="3">03 - Inclusão retroativa de imunidade/isenção</option>
+            <option value="4">04 - Exclusão retroativa de imunidade/isenção</option>
+            <option value="5">05 - Rejeição da NFS-e pelo tomador/intermediário</option>
+        </select>
+        <label for="substituirDescricao" style="margin-top:8px">Descrição do motivo (mín. 15 caracteres p/ "Outros"):</label>
+        <textarea id="substituirDescricao" rows="2" class="span12" maxlength="255" placeholder="Ex.: correção de valor/descrição do serviço"></textarea>
+        <div id="substituirRetorno" style="margin-top:6px"></div>
+    </div>
+    <div class="modal-footer" style="display:flex;justify-content:center">
+        <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true">
+            <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Fechar</span>
+        </button>
+        <button id="btnConfirmarSubstituir" class="button btn btn-primary">
+            <span class="button__icon"><i class='bx bx-transfer'></i></span><span class="button__text2">Substituir</span>
+        </button>
+    </div>
+</div>
+
 <script type="text/javascript">
     $(document).ready(function() {
         var retransmitirOk = false;
+        var substituirOk = false;
+
+        $(document).on('click', '.btn-substituir-nota', function() {
+            substituirOk = false;
+            $('#substituirIdNota').val($(this).data('nota'));
+            $('#substituirNumero').text('nº ' + $(this).data('numero'));
+            $('#substituirRetorno').html('');
+            $('#substituirDescricao').val('');
+            $('#substituirMotivo').val('99');
+            $('#btnConfirmarSubstituir').show().attr('disabled', false);
+        });
+
+        $('#btnConfirmarSubstituir').on('click', function() {
+            var motivo = $('#substituirMotivo').val();
+            var descricao = $('#substituirDescricao').val();
+            if (motivo === '99' && descricao.trim().length < 15) {
+                $('#substituirRetorno').html('<div class="alert alert-danger">Para "Outros" (99), a descrição precisa ter no mínimo 15 caracteres.</div>');
+                return;
+            }
+            var btn = $(this);
+            btn.attr('disabled', true);
+            $('#substituirRetorno').html('<div class="alert alert-info">Substituindo, aguarde...</div>');
+
+            $.post('<?= site_url('nfe/substituirNfse') ?>/' + $('#substituirIdNota').val(), {
+                cMotivo: motivo,
+                xMotivo: descricao
+            }, function(data) {
+                if (data.success) {
+                    substituirOk = true;
+                    $('#substituirRetorno').html('<div class="alert alert-success">' + data.message + '</div>');
+                    btn.hide();
+                } else {
+                    $('#substituirRetorno').html('<div class="alert alert-danger">' + data.message + '</div>');
+                    btn.attr('disabled', false);
+                }
+            }, 'json').fail(function() {
+                $('#substituirRetorno').html('<div class="alert alert-danger">Falha de comunicação com o servidor.</div>');
+                btn.attr('disabled', false);
+            });
+        });
+
+        $('#modal-substituir-nota').on('hidden hidden.bs.modal', function() {
+            if (substituirOk) { window.location.reload(); }
+        });
 
         $(document).on('click', '.btn-retransmitir', function() {
             retransmitirOk = false;
