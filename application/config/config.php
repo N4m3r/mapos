@@ -456,6 +456,7 @@ $config['csrf_exclude_uris'] = [
     'checkin/uploadArquivo',
     'checkin/uploadMultiplo',
     'webhook/cora',
+    'emailtemplates/preview',
 ];
 
 /*

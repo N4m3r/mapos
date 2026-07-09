@@ -87,6 +87,20 @@ class MercadoPago extends BasePaymentGateway
             $assunto .= ' - Venda #' . $cobranca->vendas_id;
         }
 
+        // Modelo configurável de e-mail (fallback para a view/assunto acima).
+        $this->ci->load->library('emailtemplate');
+        $render = $this->ci->emailtemplate->render('cobranca', [
+            'emitente' => $emitente[0],
+            'cobranca' => $cobranca,
+        ]);
+        if ($render !== null && ! $render['ativo']) {
+            return;
+        }
+        if ($render !== null) {
+            $html = $render['corpo'];
+            $assunto = $render['assunto'];
+        }
+
         $remetentes = emails_cobranca($cobranca);
         foreach ($remetentes as $remetente) {
             $headers = [

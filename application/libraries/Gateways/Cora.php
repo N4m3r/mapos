@@ -514,6 +514,20 @@ class Cora extends BasePaymentGateway
             $assunto .= ' - Venda #' . $cobranca->vendas_id;
         }
 
+        // Modelo configurável de e-mail (fallback para a view/assunto acima).
+        $this->ci->load->library('emailtemplate');
+        $render = $this->ci->emailtemplate->render('cobranca', [
+            'emitente' => $emitente,
+            'cobranca' => $cobranca,
+        ]);
+        if ($render !== null && ! $render['ativo']) {
+            return; // Envio de e-mail de cobrança desativado nas configurações.
+        }
+        if ($render !== null) {
+            $html = $render['corpo'];
+            $assunto = $render['assunto'];
+        }
+
         $headers = [
             'From' => $emitente->email,
             'Subject' => $assunto,

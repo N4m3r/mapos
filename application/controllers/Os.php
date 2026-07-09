@@ -1409,6 +1409,24 @@ class Os extends MY_Controller
 
         $html = $this->load->view('os/emails/os', $dados, true);
 
+        // Modelo configurável de e-mail (fallback para a view padrão acima).
+        $this->load->library('emailtemplate');
+        $render = $this->emailtemplate->render('os', [
+            'emitente' => $emitente,
+            'os' => $dados['result'],
+            'cliente' => $dados['result'],
+            'produtos' => $dados['produtos'],
+            'servicos' => $dados['servicos'],
+        ]);
+        if ($render !== null && ! $render['ativo']) {
+            // Envio de e-mail de OS desativado em Configurações > Modelos de E-mail.
+            return false;
+        }
+        if ($render !== null) {
+            $html = $render['corpo'];
+            $assunto = $render['assunto'];
+        }
+
         $this->load->model('email_model');
 
         $remetentes = array_unique($remetentes);
