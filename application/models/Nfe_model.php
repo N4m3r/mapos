@@ -147,7 +147,7 @@ class Nfe_model extends CI_Model
             return [];
         }
 
-        $this->db->select('notas_fiscais.*, clientes.nomeCliente, COALESCE(vendas.clientes_id, os.clientes_id) AS clientes_id', false);
+        $this->db->select('notas_fiscais.*, clientes.nomeCliente, clientes.documento, COALESCE(vendas.clientes_id, os.clientes_id) AS clientes_id', false);
         $this->db->from('notas_fiscais');
         $this->db->join('vendas', 'vendas.idVendas = notas_fiscais.vendas_id', 'left');
         $this->db->join('os', 'os.idOs = notas_fiscais.os_id', 'left');
