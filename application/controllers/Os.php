@@ -329,6 +329,7 @@ class Os extends MY_Controller
             $this->data['notaFiscalNfe'] = $this->nfe_model->getNotaAtiva('nfe', 'os_id', $this->uri->segment(3));
             $this->data['notasFiscais'] = $this->nfe_model->getNotasByOrigem('os_id', $this->uri->segment(3));
             $this->data['boletosPorNota'] = $this->carregarBoletosPorNota($this->data['notasFiscais']);
+            $this->data['coraStage'] = $this->coraStageAtivo();
         }
 
         $this->data['view'] = 'os/editarOs';
@@ -430,6 +431,7 @@ class Os extends MY_Controller
             $this->data['notaFiscalNfe'] = $this->nfe_model->getNotaAtiva('nfe', 'os_id', $os_id);
             $this->data['notasFiscais'] = $this->nfe_model->getNotasByOrigem('os_id', $os_id);
             $this->data['boletosPorNota'] = $this->carregarBoletosPorNota($this->data['notasFiscais']);
+            $this->data['coraStage'] = $this->coraStageAtivo();
         }
 
         return $this->layout();
@@ -511,6 +513,21 @@ class Os extends MY_Controller
         $this->load->model('cobrancas_model');
 
         return $this->cobrancas_model->getByNotaIds($ids);
+    }
+
+    /**
+     * Cora configurada, ativa e em ambiente de Stage (homologação) — habilita
+     * o botão de simular pagamento na aba de notas.
+     */
+    private function coraStageAtivo()
+    {
+        if (! $this->db->table_exists('configuracoes_cora')) {
+            return false;
+        }
+        $this->load->model('Cora_model');
+        $cfg = $this->Cora_model->getConfig();
+
+        return $cfg && $cfg->ativo && ! $cfg->producao;
     }
 
     public function imprimir()

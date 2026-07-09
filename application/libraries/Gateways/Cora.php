@@ -653,6 +653,34 @@ class Cora extends BasePaymentGateway
         return $endpointId;
     }
 
+    /**
+     * Simula o pagamento de um boleto no ambiente de Stage (homologação),
+     * usando o endpoint POST /v2/invoices/pay. Só funciona em Stage — nunca
+     * em Produção. Depois sincroniza o status/baixa.
+     */
+    public function simularPagamento($idCobranca)
+    {
+        if ($this->coraConfig['production'] === true) {
+            throw new \Exception('A simulação de pagamento só é permitida no ambiente de Stage (homologação).');
+        }
+
+        $cobranca = $this->ci->cobrancas_model->getById($idCobranca);
+        if (! $cobranca) {
+            throw new \Exception('Cobrança não existe!');
+        }
+        if (empty($cobranca->charge_id)) {
+            throw new \Exception('Cobrança sem id de fatura na Cora.');
+        }
+
+        $this->request('POST', '/v2/invoices/pay', ['id' => $cobranca->charge_id], [
+            'Idempotency-Key: ' . $this->idempotencyKey('pay-' . $cobranca->charge_id . '-' . time()),
+        ]);
+        log_info('Simulou pagamento (Stage) da cobrança Cora ' . $idCobranca . ' / Invoice ' . $cobranca->charge_id);
+
+        // Sincroniza o status resultante (pode virar IN_PAYMENT e depois PAID).
+        return $this->atualizarDados($idCobranca);
+    }
+
     public function confirmarPagamento($id)
     {
         // A Cora só confirma pagamento pela liquidação real do boleto/PIX;

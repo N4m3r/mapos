@@ -462,6 +462,7 @@ $config['csrf_exclude_uris'] = [
     'cobrancas/testarCora',
     'cobrancas/diagnosticarCora',
     'cobrancas/registrarWebhookCora',
+    'cobrancas/simularPagamentoCora',
     'cobrancas/gerarPorNota',
     'cobrancas/verificarPagamento',
 ];

@@ -4,6 +4,7 @@
 // Espera: $notas (linhas de notas_fiscais) e $boletos (mapa nota_id => cobranca).
 $notas = isset($notas) ? $notas : [];
 $boletos = isset($boletos) ? $boletos : [];
+$coraStage = isset($coraStage) ? $coraStage : false;
 $podeCancelar = $this->permission->checkPermission($this->session->userdata('permissao'), 'dNfe');
 $podeEmitir = $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe');
 $podeGerarBoleto = $this->permission->checkPermission($this->session->userdata('permissao'), 'aCobranca');
@@ -82,6 +83,9 @@ $gwConfig = $this->config->item('payment_gateways');
                                     <?php if (! $pago && $podeVerBoleto) { ?>
                                         <a href="#" class="btn-nwe6 btn-verificar-boleto" data-id="<?php echo $boleto->idCobranca; ?>" data-nota="<?php echo $nota->idNota; ?>" title="Verificar pagamento"><i class="bx bx-refresh bx-xs"></i></a>
                                     <?php } ?>
+                                    <?php if (! $pago && $coraStage && $podeVerBoleto) { ?>
+                                        <a href="#" class="btn-nwe4 btn-simular-pgto" data-id="<?php echo $boleto->idCobranca; ?>" data-nota="<?php echo $nota->idNota; ?>" title="Simular pagamento (só em homologação/Stage)"><i class="bx bx-test-tube bx-xs"></i> teste</a>
+                                    <?php } ?>
                                 </div>
                             <?php } elseif ($nota->status === 'autorizada' && $podeGerarBoleto) { ?>
                                 <button type="button" class="btn btn-mini btn-info btn-gerar-boleto" data-nota="<?php echo $nota->idNota; ?>" title="Gerar boleto híbrido (boleto + PIX) na Cora">
@@ -127,6 +131,7 @@ $gwConfig = $this->config->item('payment_gateways');
 (function () {
     var urlGerar = "<?php echo site_url('cobrancas/gerarPorNota'); ?>";
     var urlVerificar = "<?php echo site_url('cobrancas/verificarPagamento'); ?>";
+    var urlSimular = "<?php echo site_url('cobrancas/simularPagamentoCora'); ?>";
 
     // Gerar boleto/PIX (Cora) a partir de uma nota fiscal
     $(document).on('click', '.btn-gerar-boleto', function (e) {
@@ -180,6 +185,40 @@ $gwConfig = $this->config->item('payment_gateways');
                 swal({ type: 'error', title: 'Atenção', text: msg });
                 $link.html(htmlOriginal);
             }
+        });
+    });
+
+    // Simular pagamento (somente ambiente de Stage/homologação)
+    $(document).on('click', '.btn-simular-pgto', function (e) {
+        e.preventDefault();
+        var $link = $(this);
+        var id = $link.data('id');
+        var htmlOriginal = $link.html();
+        swal({
+            title: 'Simular pagamento?',
+            text: 'Isto marca o boleto como pago no ambiente de teste da Cora (homologação) para validar a baixa automática.',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sim, simular',
+            cancelButtonText: 'Cancelar'
+        }, function (ok) {
+            if (!ok) { return; }
+            $link.html("<i class='bx bx-loader bx-spin bx-xs'></i>");
+            $.ajax({
+                type: 'POST',
+                url: urlSimular,
+                dataType: 'json',
+                data: { idCobranca: id },
+                success: function (data) {
+                    swal({ type: 'success', title: 'Pagamento simulado!', text: 'Status atual: ' + (data.status || '—') + '. A baixa é confirmada quando a Cora liquidar (status PAID).' },
+                        function () { location.reload(); });
+                },
+                error: function (xhr) {
+                    var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Erro ao simular pagamento.';
+                    swal({ type: 'error', title: 'Atenção', text: msg });
+                    $link.html(htmlOriginal);
+                }
+            });
         });
     });
 

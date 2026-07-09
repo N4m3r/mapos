@@ -194,6 +194,43 @@ class Cobrancas extends MY_Controller
     }
 
     /**
+     * Simula o pagamento de um boleto no ambiente de Stage (homologação),
+     * para testar o fluxo de baixa automática. Retorna JSON.
+     */
+    public function simularPagamentoCora()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eCobranca')) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(403)
+                ->set_output(json_encode(['message' => 'Sem permissão.']));
+        }
+
+        $id = $this->input->post('idCobranca');
+        if (! $id || ! is_numeric($id)) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(400)
+                ->set_output(json_encode(['message' => 'Cobrança inválida.']));
+        }
+
+        try {
+            $this->load->library('Gateways/Cora', null, 'PaymentGateway');
+            $status = $this->PaymentGateway->simularPagamento($id);
+
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(200)
+                ->set_output(json_encode(['message' => 'Pagamento simulado enviado à Cora.', 'status' => $status]));
+        } catch (\Exception $e) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(500)
+                ->set_output(json_encode(['message' => $e->getMessage()]));
+        }
+    }
+
+    /**
      * Diagnóstico: mostra o que o sistema envia à Cora e a resposta crua dela.
      */
     public function diagnosticarCora()

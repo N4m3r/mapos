@@ -772,7 +772,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                 <h5>Notas Fiscais Emitidas</h5>
             </div>
             <div class="widget-content">
-                <?php echo $this->load->view('os/_notas_fiscais', ['notas' => (isset($notasFiscais) ? $notasFiscais : []), 'boletos' => (isset($boletosPorNota) ? $boletosPorNota : [])], true); ?>
+                <?php echo $this->load->view('os/_notas_fiscais', ['notas' => (isset($notasFiscais) ? $notasFiscais : []), 'boletos' => (isset($boletosPorNota) ? $boletosPorNota : []), 'coraStage' => (isset($coraStage) ? $coraStage : false)], true); ?>
             </div>
         </div>
     </div>
