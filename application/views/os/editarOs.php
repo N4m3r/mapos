@@ -79,7 +79,7 @@
                         <a title="Imprimir DANFSe" target="_blank" class="button btn btn-mini btn-inverse" href="<?php echo site_url('nfe/danfe/' . $notaFiscal->idNota); ?>">
                             <span class="button__icon"><i class="bx bx-receipt"></i></span> <span class="button__text">NFS-e nº <?php echo $notaFiscal->numero; ?></span>
                         </a>
-                    <?php } elseif (in_array($result->status, ['Finalizado', 'Faturado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) { ?>
+                    <?php } elseif (in_array($result->status, ['Finalizado', 'Faturado', 'Aprovado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) { ?>
                         <a title="Transmitir NFS-e (serviços)" href="#modal-nfse" role="button" data-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-mini btn-success btn-transmitir-nfse">
                             <span class="button__icon"><i class="bx bx-receipt"></i></span> <span class="button__text">Emitir NFS-e</span>
                         </a>
@@ -91,7 +91,7 @@
                         <a title="Imprimir DANFE" target="_blank" class="button btn btn-mini btn-inverse" href="<?php echo site_url('nfe/danfe/' . $notaFiscalNfe->idNota); ?>">
                             <span class="button__icon"><i class="bx bx-box"></i></span> <span class="button__text">NF-e nº <?php echo $notaFiscalNfe->numero; ?></span>
                         </a>
-                    <?php } elseif (in_array($result->status, ['Finalizado', 'Faturado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) { ?>
+                    <?php } elseif (in_array($result->status, ['Finalizado', 'Faturado', 'Aprovado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) { ?>
                         <a title="Transmitir NF-e (produtos)" href="#modal-nfe" role="button" data-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-mini btn-primary btn-transmitir-nfe">
                             <span class="button__icon"><i class="bx bx-box"></i></span> <span class="button__text">Emitir NF-e</span>
                         </a>

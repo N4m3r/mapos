@@ -181,7 +181,7 @@
                                 if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dOs') && $editavel) {
                                     echo '<a href="#modal-excluir" role="button" data-toggle="modal" os="' . $r->idOs . '" class="btn-nwe4" title="Excluir OS"><i class="bx bx-trash-alt"></i></a>  ';
                                 }
-                                if (in_array($r->status, ['Finalizado', 'Faturado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) {
+                                if (in_array($r->status, ['Finalizado', 'Faturado', 'Aprovado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) {
                                     echo '<a style="margin-right: 1%" href="#modal-nfse" role="button" data-toggle="modal" data-os="' . $r->idOs . '" class="btn-nwe5 btn-transmitir-nfse" title="Transmitir NFS-e (serviços)"><i class="bx bx-receipt bx-xs"></i></a>';
                                     echo '<a style="margin-right: 1%" href="#modal-nfe" role="button" data-toggle="modal" data-os="' . $r->idOs . '" class="btn-nwe5 btn-transmitir-nfe" title="Transmitir NF-e (produtos)"><i class="bx bx-box bx-xs"></i></a>';
                                 }

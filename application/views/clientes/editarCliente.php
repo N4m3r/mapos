@@ -209,18 +209,64 @@
 
                 <?php if (! empty($vinculosSuportado)) { ?>
                     <div class="control-group">
-                        <label for="clientes_vinculados" class="control-label">Acesso multi-CNPJ no portal</label>
+                        <label class="control-label">Acesso multi-CNPJ no portal</label>
                         <div class="controls">
-                            <select id="clientes_vinculados" name="clientes_vinculados[]" multiple size="6" style="width:100%">
+                            <input type="text" id="buscaCnpjVinculo" class="span12" placeholder="Buscar por nome ou CNPJ/CPF..." autocomplete="off" style="margin-bottom:6px">
+                            <div style="margin-bottom:4px">
+                                <a href="#" id="marcarTodosVinculo" style="font-size:12px">Marcar visíveis</a> &nbsp;|&nbsp;
+                                <a href="#" id="desmarcarTodosVinculo" style="font-size:12px">Desmarcar visíveis</a>
+                                <span id="contadorVinculo" style="float:right;font-size:12px;color:#888"></span>
+                            </div>
+                            <div id="listaCnpjVinculo" style="max-height:230px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;padding:6px">
                                 <?php foreach ($clientesDisponiveis as $c) {
-                                    $sel = in_array((int) $c->idClientes, array_map('intval', (array) $vinculosAtuais)) ? 'selected' : '';
+                                    $checked = in_array((int) $c->idClientes, array_map('intval', (array) $vinculosAtuais)) ? 'checked' : '';
                                     $doc = trim((string) $c->documento);
-                                    echo '<option value="' . $c->idClientes . '" ' . $sel . '>' . htmlspecialchars($c->nomeCliente) . ($doc !== '' ? ' — ' . htmlspecialchars($doc) : '') . '</option>';
-                                } ?>
-                            </select>
-                            <span class="help-inline">Quando este cliente logar na Área do Cliente, ele também verá as OS, cobranças, notas e aprovações dos clientes/CNPJs selecionados acima. Segure Ctrl (ou Cmd) para marcar vários.</span>
+                                    $texto = htmlspecialchars($c->nomeCliente) . ($doc !== '' ? ' — ' . htmlspecialchars($doc) : '');
+                                    ?>
+                                    <label class="cnpj-vinculo-item" style="display:block;padding:4px 4px;cursor:pointer;border-bottom:1px solid #f2f2f2" data-busca="<?= htmlspecialchars(strtolower($c->nomeCliente . ' ' . $doc)) ?>">
+                                        <input type="checkbox" name="clientes_vinculados[]" value="<?= $c->idClientes ?>" <?= $checked ?>> <?= $texto ?>
+                                    </label>
+                                <?php } ?>
+                            </div>
+                            <span class="help-inline">Marque os clientes/CNPJs cujos dados (OS, cobranças, notas, aprovações) este login também verá na Área do Cliente. Use a busca para filtrar.</span>
                         </div>
                     </div>
+
+                    <script>
+                        (function () {
+                            var busca = document.getElementById('buscaCnpjVinculo');
+                            var lista = document.getElementById('listaCnpjVinculo');
+                            var contador = document.getElementById('contadorVinculo');
+                            if (!busca || !lista) return;
+                            var itens = lista.querySelectorAll('.cnpj-vinculo-item');
+
+                            function atualizarContador() {
+                                var n = lista.querySelectorAll('input[type=checkbox]:checked').length;
+                                contador.textContent = n + ' selecionado(s)';
+                            }
+                            function visiveis() {
+                                return Array.prototype.filter.call(itens, function (el) { return el.style.display !== 'none'; });
+                            }
+                            busca.addEventListener('input', function () {
+                                var q = this.value.toLowerCase().trim();
+                                itens.forEach(function (el) {
+                                    el.style.display = (q === '' || el.getAttribute('data-busca').indexOf(q) !== -1) ? 'block' : 'none';
+                                });
+                            });
+                            lista.addEventListener('change', atualizarContador);
+                            document.getElementById('marcarTodosVinculo').addEventListener('click', function (e) {
+                                e.preventDefault();
+                                visiveis().forEach(function (el) { el.querySelector('input').checked = true; });
+                                atualizarContador();
+                            });
+                            document.getElementById('desmarcarTodosVinculo').addEventListener('click', function (e) {
+                                e.preventDefault();
+                                visiveis().forEach(function (el) { el.querySelector('input').checked = false; });
+                                atualizarContador();
+                            });
+                            atualizarContador();
+                        })();
+                    </script>
                 <?php } ?>
 
                 <div class="form-actions">
