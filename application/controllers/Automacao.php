@@ -54,23 +54,11 @@ class Automacao extends MY_Controller
             'automacao_tp_ret_issqn' => (string) $this->input->post('automacao_tp_ret_issqn'),
         ];
 
-        $ok = $this->mapos_model->saveConfiguracao($data);
-
-        // DIAGNÓSTICO TEMPORÁRIO: mostra o que chegou no POST e o que ficou no
-        // banco, para identificar se o problema é envio, gravação ou leitura.
-        $recebidoDesc = (string) $this->input->post('automacao_desc_servico');
-        $recebidoAtiva = $this->input->post('automacao_aprovacao_ativa') ? '1' : '0';
-        $noBanco = $this->db->where('config', 'automacao_desc_servico')->get('configuracoes')->row();
-        $noBancoDesc = $noBanco ? (string) $noBanco->valor : 'SEM LINHA';
-        $debug = ' [DEBUG recebido: ativa=' . $recebidoAtiva
-            . ' desc=\'' . mb_substr($recebidoDesc, 0, 25) . '\''
-            . ' | no banco: desc=\'' . mb_substr($noBancoDesc, 0, 25) . '\']';
-
-        if ($ok) {
-            log_info('Alterou a configuração da automação de aprovação.' . $debug);
-            $this->session->set_flashdata('success', 'Automação salva.' . $debug);
+        if ($this->mapos_model->saveConfiguracao($data)) {
+            log_info('Alterou a configuração da automação de aprovação.');
+            $this->session->set_flashdata('success', 'Automação salva com sucesso!');
         } else {
-            $this->session->set_flashdata('error', 'Ocorreu um erro ao salvar a automação.' . $debug);
+            $this->session->set_flashdata('error', 'Ocorreu um erro ao salvar a automação.');
         }
         redirect(site_url('automacao'));
     }
