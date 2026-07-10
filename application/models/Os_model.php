@@ -382,6 +382,27 @@ class Os_model extends CI_Model
         return $this->montarTextoWhats($textoBase, $troca);
     }
 
+    /**
+     * Resolve o número de WhatsApp para notificação de um cliente/OS/cobrança:
+     * usa o campo dedicado `whatsapp_notificacao` quando preenchido; senão cai
+     * no celular (celular_cliente ou celular). Aceita qualquer objeto que
+     * carregue esses campos (getById traz clientes.*).
+     */
+    public function numeroNotificacao($obj)
+    {
+        if (! is_object($obj)) {
+            return '';
+        }
+        if (! empty($obj->whatsapp_notificacao)) {
+            return $obj->whatsapp_notificacao;
+        }
+        if (! empty($obj->celular_cliente)) {
+            return $obj->celular_cliente;
+        }
+
+        return ! empty($obj->celular) ? $obj->celular : '';
+    }
+
     public function valorTotalOS($id = null)
     {
         $totalServico = 0;

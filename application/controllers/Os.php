@@ -1978,38 +1978,39 @@ class Os extends MY_Controller
                 return;
             }
 
-            // Com gatilho configurado: respeita ativo + canal WhatsApp + destinatários.
+            // Gatilhos de WhatsApp ativos para o evento (pode haver mais de um).
             // Sem gatilho: mantém o comportamento por auto_status do config.
-            $destCliente = true;
-            $destTecnico = false;
-            if ($evento) {
-                $this->load->model('notification_triggers_model');
-                $trigger = $this->notification_triggers_model->getByEvento($evento);
-                if ($trigger) {
-                    $canais = Notification_triggers_model::toList($trigger->canais);
-                    if ((int) $trigger->ativo !== 1 || ! in_array('whatsapp', $canais, true)) {
-                        return;
-                    }
-                    $dest = Notification_triggers_model::toList($trigger->destinatarios);
-                    $destCliente = in_array('cliente', $dest, true);
-                    $destTecnico = in_array('tecnico', $dest, true);
-                } elseif (! $this->evolution_api->disparaAutomaticoPara($os->status)) {
+            $this->load->model('notification_triggers_model');
+            $triggers = $evento ? $this->notification_triggers_model->getActiveByEvento($evento, 'whatsapp') : [];
+
+            if (empty($triggers)) {
+                if (! $this->evolution_api->disparaAutomaticoPara($os->status)) {
                     return;
                 }
-            } elseif (! $this->evolution_api->disparaAutomaticoPara($os->status)) {
-                return;
+                $triggers = [null]; // fallback: um envio padrão só ao cliente
             }
 
             $template = $this->data['configuration']['notifica_whats'] ?? '';
             $mensagem = $this->os_model->montarNotificacaoOs($os->idOs, $template, $emitente);
+            $numeroCliente = $this->os_model->numeroNotificacao($os);
 
-            if ($destCliente && ! empty($os->celular_cliente)) {
-                $this->evolution_api->enviarTexto($os->celular_cliente, $mensagem);
-                log_info('Notificação WhatsApp (cliente) enviada. OS #' . $os->idOs);
-            }
-            if ($destTecnico && ! empty($os->telefone_usuario)) {
-                $this->evolution_api->enviarTexto($os->telefone_usuario, $mensagem);
-                log_info('Notificação WhatsApp (técnico) enviada. OS #' . $os->idOs);
+            // Deduplica por destinatário (a mensagem é a mesma para todos os gatilhos).
+            $enviouCliente = false;
+            $enviouTecnico = false;
+            foreach ($triggers as $t) {
+                $destCliente = $t ? in_array('cliente', Notification_triggers_model::toList($t->destinatarios), true) : true;
+                $destTecnico = $t ? in_array('tecnico', Notification_triggers_model::toList($t->destinatarios), true) : false;
+
+                if ($destCliente && ! $enviouCliente && ! empty($numeroCliente)) {
+                    $this->evolution_api->enviarTexto($numeroCliente, $mensagem);
+                    log_info('Notificação WhatsApp (cliente) enviada. OS #' . $os->idOs);
+                    $enviouCliente = true;
+                }
+                if ($destTecnico && ! $enviouTecnico && ! empty($os->telefone_usuario)) {
+                    $this->evolution_api->enviarTexto($os->telefone_usuario, $mensagem);
+                    log_info('Notificação WhatsApp (técnico) enviada. OS #' . $os->idOs);
+                    $enviouTecnico = true;
+                }
             }
         } catch (\Exception $e) {
             log_info('Falha na notificação automática por WhatsApp da OS #' . ($os->idOs ?? '?') . ': ' . $e->getMessage());

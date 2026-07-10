@@ -97,15 +97,15 @@ class Whatsapp extends MY_Controller
             return $this->json(['result' => false, 'mensagem' => 'OS não encontrada.'], 404);
         }
 
-        if (empty($os->celular_cliente)) {
-            return $this->json(['result' => false, 'mensagem' => 'Cliente sem celular cadastrado.'], 400);
+        if (empty($this->os_model->numeroNotificacao($os))) {
+            return $this->json(['result' => false, 'mensagem' => 'Cliente sem número de notificação/celular cadastrado.'], 400);
         }
 
         $template = $this->data['configuration']['notifica_whats'] ?? '';
         $mensagem = $this->os_model->montarNotificacaoOs($idOs, $template);
 
         try {
-            $this->evolution_api->enviarTexto($os->celular_cliente, $mensagem);
+            $this->evolution_api->enviarTexto($this->os_model->numeroNotificacao($os), $mensagem);
             log_info('Enviou notificação WhatsApp (Evolution) da OS #' . $idOs);
 
             return $this->json(['result' => true, 'mensagem' => 'Notificação enviada por WhatsApp!']);
@@ -124,13 +124,15 @@ class Whatsapp extends MY_Controller
         }
 
         $this->load->model('cobrancas_model');
+        $this->load->model('os_model');
         $cobranca = is_numeric($idCobranca) ? $this->cobrancas_model->getById($idCobranca) : null;
         if (! $cobranca) {
             return $this->json(['result' => false, 'mensagem' => 'Cobrança não encontrada.'], 404);
         }
 
-        if (empty($cobranca->celular)) {
-            return $this->json(['result' => false, 'mensagem' => 'Cliente sem celular cadastrado.'], 400);
+        $numero = $this->os_model->numeroNotificacao($cobranca);
+        if (empty($numero)) {
+            return $this->json(['result' => false, 'mensagem' => 'Cliente sem número de notificação/celular cadastrado.'], 400);
         }
 
         $link = $cobranca->payment_url ?: $cobranca->link;
@@ -142,7 +144,7 @@ class Whatsapp extends MY_Controller
         $mensagem = 'Olá ' . $cobranca->nomeCliente . '! Segue o link para pagamento da ' . $referencia . ":\n" . $link;
 
         try {
-            $this->evolution_api->enviarTexto($cobranca->celular, $mensagem);
+            $this->evolution_api->enviarTexto($numero, $mensagem);
             log_info('Enviou cobrança por WhatsApp (Evolution). Cobrança #' . $idCobranca);
 
             return $this->json(['result' => true, 'mensagem' => 'Link de pagamento enviado por WhatsApp!']);
@@ -171,8 +173,8 @@ class Whatsapp extends MY_Controller
         if (! $this->aprovacao_model->suportado()) {
             return $this->json(['result' => false, 'mensagem' => 'Recurso indisponível: execute a atualização do banco (updates/update_os_aprovacao.sql).'], 400);
         }
-        if (empty($os->celular_cliente)) {
-            return $this->json(['result' => false, 'mensagem' => 'Cliente sem celular cadastrado.'], 400);
+        if (empty($this->os_model->numeroNotificacao($os))) {
+            return $this->json(['result' => false, 'mensagem' => 'Cliente sem número de notificação/celular cadastrado.'], 400);
         }
 
         // Reaproveita o token ativo; só gera um novo se não houver/estiver expirado.
@@ -191,7 +193,7 @@ class Whatsapp extends MY_Controller
             . ', acesse o link:' . "\n" . $url;
 
         try {
-            $this->evolution_api->enviarTexto($os->celular_cliente, $mensagem);
+            $this->evolution_api->enviarTexto($this->os_model->numeroNotificacao($os), $mensagem);
             log_info('Enviou link de aprovação por WhatsApp (Evolution) da OS #' . $idOs);
 
             return $this->json(['result' => true, 'mensagem' => 'Link de aprovação enviado por WhatsApp!', 'url' => $url]);
@@ -220,8 +222,8 @@ class Whatsapp extends MY_Controller
         if (! $this->aceite_model->suportado()) {
             return $this->json(['result' => false, 'mensagem' => 'Recurso indisponível: execute a atualização do banco (updates/update_os_aceite.sql).'], 400);
         }
-        if (empty($os->celular_cliente)) {
-            return $this->json(['result' => false, 'mensagem' => 'Cliente sem celular cadastrado.'], 400);
+        if (empty($this->os_model->numeroNotificacao($os))) {
+            return $this->json(['result' => false, 'mensagem' => 'Cliente sem número de notificação/celular cadastrado.'], 400);
         }
 
         // Reaproveita o token ativo; só gera um novo se não houver/estiver expirado.
@@ -240,7 +242,7 @@ class Whatsapp extends MY_Controller
             . 'Confirme o aceite e assine pelo link:' . "\n" . $url;
 
         try {
-            $this->evolution_api->enviarTexto($os->celular_cliente, $mensagem);
+            $this->evolution_api->enviarTexto($this->os_model->numeroNotificacao($os), $mensagem);
             log_info('Enviou link de aceite por WhatsApp (Evolution) da OS #' . $idOs);
 
             return $this->json(['result' => true, 'mensagem' => 'Link de aceite enviado por WhatsApp!', 'url' => $url]);

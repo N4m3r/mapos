@@ -94,6 +94,10 @@ class Clientes extends MY_Controller
                 'fornecedor' => $this->input->post('fornecedor') ? 1 : 0,
             ];
 
+            if ($this->db->field_exists('whatsapp_notificacao', 'clientes')) {
+                $data['whatsapp_notificacao'] = $this->input->post('whatsapp_notificacao') ?: null;
+            }
+
             if ($this->clientes_model->add('clientes', $data) == true) {
                 $this->session->set_flashdata('success', 'Cliente adicionado com sucesso!');
                 log_info('Adicionou um cliente.');
@@ -174,6 +178,10 @@ class Clientes extends MY_Controller
                     'cep' => $this->input->post('cep'),
                     'fornecedor' => (set_value('fornecedor') == true ? 1 : 0),
                 ];
+            }
+
+            if ($this->db->field_exists('whatsapp_notificacao', 'clientes')) {
+                $data['whatsapp_notificacao'] = $this->input->post('whatsapp_notificacao') ?: null;
             }
 
             if ($this->clientes_model->edit('clientes', $data, 'idClientes', $this->input->post('idClientes')) == true) {

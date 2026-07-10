@@ -136,6 +136,13 @@
                             </div>
                         </div>
                         <div class="control-group">
+                            <label for="whatsapp_notificacao" class="control-label">Nº de notificação (WhatsApp)</label>
+                            <div class="controls">
+                                <input id="whatsapp_notificacao" type="text" name="whatsapp_notificacao" value="<?php echo isset($result->whatsapp_notificacao) ? $result->whatsapp_notificacao : ''; ?>" />
+                                <span class="help-inline">Onde este cliente recebe as notificações. Se vazio, usa o Celular.</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
                             <label for="email" class="control-label">Email</label>
                             <div class="controls">
                                 <input id="email" type="text" name="email" value="<?php echo $result->email; ?>" />

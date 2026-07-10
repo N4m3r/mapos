@@ -76,6 +76,62 @@ class Notificacoes extends MY_Controller
         redirect(site_url('notificacoes/editar/' . $id));
     }
 
+    public function novo()
+    {
+        $this->data['menuConfiguracoes'] = 'Notificacoes';
+        $this->data['eventos'] = Notification_triggers_model::eventosCatalogo();
+        $this->data['templates'] = $this->templatesDisponiveis();
+        $this->data['view'] = 'notificacoes/novoNotificacao';
+
+        return $this->layout();
+    }
+
+    public function criar()
+    {
+        $evento = $this->input->post('evento');
+        $catalogo = Notification_triggers_model::eventosCatalogo();
+        if (! isset($catalogo[$evento])) {
+            $this->session->set_flashdata('error', 'Selecione um evento válido.');
+            redirect(site_url('notificacoes/novo'));
+        }
+
+        $data = [
+            'evento' => $evento,
+            'nome' => trim((string) $this->input->post('nome')) ?: $catalogo[$evento]['nome'],
+            'grupo' => $catalogo[$evento]['grupo'],
+            'descricao' => trim((string) $this->input->post('descricao')) ?: null,
+            'ativo' => $this->input->post('ativo') ? 1 : 0,
+            'canais' => $this->listaPost('canais'),
+            'destinatarios' => $this->listaPost('destinatarios'),
+            'blocos' => $this->listaPost('blocos'),
+            'anexos' => $this->listaPost('anexos'),
+            'template_slug' => $this->input->post('template_slug') ?: null,
+        ];
+
+        $id = $this->notification_triggers_model->create($data);
+        if ($id) {
+            log_info('Criou um gatilho de notificação: ' . $evento);
+            $this->session->set_flashdata('success', 'Gatilho criado com sucesso!');
+            redirect(site_url('notificacoes/editar/' . $id));
+        }
+
+        $this->session->set_flashdata('error', 'Não foi possível criar o gatilho.');
+        redirect(site_url('notificacoes/novo'));
+    }
+
+    public function excluir($id = null)
+    {
+        if ($id && is_numeric($id)) {
+            $gatilho = $this->notification_triggers_model->getById($id);
+            if ($gatilho) {
+                $this->notification_triggers_model->delete($id);
+                log_info('Excluiu o gatilho de notificação: ' . $gatilho->evento);
+                $this->session->set_flashdata('success', 'Gatilho excluído.');
+            }
+        }
+        redirect(site_url('notificacoes'));
+    }
+
     public function salvarConfig()
     {
         $this->load->model('mapos_model');

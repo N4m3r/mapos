@@ -37,10 +37,16 @@ $rotuloCanais = Notification_triggers_model::canaisDisponiveis();
         <h5>Gatilhos de notificação</h5>
     </div>
     <div class="widget-content nopadding">
-        <p style="padding:14px 16px 0; color:#6b7191; margin:0;">
-            Configure cada evento do sistema: se está ativo, por onde dispara (e-mail/WhatsApp), para quem,
-            o que a mensagem deve conter e quais anexos incluir.
-        </p>
+        <div style="padding:14px 16px 0; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+            <p style="color:#6b7191; margin:0;">
+                Configure cada evento do sistema: se está ativo, por onde dispara (e-mail/WhatsApp), para quem,
+                o que a mensagem deve conter e quais anexos incluir. Você pode ter mais de um gatilho por evento
+                (no WhatsApp, todos os ativos disparam).
+            </p>
+            <a href="<?= site_url('notificacoes/novo') ?>" class="button btn btn-success btn-mini" style="white-space:nowrap">
+                <span class="button__icon"><i class="bx bx-plus-circle"></i></span><span class="button__text2">Novo gatilho</span>
+            </a>
+        </div>
         <table class="table table-bordered" style="margin-top:10px">
             <thead>
                 <tr>
@@ -78,9 +84,13 @@ $rotuloCanais = Notification_triggers_model::canaisDisponiveis();
                                 <span class="badge badge-warning">Desativado</span>
                             <?php } ?>
                         </td>
-                        <td style="text-align:center">
+                        <td style="text-align:center; white-space:nowrap">
                             <a href="<?= site_url('notificacoes/editar/' . $r->id) ?>" class="btn btn-primary btn-mini">
                                 <i class="bx bx-edit"></i> Editar
+                            </a>
+                            <a href="<?= site_url('notificacoes/excluir/' . $r->id) ?>" class="btn btn-danger btn-mini"
+                               onclick="return confirm('Excluir o gatilho \'<?= html_escape($r->nome) ?>\'?');">
+                                <i class="bx bx-trash"></i>
                             </a>
                         </td>
                     </tr>

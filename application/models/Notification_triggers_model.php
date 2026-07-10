@@ -82,6 +82,69 @@ class Notification_triggers_model extends CI_Model
         return $this->db->where('evento', $evento)->limit(1)->get($this->table)->row();
     }
 
+    /**
+     * Todos os gatilhos ATIVOS de um evento, opcionalmente filtrados por canal.
+     * Usado no disparo para permitir múltiplos gatilhos por evento.
+     */
+    public function getActiveByEvento($evento, $canal = null)
+    {
+        if (! $this->db->table_exists($this->table)) {
+            return [];
+        }
+
+        $rows = $this->db->where('evento', $evento)->where('ativo', 1)->get($this->table)->result();
+        if ($canal === null) {
+            return $rows;
+        }
+
+        return array_values(array_filter($rows, function ($r) use ($canal) {
+            return in_array($canal, self::toList($r->canais), true);
+        }));
+    }
+
+    /**
+     * Eventos que o sistema sabe disparar (catálogo para criar novos gatilhos).
+     * Só permitir criar gatilhos para estes evita gatilhos "mortos" sem hook.
+     */
+    public static function eventosCatalogo()
+    {
+        return [
+            'os_aberta' => ['nome' => 'OS aberta', 'grupo' => 'Ordem de Serviço'],
+            'os_editada' => ['nome' => 'OS editada / status alterado', 'grupo' => 'Ordem de Serviço'],
+            'os_aprovada' => ['nome' => 'OS aprovada', 'grupo' => 'Ordem de Serviço'],
+            'os_finalizada' => ['nome' => 'OS finalizada', 'grupo' => 'Ordem de Serviço'],
+            'cobranca_gerada' => ['nome' => 'Boleto / cobrança gerada', 'grupo' => 'Cobrança'],
+            'cobranca_enviada' => ['nome' => 'Cobrança enviada (manual)', 'grupo' => 'Cobrança'],
+            'pagamento_confirmado' => ['nome' => 'Pagamento confirmado', 'grupo' => 'Cobrança'],
+            'nota_emitida' => ['nome' => 'Nota fiscal emitida', 'grupo' => 'Fiscal'],
+            'cliente_novo' => ['nome' => 'Cliente cadastrado (boas-vindas)', 'grupo' => 'Cliente'],
+        ];
+    }
+
+    public function create(array $data)
+    {
+        if (! $this->db->table_exists($this->table)) {
+            return false;
+        }
+
+        $data['data_criacao'] = date('Y-m-d H:i:s');
+        $data['data_atualizacao'] = $data['data_criacao'];
+        $this->db->insert($this->table, $data);
+
+        return $this->db->insert_id();
+    }
+
+    public function delete($id)
+    {
+        if (! $this->db->table_exists($this->table)) {
+            return false;
+        }
+
+        $this->db->where('id', $id)->delete($this->table);
+
+        return $this->db->affected_rows() > 0;
+    }
+
     public function update($id, array $data)
     {
         if (! $this->db->table_exists($this->table)) {
