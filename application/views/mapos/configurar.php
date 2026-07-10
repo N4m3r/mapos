@@ -566,6 +566,17 @@
                                 <span class="help-inline">Informe a senha do e-mail.</span>
                             </div>
                         </div>
+                        <div class="control-group">
+                            <label class="control-label" for="email_teste_destino">Testar envio (com anexo NF/Boleto)</label>
+                            <div class="controls">
+                                <input type="text" id="email_teste_destino" placeholder="email@destino.com para receber o teste">
+                                <button type="button" id="btnTestarEmail" class="button btn btn-success" style="margin-top:6px">
+                                    <span class="button__icon"><i class='bx bx-paper-plane'></i></span><span class="button__text2">Enviar e-mail de teste</span>
+                                </button>
+                                <span id="testarEmailResultado" style="margin-left:10px;"></span>
+                                <span class="help-block">Envia na hora um e-mail com um PDF de exemplo anexado (simula NF-e/NFS-e + Boleto), usando as credenciais SMTP já salvas. Salve as alterações antes de testar.</span>
+                            </div>
+                        </div>
                         <div class="form-actions">
                             <div class="span8">
                                 <div class="span9">
@@ -665,5 +676,32 @@
 
         $('#btnTestarWhatsapp').click(function() { testarWhatsapp(false); });
         $('#btnEnviarTesteWhatsapp').click(function() { testarWhatsapp(true); });
+
+        $('#btnTestarEmail').click(function() {
+            var $btn = $(this);
+            var $out = $('#testarEmailResultado');
+            var dest = $.trim($('#email_teste_destino').val());
+            if (!dest) {
+                $out.html('<span style="color:#b94a48">Informe um e-mail de destino.</span>');
+                return;
+            }
+            $btn.prop('disabled', true);
+            $out.html('<i class="bx bx-loader bx-spin"></i> Enviando...');
+            $.ajax({
+                url: '<?= site_url('mapos/testarEmailAnexo') ?>',
+                type: 'POST',
+                dataType: 'json',
+                data: { email: dest }
+            }).done(function(data) {
+                var cor = data.result ? 'green' : '#c09853';
+                $out.html('<span style="color:' + cor + '">' + (data.mensagem || '') + '</span>');
+            }).fail(function(xhr) {
+                var msg = 'Falha no teste de e-mail.';
+                try { msg = JSON.parse(xhr.responseText).mensagem || msg; } catch (e) {}
+                $out.html('<span style="color:#b94a48">' + msg + '</span>');
+            }).always(function() {
+                $btn.prop('disabled', false);
+            });
+        });
     });
 </script>

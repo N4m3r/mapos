@@ -368,6 +368,89 @@ class Mapos extends MY_Controller {
         redirect(site_url('mapos/minhaConta'));
     }
 
+    /**
+     * Teste de envio de e-mail COM ANEXO (simula NF/Boleto). Envia na hora
+     * (fora da fila) um e-mail com um PDF de exemplo, usando o SMTP salvo.
+     * Retorna JSON. Usado pelo botão na aba E-mail de Configurar Sistema.
+     */
+    public function testarEmailAnexo()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'cSistema')) {
+            return $this->output->set_content_type('application/json')->set_status_header(403)
+                ->set_output(json_encode(['result' => false, 'mensagem' => 'Sem permissão.']));
+        }
+
+        $dest = trim((string) $this->input->post('email'));
+        if (! filter_var($dest, FILTER_VALIDATE_EMAIL)) {
+            return $this->output->set_content_type('application/json')->set_status_header(400)
+                ->set_output(json_encode(['result' => false, 'mensagem' => 'Informe um e-mail de destino válido.']));
+        }
+
+        $emitente = $this->mapos_model->getEmitente();
+        $from = ($emitente && ! empty($emitente->email)) ? $emitente->email : ($_ENV['EMAIL_SMTP_USER'] ?? 'no-reply@localhost');
+        $nomeFrom = ($emitente && ! empty($emitente->nome)) ? $emitente->nome : 'Map-OS';
+
+        // PDF de exemplo em arquivo temporário.
+        $tmp = tempnam(sys_get_temp_dir(), 'mapteste_');
+        @file_put_contents($tmp, $this->gerarPdfTeste());
+
+        $this->load->library('email');
+        $this->email->clear(true);
+        $this->email->from($from, $nomeFrom);
+        $this->email->to($dest);
+        $this->email->subject('Teste de envio (NF + Boleto) - ' . $nomeFrom);
+        $this->email->message(
+            '<p>Este é um <strong>e-mail de teste</strong> do Map-OS.</p>'
+            . '<p>Se você recebeu esta mensagem com o arquivo <strong>boleto_teste.pdf</strong> anexado, '
+            . 'o envio de e-mails com anexos (NF-e/NFS-e e Boleto) está funcionando corretamente.</p>'
+        );
+        $this->email->attach($tmp, '', 'boleto_teste.pdf');
+
+        $ok = $this->email->send(true); // true = envia imediatamente (não enfileira)
+        $debug = $ok ? '' : $this->email->print_debugger(['headers', 'subject']);
+        @unlink($tmp);
+
+        if ($ok) {
+            log_info('Enviou e-mail de teste com anexo para ' . $dest);
+
+            return $this->output->set_content_type('application/json')
+                ->set_output(json_encode(['result' => true, 'mensagem' => 'E-mail de teste enviado para ' . $dest . ' com o PDF anexado. Confira a caixa de entrada (e o spam).']));
+        }
+
+        return $this->output->set_content_type('application/json')->set_status_header(400)
+            ->set_output(json_encode(['result' => false, 'mensagem' => 'Falha no envio. ' . trim(strip_tags((string) $debug))]));
+    }
+
+    /**
+     * Gera um PDF mínimo válido (uma página) para usar como anexo de teste.
+     */
+    private function gerarPdfTeste()
+    {
+        $stream = 'BT /F1 14 Tf 20 60 Td (Map-OS - Teste de anexo NF/Boleto) Tj ET';
+        $objs = [
+            1 => '<</Type/Catalog/Pages 2 0 R>>',
+            2 => '<</Type/Pages/Count 1/Kids[3 0 R]>>',
+            3 => '<</Type/Page/Parent 2 0 R/Resources<</Font<</F1 4 0 R>>>>/MediaBox[0 0 320 120]/Contents 5 0 R>>',
+            4 => '<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>',
+            5 => '<</Length ' . strlen($stream) . ">>stream\n" . $stream . "\nendstream",
+        ];
+
+        $pdf = "%PDF-1.4\n";
+        $offsets = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $offsets[$i] = strlen($pdf);
+            $pdf .= $i . ' 0 obj' . $objs[$i] . "endobj\n";
+        }
+        $xrefPos = strlen($pdf);
+        $pdf .= "xref\n0 6\n0000000000 65535 f \n";
+        for ($i = 1; $i <= 5; $i++) {
+            $pdf .= sprintf("%010d 00000 n \n", $offsets[$i]);
+        }
+        $pdf .= "trailer<</Size 6/Root 1 0 R>>\nstartxref\n" . $xrefPos . "\n%%EOF";
+
+        return $pdf;
+    }
+
     public function emails()
     {
         if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'cEmail')) {
