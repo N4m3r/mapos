@@ -162,7 +162,7 @@ $check = function ($valor, $lista) {
             var $btn = $(this).prop('disabled', true);
             $('#gruposMsg').html('<i class="bx bx-loader bx-spin"></i> Carregando...');
 
-            $.ajax({ url: '<?= site_url('whatsapp/grupos') ?>', type: 'POST', dataType: 'json' })
+            $.ajax({ url: '<?= site_url('whatsapp/grupos') ?>', type: 'POST', dataType: 'json', data: {} })
                 .done(function (d) {
                     if (!d.result) {
                         $('#gruposMsg').html('<span style="color:#b94a48">' + escapa(d.mensagem || 'Falha ao carregar.') + '</span>');
