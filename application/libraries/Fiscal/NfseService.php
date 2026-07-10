@@ -43,6 +43,29 @@ class NfseService
     }
 
     /**
+     * Código de Tributação Nacional padrão (6 dígitos) para quando nem o serviço
+     * nem o wizard informam um. Configurável em configuracoes_nfe.ctribnac_padrao;
+     * default 010701 (suporte em informática).
+     */
+    private function tribNacPadrao(): string
+    {
+        $c = isset($this->config->ctribnac_padrao) ? preg_replace('/\D/', '', (string) $this->config->ctribnac_padrao) : '';
+
+        return strlen($c) === 6 ? $c : '010701';
+    }
+
+    /**
+     * Código de Tributação Municipal padrão (3 dígitos). Configurável em
+     * configuracoes_nfe.ctribmun_padrao; default 100.
+     */
+    private function tribMunPadrao(): string
+    {
+        $c = isset($this->config->ctribmun_padrao) ? preg_replace('/\D/', '', (string) $this->config->ctribmun_padrao) : '';
+
+        return $c !== '' ? $c : '100';
+    }
+
+    /**
      * Monta e envia a DPS de uma OS finalizada.
      * $servicos: itens de servicos_os + servicos (result do Os_model::getServicos)
      * Retorna: ['sucesso', 'chave', 'numero_dps', 'motivo', 'xml']
@@ -82,7 +105,9 @@ class NfseService
             $cTribNac = $cTribNacOpcao;
         }
         if ($cTribNac === null) {
-            throw new Exception('Nenhum serviço da OS possui o Código de Tributação Nacional (6 dígitos). Informe-o no momento da emissão ou cadastre-o em Serviços.');
+            // Sem código no serviço nem no wizard (ex.: emissão automática com
+            // boleto): usa o padrão configurável (default 010701 = suporte em TI).
+            $cTribNac = $this->tribNacPadrao();
         }
         $total = round($total, 2);
 
@@ -166,6 +191,10 @@ class NfseService
         $cTribMun = preg_replace('/\D/', '', (string) ($opcoes['ctribmun'] ?? ''));
         if ($cTribMun === '') {
             $cTribMun = $cTribMunCad;
+        }
+        if ($cTribMun === '') {
+            // Padrão configurável (default 100) — usado na emissão automática.
+            $cTribMun = $this->tribMunPadrao();
         }
         if ($cTribMun !== '') {
             $std->infDPS->serv->cServ->cTribMun = str_pad($cTribMun, 3, '0', STR_PAD_LEFT);

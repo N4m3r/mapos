@@ -120,6 +120,16 @@ class Nfe extends MY_Controller
                         $data['senha_certificado'] = CertificadoHelper::criptografar($senha);
                     }
 
+                    // Códigos de tributação padrão (usados na emissão automática e
+                    // como sugestão no wizard). Guardado por field_exists p/ não
+                    // quebrar antes da migration.
+                    if ($this->db->field_exists('ctribnac_padrao', 'configuracoes_nfe')) {
+                        $nacPad = preg_replace('/\D/', '', (string) $this->input->post('ctribnac_padrao'));
+                        $munPad = preg_replace('/\D/', '', (string) $this->input->post('ctribmun_padrao'));
+                        $data['ctribnac_padrao'] = strlen($nacPad) === 6 ? $nacPad : '010701';
+                        $data['ctribmun_padrao'] = $munPad !== '' ? $munPad : '100';
+                    }
+
                     $this->nfe_model->saveConfig($data);
 
                     // valida o certificado imediatamente para dar retorno claro ao usuário
@@ -729,7 +739,13 @@ class Nfe extends MY_Controller
                 $avisos[] = 'Esta OS não possui serviços lançados.';
             }
             if ($cTribNac === '') {
-                $avisos[] = 'Nenhum serviço tem Código de Tributação Nacional cadastrado. Informe abaixo.';
+                $cTribNac = (isset($config->ctribnac_padrao) && preg_match('/^\d{6}$/', (string) $config->ctribnac_padrao))
+                    ? (string) $config->ctribnac_padrao : '010701';
+                $avisos[] = 'Nenhum serviço tem Código de Tributação Nacional; usando o padrão ' . $cTribNac . ' (edite abaixo se necessário).';
+            }
+            if ($cTribMun === '') {
+                $cTribMun = (isset($config->ctribmun_padrao) && trim((string) $config->ctribmun_padrao) !== '')
+                    ? preg_replace('/\D/', '', (string) $config->ctribmun_padrao) : '100';
             }
             $defaults = [
                 'ctribnac' => $cTribNac,

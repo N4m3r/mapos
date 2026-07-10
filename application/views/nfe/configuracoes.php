@@ -201,6 +201,22 @@
                         </div>
                     </div>
 
+                    <div class="control-group">
+                        <label class="control-label" for="ctribnac_padrao">Cód. Tributação Nacional padrão</label>
+                        <div class="controls">
+                            <input type="text" id="ctribnac_padrao" name="ctribnac_padrao" maxlength="6" value="<?= html_escape(isset($configNfe->ctribnac_padrao) && $configNfe->ctribnac_padrao !== '' ? $configNfe->ctribnac_padrao : '010701') ?>" style="width:90px" />
+                            <span class="hint">6 dígitos. Usado na emissão automática (com boleto) e como sugestão no wizard quando o serviço não tem código. Padrão: 010701 (suporte em informática).</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label" for="ctribmun_padrao">Cód. Tributação Municipal padrão</label>
+                        <div class="controls">
+                            <input type="text" id="ctribmun_padrao" name="ctribmun_padrao" maxlength="3" value="<?= html_escape(isset($configNfe->ctribmun_padrao) && $configNfe->ctribmun_padrao !== '' ? $configNfe->ctribmun_padrao : '100') ?>" style="width:60px" />
+                            <span class="hint">3 dígitos. Alguns municípios (ex.: Manaus) exigem. Padrão: 100.</span>
+                        </div>
+                    </div>
+
                     <div class="form-actions" style="background:transparent">
                         <button type="submit" class="button btn btn-success">
                             <span class="button__icon"><i class='bx bx-save'></i></span>

@@ -51,13 +51,13 @@ $tokenHash = $this->security->get_csrf_hash();
                 <div class="span4">
                     <div class="control-group">
                         <label class="control-label" for="automacao_ctribnac">Cód. tributação nacional</label>
-                        <div class="controls"><input id="automacao_ctribnac" type="text" name="automacao_ctribnac" value="<?= html_escape($automacao_ctribnac) ?>"></div>
+                        <div class="controls"><input id="automacao_ctribnac" type="text" name="automacao_ctribnac" maxlength="6" value="<?= html_escape($automacao_ctribnac) ?>" placeholder="Padrão: 010701"></div>
                     </div>
                 </div>
                 <div class="span4">
                     <div class="control-group">
                         <label class="control-label" for="automacao_ctribmun">Cód. tributação municipal</label>
-                        <div class="controls"><input id="automacao_ctribmun" type="text" name="automacao_ctribmun" value="<?= html_escape($automacao_ctribmun) ?>"></div>
+                        <div class="controls"><input id="automacao_ctribmun" type="text" name="automacao_ctribmun" maxlength="3" value="<?= html_escape($automacao_ctribmun) ?>" placeholder="Padrão: 100"></div>
                     </div>
                 </div>
                 <div class="span4">
