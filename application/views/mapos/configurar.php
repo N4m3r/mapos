@@ -538,11 +538,13 @@
                         <div class="control-group">
                             <label for="EMAIL_SMTP_CRYPTO" class="control-label">Tipo de criptografia</label>
                             <div class="controls">
+                                <?php $cripto = isset($_ENV['EMAIL_SMTP_CRYPTO']) ? $_ENV['EMAIL_SMTP_CRYPTO'] : ''; ?>
                                 <select name="EMAIL_SMTP_CRYPTO" id="EMAIL_SMTP_CRYPTO">
-                                    <option value="tls" <?= $_ENV['EMAIL_SMTP_CRYPTO'] == 'tls' ? 'selected' : ''; ?>>tls</option>
-                                    <option value="ssl" <?= $_ENV['EMAIL_SMTP_CRYPTO'] == 'ssl' ? 'selected' : ''; ?>>ssl</option>
+                                    <option value="tls" <?= $cripto == 'tls' ? 'selected' : ''; ?>>tls (STARTTLS — porta 587)</option>
+                                    <option value="ssl" <?= $cripto == 'ssl' ? 'selected' : ''; ?>>ssl (porta 465)</option>
+                                    <option value="" <?= ($cripto === '' || $cripto === 'none') ? 'selected' : ''; ?>>Nenhuma (sem criptografia — porta 25)</option>
                                 </select>
-                                <span class="help-inline">Tipo de criptografia que será utilizada.</span>
+                                <span class="help-inline">Tipo de criptografia da conexão SMTP. Use "Nenhuma" só em servidores locais/sem TLS.</span>
                             </div>
                         </div>
                         <div class="control-group">
