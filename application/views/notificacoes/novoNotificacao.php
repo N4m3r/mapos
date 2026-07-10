@@ -85,6 +85,21 @@ $anexos = Notification_triggers_model::anexosDisponiveis();
                 </div>
             </div>
 
+            <?php if (! empty($whatsappTemplates)) { ?>
+                <div class="control-group" style="margin-top:10px">
+                    <label class="control-label" for="whatsapp_template">Modelo de mensagem (WhatsApp)</label>
+                    <div class="controls">
+                        <select id="whatsapp_template" name="whatsapp_template">
+                            <option value="">— padrão da OS —</option>
+                            <?php foreach ($whatsappTemplates as $wt) { ?>
+                                <option value="<?= html_escape($wt->slug) ?>"><?= html_escape($wt->nome) ?></option>
+                            <?php } ?>
+                        </select>
+                        <span class="help-inline">Mensagem usada no WhatsApp deste gatilho. <a href="<?= site_url('whatsapptemplates') ?>" target="_blank">Gerenciar modelos</a>.</span>
+                    </div>
+                </div>
+            <?php } ?>
+
             <div class="control-group" style="margin-top:10px">
                 <fieldset style="border:1px solid #e2e6f0; border-radius:8px; padding:12px 14px;">
                     <legend style="font-size:14px; font-weight:700; color:#1e3a8a; width:auto; padding:0 6px;">Grupos de WhatsApp (opcional)</legend>

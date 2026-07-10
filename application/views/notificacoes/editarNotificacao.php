@@ -79,6 +79,21 @@ $check = function ($valor, $lista) {
                 </div>
             </div>
 
+            <?php if (! empty($whatsappTemplates)) { $tplSel = isset($gatilho->whatsapp_template) ? $gatilho->whatsapp_template : ''; ?>
+                <div class="control-group" style="margin-top:10px">
+                    <label class="control-label" for="whatsapp_template">Modelo de mensagem (WhatsApp)</label>
+                    <div class="controls">
+                        <select id="whatsapp_template" name="whatsapp_template">
+                            <option value="">— padrão da OS —</option>
+                            <?php foreach ($whatsappTemplates as $wt) { ?>
+                                <option value="<?= html_escape($wt->slug) ?>" <?= $tplSel === $wt->slug ? 'selected' : '' ?>><?= html_escape($wt->nome) ?></option>
+                            <?php } ?>
+                        </select>
+                        <span class="help-inline">Mensagem usada no WhatsApp deste gatilho. <a href="<?= site_url('whatsapptemplates') ?>" target="_blank">Gerenciar modelos</a>.</span>
+                    </div>
+                </div>
+            <?php } ?>
+
             <?php $selGrupos = isset($gatilho->whatsapp_grupos) ? Notification_triggers_model::toList($gatilho->whatsapp_grupos) : []; ?>
             <div class="control-group" style="margin-top:10px">
                 <fieldset style="border:1px solid #e2e6f0; border-radius:8px; padding:12px 14px;">

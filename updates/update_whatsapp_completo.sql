@@ -18,12 +18,19 @@ DELIMITER $$
 CREATE PROCEDURE `mapos_add_grupos_col`()
 BEGIN
     IF EXISTS (SELECT 1 FROM information_schema.TABLES
-               WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'notification_triggers')
-       AND NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS
+               WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'notification_triggers') THEN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS
                        WHERE TABLE_SCHEMA = DATABASE()
                          AND TABLE_NAME = 'notification_triggers'
                          AND COLUMN_NAME = 'whatsapp_grupos') THEN
-        ALTER TABLE `notification_triggers` ADD COLUMN `whatsapp_grupos` TEXT NULL DEFAULT NULL;
+            ALTER TABLE `notification_triggers` ADD COLUMN `whatsapp_grupos` TEXT NULL DEFAULT NULL;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS
+                       WHERE TABLE_SCHEMA = DATABASE()
+                         AND TABLE_NAME = 'notification_triggers'
+                         AND COLUMN_NAME = 'whatsapp_template') THEN
+            ALTER TABLE `notification_triggers` ADD COLUMN `whatsapp_template` VARCHAR(40) NULL DEFAULT NULL;
+        END IF;
     END IF;
 END$$
 DELIMITER ;

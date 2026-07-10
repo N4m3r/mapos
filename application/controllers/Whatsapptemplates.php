@@ -33,6 +33,57 @@ class Whatsapptemplates extends MY_Controller
         return $this->layout();
     }
 
+    public function novo()
+    {
+        $this->data['menuConfiguracoes'] = 'WhatsappTemplates';
+        $this->data['view'] = 'whatsapptemplates/novo';
+
+        return $this->layout();
+    }
+
+    public function criar()
+    {
+        $nome = trim((string) $this->input->post('nome'));
+        if ($nome === '') {
+            $this->session->set_flashdata('error', 'Informe o nome do modelo.');
+            redirect(site_url('whatsapptemplates/novo'));
+        }
+
+        $tags = trim((string) $this->input->post('tags'));
+        $slug = $this->whatsapp_templates_model->gerarSlug($nome);
+
+        $id = $this->whatsapp_templates_model->create([
+            'slug' => $slug,
+            'nome' => $nome,
+            'descricao' => trim((string) $this->input->post('descricao')) ?: null,
+            'tags' => $tags !== '' ? $tags : Whatsapp_templates_model::tagsPadraoOs(),
+            'conteudo' => (string) $this->input->post('conteudo'),
+            'ativo' => $this->input->post('ativo') ? 1 : 0,
+        ]);
+
+        if ($id) {
+            log_info('Criou o modelo de WhatsApp: ' . $slug);
+            $this->session->set_flashdata('success', 'Modelo criado com sucesso!');
+            redirect(site_url('whatsapptemplates/editar/' . $slug));
+        }
+
+        $this->session->set_flashdata('error', 'Não foi possível criar o modelo.');
+        redirect(site_url('whatsapptemplates/novo'));
+    }
+
+    public function excluir($slug = null)
+    {
+        if ($slug) {
+            if (in_array($slug, Whatsapp_templates_model::slugsCore(), true)) {
+                $this->session->set_flashdata('error', 'Os modelos padrão do sistema não podem ser excluídos.');
+            } elseif ($this->whatsapp_templates_model->delete($slug)) {
+                log_info('Excluiu o modelo de WhatsApp: ' . $slug);
+                $this->session->set_flashdata('success', 'Modelo excluído.');
+            }
+        }
+        redirect(site_url('whatsapptemplates'));
+    }
+
     public function editar($slug = null)
     {
         $tpl = $slug ? $this->whatsapp_templates_model->getBySlug($slug) : null;

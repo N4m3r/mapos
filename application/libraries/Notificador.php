@@ -68,42 +68,57 @@ class Notificador
                 $triggers = [null]; // fallback: envio padrão só ao cliente
             }
 
-            $template = $this->configNotificaWhats();
-            $mensagem = $this->ci->os_model->montarNotificacaoOs($os->idOs, $template, $emitente);
+            $this->ci->load->model('whatsapp_templates_model');
+            $fallbackOs = $this->configNotificaWhats();
             $numeroCliente = $this->ci->os_model->numeroNotificacao($os);
             $ctx = ['os_id' => $os->idOs, 'evento' => implode(',', array_filter((array) $eventos))];
 
-            // Deduplica por destinatário (a mensagem é a mesma para todos os gatilhos).
-            $enviouCliente = false;
-            $enviouTecnico = false;
-            $gruposEnviados = [];
+            // Cada gatilho pode ter seu próprio modelo de mensagem. Deduplica por
+            // (destino + mensagem) para não enviar a mesma mensagem duas vezes.
+            $enviados = [];
             foreach ($triggers as $t) {
+                $slug = ($t && ! empty($t->whatsapp_template)) ? $t->whatsapp_template : 'os';
+                $conteudo = $this->ci->whatsapp_templates_model->conteudo($slug, $fallbackOs);
+                $mensagem = $this->ci->os_model->montarNotificacaoOs($os->idOs, $conteudo, $emitente);
+
                 $destCliente = $t ? in_array('cliente', Notification_triggers_model::toList($t->destinatarios), true) : true;
                 $destTecnico = $t ? in_array('tecnico', Notification_triggers_model::toList($t->destinatarios), true) : false;
 
-                if ($destCliente && ! $enviouCliente && ! empty($numeroCliente)) {
-                    $this->ci->evolution_api->enviarTexto($numeroCliente, $mensagem, ['tipo' => 'cliente'] + $ctx);
-                    log_info('Notificação WhatsApp (cliente) enviada. OS #' . $os->idOs);
-                    $enviouCliente = true;
+                if ($destCliente && ! empty($numeroCliente)) {
+                    $this->enviarUnico($numeroCliente, $mensagem, ['tipo' => 'cliente'] + $ctx, $enviados);
                 }
-                if ($destTecnico && ! $enviouTecnico && ! empty($os->telefone_usuario)) {
-                    $this->ci->evolution_api->enviarTexto($os->telefone_usuario, $mensagem, ['tipo' => 'tecnico'] + $ctx);
-                    log_info('Notificação WhatsApp (técnico) enviada. OS #' . $os->idOs);
-                    $enviouTecnico = true;
+                if ($destTecnico && ! empty($os->telefone_usuario)) {
+                    $this->enviarUnico($os->telefone_usuario, $mensagem, ['tipo' => 'tecnico'] + $ctx, $enviados);
                 }
-
                 if ($t && ! empty($t->whatsapp_grupos)) {
                     foreach (Notification_triggers_model::toList($t->whatsapp_grupos) as $jid) {
-                        if (! in_array($jid, $gruposEnviados, true)) {
-                            $this->ci->evolution_api->enviarTexto($jid, $mensagem, ['tipo' => 'grupo'] + $ctx);
-                            log_info('Notificação WhatsApp (grupo ' . $jid . ') enviada. OS #' . $os->idOs);
-                            $gruposEnviados[] = $jid;
-                        }
+                        $this->enviarUnico($jid, $mensagem, ['tipo' => 'grupo'] + $ctx, $enviados);
                     }
                 }
             }
         } catch (\Exception $e) {
             log_info('Falha na notificação WhatsApp da OS #' . $osId . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Envia uma mensagem evitando duplicar o par (destino + mensagem). Cada
+     * falha é registrada (o whatsapp_envios já loga em enviarTexto) e não
+     * interrompe os demais envios do lote.
+     */
+    private function enviarUnico($destino, $mensagem, array $ctx, array &$enviados)
+    {
+        $chave = $destino . '|' . md5($mensagem);
+        if (isset($enviados[$chave])) {
+            return;
+        }
+        $enviados[$chave] = true;
+
+        try {
+            $this->ci->evolution_api->enviarTexto($destino, $mensagem, $ctx);
+            log_info('Notificação WhatsApp (' . ($ctx['tipo'] ?? '-') . ') enviada para ' . $destino . '. OS #' . ($ctx['os_id'] ?? '?'));
+        } catch (\Exception $e) {
+            log_info('Falha WhatsApp para ' . $destino . ' (OS #' . ($ctx['os_id'] ?? '?') . '): ' . $e->getMessage());
         }
     }
 

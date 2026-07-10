@@ -42,9 +42,12 @@ class Notificacoes extends MY_Controller
             redirect(site_url('notificacoes'));
         }
 
+        $this->load->model('whatsapp_templates_model');
+
         $this->data['menuConfiguracoes'] = 'Notificacoes';
         $this->data['gatilho'] = $gatilho;
         $this->data['templates'] = $this->templatesDisponiveis();
+        $this->data['whatsappTemplates'] = $this->whatsapp_templates_model->getAll();
 
         $this->data['view'] = 'notificacoes/editarNotificacao';
 
@@ -70,6 +73,9 @@ class Notificacoes extends MY_Controller
         ];
         if ($this->db->field_exists('whatsapp_grupos', 'notification_triggers')) {
             $data['whatsapp_grupos'] = $this->listaPost('whatsapp_grupos');
+        }
+        if ($this->db->field_exists('whatsapp_template', 'notification_triggers')) {
+            $data['whatsapp_template'] = $this->input->post('whatsapp_template') ?: null;
         }
 
         $this->notification_triggers_model->update($id, $data);
@@ -97,9 +103,12 @@ class Notificacoes extends MY_Controller
 
     public function novo()
     {
+        $this->load->model('whatsapp_templates_model');
+
         $this->data['menuConfiguracoes'] = 'Notificacoes';
         $this->data['eventos'] = Notification_triggers_model::eventosCatalogo();
         $this->data['templates'] = $this->templatesDisponiveis();
+        $this->data['whatsappTemplates'] = $this->whatsapp_templates_model->getAll();
         $this->data['view'] = 'notificacoes/novoNotificacao';
 
         return $this->layout();
@@ -128,6 +137,9 @@ class Notificacoes extends MY_Controller
         ];
         if ($this->db->field_exists('whatsapp_grupos', 'notification_triggers')) {
             $data['whatsapp_grupos'] = $this->listaPost('whatsapp_grupos');
+        }
+        if ($this->db->field_exists('whatsapp_template', 'notification_triggers')) {
+            $data['whatsapp_template'] = $this->input->post('whatsapp_template') ?: null;
         }
 
         $id = $this->notification_triggers_model->create($data);
