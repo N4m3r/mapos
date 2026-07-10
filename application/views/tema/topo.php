@@ -113,6 +113,7 @@
             <li><a href="<?= site_url('auditoria') ?>">Auditoria</a></li>
             <li><a href="<?= site_url('mapos/emails') ?>">Emails</a></li>
             <li><a href="<?= site_url('emailtemplates') ?>">Modelos de E-mail</a></li>
+            <li><a href="<?= site_url('whatsapptemplates') ?>">Modelos de WhatsApp</a></li>
             <li><a href="<?= site_url('notificacoes') ?>">Notificações / Gatilhos</a></li>
             <li><a href="<?= site_url('automacao') ?>">Automação (aprovação)</a></li>
             <li><a href="<?= site_url('mapos/backup') ?>">Backup</a></li>

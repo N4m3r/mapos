@@ -111,7 +111,12 @@ class Notificador
     {
         $this->ci->load->database();
         $row = $this->ci->db->get_where('configuracoes', ['config' => 'notifica_whats'])->row();
+        $fallback = $row ? $row->valor : '';
 
-        return $row ? $row->valor : '';
+        // Prefere o modelo configurável 'os' (Configurações > Modelos de WhatsApp);
+        // se a tabela/modelo não existir, mantém o texto de notifica_whats.
+        $this->ci->load->model('whatsapp_templates_model');
+
+        return $this->ci->whatsapp_templates_model->conteudo('os', $fallback);
     }
 }

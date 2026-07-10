@@ -17,6 +17,7 @@ class Whatsapp extends MY_Controller
     {
         parent::__construct();
         $this->load->library('evolution_api');
+        $this->load->model('whatsapp_templates_model');
     }
 
     private function json($payload, $status = 200)
@@ -118,7 +119,7 @@ class Whatsapp extends MY_Controller
             return $this->json(['result' => false, 'mensagem' => 'Cliente sem número de notificação/celular cadastrado.'], 400);
         }
 
-        $template = $this->data['configuration']['notifica_whats'] ?? '';
+        $template = $this->whatsapp_templates_model->conteudo('os', $this->data['configuration']['notifica_whats'] ?? '');
         $mensagem = $this->os_model->montarNotificacaoOs($idOs, $template);
 
         try {
@@ -158,7 +159,11 @@ class Whatsapp extends MY_Controller
         }
 
         $referencia = $cobranca->os_id ? ('OS #' . $cobranca->os_id) : ('Venda #' . $cobranca->vendas_id);
-        $mensagem = 'Olá ' . $cobranca->nomeCliente . '! Segue o link para pagamento da ' . $referencia . ":\n" . $link;
+        $mensagem = $this->whatsapp_templates_model->renderizar('cobranca', [
+            '{CLIENTE_NOME}' => $cobranca->nomeCliente,
+            '{REFERENCIA}' => $referencia,
+            '{LINK}' => $link,
+        ], 'Olá {CLIENTE_NOME}! Segue o link para pagamento da {REFERENCIA}:' . "\n" . '{LINK}');
 
         try {
             $this->evolution_api->enviarTexto($numero, $mensagem, ['tipo' => 'cobranca', 'os_id' => ($cobranca->os_id ?? null)]);
@@ -206,8 +211,11 @@ class Whatsapp extends MY_Controller
         }
 
         $url = site_url('aprovacao/' . $token);
-        $mensagem = 'Olá ' . $os->nomeCliente . '! Para aprovar ou reprovar a OS #' . $idOs
-            . ', acesse o link:' . "\n" . $url;
+        $mensagem = $this->whatsapp_templates_model->renderizar('aprovacao', [
+            '{CLIENTE_NOME}' => $os->nomeCliente,
+            '{NUMERO_OS}' => $idOs,
+            '{LINK}' => $url,
+        ], 'Olá {CLIENTE_NOME}! Para aprovar ou reprovar a OS #{NUMERO_OS}, acesse o link:' . "\n" . '{LINK}');
 
         try {
             $this->evolution_api->enviarTexto($this->os_model->numeroNotificacao($os), $mensagem, ['tipo' => 'aprovacao_link', 'os_id' => $idOs]);
@@ -255,8 +263,11 @@ class Whatsapp extends MY_Controller
         }
 
         $url = site_url('aceite/' . $token);
-        $mensagem = 'Olá ' . $os->nomeCliente . '! Seu serviço (OS #' . $idOs . ') foi concluído. '
-            . 'Confirme o aceite e assine pelo link:' . "\n" . $url;
+        $mensagem = $this->whatsapp_templates_model->renderizar('aceite', [
+            '{CLIENTE_NOME}' => $os->nomeCliente,
+            '{NUMERO_OS}' => $idOs,
+            '{LINK}' => $url,
+        ], 'Olá {CLIENTE_NOME}! Seu serviço (OS #{NUMERO_OS}) foi concluído. Confirme o aceite e assine pelo link:' . "\n" . '{LINK}');
 
         try {
             $this->evolution_api->enviarTexto($this->os_model->numeroNotificacao($os), $mensagem, ['tipo' => 'aceite_link', 'os_id' => $idOs]);
