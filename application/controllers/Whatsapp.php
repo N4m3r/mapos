@@ -83,7 +83,8 @@ class Whatsapp extends MY_Controller
         try {
             $this->evolution_api->enviarTexto(
                 $numero,
-                'Mensagem de teste do Mapos (Evolution API). Se você recebeu isto, o envio de WhatsApp está funcionando! ✅'
+                'Mensagem de teste do Mapos (Evolution API). Se você recebeu isto, o envio de WhatsApp está funcionando! ✅',
+                ['tipo' => 'teste']
             );
 
             return $this->json([
@@ -121,7 +122,7 @@ class Whatsapp extends MY_Controller
         $mensagem = $this->os_model->montarNotificacaoOs($idOs, $template);
 
         try {
-            $this->evolution_api->enviarTexto($this->os_model->numeroNotificacao($os), $mensagem);
+            $this->evolution_api->enviarTexto($this->os_model->numeroNotificacao($os), $mensagem, ['tipo' => 'manual', 'os_id' => $idOs]);
             log_info('Enviou notificação WhatsApp (Evolution) da OS #' . $idOs);
 
             return $this->json(['result' => true, 'mensagem' => 'Notificação enviada por WhatsApp!']);
@@ -160,7 +161,7 @@ class Whatsapp extends MY_Controller
         $mensagem = 'Olá ' . $cobranca->nomeCliente . '! Segue o link para pagamento da ' . $referencia . ":\n" . $link;
 
         try {
-            $this->evolution_api->enviarTexto($numero, $mensagem);
+            $this->evolution_api->enviarTexto($numero, $mensagem, ['tipo' => 'cobranca', 'os_id' => ($cobranca->os_id ?? null)]);
             log_info('Enviou cobrança por WhatsApp (Evolution). Cobrança #' . $idCobranca);
 
             return $this->json(['result' => true, 'mensagem' => 'Link de pagamento enviado por WhatsApp!']);
@@ -209,7 +210,7 @@ class Whatsapp extends MY_Controller
             . ', acesse o link:' . "\n" . $url;
 
         try {
-            $this->evolution_api->enviarTexto($this->os_model->numeroNotificacao($os), $mensagem);
+            $this->evolution_api->enviarTexto($this->os_model->numeroNotificacao($os), $mensagem, ['tipo' => 'aprovacao_link', 'os_id' => $idOs]);
             log_info('Enviou link de aprovação por WhatsApp (Evolution) da OS #' . $idOs);
 
             return $this->json(['result' => true, 'mensagem' => 'Link de aprovação enviado por WhatsApp!', 'url' => $url]);
@@ -258,7 +259,7 @@ class Whatsapp extends MY_Controller
             . 'Confirme o aceite e assine pelo link:' . "\n" . $url;
 
         try {
-            $this->evolution_api->enviarTexto($this->os_model->numeroNotificacao($os), $mensagem);
+            $this->evolution_api->enviarTexto($this->os_model->numeroNotificacao($os), $mensagem, ['tipo' => 'aceite_link', 'os_id' => $idOs]);
             log_info('Enviou link de aceite por WhatsApp (Evolution) da OS #' . $idOs);
 
             return $this->json(['result' => true, 'mensagem' => 'Link de aceite enviado por WhatsApp!', 'url' => $url]);

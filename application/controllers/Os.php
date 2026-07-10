@@ -1725,7 +1725,7 @@ class Os extends MY_Controller
             if (! empty($zap)) {
                 $this->load->library('evolution_api');
                 if ($this->evolution_api->estaAtivo()) {
-                    $this->evolution_api->enviarTexto($zap, $msg);
+                    $this->evolution_api->enviarTexto($zap, $msg, ['tipo' => 'tecnico_atribuicao', 'os_id' => $os_id]);
                     log_info('Notificou técnico #' . $tecnico_id . ' por WhatsApp da OS #' . $os_id);
                 }
             }

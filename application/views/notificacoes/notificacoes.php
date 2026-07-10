@@ -43,9 +43,14 @@ $rotuloCanais = Notification_triggers_model::canaisDisponiveis();
                 o que a mensagem deve conter e quais anexos incluir. Você pode ter mais de um gatilho por evento
                 (no WhatsApp, todos os ativos disparam).
             </p>
-            <a href="<?= site_url('notificacoes/novo') ?>" class="button btn btn-success btn-mini" style="white-space:nowrap">
-                <span class="button__icon"><i class="bx bx-plus-circle"></i></span><span class="button__text2">Novo gatilho</span>
-            </a>
+            <div style="white-space:nowrap">
+                <a href="<?= site_url('notificacoes/envios') ?>" class="button btn btn-inverse btn-mini">
+                    <span class="button__icon"><i class="bx bx-paper-plane"></i></span><span class="button__text2">Últimos envios</span>
+                </a>
+                <a href="<?= site_url('notificacoes/novo') ?>" class="button btn btn-success btn-mini">
+                    <span class="button__icon"><i class="bx bx-plus-circle"></i></span><span class="button__text2">Novo gatilho</span>
+                </a>
+            </div>
         </div>
         <table class="table table-bordered" style="margin-top:10px">
             <thead>

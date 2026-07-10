@@ -79,6 +79,22 @@ class Notificacoes extends MY_Controller
         redirect(site_url('notificacoes/editar/' . $id));
     }
 
+    public function envios()
+    {
+        $this->load->model('whatsapp_envios_model');
+        $status = $this->input->get('status');
+        $status = in_array($status, ['enviado', 'falha'], true) ? $status : null;
+
+        $this->data['menuConfiguracoes'] = 'Notificacoes';
+        $this->data['statusFiltro'] = $status;
+        $this->data['totalEnviados'] = $this->whatsapp_envios_model->count('enviado');
+        $this->data['totalFalhas'] = $this->whatsapp_envios_model->count('falha');
+        $this->data['envios'] = $this->whatsapp_envios_model->getUltimos(100, 0, $status);
+        $this->data['view'] = 'notificacoes/envios';
+
+        return $this->layout();
+    }
+
     public function novo()
     {
         $this->data['menuConfiguracoes'] = 'Notificacoes';

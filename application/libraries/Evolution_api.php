@@ -87,7 +87,7 @@ class Evolution_api
     /**
      * Envia uma mensagem de texto. Retorna true em sucesso ou lança \Exception.
      */
-    public function enviarTexto($numero, $mensagem)
+    public function enviarTexto($numero, $mensagem, $contexto = [])
     {
         if (! $this->estaAtivo()) {
             throw new \Exception('Notificação por WhatsApp (Evolution API) não está ativa/configurada.');
@@ -101,12 +101,53 @@ class Evolution_api
             throw new \Exception('Mensagem vazia.');
         }
 
-        $this->request('POST', '/message/sendText/' . rawurlencode($this->config['instance']), [
-            'number' => $destino,
-            'text' => $mensagem,
-        ]);
+        try {
+            $resp = $this->request('POST', '/message/sendText/' . rawurlencode($this->config['instance']), [
+                'number' => $destino,
+                'text' => $mensagem,
+            ]);
+            $this->registrarEnvio($destino, $mensagem, 'enviado', null, $resp, $contexto);
 
-        return true;
+            return true;
+        } catch (\Exception $e) {
+            $this->registrarEnvio($destino, $mensagem, 'falha', $e->getMessage(), null, $contexto);
+            throw $e;
+        }
+    }
+
+    /**
+     * Registra a tentativa de envio no log (whatsapp_envios). Nunca lança —
+     * falha de log não pode afetar o envio.
+     */
+    private function registrarEnvio($destino, $mensagem, $status, $erro, $resp, array $contexto)
+    {
+        try {
+            $this->ci->load->model('whatsapp_envios_model');
+            if (! $this->ci->whatsapp_envios_model->suportado()) {
+                return;
+            }
+
+            $retorno = null;
+            if (is_array($resp)) {
+                $retorno = $resp['key']['id'] ?? ($resp['status'] ?? null);
+                if (! is_string($retorno)) {
+                    $retorno = null;
+                }
+            }
+
+            $this->ci->whatsapp_envios_model->registrar([
+                'destino' => mb_substr((string) $destino, 0, 120),
+                'tipo' => isset($contexto['tipo']) ? mb_substr((string) $contexto['tipo'], 0, 30) : null,
+                'os_id' => isset($contexto['os_id']) && is_numeric($contexto['os_id']) ? (int) $contexto['os_id'] : null,
+                'evento' => isset($contexto['evento']) ? mb_substr((string) $contexto['evento'], 0, 80) : null,
+                'status' => $status,
+                'erro' => $erro !== null ? mb_substr((string) $erro, 0, 1000) : null,
+                'retorno' => $retorno !== null ? mb_substr($retorno, 0, 120) : null,
+                'mensagem' => mb_substr((string) $mensagem, 0, 500),
+            ]);
+        } catch (\Exception $e) {
+            // silencioso
+        }
     }
 
     /**

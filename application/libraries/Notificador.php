@@ -71,6 +71,7 @@ class Notificador
             $template = $this->configNotificaWhats();
             $mensagem = $this->ci->os_model->montarNotificacaoOs($os->idOs, $template, $emitente);
             $numeroCliente = $this->ci->os_model->numeroNotificacao($os);
+            $ctx = ['os_id' => $os->idOs, 'evento' => implode(',', array_filter((array) $eventos))];
 
             // Deduplica por destinatário (a mensagem é a mesma para todos os gatilhos).
             $enviouCliente = false;
@@ -81,12 +82,12 @@ class Notificador
                 $destTecnico = $t ? in_array('tecnico', Notification_triggers_model::toList($t->destinatarios), true) : false;
 
                 if ($destCliente && ! $enviouCliente && ! empty($numeroCliente)) {
-                    $this->ci->evolution_api->enviarTexto($numeroCliente, $mensagem);
+                    $this->ci->evolution_api->enviarTexto($numeroCliente, $mensagem, ['tipo' => 'cliente'] + $ctx);
                     log_info('Notificação WhatsApp (cliente) enviada. OS #' . $os->idOs);
                     $enviouCliente = true;
                 }
                 if ($destTecnico && ! $enviouTecnico && ! empty($os->telefone_usuario)) {
-                    $this->ci->evolution_api->enviarTexto($os->telefone_usuario, $mensagem);
+                    $this->ci->evolution_api->enviarTexto($os->telefone_usuario, $mensagem, ['tipo' => 'tecnico'] + $ctx);
                     log_info('Notificação WhatsApp (técnico) enviada. OS #' . $os->idOs);
                     $enviouTecnico = true;
                 }
@@ -94,7 +95,7 @@ class Notificador
                 if ($t && ! empty($t->whatsapp_grupos)) {
                     foreach (Notification_triggers_model::toList($t->whatsapp_grupos) as $jid) {
                         if (! in_array($jid, $gruposEnviados, true)) {
-                            $this->ci->evolution_api->enviarTexto($jid, $mensagem);
+                            $this->ci->evolution_api->enviarTexto($jid, $mensagem, ['tipo' => 'grupo'] + $ctx);
                             log_info('Notificação WhatsApp (grupo ' . $jid . ') enviada. OS #' . $os->idOs);
                             $gruposEnviados[] = $jid;
                         }

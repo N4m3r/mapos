@@ -5,6 +5,9 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Log de envios de WhatsApp: nova página **Configurações → Notificações → "Últimos envios"** mostrando cada envio pela Evolution API (destino, tipo, OS, evento, status **Enviado/Falha** e o motivo do erro). Cada tentativa é registrada automaticamente. Requer rodar `updates/update_whatsapp_envios.sql`.
+
 ### Fixed
 - Gatilhos de WhatsApp não disparavam para os eventos **os_aprovada** e **os_finalizada** (só `os_aberta`/`os_editada` estavam ligados). Agora a aprovação (link público e portal) dispara `os_aprovada`, e a finalização da OS dispara `os_finalizada`. O disparo foi centralizado numa biblioteca `Notificador` reutilizável.
 
