@@ -1997,6 +1997,7 @@ class Os extends MY_Controller
             // Deduplica por destinatário (a mensagem é a mesma para todos os gatilhos).
             $enviouCliente = false;
             $enviouTecnico = false;
+            $gruposEnviados = [];
             foreach ($triggers as $t) {
                 $destCliente = $t ? in_array('cliente', Notification_triggers_model::toList($t->destinatarios), true) : true;
                 $destTecnico = $t ? in_array('tecnico', Notification_triggers_model::toList($t->destinatarios), true) : false;
@@ -2010,6 +2011,17 @@ class Os extends MY_Controller
                     $this->evolution_api->enviarTexto($os->telefone_usuario, $mensagem);
                     log_info('Notificação WhatsApp (técnico) enviada. OS #' . $os->idOs);
                     $enviouTecnico = true;
+                }
+
+                // Grupos de WhatsApp selecionados no gatilho (JIDs "...@g.us").
+                if ($t && ! empty($t->whatsapp_grupos)) {
+                    foreach (Notification_triggers_model::toList($t->whatsapp_grupos) as $jid) {
+                        if (! in_array($jid, $gruposEnviados, true)) {
+                            $this->evolution_api->enviarTexto($jid, $mensagem);
+                            log_info('Notificação WhatsApp (grupo ' . $jid . ') enviada. OS #' . $os->idOs);
+                            $gruposEnviados[] = $jid;
+                        }
+                    }
                 }
             }
         } catch (\Exception $e) {

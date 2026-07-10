@@ -68,6 +68,9 @@ class Notificacoes extends MY_Controller
             'anexos' => $this->listaPost('anexos'),
             'template_slug' => $this->input->post('template_slug') ?: null,
         ];
+        if ($this->db->field_exists('whatsapp_grupos', 'notification_triggers')) {
+            $data['whatsapp_grupos'] = $this->listaPost('whatsapp_grupos');
+        }
 
         $this->notification_triggers_model->update($id, $data);
 
@@ -107,6 +110,9 @@ class Notificacoes extends MY_Controller
             'anexos' => $this->listaPost('anexos'),
             'template_slug' => $this->input->post('template_slug') ?: null,
         ];
+        if ($this->db->field_exists('whatsapp_grupos', 'notification_triggers')) {
+            $data['whatsapp_grupos'] = $this->listaPost('whatsapp_grupos');
+        }
 
         $id = $this->notification_triggers_model->create($data);
         if ($id) {

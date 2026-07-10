@@ -28,6 +28,22 @@ class Whatsapp extends MY_Controller
     }
 
     /**
+     * Lista os grupos de WhatsApp da instância (JSON) para o gatilho selecionar.
+     */
+    public function grupos()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'cSistema')) {
+            return $this->json(['result' => false, 'mensagem' => 'Sem permissão.'], 403);
+        }
+
+        try {
+            return $this->json(['result' => true, 'grupos' => $this->evolution_api->listarGrupos()]);
+        } catch (\Exception $e) {
+            return $this->json(['result' => false, 'mensagem' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
      * Testa a conexão com a instância Evolution (botão na tela Configurar).
      */
     public function testar()

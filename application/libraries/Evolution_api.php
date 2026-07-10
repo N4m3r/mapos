@@ -93,20 +93,67 @@ class Evolution_api
             throw new \Exception('Notificação por WhatsApp (Evolution API) não está ativa/configurada.');
         }
 
-        $numero = $this->formatarNumero($numero);
-        if ($numero === '') {
-            throw new \Exception('Número de WhatsApp do destinatário não informado.');
+        $destino = $this->formatarDestino($numero);
+        if ($destino === '') {
+            throw new \Exception('Número/grupo de WhatsApp do destinatário não informado.');
         }
         if (trim((string) $mensagem) === '') {
             throw new \Exception('Mensagem vazia.');
         }
 
         $this->request('POST', '/message/sendText/' . rawurlencode($this->config['instance']), [
-            'number' => $numero,
+            'number' => $destino,
             'text' => $mensagem,
         ]);
 
         return true;
+    }
+
+    /**
+     * Normaliza o destino: um JID de grupo (contém "@", ex.: "12036...@g.us")
+     * vai como está; um telefone comum é formatado com DDI 55.
+     */
+    public function formatarDestino($destino)
+    {
+        $destino = trim((string) $destino);
+        if ($destino === '') {
+            return '';
+        }
+        if (strpos($destino, '@') !== false) {
+            return $destino; // JID de grupo/contato
+        }
+
+        return $this->formatarNumero($destino);
+    }
+
+    /**
+     * Lista os grupos de WhatsApp da instância (para o gatilho escolher).
+     * Retorna [ ['id' => '...@g.us', 'nome' => 'Assunto'], ... ].
+     */
+    public function listarGrupos()
+    {
+        if (! $this->estaConfigurado()) {
+            throw new \Exception('Preencha URL, API Key e Instância antes de listar os grupos.');
+        }
+
+        $resp = $this->request('GET', '/group/fetchAllGroups/' . rawurlencode($this->config['instance']) . '?getParticipants=false');
+
+        // A Evolution pode retornar um array direto ou { "groups": [...] }.
+        $lista = (isset($resp['groups']) && is_array($resp['groups'])) ? $resp['groups'] : $resp;
+        $grupos = [];
+        if (is_array($lista)) {
+            foreach ($lista as $g) {
+                if (! is_array($g)) {
+                    continue;
+                }
+                $id = $g['id'] ?? ($g['jid'] ?? null);
+                if (! empty($id)) {
+                    $grupos[] = ['id' => $id, 'nome' => $g['subject'] ?? ($g['name'] ?? $id)];
+                }
+            }
+        }
+
+        return $grupos;
     }
 
     /**
