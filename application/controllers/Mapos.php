@@ -387,7 +387,12 @@ class Mapos extends MY_Controller {
         }
 
         $emitente = $this->mapos_model->getEmitente();
-        $from = ($emitente && ! empty($emitente->email)) ? $emitente->email : ($_ENV['EMAIL_SMTP_USER'] ?? 'no-reply@localhost');
+        $emailEmitente = ($emitente && ! empty($emitente->email)) ? $emitente->email : '';
+        $smtpUser = isset($_ENV['EMAIL_SMTP_USER']) ? trim($_ENV['EMAIL_SMTP_USER']) : '';
+        // From deve bater com a conta SMTP autenticada (senão o SPF do destino
+        // reprova e o e-mail é aceito mas não chega). O emitente vira Reply-To.
+        $from = (strpos($smtpUser, '@') !== false) ? $smtpUser : ($emailEmitente ?: 'no-reply@localhost');
+        $replyTo = $emailEmitente ?: $from;
         $nomeFrom = ($emitente && ! empty($emitente->nome)) ? $emitente->nome : 'Map-OS';
 
         // PDF de exemplo em arquivo temporário.
@@ -397,6 +402,9 @@ class Mapos extends MY_Controller {
         $this->load->library('email');
         $this->email->clear(true);
         $this->email->from($from, $nomeFrom);
+        if ($replyTo && strcasecmp($replyTo, $from) !== 0) {
+            $this->email->reply_to($replyTo, $nomeFrom);
+        }
         $this->email->to($dest);
         $this->email->subject('Teste de envio (NF + Boleto) - ' . $nomeFrom);
         $this->email->message(

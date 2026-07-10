@@ -143,6 +143,7 @@ class MY_Email extends CI_Email
             $bcc = ! empty($email->bcc) ? explode(', ', $email->bcc) : [];
 
             $this->_headers = unserialize($email->headers);
+            $this->alinharRemetente();
 
             $this->to($recipients);
             $this->cc($cc);
@@ -206,6 +207,46 @@ class MY_Email extends CI_Email
         $this->CI->db->update($this->table_email_queue);
 
         log_message('debug', 'Email queue retrying...');
+    }
+
+    /**
+     * Alinha o remetente (From/Return-Path = MAIL FROM do SMTP) à conta SMTP
+     * autenticada (EMAIL_SMTP_USER). Sem isso, um From de domínio diferente do
+     * usuário SMTP reprova no SPF do destino e o e-mail é aceito mas não entregue
+     * ("enviado" no log, mas não chega). O e-mail original do emitente vira
+     * Reply-To para não perder o endereço de resposta.
+     */
+    private function alinharRemetente()
+    {
+        $smtpUser = isset($_ENV['EMAIL_SMTP_USER']) ? trim($_ENV['EMAIL_SMTP_USER']) : '';
+        if (strpos($smtpUser, '@') === false) {
+            return; // usuário SMTP não é um e-mail completo (ex.: só login) — não mexe
+        }
+
+        $fromOriginal = isset($this->_headers['From']) ? (string) $this->_headers['From'] : '';
+        $emailOrig = '';
+        if (preg_match('/<([^>]+)>/', $fromOriginal, $m)) {
+            $emailOrig = trim($m[1]);
+        } else {
+            $emailOrig = trim($fromOriginal);
+        }
+
+        // Já alinhado: nada a fazer.
+        if ($emailOrig !== '' && strcasecmp($emailOrig, $smtpUser) === 0) {
+            return;
+        }
+
+        // Preserva o nome de exibição (ex.: nome da empresa).
+        $nome = trim(preg_replace('/<[^>]*>/', '', $fromOriginal));
+        $nome = trim($nome, " \"'");
+
+        $this->_headers['From'] = ($nome !== '' ? '"' . $nome . '" ' : '') . '<' . $smtpUser . '>';
+        $this->_headers['Return-Path'] = '<' . $smtpUser . '>';
+
+        // Respostas vão para o e-mail original do emitente (se houver e for diferente).
+        if ($emailOrig !== '' && strcasecmp($emailOrig, $smtpUser) !== 0) {
+            $this->_headers['Reply-To'] = ($nome !== '' ? '"' . $nome . '" ' : '') . '<' . $emailOrig . '>';
+        }
     }
 
     /**
