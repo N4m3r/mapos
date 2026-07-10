@@ -370,9 +370,19 @@
                             </div>
                         </div>
                         <div class="control-group">
+                            <label for="whatsapp_test_number" class="control-label">Número para teste</label>
+                            <div class="controls">
+                                <input type="text" id="whatsapp_test_number" placeholder="Ex.: 5592999998888 (com DDI 55 e DDD)">
+                                <span class="help-inline">Informe um número para enviar uma mensagem de teste e validar o envio.</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
                             <div class="controls">
                                 <button type="button" id="btnTestarWhatsapp" class="button btn btn-success">
                                     <span class="button__icon"><i class='bx bx-plug'></i></span><span class="button__text2">Testar conexão</span>
+                                </button>
+                                <button type="button" id="btnEnviarTesteWhatsapp" class="button btn btn-primary">
+                                    <span class="button__icon"><i class='bx bxl-whatsapp'></i></span><span class="button__text2">Enviar mensagem de teste</span>
                                 </button>
                                 <span id="testarWhatsappResultado" style="margin-left:10px;"></span>
                                 <span class="help-block">Salve as alterações antes de testar — o teste usa as credenciais já salvas.</span>
@@ -612,25 +622,37 @@
             $(this).prop('selectedIndex', 0);
         });
 
-        $('#btnTestarWhatsapp').click(function() {
-            var $btn = $(this);
+        function testarWhatsapp(enviar) {
             var $out = $('#testarWhatsappResultado');
-            $btn.prop('disabled', true);
-            $out.html('<i class="bx bx-loader bx-spin"></i> Testando...');
+            var dados = {};
+            if (enviar) {
+                var numero = $.trim($('#whatsapp_test_number').val());
+                if (!numero) {
+                    $out.html('<span style="color:#b94a48">Informe um número para enviar a mensagem de teste.</span>');
+                    return;
+                }
+                dados.numero = numero;
+            }
+            $('#btnTestarWhatsapp, #btnEnviarTesteWhatsapp').prop('disabled', true);
+            $out.html('<i class="bx bx-loader bx-spin"></i> ' + (enviar ? 'Enviando teste...' : 'Testando conexão...'));
             $.ajax({
                 url: '<?= site_url('whatsapp/testar') ?>',
                 type: 'POST',
-                dataType: 'json'
+                dataType: 'json',
+                data: dados
             }).done(function(data) {
                 var cor = data.result ? 'green' : '#c09853';
                 $out.html('<span style="color:' + cor + '">' + (data.mensagem || '') + '</span>');
             }).fail(function(xhr) {
-                var msg = 'Falha ao testar a conexão.';
+                var msg = 'Falha ao testar.';
                 try { msg = JSON.parse(xhr.responseText).mensagem || msg; } catch (e) {}
                 $out.html('<span style="color:#b94a48">' + msg + '</span>');
             }).always(function() {
-                $btn.prop('disabled', false);
+                $('#btnTestarWhatsapp, #btnEnviarTesteWhatsapp').prop('disabled', false);
             });
-        });
+        }
+
+        $('#btnTestarWhatsapp').click(function() { testarWhatsapp(false); });
+        $('#btnEnviarTesteWhatsapp').click(function() { testarWhatsapp(true); });
     });
 </script>

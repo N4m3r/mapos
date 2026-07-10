@@ -36,19 +36,49 @@ class Whatsapp extends MY_Controller
             return $this->json(['result' => false, 'mensagem' => 'Sem permissão.'], 403);
         }
 
+        $numero = trim((string) $this->input->post('numero'));
+
+        // 1) Testa a conexão (best-effort — não aborta o teste de envio, pois em
+        // algumas instalações o endpoint de status difere/falha mesmo com o envio OK).
+        $estado = null;
+        $connErro = null;
         try {
             $estado = $this->evolution_api->testarConexao();
-            $conectado = in_array($estado, ['open', 'connected'], true);
+        } catch (\Exception $e) {
+            $connErro = $e->getMessage();
+        }
+        $conectado = in_array($estado, ['open', 'connected'], true);
+        $msgConn = $connErro !== null
+            ? 'Conexão: falhou (' . $connErro . ').'
+            : ($conectado
+                ? 'Conexão OK (estado: ' . $estado . ').'
+                : 'A instância respondeu, mas não está conectada (estado: ' . $estado . ').');
+
+        // 2) Sem número: só reporta a conexão.
+        if ($numero === '') {
+            if ($connErro !== null) {
+                return $this->json(['result' => false, 'mensagem' => $msgConn], 400);
+            }
+
+            return $this->json(['result' => $conectado, 'estado' => $estado, 'mensagem' => $msgConn]);
+        }
+
+        // 3) Com número: envia uma mensagem de teste (independente do status acima).
+        try {
+            $this->evolution_api->enviarTexto(
+                $numero,
+                'Mensagem de teste do Mapos (Evolution API). Se você recebeu isto, o envio de WhatsApp está funcionando! ✅'
+            );
 
             return $this->json([
-                'result' => $conectado,
-                'estado' => $estado,
-                'mensagem' => $conectado
-                    ? 'Instância conectada.'
-                    : 'A instância respondeu, mas não está conectada (estado: ' . $estado . ').',
+                'result' => true,
+                'mensagem' => 'Mensagem de teste enviada para ' . $this->evolution_api->formatarNumero($numero) . ' — confira o WhatsApp. ' . $msgConn,
             ]);
         } catch (\Exception $e) {
-            return $this->json(['result' => false, 'mensagem' => $e->getMessage()], 400);
+            return $this->json([
+                'result' => false,
+                'mensagem' => 'Falha ao ENVIAR a mensagem de teste: ' . $e->getMessage() . ' | ' . $msgConn,
+            ], 400);
         }
     }
 
