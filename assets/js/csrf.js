@@ -27,11 +27,19 @@ $(document).ready(function () {
     $.ajaxSetup({
         credentials: "include",
         beforeSend: function (jqXHR, settings) {
-            if (typeof settings.data === 'object') {
-                settings.data[csrfTokenName] = getCookie(csrfCookieName);
-            } else {
+            var csrfToken = getCookie(csrfCookieName);
+            if (settings.data && typeof settings.data === 'object') {
+                settings.data[csrfTokenName] = csrfToken;
+            } else if (settings.data) {
                 settings.data += '&' + $.param({
-                    [csrfTokenName]: getCookie(csrfCookieName)
+                    [csrfTokenName]: csrfToken
+                });
+            } else {
+                // Requisições POST sem "data" (ex.: botões WhatsApp) também
+                // precisam do token; sem este ramo o corpo virava
+                // "undefined&token=..." e o CodeIgniter rejeitava com 403.
+                settings.data = $.param({
+                    [csrfTokenName]: csrfToken
                 });
             }
 
