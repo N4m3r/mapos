@@ -112,6 +112,7 @@
             <li><a href="<?= site_url('permissoes') ?>">Permissões</a></li>
             <li><a href="<?= site_url('auditoria') ?>">Auditoria</a></li>
             <li><a href="<?= site_url('mapos/emails') ?>">Emails</a></li>
+            <li><a href="<?= site_url('mapos/emailsLog') ?>">Log de e-mails</a></li>
             <li><a href="<?= site_url('emailtemplates') ?>">Modelos de E-mail</a></li>
             <li><a href="<?= site_url('whatsapptemplates') ?>">Modelos de WhatsApp</a></li>
             <li><a href="<?= site_url('notificacoes') ?>">Notificações / Gatilhos</a></li>

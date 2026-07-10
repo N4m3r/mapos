@@ -166,9 +166,12 @@ class MY_Email extends CI_Email
 
             if ($this->send(true)) {
                 $status = 'sent';
+                $this->registrarEnvioLog($email->to, $this->_headers['Subject'] ?? '', 'fila', 'enviado', null);
             } else {
-                log_message('error', $this->print_debugger());
+                $debug = $this->print_debugger();
+                log_message('error', $debug);
                 $status = 'failed';
+                $this->registrarEnvioLog($email->to, $this->_headers['Subject'] ?? '', 'fila', 'falha', $debug);
             }
 
             // Remove os arquivos temporários baixados para os anexos.
@@ -203,6 +206,29 @@ class MY_Email extends CI_Email
         $this->CI->db->update($this->table_email_queue);
 
         log_message('debug', 'Email queue retrying...');
+    }
+
+    /**
+     * Registra o envio no log (email_envios). Nunca lança — falha de log não
+     * pode afetar o processamento da fila.
+     */
+    public function registrarEnvioLog($destino, $assunto, $tipo, $status, $erro)
+    {
+        try {
+            $this->CI->load->model('email_envios_model');
+            if (! $this->CI->email_envios_model->suportado()) {
+                return;
+            }
+            $this->CI->email_envios_model->registrar([
+                'destino' => mb_substr((string) $destino, 0, 255),
+                'assunto' => mb_substr((string) $assunto, 0, 255),
+                'tipo' => mb_substr((string) $tipo, 0, 30),
+                'status' => $status,
+                'erro' => $erro !== null ? mb_substr((string) $erro, 0, 4000) : null,
+            ]);
+        } catch (\Exception $e) {
+            // silencioso
+        }
     }
 
     /**

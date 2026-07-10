@@ -408,6 +408,7 @@ class Mapos extends MY_Controller {
 
         $ok = $this->email->send(true); // true = envia imediatamente (não enfileira)
         $debug = $ok ? '' : $this->email->print_debugger(['headers', 'subject']);
+        $this->email->registrarEnvioLog($dest, 'Teste de envio (NF + Boleto)', 'teste', $ok ? 'enviado' : 'falha', $ok ? null : $debug);
         @unlink($tmp);
 
         if ($ok) {
@@ -449,6 +450,30 @@ class Mapos extends MY_Controller {
         $pdf .= "trailer<</Size 6/Root 1 0 R>>\nstartxref\n" . $xrefPos . "\n%%EOF";
 
         return $pdf;
+    }
+
+    /**
+     * Log de e-mails enviados (fila e testes), com status e motivo da falha.
+     */
+    public function emailsLog()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'cEmail')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para visualizar o log de e-mails');
+            redirect(base_url());
+        }
+
+        $this->load->model('email_envios_model');
+        $status = $this->input->get('status');
+        $status = in_array($status, ['enviado', 'falha'], true) ? $status : null;
+
+        $this->data['menuConfiguracoes'] = 'Email';
+        $this->data['statusFiltro'] = $status;
+        $this->data['totalEnviados'] = $this->email_envios_model->count('enviado');
+        $this->data['totalFalhas'] = $this->email_envios_model->count('falha');
+        $this->data['envios'] = $this->email_envios_model->getUltimos(100, 0, $status);
+        $this->data['view'] = 'mapos/emailsLog';
+
+        return $this->layout();
     }
 
     public function emails()

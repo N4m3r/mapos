@@ -6,6 +6,8 @@ e [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 ### Added
+- Log de e-mails enviados: nova página **Configurações → Log de e-mails** que registra **todo** envio (fila e teste), com destino, assunto, tipo, status **Enviado/Falha** e o motivo do erro do SMTP. Requer rodar `updates/update_email_envios.sql`.
+- Teste de envio de e-mail com anexo (simula NF/Boleto): botão na aba E-mail de Configurar Sistema que envia na hora um e-mail com um PDF de exemplo, usando o SMTP salvo, mostrando sucesso ou o erro real do servidor.
 - Modelos de WhatsApp: nova tela **Configurações → Modelos de WhatsApp** para editar as mensagens enviadas em cada situação (Notificação da OS, Cobrança/link de pagamento, Link de aprovação e Link de aceite), com tags de substituição e formatação. O modelo da OS herda o texto atual de `notifica_whats`. Agora também é possível **criar/excluir modelos personalizados** e **selecionar o modelo em cada gatilho** (o disparo usa o modelo do gatilho, com fallback para o padrão da OS). Requer rodar `updates/update_whatsapp_templates.sql` e `updates/update_notification_template.sql` (ou o combinado `updates/update_whatsapp_completo.sql`).
 - Log de envios de WhatsApp: nova página **Configurações → Notificações → "Últimos envios"** mostrando cada envio pela Evolution API (destino, tipo, OS, evento, status **Enviado/Falha** e o motivo do erro). Cada tentativa é registrada automaticamente. Requer rodar `updates/update_whatsapp_envios.sql`.
 
