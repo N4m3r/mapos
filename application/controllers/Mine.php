@@ -673,6 +673,11 @@ class Mine extends CI_Controller
         $this->aprovacao_model->registrarDecisao($idOs, $decisao, $nome, $obs, $this->input->ip_address());
         log_info('Cliente ' . $nome . ' ' . $decisao . ' a OS #' . $idOs . ' pelo portal.');
 
+        if ($decisao === 'aprovado') {
+            $this->load->library('notificador');
+            $this->notificador->whatsappOs($idOs, 'os_aprovada');
+        }
+
         $this->session->set_flashdata('success', 'OS #' . $idOs . ' ' . ($decisao === 'aprovado' ? 'aprovada' : 'reprovada') . ' com sucesso!');
         redirect('mine/aprovacoes');
     }

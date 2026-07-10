@@ -5,6 +5,9 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- Gatilhos de WhatsApp não disparavam para os eventos **os_aprovada** e **os_finalizada** (só `os_aberta`/`os_editada` estavam ligados). Agora a aprovação (link público e portal) dispara `os_aprovada`, e a finalização da OS dispara `os_finalizada`. O disparo foi centralizado numa biblioteca `Notificador` reutilizável.
+
 ### Added
 - Gatilhos de WhatsApp podem disparar para **grupos**: no gatilho, botão "Carregar grupos do WhatsApp" puxa a lista de grupos da instância (Evolution API) e permite selecionar para quais grupos a mensagem é enviada, além dos destinatários normais. Requer rodar `updates/update_notification_grupos.sql`.
 - Faturamento agendado (emissão em espera): novo checkbox **"Faturamento agendado"** na ficha do cliente. Para clientes marcados, ao aprovar a OS no meio do mês a automação **não** emite na hora — a NFS-e e o boleto ficam em espera e são emitidos no **dia de faturamento** configurado (padrão dia 01) em Configurações → Automação. A fila é liberada sozinha (mesmo pulso da fila de e-mails, ~2 min, sem cron), com painel "Faturamentos em espera" para acompanhar, processar os vencidos na hora ou cancelar. Requer rodar a migration `20260710000001_add_faturamento_agendado`.

@@ -102,6 +102,10 @@ class Aprovacao extends CI_Controller
         if ($decisao === 'aprovado') {
             $this->load->library('autoaprovacao');
             $this->autoaprovacao->executar($os->idOs);
+
+            // Notificação WhatsApp do evento os_aprovada (gatilhos ativos).
+            $this->load->library('notificador');
+            $this->notificador->whatsappOs($os->idOs, 'os_aprovada');
         }
 
         redirect('aprovacao/' . $token);
