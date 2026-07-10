@@ -89,6 +89,16 @@ function dispatch_email_queue()
         log_message('error', 'Falha ao processar fila de e-mails: ' . $e->getMessage());
     }
 
+    // No mesmo pulso, libera a fila de faturamento agendado que já venceu
+    // (emissões seguradas até o dia de faturamento). Best-effort e isolado.
+    try {
+        $CI = &get_instance();
+        $CI->load->library('autoaprovacao');
+        $CI->autoaprovacao->processarPendentes();
+    } catch (\Throwable $e) {
+        log_message('error', 'Falha ao processar faturamento agendado: ' . $e->getMessage());
+    }
+
     flock($handle, LOCK_UN);
     fclose($handle);
 }

@@ -62,29 +62,46 @@ class Autoaprovacao
                 return null; // cliente não habilitado e sem override
             }
 
-            // Já existe NFS-e ativa? Não emite outra; se autorizada, segue para o boleto.
-            $notaExistente = $this->CI->nfe_model->getNotaAtiva('nfse', 'os_id', $idOs);
-            if ($notaExistente) {
-                if ($notaExistente->status === 'autorizada') {
-                    $this->gerarBoleto($notaExistente->idNota);
-                }
-
-                return ['nota' => $notaExistente->idNota, 'reaproveitou' => true];
+            // Faturamento agendado: segura a emissão até o dia de faturamento
+            // (padrão dia 01). Só entra na fila se o cliente estiver marcado e
+            // hoje ainda não for o dia de emissão.
+            if ($this->deveAgendar($os)) {
+                return $this->agendar($idOs, $os);
             }
 
-            $idNota = $this->emitirNfse($idOs, $os);
-            if (! $idNota) {
-                return ['nota' => null, 'sucesso' => false];
-            }
-
-            $this->gerarBoleto($idNota);
-
-            return ['nota' => $idNota, 'sucesso' => true];
+            return $this->emitirAgora($idOs, $os);
         } catch (\Throwable $e) {
             log_info('Automação de aprovação falhou (OS ' . $idOs . '): ' . $e->getMessage());
 
             return null;
         }
+    }
+
+    /**
+     * Emite a NFS-e + boleto imediatamente para a OS. É o fluxo "na hora",
+     * usado tanto pela aprovação direta quanto pela fila de faturamento
+     * agendado quando chega o dia de emissão.
+     */
+    public function emitirAgora($idOs, $os)
+    {
+        // Já existe NFS-e ativa? Não emite outra; se autorizada, segue para o boleto.
+        $notaExistente = $this->CI->nfe_model->getNotaAtiva('nfse', 'os_id', $idOs);
+        if ($notaExistente) {
+            if ($notaExistente->status === 'autorizada') {
+                $this->gerarBoleto($notaExistente->idNota);
+            }
+
+            return ['nota' => $notaExistente->idNota, 'reaproveitou' => true, 'sucesso' => true];
+        }
+
+        $idNota = $this->emitirNfse($idOs, $os);
+        if (! $idNota) {
+            return ['nota' => null, 'sucesso' => false];
+        }
+
+        $this->gerarBoleto($idNota);
+
+        return ['nota' => $idNota, 'sucesso' => true];
     }
 
     /**
@@ -190,6 +207,170 @@ class Autoaprovacao
 
             return null;
         }
+    }
+
+    /**
+     * Decide se a emissão desta OS deve ser segurada (agendada) em vez de sair
+     * na hora. Verdadeiro quando o cliente está marcado como "faturamento
+     * agendado" e hoje ainda não é o dia de faturamento configurado.
+     */
+    private function deveAgendar($os)
+    {
+        if (empty($os->faturamento_agendado)) {
+            return false;
+        }
+        // No próprio dia de faturamento, emite na hora (não faz sentido segurar).
+        return (int) date('j') !== $this->diaFaturamento();
+    }
+
+    /**
+     * Coloca a emissão na fila de faturamento agendado. Idempotente por OS:
+     * não duplica se já houver um agendamento aguardando para a mesma OS.
+     * Retorna um array de telemetria (para log).
+     */
+    private function agendar($idOs, $os)
+    {
+        if (! $this->CI->db->table_exists('faturamentos_agendados')) {
+            // Ambiente sem a migration ainda: não segura, emite na hora.
+            return $this->emitirAgora($idOs, $os);
+        }
+
+        $jaExiste = $this->CI->db
+            ->where('os_id', $idOs)
+            ->where('status', 'aguardando')
+            ->count_all_results('faturamentos_agendados');
+        if ($jaExiste > 0) {
+            return ['agendado' => true, 'reaproveitou' => true];
+        }
+
+        $dataAgendada = $this->proximaDataFaturamento();
+        $this->CI->db->insert('faturamentos_agendados', [
+            'os_id' => $idOs,
+            'cliente_id' => $os->clientes_id ?? null,
+            'data_aprovacao' => date('Y-m-d H:i:s'),
+            'data_agendada' => $dataAgendada,
+            'status' => 'aguardando',
+            'tentativas' => 0,
+            'created_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        log_info('Automação: emissão da OS ' . $idOs . ' agendada para ' . $dataAgendada . ' (faturamento agendado).');
+
+        return ['agendado' => true, 'data' => $dataAgendada];
+    }
+
+    /**
+     * Processa a fila de faturamentos agendados que já venceram (data_agendada
+     * <= hoje). Chamado pelo hook post_system (~2 min), sem cron externo.
+     * Best-effort: falhas ficam registradas na própria fila para nova tentativa.
+     */
+    public function processarPendentes($limite = 20)
+    {
+        try {
+            if (! $this->CI->db->table_exists('faturamentos_agendados')) {
+                return;
+            }
+
+            $pendentes = $this->CI->db
+                ->where('status', 'aguardando')
+                ->where('data_agendada <=', date('Y-m-d'))
+                ->order_by('data_agendada', 'ASC')
+                ->limit((int) $limite)
+                ->get('faturamentos_agendados')
+                ->result();
+
+            if (empty($pendentes)) {
+                return;
+            }
+
+            $this->CI->load->model('os_model');
+            $this->CI->load->model('nfe_model');
+            $this->CI->load->model('mapos_model');
+
+            foreach ($pendentes as $item) {
+                $this->processarAgendado($item);
+            }
+        } catch (\Throwable $e) {
+            log_info('Automação: falha ao processar fila de faturamento agendado: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Emite um item da fila de faturamento agendado e atualiza seu status.
+     */
+    private function processarAgendado($item)
+    {
+        try {
+            $os = $this->CI->os_model->getById($item->os_id);
+            // OS sumiu ou não está mais aprovada → cancela o agendamento.
+            if (! $os || (isset($os->aprovacao_status) && $os->aprovacao_status !== 'aprovado')) {
+                $this->CI->db->where('id', $item->id)->update('faturamentos_agendados', [
+                    'status' => 'cancelado',
+                    'motivo' => 'OS inexistente ou não aprovada no dia da emissão.',
+                    'processed_at' => date('Y-m-d H:i:s'),
+                ]);
+
+                return;
+            }
+
+            $resultado = $this->emitirAgora($item->os_id, $os);
+
+            if (! empty($resultado['sucesso'])) {
+                $this->CI->db->where('id', $item->id)->update('faturamentos_agendados', [
+                    'status' => 'processado',
+                    'nota_id' => $resultado['nota'] ?? null,
+                    'motivo' => null,
+                    'processed_at' => date('Y-m-d H:i:s'),
+                ]);
+                log_info('Automação: faturamento agendado da OS ' . $item->os_id . ' emitido (nota ' . ($resultado['nota'] ?? '?') . ').');
+
+                return;
+            }
+
+            // Falhou: incrementa tentativas; após 5, marca erro (para revisão manual).
+            $tentativas = (int) $item->tentativas + 1;
+            $this->CI->db->where('id', $item->id)->update('faturamentos_agendados', [
+                'status' => $tentativas >= 5 ? 'erro' : 'aguardando',
+                'tentativas' => $tentativas,
+                'motivo' => 'Emissão não concluída (tentativa ' . $tentativas . ').',
+            ]);
+        } catch (\Throwable $e) {
+            $tentativas = (int) $item->tentativas + 1;
+            $this->CI->db->where('id', $item->id)->update('faturamentos_agendados', [
+                'status' => $tentativas >= 5 ? 'erro' : 'aguardando',
+                'tentativas' => $tentativas,
+                'motivo' => mb_substr($e->getMessage(), 0, 500),
+            ]);
+            log_info('Automação: erro ao emitir faturamento agendado da OS ' . $item->os_id . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Dia do mês configurado para liberar a fila (1..28). Padrão: dia 01.
+     */
+    private function diaFaturamento()
+    {
+        $dia = (int) $this->cfg('automacao_faturamento_dia');
+        if ($dia < 1 || $dia > 28) {
+            $dia = 1;
+        }
+
+        return $dia;
+    }
+
+    /**
+     * Próxima ocorrência do dia de faturamento (formato Y-m-d). Se hoje ainda
+     * não passou do dia no mês corrente, usa o mês corrente; senão, o próximo.
+     */
+    private function proximaDataFaturamento()
+    {
+        $dia = $this->diaFaturamento();
+        $hojeDia = (int) date('j');
+
+        $base = ($hojeDia < $dia) ? new \DateTime('first day of this month') : new \DateTime('first day of next month');
+        $base->setDate((int) $base->format('Y'), (int) $base->format('n'), $dia);
+
+        return $base->format('Y-m-d');
     }
 
     /**

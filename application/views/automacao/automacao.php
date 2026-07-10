@@ -79,6 +79,20 @@ $tokenHash = $this->security->get_csrf_hash();
                 </div>
             </div>
 
+            <h5 style="color:#1e3a8a; margin-top:18px">Faturamento agendado</h5>
+            <p style="color:#6b7191; font-size:12px; margin-top:0">
+                Para clientes marcados com <strong>“Faturamento agendado”</strong> na ficha, a aprovação no meio do mês
+                <strong>não</strong> emite na hora: a NFS-e e o boleto ficam em espera e são emitidos no dia abaixo.
+            </p>
+            <div class="control-group">
+                <label class="control-label" for="automacao_faturamento_dia">Dia do faturamento</label>
+                <div class="controls">
+                    <input id="automacao_faturamento_dia" type="number" min="1" max="28" name="automacao_faturamento_dia"
+                        value="<?= html_escape($automacao_faturamento_dia) ?>" style="width:80px">
+                    <span class="help-inline">Dia do mês (1 a 28) em que a fila é liberada. Padrão: 1.</span>
+                </div>
+            </div>
+
             <div style="margin-top:12px">
                 <button type="submit" class="button btn btn-success">
                     <span class="button__icon"><i class="bx bx-save"></i></span>
@@ -86,5 +100,62 @@ $tokenHash = $this->security->get_csrf_hash();
                 </button>
             </div>
         </form>
+    </div>
+</div>
+
+<div class="widget-box">
+    <div class="widget-title" style="margin: -20px 0 0">
+        <span class="icon"><i class="fas fa-clock"></i></span>
+        <h5>Faturamentos em espera</h5>
+    </div>
+    <div class="widget-content">
+        <?php $agendados = isset($agendados) ? $agendados : []; ?>
+        <div style="margin-bottom:12px">
+            <a href="<?= site_url('automacao/processarAgendados') ?>" class="btn btn-primary btn-mini"
+                onclick="return confirm('Emitir agora todos os itens já vencidos (data igual ou anterior a hoje)?');">
+                <i class="bx bx-play"></i> Processar vencidos agora
+            </a>
+            <span class="help-inline" style="margin-left:8px">A fila também é processada sozinha (a cada ~2 min) quando chega o dia.</span>
+        </div>
+
+        <?php if (empty($agendados)) { ?>
+            <p style="color:#6b7191">Nenhum faturamento em espera no momento.</p>
+        <?php } else { ?>
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>OS</th>
+                        <th>Cliente</th>
+                        <th>Aprovada em</th>
+                        <th>Emite em</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($agendados as $a) { ?>
+                        <tr>
+                            <td><a href="<?= site_url('os/visualizar/' . (int) $a->os_id) ?>">#<?= (int) $a->os_id ?></a></td>
+                            <td><?= html_escape($a->nomeCliente ?? '—') ?></td>
+                            <td><?= $a->data_aprovacao ? date('d/m/Y H:i', strtotime($a->data_aprovacao)) : '—' ?></td>
+                            <td><?= $a->data_agendada ? date('d/m/Y', strtotime($a->data_agendada)) : '—' ?></td>
+                            <td>
+                                <?php if ($a->status === 'erro') { ?>
+                                    <span class="label label-important" title="<?= html_escape($a->motivo ?? '') ?>">Erro (<?= (int) $a->tentativas ?>x)</span>
+                                <?php } else { ?>
+                                    <span class="label label-warning">Aguardando</span>
+                                <?php } ?>
+                            </td>
+                            <td>
+                                <a href="<?= site_url('automacao/cancelarAgendado/' . (int) $a->id) ?>" class="btn btn-danger btn-mini"
+                                    onclick="return confirm('Cancelar este faturamento agendado? A nota não será emitida.');">
+                                    <i class="bx bx-x"></i> Cancelar
+                                </a>
+                            </td>
+                        </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+        <?php } ?>
     </div>
 </div>

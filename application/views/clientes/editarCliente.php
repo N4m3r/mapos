@@ -164,6 +164,16 @@
                             </div>
                         </div>
                         <div class="control-group">
+                            <label class="control-label">Faturamento agendado</label>
+                            <div class="controls">
+                                <label for="faturamento_agendado" style="display:flex; align-items:center; gap:8px;">
+                                    <input id="faturamento_agendado" type="checkbox" name="faturamento_agendado" value="1" <?php echo (isset($result->faturamento_agendado) && $result->faturamento_agendado) ? 'checked' : ''; ?> />
+                                    Segurar a emissão (NFS-e + boleto) até o dia de faturamento
+                                </label>
+                                <span class="help-inline">Ao aprovar no meio do mês, a nota fica em espera e é emitida no dia configurado (ex.: dia 01).</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
                             <label for="tp_ret_issqn" class="control-label">ISS na NFS-e</label>
                             <div class="controls">
                                 <?php $issCliente = isset($result->tp_ret_issqn) ? (string) $result->tp_ret_issqn : ''; ?>
