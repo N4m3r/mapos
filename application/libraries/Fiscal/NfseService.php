@@ -55,14 +55,15 @@ class NfseService
     }
 
     /**
-     * Código de Tributação Municipal padrão. Só é enviado quando configurado em
-     * configuracoes_nfe.ctribmun_padrao com um valor VÁLIDO para o município —
-     * NÃO tem default fixo, pois um valor arbitrário (ex.: "100") é rejeitado
-     * pelo schema da NFS-e (erro E1235). Vazio = cTribMun omitido.
+     * Código de Tributação Municipal padrão (default 100 — validado por NFS-e
+     * autorizada de Manaus com cTribNac 010701 + cTribMun 100). Configurável em
+     * configuracoes_nfe.ctribmun_padrao.
      */
     private function tribMunPadrao(): string
     {
-        return isset($this->config->ctribmun_padrao) ? preg_replace('/\D/', '', (string) $this->config->ctribmun_padrao) : '';
+        $c = isset($this->config->ctribmun_padrao) ? preg_replace('/\D/', '', (string) $this->config->ctribmun_padrao) : '';
+
+        return $c !== '' ? $c : '100';
     }
 
     /**
