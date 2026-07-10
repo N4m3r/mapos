@@ -363,6 +363,17 @@
                             </div>
                         </div>
                         <div class="control-group">
+                            <label for="WHATSAPP_EVOLUTION_VERIFY_SSL" class="control-label">Verificar certificado SSL</label>
+                            <div class="controls">
+                                <?php $verifySsl = isset($_ENV['WHATSAPP_EVOLUTION_VERIFY_SSL']) ? filter_var($_ENV['WHATSAPP_EVOLUTION_VERIFY_SSL'], FILTER_VALIDATE_BOOLEAN) : true; ?>
+                                <select name="WHATSAPP_EVOLUTION_VERIFY_SSL" id="WHATSAPP_EVOLUTION_VERIFY_SSL">
+                                    <option value="true" <?= $verifySsl ? 'selected' : '' ?>>Sim (recomendado)</option>
+                                    <option value="false" <?= ! $verifySsl ? 'selected' : '' ?>>Não (ignorar erro de certificado)</option>
+                                </select>
+                                <span class="help-inline">Desligue apenas se o servidor Evolution usa certificado inválido/self-signed (ex.: erro "no alternative certificate subject name"). Menos seguro.</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
                             <label for="WHATSAPP_EVOLUTION_AUTO_STATUS" class="control-label">Status que enviam automático</label>
                             <div class="controls">
                                 <input type="text" name="WHATSAPP_EVOLUTION_AUTO_STATUS" id="WHATSAPP_EVOLUTION_AUTO_STATUS" placeholder="Ex.: Finalizado,Faturado" value="<?= $_ENV['WHATSAPP_EVOLUTION_AUTO_STATUS'] ?? '' ?>">

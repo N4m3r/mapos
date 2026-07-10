@@ -476,6 +476,7 @@ class Mapos extends MY_Controller {
                 'WHATSAPP_EVOLUTION_URL' => $this->input->post('WHATSAPP_EVOLUTION_URL'),
                 'WHATSAPP_EVOLUTION_APIKEY' => $this->input->post('WHATSAPP_EVOLUTION_APIKEY'),
                 'WHATSAPP_EVOLUTION_INSTANCE' => $this->input->post('WHATSAPP_EVOLUTION_INSTANCE'),
+                'WHATSAPP_EVOLUTION_VERIFY_SSL' => $this->input->post('WHATSAPP_EVOLUTION_VERIFY_SSL'),
                 'WHATSAPP_EVOLUTION_AUTO_STATUS' => $this->input->post('WHATSAPP_EVOLUTION_AUTO_STATUS'),
             ];
 

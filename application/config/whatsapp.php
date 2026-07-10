@@ -30,6 +30,12 @@ $config['whatsapp'] = [
         'apikey' => $_ENV['WHATSAPP_EVOLUTION_APIKEY'] ?? '',
         'instance' => $_ENV['WHATSAPP_EVOLUTION_INSTANCE'] ?? '',
         'timeout' => (int) ($_ENV['WHATSAPP_EVOLUTION_TIMEOUT'] ?? 30),
+        // Verificação do certificado SSL. Padrão: true (verifica). Desligue
+        // (false) apenas se o servidor Evolution usar certificado inválido/
+        // self-signed — funciona, mas reduz a segurança da conexão.
+        'verify_ssl' => isset($_ENV['WHATSAPP_EVOLUTION_VERIFY_SSL'])
+            ? filter_var($_ENV['WHATSAPP_EVOLUTION_VERIFY_SSL'], FILTER_VALIDATE_BOOLEAN)
+            : true,
         'auto_status' => array_values($autoStatus),
     ],
 ];

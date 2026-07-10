@@ -43,6 +43,7 @@ class Evolution_api
             'apikey' => '',
             'instance' => '',
             'timeout' => 30,
+            'verify_ssl' => true,
             'auto_status' => [],
         ], $evolution);
     }
@@ -158,6 +159,12 @@ class Evolution_api
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => (int) ($this->config['timeout'] ?? 30),
         ];
+        // Certificado SSL inválido/self-signed no servidor Evolution: permite
+        // desligar a verificação (menos seguro) via WHATSAPP_EVOLUTION_VERIFY_SSL.
+        if (isset($this->config['verify_ssl']) && $this->config['verify_ssl'] === false) {
+            $opts[CURLOPT_SSL_VERIFYPEER] = false;
+            $opts[CURLOPT_SSL_VERIFYHOST] = 0;
+        }
         if ($body !== null) {
             $headers[] = 'Content-Type: application/json';
             $opts[CURLOPT_POSTFIELDS] = json_encode($body);
