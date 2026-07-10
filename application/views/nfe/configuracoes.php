@@ -212,8 +212,8 @@
                     <div class="control-group">
                         <label class="control-label" for="ctribmun_padrao">Cód. Tributação Municipal padrão</label>
                         <div class="controls">
-                            <input type="text" id="ctribmun_padrao" name="ctribmun_padrao" maxlength="3" value="<?= html_escape(isset($configNfe->ctribmun_padrao) && $configNfe->ctribmun_padrao !== '' ? $configNfe->ctribmun_padrao : '100') ?>" style="width:60px" />
-                            <span class="hint">3 dígitos. Alguns municípios (ex.: Manaus) exigem. Padrão: 100.</span>
+                            <input type="text" id="ctribmun_padrao" name="ctribmun_padrao" maxlength="10" value="<?= html_escape(isset($configNfe->ctribmun_padrao) ? $configNfe->ctribmun_padrao : '') ?>" style="width:80px" placeholder="opcional" />
+                            <span class="hint">Deixe VAZIO se o município não exigir. Só preencha com o código municipal <strong>válido</strong> do seu município — um valor arbitrário (ex.: 100) é rejeitado pelo schema (erro E1235).</span>
                         </div>
                     </div>
 

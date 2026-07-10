@@ -127,7 +127,8 @@ class Nfe extends MY_Controller
                         $nacPad = preg_replace('/\D/', '', (string) $this->input->post('ctribnac_padrao'));
                         $munPad = preg_replace('/\D/', '', (string) $this->input->post('ctribmun_padrao'));
                         $data['ctribnac_padrao'] = strlen($nacPad) === 6 ? $nacPad : '010701';
-                        $data['ctribmun_padrao'] = $munPad !== '' ? $munPad : '100';
+                        // cTribMun sem default fixo: vazio = omitido (100 é rejeitado pelo schema).
+                        $data['ctribmun_padrao'] = $munPad;
                     }
 
                     $this->nfe_model->saveConfig($data);
@@ -743,9 +744,8 @@ class Nfe extends MY_Controller
                     ? (string) $config->ctribnac_padrao : '010701';
                 $avisos[] = 'Nenhum serviço tem Código de Tributação Nacional; usando o padrão ' . $cTribNac . ' (edite abaixo se necessário).';
             }
-            if ($cTribMun === '') {
-                $cTribMun = (isset($config->ctribmun_padrao) && trim((string) $config->ctribmun_padrao) !== '')
-                    ? preg_replace('/\D/', '', (string) $config->ctribmun_padrao) : '100';
+            if ($cTribMun === '' && isset($config->ctribmun_padrao)) {
+                $cTribMun = preg_replace('/\D/', '', (string) $config->ctribmun_padrao);
             }
             $defaults = [
                 'ctribnac' => $cTribNac,

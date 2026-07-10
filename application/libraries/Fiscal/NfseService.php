@@ -55,14 +55,14 @@ class NfseService
     }
 
     /**
-     * Código de Tributação Municipal padrão (3 dígitos). Configurável em
-     * configuracoes_nfe.ctribmun_padrao; default 100.
+     * Código de Tributação Municipal padrão. Só é enviado quando configurado em
+     * configuracoes_nfe.ctribmun_padrao com um valor VÁLIDO para o município —
+     * NÃO tem default fixo, pois um valor arbitrário (ex.: "100") é rejeitado
+     * pelo schema da NFS-e (erro E1235). Vazio = cTribMun omitido.
      */
     private function tribMunPadrao(): string
     {
-        $c = isset($this->config->ctribmun_padrao) ? preg_replace('/\D/', '', (string) $this->config->ctribmun_padrao) : '';
-
-        return $c !== '' ? $c : '100';
+        return isset($this->config->ctribmun_padrao) ? preg_replace('/\D/', '', (string) $this->config->ctribmun_padrao) : '';
     }
 
     /**
