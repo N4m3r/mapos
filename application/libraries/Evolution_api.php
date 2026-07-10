@@ -169,6 +169,24 @@ class Evolution_api
             $headers[] = 'Content-Type: application/json';
             $opts[CURLOPT_POSTFIELDS] = json_encode($body);
         }
+
+        // Algumas hospedagens (ex.: KingHost) têm zona DNS interna que resolve
+        // subdomínios do próprio domínio para o servidor local — que apresenta
+        // um certificado *.kinghost.net e quebra o TLS com "no alternative
+        // certificate subject name". Fixamos a resolução do host da Evolution
+        // para o IP do Cloudflare (onde o cert *.jj-ferreiras.com.br é válido e
+        // o túnel responde). Override opcional via WHATSAPP_EVOLUTION_RESOLVE_IP.
+        $host = parse_url($this->config['url'], PHP_URL_HOST);
+        $resolveIp = $_ENV['WHATSAPP_EVOLUTION_RESOLVE_IP'] ?? '';
+        if ($resolveIp === '' && $host && substr($host, -20) === '.jj-ferreiras.com.br') {
+            $resolveIp = '172.67.217.200';
+        }
+        if ($resolveIp !== '' && $host) {
+            $scheme = parse_url($this->config['url'], PHP_URL_SCHEME) ?: 'https';
+            $port = parse_url($this->config['url'], PHP_URL_PORT) ?: ($scheme === 'https' ? 443 : 80);
+            $opts[CURLOPT_RESOLVE] = [$host . ':' . $port . ':' . $resolveIp];
+        }
+
         $opts[CURLOPT_HTTPHEADER] = $headers;
         curl_setopt_array($ch, $opts);
 
