@@ -148,7 +148,7 @@ $anexos = Notification_triggers_model::anexosDisponiveis();
         $('#btnCarregarGrupos').on('click', function () {
             var $btn = $(this).prop('disabled', true);
             $('#gruposMsg').html('<i class="bx bx-loader bx-spin"></i> Carregando...');
-            $.ajax({ url: '<?= site_url('whatsapp/grupos') ?>', type: 'POST', dataType: 'json', data: {} })
+            $.ajax({ url: '<?= site_url('whatsapp/grupos') ?>', type: 'GET', dataType: 'json' })
                 .done(function (d) {
                     if (!d.result) { $('#gruposMsg').html('<span style="color:#b94a48">' + escapa(d.mensagem || 'Falha.') + '</span>'); return; }
                     var marcados = $('#gruposContainer input:checked').map(function () { return this.value; }).get();
