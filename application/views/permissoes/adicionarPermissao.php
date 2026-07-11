@@ -220,6 +220,14 @@
                                     <table class="table table-bordered">
                                         <tbody>
                                         <tr>
+                                            <td colspan="4">
+                                                <label>
+                                                    <input name="vTecnicoDashboard" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> <strong>Acessar a Área do Técnico</strong> (redireciona no login e mostra o menu do técnico)</span>
+                                                </label>
+                                            </td>
+                                        </tr>
+                                        <tr>
                                             <td>
                                                 <label>
                                                     <input name="vTecnicoOS" class="marcar" type="checkbox" value="1" />

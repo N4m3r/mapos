@@ -416,7 +416,16 @@ if (! is_array($permissoes)) {
                         <div class="widget-content">
                         <table class="table table-bordered">
                             <tr>
-                                <td colspan="4"></td>
+                                <td colspan="4">
+                                    <label>
+                                        <input <?php if (isset($permissoes['vTecnicoDashboard'])) {
+                                            if ($permissoes['vTecnicoDashboard'] == '1') {
+                                                echo 'checked';
+                                            }
+                                        }?> name="vTecnicoDashboard" class="marcar" type="checkbox" value="1" />
+                                        <span class="lbl"> <strong>Acessar a Área do Técnico</strong> (redireciona no login e mostra o menu do técnico)</span>
+                                    </label>
+                                </td>
                             </tr>
                             <tr>
                                 <td>
