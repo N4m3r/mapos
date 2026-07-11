@@ -241,6 +241,145 @@ $totalProdutos = 0; ?>
     </div>
 </div>
 
+<?php
+// Documentos financeiros da OS: notas fiscais autorizadas e boletos.
+$notasFiscais = isset($notasFiscais) && is_array($notasFiscais) ? $notasFiscais : [];
+$boletosPorNota = isset($boletosPorNota) && is_array($boletosPorNota) ? $boletosPorNota : [];
+$notasAut = array_values(array_filter($notasFiscais, fn ($n) => isset($n->status) && $n->status === 'autorizada'));
+$boletos = [];
+foreach ($notasFiscais as $n) {
+    if (! empty($boletosPorNota[$n->idNota]) && ($boletosPorNota[$n->idNota]->status ?? '') !== 'CANCELLED') {
+        $boletos[] = $boletosPorNota[$n->idNota];
+    }
+}
+$mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido', 'CANCELLED' => 'Cancelado', 'IN_PROTEST' => 'Em protesto'];
+?>
+<div class="row-fluid" style="margin-top: 0">
+    <div class="span12">
+        <div class="widget-box">
+            <div class="widget-title" style="margin: -20px 0 0">
+                <span class="icon"><i class="fas fa-file-invoice-dollar"></i></span>
+                <h5>Nota Fiscal e Boleto</h5>
+            </div>
+            <div class="widget-content">
+                <ul class="nav nav-tabs" style="margin-bottom: 12px">
+                    <li class="active"><a href="#" class="doc-tab-link" data-target="docNota"><i class="fas fa-file-invoice"></i> Nota Fiscal <span class="badge"><?= count($notasAut) ?></span></a></li>
+                    <li><a href="#" class="doc-tab-link" data-target="docBoleto"><i class="fas fa-barcode"></i> Boleto <span class="badge"><?= count($boletos) ?></span></a></li>
+                </ul>
+
+                <!-- Aba Nota Fiscal -->
+                <div id="docNota" class="doc-pane">
+                    <?php if (empty($notasAut)) { ?>
+                        <p style="color:#888; margin:6px 0">Nenhuma nota fiscal autorizada para esta OS.</p>
+                    <?php } else { ?>
+                        <table class="table table-bordered table-condensed">
+                            <thead>
+                                <tr>
+                                    <th>Número</th>
+                                    <th>Tipo</th>
+                                    <th>Emissão</th>
+                                    <th style="text-align:right">Valor</th>
+                                    <th style="text-align:center; width:140px">Documento</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($notasAut as $n) {
+                                    $dataNota = $n->data_autorizacao ?: $n->data_emissao; ?>
+                                    <tr>
+                                        <td><?= html_escape($n->numero) ?><?= $n->serie ? '/' . html_escape($n->serie) : '' ?></td>
+                                        <td><?= $n->tipo === 'nfe' ? 'NF-e' : 'NFS-e' ?></td>
+                                        <td><?= $dataNota ? date('d/m/Y', strtotime($dataNota)) : '—' ?></td>
+                                        <td style="text-align:right">R$ <?= number_format((float) $n->valor_total, 2, ',', '.') ?></td>
+                                        <td style="text-align:center">
+                                            <a target="_blank" class="btn btn-mini btn-inverse" href="<?= site_url('mine/notaDanfe/' . (int) $n->idNota) ?>">
+                                                <i class="bx bx-printer"></i> Ver / Imprimir
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php } ?>
+                            </tbody>
+                        </table>
+                    <?php } ?>
+                </div>
+
+                <!-- Aba Boleto -->
+                <div id="docBoleto" class="doc-pane" style="display:none">
+                    <?php if (empty($boletos)) { ?>
+                        <p style="color:#888; margin:6px 0">Nenhum boleto disponível para esta OS.</p>
+                    <?php } else { ?>
+                        <?php foreach ($boletos as $b) {
+                            $linkBoleto = $b->link ?: ($b->payment_url ?? '') ?: ($b->pdf ?? '');
+                            $statusBoleto = $mapaStatusBoleto[$b->status] ?? $b->status;
+                            $venc = ! empty($b->expire_at) ? date('d/m/Y', strtotime($b->expire_at)) : '—'; ?>
+                            <div style="border:1px solid #e2e6ef; border-radius:8px; padding:12px 14px; margin-bottom:12px">
+                                <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; align-items:center">
+                                    <div>
+                                        <div style="font-size:18px; font-weight:bold; color:#1e3a8a">R$ <?= number_format(((float) $b->total) / 100, 2, ',', '.') ?></div>
+                                        <div style="color:#6b7191; font-size:12px">Vencimento: <?= $venc ?> &nbsp;·&nbsp; Status: <strong><?= html_escape($statusBoleto) ?></strong></div>
+                                    </div>
+                                    <?php if ($linkBoleto) { ?>
+                                        <a href="<?= html_escape($linkBoleto) ?>" target="_blank" class="btn btn-success">
+                                            <i class="bx bx-barcode"></i> Abrir / Pagar boleto
+                                        </a>
+                                    <?php } ?>
+                                </div>
+                                <?php if (! empty($b->pix)) { ?>
+                                    <div style="margin-top:10px">
+                                        <div style="font-size:12px; color:#6b7191; margin-bottom:3px">PIX copia e cola</div>
+                                        <div style="display:flex; gap:6px; align-items:center">
+                                            <input type="text" readonly value="<?= html_escape($b->pix) ?>" class="span10" style="font-size:11px; margin:0" onclick="this.select()">
+                                            <button type="button" class="btn btn-mini copiar-doc" data-valor="<?= html_escape($b->pix) ?>"><i class="bx bx-copy"></i> Copiar</button>
+                                        </div>
+                                    </div>
+                                <?php } ?>
+                                <?php if (! empty($b->barcode)) { ?>
+                                    <div style="margin-top:8px">
+                                        <div style="font-size:12px; color:#6b7191; margin-bottom:3px">Linha digitável</div>
+                                        <div style="display:flex; gap:6px; align-items:center">
+                                            <input type="text" readonly value="<?= html_escape($b->barcode) ?>" class="span10" style="font-size:11px; margin:0" onclick="this.select()">
+                                            <button type="button" class="btn btn-mini copiar-doc" data-valor="<?= html_escape($b->barcode) ?>"><i class="bx bx-copy"></i> Copiar</button>
+                                        </div>
+                                    </div>
+                                <?php } ?>
+                            </div>
+                        <?php } ?>
+                    <?php } ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $(document).on('click', '.doc-tab-link', function(e) {
+            e.preventDefault();
+            var target = $(this).data('target');
+            $('.doc-pane').hide();
+            $('#' + target).show();
+            $(this).closest('ul').find('li').removeClass('active');
+            $(this).closest('li').addClass('active');
+        });
+
+        $(document).on('click', '.copiar-doc', function() {
+            var valor = $(this).data('valor');
+            var btn = $(this);
+            var ok = function() {
+                var html = btn.html();
+                btn.html('<i class="bx bx-check"></i> Copiado!');
+                setTimeout(function() { btn.html(html); }, 1500);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(valor).then(ok, function() { alert(valor); });
+            } else {
+                var tmp = $('<textarea>').val(valor).appendTo('body').select();
+                try { document.execCommand('copy'); ok(); } catch (err) { alert(valor); }
+                tmp.remove();
+            }
+        });
+    });
+</script>
+
 <!-- Inicio Modal visualizar anexo -->
 <div id="modal-anexo" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-header">

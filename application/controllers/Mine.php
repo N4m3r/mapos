@@ -713,6 +713,20 @@ class Mine extends CI_Controller
             redirect('mine/painel');
         }
 
+        // Notas fiscais e boletos vinculados à OS (abas de fácil acesso).
+        $osId = $this->uri->segment(3);
+        $data['notasFiscais'] = [];
+        $data['boletosPorNota'] = [];
+        if ($this->db->table_exists('notas_fiscais')) {
+            $this->load->model('nfe_model');
+            $data['notasFiscais'] = $this->nfe_model->getNotasByOrigem('os_id', $osId);
+            if (! empty($data['notasFiscais']) && $this->db->field_exists('nota_id', 'cobrancas')) {
+                $this->load->model('cobrancas_model');
+                $ids = array_map(fn ($n) => $n->idNota, $data['notasFiscais']);
+                $data['boletosPorNota'] = $this->cobrancas_model->getByNotaIds($ids);
+            }
+        }
+
         $data['output'] = 'conecte/visualizar_os';
         $this->load->view('conecte/template', $data);
     }
