@@ -477,6 +477,60 @@ if (! is_array($permissoes)) {
                 <div class="accordion-group widget-box">
                     <div class="accordion-heading">
                         <div class="widget-title">
+                            <a data-parent="#collapse-group" href="#collapseGRh" data-toggle="collapse">
+                                <span><i class='bx bx-id-card icon-cli' ></i></span>
+                                <h5 style="padding-left: 28px">Recursos Humanos (RH)</h5>
+                                <span><i class='bx bx-chevron-right icon-clic'></i></span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="collapse accordion-body" id="collapseGRh">
+                        <div class="widget-content">
+                        <table class="table table-bordered">
+                            <tr>
+                                <td>
+                                    <label><input <?php if (! empty($permissoes['vRh']) && $permissoes['vRh'] == '1') echo 'checked'; ?> name="vRh" class="marcar" type="checkbox" value="1" />
+                                    <span class="lbl"> <strong>Acessar o módulo de RH</strong></span></label>
+                                </td>
+                                <td>
+                                    <label><input <?php if (! empty($permissoes['eRh']) && $permissoes['eRh'] == '1') echo 'checked'; ?> name="eRh" class="marcar" type="checkbox" value="1" />
+                                    <span class="lbl"> Gerenciar colaboradores/unidades/jornadas</span></label>
+                                </td>
+                                <td>
+                                    <label><input <?php if (! empty($permissoes['aprovarRh']) && $permissoes['aprovarRh'] == '1') echo 'checked'; ?> name="aprovarRh" class="marcar" type="checkbox" value="1" />
+                                    <span class="lbl"> Aprovar ocorrências/ausências</span></label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label><input <?php if (! empty($permissoes['vRhFinanceiro']) && $permissoes['vRhFinanceiro'] == '1') echo 'checked'; ?> name="vRhFinanceiro" class="marcar" type="checkbox" value="1" />
+                                    <span class="lbl"> Ver financeiro/lançamentos do RH</span></label>
+                                </td>
+                                <td>
+                                    <label><input <?php if (! empty($permissoes['fecharFolha']) && $permissoes['fecharFolha'] == '1') echo 'checked'; ?> name="fecharFolha" class="marcar" type="checkbox" value="1" />
+                                    <span class="lbl"> Fechar competência (folha)</span></label>
+                                </td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label><input <?php if (! empty($permissoes['vAreaColaborador']) && $permissoes['vAreaColaborador'] == '1') echo 'checked'; ?> name="vAreaColaborador" class="marcar" type="checkbox" value="1" />
+                                    <span class="lbl"> <strong>Acessar a Área do Colaborador</strong> (autoatendimento)</span></label>
+                                </td>
+                                <td>
+                                    <label><input <?php if (! empty($permissoes['baterPonto']) && $permissoes['baterPonto'] == '1') echo 'checked'; ?> name="baterPonto" class="marcar" type="checkbox" value="1" />
+                                    <span class="lbl"> Registrar o próprio ponto</span></label>
+                                </td>
+                                <td></td>
+                            </tr>
+                        </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-group widget-box">
+                    <div class="accordion-heading">
+                        <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGFive" data-toggle="collapse">
                                 <span><i class='bx bx-cart-alt icon-cli' ></i></span>
                                 <h5 style="padding-left: 28px">Vendas</h5>

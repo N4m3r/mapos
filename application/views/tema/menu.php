@@ -106,6 +106,17 @@
                     </li>
                 <?php } ?>
 
+                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vRh')) { ?>
+                    <li class="<?php if (isset($menuRh)) {
+                        echo 'active';
+                    }; ?>">
+                        <a class="tip-bottom" title="" href="<?= site_url('rh') ?>"><i class='bx bx-id-card iconX'></i>
+                            <span class="title">Recursos Humanos</span>
+                            <span class="title-tooltip">RH</span>
+                        </a>
+                    </li>
+                <?php } ?>
+
                 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vNfe')) { ?>
                     <li class="<?php if (isset($menuNfe)) {
                         echo 'active';

@@ -53,12 +53,21 @@ class Login extends CI_Controller
                     $this->session->set_userdata($session_admin_data);
                     log_info('Efetuou login no sistema');
 
-                    // Redirecionamento inteligente por perfil: tecnicos vao direto para a Area do Tecnico,
-                    // que e otimizada para uso em campo (mobile). Demais perfis seguem para o painel.
-                    $isTecnico = $this->permission->checkPermission($user->permissoes_id, 'vTecnicoDashboard')
-                        && !$this->permission->checkPermission($user->permissoes_id, 'vOs');
+                    // Redirecionamento inteligente por perfil: tecnicos vao direto para a Area do Tecnico
+                    // e colaboradores para a Area do Colaborador (ambas mobile). Demais perfis seguem para o painel.
+                    $temOs = $this->permission->checkPermission($user->permissoes_id, 'vOs');
+                    $isTecnico = $this->permission->checkPermission($user->permissoes_id, 'vTecnicoDashboard') && !$temOs;
+                    $isColaborador = !$isTecnico && !$temOs
+                        && $this->permission->checkPermission($user->permissoes_id, 'vAreaColaborador');
 
-                    $json = ['result' => true, 'redirect' => site_url($isTecnico ? 'tecnico' : 'mapos')];
+                    $destino = 'mapos';
+                    if ($isTecnico) {
+                        $destino = 'tecnico';
+                    } elseif ($isColaborador) {
+                        $destino = 'colaborador';
+                    }
+
+                    $json = ['result' => true, 'redirect' => site_url($destino)];
                     echo json_encode($json);
                 } else {
                     $json = ['result' => false, 'message' => 'Os dados de acesso estão incorretos.', 'MAPOS_TOKEN' => $this->security->get_csrf_hash()];

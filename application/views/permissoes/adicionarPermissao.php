@@ -261,6 +261,38 @@
                         <div class="accordion-group widget-box">
                             <div class="accordion-heading">
                                 <div class="widget-title">
+                                    <a data-parent="#collapse-group" href="#collapseGRh" data-toggle="collapse">
+                                      <span><i class='bx bx-id-card icon-cli'></i></span>
+                                      <h5 style="padding-left: 28px">Recursos Humanos (RH)</h5>
+                                      <span><i class='bx bx-chevron-right icon-clic'></i></span>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="collapse accordion-body" id="collapseGRh">
+                                <div class="widget-content">
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <td><label><input name="vRh" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Acessar o módulo de RH</strong></span></label></td>
+                                        <td><label><input name="eRh" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Gerenciar colaboradores/unidades/jornadas</span></label></td>
+                                        <td><label><input name="aprovarRh" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Aprovar ocorrências/ausências</span></label></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label><input name="vRhFinanceiro" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Ver financeiro/lançamentos do RH</span></label></td>
+                                        <td><label><input name="fecharFolha" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Fechar competência (folha)</span></label></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label><input name="vAreaColaborador" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Acessar a Área do Colaborador</strong></span></label></td>
+                                        <td><label><input name="baterPonto" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Registrar o próprio ponto</span></label></td>
+                                        <td></td>
+                                    </tr>
+                                </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-group widget-box">
+                            <div class="accordion-heading">
+                                <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGThree33" data-toggle="collapse">
                                       <span><i class='bx bx-cart-alt icon-cli'></i></span>
                                       <h5 style="padding-left: 28px">Vendas</h5>

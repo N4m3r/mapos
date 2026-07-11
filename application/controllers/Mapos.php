@@ -10,9 +10,15 @@ class Mapos extends MY_Controller {
     {
         // Tecnicos (sem acesso ao fluxo padrao de OS) vao direto para a Area do Tecnico,
         // otimizada para uso em campo. Evita cair no painel administrativo pesado.
-        if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vTecnicoDashboard')
-            && !$this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
+        $temOs = $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs');
+        if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vTecnicoDashboard') && !$temOs) {
             redirect('tecnico');
+        }
+        // Colaboradores (autoatendimento) vao direto para a Area do Colaborador.
+        if (!$temOs
+            && !$this->permission->checkPermission($this->session->userdata('permissao'), 'vTecnicoDashboard')
+            && $this->permission->checkPermission($this->session->userdata('permissao'), 'vAreaColaborador')) {
+            redirect('colaborador');
         }
 
         $status = array('Em Andamento', 'Aguardando Peças');

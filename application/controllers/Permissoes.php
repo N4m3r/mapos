@@ -128,6 +128,15 @@ class Permissoes extends MY_Controller
                 'dCobranca' => $this->input->post('dCobranca'),
                 'vCobranca' => $this->input->post('vCobranca'),
 
+                // Permissões RH
+                'vRh' => $this->input->post('vRh'),
+                'eRh' => $this->input->post('eRh'),
+                'aprovarRh' => $this->input->post('aprovarRh'),
+                'vRhFinanceiro' => $this->input->post('vRhFinanceiro'),
+                'fecharFolha' => $this->input->post('fecharFolha'),
+                'vAreaColaborador' => $this->input->post('vAreaColaborador'),
+                'baterPonto' => $this->input->post('baterPonto'),
+
                 // Permissões Dashboard
                 'vDashboard' => $this->input->post('vDashboard'),
                 'vRelatorioCompleto' => $this->input->post('vRelatorioCompleto'),
@@ -240,6 +249,15 @@ class Permissoes extends MY_Controller
                 'eCobranca' => $this->input->post('eCobranca'),
                 'dCobranca' => $this->input->post('dCobranca'),
                 'vCobranca' => $this->input->post('vCobranca'),
+
+                // Permissões RH
+                'vRh' => $this->input->post('vRh'),
+                'eRh' => $this->input->post('eRh'),
+                'aprovarRh' => $this->input->post('aprovarRh'),
+                'vRhFinanceiro' => $this->input->post('vRhFinanceiro'),
+                'fecharFolha' => $this->input->post('fecharFolha'),
+                'vAreaColaborador' => $this->input->post('vAreaColaborador'),
+                'baterPonto' => $this->input->post('baterPonto'),
 
                 // Permissões Dashboard
                 'vDashboard' => $this->input->post('vDashboard'),
