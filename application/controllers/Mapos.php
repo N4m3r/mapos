@@ -8,6 +8,13 @@ class Mapos extends MY_Controller {
 
     public function index()
     {
+        // Tecnicos (sem acesso ao fluxo padrao de OS) vao direto para a Area do Tecnico,
+        // otimizada para uso em campo. Evita cair no painel administrativo pesado.
+        if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vTecnicoDashboard')
+            && !$this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
+            redirect('tecnico');
+        }
+
         $status = array('Em Andamento', 'Aguardando Peças');
         $this->data['ordens_status'] = $this->mapos_model->getOsStatus($status);
         $vstatus = array('Aberto', 'Em Andamento', 'Aguardando Peças', 'Aprovado', 'Orçamento');

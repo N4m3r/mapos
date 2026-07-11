@@ -18,6 +18,9 @@ class Tecnico extends MY_Controller
         $this->load->model('tecnico_model');
         $this->load->model('mapos_model');
 
+        // Helper 'text' (character_limiter) usado nas views do tecnico; nao esta no autoload
+        $this->load->helper('text');
+
         // Verificar se usuario esta logado
         if (!$this->session->userdata('id_admin')) {
             redirect('login');
@@ -46,6 +49,10 @@ class Tecnico extends MY_Controller
 
         // Dados do emitente
         $data['emitente'] = $this->mapos_model->getEmitente();
+
+        // Se o usuario tambem tem acesso ao painel principal, exibimos o atalho "Sistema"
+        $data['pode_ver_sistema'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs');
+        $data['nome_tecnico'] = $this->session->userdata('nome_admin');
 
         // Titulo da pagina
         $data['titulo'] = 'Área do Técnico - Dashboard';
@@ -85,6 +92,9 @@ class Tecnico extends MY_Controller
 
         // Dados do emitente
         $data['emitente'] = $this->mapos_model->getEmitente();
+
+        // Atalho para o painel principal (se tiver acesso)
+        $data['pode_ver_sistema'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs');
 
         // Titulo
         $data['titulo'] = 'Minhas Ordens de Serviço';
@@ -157,6 +167,12 @@ class Tecnico extends MY_Controller
             $this->session->userdata('permissao'),
             'eTecnicoCheckout'
         );
+
+        // Atalho para o painel principal (se tiver acesso)
+        $data['pode_ver_sistema'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs');
+
+        // Emitente (usado por parciais de assinatura/checkin)
+        $data['emitente'] = $this->mapos_model->getEmitente();
 
         // Titulo
         $data['titulo'] = 'OS #' . sprintf('%04d', $os_id);

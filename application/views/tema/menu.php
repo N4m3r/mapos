@@ -95,6 +95,17 @@
                     </li>
                 <?php } ?>
 
+                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vTecnicoDashboard')) { ?>
+                    <li class="<?php if (isset($menuTecnico)) {
+                        echo 'active';
+                    }; ?>">
+                        <a class="tip-bottom" title="" href="<?= site_url('tecnico') ?>"><i class='bx bx-wrench iconX'></i>
+                            <span class="title">Área do Técnico</span>
+                            <span class="title-tooltip">Técnico</span>
+                        </a>
+                    </li>
+                <?php } ?>
+
                 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vNfe')) { ?>
                     <li class="<?php if (isset($menuNfe)) {
                         echo 'active';

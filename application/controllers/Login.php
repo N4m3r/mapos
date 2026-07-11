@@ -52,7 +52,13 @@ class Login extends CI_Controller
                     $session_admin_data = ['nome_admin' => $user->nome, 'email_admin' => $user->email, 'url_image_user_admin' => $user->url_image_user, 'id_admin' => $user->idUsuarios, 'permissao' => $user->permissoes_id, 'logado' => true];
                     $this->session->set_userdata($session_admin_data);
                     log_info('Efetuou login no sistema');
-                    $json = ['result' => true];
+
+                    // Redirecionamento inteligente por perfil: tecnicos vao direto para a Area do Tecnico,
+                    // que e otimizada para uso em campo (mobile). Demais perfis seguem para o painel.
+                    $isTecnico = $this->permission->checkPermission($user->permissoes_id, 'vTecnicoDashboard')
+                        && !$this->permission->checkPermission($user->permissoes_id, 'vOs');
+
+                    $json = ['result' => true, 'redirect' => site_url($isTecnico ? 'tecnico' : 'mapos')];
                     echo json_encode($json);
                 } else {
                     $json = ['result' => false, 'message' => 'Os dados de acesso estão incorretos.', 'MAPOS_TOKEN' => $this->security->get_csrf_hash()];
