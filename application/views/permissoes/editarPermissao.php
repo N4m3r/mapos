@@ -81,7 +81,19 @@
 
 </style>
 
-<?php $permissoes = unserialize($result->permissoes);?>
+<?php
+// Desserializa de forma resiliente: blobs de permissao podem estar corrompidos
+// (ex.: "Extra data" ao final). Suprimimos o warning para nao derrubar a pagina
+// (o Whoops o converteria em fatal). O unserialize ainda recupera o array valido
+// do inicio; ao salvar o formulario o registro e regravado limpo. Mesmo tratamento
+// usado em libraries/Permission.php::loadPermission().
+set_error_handler(static function () { return true; });
+$permissoes = unserialize((string) $result->permissoes);
+restore_error_handler();
+if (! is_array($permissoes)) {
+    $permissoes = [];
+}
+?>
 <div class="span12" style="margin-left: 0">
     <form action="<?php echo base_url();?>index.php/permissoes/editar" id="formPermissao" method="post">
         <div class="span12" style="margin-left: 0">
