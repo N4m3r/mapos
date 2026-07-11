@@ -30,7 +30,8 @@ body.tec-body {
   background: var(--tec-bg);
   color: var(--tec-ink);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  padding-bottom: 84px; /* espaco para bottom-nav */
+  /* espaco para a bottom-nav fixa, incluindo a area segura (home indicator) */
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -265,7 +266,8 @@ details.tec-adv summary { color: var(--tec-grad-1); font-size: 13px; cursor: poi
 /* ---------- Barra de acao fixa (tela de atendimento) ---------- */
 .action-bar {
   position: fixed;
-  bottom: 66px;
+  /* fica logo acima da bottom-nav, respeitando a area segura */
+  bottom: calc(60px + env(safe-area-inset-bottom, 0px));
   left: 0; right: 0;
   background: #fff;
   padding: 12px 16px;
