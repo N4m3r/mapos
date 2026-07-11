@@ -46,6 +46,15 @@ class Email_envios_model extends CI_Model
         return $this->db->get($this->table)->result();
     }
 
+    public function getById($id)
+    {
+        if (! $this->suportado()) {
+            return null;
+        }
+
+        return $this->db->where('id', (int) $id)->limit(1)->get($this->table)->row();
+    }
+
     public function count($status = null)
     {
         if (! $this->suportado()) {

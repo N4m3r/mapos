@@ -22,11 +22,12 @@
                     <th style="width:80px">Tipo</th>
                     <th style="width:100px; text-align:center">Status</th>
                     <th>Erro</th>
+                    <th style="width:110px; text-align:center">Ações</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($envios)) { ?>
-                    <tr><td colspan="6">Nenhum envio registrado ainda. (Requer rodar <code>updates/update_email_envios.sql</code>.)</td></tr>
+                    <tr><td colspan="7">Nenhum envio registrado ainda. (Requer rodar <code>updates/update_email_envios.sql</code>.)</td></tr>
                 <?php } else {
                     foreach ($envios as $e) {
                         $ok = ($e->status === 'enviado'); ?>
@@ -44,6 +45,18 @@
                             </td>
                             <td style="font-size:11px; color:#b94a48; max-width:420px; word-break:break-word;">
                                 <?= $ok ? '' : html_escape(mb_substr((string) $e->erro, 0, 400)) ?>
+                            </td>
+                            <td style="text-align:center">
+                                <?php if (! empty($e->queue_id)) { ?>
+                                    <a href="<?= site_url('mapos/reenviarEmail/' . (int) $e->id) ?>"
+                                       class="btn btn-mini btn-inverse"
+                                       title="Reenviar este e-mail com os mesmos anexos"
+                                       onclick="return confirm('Reenviar este e-mail para <?= html_escape($e->destino) ?> com os mesmos anexos?');">
+                                        <i class="bx bx-mail-send"></i> Reenviar
+                                    </a>
+                                <?php } else { ?>
+                                    <span style="color:#b0b4c4; font-size:11px" title="Sem o e-mail original na fila para reaproveitar os anexos">—</span>
+                                <?php } ?>
                             </td>
                         </tr>
                     <?php }

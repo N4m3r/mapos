@@ -484,6 +484,48 @@ class Mapos extends MY_Controller {
         return $this->layout();
     }
 
+    /**
+     * Reenvia um e-mail do histórico: reenfileira a MESMA linha de email_queue
+     * (com os mesmos anexos) voltando o status para "pending". O disparo
+     * automático da fila (~2 min) reenvia. Requer o vínculo queue_id no log.
+     */
+    public function reenviarEmail($id = null)
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'cEmail')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para reenviar e-mails');
+            redirect(base_url());
+        }
+
+        $this->load->model('email_envios_model');
+        $log = $id ? $this->email_envios_model->getById($id) : null;
+        if (! $log) {
+            $this->session->set_flashdata('error', 'Registro de e-mail não encontrado.');
+            redirect(site_url('mapos/emailsLog'));
+        }
+
+        $queueId = isset($log->queue_id) ? (int) $log->queue_id : 0;
+        if ($queueId <= 0) {
+            $this->session->set_flashdata('error', 'Não é possível reenviar: este envio não tem o e-mail original guardado na fila (sem anexos para reaproveitar). Gere o e-mail novamente pela origem (OS/cobrança).');
+            redirect(site_url('mapos/emailsLog'));
+        }
+
+        $fila = $this->db->where('id', $queueId)->limit(1)->get('email_queue')->row();
+        if (! $fila) {
+            $this->session->set_flashdata('error', 'O e-mail original não está mais na fila; não é possível reenviar com os anexos.');
+            redirect(site_url('mapos/emailsLog'));
+        }
+
+        // Reenfileira a mesma mensagem/anexos para novo disparo.
+        $this->db->where('id', $queueId)->update('email_queue', [
+            'status' => 'pending',
+            'date' => date('Y-m-d H:i:s'),
+        ]);
+
+        log_info('Reenvio de e-mail solicitado (fila #' . $queueId . ' -> ' . $log->destino . ')');
+        $this->session->set_flashdata('success', 'E-mail reenfileirado para ' . $log->destino . '. Será reenviado com os mesmos anexos no próximo disparo (em até ~2 min).');
+        redirect(site_url('mapos/emailsLog'));
+    }
+
     public function emails()
     {
         if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'cEmail')) {
