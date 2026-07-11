@@ -82,7 +82,7 @@ class Migration_create_email_templates extends CI_Migration
             'descricao' => 'Enviado ao cliente com o boleto/PIX gerado a partir da nota fiscal ou da cobrança.',
             'assunto' => 'Cobrança #{{cobranca_numero}} - {{empresa_nome}}',
             'corpo' => $this->defaultCorpoCobranca(),
-            'tags' => 'cliente_nome, cliente_email, empresa_nome, cobranca_numero, cobranca_valor, cobranca_vencimento, cobranca_descricao, cobranca_pagamento_html, cobranca_link, cobranca_pdf, cobranca_barcode, cobranca_pix, data_atual',
+            'tags' => 'cliente_nome, cliente_email, empresa_nome, cobranca_numero, cobranca_valor, cobranca_vencimento, cobranca_descricao, cobranca_pagamento_html, cobranca_link, cobranca_pdf, cobranca_barcode, cobranca_pix, os_numero, os_status, os_data_inicial, os_data_final, os_garantia, os_aprovador, os_descricao, os_defeito, os_observacoes, os_laudo, os_produtos_html, os_servicos_html, os_itens_html, os_valor_total, data_atual',
             'data_criacao' => $agora,
             'data_atualizacao' => $agora,
         ]);

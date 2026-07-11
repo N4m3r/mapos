@@ -529,6 +529,7 @@ class Nfe extends MY_Controller
                 'status' => 'autorizada',
                 'chave' => $resultado['chave'],
                 'motivo' => $resultado['motivo'],
+                'descricao_servico' => $resultado['descricao_servico'] ?? null,
                 'xml_path' => $xmlPath,
                 'data_autorizacao' => date('Y-m-d H:i:s'),
             ]);
@@ -648,6 +649,7 @@ class Nfe extends MY_Controller
                 'status' => 'autorizada',
                 'chave' => $resultado['chave'],
                 'motivo' => 'Substitui a NFS-e nº ' . $original->numero,
+                'descricao_servico' => $resultado['descricao_servico'] ?? null,
                 'xml_path' => $xmlPath,
                 'data_autorizacao' => date('Y-m-d H:i:s'),
             ]);

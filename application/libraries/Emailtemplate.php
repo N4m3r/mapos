@@ -182,10 +182,23 @@ class Emailtemplate
             $tags['os_garantia'] = $this->prop($os, 'garantia') ?: '—';
             $tags['os_aprovador'] = $this->prop($os, 'aprovacao_nome');
 
+            // Campos individuais dos blocos da OS (texto), para uso avulso no
+            // corpo (ex.: no modelo de Cobrança/Boleto). Cada um respeita o bloco
+            // marcado no gatilho; sem restrição, todos são preenchidos.
+            $tags['os_descricao'] = $this->blocoAtivo('dados', $blocos) ? htmlspecialchars_decode((string) $this->prop($os, 'descricaoProduto')) : '';
+            $tags['os_defeito'] = $this->blocoAtivo('defeito', $blocos) ? htmlspecialchars_decode((string) $this->prop($os, 'defeito')) : '';
+            $tags['os_observacoes'] = $this->blocoAtivo('observacoes', $blocos) ? htmlspecialchars_decode((string) $this->prop($os, 'observacoes')) : '';
+            $tags['os_laudo'] = $this->blocoAtivo('laudo', $blocos) ? htmlspecialchars_decode((string) $this->prop($os, 'laudoTecnico')) : '';
+
             $produtos = $this->blocoAtivo('produtos', $blocos) ? ($context['produtos'] ?? []) : [];
             $servicos = $this->blocoAtivo('servicos', $blocos) ? ($context['servicos'] ?? []) : [];
-            list($itensHtml, $total) = $this->osItens($produtos, $servicos);
-            $tags['os_itens_html'] = $itensHtml;
+            list($produtosHtml, $totalProdutos) = $this->osTabelaProdutos($produtos);
+            list($servicosHtml, $totalServicos) = $this->osTabelaServicos($servicos);
+            $total = $totalProdutos + $totalServicos;
+            // Tabelas separadas (blocos) e a combinada (compatível com o modelo atual).
+            $tags['os_produtos_html'] = $produtosHtml;
+            $tags['os_servicos_html'] = $servicosHtml;
+            $tags['os_itens_html'] = $produtosHtml . $servicosHtml;
 
             $valorDesconto = (float) $this->prop($os, 'valor_desconto');
             $temDesconto = $this->prop($os, 'desconto') && $valorDesconto != 0;
@@ -263,37 +276,53 @@ class Emailtemplate
 
     protected function osItens($produtos, $servicos)
     {
+        list($produtosHtml, $totalProdutos) = $this->osTabelaProdutos($produtos);
+        list($servicosHtml, $totalServicos) = $this->osTabelaServicos($servicos);
+
+        return [$produtosHtml . $servicosHtml, $totalProdutos + $totalServicos];
+    }
+
+    protected function osTabelaProdutos($produtos)
+    {
+        if (empty($produtos)) {
+            return ['', 0.0];
+        }
+
         $total = 0.0;
-        $html = '';
+        $html = '<h2>Produtos</h2><table class="itens" role="presentation" cellpadding="0" cellspacing="0"><tr><th>Produto</th><th>Qtd.</th><th>Preço</th><th>Subtotal</th></tr>';
+        foreach ($produtos as $p) {
+            $sub = (float) $this->prop($p, 'subTotal', 0);
+            $total += $sub;
+            $preco = $this->prop($p, 'preco') ?: $this->prop($p, 'precoVenda');
+            $html .= '<tr><td>' . htmlspecialchars((string) $this->prop($p, 'descricao')) . '</td>'
+                . '<td>' . $this->prop($p, 'quantidade') . '</td>'
+                . '<td>R$ ' . number_format((float) $preco, 2, ',', '.') . '</td>'
+                . '<td>R$ ' . number_format($sub, 2, ',', '.') . '</td></tr>';
+        }
+        $html .= '</table>';
 
-        if (! empty($produtos)) {
-            $html .= '<h2>Produtos</h2><table class="itens" role="presentation" cellpadding="0" cellspacing="0"><tr><th>Produto</th><th>Qtd.</th><th>Preço</th><th>Subtotal</th></tr>';
-            foreach ($produtos as $p) {
-                $sub = (float) $this->prop($p, 'subTotal', 0);
-                $total += $sub;
-                $preco = $this->prop($p, 'preco') ?: $this->prop($p, 'precoVenda');
-                $html .= '<tr><td>' . htmlspecialchars((string) $this->prop($p, 'descricao')) . '</td>'
-                    . '<td>' . $this->prop($p, 'quantidade') . '</td>'
-                    . '<td>R$ ' . number_format((float) $preco, 2, ',', '.') . '</td>'
-                    . '<td>R$ ' . number_format($sub, 2, ',', '.') . '</td></tr>';
-            }
-            $html .= '</table>';
+        return [$html, $total];
+    }
+
+    protected function osTabelaServicos($servicos)
+    {
+        if (empty($servicos)) {
+            return ['', 0.0];
         }
 
-        if (! empty($servicos)) {
-            $html .= '<h2>Serviços</h2><table class="itens" role="presentation" cellpadding="0" cellspacing="0"><tr><th>Serviço</th><th>Qtd.</th><th>Preço</th><th>Subtotal</th></tr>';
-            foreach ($servicos as $s) {
-                $preco = (float) ($this->prop($s, 'preco') ?: $this->prop($s, 'precoVenda'));
-                $qtd = (float) ($this->prop($s, 'quantidade') ?: 1);
-                $sub = $preco * $qtd;
-                $total += $sub;
-                $html .= '<tr><td>' . htmlspecialchars((string) $this->prop($s, 'nome')) . '</td>'
-                    . '<td>' . ($qtd ?: 1) . '</td>'
-                    . '<td>R$ ' . number_format($preco, 2, ',', '.') . '</td>'
-                    . '<td>R$ ' . number_format($sub, 2, ',', '.') . '</td></tr>';
-            }
-            $html .= '</table>';
+        $total = 0.0;
+        $html = '<h2>Serviços</h2><table class="itens" role="presentation" cellpadding="0" cellspacing="0"><tr><th>Serviço</th><th>Qtd.</th><th>Preço</th><th>Subtotal</th></tr>';
+        foreach ($servicos as $s) {
+            $preco = (float) ($this->prop($s, 'preco') ?: $this->prop($s, 'precoVenda'));
+            $qtd = (float) ($this->prop($s, 'quantidade') ?: 1);
+            $sub = $preco * $qtd;
+            $total += $sub;
+            $html .= '<tr><td>' . htmlspecialchars((string) $this->prop($s, 'nome')) . '</td>'
+                . '<td>' . ($qtd ?: 1) . '</td>'
+                . '<td>R$ ' . number_format($preco, 2, ',', '.') . '</td>'
+                . '<td>R$ ' . number_format($sub, 2, ',', '.') . '</td></tr>';
         }
+        $html .= '</table>';
 
         return [$html, $total];
     }

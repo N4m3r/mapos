@@ -356,6 +356,7 @@ class NfseService
             'chave' => $chave,
             'numero_dps' => $numeroDps,
             'motivo' => 'NFS-e gerada pelo Sefin Nacional',
+            'descricao_servico' => $descServico,
             'xml' => $xmlNfse !== false ? $xmlNfse : null,
         ];
     }

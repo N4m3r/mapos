@@ -407,7 +407,11 @@ class Cora extends BasePaymentGateway
 
         $tipoLabel = $nota->tipo === 'nfe' ? 'NF-e' : 'NFS-e';
         $descricao = $tipoLabel . ' nº ' . $nota->numero . ($tipoOrigem === PaymentGateway::PAYMENT_TYPE_OS ? " - OS #$origemId" : " - Venda #$origemId");
-        $descricaoServico = $descricao . ($issRetido > 0 ? ' (líquido de ISS retido R$ ' . number_format($issRetido, 2, ',', '.') . ')' : '');
+        // Descrição do serviço no boleto: usa a MESMA descrição enviada na NF
+        // (xDescServ persistido na nota); se não houver, cai no rótulo do documento.
+        $descricaoNota = ! empty($nota->descricao_servico) ? trim((string) $nota->descricao_servico) : '';
+        $descricaoBase = $descricaoNota !== '' ? $descricaoNota : $descricao;
+        $descricaoServico = $descricaoBase . ($issRetido > 0 ? ' (líquido de ISS retido R$ ' . number_format($issRetido, 2, ',', '.') . ')' : '');
 
         $documento = preg_replace('/[^0-9]/', '', $entity->documento);
         $body = [
@@ -472,7 +476,7 @@ class Cora extends BasePaymentGateway
             'payment_gateway' => 'Cora',
             'clientes_id' => $entity->idClientes,
             'nota_id' => $idNota,
-            'message' => 'Pagamento referente a ' . $descricao,
+            'message' => 'Pagamento referente a ' . $descricaoBase,
         ];
         if ($tipoOrigem === PaymentGateway::PAYMENT_TYPE_OS) {
             $data['os_id'] = $origemId;
@@ -749,11 +753,23 @@ class Cora extends BasePaymentGateway
         }
 
         // Modelo configurável de e-mail (fallback para a view/assunto acima).
-        $this->ci->load->library('emailtemplate');
-        $render = $this->ci->emailtemplate->render('cobranca', [
+        // Quando a cobrança vem de uma OS, carrega a OS + itens para liberar as
+        // tags dos blocos da ordem de serviço no modelo de Cobrança/Boleto.
+        $contextoEmail = [
             'emitente' => $emitente,
             'cobranca' => $cobranca,
-        ]);
+        ];
+        if (! empty($cobranca->os_id)) {
+            $this->ci->load->model('os_model');
+            $os = $this->ci->os_model->getById($cobranca->os_id);
+            if ($os) {
+                $contextoEmail['os'] = $os;
+                $contextoEmail['produtos'] = $this->ci->os_model->getProdutos($cobranca->os_id);
+                $contextoEmail['servicos'] = $this->ci->os_model->getServicos($cobranca->os_id);
+            }
+        }
+        $this->ci->load->library('emailtemplate');
+        $render = $this->ci->emailtemplate->render('cobranca', $contextoEmail);
         if ($render !== null && ! $render['ativo']) {
             return; // Envio de e-mail de cobrança desativado nas configurações.
         }

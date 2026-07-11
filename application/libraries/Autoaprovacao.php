@@ -192,6 +192,7 @@ class Autoaprovacao
                 'status' => 'autorizada',
                 'chave' => $resultado['chave'] ?? null,
                 'motivo' => $resultado['motivo'] ?? null,
+                'descricao_servico' => $resultado['descricao_servico'] ?? null,
                 'xml_path' => $xmlPath,
                 'data_autorizacao' => date('Y-m-d H:i:s'),
             ]);

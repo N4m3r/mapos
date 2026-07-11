@@ -44,7 +44,7 @@ class Nfe_model extends CI_Model
 
     public function addNota(array $data)
     {
-        $this->db->insert('notas_fiscais', $data);
+        $this->db->insert('notas_fiscais', $this->filtrarColunas($data));
 
         return $this->db->insert_id();
     }
@@ -53,7 +53,19 @@ class Nfe_model extends CI_Model
     {
         $this->db->where('idNota', $idNota);
 
-        return $this->db->update('notas_fiscais', $data);
+        return $this->db->update('notas_fiscais', $this->filtrarColunas($data));
+    }
+
+    /**
+     * Mantém no array apenas as chaves que existem como coluna em notas_fiscais.
+     * Assim campos novos (ex.: descricao_servico) não quebram a gravação em
+     * instalações onde o update de schema ainda não foi aplicado.
+     */
+    private function filtrarColunas(array $data)
+    {
+        $cols = $this->db->list_fields('notas_fiscais');
+
+        return array_intersect_key($data, array_flip($cols));
     }
 
     public function getNotaById($idNota)
