@@ -515,7 +515,9 @@ class Nfe extends MY_Controller
                     'motivo' => $resultado['motivo'],
                 ]);
 
-                return $this->jsonResponse(false, 'NFS-e rejeitada pelo Sefin Nacional: ' . $resultado['motivo']);
+                return $this->jsonResponse(false, 'NFS-e rejeitada pelo Sefin Nacional: ' . $resultado['motivo'], [
+                    'detalhe' => $resultado['motivo_detalhe'] ?? null,
+                ]);
             }
 
             $xmlPath = null;
@@ -633,7 +635,9 @@ class Nfe extends MY_Controller
             if (!$resultado['sucesso']) {
                 $this->nfe_model->updateNota($idNota, ['status' => 'rejeitada', 'motivo' => $resultado['motivo']]);
 
-                return $this->jsonResponse(false, 'Substituição rejeitada pelo Sefin Nacional: ' . $resultado['motivo']);
+                return $this->jsonResponse(false, 'Substituição rejeitada pelo Sefin Nacional: ' . $resultado['motivo'], [
+                    'detalhe' => $resultado['motivo_detalhe'] ?? null,
+                ]);
             }
 
             $xmlPath = null;
@@ -986,7 +990,9 @@ class Nfe extends MY_Controller
             }
 
             if (!$resultado['sucesso']) {
-                return $this->jsonResponse(false, 'Cancelamento não homologado: ' . $resultado['motivo']);
+                return $this->jsonResponse(false, 'Cancelamento não homologado: ' . $resultado['motivo'], [
+                    'detalhe' => $resultado['motivo_detalhe'] ?? null,
+                ]);
             }
 
             $this->nfe_model->updateNota($nota->idNota, [

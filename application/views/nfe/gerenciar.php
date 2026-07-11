@@ -216,6 +216,28 @@
         var retransmitirOk = false;
         var substituirOk = false;
 
+        // Monta o alerta de erro fiscal com a mensagem legível e, se o servidor
+        // devolver, um bloco expansível com o retorno técnico completo do Sefin.
+        function erroFiscalHtml(data) {
+            var msg = (data && data.message) ? data.message : 'Falha na operação.';
+            var html = '<div class="alert alert-danger" style="white-space:pre-wrap">' + $('<div>').text(msg).html();
+            if (data && data.detalhe) {
+                var id = 'detFiscal' + Date.now();
+                html += '<div style="margin-top:6px">'
+                    + '<a href="#" class="toggle-det-fiscal" data-alvo="' + id + '" style="font-size:12px">▸ Ver detalhes técnicos</a>'
+                    + '<pre id="' + id + '" style="display:none;margin-top:6px;max-height:260px;overflow:auto;font-size:11px;white-space:pre-wrap">'
+                    + $('<div>').text(data.detalhe).html() + '</pre></div>';
+            }
+            return html + '</div>';
+        }
+
+        $(document).on('click', '.toggle-det-fiscal', function(e) {
+            e.preventDefault();
+            var alvo = $('#' + $(this).data('alvo'));
+            alvo.toggle();
+            $(this).html(alvo.is(':visible') ? '▾ Ocultar detalhes técnicos' : '▸ Ver detalhes técnicos');
+        });
+
         $(document).on('click', '.btn-substituir-nota', function() {
             substituirOk = false;
             $('#substituirIdNota').val($(this).data('nota'));
@@ -246,7 +268,7 @@
                     $('#substituirRetorno').html('<div class="alert alert-success">' + data.message + '</div>');
                     btn.hide();
                 } else {
-                    $('#substituirRetorno').html('<div class="alert alert-danger">' + data.message + '</div>');
+                    $('#substituirRetorno').html(erroFiscalHtml(data));
                     btn.attr('disabled', false);
                 }
             }, 'json').fail(function() {
@@ -283,7 +305,7 @@
                     }
                     btn.hide();
                 } else {
-                    $('#retransmitirRetorno').html('<div class="alert alert-danger">' + data.message + '</div>');
+                    $('#retransmitirRetorno').html(erroFiscalHtml(data));
                     btn.attr('disabled', false);
                 }
             }, 'json').fail(function() {
@@ -322,7 +344,7 @@
                     $('#cancelarRetorno').html('<div class="alert alert-success">' + data.message + '</div>');
                     setTimeout(function() { window.location.reload(); }, 1500);
                 } else {
-                    $('#cancelarRetorno').html('<div class="alert alert-danger">' + data.message + '</div>');
+                    $('#cancelarRetorno').html(erroFiscalHtml(data));
                 }
             }, 'json').fail(function() {
                 btn.attr('disabled', false);

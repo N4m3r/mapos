@@ -38,6 +38,19 @@ class NfseTools extends HadderTools
             throw new \Exception('Material do certificado não definido para a assinatura da NFS-e.');
         }
 
-        return Signer::sign($content, $tagname, $this->pkeyPem, $this->certPem, 'Id');
+        $assinado = Signer::sign($content, $tagname, $this->pkeyPem, $this->certPem, 'Id');
+
+        // Diagnóstico: guarda a última DPS assinada exatamente como será
+        // transmitida, para inspeção em caso de rejeição de assinatura (E0714).
+        // Best-effort: nunca interrompe a emissão.
+        if (stripos((string) $tagname, 'infDPS') !== false) {
+            try {
+                CertificadoHelper::salvarXml('_ultima_dps_assinada.xml', $assinado);
+            } catch (\Throwable $e) {
+                // silencioso — é só telemetria
+            }
+        }
+
+        return $assinado;
     }
 }

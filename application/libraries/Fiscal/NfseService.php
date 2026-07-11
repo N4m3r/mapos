@@ -67,6 +67,74 @@ class NfseService
     }
 
     /**
+     * Normaliza um texto livre para ir num campo da DPS (ex.: xDescServ).
+     * Remove marcação HTML, decodifica entidades, tira caracteres de controle e
+     * colapsa espaços/quebras. Evita conteúdo que possa ser reserializado de
+     * forma diferente no transporte e invalidar a assinatura (E0714).
+     */
+    private function limparTexto(string $texto): string
+    {
+        $t = strip_tags($texto);
+        $t = html_entity_decode($t, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        // Remove caracteres de controle (inclui CR/LF/TAB, que viram espaço abaixo).
+        $t = preg_replace('/[\x00-\x1F\x7F]/u', ' ', $t);
+        // Colapsa qualquer sequência de espaços em um único espaço.
+        $t = preg_replace('/\s+/u', ' ', (string) $t);
+
+        return trim((string) $t);
+    }
+
+    /**
+     * Formata a resposta de rejeição do Sefin Nacional em:
+     *   [0] mensagem legível (lista "Codigo - Descricao [ - Complemento]")
+     *   [1] detalhe técnico completo (JSON pretty do retorno inteiro)
+     * Assim a tela mostra o essencial e, expandido, o retorno bruto sem perder nada.
+     */
+    private function formatarErros($resposta): array
+    {
+        $detalhe = is_string($resposta)
+            ? $resposta
+            : json_encode($resposta, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+
+        if (is_string($resposta)) {
+            return [$resposta, $detalhe];
+        }
+
+        $erros = $resposta['erros'] ?? $resposta['erro'] ?? null;
+        if ($erros === null) {
+            // Sem chave conhecida: usa o retorno inteiro como mensagem.
+            return [json_encode($resposta, JSON_UNESCAPED_UNICODE), $detalhe];
+        }
+        if (is_string($erros)) {
+            return [$erros, $detalhe];
+        }
+
+        $linhas = [];
+        foreach ((array) $erros as $e) {
+            if (is_string($e)) {
+                $linhas[] = $e;
+                continue;
+            }
+            $e = (array) $e;
+            $cod = (string) ($e['Codigo'] ?? $e['codigo'] ?? $e['code'] ?? '');
+            $desc = (string) ($e['Descricao'] ?? $e['descricao'] ?? $e['Mensagem'] ?? $e['mensagem'] ?? $e['message'] ?? '');
+            $compl = (string) ($e['Complemento'] ?? $e['complemento'] ?? $e['Correcao'] ?? $e['correcao'] ?? $e['Sugestao'] ?? '');
+            $linha = trim(($cod !== '' ? '[' . $cod . '] ' : '') . $desc);
+            if ($compl !== '') {
+                $linha .= ' — ' . $compl;
+            }
+            if ($linha === '') {
+                $linha = json_encode($e, JSON_UNESCAPED_UNICODE);
+            }
+            $linhas[] = $linha;
+        }
+
+        $mensagem = $linhas === [] ? $detalhe : implode(' | ', $linhas);
+
+        return [$mensagem, $detalhe];
+    }
+
+    /**
      * Monta e envia a DPS de uma OS finalizada.
      * $servicos: itens de servicos_os + servicos (result do Os_model::getServicos)
      * Retorna: ['sucesso', 'chave', 'numero_dps', 'motivo', 'xml']
@@ -211,6 +279,14 @@ class NfseService
         if ($infComplementar !== '') {
             $descServico .= ' | Obs.: ' . $infComplementar;
         }
+        // Higieniza: na emissão automática o texto vem de campos livres da OS
+        // (laudo/observações) que podem trazer HTML, quebras CRLF e caracteres de
+        // controle. Isso pode ser reserializado de forma diferente no envio e
+        // quebrar o digest da assinatura (E0714). Deixa só texto limpo.
+        $descServico = $this->limparTexto($descServico);
+        if ($descServico === '') {
+            $descServico = 'OS nr. ' . $os->idOs;
+        }
         $std->infDPS->serv->cServ->xDescServ = mb_substr($descServico, 0, 2000);
 
         // valores
@@ -255,12 +331,14 @@ class NfseService
         $xmlGzip = $resposta['nfseXmlGZipB64'] ?? null;
 
         if ($xmlGzip === null) {
-            $erros = $resposta['erros'] ?? $resposta['erro'] ?? $resposta;
+            [$mensagem, $detalhe] = $this->formatarErros($resposta);
+
             return [
                 'sucesso' => false,
                 'chave' => $chave,
                 'numero_dps' => $numeroDps,
-                'motivo' => is_string($erros) ? $erros : json_encode($erros, JSON_UNESCAPED_UNICODE),
+                'motivo' => $mensagem,
+                'motivo_detalhe' => $detalhe,
                 'xml' => null,
             ];
         }
@@ -302,10 +380,12 @@ class NfseService
         $resposta = $this->tools->cancelaNfse($std);
 
         if (is_array($resposta) && (isset($resposta['erro']) || isset($resposta['erros']))) {
-            $erros = $resposta['erros'] ?? $resposta['erro'];
+            [$mensagem, $detalhe] = $this->formatarErros($resposta);
+
             return [
                 'sucesso' => false,
-                'motivo' => is_string($erros) ? $erros : json_encode($erros, JSON_UNESCAPED_UNICODE),
+                'motivo' => $mensagem,
+                'motivo_detalhe' => $detalhe,
             ];
         }
 
