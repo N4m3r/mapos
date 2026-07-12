@@ -12,9 +12,26 @@ $action = $edit ? site_url('rh/editarColaborador/' . $c->id) : site_url('rh/adic
         <h5><?= $edit ? 'Editar' : 'Novo' ?> Colaborador</h5>
     </div>
     <?= $custom_error ?? '' ?>
-    <form method="post" action="<?= $action ?>" class="form-horizontal">
+    <form method="post" action="<?= $action ?>" class="form-horizontal" enctype="multipart/form-data">
         <?php if ($edit): ?><input type="hidden" name="id" value="<?= $c->id ?>"><?php endif; ?>
         <div class="widget-box"><div class="widget-content">
+            <div class="row-fluid" style="display:flex;align-items:center;gap:16px;margin-bottom:10px">
+                <div style="text-align:center">
+                    <?php $temFoto = $edit && ! empty($c->foto_base64); ?>
+                    <?php $avatarPlaceholder = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="110" height="110"><rect width="110" height="110" rx="12" fill="#eef0f4"/><circle cx="55" cy="42" r="22" fill="#c3c9d4"/><path d="M20 100c0-19 16-30 35-30s35 11 35 30z" fill="#c3c9d4"/></svg>'); ?>
+                    <img id="foto-preview"
+                         src="<?= $temFoto ? site_url('rh/fotoColaborador/' . $c->id) : $avatarPlaceholder ?>"
+                         alt="Foto" style="width:110px;height:110px;border-radius:12px;object-fit:cover;border:2px solid #eef0f4">
+                </div>
+                <div style="flex:1">
+                    <label>Foto do colaborador</label>
+                    <input type="file" name="foto" id="foto-input" accept="image/*" class="span12">
+                    <small style="color:#888">Envie uma imagem (até 3MB). Também pode tirar pela câmera no celular.</small>
+                    <?php if ($temFoto): ?>
+                        <div style="margin-top:6px"><label style="font-weight:normal"><input type="checkbox" name="remover_foto" value="1"> Remover foto atual</label></div>
+                    <?php endif; ?>
+                </div>
+            </div>
             <div class="row-fluid">
                 <div class="span6"><label>Nome *</label><input type="text" name="nome" class="span12" value="<?= $val('nome') ?>" required></div>
                 <div class="span3"><label>CPF</label><input type="text" name="cpf" class="span12" value="<?= $val('cpf') ?>"></div>
@@ -78,3 +95,13 @@ $action = $edit ? site_url('rh/editarColaborador/' . $c->id) : site_url('rh/adic
         </div>
     </form>
 </div>
+<script>
+document.getElementById('foto-input').addEventListener('change', function(e){
+    var f = e.target.files[0];
+    if (!f) return;
+    if (f.size > 3*1024*1024){ alert('A foto excede 3MB.'); this.value=''; return; }
+    var r = new FileReader();
+    r.onload = function(ev){ document.getElementById('foto-preview').src = ev.target.result; };
+    r.readAsDataURL(f);
+});
+</script>

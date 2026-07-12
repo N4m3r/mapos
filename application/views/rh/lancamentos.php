@@ -3,7 +3,8 @@ $tipos = ['hora_extra'=>'Hora extra','adicional'=>'Adicional','comissao'=>'Comis
     'adiantamento'=>'Adiantamento','desconto'=>'Desconto','falta'=>'Falta','vale'=>'Vale'];
 ?>
 <div class="new122">
-    <div class="widget-title" style="margin:-20px 0 10px">
+    <?php $this->load->view('rh/_subnav', ['ativo' => 'lancamentos']); ?>
+    <div class="widget-title" style="margin:0 0 10px">
         <span class="icon"><i class="fas fa-money-bill"></i></span><h5>Lançamentos / Extras</h5>
     </div>
 

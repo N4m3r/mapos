@@ -31,7 +31,11 @@ class Rh_colaboradores_model extends CI_Model
             return [];
         }
 
-        $this->db->select('c.*, u.nome AS nome_unidade, j.nome AS nome_jornada');
+        // Evita puxar o foto_base64 (LONGTEXT) de toda a lista; só um flag.
+        $this->db->select("c.id, c.usuarios_id, c.nome, c.cpf, c.cargo, c.departamento, c.tipo_contrato,
+            c.admissao, c.unidade_id, c.jornada_id, c.celular, c.situacao,
+            (c.foto_base64 IS NOT NULL AND c.foto_base64 <> '') AS tem_foto,
+            u.nome AS nome_unidade, j.nome AS nome_jornada", false);
         $this->db->from('rh_colaboradores c');
         $this->db->join('rh_unidades u', 'u.id = c.unidade_id', 'left');
         $this->db->join('rh_jornadas j', 'j.id = c.jornada_id', 'left');

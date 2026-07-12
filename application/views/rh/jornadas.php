@@ -1,6 +1,7 @@
 <?php $dsem = [0=>'Dom',1=>'Seg',2=>'Ter',3=>'Qua',4=>'Qui',5=>'Sex',6=>'Sáb']; ?>
 <div class="new122">
-    <div class="widget-title" style="margin:-20px 0 0">
+    <?php $this->load->view('rh/_subnav', ['ativo' => 'jornadas']); ?>
+    <div class="widget-title" style="margin:0 0 0">
         <span class="icon"><i class="fas fa-clock"></i></span><h5>Jornadas / Escalas</h5>
     </div>
     <div class="span12" style="margin-left:0">

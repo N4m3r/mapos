@@ -1,5 +1,6 @@
 <div class="new122">
-    <div class="widget-title" style="margin: -20px 0 0">
+    <?php $this->load->view('rh/_subnav', ['ativo' => 'colaboradores']); ?>
+    <div class="widget-title" style="margin: 0 0 0">
         <span class="icon"><i class="fas fa-users"></i></span>
         <h5>Colaboradores</h5>
     </div>
@@ -27,9 +28,15 @@
                 <tbody>
                 <?php if (empty($colaboradores)): ?>
                     <tr><td colspan="6">Nenhum colaborador cadastrado.</td></tr>
-                <?php else: foreach ($colaboradores as $c): ?>
+                <?php else:
+                    $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="34" height="34"><rect width="34" height="34" rx="17" fill="#eef0f4"/><circle cx="17" cy="13" r="7" fill="#c3c9d4"/><path d="M5 31c0-6 5-9 12-9s12 3 12 9z" fill="#c3c9d4"/></svg>');
+                    foreach ($colaboradores as $c): ?>
                     <tr>
-                        <td><?= htmlspecialchars($c->nome) ?></td>
+                        <td style="white-space:nowrap">
+                            <img src="<?= ! empty($c->tem_foto) ? site_url('rh/fotoColaborador/'.$c->id) : $ph ?>"
+                                 style="width:34px;height:34px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px">
+                            <a href="<?= site_url('rh/ficha/'.$c->id) ?>"><?= htmlspecialchars($c->nome) ?></a>
+                        </td>
                         <td><?= htmlspecialchars($c->cargo ?: '-') ?></td>
                         <td><?= htmlspecialchars($c->nome_unidade ?: '-') ?></td>
                         <td><?= htmlspecialchars($c->nome_jornada ?: '-') ?></td>

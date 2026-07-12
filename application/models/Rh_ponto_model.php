@@ -167,6 +167,20 @@ class Rh_ponto_model extends CI_Model
         return $query ? $query->result() : [];
     }
 
+    /** Últimas batidas de um colaborador específico (feed da ficha). */
+    public function ultimasDoColaborador($colaborador_id, $limite = 15)
+    {
+        if (! $this->suportado()) {
+            return [];
+        }
+        $this->db->where('colaborador_id', $colaborador_id);
+        $this->db->where('status !=', 'rejeitado');
+        $this->db->order_by('data_hora', 'DESC');
+        $this->db->limit($limite);
+        $query = $this->db->get('rh_ponto_registros');
+        return $query ? $query->result() : [];
+    }
+
     /** Registros pendentes de análise (ajustes solicitados). */
     public function contarPendentes()
     {

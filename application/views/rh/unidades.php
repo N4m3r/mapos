@@ -1,5 +1,6 @@
 <div class="new122">
-    <div class="widget-title" style="margin:-20px 0 0">
+    <?php $this->load->view('rh/_subnav', ['ativo' => 'unidades']); ?>
+    <div class="widget-title" style="margin:0 0 0">
         <span class="icon"><i class="fas fa-building"></i></span><h5>Unidades (geofence)</h5>
     </div>
     <div class="span12" style="margin-left:0">

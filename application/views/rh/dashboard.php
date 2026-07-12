@@ -1,5 +1,6 @@
 <div class="new122">
-    <div class="widget-title" style="margin: -20px 0 10px">
+    <?php $this->load->view('rh/_subnav', ['ativo' => 'painel']); ?>
+    <div class="widget-title" style="margin: 0 0 10px">
         <span class="icon"><i class="fas fa-users"></i></span>
         <h5>RH — Painel</h5>
     </div>

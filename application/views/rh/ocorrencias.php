@@ -3,7 +3,8 @@ $tipos = ['correcao_ponto'=>'Correção de ponto','justificativa_falta'=>'Justif
 $podeAprovar = $this->permission->checkPermission($this->session->userdata('permissao'), 'aprovarRh');
 ?>
 <div class="new122">
-    <div class="widget-title" style="margin:-20px 0 10px">
+    <?php $this->load->view('rh/_subnav', ['ativo' => 'ocorrencias']); ?>
+    <div class="widget-title" style="margin:0 0 10px">
         <span class="icon"><i class="fas fa-exclamation-circle"></i></span><h5>Ocorrências (correções / justificativas)</h5>
     </div>
     <div class="span12" style="margin-left:0">

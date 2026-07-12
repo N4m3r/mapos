@@ -4,7 +4,8 @@ $fmt = function ($min) { return $this->rh_calculo->minParaHoras($min); };
 $podeFin = $this->permission->checkPermission($this->session->userdata('permissao'), 'vRhFinanceiro');
 ?>
 <div class="new122">
-    <div class="widget-title" style="margin:-20px 0 10px">
+    <?php $this->load->view('rh/_subnav', ['ativo' => 'colaboradores']); ?>
+    <div class="widget-title" style="margin:0 0 10px">
         <span class="icon"><i class="fas fa-calendar-check"></i></span>
         <h5>Espelho de Ponto — <?= htmlspecialchars($colaborador->nome) ?></h5>
     </div>

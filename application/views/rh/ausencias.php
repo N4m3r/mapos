@@ -3,7 +3,8 @@ $tipos = ['ferias'=>'Férias','folga'=>'Folga','atestado'=>'Atestado','licenca'=
 $podeAprovar = $this->permission->checkPermission($this->session->userdata('permissao'), 'aprovarRh');
 ?>
 <div class="new122">
-    <div class="widget-title" style="margin:-20px 0 10px">
+    <?php $this->load->view('rh/_subnav', ['ativo' => 'ausencias']); ?>
+    <div class="widget-title" style="margin:0 0 10px">
         <span class="icon"><i class="fas fa-calendar-alt"></i></span><h5>Folgas / Férias / Atestados</h5>
     </div>
     <div class="span12" style="margin-left:0">

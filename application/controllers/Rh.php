@@ -80,7 +80,11 @@ class Rh extends MY_Controller
             if ($nome === '') {
                 $this->data['custom_error'] = '<div class="form_error"><p>Informe o nome.</p></div>';
             } else {
-                $id = $this->rh_colaboradores_model->add($this->dadosColaboradorDoPost(), true);
+                $dados = $this->dadosColaboradorDoPost();
+                if ($foto = $this->fotoColaboradorUpload()) {
+                    $dados = array_merge($dados, $foto);
+                }
+                $id = $this->rh_colaboradores_model->add($dados, true);
                 if ($id) {
                     log_info('RH: cadastrou colaborador ID ' . $id);
                     $this->session->set_flashdata('success', 'Colaborador cadastrado com sucesso!');
@@ -109,7 +113,14 @@ class Rh extends MY_Controller
         $this->data['custom_error'] = '';
 
         if ($this->input->post('nome')) {
-            if ($this->rh_colaboradores_model->edit($this->dadosColaboradorDoPost(), $id)) {
+            $dados = $this->dadosColaboradorDoPost();
+            if ($foto = $this->fotoColaboradorUpload()) {
+                $dados = array_merge($dados, $foto);
+            } elseif ($this->input->post('remover_foto')) {
+                $dados['foto_base64'] = null;
+                $dados['foto_mime'] = null;
+            }
+            if ($this->rh_colaboradores_model->edit($dados, $id)) {
                 log_info('RH: editou colaborador ID ' . $id);
                 $this->session->set_flashdata('success', 'Colaborador atualizado com sucesso!');
                 redirect(site_url('rh/editarColaborador/' . $id));
@@ -138,6 +149,91 @@ class Rh extends MY_Controller
         redirect(site_url('rh/colaboradores'));
     }
 
+    /**
+     * Ficha do colaborador — hub que consolida ponto, ausências, lançamentos,
+     * ocorrências e biometria num só lugar (gestão por colaborador).
+     */
+    public function ficha($id = null)
+    {
+        $colaborador = $this->rh_colaboradores_model->getById($id);
+        if (! $colaborador) {
+            $this->session->set_flashdata('error', 'Colaborador não encontrado.');
+            redirect(site_url('rh/colaboradores'));
+        }
+        $competencia = $this->input->get('competencia') ?: date('Y-m');
+        $this->load->library('rh_calculo');
+
+        $this->data['colaborador'] = $colaborador;
+        $this->data['unidade'] = $colaborador->unidade_id ? $this->rh_colaboradores_model->getUnidade($colaborador->unidade_id) : null;
+        $this->data['jornada'] = $colaborador->jornada_id ? $this->rh_colaboradores_model->getJornada($colaborador->jornada_id) : null;
+        $this->data['tem_biometria'] = $this->rh_colaboradores_model->temBiometria($id);
+        $this->data['competencia'] = $competencia;
+        $this->data['horas'] = $this->rh_calculo->calcularCompetencia($id, $competencia);
+        $this->data['ultimas_batidas'] = $this->rh_ponto_model->ultimasDoColaborador($id, 12);
+        $this->data['ausencias'] = $this->rh_extras_model->listarAusencias(['colaborador_id' => $id]);
+        $this->data['lancamentos'] = $this->rh_extras_model->listarLancamentos($id, $competencia);
+        $this->data['ocorrencias'] = $this->rh_extras_model->listarOcorrencias(['colaborador_id' => $id]);
+        $this->data['resumo_financeiro'] = $this->rh_extras_model->resumoCompetencia($id, $competencia);
+        $this->data['pode_financeiro'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vRhFinanceiro');
+        $this->data['pode_editar'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'eRh');
+
+        $this->data['view'] = 'rh/ficha';
+        return $this->layout();
+    }
+
+    /** RH registra uma batida manualmente (correção/lançamento retroativo). */
+    public function registrarPontoManual()
+    {
+        $this->exigir('eRh', 'Sem permissão.');
+        $colaboradorId = $this->input->post('colaborador_id');
+        $dataHora = $this->input->post('data_hora');
+        $tipo = $this->input->post('tipo');
+        if (! $colaboradorId || ! $dataHora || ! in_array($tipo, ['entrada', 'saida', 'inicio_intervalo', 'fim_intervalo'], true)) {
+            $this->session->set_flashdata('error', 'Dados incompletos para a batida manual.');
+            redirect(site_url('rh/ficha/' . $colaboradorId));
+        }
+        $this->rh_ponto_model->registrar([
+            'colaborador_id' => $colaboradorId,
+            'data_hora' => date('Y-m-d H:i:s', strtotime($dataHora)),
+            'tipo' => $tipo,
+            'origem' => 'manual',
+            'status' => 'ajustado',
+            'observacao' => 'Lançada manualmente pelo RH',
+            'registrado_por' => $this->session->userdata('id_admin'),
+        ]);
+        log_info('RH: batida manual colaborador ' . $colaboradorId);
+        $this->session->set_flashdata('success', 'Batida registrada manualmente.');
+        redirect(site_url('rh/ficha/' . $colaboradorId));
+    }
+
+    /** RH registra uma ausência em nome do colaborador (já aprovada). */
+    public function salvarAusencia()
+    {
+        $this->exigir('eRh', 'Sem permissão.');
+        $colaboradorId = $this->input->post('colaborador_id');
+        $tipo = $this->input->post('tipo');
+        $inicio = $this->input->post('data_inicio');
+        $fim = $this->input->post('data_fim') ?: $inicio;
+        if (! $colaboradorId || ! in_array($tipo, ['ferias', 'folga', 'atestado', 'licenca'], true) || ! $inicio) {
+            $this->session->set_flashdata('error', 'Dados incompletos.');
+            redirect(site_url('rh/ficha/' . $colaboradorId));
+        }
+        $dias = (int) ((strtotime($fim) - strtotime($inicio)) / 86400) + 1;
+        $this->rh_extras_model->addAusencia([
+            'colaborador_id' => $colaboradorId,
+            'tipo' => $tipo,
+            'data_inicio' => $inicio,
+            'data_fim' => $fim,
+            'dias' => $dias > 0 ? $dias : 1,
+            'motivo' => $this->input->post('motivo'),
+            'status' => 'aprovado',
+            'aprovador_id' => $this->session->userdata('id_admin'),
+            'data_analise' => date('Y-m-d H:i:s'),
+        ]);
+        $this->session->set_flashdata('success', 'Ausência registrada.');
+        redirect(site_url('rh/ficha/' . $colaboradorId));
+    }
+
     private function dadosColaboradorDoPost()
     {
         $salario = str_replace(['.', ','], ['', '.'], (string) $this->input->post('salario_base'));
@@ -164,6 +260,60 @@ class Rh extends MY_Controller
             'situacao' => $this->input->post('situacao') !== null ? (int) $this->input->post('situacao') : 1,
             'observacoes' => $this->input->post('observacoes'),
         ];
+    }
+
+    /** Processa o upload de foto do colaborador (multipart → base64 no banco). */
+    private function fotoColaboradorUpload()
+    {
+        if (empty($_FILES['foto']) || $_FILES['foto']['error'] !== UPLOAD_ERR_OK) {
+            return null;
+        }
+        if ($_FILES['foto']['size'] > 3 * 1024 * 1024) {
+            $this->session->set_flashdata('error', 'A foto excede 3MB e não foi salva.');
+            return null;
+        }
+        $tmp = $_FILES['foto']['tmp_name'];
+        $mime = mime_content_type($tmp) ?: $_FILES['foto']['type'];
+        if (strpos((string) $mime, 'image/') !== 0) {
+            $this->session->set_flashdata('error', 'Arquivo de foto inválido (use uma imagem).');
+            return null;
+        }
+        $conteudo = file_get_contents($tmp);
+        if ($conteudo === false) {
+            return null;
+        }
+        return [
+            'foto_base64' => 'data:' . $mime . ';base64,' . base64_encode($conteudo),
+            'foto_mime' => $mime,
+        ];
+    }
+
+    /** Serve a foto de perfil de um colaborador. */
+    public function fotoColaborador($id = null)
+    {
+        $colaborador = $this->rh_colaboradores_model->getById($id);
+        if (! $colaborador || empty($colaborador->foto_base64)) {
+            show_404();
+            return;
+        }
+        $base64 = $colaborador->foto_base64;
+        if (preg_match('/^data:(image\/\w+);base64,/', $base64, $m)) {
+            $mime = $m[1];
+            $dados = substr($base64, strlen($m[0]));
+        } else {
+            $mime = $colaborador->foto_mime ?: 'image/jpeg';
+            $dados = $base64;
+        }
+        $bin = base64_decode($dados, true);
+        if ($bin === false) {
+            show_404();
+            return;
+        }
+        header('Content-Type: ' . $mime);
+        header('Content-Length: ' . strlen($bin));
+        header('Cache-Control: private, max-age=3600');
+        echo $bin;
+        exit;
     }
 
     /** Usuários do sistema ainda não vinculados (para o select). */
