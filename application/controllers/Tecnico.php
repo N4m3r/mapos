@@ -73,8 +73,9 @@ class Tecnico extends MY_Controller
 
         $tecnico_id = $this->session->userdata('id_admin');
 
-        // Parametros de filtro
-        $status = $this->input->get('status') ?: 'todos';
+        // Parametros de filtro. Padrao 'ativas': mostra apenas OS acionaveis
+        // (Aberto/Aprovado/Em Andamento); as finalizadas ficam no filtro proprio.
+        $status = $this->input->get('status') ?: 'ativas';
         $data_inicio = $this->input->get('data_inicio');
         $data_fim = $this->input->get('data_fim');
 
