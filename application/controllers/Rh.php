@@ -638,6 +638,176 @@ class Rh extends MY_Controller
     }
 
     // =====================================================================
+    // Holerite (demonstrativo + PDF oficial)
+    // =====================================================================
+
+    public function holerite($colaborador_id = null, $competencia = null)
+    {
+        $this->exigir('vRhFinanceiro', 'Você não tem permissão para ver holerites.');
+        $colaborador = $this->rh_colaboradores_model->getById($colaborador_id);
+        if (! $colaborador) {
+            $this->session->set_flashdata('error', 'Colaborador não encontrado.');
+            redirect(site_url('rh/colaboradores'));
+        }
+        $competencia = $competencia ?: date('Y-m');
+        $this->data['colaborador'] = $colaborador;
+        $this->data['competencia'] = $competencia;
+        $this->data['resumo'] = $this->rh_extras_model->resumoCompetencia($colaborador_id, $competencia);
+        $this->data['holerite'] = $this->rh_extras_model->getHolerite($colaborador_id, $competencia);
+        $this->data['view'] = 'rh/holerite';
+        return $this->layout();
+    }
+
+    /** Sobe/atualiza o PDF oficial do holerite e/ou dados do recibo. */
+    public function salvarHolerite()
+    {
+        $this->exigir('vRhFinanceiro', 'Sem permissão.');
+        $colaboradorId = $this->input->post('colaborador_id');
+        $competencia = $this->input->post('competencia') ?: date('Y-m');
+        if (! $colaboradorId) {
+            redirect(site_url('rh/colaboradores'));
+        }
+
+        $dados = [
+            'valor_liquido' => ($v = str_replace(['.', ','], ['', '.'], (string) $this->input->post('valor_liquido'))) !== '' ? $v : null,
+            'observacao' => $this->input->post('observacao'),
+            'created_by' => $this->session->userdata('id_admin'),
+        ];
+
+        // Arquivo PDF (opcional): mantém o anterior se nenhum novo for enviado
+        if (! empty($_FILES['arquivo']) && $_FILES['arquivo']['error'] === UPLOAD_ERR_OK) {
+            if ($_FILES['arquivo']['size'] > 8 * 1024 * 1024) {
+                $this->session->set_flashdata('error', 'O arquivo excede 8MB.');
+                redirect(site_url("rh/holerite/$colaboradorId/$competencia"));
+            }
+            $mime = mime_content_type($_FILES['arquivo']['tmp_name']) ?: $_FILES['arquivo']['type'];
+            $conteudo = file_get_contents($_FILES['arquivo']['tmp_name']);
+            if ($conteudo !== false) {
+                $dados['arquivo_base64'] = 'data:' . $mime . ';base64,' . base64_encode($conteudo);
+                $dados['arquivo_mime'] = $mime;
+                $dados['arquivo_nome'] = $_FILES['arquivo']['name'];
+            }
+        }
+
+        $this->rh_extras_model->salvarHolerite($colaboradorId, $competencia, $dados);
+        log_info('RH: salvou holerite colaborador ' . $colaboradorId . ' comp ' . $competencia);
+        $this->session->set_flashdata('success', 'Holerite salvo.');
+        redirect(site_url("rh/holerite/$colaboradorId/$competencia"));
+    }
+
+    public function excluirHolerite()
+    {
+        $this->exigir('vRhFinanceiro', 'Sem permissão.');
+        $colaboradorId = $this->input->post('colaborador_id');
+        $competencia = $this->input->post('competencia');
+        if ($colaboradorId && $competencia) {
+            $this->rh_extras_model->deleteHolerite($colaboradorId, $competencia);
+            $this->session->set_flashdata('success', 'Holerite removido.');
+        }
+        redirect(site_url("rh/holerite/$colaboradorId/$competencia"));
+    }
+
+    /** Serve o PDF do holerite (acesso RH financeiro). */
+    public function baixarHolerite($colaborador_id = null, $competencia = null)
+    {
+        $this->exigir('vRhFinanceiro', 'Sem permissão.');
+        $h = $this->rh_extras_model->getHolerite($colaborador_id, $competencia);
+        if (! $h || empty($h->arquivo_base64)) {
+            show_404();
+            return;
+        }
+        $this->servirArquivoBase64($h->arquivo_base64, $h->arquivo_mime, $h->arquivo_nome);
+    }
+
+    /** Ecoa um arquivo data-URI base64 como download/inline. */
+    private function servirArquivoBase64($base64, $mimeFallback = null, $nome = null)
+    {
+        if (preg_match('/^data:([\w\/\+\.\-]+);base64,/', $base64, $m)) {
+            $mime = $m[1];
+            $dados = substr($base64, strlen($m[0]));
+        } else {
+            $mime = $mimeFallback ?: 'application/octet-stream';
+            $dados = $base64;
+        }
+        $bin = base64_decode($dados, true);
+        if ($bin === false) {
+            show_error('Erro ao decodificar arquivo', 500);
+            return;
+        }
+        header('Content-Type: ' . $mime);
+        header('Content-Length: ' . strlen($bin));
+        if ($nome) {
+            header('Content-Disposition: inline; filename="' . $nome . '"');
+        }
+        echo $bin;
+        exit;
+    }
+
+    // =====================================================================
+    // Ajuste de ponto (editar/excluir batidas)
+    // =====================================================================
+
+    public function ajustarPonto($colaborador_id = null, $competencia = null)
+    {
+        $this->exigir('eRh', 'Você não tem permissão para ajustar o ponto.');
+        $colaborador = $this->rh_colaboradores_model->getById($colaborador_id);
+        if (! $colaborador) {
+            $this->session->set_flashdata('error', 'Colaborador não encontrado.');
+            redirect(site_url('rh/colaboradores'));
+        }
+        $competencia = $competencia ?: date('Y-m');
+        [$ano, $mes] = explode('-', $competencia);
+        $inicio = "$ano-$mes-01";
+        $fim = date('Y-m-t', strtotime($inicio));
+
+        $this->data['colaborador'] = $colaborador;
+        $this->data['competencia'] = $competencia;
+        $this->data['registros'] = $this->rh_ponto_model->getPorPeriodo($colaborador_id, $inicio, $fim, true);
+        $this->data['view'] = 'rh/ajustar_ponto';
+        return $this->layout();
+    }
+
+    public function editarBatida()
+    {
+        $this->exigir('eRh', 'Sem permissão.');
+        $id = $this->input->post('id');
+        $colaboradorId = $this->input->post('colaborador_id');
+        $competencia = $this->input->post('competencia');
+        $dataHora = $this->input->post('data_hora');
+        $tipo = $this->input->post('tipo');
+        $status = $this->input->post('status') ?: 'ajustado';
+        $destino = site_url('rh/ajustarPonto/' . $colaboradorId . '/' . $competencia);
+
+        if (! $id || ! $dataHora || ! in_array($tipo, ['entrada', 'saida', 'inicio_intervalo', 'fim_intervalo'], true)) {
+            $this->session->set_flashdata('error', 'Dados incompletos.');
+            redirect($destino);
+        }
+        $this->rh_ponto_model->edit([
+            'data_hora' => date('Y-m-d H:i:s', strtotime($dataHora)),
+            'tipo' => $tipo,
+            'status' => in_array($status, ['valido', 'ajustado', 'rejeitado'], true) ? $status : 'ajustado',
+            'observacao' => trim(($this->input->post('observacao') ?: '') . ' [editada pelo RH]'),
+        ], $id);
+        log_info('RH: editou batida ' . $id);
+        $this->session->set_flashdata('success', 'Batida atualizada.');
+        redirect($destino);
+    }
+
+    public function excluirBatida()
+    {
+        $this->exigir('eRh', 'Sem permissão.');
+        $id = $this->input->post('id');
+        $colaboradorId = $this->input->post('colaborador_id');
+        $competencia = $this->input->post('competencia');
+        if ($id) {
+            $this->rh_ponto_model->delete($id);
+            log_info('RH: excluiu batida ' . $id);
+            $this->session->set_flashdata('success', 'Batida excluída.');
+        }
+        redirect(site_url('rh/ajustarPonto/' . $colaboradorId . '/' . $competencia));
+    }
+
+    // =====================================================================
     // Aprovações: ocorrências e ausências
     // =====================================================================
 

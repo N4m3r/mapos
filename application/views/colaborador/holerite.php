@@ -11,6 +11,12 @@ $labelTipo = ['hora_extra'=>'Horas extras','adicional'=>'Adicional','comissao'=>
 <div class="ponto-wrap">
     <input type="month" id="competencia" value="<?= $competencia ?>" class="span12" style="width:100%;margin-bottom:12px">
 
+    <?php if (! empty($holerite) && ! empty($holerite->arquivo_base64)): ?>
+        <a href="<?= site_url('colaborador/baixarHolerite/'.$competencia) ?>" target="_blank" class="btn-bater" style="text-align:center;text-decoration:none;margin-bottom:12px;display:block">
+            <i class='bx bx-download'></i> Baixar holerite oficial (PDF)
+        </a>
+    <?php endif; ?>
+
     <div class="rh-card">
         <h4 style="margin:0 0 10px"><i class='bx bx-money'></i> Demonstrativo</h4>
         <?php if (empty($resumo['itens'])): ?>

@@ -24,6 +24,12 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
         <div style="display:flex;gap:6px;flex-wrap:wrap">
             <a href="<?= site_url('rh/espelho/'.$colaborador->id.'/'.$competencia) ?>" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-calendar-check'></i></span><span class="button__text2"> Espelho</span></a>
             <?php if ($pode_editar): ?>
+                <a href="<?= site_url('rh/ajustarPonto/'.$colaborador->id.'/'.$competencia) ?>" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-edit-alt'></i></span><span class="button__text2"> Ajustar ponto</span></a>
+            <?php endif; ?>
+            <?php if ($pode_financeiro): ?>
+                <a href="<?= site_url('rh/holerite/'.$colaborador->id.'/'.$competencia) ?>" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2"> Holerite</span></a>
+            <?php endif; ?>
+            <?php if ($pode_editar): ?>
                 <a href="<?= site_url('rh/biometria/'.$colaborador->id) ?>" class="button btn btn-mini <?= $tem_biometria ? 'btn-success':'btn-warning' ?>"><span class="button__icon"><i class='bx bx-face'></i></span><span class="button__text2"> Facial <?= $tem_biometria?'✓':'' ?></span></a>
                 <a href="<?= site_url('rh/editarColaborador/'.$colaborador->id) ?>" class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-edit'></i></span><span class="button__text2"> Editar</span></a>
             <?php endif; ?>

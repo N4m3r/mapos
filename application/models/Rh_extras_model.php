@@ -283,6 +283,51 @@ class Rh_extras_model extends CI_Model
         ]);
     }
 
+    // =====================================================================
+    // Holerites (PDF oficial por colaborador/competência)
+    // =====================================================================
+
+    public function getHolerite($colaborador_id, $competencia)
+    {
+        if (! $this->db->table_exists('rh_holerites')) {
+            return null;
+        }
+        $query = $this->db->get_where('rh_holerites', [
+            'colaborador_id' => $colaborador_id,
+            'competencia' => $competencia,
+        ]);
+        return $query ? $query->row() : null;
+    }
+
+    /** Insere ou atualiza o holerite (arquivo/valores) da competência. */
+    public function salvarHolerite($colaborador_id, $competencia, $dados)
+    {
+        if (! $this->db->table_exists('rh_holerites')) {
+            return false;
+        }
+        $existente = $this->getHolerite($colaborador_id, $competencia);
+        if ($existente) {
+            $dados['updated_at'] = date('Y-m-d H:i:s');
+            $this->db->where('id', $existente->id);
+            return $this->db->update('rh_holerites', $dados);
+        }
+        $dados['colaborador_id'] = $colaborador_id;
+        $dados['competencia'] = $competencia;
+        $dados['created_at'] = date('Y-m-d H:i:s');
+        $this->db->insert('rh_holerites', $dados);
+        return $this->db->affected_rows() > 0;
+    }
+
+    public function deleteHolerite($colaborador_id, $competencia)
+    {
+        if (! $this->db->table_exists('rh_holerites')) {
+            return false;
+        }
+        return $this->db->where('colaborador_id', $colaborador_id)
+                        ->where('competencia', $competencia)
+                        ->delete('rh_holerites');
+    }
+
     /** Pendências de aprovação (ocorrências + ausências) para o dashboard. */
     public function contarPendencias()
     {

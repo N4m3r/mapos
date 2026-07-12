@@ -201,7 +201,37 @@ class Colaborador extends MY_Controller
         $data = $this->baseData('Holerite / Demonstrativo');
         $data['competencia'] = $competencia;
         $data['resumo'] = $this->rh_extras_model->resumoCompetencia($this->colaborador->id, $competencia);
+        $data['holerite'] = $this->rh_extras_model->getHolerite($this->colaborador->id, $competencia);
         $this->load->view('colaborador/holerite', $data);
+    }
+
+    /** Baixa o PDF oficial do holerite DO PRÓPRIO colaborador. */
+    public function baixarHolerite($competencia = null)
+    {
+        $competencia = $competencia ?: date('Y-m');
+        $h = $this->rh_extras_model->getHolerite($this->colaborador->id, $competencia);
+        if (! $h || empty($h->arquivo_base64)) {
+            show_404();
+            return;
+        }
+        $base64 = $h->arquivo_base64;
+        if (preg_match('/^data:([\w\/\+\.\-]+);base64,/', $base64, $m)) {
+            $mime = $m[1];
+            $dados = substr($base64, strlen($m[0]));
+        } else {
+            $mime = $h->arquivo_mime ?: 'application/pdf';
+            $dados = $base64;
+        }
+        $bin = base64_decode($dados, true);
+        if ($bin === false) {
+            show_404();
+            return;
+        }
+        header('Content-Type: ' . $mime);
+        header('Content-Length: ' . strlen($bin));
+        header('Content-Disposition: inline; filename="' . ($h->arquivo_nome ?: 'holerite.pdf') . '"');
+        echo $bin;
+        exit;
     }
 
     // ------------------------------------------------------------------
