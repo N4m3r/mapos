@@ -266,6 +266,10 @@ $emitente = isset($emitente) ? $emitente : null;
                         <div class="alert alert-danger"><?= html_escape($erro) ?></div>
                     <?php } ?>
 
+                    <?php if (! empty($info)) { ?>
+                        <div class="alert alert-info"><?= html_escape($info) ?></div>
+                    <?php } ?>
+
                     <?php if ($situacao === 'aprovado') { ?>
                         <div class="alert alert-success" style="text-align:center">
                             <i class="fa fa-check-circle"></i>
@@ -366,7 +370,38 @@ $emitente = isset($emitente) ? $emitente : null;
                         <div>Total: <strong><?= ap_money($totalFinal) ?></strong></div>
                     </div>
 
-                    <?php if ($situacao === 'pendente') { ?>
+                    <?php
+                    $precisaVerificar = ! empty($exigeToken) && empty($codigoValidado);
+                    ?>
+
+                    <?php if ($situacao === 'pendente' && $precisaVerificar) { ?>
+                        <div class="ap-actions">
+                            <h4 style="margin-top:0"><i class="fa fa-lock"></i> Verificação de segurança</h4>
+                            <p class="muted">Para sua proteção, é preciso confirmar sua identidade com um código antes de aprovar. Enviaremos o código para <strong><?= html_escape($canalMascarado ?: 'seu contato cadastrado') ?></strong><?php if (! empty($qtdDestinos) && $qtdDestinos > 1) { ?> e mais <?= (int) $qtdDestinos - 1 ?> contato(s) cadastrado(s)<?php } ?>.</p>
+
+                            <form method="post" action="<?= site_url('aprovacao/enviarCodigo') ?>" style="display:inline">
+                                <input type="hidden" name="<?= $this->security->get_csrf_token_name() ?>" value="<?= $this->security->get_csrf_hash() ?>">
+                                <input type="hidden" name="token" value="<?= html_escape($token) ?>">
+                                <button type="submit" class="btn btn-primary"><i class="fa fa-paper-plane"></i> <?= ! empty($codigoEnviado) ? 'Reenviar código' : 'Enviar código' ?></button>
+                            </form>
+
+                            <?php if (! empty($codigoEnviado)) { ?>
+                                <form method="post" action="<?= site_url('aprovacao/validarCodigo') ?>" style="margin-top:16px">
+                                    <input type="hidden" name="<?= $this->security->get_csrf_token_name() ?>" value="<?= $this->security->get_csrf_hash() ?>">
+                                    <input type="hidden" name="token" value="<?= html_escape($token) ?>">
+                                    <div class="control-group">
+                                        <label class="control-label" for="codigo"><strong>Código recebido</strong></label>
+                                        <div class="controls">
+                                            <input type="text" name="codigo" id="codigo" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="000000" style="letter-spacing:6px;font-size:20px;max-width:180px" required>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-success"><i class="fa fa-check"></i> Validar código</button>
+                                </form>
+                            <?php } ?>
+                        </div>
+                    <?php } ?>
+
+                    <?php if ($situacao === 'pendente' && ! $precisaVerificar) { ?>
                         <div class="ap-actions">
                             <h4 style="margin-top:0">Confirme sua decisão</h4>
                             <p class="muted">Revise o orçamento acima e informe se autoriza a execução do serviço.</p>

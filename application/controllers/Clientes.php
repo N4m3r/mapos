@@ -102,6 +102,14 @@ class Clientes extends MY_Controller
                 $data['faturamento_agendado'] = $this->input->post('faturamento_agendado') ? 1 : 0;
             }
 
+            if ($this->db->field_exists('aprovacao_exige_token', 'clientes')) {
+                $data['aprovacao_exige_token'] = $this->input->post('aprovacao_exige_token') ? 1 : 0;
+            }
+
+            if ($this->db->field_exists('aprovacao_token_numeros', 'clientes')) {
+                $data['aprovacao_token_numeros'] = trim((string) $this->input->post('aprovacao_token_numeros')) ?: null;
+            }
+
             if ($this->clientes_model->add('clientes', $data) == true) {
                 $this->session->set_flashdata('success', 'Cliente adicionado com sucesso!');
                 log_info('Adicionou um cliente.');
@@ -190,6 +198,14 @@ class Clientes extends MY_Controller
 
             if ($this->db->field_exists('faturamento_agendado', 'clientes')) {
                 $data['faturamento_agendado'] = $this->input->post('faturamento_agendado') ? 1 : 0;
+            }
+
+            if ($this->db->field_exists('aprovacao_exige_token', 'clientes')) {
+                $data['aprovacao_exige_token'] = $this->input->post('aprovacao_exige_token') ? 1 : 0;
+            }
+
+            if ($this->db->field_exists('aprovacao_token_numeros', 'clientes')) {
+                $data['aprovacao_token_numeros'] = trim((string) $this->input->post('aprovacao_token_numeros')) ?: null;
             }
 
             if ($this->clientes_model->edit('clientes', $data, 'idClientes', $this->input->post('idClientes')) == true) {

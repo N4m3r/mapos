@@ -52,6 +52,8 @@ if (filter_var($_ENV['API_ENABLED'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
 
 // Rota pública de aprovação de OS (link temporário enviado ao cliente)
 $route['aprovacao/confirmar'] = 'aprovacao/confirmar';
+$route['aprovacao/enviarCodigo'] = 'aprovacao/enviarCodigo';
+$route['aprovacao/validarCodigo'] = 'aprovacao/validarCodigo';
 $route['aprovacao/(:any)'] = 'aprovacao/index/$1';
 
 // Rota pública de aceite do serviço realizado (link temporário + assinatura)

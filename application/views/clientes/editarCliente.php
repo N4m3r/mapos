@@ -164,6 +164,23 @@
                             </div>
                         </div>
                         <div class="control-group">
+                            <label class="control-label">Aprovação com código</label>
+                            <div class="controls">
+                                <label for="aprovacao_exige_token" style="display:flex; align-items:center; gap:8px;">
+                                    <input id="aprovacao_exige_token" type="checkbox" name="aprovacao_exige_token" value="1" <?php echo (isset($result->aprovacao_exige_token) && $result->aprovacao_exige_token) ? 'checked' : ''; ?> />
+                                    Exigir código de verificação (WhatsApp/e-mail) antes de aprovar a OS
+                                </label>
+                                <span class="help-inline">Vale para todas as OS deste cliente. Também pode ser ligado avulso em cada OS.</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="aprovacao_token_numeros">Números para o código (WhatsApp)</label>
+                            <div class="controls">
+                                <textarea id="aprovacao_token_numeros" name="aprovacao_token_numeros" rows="3" placeholder="Um número por linha, com DDD. Ex.:&#10;(92) 99215-0107&#10;(92) 98888-7777"><?php echo isset($result->aprovacao_token_numeros) ? set_value('aprovacao_token_numeros', $result->aprovacao_token_numeros) : ''; ?></textarea>
+                                <span class="help-inline">Além do celular do cliente, o código também será enviado para estes números (um por linha).</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
                             <label class="control-label">Faturamento agendado</label>
                             <div class="controls">
                                 <label for="faturamento_agendado" style="display:flex; align-items:center; gap:8px;">

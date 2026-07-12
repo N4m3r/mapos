@@ -845,6 +845,30 @@ if (isset($aprovacaoSuportada) && $aprovacaoSuportada && $this->permission->chec
     $apExpira = $result->aprovacao_expira ?? null;
     $apUrl = $apToken ? site_url('aprovacao/' . $apToken) : '';
     $zapAprov = preg_replace('/[^0-9]/', '', $result->celular_cliente ?? '');
+
+    // Exigência de código de verificação. Como getById() traz os.* e clientes.*
+    // e ambas têm a coluna aprovacao_exige_token, lemos os valores com alias
+    // explícito para não haver ambiguidade (o clientes.* sobrescreveria).
+    $apSuportaVerificacao = $this->db->field_exists('aprovacao_exige_token', 'os');
+    $apExigeTokenOs = 0;
+    $apExigeTokenCliente = 0;
+    $apTokenNumeros = '';
+    $apTemNumerosCol = $this->db->field_exists('aprovacao_token_numeros', 'os');
+    if ($apSuportaVerificacao) {
+        $selectFlags = 'os.aprovacao_exige_token AS os_flag, clientes.aprovacao_exige_token AS cli_flag';
+        if ($apTemNumerosCol) {
+            $selectFlags .= ', os.aprovacao_token_numeros AS os_numeros';
+        }
+        $this->db->select($selectFlags);
+        $this->db->from('os');
+        $this->db->join('clientes', 'clientes.idClientes = os.clientes_id');
+        $this->db->where('os.idOs', $result->idOs);
+        if ($flagRow = $this->db->get()->row()) {
+            $apExigeTokenOs = (int) ($flagRow->os_flag ?? 0);
+            $apExigeTokenCliente = (int) ($flagRow->cli_flag ?? 0);
+            $apTokenNumeros = (string) ($flagRow->os_numeros ?? '');
+        }
+    }
 ?>
     <div id="modal-aprovacao" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-header">
@@ -871,6 +895,32 @@ if (isset($aprovacaoSuportada) && $aprovacaoSuportada && $this->permission->chec
                     <input type="number" id="apDias" value="7" min="1" max="90" style="width:80px">
                 </div>
             </div>
+
+            <?php if ($apSuportaVerificacao) { ?>
+                <div class="control-group">
+                    <label class="control-label">Segurança</label>
+                    <div class="controls">
+                        <label for="apExigeToken" style="display:flex;align-items:center;gap:8px;">
+                            <input type="checkbox" id="apExigeToken" value="1" <?php echo $apExigeTokenOs ? 'checked' : ''; ?>>
+                            Exigir código de verificação do cliente antes de aprovar
+                        </label>
+                        <?php if ($apExigeTokenCliente) { ?>
+                            <span class="help-inline" style="color:#8a6d3b">Já exigido pelo cadastro deste cliente (vale mesmo desmarcado aqui).</span>
+                        <?php } else { ?>
+                            <span class="help-inline">Envia um código por WhatsApp/e-mail que o cliente digita na página. Aplicado ao gerar o link.</span>
+                        <?php } ?>
+                    </div>
+                </div>
+                <?php if ($apTemNumerosCol) { ?>
+                    <div class="control-group">
+                        <label class="control-label" for="apTokenNumeros">Números extras (WhatsApp)</label>
+                        <div class="controls">
+                            <textarea id="apTokenNumeros" rows="2" placeholder="Um número por linha, com DDD" style="width:95%"><?php echo html_escape($apTokenNumeros); ?></textarea>
+                            <span class="help-inline">Além do celular do cliente e dos números do cadastro, envia o código para estes (avulsos desta OS). Salvo ao gerar o link.</span>
+                        </div>
+                    </div>
+                <?php } ?>
+            <?php } ?>
 
             <div id="apLinkBox" style="<?php echo $apUrl ? '' : 'display:none'; ?>">
                 <label><strong>Link para o cliente</strong></label>
@@ -917,7 +967,9 @@ if (isset($aprovacaoSuportada) && $aprovacaoSuportada && $this->permission->chec
                     dataType: 'json',
                     data: {
                         idOs: apIdOs,
-                        dias: $('#apDias').val()
+                        dias: $('#apDias').val(),
+                        exige_token: $('#apExigeToken').is(':checked') ? 1 : 0,
+                        token_numeros: $('#apTokenNumeros').val() || ''
                     },
                     success: function(data) {
                         if (data.result) {

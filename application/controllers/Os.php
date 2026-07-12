@@ -1829,7 +1829,7 @@ class Os extends MY_Controller
             return $this->output
                 ->set_content_type('application/json')
                 ->set_status_header(400)
-                ->set_output(json_encode(['result' => false, 'mensagem' => 'Recurso indisponível: execute a atualização do banco (updates/update_os_aprovacao.sql).']));
+                ->set_output(json_encode(['result' => false, 'mensagem' => 'Recurso indisponível: execute as migrations (php index.php tools migrate).']));
         }
 
         $dias = (int) $this->input->post('dias') ?: 7;
@@ -1840,6 +1840,12 @@ class Os extends MY_Controller
                 ->set_content_type('application/json')
                 ->set_status_header(500)
                 ->set_output(json_encode(['result' => false, 'mensagem' => 'Erro ao gerar o link.']));
+        }
+
+        // Exigência de código de verificação direto na OS (checkbox do modal).
+        if ($this->aprovacao_model->suportaVerificacao()) {
+            $this->aprovacao_model->setExigeTokenOs($osId, (int) $this->input->post('exige_token') === 1);
+            $this->aprovacao_model->setTokenNumerosOs($osId, $this->input->post('token_numeros'));
         }
 
         log_info('Gerou link de aprovação para a OS #' . $osId);
