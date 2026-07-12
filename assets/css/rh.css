@@ -57,6 +57,25 @@
     .new122 select, .new122 textarea { max-width: 100%; box-sizing: border-box; }
 }
 
+/* ---- Correção dos campos em modais do RH ----
+   No Bootstrap 2, input.span12 fora de .row-fluid tem largura FIXA (~926px),
+   estourando o modal (560px). Aqui os campos voltam a ser fluidos (100%). */
+.modal .modal-body input.span12,
+.modal .modal-body select.span12,
+.modal .modal-body textarea.span12,
+.modal .modal-body input[type="text"],
+.modal .modal-body input[type="number"],
+.modal .modal-body input[type="time"],
+.modal .modal-body input[type="date"],
+.modal .modal-body input[type="month"],
+.modal .modal-body input[type="datetime-local"],
+.modal .modal-body input[type="email"],
+.modal .modal-body input[type="password"],
+.modal .modal-body select,
+.modal .modal-body textarea { width: 100%; box-sizing: border-box; }
+/* Inputs curtos dentro de linhas flex ocupam a coluna, não 100% do modal */
+.modal .modal-body [style*="flex"] input { min-width: 0; }
+
 /* ---- Modal largo com mapa (unidades) ---- */
 .rh-modal-cols { display: flex; gap: 14px; flex-wrap: wrap; }
 .rh-modal-form { flex: 1 1 240px; min-width: 240px; }
