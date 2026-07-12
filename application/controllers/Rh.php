@@ -744,6 +744,97 @@ class Rh extends MY_Controller
     }
 
     // =====================================================================
+    // Folha de pagamento (relatório consolidado) + holerite gerado
+    // =====================================================================
+
+    /** Dados financeiros de um colaborador na competência (para folha/holerite). */
+    private function dadosFolha($colaborador, $competencia)
+    {
+        $this->load->library('rh_calculo');
+        $horas = $this->rh_calculo->calcularCompetencia($colaborador->id, $competencia);
+        $resumo = $this->rh_extras_model->resumoCompetencia($colaborador->id, $competencia);
+        $salario = (float) ($colaborador->salario_base ?? 0);
+        $proventosLanc = (float) $resumo['proventos'];
+        $descontos = (float) $resumo['descontos'];
+        $proventos = $salario + $proventosLanc;
+        return [
+            'colaborador' => $colaborador,
+            'horas' => $horas,
+            'resumo' => $resumo,
+            'salario_base' => $salario,
+            'proventos_lanc' => $proventosLanc,
+            'proventos' => $proventos,
+            'descontos' => $descontos,
+            'liquido' => $proventos - $descontos,
+        ];
+    }
+
+    /** Monta as linhas + totais da folha da competência em $this->data. */
+    private function prepararFolha($competencia)
+    {
+        $colaboradores = $this->rh_colaboradores_model->listarAtivosFolha();
+        $linhas = [];
+        $tot = ['salario' => 0, 'proventos' => 0, 'descontos' => 0, 'liquido' => 0, 'trab' => 0, 'extras' => 0, 'faltas' => 0];
+        foreach ($colaboradores as $c) {
+            $d = $this->dadosFolha($c, $competencia);
+            $linhas[] = $d;
+            $tot['salario'] += $d['salario_base'];
+            $tot['proventos'] += $d['proventos'];
+            $tot['descontos'] += $d['descontos'];
+            $tot['liquido'] += $d['liquido'];
+            $tot['trab'] += $d['horas']['minutos_trabalhados'] ?? 0;
+            $tot['extras'] += ($d['horas']['minutos_extras_50'] ?? 0) + ($d['horas']['minutos_extras_100'] ?? 0);
+            $tot['faltas'] += $d['horas']['minutos_faltas'] ?? 0;
+        }
+        $this->data['competencia'] = $competencia;
+        $this->data['linhas'] = $linhas;
+        $this->data['tot'] = $tot;
+    }
+
+    /** Folha de pagamento — relatório consolidado da competência (tela). */
+    public function folha($competencia = null)
+    {
+        $this->exigir('vRhFinanceiro', 'Você não tem permissão para ver a folha de pagamento.');
+        $competencia = $competencia ?: date('Y-m');
+        $this->prepararFolha($competencia);
+        $this->data['view'] = 'rh/folha';
+        return $this->layout();
+    }
+
+    /** Folha de pagamento em PDF (paisagem). */
+    public function folhaPdf($competencia = null)
+    {
+        $this->exigir('vRhFinanceiro', 'Sem permissão.');
+        $competencia = $competencia ?: date('Y-m');
+        $this->prepararFolha($competencia);
+        $this->load->model('mapos_model');
+        $this->data['emitente'] = $this->mapos_model->getEmitente();
+        $html = $this->load->view('rh/folha_pdf', $this->data, true);
+        $this->load->helper('mpdf');
+        pdf_create($html, 'folha_' . $competencia . '.pdf', true, true);
+    }
+
+    /** Holerite/recibo GERADO pelo sistema (a partir dos dados) em PDF. */
+    public function holeritePdf($colaborador_id = null, $competencia = null)
+    {
+        $this->exigir('vRhFinanceiro', 'Sem permissão.');
+        $colaborador = $this->rh_colaboradores_model->getById($colaborador_id);
+        if (! $colaborador) {
+            show_error('Colaborador não encontrado', 404);
+            return;
+        }
+        $competencia = $competencia ?: date('Y-m');
+        $this->data['dados'] = $this->dadosFolha($colaborador, $competencia);
+        $this->data['colaborador'] = $colaborador;
+        $this->data['competencia'] = $competencia;
+        $this->load->model('mapos_model');
+        $this->data['emitente'] = $this->mapos_model->getEmitente();
+        $html = $this->load->view('rh/holerite_pdf', $this->data, true);
+        $this->load->helper('mpdf');
+        pdf_create($html, 'holerite_' . $colaborador_id . '_' . $competencia . '.pdf', true);
+    }
+
+    // =====================================================================
     // Ajuste de ponto (editar/excluir batidas)
     // =====================================================================
 

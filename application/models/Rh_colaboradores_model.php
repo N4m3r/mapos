@@ -140,6 +140,19 @@ class Rh_colaboradores_model extends CI_Model
         return $this->db->where('situacao', 1)->count_all_results('rh_colaboradores');
     }
 
+    /** Colaboradores ativos com dados para a folha de pagamento. */
+    public function listarAtivosFolha()
+    {
+        if (! $this->suportado()) {
+            return [];
+        }
+        $this->db->select('id, nome, cargo, jornada_id, salario_base, valor_hora, tipo_contrato');
+        $this->db->where('situacao', 1);
+        $this->db->order_by('nome', 'ASC');
+        $query = $this->db->get('rh_colaboradores');
+        return $query ? $query->result() : [];
+    }
+
     /** Aniversariantes do mês (para o dashboard). */
     public function aniversariantesDoMes($mes = null)
     {

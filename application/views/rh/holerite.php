@@ -8,10 +8,14 @@ $lblTipo = ['hora_extra'=>'Horas extras','adicional'=>'Adicional','comissao'=>'C
         <h5>Holerite — <?= htmlspecialchars($colaborador->nome) ?></h5>
     </div>
 
-    <form method="get" style="margin-bottom:10px">
-        <label style="display:inline">Competência: </label>
-        <input type="month" value="<?= $competencia ?>" onchange="window.location='<?= site_url('rh/holerite/'.$colaborador->id) ?>/'+this.value">
-    </form>
+    <div style="margin-bottom:10px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center">
+        <div>
+            <label style="display:inline">Competência: </label>
+            <input type="month" value="<?= $competencia ?>" onchange="window.location='<?= site_url('rh/holerite/'.$colaborador->id) ?>/'+this.value">
+        </div>
+        <a href="<?= site_url("rh/holeritePdf/{$colaborador->id}/{$competencia}") ?>" target="_blank" class="button btn btn-mini btn-success">
+            <span class="button__icon"><i class='bx bx-printer'></i></span><span class="button__text2"> Gerar holerite (PDF)</span></a>
+    </div>
 
     <div class="row-fluid">
         <!-- Demonstrativo gerencial (dos lançamentos) -->

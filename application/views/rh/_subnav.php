@@ -15,6 +15,7 @@ $itens = [
     ['key' => 'painel',        'url' => 'rh',              'icon' => 'bx-grid-alt',      'label' => 'Painel',       'perm' => 'vRh'],
     ['key' => 'colaboradores', 'url' => 'rh/colaboradores','icon' => 'bx-group',         'label' => 'Colaboradores','perm' => 'vRh'],
     ['key' => 'lancamentos',   'url' => 'rh/lancamentos',  'icon' => 'bx-money',         'label' => 'Lançamentos',  'perm' => 'vRhFinanceiro'],
+    ['key' => 'folha',         'url' => 'rh/folha',        'icon' => 'bx-file',          'label' => 'Folha',        'perm' => 'vRhFinanceiro'],
     ['key' => 'ocorrencias',   'url' => 'rh/ocorrencias',  'icon' => 'bx-error-circle',  'label' => 'Ocorrências',  'perm' => 'vRh'],
     ['key' => 'ausencias',     'url' => 'rh/ausencias',    'icon' => 'bx-calendar-star', 'label' => 'Ausências',    'perm' => 'vRh'],
     ['key' => 'unidades',      'url' => 'rh/unidades',     'icon' => 'bx-buildings',     'label' => 'Unidades',     'perm' => 'eRh'],
