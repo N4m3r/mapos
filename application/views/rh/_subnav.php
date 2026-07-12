@@ -21,7 +21,6 @@ $itens = [
     ['key' => 'jornadas',      'url' => 'rh/jornadas',     'icon' => 'bx-time',          'label' => 'Jornadas',     'perm' => 'eRh'],
 ];
 ?>
-<link rel="stylesheet" href="<?= base_url('assets/css/rh.css') ?>?v=1">
 <div class="rh-subnav">
     <?php foreach ($itens as $it): if (! $pode($it['perm'])) continue; ?>
         <a href="<?= site_url($it['url']) ?>" class="<?= $ativo === $it['key'] ? 'active' : '' ?>">

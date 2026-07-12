@@ -1,6 +1,62 @@
 /* rh.css — estilos do módulo de RH (tela de ponto e área do colaborador).
    Complementa tecnico.css (reaproveitado no shell mobile). */
 
+/* ====================================================================
+   Responsividade mobile do PAINEL ADMIN de RH (telas dentro de .new122)
+   Escopado ao RH para não afetar o resto do tema legado.
+   ==================================================================== */
+@media (max-width: 767px) {
+    /* Grid bootstrap-2 empilha em coluna única */
+    .new122 .row-fluid > [class*="span"] {
+        width: 100% !important;
+        margin-left: 0 !important;
+        float: none !important;
+        box-sizing: border-box;
+    }
+    .new122 .span12 .span3.flexxn,
+    .new122 form.span9,
+    .new122 .span12 form { width: 100% !important; }
+
+    /* Barra de ações/topo das listas empilha */
+    .new122 .span12[style*="flex"] { flex-direction: column; align-items: stretch !important; }
+    .new122 .span12[style*="flex"] form { justify-content: flex-start !important; }
+
+    /* Tabelas rolam horizontalmente (padrão de tabela responsiva) */
+    .new122 table.table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+    }
+    .new122 .widget-content.nopadding { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .espelho-tab { white-space: nowrap; }
+
+    /* Sub-navegação: rola na horizontal em vez de espremer.
+       !important porque a regra base .rh-subnav vem depois no arquivo. */
+    .rh-subnav { flex-wrap: nowrap !important; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 10px; }
+    .rh-subnav a { flex: 0 0 auto; }
+
+    /* KPIs (blocos flex com min-width) já quebram; garante 2 col mínimas */
+    .espelho-tot .box { min-width: 45% !important; }
+
+    /* Modais cabem na tela */
+    .modal {
+        position: fixed; top: 12px !important; left: 10px; right: 10px;
+        width: auto; margin: 0 auto; max-height: 88vh; overflow-y: auto;
+    }
+    .modal-body { max-height: none; }
+
+    /* Cabeçalho da ficha e botões de ação empilham/quebram */
+    .new122 .widget-content[style*="flex"] { flex-direction: column; text-align: center; }
+    .new122 .widget-title h5 { font-size: 15px; }
+
+    /* Inputs e selects ocupam a largura toda */
+    .new122 input[type="text"], .new122 input[type="email"], .new122 input[type="date"],
+    .new122 input[type="month"], .new122 input[type="number"], .new122 input[type="datetime-local"],
+    .new122 select, .new122 textarea { max-width: 100%; box-sizing: border-box; }
+}
+
 /* ---- Sub-navegação do painel admin de RH (abas) ---- */
 .rh-subnav { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 16px; padding-bottom: 8px;
     border-bottom: 2px solid #eef0f4; }
