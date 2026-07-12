@@ -35,6 +35,9 @@ $labels = ['entrada'=>'E','saida'=>'S','inicio_intervalo'=>'II','fim_intervalo'=
                 <td style="text-align:left">
                     <?php if (empty($l['batidas'])): ?>—<?php else: foreach ($l['batidas'] as $b):
                         echo '<span title="'.$b->tipo.'">'.date('H:i', strtotime($b->data_hora)).'</span> '; endforeach; endif; ?>
+                    <?php if (strtotime($l['data']) <= strtotime(date('Y-m-d'))): ?>
+                        <a href="<?= site_url('colaborador/ocorrencias') ?>?ref=<?= $l['data'] ?>" title="Solicitar correção deste dia" style="color:#c3c9d4;margin-left:4px"><i class='bx bx-edit'></i></a>
+                    <?php endif; ?>
                 </td>
                 <td><?= $calc->minParaHoras($l['calc']['trabalhado']) ?></td>
                 <td style="color:<?= $l['calc']['saldo'] < 0 ? '#ef4444':'#111827' ?>"><?= $calc->minParaHoras($l['calc']['saldo']) ?></td>

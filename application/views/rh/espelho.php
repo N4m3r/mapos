@@ -17,6 +17,7 @@ $podeFin = $this->permission->checkPermission($this->session->userdata('permissa
         </form>
         <div style="display:flex;gap:6px">
             <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eRh')): ?>
+                <a href="<?= site_url("rh/ajustarPonto/{$colaborador->id}/{$competencia}") ?>" class="button btn btn-mini btn-warning"><span class="button__icon"><i class='bx bx-edit-alt'></i></span><span class="button__text2"> Ajustar ponto</span></a>
                 <a href="<?= site_url("rh/recalcular/{$colaborador->id}/{$competencia}") ?>" class="button btn btn-mini btn-primary"><span class="button__text2">Recalcular</span></a>
                 <?php if ($podeFin): ?>
                     <a href="<?= site_url("rh/recalcular/{$colaborador->id}/{$competencia}?extras=1") ?>" class="button btn btn-mini btn-success"><span class="button__text2">Gerar extras</span></a>

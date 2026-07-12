@@ -107,27 +107,30 @@ class Rh_ponto_model extends CI_Model
      * Sugere o próximo tipo de batida com base nas batidas do dia.
      * Sequência: entrada -> inicio_intervalo -> fim_intervalo -> saida.
      */
+    /**
+     * Sugere o próximo tipo de batida a partir da ÚLTIMA batida do dia
+     * (máquina de estados sequencial), não da presença dos tipos. Assim o
+     * ciclo se repete sem limite e o colaborador pode fazer vários turnos no
+     * mesmo dia: entrada → inicio_intervalo → fim_intervalo → saida → entrada …
+     */
     public function proximoTipo($colaborador_id, $data = null)
     {
         $batidas = $this->getDoDia($colaborador_id, $data);
-        $tipos = array_map(function ($b) {
-            return $b->tipo;
-        }, $batidas);
-
-        if (! in_array('entrada', $tipos, true)) {
+        if (empty($batidas)) {
             return 'entrada';
         }
-        if (! in_array('inicio_intervalo', $tipos, true) && ! in_array('saida', $tipos, true)) {
-            return 'inicio_intervalo';
+        $ultima = end($batidas); // getDoDia vem ordenado por data_hora ASC
+        switch ($ultima->tipo) {
+            case 'entrada':
+                return 'inicio_intervalo';
+            case 'inicio_intervalo':
+                return 'fim_intervalo';
+            case 'fim_intervalo':
+                return 'saida';
+            case 'saida':
+            default:
+                return 'entrada';
         }
-        if (in_array('inicio_intervalo', $tipos, true) && ! in_array('fim_intervalo', $tipos, true)) {
-            return 'fim_intervalo';
-        }
-        if (! in_array('saida', $tipos, true)) {
-            return 'saida';
-        }
-        // Dia já fechado: uma nova entrada inicia outro turno
-        return 'entrada';
     }
 
     /**

@@ -16,12 +16,33 @@ $csrf_h = $this->security->get_csrf_hash();
           class="rh-card" style="margin-bottom:16px">
         <input type="hidden" name="<?= $csrf_n ?>" value="<?= $csrf_h ?>">
         <h4 style="margin:0 0 10px"><i class='bx bx-plus-circle'></i> Nova solicitação</h4>
+        <?php $refData = $this->input->get('ref'); ?>
         <label>Tipo</label>
-        <select name="tipo" class="span12" style="width:100%">
-            <?php foreach ($tipos as $k=>$v): ?><option value="<?= $k ?>"><?= $v ?></option><?php endforeach; ?>
+        <select name="tipo" id="oc-tipo" class="span12" style="width:100%">
+            <?php foreach ($tipos as $k=>$v): ?>
+                <option value="<?= $k ?>" <?= ($refData && $k==='correcao_ponto') ? 'selected' : '' ?>><?= $v ?></option>
+            <?php endforeach; ?>
         </select>
         <label style="margin-top:8px">Data de referência</label>
-        <input type="date" name="data_referencia" class="span12" style="width:100%">
+        <input type="date" name="data_referencia" class="span12" style="width:100%" value="<?= htmlspecialchars($refData ?: '') ?>">
+
+        <div id="bloco-correcao" style="display:none">
+            <div style="display:flex;gap:8px;margin-top:8px">
+                <div style="flex:1"><label>Batida</label>
+                    <select name="correcao_tipo" class="span12" style="width:100%">
+                        <option value="entrada">Entrada</option>
+                        <option value="inicio_intervalo">Início do intervalo</option>
+                        <option value="fim_intervalo">Fim do intervalo</option>
+                        <option value="saida">Saída</option>
+                    </select>
+                </div>
+                <div style="flex:1"><label>Data e hora desejada</label>
+                    <input type="datetime-local" name="correcao_data_hora" class="span12" style="width:100%">
+                </div>
+            </div>
+            <small style="color:#9ca3af">Se o RH aprovar, essa batida é lançada/corrigida automaticamente no seu ponto.</small>
+        </div>
+
         <label style="margin-top:8px">Descrição</label>
         <textarea name="descricao" rows="3" class="span12" style="width:100%" placeholder="Explique o motivo..." required></textarea>
         <label style="margin-top:8px">Anexo (atestado/comprovante) — opcional</label>
@@ -47,6 +68,15 @@ $csrf_h = $this->security->get_csrf_hash();
         </div>
     <?php endforeach; endif; ?>
 </div>
+<script>
+(function(){
+    var sel = document.getElementById('oc-tipo');
+    var bloco = document.getElementById('bloco-correcao');
+    function toggle(){ bloco.style.display = (sel.value === 'correcao_ponto') ? 'block' : 'none'; }
+    sel.addEventListener('change', toggle);
+    toggle();
+})();
+</script>
 <?php $this->load->view('colaborador/_nav', ['nav_ativo' => 'solicitacoes', 'pode_bater_ponto' => $pode_bater_ponto]); ?>
 </body>
 </html>

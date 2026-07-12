@@ -128,7 +128,7 @@ class Colaborador extends MY_Controller
             redirect(site_url('colaborador/ocorrencias'));
         }
         $anexo = $this->arquivoParaBase64('anexo');
-        $this->rh_extras_model->addOcorrencia([
+        $dados = [
             'colaborador_id' => $this->colaborador->id,
             'tipo' => $tipo,
             'data_referencia' => $this->input->post('data_referencia') ?: null,
@@ -138,7 +138,21 @@ class Colaborador extends MY_Controller
             'anexo_mime' => $anexo['mime'],
             'anexo_nome' => $anexo['nome'],
             'status' => 'pendente',
-        ]);
+        ];
+        // Correção de ponto: batida desejada (aplicada automaticamente na aprovação).
+        // Só grava se a migration 20260712000005 tiver rodado.
+        if ($tipo === 'correcao_ponto' && $this->db->field_exists('correcao_tipo', 'rh_ocorrencias')) {
+            $ct = $this->input->post('correcao_tipo');
+            $cdh = $this->input->post('correcao_data_hora');
+            if (in_array($ct, ['entrada', 'saida', 'inicio_intervalo', 'fim_intervalo'], true) && $cdh) {
+                $dados['correcao_tipo'] = $ct;
+                $dados['correcao_data_hora'] = date('Y-m-d H:i:s', strtotime($cdh));
+                if (empty($dados['data_referencia'])) {
+                    $dados['data_referencia'] = date('Y-m-d', strtotime($cdh));
+                }
+            }
+        }
+        $this->rh_extras_model->addOcorrencia($dados);
         log_info('Colaborador ' . $this->colaborador->id . ' solicitou ocorrência ' . $tipo);
         $this->notificarRh('Nova solicitação de ' . $tipo . ' de ' . $this->colaborador->nome);
         $this->session->set_flashdata('success', 'Solicitação enviada para o RH.');

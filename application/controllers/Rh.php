@@ -827,14 +827,86 @@ class Rh extends MY_Controller
         $resposta = $this->input->post('resposta');
         if ($id && in_array($status, ['aprovado', 'recusado'], true)) {
             $this->rh_extras_model->analisarOcorrencia($id, $status, $this->session->userdata('id_admin'), $resposta);
-            // Se aprovou correção de ponto, valida a batida vinculada
             $oc = $this->rh_extras_model->getOcorrencia($id);
-            if ($status === 'aprovado' && $oc && $oc->tipo === 'correcao_ponto' && $oc->registro_id) {
-                $this->rh_ponto_model->edit(['status' => 'ajustado'], $oc->registro_id);
+            $extra = '';
+            if ($status === 'aprovado' && $oc) {
+                $extra = $this->aplicarOcorrencia($oc);
             }
-            $this->session->set_flashdata('success', 'Ocorrência ' . $status . '.');
+            $this->session->set_flashdata('success', 'Ocorrência ' . $status . '.' . $extra);
         }
         redirect(site_url('rh/ocorrencias'));
+    }
+
+    /**
+     * Ao aprovar, aplica automaticamente o que o colaborador pediu, conforme o tipo:
+     *  - correcao_ponto: cria/edita a batida solicitada (tipo + data/hora);
+     *  - justificativa_falta / abono: registra uma ausência aprovada (dia justificado).
+     * Devolve um texto curto do que foi feito (para o flashdata).
+     */
+    private function aplicarOcorrencia($oc)
+    {
+        // Correção de ponto ------------------------------------------------
+        if ($oc->tipo === 'correcao_ponto') {
+            $temCorrecao = ! empty($oc->correcao_tipo) && ! empty($oc->correcao_data_hora);
+            $jaAplicada = ! empty($oc->correcao_aplicada);
+            if ($temCorrecao && ! $jaAplicada) {
+                $dados = [
+                    'tipo' => $oc->correcao_tipo,
+                    'data_hora' => date('Y-m-d H:i:s', strtotime($oc->correcao_data_hora)),
+                    'status' => 'ajustado',
+                    'observacao' => 'Correção aprovada (ocorrência #' . $oc->id . ')',
+                ];
+                if (! empty($oc->registro_id)) {
+                    $this->rh_ponto_model->edit($dados, $oc->registro_id);
+                } else {
+                    $dados['colaborador_id'] = $oc->colaborador_id;
+                    $dados['origem'] = 'manual';
+                    $dados['registrado_por'] = $this->session->userdata('id_admin');
+                    $this->rh_ponto_model->registrar($dados);
+                }
+                if ($this->db->field_exists('correcao_aplicada', 'rh_ocorrencias')) {
+                    $this->db->where('id', $oc->id)->update('rh_ocorrencias', ['correcao_aplicada' => 1]);
+                }
+                $this->recalcularCompetenciaDaData($oc->colaborador_id, $oc->correcao_data_hora);
+                return ' Batida corrigida no ponto.';
+            }
+            if (! empty($oc->registro_id)) {
+                $this->rh_ponto_model->edit(['status' => 'ajustado'], $oc->registro_id);
+            }
+            return '';
+        }
+
+        // Justificativa de falta / abono -> ausência aprovada --------------
+        if (in_array($oc->tipo, ['justificativa_falta', 'abono'], true) && ! empty($oc->data_referencia)) {
+            $tipoAusencia = ($oc->tipo === 'justificativa_falta' && ! empty($oc->anexo_base64)) ? 'atestado' : 'folga';
+            $this->rh_extras_model->addAusencia([
+                'colaborador_id' => $oc->colaborador_id,
+                'tipo' => $tipoAusencia,
+                'data_inicio' => $oc->data_referencia,
+                'data_fim' => $oc->data_referencia,
+                'dias' => 1,
+                'motivo' => 'Gerado da ocorrência #' . $oc->id . ' — ' . ($oc->descricao ?: ''),
+                'anexo_base64' => $oc->anexo_base64,
+                'anexo_mime' => $oc->anexo_mime,
+                'anexo_nome' => $oc->anexo_nome,
+                'status' => 'aprovado',
+                'aprovador_id' => $this->session->userdata('id_admin'),
+                'data_analise' => date('Y-m-d H:i:s'),
+            ]);
+            return ' Ausência (' . $tipoAusencia . ') registrada para ' . date('d/m/Y', strtotime($oc->data_referencia)) . '.';
+        }
+
+        return '';
+    }
+
+    /** Recalcula a competência (YYYY-MM) de uma data para refletir no espelho. */
+    private function recalcularCompetenciaDaData($colaborador_id, $dataHora)
+    {
+        if (empty($dataHora)) {
+            return;
+        }
+        $this->load->library('rh_calculo');
+        $this->rh_calculo->calcularCompetencia($colaborador_id, date('Y-m', strtotime($dataHora)));
     }
 
     public function ausencias()
