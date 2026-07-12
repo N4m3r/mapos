@@ -88,6 +88,7 @@ $this->load->view('colaborador/_nav', ['nav_ativo' => 'ponto', 'pode_bater_ponto
         faceObrigatorio: <?= (int) $cfg['face_obrigatorio'] ?>,
         faceScoreMinimo: <?= (float) $cfg['face_score_minimo'] ?>,
         modelsUrl: '<?= base_url('assets/models/face') ?>',
+        modelsCdn: 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model',
         registrarUrl: '<?= site_url('ponto/registrar') ?>',
         descriptorUrl: '<?= site_url('ponto/descriptor') ?>'
     };
@@ -183,7 +184,7 @@ $this->load->view('colaborador/_nav', ['nav_ativo' => 'ponto', 'pode_bater_ponto
     // ---- Facial (assíncrono, não bloqueia a tela) ----
     (async function () {
         try {
-            var ok = await RhFacial.init(CFG.modelsUrl);
+            var ok = await RhFacial.init(CFG.modelsUrl, CFG.modelsCdn);
             if (!ok) { setFaceBadge('off', CFG.faceObrigatorio ? 'indisponível' : 'opcional'); return; }
             var resp = await fetch(CFG.descriptorUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' });
             var j = await resp.json();

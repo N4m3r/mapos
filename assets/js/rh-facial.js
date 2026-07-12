@@ -15,7 +15,18 @@
 window.RhFacial = (function () {
     var state = { ready: false, loading: false, error: null };
 
-    async function init(modelsUrl) {
+    async function carregar(url) {
+        await faceapi.nets.tinyFaceDetector.loadFromUri(url);
+        await faceapi.nets.faceLandmark68Net.loadFromUri(url);
+        await faceapi.nets.faceRecognitionNet.loadFromUri(url);
+    }
+
+    /**
+     * Carrega os modelos. Tenta `modelsUrl` (tipicamente local) e, se falhar,
+     * cai para `fallbackUrl` (CDN) automaticamente. Assim funciona out-of-the-box
+     * e passa a usar os arquivos locais quando estiverem presentes.
+     */
+    async function init(modelsUrl, fallbackUrl) {
         if (state.ready || state.loading) return state.ready;
         if (typeof faceapi === 'undefined') {
             state.error = 'lib-indisponivel';
@@ -23,14 +34,23 @@ window.RhFacial = (function () {
         }
         state.loading = true;
         try {
-            await faceapi.nets.tinyFaceDetector.loadFromUri(modelsUrl);
-            await faceapi.nets.faceLandmark68Net.loadFromUri(modelsUrl);
-            await faceapi.nets.faceRecognitionNet.loadFromUri(modelsUrl);
+            await carregar(modelsUrl);
             state.ready = true;
+            state.origem = 'local';
         } catch (e) {
-            state.error = 'modelos-indisponiveis';
-            state.ready = false;
-            if (window.console) console.warn('RhFacial: modelos não carregaram —', e);
+            if (fallbackUrl && fallbackUrl !== modelsUrl) {
+                try {
+                    await carregar(fallbackUrl);
+                    state.ready = true;
+                    state.origem = 'cdn';
+                } catch (e2) {
+                    state.error = 'modelos-indisponiveis';
+                    if (window.console) console.warn('RhFacial: modelos não carregaram (local nem CDN) —', e2);
+                }
+            } else {
+                state.error = 'modelos-indisponiveis';
+                if (window.console) console.warn('RhFacial: modelos não carregaram —', e);
+            }
         }
         state.loading = false;
         return state.ready;

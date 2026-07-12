@@ -32,6 +32,7 @@
 <script>
 (function(){
     var MODELS = '<?= base_url('assets/models/face') ?>';
+    var MODELS_CDN = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
     var SALVAR = '<?= site_url('rh/salvarBiometria') ?>';
     var COLAB = <?= (int) $colaborador->id ?>;
     var video = document.getElementById('bio-cam'), canvas = document.getElementById('bio-canvas');
@@ -42,8 +43,8 @@
         .then(function(s){ video.srcObject = s; }).catch(function(){ status('Câmera indisponível'); });
 
     (async function(){
-        var ok = await RhFacial.init(MODELS);
-        if (!ok){ status('Modelos faciais não encontrados (assets/models/face)'); return; }
+        var ok = await RhFacial.init(MODELS, MODELS_CDN);
+        if (!ok){ status('Modelos faciais indisponíveis (sem conexão e sem arquivos locais em assets/models/face)'); return; }
         status('Pronto — capture o rosto');
         document.getElementById('bio-capturar').disabled = false;
     })();

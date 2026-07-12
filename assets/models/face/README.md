@@ -1,16 +1,24 @@
 # Modelos de reconhecimento facial (face-api.js)
 
-O reconhecimento facial do ponto roda **no navegador** com o face-api.js.
-Para ativá-lo, coloque **nesta pasta** os arquivos de pesos dos 3 modelos:
+O reconhecimento facial do ponto roda **no navegador** com o face-api.js
+(`@vladmandic/face-api`). O carregamento é **local-first com fallback para CDN**:
 
-- `tiny_face_detector_model-weights_manifest.json` + `tiny_face_detector_model-shard1`
-- `face_landmark_68_model-weights_manifest.json` + `face_landmark_68_model-shard1`
-- `face_recognition_model-weights_manifest.json` + `face_recognition_model-shard1` (+ `-shard2`)
+1. Tenta carregar os modelos **desta pasta** (`assets/models/face/`).
+2. Se não encontrar (pasta vazia / sem internet no servidor de arquivos),
+   cai automaticamente para o **CDN** `https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model`.
 
-Onde baixar: repositório oficial do face-api.js, pasta `weights/`
-(https://github.com/justadudewhohacks/face-api.js — diretório `weights`).
+Ou seja: **já funciona sem fazer nada** (via CDN, desde que o dispositivo do
+colaborador tenha internet). Para uso **offline / rede local / mais rápido**,
+baixe os 6 arquivos abaixo e coloque **nesta pasta**:
 
-Enquanto os arquivos não estiverem aqui, o ponto continua funcionando
-normalmente com **selfie + GPS** (o `face_score` fica em branco). Para tornar
-o facial obrigatório, ligue `rh_face_obrigatorio` em Configurações e ajuste
-`rh_face_score_minimo` (padrão 0.55).
+- `tiny_face_detector_model-weights_manifest.json` + `tiny_face_detector_model.bin` (~190 KB)
+- `face_landmark_68_model-weights_manifest.json` + `face_landmark_68_model.bin` (~350 KB)
+- `face_recognition_model-weights_manifest.json` + `face_recognition_model.bin` (~6,2 MB)
+
+Baixe do mesmo CDN (mantém compatibilidade com a lib):
+`https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/<arquivo>`
+
+Enquanto os arquivos não estiverem aqui, o ponto continua funcionando com
+**selfie + GPS** mesmo sem facial (o back-end trata o facial como opcional por
+padrão). Para exigir facial, ligue `rh_face_obrigatorio` em Configurações e
+ajuste `rh_face_score_minimo` (padrão 0.55).
