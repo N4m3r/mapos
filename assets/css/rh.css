@@ -75,6 +75,11 @@
 .modal .modal-body textarea { width: 100%; box-sizing: border-box; }
 /* Inputs curtos dentro de linhas flex ocupam a coluna, não 100% do modal */
 .modal .modal-body [style*="flex"] input { min-width: 0; }
+/* As linhas de campos (divs filhas diretas do modal-body, inclusive as
+   display:flex) precisam de largura explícita: o contexto de formatação do
+   display:flex colapsa para 0 ao lado dos inputs float:left do Bootstrap 2,
+   jogando os campos da linha para fora do modal. Verificado ao vivo. */
+.modal .modal-body > div { width: 100%; box-sizing: border-box; }
 
 /* ---- Modal largo com mapa (unidades) ---- */
 .rh-modal-cols { display: flex; gap: 14px; flex-wrap: wrap; }
