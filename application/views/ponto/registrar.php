@@ -48,6 +48,19 @@ $labelsTipo = [
     </div>
     <?php endif; ?>
 
+    <?php if (! empty($minhas_os)): ?>
+    <div style="margin-top:12px">
+        <label style="font-size:13px;color:#6b7280"><i class='bx bx-wrench'></i> Vincular a uma OS (atendimento em campo)</label>
+        <select id="os-vinculo" class="span12" style="width:100%">
+            <option value="">— Não, ponto normal —</option>
+            <?php foreach ($minhas_os as $os): ?>
+                <option value="<?= $os->idOs ?>">OS #<?= sprintf('%04d', $os->idOs) ?> — <?= htmlspecialchars($os->nomeCliente ?: 'Cliente') ?> (<?= htmlspecialchars($os->status) ?>)</option>
+            <?php endforeach; ?>
+        </select>
+        <small style="color:#9ca3af">Ao vincular a uma OS, a localização é registrada como prova do atendimento (sem exigir estar na unidade).</small>
+    </div>
+    <?php endif; ?>
+
     <div class="ponto-tipo">
         <div class="lbl">Próxima batida</div>
         <div class="val" id="proximo-tipo-label"><?= $labelsTipo[$proximo_tipo] ?? 'Entrada' ?></div>
@@ -66,7 +79,11 @@ $labelsTipo = [
                 <div class="ponto-batida <?= ($b->dentro_geofence === '0') ? 'fora' : '' ?>">
                     <span class="dot"></span>
                     <span class="tipo"><?= $labelsTipo[$b->tipo] ?? $b->tipo ?>
-                        <?php if ($b->dentro_geofence === '0'): ?><small>fora da área (<?= (int)$b->distancia_metros ?>m)</small><?php endif; ?>
+                        <?php if (! empty($b->os_id)): ?><small>OS #<?= sprintf('%04d', $b->os_id) ?></small>
+                        <?php elseif ($b->dentro_geofence === '0'): ?><small>fora da área (<?= (int)$b->distancia_metros ?>m)</small><?php endif; ?>
+                        <?php if (! empty($b->latitude) && ! empty($b->longitude)): ?>
+                            <a href="https://www.google.com/maps?q=<?= $b->latitude ?>,<?= $b->longitude ?>" target="_blank" rel="noopener" title="Ver no mapa"><i class='bx bx-map-pin'></i></a>
+                        <?php endif; ?>
                     </span>
                     <span class="hora"><?= date('H:i', strtotime($b->data_hora)) ?></span>
                 </div>
@@ -181,6 +198,16 @@ $this->load->view('colaborador/_nav', ['nav_ativo' => 'ponto', 'pode_bater_ponto
     var selU = document.getElementById('unidade');
     if (selU) selU.addEventListener('change', avaliarGeofence);
 
+    // ---- Vínculo com OS (atendimento em campo) ----
+    var selOs = document.getElementById('os-vinculo');
+    function osSelecionada(){ return (selOs && selOs.value) ? selOs.value : ''; }
+    if (selOs) selOs.addEventListener('change', function () {
+        var osOn = !!this.value;
+        if (selU) selU.disabled = osOn;
+        if (osOn) setGeo('ok', 'Atendimento OS #' + this.value + ' — local registrado como prova');
+        else avaliarGeofence();
+    });
+
     // ---- Facial (assíncrono, não bloqueia a tela) ----
     (async function () {
         try {
@@ -216,7 +243,7 @@ $this->load->view('colaborador/_nav', ['nav_ativo' => 'ponto', 'pode_bater_ponto
             alerta('Reconhecimento facial obrigatório e não confirmado. Ajuste a iluminação e tente novamente.', 'error');
             btn.disabled = false; return;
         }
-        if (CFG.geofenceObrigatorio && geo.ok === false) {
+        if (CFG.geofenceObrigatorio && !osSelecionada() && geo.ok === false) {
             alerta('Você está fora da área permitida. Aproxime-se do local.', 'error');
             btn.disabled = false; return;
         }
@@ -230,7 +257,9 @@ $this->load->view('colaborador/_nav', ['nav_ativo' => 'ponto', 'pode_bater_ponto
         if (selfie) fd.append('foto', selfie);
         if (geo.lat !== null) { fd.append('latitude', geo.lat); fd.append('longitude', geo.lng); }
         if (faceScore !== null) fd.append('face_score', faceScore.toFixed(4));
-        if (sel) fd.append('unidade_id', sel.value);
+        var osId = osSelecionada();
+        if (osId) { fd.append('os_id', osId); }
+        else if (sel) { fd.append('unidade_id', sel.value); }
 
         try {
             var r = await fetch(CFG.registrarUrl, {
@@ -239,7 +268,7 @@ $this->load->view('colaborador/_nav', ['nav_ativo' => 'ponto', 'pode_bater_ponto
             });
             var j = await r.json();
             if (j.success) {
-                adicionarBatida(tipo, j.hora, j.fora_area, j.distancia);
+                adicionarBatida(tipo, j.hora, j.fora_area, j.os_id);
                 if (j.proximo_tipo) {
                     btn.setAttribute('data-tipo', j.proximo_tipo);
                     btn.innerHTML = "<i class='bx bx-check-circle'></i> Registrar " + (LABELS[j.proximo_tipo]||'Entrada');
@@ -255,13 +284,18 @@ $this->load->view('colaborador/_nav', ['nav_ativo' => 'ponto', 'pode_bater_ponto
         btn.disabled = false;
     });
 
-    function adicionarBatida(tipo, hora, fora) {
+    function adicionarBatida(tipo, hora, fora, osId) {
         var semBat = document.getElementById('sem-batidas');
         if (semBat) semBat.remove();
         var div = document.createElement('div');
         div.className = 'ponto-batida' + (fora ? ' fora' : '');
-        div.innerHTML = '<span class="dot"></span><span class="tipo">' + (LABELS[tipo]||tipo) +
-            (fora ? ' <small>fora da área</small>' : '') + '</span><span class="hora">' + hora + '</span>';
+        var extra = '';
+        if (osId) extra = ' <small>OS #' + ('0000'+osId).slice(-4) + '</small>';
+        else if (fora) extra = ' <small>fora da área</small>';
+        var mapa = (geo.lat !== null) ?
+            ' <a href="https://www.google.com/maps?q=' + geo.lat + ',' + geo.lng + '" target="_blank" rel="noopener" title="Ver no mapa"><i class="bx bx-map-pin"></i></a>' : '';
+        div.innerHTML = '<span class="dot"></span><span class="tipo">' + (LABELS[tipo]||tipo) + extra + mapa +
+            '</span><span class="hora">' + hora + '</span>';
         document.getElementById('lista-batidas').appendChild(div);
     }
 

@@ -33,6 +33,63 @@ class Ponto extends MY_Controller
         return $this->rh_colaboradores_model->getByUsuario($this->session->userdata('id_admin'));
     }
 
+    /** Colunas de coordenadas da OS (só se a migration tiver rodado). */
+    private function osTemCoords()
+    {
+        return $this->db->field_exists('latitude', 'os') && $this->db->field_exists('longitude', 'os');
+    }
+
+    /** OS ativas atribuídas ao usuário (para vincular a batida em campo). */
+    private function minhasOsAtivas($usuarios_id)
+    {
+        if (empty($usuarios_id) || ! $this->db->table_exists('os')) {
+            return [];
+        }
+        $temCoords = $this->osTemCoords();
+        $cols = 'os.idOs, os.status, clientes.nomeCliente';
+        if ($temCoords) {
+            $cols .= ', os.latitude, os.longitude';
+        }
+        $this->db->select($cols);
+        $this->db->from('os');
+        $this->db->join('clientes', 'clientes.idClientes = os.clientes_id', 'left');
+        $this->db->where_in('os.status', ['Aberto', 'Em Andamento', 'Aprovado', 'Aguardando Peças', 'Orçamento']);
+        if ($this->db->field_exists('tecnico_responsavel', 'os')) {
+            $this->db->group_start()
+                ->where('os.tecnico_responsavel', $usuarios_id)
+                ->or_where('os.usuarios_id', $usuarios_id)
+                ->group_end();
+        } else {
+            $this->db->where('os.usuarios_id', $usuarios_id);
+        }
+        $this->db->order_by('os.idOs', 'DESC')->limit(30);
+        $q = $this->db->get();
+        return $q ? $q->result() : [];
+    }
+
+    /** Valida que a OS pertence ao usuário e devolve seus dados (ou null). */
+    private function osDoColaborador($osId, $usuarios_id)
+    {
+        foreach ($this->minhasOsAtivas($usuarios_id) as $os) {
+            if ($os->idOs == $osId) {
+                return $os;
+            }
+        }
+        return null;
+    }
+
+    /** Grava o local da OS a partir da primeira batida com GPS. */
+    private function aprenderLocalOs($osId, $lat, $lng)
+    {
+        if (! $this->osTemCoords()) {
+            return;
+        }
+        $this->db->where('idOs', $osId)->update('os', [
+            'latitude' => $lat,
+            'longitude' => $lng,
+        ]);
+    }
+
     /** Tela de batida. */
     public function index()
     {
@@ -46,6 +103,7 @@ class Ponto extends MY_Controller
         $data['batidas_hoje'] = $this->rh_ponto_model->getDoDia($colaborador->id);
         $data['proximo_tipo'] = $this->rh_ponto_model->proximoTipo($colaborador->id);
         $data['unidades'] = $this->rh_colaboradores_model->listarUnidades(true);
+        $data['minhas_os'] = $this->minhasOsAtivas($colaborador->usuarios_id);
         $data['tem_biometria'] = $this->rh_colaboradores_model->temBiometria($colaborador->id);
         $data['cfg'] = [
             'geofence_obrigatorio' => (int) ($this->data['configuration']['rh_geofence_obrigatorio'] ?? 0),
@@ -104,7 +162,23 @@ class Ponto extends MY_Controller
         $faceScore = $this->input->post('face_score');
         $unidadeId = $this->input->post('unidade_id') ?: $colaborador->unidade_id;
 
+        // Vínculo com OS (atendimento em campo): valida que a OS é do técnico.
+        $osId = $this->input->post('os_id') ?: null;
+        $osVinculada = null;
+        if ($osId) {
+            $osVinculada = $this->osDoColaborador($osId, $colaborador->usuarios_id);
+            if (! $osVinculada) {
+                echo json_encode(['success' => false, 'message' => 'OS inválida ou não atribuída a você.']);
+                return;
+            }
+            $unidadeId = null; // ao vincular à OS, a unidade fixa não se aplica
+        }
+
         $cfgGeofenceObrig = (int) ($this->data['configuration']['rh_geofence_obrigatorio'] ?? 0);
+        // Em atendimento por OS o local varia (cliente); geofence fixo não bloqueia.
+        if ($osVinculada) {
+            $cfgGeofenceObrig = 0;
+        }
         $cfgFaceObrig = (int) ($this->data['configuration']['rh_face_obrigatorio'] ?? 0);
         $cfgFaceMin = (float) ($this->data['configuration']['rh_face_score_minimo'] ?? 0.55);
 
@@ -147,13 +221,27 @@ class Ponto extends MY_Controller
             return;
         }
 
+        // ---- Localização por OS (informativa; local do cliente varia) ----
+        if ($osVinculada && $latitude && $longitude) {
+            if (! empty($osVinculada->latitude) && ! empty($osVinculada->longitude)) {
+                $distancia = (int) round($this->distanciaMetros(
+                    (float) $latitude, (float) $longitude,
+                    (float) $osVinculada->latitude, (float) $osVinculada->longitude
+                ));
+                $dentro = $distancia <= 200 ? 1 : 0; // referência de 200m do local da OS
+            } else {
+                // "Aprende" o local da OS a partir da primeira batida com GPS.
+                $this->aprenderLocalOs($osVinculada->idOs, $latitude, $longitude);
+            }
+        }
+
         // ---- Selfie ----
         $fotoMime = null;
         if ($foto && preg_match('/^data:(image\/\w+);base64,/', $foto, $m)) {
             $fotoMime = $m[1];
         }
 
-        $registroId = $this->rh_ponto_model->registrar([
+        $dadosBatida = [
             'colaborador_id' => $colaborador->id,
             'data_hora' => date('Y-m-d H:i:s'),
             'tipo' => $tipo,
@@ -169,7 +257,12 @@ class Ponto extends MY_Controller
             'ip' => $this->input->ip_address(),
             'user_agent' => substr((string) $this->input->user_agent(), 0, 255),
             'status' => 'valido',
-        ], true);
+        ];
+        // Só inclui os_id se a coluna existir (migration aplicada).
+        if ($osVinculada && $this->db->field_exists('os_id', 'rh_ponto_registros')) {
+            $dadosBatida['os_id'] = $osVinculada->idOs;
+        }
+        $registroId = $this->rh_ponto_model->registrar($dadosBatida, true);
 
         if (! $registroId) {
             echo json_encode(['success' => false, 'message' => 'Erro ao registrar ponto']);
@@ -191,6 +284,7 @@ class Ponto extends MY_Controller
             'tipo' => $tipo,
             'proximo_tipo' => $this->rh_ponto_model->proximoTipo($colaborador->id),
             'fora_area' => ($dentro === 0),
+            'os_id' => $osVinculada ? $osVinculada->idOs : null,
         ]);
     }
 

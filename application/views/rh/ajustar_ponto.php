@@ -34,6 +34,10 @@ $diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
                     <td><?php if ($r->dentro_geofence === '1') echo '<span style="color:#16a34a">Na área</span>';
                         elseif ($r->dentro_geofence === '0') echo '<span style="color:#dc2626">Fora ('.(int)$r->distancia_metros.'m)</span>';
                         else echo '—'; ?>
+                        <?php if (! empty($r->latitude) && ! empty($r->longitude)): ?>
+                            <a href="https://www.google.com/maps?q=<?= $r->latitude ?>,<?= $r->longitude ?>" target="_blank" rel="noopener" title="Ver no mapa"><i class='bx bx-map-pin'></i> mapa</a>
+                        <?php endif; ?>
+                        <?php if (! empty($r->os_id)): ?><br><small><i class='bx bx-wrench'></i> OS #<?= sprintf('%04d', $r->os_id) ?></small><?php endif; ?>
                         <?php if ($r->face_score !== null): ?><br><small>facial <?= number_format($r->face_score,2) ?></small><?php endif; ?>
                     </td>
                     <td style="white-space:nowrap">

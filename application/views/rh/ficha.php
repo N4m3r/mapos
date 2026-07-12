@@ -84,7 +84,12 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
                             <tr><td>Nenhuma batida.</td></tr>
                         <?php else: foreach ($ultimas_batidas as $b): ?>
                             <tr>
-                                <td><?= $lblTipo[$b->tipo] ?? $b->tipo ?> <?= $b->origem==='manual' ? '<small style="color:#d97706">(manual)</small>':'' ?></td>
+                                <td><?= $lblTipo[$b->tipo] ?? $b->tipo ?> <?= $b->origem==='manual' ? '<small style="color:#d97706">(manual)</small>':'' ?>
+                                    <?php if (! empty($b->latitude) && ! empty($b->longitude)): ?>
+                                        <a href="https://www.google.com/maps?q=<?= $b->latitude ?>,<?= $b->longitude ?>" target="_blank" rel="noopener" title="Ver no mapa"><i class='bx bx-map-pin'></i></a>
+                                    <?php endif; ?>
+                                    <?php if (! empty($b->os_id)): ?><small style="color:#6b7280"> OS #<?= sprintf('%04d', $b->os_id) ?></small><?php endif; ?>
+                                </td>
                                 <td style="text-align:right"><?= date('d/m H:i', strtotime($b->data_hora)) ?>
                                     <?php if ($b->dentro_geofence === '0'): ?><i class='bx bx-error' style="color:#dc2626" title="Fora da área"></i><?php endif; ?>
                                 </td>
