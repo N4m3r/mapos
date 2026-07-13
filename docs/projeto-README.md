@@ -165,7 +165,7 @@ mapos/
 
 ## Requisitos Técnicos
 
-- PHP >= 8.3
+- PHP >= 8.2
 - MySQL >= 5.7 ou 8.0
 - MAP-OS >= 4.52.0
 - Navegador com suporte a Canvas (Chrome, Firefox, Safari, Edge)

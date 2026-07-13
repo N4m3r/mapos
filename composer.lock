@@ -5326,7 +5326,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.3",
+        "php": "^8.2",
         "ext-curl": "*",
         "ext-gd": "*"
     },

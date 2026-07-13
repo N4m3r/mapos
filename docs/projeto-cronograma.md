@@ -331,7 +331,7 @@ curl http://localhost/mapos/index.php/tecnico
 ## NOTAS TÉCNICAS
 
 ### Compatibilidade:
-- ✅ PHP 8.3+
+- ✅ PHP 8.2+
 - ✅ MySQL 5.7+ / 8.0+
 - ✅ CodeIgniter 3
 - ✅ Navegadores modernos

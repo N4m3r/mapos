@@ -5,6 +5,9 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Suporte a PHP 8.2+ (antes apenas 8.3). Constraint do Composer e documentação atualizados; o instalador já exigia 8.2.
+
 ### Added
 - NFS-e: códigos de tributação padrão **cTribNac `010701`** e **cTribMun `100`** (validados por NFS-e autorizada de Manaus), configuráveis em Notas Fiscais → Configurações. Aplicados na **emissão automática (com boleto)** e como sugestão no wizard quando o serviço não tem código — padronizando a automática igual à emissão manual que funciona. Requer rodar `updates/update_nfe_ctrib_padrao.sql`.
 - Log de e-mails enviados: nova página **Configurações → Log de e-mails** que registra **todo** envio (fila e teste), com destino, assunto, tipo, status **Enviado/Falha** e o motivo do erro do SMTP. Requer rodar `updates/update_email_envios.sql`.
