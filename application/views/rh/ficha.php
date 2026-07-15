@@ -38,16 +38,40 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
         </div>
     </div></div>
 
-    <!-- KPIs da competência -->
+    <?php if (empty($ponto_inicio)): ?>
+        <div class="alert alert-info" style="margin:0 0 10px">
+            Controle de ponto <strong>não habilitado</strong> (sem data de início) — não gera faltas nem saldo negativo.
+            <?php if (! empty($pode_editar)): ?>
+                <a href="<?= site_url('rh/editarColaborador/'.$colaborador->id) ?>">Definir início do controle</a>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- KPIs separados: semana · banco · extras -->
+    <?php $sem = $totais_semana ?? []; ?>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <div class="widget-box" style="flex:1;min-width:180px;margin:0"><div class="widget-content" style="padding:12px">
+            <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.03em">Semana atual</div>
+            <div style="font-size:18px;font-weight:700;margin:4px 0"><?= $fmt($sem['minutos_trabalhados'] ?? 0) ?> <span style="font-size:12px;font-weight:400;color:#9ca3af">trabalhadas</span></div>
+            <div style="font-size:12px;color:#6b7280">
+                Deve: <strong style="color:#dc2626"><?= $fmt($sem['minutos_faltas'] ?? 0) ?></strong>
+                · Saldo sem.: <strong style="color:<?= ($sem['saldo_banco_min']??0)<0?'#dc2626':'#16a34a' ?>"><?= $fmt($sem['saldo_banco_min'] ?? 0) ?></strong>
+            </div>
+        </div></div>
+        <div class="widget-box" style="flex:1;min-width:180px;margin:0"><div class="widget-content" style="padding:12px">
+            <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.03em">Banco de horas (mês)</div>
+            <div style="font-size:22px;font-weight:700;margin:4px 0;color:<?= ($horas['saldo_banco_min']??0)<0?'#dc2626':'#16a34a' ?>"><?= $fmt($horas['saldo_banco_min'] ?? 0) ?></div>
+            <div style="font-size:12px;color:#6b7280">Faltas no mês: <strong style="color:#dc2626"><?= $fmt($horas['minutos_faltas'] ?? 0) ?></strong>
+                <?php if (empty($desconto_auto)): ?> · <span style="color:#9ca3af">sem desconto R$</span><?php endif; ?>
+            </div>
+        </div></div>
+        <div class="widget-box" style="flex:1;min-width:180px;margin:0"><div class="widget-content" style="padding:12px">
+            <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.03em">Extras (mês)</div>
+            <div style="font-size:18px;font-weight:700;margin:4px 0"><?= $fmt(($horas['minutos_extras_50'] ?? 0)+($horas['minutos_extras_100'] ?? 0)) ?></div>
+            <div style="font-size:12px;color:#6b7280">50%: <?= $fmt($horas['minutos_extras_50'] ?? 0) ?> · 100%: <?= $fmt($horas['minutos_extras_100'] ?? 0) ?></div>
+        </div></div>
         <div class="widget-box" style="flex:1;min-width:130px;margin:0"><div class="widget-content" style="text-align:center;padding:12px">
-            <div style="font-size:12px;color:#6b7280">Trabalhadas</div><div style="font-size:20px;font-weight:700"><?= $fmt($horas['minutos_trabalhados'] ?? 0) ?></div></div></div>
-        <div class="widget-box" style="flex:1;min-width:130px;margin:0"><div class="widget-content" style="text-align:center;padding:12px">
-            <div style="font-size:12px;color:#6b7280">Extra 50/100%</div><div style="font-size:20px;font-weight:700"><?= $fmt(($horas['minutos_extras_50'] ?? 0)+($horas['minutos_extras_100'] ?? 0)) ?></div></div></div>
-        <div class="widget-box" style="flex:1;min-width:130px;margin:0"><div class="widget-content" style="text-align:center;padding:12px">
-            <div style="font-size:12px;color:#6b7280">Faltas</div><div style="font-size:20px;font-weight:700;color:#dc2626"><?= $fmt($horas['minutos_faltas'] ?? 0) ?></div></div></div>
-        <div class="widget-box" style="flex:1;min-width:130px;margin:0"><div class="widget-content" style="text-align:center;padding:12px">
-            <div style="font-size:12px;color:#6b7280">Saldo banco</div><div style="font-size:20px;font-weight:700;color:<?= ($horas['saldo_banco_min']??0)<0?'#dc2626':'#16a34a' ?>"><?= $fmt($horas['saldo_banco_min'] ?? 0) ?></div></div></div>
+            <div style="font-size:12px;color:#6b7280">Trabalhadas (mês)</div><div style="font-size:20px;font-weight:700"><?= $fmt($horas['minutos_trabalhados'] ?? 0) ?></div></div></div>
     </div>
 
     <form method="get" style="margin-bottom:10px">

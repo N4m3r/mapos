@@ -169,6 +169,9 @@ class Rh extends MY_Controller
         $this->data['tem_biometria'] = $this->rh_colaboradores_model->temBiometria($id);
         $this->data['competencia'] = $competencia;
         $this->data['horas'] = $this->rh_calculo->calcularCompetencia($id, $competencia);
+        $this->data['totais_semana'] = $this->rh_calculo->totaisSemana($id);
+        $this->data['ponto_inicio'] = $this->rh_calculo->dataInicioControle($colaborador);
+        $this->data['desconto_auto'] = $this->rh_calculo->descontoFaltaAutomaticoAtivo();
         $this->data['ultimas_batidas'] = $this->rh_ponto_model->ultimasDoColaborador($id, 12);
         $this->data['ausencias'] = $this->rh_extras_model->listarAusencias(['colaborador_id' => $id]);
         $this->data['lancamentos'] = $this->rh_extras_model->listarLancamentos($id, $competencia);
@@ -269,6 +272,10 @@ class Rh extends MY_Controller
             $dados['ctps_uf'] = $this->input->post('ctps_uf') ? strtoupper(substr($this->input->post('ctps_uf'), 0, 2)) : null;
             $dados['ctps_data_emissao'] = $this->input->post('ctps_data_emissao') ?: null;
             $dados['pis_pasep'] = $this->input->post('pis_pasep') ?: null;
+        }
+        // Início do controle de ponto (faltas/banco). Vazio = não cobra dívida.
+        if ($this->db->field_exists('ponto_inicio', 'rh_colaboradores')) {
+            $dados['ponto_inicio'] = $this->input->post('ponto_inicio') ?: null;
         }
         return $dados;
     }
@@ -628,6 +635,8 @@ class Rh extends MY_Controller
         $tolerancia = $jornada ? (int) $jornada->tolerancia_min : 0;
         $diasEscala = $jornada ? array_map('trim', explode(',', $jornada->dias_semana)) : ['1', '2', '3', '4', '5'];
         $diasAbonados = $this->rh_extras_model->diasAusenciaAprovada($colaborador->id, $inicio, $fim);
+        $pontoInicio = $this->rh_calculo->dataInicioControle($colaborador);
+        $hoje = date('Y-m-d');
 
         $linhas = [];
         $totalDias = (int) date('t', strtotime($inicio));
@@ -637,12 +646,17 @@ class Rh extends MY_Controller
             $ehUtil = in_array((string) $dw, $diasEscala, true);
             $batidas = $porDia[$dia] ?? [];
             $abonado = isset($diasAbonados[$dia]);
-            $calc = $this->rh_calculo->calcularDia($batidas, $cargaDiaria, $tolerancia, $ehUtil);
-            // Dia sem batida em dia útil: falta cheia (exceto abonado/futuro)
-            if (empty($batidas) && $ehUtil && strtotime($dia) < strtotime(date('Y-m-d'))) {
+            $cobraFalta = $this->rh_calculo->diaCobraFalta($colaborador, $dia);
+            $calc = $this->rh_calculo->calcularDia($batidas, $cargaDiaria, $tolerancia, $ehUtil, $cobraFalta && ! $abonado);
+            // Dia sem batida em dia útil + controle ativo: deve carga no banco
+            if (empty($batidas) && $ehUtil && $dia < $hoje && $cobraFalta) {
                 $calc['previsto'] = $cargaDiaria;
                 $calc['falta'] = $abonado ? 0 : $cargaDiaria;
                 $calc['saldo'] = $abonado ? 0 : -$cargaDiaria;
+            } elseif (empty($batidas)) {
+                $calc['previsto'] = 0;
+                $calc['falta'] = 0;
+                $calc['saldo'] = 0;
             }
             if ($abonado) {
                 $calc['falta'] = 0;
@@ -653,6 +667,7 @@ class Rh extends MY_Controller
                 'eh_util' => $ehUtil,
                 'abonado' => $abonado,
                 'tipo_abono' => $abonado ? $diasAbonados[$dia] : null,
+                'cobra_falta' => $cobraFalta,
                 'batidas' => $batidas,
                 'calc' => $calc,
             ];
@@ -662,10 +677,13 @@ class Rh extends MY_Controller
         $this->data['competencia'] = $competencia;
         $this->data['linhas'] = $linhas;
         $this->data['totais'] = $this->rh_calculo->calcularCompetencia($colaborador->id, $competencia);
+        $this->data['totais_semana'] = $this->rh_calculo->totaisSemana($colaborador->id);
         $this->data['jornada'] = $jornada;
+        $this->data['ponto_inicio'] = $pontoInicio;
+        $this->data['desconto_auto'] = $this->rh_calculo->descontoFaltaAutomaticoAtivo();
     }
 
-    /** Recalcula a competência, sincroniza desconto de faltas e opcionalmente gera extras. */
+    /** Recalcula a competência (horas/banco). Desconto R$ só se config habilitada. */
     public function recalcular($colaborador_id = null, $competencia = null)
     {
         $this->exigir('eRh', 'Sem permissão.');
@@ -674,8 +692,12 @@ class Rh extends MY_Controller
         $totais = $this->rh_calculo->calcularCompetencia($colaborador_id, $competencia);
         $msg = 'Competência recalculada.';
         $minFaltas = (int) ($totais['minutos_faltas'] ?? 0);
-        if ($minFaltas > 0) {
-            $msg .= ' Desconto de faltas atualizado automaticamente (' . $this->rh_calculo->minParaHoras($minFaltas) . ').';
+        if (! $this->rh_calculo->descontoFaltaAutomaticoAtivo()) {
+            $msg .= $minFaltas > 0
+                ? ' Faltas/banco: ' . $this->rh_calculo->minParaHoras($minFaltas) . ' (só informativo — desconto em R$ desligado).'
+                : ' Sem faltas no período de controle.';
+        } elseif ($minFaltas > 0) {
+            $msg .= ' Desconto de faltas em R$ atualizado (' . $this->rh_calculo->minParaHoras($minFaltas) . ').';
         } else {
             $msg .= ' Sem faltas — desconto automático removido/zerado.';
         }
@@ -1102,6 +1124,7 @@ class Rh extends MY_Controller
                 'rh_he_requer_aprovacao' => $this->input->post('rh_he_requer_aprovacao') ? '1' : '0',
                 'rh_he_percentual_50' => str_replace(',', '.', (string) $this->input->post('rh_he_percentual_50')),
                 'rh_he_percentual_100' => str_replace(',', '.', (string) $this->input->post('rh_he_percentual_100')),
+                'rh_falta_desconto_automatico' => $this->input->post('rh_falta_desconto_automatico') ? '1' : '0',
             ];
             // Tabelas JSON (textarea)
             $inssJson = trim((string) $this->input->post('rh_clt_inss_tabela'));
@@ -1127,10 +1150,17 @@ class Rh extends MY_Controller
             'rh_clt_vt_ativo', 'rh_clt_vt_percentual', 'rh_clt_vt_valor_fixo', 'rh_clt_outras_deducoes',
             'rh_clt_dependente_deducao', 'rh_clt_inss_tabela', 'rh_clt_irrf_tabela',
             'rh_he_requer_aprovacao', 'rh_he_percentual_50', 'rh_he_percentual_100',
+            'rh_falta_desconto_automatico',
         ];
         foreach ($chaves as $k) {
             $row = $this->db->get_where('configuracoes', ['config' => $k])->row();
-            $this->data['cfg'][$k] = $row ? $row->valor : $this->rh_clt->get($k);
+            if ($row) {
+                $this->data['cfg'][$k] = $row->valor;
+            } elseif ($k === 'rh_falta_desconto_automatico') {
+                $this->data['cfg'][$k] = '0';
+            } else {
+                $this->data['cfg'][$k] = $this->rh_clt->get($k);
+            }
         }
         $this->data['view'] = 'rh/descontos_clt';
         return $this->layout();
