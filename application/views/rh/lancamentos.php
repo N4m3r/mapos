@@ -74,10 +74,7 @@ $tipos = ['hora_extra'=>'Hora extra','adicional'=>'Adicional','comissao'=>'Comis
                 <div style="flex:1"><label>Valor (R$)</label><input type="text" name="valor" id="l-valor" class="span12"></div>
             </div>
             <label style="font-weight:normal;margin-top:6px"><input type="checkbox" name="aprovado" id="l-aprov" value="1"> Já aprovado</label>
-<<<<<<< HEAD
-=======
             <p style="font-size:11px;color:#9ca3af;margin:4px 0 0">Horas extras ficam pendentes de aprovação do administrativo (conforme config CLT).</p>
->>>>>>> 43f6f5a (correcao sintaxe)
         </div>
         <div class="modal-footer"><button class="button btn btn-success"><span class="button__text2">Salvar</span></button></div>
     </form>

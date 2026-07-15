@@ -5,26 +5,17 @@ $this->load->view('colaborador/_topo', [
     'header_sub' => 'Competência ' . date('m/Y', strtotime($competencia . '-01')),
     'voltar_url' => site_url('colaborador'),
 ]);
-<<<<<<< HEAD
-$labelTipo = ['hora_extra'=>'Horas extras','adicional'=>'Adicional','comissao'=>'Comissão','bonus'=>'Bônus',
-    'adiantamento'=>'Adiantamento','desconto'=>'Desconto','falta'=>'Falta','vale'=>'Vale'];
-=======
 $labelTipo = [
     'hora_extra'=>'Horas extras','adicional'=>'Adicional','comissao'=>'Comissão','bonus'=>'Bônus',
     'adiantamento'=>'Adiantamento','desconto'=>'Desconto','falta'=>'Falta','vale'=>'Vale',
     'inss'=>'INSS','irrf'=>'IRRF','vale_transporte'=>'Vale-transporte','salario'=>'Salário base',
 ];
->>>>>>> 43f6f5a (correcao sintaxe)
 ?>
 <div class="ponto-wrap">
     <input type="month" id="competencia" value="<?= $competencia ?>" class="span12" style="width:100%;margin-bottom:12px">
 
     <?php if (! empty($holerite) && ! empty($holerite->arquivo_base64)): ?>
         <a href="<?= site_url('colaborador/baixarHolerite/'.$competencia) ?>" target="_blank" class="btn-bater" style="text-align:center;text-decoration:none;margin-bottom:12px;display:block">
-<<<<<<< HEAD
-            <i class='bx bx-download'></i> Baixar holerite oficial (PDF)
-        </a>
-=======
             <i class='bx bx-download'></i> Ver / baixar holerite (PDF)
         </a>
         <?php if (! empty($holerite->liberado_em)): ?>
@@ -37,7 +28,6 @@ $labelTipo = [
             <i class='bx bx-lock-alt' style="font-size:22px;display:block;margin-bottom:4px"></i>
             O holerite oficial desta competência ainda não foi liberado pelo RH.
         </div>
->>>>>>> 43f6f5a (correcao sintaxe)
     <?php endif; ?>
 
     <div class="rh-card">
@@ -59,23 +49,16 @@ $labelTipo = [
             <div style="display:flex;justify-content:space-between;font-size:13px"><span>Proventos</span><strong style="color:#065f46">R$ <?= number_format($resumo['proventos'],2,',','.') ?></strong></div>
             <div style="display:flex;justify-content:space-between;font-size:13px"><span>Descontos</span><strong style="color:#ef4444">R$ <?= number_format($resumo['descontos'],2,',','.') ?></strong></div>
             <div style="display:flex;justify-content:space-between;font-size:16px;margin-top:6px"><span><strong>Líquido</strong></span><strong>R$ <?= number_format($resumo['liquido'],2,',','.') ?></strong></div>
-<<<<<<< HEAD
-=======
             <?php if (! empty($resumo['fgts']) && $resumo['fgts'] > 0): ?>
                 <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:8px;color:#6b7280">
                     <span>FGTS (informativo)</span><span>R$ <?= number_format($resumo['fgts'],2,',','.') ?></span>
                 </div>
             <?php endif; ?>
->>>>>>> 43f6f5a (correcao sintaxe)
         <?php endif; ?>
     </div>
 
     <div style="font-size:12px;color:#9ca3af;margin-top:12px;text-align:center">
-<<<<<<< HEAD
-        Demonstrativo gerencial. O holerite oficial (com encargos) é emitido pela contabilidade.
-=======
         Demonstrativo com descontos legais (CLT). O PDF oficial é liberado pelo RH.
->>>>>>> 43f6f5a (correcao sintaxe)
     </div>
 </div>
 <script>

@@ -117,11 +117,6 @@ class Colaborador extends MY_Controller
         $data['ocorrencias'] = $this->rh_extras_model->listarOcorrencias([
             'colaborador_id' => $this->colaborador->id,
         ]);
-<<<<<<< HEAD
-        $this->load->view('colaborador/ocorrencias', $data);
-    }
-
-=======
         $ref = $this->input->get('ref');
         $data['ref_data'] = $ref ?: '';
         $data['batidas_ref'] = $ref
@@ -162,7 +157,6 @@ class Colaborador extends MY_Controller
         $this->output->set_content_type('application/json')->set_output(json_encode($out));
     }
 
->>>>>>> 43f6f5a (correcao sintaxe)
     public function solicitarOcorrencia()
     {
         $tipo = $this->input->post('tipo');
@@ -171,8 +165,6 @@ class Colaborador extends MY_Controller
             redirect(site_url('colaborador/ocorrencias'));
         }
         $anexo = $this->arquivoParaBase64('anexo');
-<<<<<<< HEAD
-=======
         $registroId = $this->input->post('registro_id') ?: null;
         // Se escolheu uma batida registrada, valida se é do próprio colaborador
         if ($registroId) {
@@ -181,31 +173,17 @@ class Colaborador extends MY_Controller
                 $registroId = null;
             }
         }
->>>>>>> 43f6f5a (correcao sintaxe)
         $dados = [
             'colaborador_id' => $this->colaborador->id,
             'tipo' => $tipo,
             'data_referencia' => $this->input->post('data_referencia') ?: null,
-<<<<<<< HEAD
-            'registro_id' => $this->input->post('registro_id') ?: null,
-=======
             'registro_id' => $registroId,
->>>>>>> 43f6f5a (correcao sintaxe)
             'descricao' => $this->input->post('descricao'),
             'anexo_base64' => $anexo['base64'],
             'anexo_mime' => $anexo['mime'],
             'anexo_nome' => $anexo['nome'],
             'status' => 'pendente',
         ];
-<<<<<<< HEAD
-        // Correção de ponto: batida desejada (aplicada automaticamente na aprovação).
-        // Só grava se a migration 20260712000005 tiver rodado.
-        if ($tipo === 'correcao_ponto' && $this->db->field_exists('correcao_tipo', 'rh_ocorrencias')) {
-            $ct = $this->input->post('correcao_tipo');
-            $cdh = $this->input->post('correcao_data_hora');
-            if (in_array($ct, ['entrada', 'saida', 'inicio_intervalo', 'fim_intervalo'], true) && $cdh) {
-                $dados['correcao_tipo'] = $ct;
-=======
         // O que justificar: entrada / intervalo / saída (com ou sem batida registrada)
         $justificar = $this->input->post('justificar_tipo');
         if (in_array($justificar, ['entrada', 'saida', 'inicio_intervalo', 'fim_intervalo'], true)
@@ -227,7 +205,6 @@ class Colaborador extends MY_Controller
                 $dados['correcao_tipo'] = $ct;
             }
             if ($cdh) {
->>>>>>> 43f6f5a (correcao sintaxe)
                 $dados['correcao_data_hora'] = date('Y-m-d H:i:s', strtotime($cdh));
                 if (empty($dados['data_referencia'])) {
                     $dados['data_referencia'] = date('Y-m-d', strtotime($cdh));
@@ -294,16 +271,6 @@ class Colaborador extends MY_Controller
     public function holerite($competencia = null)
     {
         $competencia = $competencia ?: date('Y-m');
-<<<<<<< HEAD
-        $data = $this->baseData('Holerite / Demonstrativo');
-        $data['competencia'] = $competencia;
-        $data['resumo'] = $this->rh_extras_model->resumoCompetencia($this->colaborador->id, $competencia);
-        $data['holerite'] = $this->rh_extras_model->getHolerite($this->colaborador->id, $competencia);
-        $this->load->view('colaborador/holerite', $data);
-    }
-
-    /** Baixa o PDF oficial do holerite DO PRÓPRIO colaborador. */
-=======
         $this->load->library('rh_calculo');
         $this->load->library('rh_clt');
         $data = $this->baseData('Holerite / Demonstrativo');
@@ -333,7 +300,6 @@ class Colaborador extends MY_Controller
     }
 
     /** Baixa o PDF oficial do holerite DO PRÓPRIO colaborador (somente se liberado). */
->>>>>>> 43f6f5a (correcao sintaxe)
     public function baixarHolerite($competencia = null)
     {
         $competencia = $competencia ?: date('Y-m');
@@ -342,13 +308,10 @@ class Colaborador extends MY_Controller
             show_404();
             return;
         }
-<<<<<<< HEAD
-=======
         if ($this->db->field_exists('liberado_colaborador', 'rh_holerites') && empty($h->liberado_colaborador)) {
             show_404();
             return;
         }
->>>>>>> 43f6f5a (correcao sintaxe)
         $base64 = $h->arquivo_base64;
         if (preg_match('/^data:([\w\/\+\.\-]+);base64,/', $base64, $m)) {
             $mime = $m[1];

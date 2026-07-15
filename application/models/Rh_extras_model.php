@@ -328,11 +328,7 @@ class Rh_extras_model extends CI_Model
                         ->delete('rh_holerites');
     }
 
-<<<<<<< HEAD
-    /** Pendências de aprovação (ocorrências + ausências) para o dashboard. */
-=======
     /** Pendências de aprovação (ocorrências + ausências + HE) para o dashboard. */
->>>>>>> 43f6f5a (correcao sintaxe)
     public function contarPendencias()
     {
         $total = 0;
@@ -342,13 +338,10 @@ class Rh_extras_model extends CI_Model
         if ($this->db->table_exists('rh_ausencias')) {
             $total += $this->db->where('status', 'pendente')->count_all_results('rh_ausencias');
         }
-<<<<<<< HEAD
-=======
         // Horas extras / lançamentos aguardando aprovação
         if ($this->db->table_exists('rh_lancamentos')) {
             $total += $this->db->where('aprovado', 0)->where('tipo', 'hora_extra')->count_all_results('rh_lancamentos');
         }
->>>>>>> 43f6f5a (correcao sintaxe)
         return $total;
     }
 }

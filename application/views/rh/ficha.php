@@ -29,11 +29,8 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
             <?php if ($pode_financeiro): ?>
                 <a href="<?= site_url('rh/holerite/'.$colaborador->id.'/'.$competencia) ?>" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2"> Holerite</span></a>
             <?php endif; ?>
-<<<<<<< HEAD
-=======
             <a href="<?= site_url('rh/fichaCadastralPdf/'.$colaborador->id) ?>" target="_blank" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-file'></i></span><span class="button__text2"> Ficha p/ cliente</span></a>
             <a href="<?= site_url('rh/crachaPdf/'.$colaborador->id) ?>" target="_blank" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-id-card'></i></span><span class="button__text2"> Crachá</span></a>
->>>>>>> 43f6f5a (correcao sintaxe)
             <?php if ($pode_editar): ?>
                 <a href="<?= site_url('rh/biometria/'.$colaborador->id) ?>" class="button btn btn-mini <?= $tem_biometria ? 'btn-success':'btn-warning' ?>"><span class="button__icon"><i class='bx bx-face'></i></span><span class="button__text2"> Facial <?= $tem_biometria?'✓':'' ?></span></a>
                 <a href="<?= site_url('rh/editarColaborador/'.$colaborador->id) ?>" class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-edit'></i></span><span class="button__text2"> Editar</span></a>
@@ -67,9 +64,6 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
                     <table style="width:100%;font-size:13px">
                         <tr><td style="color:#6b7280;padding:3px 0">Contrato</td><td><?= htmlspecialchars($colaborador->tipo_contrato) ?></td></tr>
                         <tr><td style="color:#6b7280">Admissão</td><td><?= $colaborador->admissao ? date('d/m/Y', strtotime($colaborador->admissao)) : '-' ?></td></tr>
-<<<<<<< HEAD
-                        <tr><td style="color:#6b7280">CPF</td><td><?= htmlspecialchars($colaborador->cpf ?: '-') ?></td></tr>
-=======
                         <?php if (! empty($colaborador->demissao)): ?>
                         <tr><td style="color:#6b7280">Demissão</td><td style="color:#dc2626"><?= date('d/m/Y', strtotime($colaborador->demissao)) ?>
                             <?= ! empty($colaborador->tipo_desligamento) ? ' · '.htmlspecialchars($colaborador->tipo_desligamento) : '' ?></td></tr>
@@ -80,7 +74,6 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
                             echo htmlspecialchars(trim($ctps, ' /') ?: '-');
                         ?></td></tr>
                         <tr><td style="color:#6b7280">PIS/PASEP</td><td><?= htmlspecialchars($colaborador->pis_pasep ?? '-') ?></td></tr>
->>>>>>> 43f6f5a (correcao sintaxe)
                         <tr><td style="color:#6b7280">Celular</td><td><?= htmlspecialchars($colaborador->celular ?: '-') ?></td></tr>
                         <tr><td style="color:#6b7280">E-mail</td><td><?= htmlspecialchars($colaborador->email ?: '-') ?></td></tr>
                         <?php if ($pode_financeiro): ?>

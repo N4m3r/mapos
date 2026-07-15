@@ -6,9 +6,6 @@ $this->load->view('colaborador/_topo', [
     'voltar_url' => site_url('colaborador'),
 ]);
 $diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-<<<<<<< HEAD
-$labels = ['entrada'=>'E','saida'=>'S','inicio_intervalo'=>'II','fim_intervalo'=>'FI'];
-=======
 $lblBat = [
     'entrada' => 'Entrada',
     'saida' => 'Saída',
@@ -21,7 +18,6 @@ $corBat = [
     'inicio_intervalo' => '#92400e',
     'fim_intervalo' => '#1e40af',
 ];
->>>>>>> 43f6f5a (correcao sintaxe)
 ?>
 <div class="ponto-wrap">
     <form method="get" action="<?= site_url('colaborador/espelho') ?>" style="margin-bottom:12px" onsubmit="return irCompetencia(event)">
@@ -38,8 +34,6 @@ $corBat = [
             <div class="v" style="color:<?= ($totais['saldo_banco_min'] ?? 0) < 0 ? '#ef4444':'#10b981' ?>"><?= $calc->minParaHoras($totais['saldo_banco_min'] ?? 0) ?></div></div>
     </div>
 
-<<<<<<< HEAD
-=======
     <div style="font-size:11px;color:#9ca3af;margin-bottom:8px;text-align:center">
         <span style="color:<?= $corBat['entrada'] ?>">E</span> Entrada ·
         <span style="color:<?= $corBat['inicio_intervalo'] ?>">II</span> Início int. ·
@@ -47,7 +41,6 @@ $corBat = [
         <span style="color:<?= $corBat['saida'] ?>">S</span> Saída · 📍 local
     </div>
 
->>>>>>> 43f6f5a (correcao sintaxe)
     <div style="overflow-x:auto">
     <table class="espelho-tab">
         <thead><tr><th>Dia</th><th>Batidas</th><th>Trab.</th><th>Saldo</th></tr></thead>
@@ -57,13 +50,6 @@ $corBat = [
             $d = (int) substr($l['data'], 8, 2); ?>
             <tr class="<?= $cls ?>">
                 <td><?= sprintf('%02d', $d) ?><br><small><?= $diasSemana[$l['dia_semana']] ?></small></td>
-<<<<<<< HEAD
-                <td style="text-align:left">
-                    <?php if (empty($l['batidas'])): ?>—<?php else: foreach ($l['batidas'] as $b):
-                        echo '<span title="'.$b->tipo.'">'.date('H:i', strtotime($b->data_hora)).'</span> '; endforeach; endif; ?>
-                    <?php if (strtotime($l['data']) <= strtotime(date('Y-m-d'))): ?>
-                        <a href="<?= site_url('colaborador/ocorrencias') ?>?ref=<?= $l['data'] ?>" title="Solicitar correção deste dia" style="color:#c3c9d4;margin-left:4px"><i class='bx bx-edit'></i></a>
-=======
                 <td style="text-align:left;font-size:12px">
                     <?php if (empty($l['batidas'])): ?>—
                     <?php else: foreach ($l['batidas'] as $b):
@@ -80,7 +66,6 @@ $corBat = [
                     <?php endforeach; endif; ?>
                     <?php if (strtotime($l['data']) <= strtotime(date('Y-m-d'))): ?>
                         <a href="<?= site_url('colaborador/ocorrencias') ?>?ref=<?= $l['data'] ?>" title="Justificar/corrigir este dia" style="color:#c3c9d4;font-size:12px"><i class='bx bx-edit'></i> justificar</a>
->>>>>>> 43f6f5a (correcao sintaxe)
                     <?php endif; ?>
                 </td>
                 <td><?= $calc->minParaHoras($l['calc']['trabalhado']) ?></td>

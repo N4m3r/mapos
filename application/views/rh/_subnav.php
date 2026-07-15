@@ -16,10 +16,7 @@ $itens = [
     ['key' => 'colaboradores', 'url' => 'rh/colaboradores','icon' => 'bx-group',         'label' => 'Colaboradores','perm' => 'vRh'],
     ['key' => 'lancamentos',   'url' => 'rh/lancamentos',  'icon' => 'bx-money',         'label' => 'Lançamentos',  'perm' => 'vRhFinanceiro'],
     ['key' => 'folha',         'url' => 'rh/folha',        'icon' => 'bx-file',          'label' => 'Folha',        'perm' => 'vRhFinanceiro'],
-<<<<<<< HEAD
-=======
     ['key' => 'descontos',     'url' => 'rh/descontosClt', 'icon' => 'bx-calculator',    'label' => 'Descontos CLT','perm' => 'eRh'],
->>>>>>> 43f6f5a (correcao sintaxe)
     ['key' => 'ocorrencias',   'url' => 'rh/ocorrencias',  'icon' => 'bx-error-circle',  'label' => 'Ocorrências',  'perm' => 'vRh'],
     ['key' => 'ausencias',     'url' => 'rh/ausencias',    'icon' => 'bx-calendar-star', 'label' => 'Ausências',    'perm' => 'vRh'],
     ['key' => 'unidades',      'url' => 'rh/unidades',     'icon' => 'bx-buildings',     'label' => 'Unidades',     'perm' => 'eRh'],

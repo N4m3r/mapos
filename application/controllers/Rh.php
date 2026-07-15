@@ -238,11 +238,7 @@ class Rh extends MY_Controller
     {
         $salario = str_replace(['.', ','], ['', '.'], (string) $this->input->post('salario_base'));
         $valorHora = str_replace(['.', ','], ['', '.'], (string) $this->input->post('valor_hora'));
-<<<<<<< HEAD
-        return [
-=======
         $dados = [
->>>>>>> 43f6f5a (correcao sintaxe)
             'nome' => trim($this->input->post('nome')),
             'cpf' => $this->input->post('cpf'),
             'rg' => $this->input->post('rg'),
@@ -264,8 +260,6 @@ class Rh extends MY_Controller
             'situacao' => $this->input->post('situacao') !== null ? (int) $this->input->post('situacao') : 1,
             'observacoes' => $this->input->post('observacoes'),
         ];
-<<<<<<< HEAD
-=======
         // Carteira de trabalho / PIS (migration 20260714000001)
         if ($this->db->field_exists('ctps_numero', 'rh_colaboradores')) {
             $dados['ctps_numero'] = $this->input->post('ctps_numero') ?: null;
@@ -333,7 +327,6 @@ class Rh extends MY_Controller
         $this->rh_colaboradores_model->edit($dados, $id);
         $this->session->set_flashdata('success', 'Colaborador reativado.');
         redirect(site_url('rh/ficha/' . $id));
->>>>>>> 43f6f5a (correcao sintaxe)
     }
 
     /** Processa o upload de foto do colaborador (multipart → base64 no banco). */
@@ -666,8 +659,6 @@ class Rh extends MY_Controller
         $valor = str_replace(['.', ','], ['', '.'], (string) $this->input->post('valor'));
         $tipo = $this->input->post('tipo');
         $descontos = ['desconto', 'adiantamento', 'falta', 'vale'];
-<<<<<<< HEAD
-=======
         $aprovado = $this->input->post('aprovado') ? 1 : 0;
 
         // Horas extras: só aprovam quem tem permissão aprovarRh; senão ficam pendentes.
@@ -682,7 +673,6 @@ class Rh extends MY_Controller
             }
         }
 
->>>>>>> 43f6f5a (correcao sintaxe)
         $dados = [
             'colaborador_id' => $this->input->post('colaborador_id'),
             'competencia' => $this->input->post('competencia') ?: date('Y-m'),
@@ -691,24 +681,13 @@ class Rh extends MY_Controller
             'descricao' => $this->input->post('descricao'),
             'quantidade' => $this->input->post('quantidade') ?: null,
             'valor' => $valor !== '' ? $valor : 0,
-<<<<<<< HEAD
-            'aprovado' => $this->input->post('aprovado') ? 1 : 0,
-            'aprovador_id' => $this->input->post('aprovado') ? $this->session->userdata('id_admin') : null,
-=======
             'aprovado' => $aprovado,
             'aprovador_id' => $aprovado ? $this->session->userdata('id_admin') : null,
->>>>>>> 43f6f5a (correcao sintaxe)
             'origem' => 'manual',
         ];
         $id = $this->input->post('id');
         if ($id) {
             $this->rh_extras_model->editLancamento($dados, $id);
-<<<<<<< HEAD
-            $this->session->set_flashdata('success', 'Lançamento atualizado.');
-        } else {
-            $this->rh_extras_model->addLancamento($dados);
-            $this->session->set_flashdata('success', 'Lançamento adicionado.');
-=======
             $this->session->set_flashdata('success', 'Lançamento atualizado.' . ($tipo === 'hora_extra' && ! $aprovado ? ' Horas extras pendentes de aprovação.' : ''));
         } else {
             $this->rh_extras_model->addLancamento($dados);
@@ -717,32 +696,24 @@ class Rh extends MY_Controller
                 $msg .= ' Horas extras ficaram pendentes de aprovação do administrativo.';
             }
             $this->session->set_flashdata('success', $msg);
->>>>>>> 43f6f5a (correcao sintaxe)
         }
         redirect(site_url('rh/lancamentos?competencia=' . $dados['competencia']));
     }
 
     public function aprovarLancamento()
     {
-<<<<<<< HEAD
-        $this->exigir('vRhFinanceiro', 'Sem permissão.');
-=======
         // Aprovação de HE / lançamentos exige aprovarRh (ou vRhFinanceiro se não houver a flag).
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'aprovarRh')
             && ! $this->permission->checkPermission($this->session->userdata('permissao'), 'vRhFinanceiro')) {
             $this->session->set_flashdata('error', 'Sem permissão para aprovar lançamentos.');
             redirect(site_url('rh/lancamentos'));
         }
->>>>>>> 43f6f5a (correcao sintaxe)
         if ($id = $this->input->post('id')) {
             $this->rh_extras_model->editLancamento([
                 'aprovado' => 1,
                 'aprovador_id' => $this->session->userdata('id_admin'),
             ], $id);
-<<<<<<< HEAD
-=======
             $this->session->set_flashdata('success', 'Lançamento aprovado.');
->>>>>>> 43f6f5a (correcao sintaxe)
         }
         redirect($_SERVER['HTTP_REFERER'] ?? site_url('rh/lancamentos'));
     }
@@ -770,11 +741,6 @@ class Rh extends MY_Controller
             redirect(site_url('rh/colaboradores'));
         }
         $competencia = $competencia ?: date('Y-m');
-<<<<<<< HEAD
-        $this->data['colaborador'] = $colaborador;
-        $this->data['competencia'] = $competencia;
-        $this->data['resumo'] = $this->rh_extras_model->resumoCompetencia($colaborador_id, $competencia);
-=======
         $folha = $this->dadosFolha($colaborador, $competencia);
         $this->data['colaborador'] = $colaborador;
         $this->data['competencia'] = $competencia;
@@ -790,7 +756,6 @@ class Rh extends MY_Controller
             $this->data['resumo']['proventos'] = $folha['proventos'];
             $this->data['resumo']['liquido'] = $folha['liquido'];
         }
->>>>>>> 43f6f5a (correcao sintaxe)
         $this->data['holerite'] = $this->rh_extras_model->getHolerite($colaborador_id, $competencia);
         $this->data['view'] = 'rh/holerite';
         return $this->layout();
@@ -824,8 +789,6 @@ class Rh extends MY_Controller
                 $dados['arquivo_base64'] = 'data:' . $mime . ';base64,' . base64_encode($conteudo);
                 $dados['arquivo_mime'] = $mime;
                 $dados['arquivo_nome'] = $_FILES['arquivo']['name'];
-<<<<<<< HEAD
-=======
                 if ($this->db->field_exists('gerado_sistema', 'rh_holerites')) {
                     $dados['gerado_sistema'] = 0;
                 }
@@ -837,17 +800,12 @@ class Rh extends MY_Controller
             if ($this->input->post('liberar_colaborador')) {
                 $dados['liberado_colaborador'] = 1;
                 $dados['liberado_em'] = date('Y-m-d H:i:s');
->>>>>>> 43f6f5a (correcao sintaxe)
             }
         }
 
         $this->rh_extras_model->salvarHolerite($colaboradorId, $competencia, $dados);
         log_info('RH: salvou holerite colaborador ' . $colaboradorId . ' comp ' . $competencia);
-<<<<<<< HEAD
-        $this->session->set_flashdata('success', 'Holerite salvo.');
-=======
         $this->session->set_flashdata('success', 'Holerite salvo.' . ($this->input->post('liberar_colaborador') ? ' Liberado para o colaborador.' : ''));
->>>>>>> 43f6f5a (correcao sintaxe)
         redirect(site_url("rh/holerite/$colaboradorId/$competencia"));
     }
 
@@ -907,18 +865,11 @@ class Rh extends MY_Controller
     private function dadosFolha($colaborador, $competencia)
     {
         $this->load->library('rh_calculo');
-<<<<<<< HEAD
-=======
         $this->load->library('rh_clt');
->>>>>>> 43f6f5a (correcao sintaxe)
         $horas = $this->rh_calculo->calcularCompetencia($colaborador->id, $competencia);
         $resumo = $this->rh_extras_model->resumoCompetencia($colaborador->id, $competencia);
         $salario = (float) ($colaborador->salario_base ?? 0);
         $proventosLanc = (float) $resumo['proventos'];
-<<<<<<< HEAD
-        $descontos = (float) $resumo['descontos'];
-        $proventos = $salario + $proventosLanc;
-=======
         $descontosLanc = (float) $resumo['descontos'];
         $proventos = $salario + $proventosLanc;
 
@@ -934,7 +885,6 @@ class Rh extends MY_Controller
         $resumo['fgts'] = $legais['fgts'];
         $resumo['liquido'] = $proventos - $descontos;
 
->>>>>>> 43f6f5a (correcao sintaxe)
         return [
             'colaborador' => $colaborador,
             'horas' => $horas,
@@ -943,11 +893,8 @@ class Rh extends MY_Controller
             'proventos_lanc' => $proventosLanc,
             'proventos' => $proventos,
             'descontos' => $descontos,
-<<<<<<< HEAD
-=======
             'descontos_legais' => $legais,
             'fgts' => $legais['fgts'],
->>>>>>> 43f6f5a (correcao sintaxe)
             'liquido' => $proventos - $descontos,
         ];
     }
@@ -997,14 +944,10 @@ class Rh extends MY_Controller
         pdf_create($html, 'folha_' . $competencia . '.pdf', true, true);
     }
 
-<<<<<<< HEAD
-    /** Holerite/recibo GERADO pelo sistema (a partir dos dados) em PDF. */
-=======
     /**
      * Holerite/recibo GERADO pelo sistema (PDF).
      * Query: liberar=1 grava o PDF e libera na área do colaborador.
      */
->>>>>>> 43f6f5a (correcao sintaxe)
     public function holeritePdf($colaborador_id = null, $competencia = null)
     {
         $this->exigir('vRhFinanceiro', 'Sem permissão.');
@@ -1014,11 +957,8 @@ class Rh extends MY_Controller
             return;
         }
         $competencia = $competencia ?: date('Y-m');
-<<<<<<< HEAD
-=======
         $liberar = $this->input->get('liberar') == '1';
 
->>>>>>> 43f6f5a (correcao sintaxe)
         $this->data['dados'] = $this->dadosFolha($colaborador, $competencia);
         $this->data['colaborador'] = $colaborador;
         $this->data['competencia'] = $competencia;
@@ -1026,11 +966,6 @@ class Rh extends MY_Controller
         $this->data['emitente'] = $this->mapos_model->getEmitente();
         $html = $this->load->view('rh/holerite_pdf', $this->data, true);
         $this->load->helper('mpdf');
-<<<<<<< HEAD
-        pdf_create($html, 'holerite_' . $colaborador_id . '_' . $competencia . '.pdf', true);
-    }
-
-=======
 
         if ($liberar) {
             $path = pdf_create($html, 'holerite_' . $colaborador_id . '_' . $competencia, false);
@@ -1191,7 +1126,6 @@ class Rh extends MY_Controller
         pdf_create($html, 'cracha_' . $id . '.pdf', true);
     }
 
->>>>>>> 43f6f5a (correcao sintaxe)
     // =====================================================================
     // Ajuste de ponto (editar/excluir batidas)
     // =====================================================================

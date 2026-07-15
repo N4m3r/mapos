@@ -84,11 +84,6 @@ $action = $edit ? site_url('rh/editarColaborador/' . $c->id) : site_url('rh/adic
                     </select>
                 </div>
             </div>
-<<<<<<< HEAD
-            <div class="row-fluid"><div class="span12"><label>Observações</label><textarea name="observacoes" rows="2" class="span12"><?= $val('observacoes') ?></textarea></div></div>
-        </div></div>
-        <div style="display:flex;gap:8px">
-=======
 
             <hr style="margin:14px 0 10px;border:0;border-top:1px solid #e5e7eb">
             <h5 style="margin:0 0 8px"><i class='bx bx-id-card'></i> Carteira de trabalho (CTPS) / PIS</h5>
@@ -103,16 +98,10 @@ $action = $edit ? site_url('rh/editarColaborador/' . $c->id) : site_url('rh/adic
             <div class="row-fluid"><div class="span12"><label>Observações</label><textarea name="observacoes" rows="2" class="span12"><?= $val('observacoes') ?></textarea></div></div>
         </div></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
->>>>>>> 43f6f5a (correcao sintaxe)
             <button type="submit" class="button btn btn-success"><span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2"> Salvar</span></button>
             <a href="<?= site_url('rh/colaboradores') ?>" class="button btn btn-warning"><span class="button__text2">Voltar</span></a>
             <?php if ($edit): ?>
                 <a href="<?= site_url('rh/biometria/'.$c->id) ?>" class="button btn btn-primary"><span class="button__icon"><i class='bx bx-face'></i></span><span class="button__text2"> Biometria <?= !empty($tem_biometria)?'(cadastrada)':'' ?></span></a>
-<<<<<<< HEAD
-            <?php endif; ?>
-        </div>
-    </form>
-=======
                 <a href="<?= site_url('rh/fichaCadastralPdf/'.$c->id) ?>" target="_blank" class="button btn btn-inverse"><span class="button__icon"><i class='bx bx-file'></i></span><span class="button__text2"> Ficha cadastral</span></a>
                 <a href="<?= site_url('rh/crachaPdf/'.$c->id) ?>" target="_blank" class="button btn btn-inverse"><span class="button__icon"><i class='bx bx-id-card'></i></span><span class="button__text2"> Crachá</span></a>
                 <?php if ($c->situacao): ?>
@@ -155,7 +144,6 @@ $action = $edit ? site_url('rh/editarColaborador/' . $c->id) : site_url('rh/adic
         </form>
     </div>
     <?php endif; ?>
->>>>>>> 43f6f5a (correcao sintaxe)
 </div>
 <script>
 document.getElementById('foto-input').addEventListener('change', function(e){
