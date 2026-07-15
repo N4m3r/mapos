@@ -30,10 +30,10 @@ $corBat = [
         <div style="display:flex;gap:6px">
             <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eRh')): ?>
                 <a href="<?= site_url("rh/ajustarPonto/{$colaborador->id}/{$competencia}") ?>" class="button btn btn-mini btn-warning"><span class="button__icon"><i class='bx bx-edit-alt'></i></span><span class="button__text2"> Ajustar ponto</span></a>
-                <a href="<?= site_url("rh/recalcular/{$colaborador->id}/{$competencia}") ?>" class="button btn btn-mini btn-primary"><span class="button__text2">Recalcular</span></a>
+                <a href="<?= site_url("rh/recalcular/{$colaborador->id}/{$competencia}") ?>" class="button btn btn-mini btn-primary" title="Recalcula horas e aplica desconto de faltas automaticamente"><span class="button__text2">Recalcular</span></a>
                 <?php if ($podeFin): ?>
                     <a href="<?= site_url("rh/recalcular/{$colaborador->id}/{$competencia}?extras=1") ?>" class="button btn btn-mini btn-success"
-                       onclick="return confirm('Gerar horas extras como lançamentos PENDENTES de aprovação?')"><span class="button__text2">Gerar extras (pendente)</span></a>
+                       onclick="return confirm('Gerar horas extras como lançamentos PENDENTES de aprovação?\nO desconto de faltas já é gerado automaticamente.')"><span class="button__text2">Gerar extras (pendente)</span></a>
                 <?php endif; ?>
             <?php endif; ?>
             <a href="<?= site_url("rh/espelhoPdf/{$colaborador->id}/{$competencia}") ?>" target="_blank" class="button btn btn-mini btn-inverse"><span class="button__text2">PDF</span></a>
@@ -64,13 +64,17 @@ $corBat = [
             <thead><tr><th>Dia</th><th>Sem.</th><th>Batidas (tipo · hora · local)</th><th>Trab.</th><th>Extra</th><th>Falta</th><th>Saldo</th></tr></thead>
             <tbody>
             <?php foreach ($linhas as $l):
-                $cls = ! $l['eh_util'] ? 'folga' : ($l['calc']['falta'] > 0 ? 'falta' : ''); ?>
+                $cls = ! empty($l['abonado']) ? 'folga' : (! $l['eh_util'] ? 'folga' : ($l['calc']['falta'] > 0 ? 'falta' : '')); ?>
                 <tr class="<?= $cls ?>">
                     <td><?= (int) substr($l['data'],8,2) ?></td>
                     <td><?= $diasSemana[$l['dia_semana']] ?></td>
                     <td style="text-align:left;font-size:12px">
-                        <?php if (empty($l['batidas'])): ?>—
-                        <?php else: foreach ($l['batidas'] as $b):
+                        <?php if (! empty($l['abonado'])): ?>
+                            <span style="color:#0369a1;font-weight:600" title="Ausência aprovada — sem desconto de falta">Abono: <?= htmlspecialchars($l['tipo_abono'] ?? 'ausência') ?></span>
+                            <?php if (! empty($l['batidas'])): ?> · <?php endif; ?>
+                        <?php endif; ?>
+                        <?php if (empty($l['batidas']) && empty($l['abonado'])): ?>—
+                        <?php elseif (! empty($l['batidas'])): foreach ($l['batidas'] as $b):
                             $cor = $corBat[$b->tipo] ?? '#374151';
                             $lab = $lblBat[$b->tipo] ?? $b->tipo; ?>
                             <span style="display:inline-block;margin:2px 6px 2px 0;padding:1px 6px;border-radius:4px;background:#f3f4f6;border-left:3px solid <?= $cor ?>">

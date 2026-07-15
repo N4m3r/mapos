@@ -131,6 +131,9 @@ class Rh_calculo
             $porDia[$dia][] = $r;
         }
 
+        // Dias com ausência aprovada (atestado/férias/folga) não geram falta/desconto
+        $diasAbonados = $this->CI->rh_extras_model->diasAusenciaAprovada($colaboradorId, $inicio, $fim);
+
         $totais = [
             'dias_trabalhados' => 0,
             'minutos_trabalhados' => 0,
@@ -148,18 +151,34 @@ class Rh_calculo
             $diaSemana = (int) date('w', strtotime($dia)); // 0=dom .. 6=sáb
             $ehDiaUtil = in_array((string) $diaSemana, $diasEscala, true);
             $batidas = $porDia[$dia] ?? [];
+            $abonado = isset($diasAbonados[$dia]);
+
+            // Fora do vínculo (antes da admissão / após demissão) não conta falta
+            $foraVinculo = false;
+            if (! empty($colaborador->admissao) && $dia < substr($colaborador->admissao, 0, 10)) {
+                $foraVinculo = true;
+            }
+            if (! empty($colaborador->demissao) && $dia > substr($colaborador->demissao, 0, 10)) {
+                $foraVinculo = true;
+            }
 
             // Dia útil sem nenhuma batida no passado = falta cheia; futuro = ignora
+            // Ausência aprovada no dia = abonado (sem desconto de falta)
             if (empty($batidas)) {
-                if ($ehDiaUtil && strtotime($dia) < strtotime(date('Y-m-d'))) {
+                if ($ehDiaUtil && ! $foraVinculo && strtotime($dia) < strtotime(date('Y-m-d'))) {
                     $totais['minutos_previstos'] += $cargaDiaria;
-                    $totais['minutos_faltas'] += $cargaDiaria;
-                    $totais['saldo_banco_min'] -= $cargaDiaria;
+                    if (! $abonado) {
+                        $totais['minutos_faltas'] += $cargaDiaria;
+                        $totais['saldo_banco_min'] -= $cargaDiaria;
+                    }
                 }
                 continue;
             }
 
             $r = $this->calcularDia($batidas, $cargaDiaria, $tolerancia, $ehDiaUtil);
+            if ($abonado) {
+                $r['falta'] = 0;
+            }
             if ($r['trabalhou']) {
                 $totais['dias_trabalhados']++;
             }
@@ -168,12 +187,83 @@ class Rh_calculo
             $totais['minutos_extras_50'] += $r['extra50'];
             $totais['minutos_extras_100'] += $r['extra100'];
             $totais['minutos_faltas'] += $r['falta'];
-            $totais['saldo_banco_min'] += $r['saldo'];
+            $totais['saldo_banco_min'] += $abonado ? ($r['trabalhado'] - $r['previsto']) : $r['saldo'];
         }
 
         $this->CI->rh_extras_model->salvarHoras($colaboradorId, $competencia, $totais);
 
+        // Desconto de falta financeiro: cria/atualiza lançamento automático
+        $this->gerarLancamentoFaltas($colaboradorId, $competencia);
+
         return $totais;
+    }
+
+    /**
+     * Gera (ou atualiza) o desconto automático de faltas na competência.
+     * Fórmula: horas de falta × valor_hora (valor_hora ou salário/220).
+     * Aprovado automaticamente para entrar no holerite/folha.
+     * Se minutos_faltas = 0, remove o lançamento automático anterior.
+     *
+     * @return int 1 criado | 2 atualizado | -1 removido | 0 sem alteração | false erro
+     */
+    public function gerarLancamentoFaltas($colaboradorId, $competencia)
+    {
+        $this->CI->load->model('rh_colaboradores_model');
+        $this->CI->load->model('rh_extras_model');
+
+        $colaborador = $this->CI->rh_colaboradores_model->getById($colaboradorId);
+        $horas = $this->CI->rh_extras_model->getHoras($colaboradorId, $competencia);
+        if (! $colaborador || ! $horas) {
+            return false;
+        }
+        if (! empty($horas->fechado)) {
+            return false; // competência fechada: não altera lançamentos
+        }
+
+        $existente = $this->CI->rh_extras_model->getLancamentoAutomatico($colaboradorId, $competencia, 'falta');
+        $min = (int) ($horas->minutos_faltas ?? 0);
+
+        if ($min <= 0) {
+            if ($existente) {
+                $this->CI->rh_extras_model->deleteLancamento($existente->id);
+                return -1;
+            }
+            return 0;
+        }
+
+        $valorHora = $this->valorHora($colaborador);
+        if ($valorHora <= 0) {
+            // Sem base salarial: remove automático se existir e não cria
+            if ($existente) {
+                $this->CI->rh_extras_model->deleteLancamento($existente->id);
+                return -1;
+            }
+            return false;
+        }
+
+        $horasQtd = round($min / 60, 2);
+        $valor = round($horasQtd * $valorHora, 2);
+        $dados = [
+            'colaborador_id' => $colaboradorId,
+            'competencia' => $competencia,
+            'tipo' => 'falta',
+            'natureza' => 'desconto',
+            'descricao' => 'Desconto por faltas (' . $this->minParaHoras($min) . ')',
+            'quantidade' => $horasQtd,
+            'valor' => $valor,
+            'aprovado' => 1,
+            'origem' => 'automatico',
+            'referencia_id' => $horas->id,
+        ];
+
+        if ($existente) {
+            // Atualiza valor se as horas mudaram (mantém aprovado=1 se já estava)
+            $this->CI->rh_extras_model->editLancamento($dados, $existente->id);
+            return 2;
+        }
+
+        $this->CI->rh_extras_model->addLancamento($dados);
+        return 1;
     }
 
     /**

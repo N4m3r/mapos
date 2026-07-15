@@ -230,7 +230,9 @@ class Rh extends MY_Controller
             'aprovador_id' => $this->session->userdata('id_admin'),
             'data_analise' => date('Y-m-d H:i:s'),
         ]);
-        $this->session->set_flashdata('success', 'Ausência registrada.');
+        // Atualiza faltas e desconto automático no período coberto
+        $this->recalcularCompetenciasPeriodo($colaboradorId, $inicio, $fim);
+        $this->session->set_flashdata('success', 'Ausência registrada. Desconto de faltas recalculado.');
         redirect(site_url('rh/ficha/' . $colaboradorId));
     }
 
@@ -348,6 +350,36 @@ class Rh extends MY_Controller
         $conteudo = file_get_contents($tmp);
         if ($conteudo === false) {
             return null;
+        }
+        // Redimensiona/comprime para evitar HTML/PDF gigante (mPDF pcre.backtrack_limit)
+        // e base64 multi-MB no banco.
+        if (function_exists('imagecreatefromstring')) {
+            $src = @imagecreatefromstring($conteudo);
+            if ($src !== false) {
+                $w = imagesx($src);
+                $h = imagesy($src);
+                $max = 800;
+                if ($w > 0 && $h > 0 && ($w > $max || $h > $max)) {
+                    $scale = min($max / $w, $max / $h);
+                    $nw = max(1, (int) round($w * $scale));
+                    $nh = max(1, (int) round($h * $scale));
+                    $dst = imagecreatetruecolor($nw, $nh);
+                    if ($dst !== false) {
+                        $white = imagecolorallocate($dst, 255, 255, 255);
+                        imagefill($dst, 0, 0, $white);
+                        imagecopyresampled($dst, $src, 0, 0, 0, 0, $nw, $nh, $w, $h);
+                        ob_start();
+                        imagejpeg($dst, null, 85);
+                        $jpeg = ob_get_clean();
+                        imagedestroy($dst);
+                        if ($jpeg !== false && $jpeg !== '') {
+                            $conteudo = $jpeg;
+                            $mime = 'image/jpeg';
+                        }
+                    }
+                }
+                imagedestroy($src);
+            }
         }
         return [
             'foto_base64' => 'data:' . $mime . ';base64,' . base64_encode($conteudo),
@@ -595,6 +627,7 @@ class Rh extends MY_Controller
         $cargaDiaria = $jornada ? (int) $jornada->carga_diaria_min : 480;
         $tolerancia = $jornada ? (int) $jornada->tolerancia_min : 0;
         $diasEscala = $jornada ? array_map('trim', explode(',', $jornada->dias_semana)) : ['1', '2', '3', '4', '5'];
+        $diasAbonados = $this->rh_extras_model->diasAusenciaAprovada($colaborador->id, $inicio, $fim);
 
         $linhas = [];
         $totalDias = (int) date('t', strtotime($inicio));
@@ -603,11 +636,23 @@ class Rh extends MY_Controller
             $dw = (int) date('w', strtotime($dia));
             $ehUtil = in_array((string) $dw, $diasEscala, true);
             $batidas = $porDia[$dia] ?? [];
+            $abonado = isset($diasAbonados[$dia]);
             $calc = $this->rh_calculo->calcularDia($batidas, $cargaDiaria, $tolerancia, $ehUtil);
+            // Dia sem batida em dia útil: falta cheia (exceto abonado/futuro)
+            if (empty($batidas) && $ehUtil && strtotime($dia) < strtotime(date('Y-m-d'))) {
+                $calc['previsto'] = $cargaDiaria;
+                $calc['falta'] = $abonado ? 0 : $cargaDiaria;
+                $calc['saldo'] = $abonado ? 0 : -$cargaDiaria;
+            }
+            if ($abonado) {
+                $calc['falta'] = 0;
+            }
             $linhas[] = [
                 'data' => $dia,
                 'dia_semana' => $dw,
                 'eh_util' => $ehUtil,
+                'abonado' => $abonado,
+                'tipo_abono' => $abonado ? $diasAbonados[$dia] : null,
                 'batidas' => $batidas,
                 'calc' => $calc,
             ];
@@ -620,19 +665,25 @@ class Rh extends MY_Controller
         $this->data['jornada'] = $jornada;
     }
 
-    /** Recalcula a competência e opcionalmente gera os extras. */
+    /** Recalcula a competência, sincroniza desconto de faltas e opcionalmente gera extras. */
     public function recalcular($colaborador_id = null, $competencia = null)
     {
         $this->exigir('eRh', 'Sem permissão.');
         $competencia = $competencia ?: date('Y-m');
         $this->load->library('rh_calculo');
-        $this->rh_calculo->calcularCompetencia($colaborador_id, $competencia);
+        $totais = $this->rh_calculo->calcularCompetencia($colaborador_id, $competencia);
+        $msg = 'Competência recalculada.';
+        $minFaltas = (int) ($totais['minutos_faltas'] ?? 0);
+        if ($minFaltas > 0) {
+            $msg .= ' Desconto de faltas atualizado automaticamente (' . $this->rh_calculo->minParaHoras($minFaltas) . ').';
+        } else {
+            $msg .= ' Sem faltas — desconto automático removido/zerado.';
+        }
         if ($this->input->get('extras') == '1' && $this->permission->checkPermission($this->session->userdata('permissao'), 'vRhFinanceiro')) {
             $n = $this->rh_calculo->gerarLancamentosExtras($colaborador_id, $competencia);
-            $this->session->set_flashdata('success', 'Competência recalculada. ' . (int) $n . ' lançamento(s) de extra gerado(s).');
-        } else {
-            $this->session->set_flashdata('success', 'Competência recalculada.');
+            $msg .= ' ' . (int) $n . ' lançamento(s) de extra gerado(s).';
         }
+        $this->session->set_flashdata('success', $msg);
         redirect(site_url("rh/espelho/$colaborador_id/$competencia"));
     }
 
@@ -1307,10 +1358,33 @@ class Rh extends MY_Controller
         $status = $this->input->post('status');
         $resposta = $this->input->post('resposta');
         if ($id && in_array($status, ['aprovado', 'recusado'], true)) {
+            $aus = $this->rh_extras_model->getAusencia($id);
             $this->rh_extras_model->analisarAusencia($id, $status, $this->session->userdata('id_admin'), $resposta);
-            $this->session->set_flashdata('success', 'Solicitação ' . $status . '.');
+            // Reprocessa competências do período para recalcular faltas/desconto automático
+            if ($aus && ! empty($aus->colaborador_id) && ! empty($aus->data_inicio)) {
+                $this->recalcularCompetenciasPeriodo(
+                    $aus->colaborador_id,
+                    $aus->data_inicio,
+                    $aus->data_fim ?: $aus->data_inicio
+                );
+            }
+            $this->session->set_flashdata('success', 'Solicitação ' . $status . '. Desconto de faltas recalculado.');
         }
         redirect(site_url('rh/ausencias'));
+    }
+
+    /** Recalcula todas as competências (YYYY-MM) cobertas por um intervalo de datas. */
+    private function recalcularCompetenciasPeriodo($colaborador_id, $dataInicio, $dataFim)
+    {
+        $this->load->library('rh_calculo');
+        $ini = strtotime(date('Y-m-01', strtotime($dataInicio)));
+        $fim = strtotime(date('Y-m-01', strtotime($dataFim)));
+        if ($ini === false || $fim === false) {
+            return;
+        }
+        for ($ts = $ini; $ts <= $fim; $ts = strtotime('+1 month', $ts)) {
+            $this->rh_calculo->calcularCompetencia($colaborador_id, date('Y-m', $ts));
+        }
     }
 
     /** Anexo (atestado/comprovante) de ocorrência ou ausência. */
