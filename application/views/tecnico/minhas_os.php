@@ -12,7 +12,7 @@ $qs = function ($novoStatus) use ($data_inicio, $data_fim) {
     if (!empty($data_fim)) { $p['data_fim'] = $data_fim; }
     return site_url('tecnico/os') . '?' . http_build_query($p);
 };
-$chips = ['todos' => 'Todos', 'pendente' => 'Pendentes', 'em_andamento' => 'Em andamento', 'finalizado' => 'Finalizados'];
+$chips = ['ativas' => 'Ativas', 'aprovado' => 'Aprovadas', 'em_andamento' => 'Em andamento', 'finalizado' => 'Finalizadas'];
 
 // Helper: telefone -> digitos para WhatsApp (assume Brasil se sem DDI)
 $waNumero = function ($fone) {

@@ -130,6 +130,14 @@ class Checkin extends MY_Controller
                 echo json_encode(['success' => false, 'message' => 'OS não encontrada ou não está designada a você']);
                 return;
             }
+
+            // Tecnico nao pode reabrir OS ja finalizada/faturada/cancelada.
+            // Somente o administrativo, mudando o status para "Aprovado", libera
+            // um novo atendimento (o historico dos anteriores e mantido).
+            if (in_array($os->status, ['Finalizado', 'Faturado', 'Cancelado'])) {
+                echo json_encode(['success' => false, 'message' => 'Esta OS já foi finalizada. Solicite ao administrativo reabrir a OS (status Aprovado) para iniciar um novo atendimento.']);
+                return;
+            }
         }
 
         // Verifica se já existe check-in ativo

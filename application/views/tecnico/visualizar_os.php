@@ -138,9 +138,16 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
 </div>
 
 <!-- Barra de acao fixa: iniciar / finalizar -->
+<?php
+// Estados acionaveis pelo tecnico. OS finalizada nao pode ser reaberta pelo
+// tecnico: apenas o administrativo, mudando o status de volta para "Aprovado",
+// libera um novo atendimento (mantendo o historico dos anteriores).
+$os_finalizada = in_array($os->status, ['Finalizado', 'Faturado', 'Cancelado']);
+$pode_iniciar  = in_array($os->status, ['Aberto', 'Aprovado', 'Orçamento']);
+?>
 <?php if ($permissao_checkin || $permissao_checkout): ?>
 <div class="action-bar">
-    <?php if ($permissao_checkin): ?>
+    <?php if ($permissao_checkin && $pode_iniciar): ?>
         <button type="button" id="btn-iniciar-atendimento" class="btn-tec success lg <?= $checkin_ativo ? 'hidden' : '' ?>">
             <i class='bx bx-log-in'></i> Iniciar Atendimento
         </button>
@@ -149,6 +156,11 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
         <button type="button" id="btn-finalizar-atendimento" class="btn-tec danger lg <?= $checkin_ativo ? '' : 'hidden' ?>">
             <i class='bx bx-log-out'></i> Finalizar Atendimento
         </button>
+    <?php endif; ?>
+    <?php if ($os_finalizada && !$checkin_ativo): ?>
+        <div style="flex:1; text-align:center; color:#8a8fa3; font-size:13px; display:flex; align-items:center; justify-content:center; gap:6px;">
+            <i class='bx bx-lock-alt'></i> Atendimento finalizado. Para um novo atendimento, o administrativo deve reaprovar a OS.
+        </div>
     <?php endif; ?>
 </div>
 <?php endif; ?>

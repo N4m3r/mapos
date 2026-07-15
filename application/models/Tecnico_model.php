@@ -19,15 +19,20 @@ class Tecnico_model extends CI_Model
         // Filtrar pelo tecnico responsavel
         $this->db->where('os.tecnico_responsavel', $tecnico_id);
 
-        // Filtro por status
-        if ($status !== 'todos') {
-            if ($status === 'pendente') {
-                $this->db->where_in('os.status', ['Aberto', 'Orçamento']);
-            } elseif ($status === 'em_andamento') {
-                $this->db->where('os.status', 'Em Andamento');
-            } elseif ($status === 'finalizado') {
-                $this->db->where_in('os.status', ['Finalizado', 'Faturado']);
-            }
+        // Filtro por status.
+        // Padrao ('ativas'): apenas OS acionaveis pelo tecnico (Aberto/Aprovado/Em Andamento).
+        // OS finalizadas ficam ocultas por padrao e so aparecem no filtro 'finalizado'.
+        if ($status === 'finalizado') {
+            $this->db->where_in('os.status', ['Finalizado', 'Faturado']);
+        } elseif ($status === 'em_andamento') {
+            $this->db->where('os.status', 'Em Andamento');
+        } elseif ($status === 'aprovado') {
+            $this->db->where('os.status', 'Aprovado');
+        } elseif ($status === 'todos') {
+            // sem filtro de status (historico completo)
+        } else {
+            // 'ativas' (padrao)
+            $this->db->where_in('os.status', ['Aberto', 'Aprovado', 'Em Andamento']);
         }
 
         // Filtro por data
@@ -96,7 +101,7 @@ class Tecnico_model extends CI_Model
         $this->db->from('os');
         $this->db->join('clientes', 'clientes.idClientes = os.clientes_id', 'left');
         $this->db->where('os.tecnico_responsavel', $tecnico_id);
-        $this->db->where_in('os.status', ['Aberto', 'Orçamento']);
+        $this->db->where_in('os.status', ['Aberto', 'Aprovado']);
 
         $query = $this->db->get();
 
@@ -164,9 +169,9 @@ class Tecnico_model extends CI_Model
         $this->db->where('status', 'Em Andamento');
         $os_andamento = $this->db->count_all_results('os');
 
-        // OS pendentes
+        // OS pendentes (acionaveis: aguardando o tecnico iniciar)
         $this->db->where('tecnico_responsavel', $tecnico_id);
-        $this->db->where_in('status', ['Aberto', 'Orçamento']);
+        $this->db->where_in('status', ['Aberto', 'Aprovado']);
         $os_pendentes = $this->db->count_all_results('os');
 
         // Tempo medio de atendimento (em horas)
