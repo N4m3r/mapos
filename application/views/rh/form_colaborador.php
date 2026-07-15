@@ -84,16 +84,78 @@ $action = $edit ? site_url('rh/editarColaborador/' . $c->id) : site_url('rh/adic
                     </select>
                 </div>
             </div>
+<<<<<<< HEAD
             <div class="row-fluid"><div class="span12"><label>Observações</label><textarea name="observacoes" rows="2" class="span12"><?= $val('observacoes') ?></textarea></div></div>
         </div></div>
         <div style="display:flex;gap:8px">
+=======
+
+            <hr style="margin:14px 0 10px;border:0;border-top:1px solid #e5e7eb">
+            <h5 style="margin:0 0 8px"><i class='bx bx-id-card'></i> Carteira de trabalho (CTPS) / PIS</h5>
+            <div class="row-fluid">
+                <div class="span3"><label>CTPS número</label><input type="text" name="ctps_numero" class="span12" value="<?= $val('ctps_numero') ?>"></div>
+                <div class="span2"><label>Série</label><input type="text" name="ctps_serie" class="span12" value="<?= $val('ctps_serie') ?>"></div>
+                <div class="span1"><label>UF</label><input type="text" name="ctps_uf" class="span12" maxlength="2" value="<?= $val('ctps_uf') ?>" style="text-transform:uppercase"></div>
+                <div class="span3"><label>Emissão CTPS</label><input type="date" name="ctps_data_emissao" class="span12" value="<?= $val('ctps_data_emissao') ?>"></div>
+                <div class="span3"><label>PIS/PASEP</label><input type="text" name="pis_pasep" class="span12" value="<?= $val('pis_pasep') ?>"></div>
+            </div>
+
+            <div class="row-fluid"><div class="span12"><label>Observações</label><textarea name="observacoes" rows="2" class="span12"><?= $val('observacoes') ?></textarea></div></div>
+        </div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+>>>>>>> 43f6f5a (correcao sintaxe)
             <button type="submit" class="button btn btn-success"><span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2"> Salvar</span></button>
             <a href="<?= site_url('rh/colaboradores') ?>" class="button btn btn-warning"><span class="button__text2">Voltar</span></a>
             <?php if ($edit): ?>
                 <a href="<?= site_url('rh/biometria/'.$c->id) ?>" class="button btn btn-primary"><span class="button__icon"><i class='bx bx-face'></i></span><span class="button__text2"> Biometria <?= !empty($tem_biometria)?'(cadastrada)':'' ?></span></a>
+<<<<<<< HEAD
             <?php endif; ?>
         </div>
     </form>
+=======
+                <a href="<?= site_url('rh/fichaCadastralPdf/'.$c->id) ?>" target="_blank" class="button btn btn-inverse"><span class="button__icon"><i class='bx bx-file'></i></span><span class="button__text2"> Ficha cadastral</span></a>
+                <a href="<?= site_url('rh/crachaPdf/'.$c->id) ?>" target="_blank" class="button btn btn-inverse"><span class="button__icon"><i class='bx bx-id-card'></i></span><span class="button__text2"> Crachá</span></a>
+                <?php if ($c->situacao): ?>
+                    <a href="#modal-desligar" role="button" data-toggle="modal" class="button btn btn-danger"><span class="button__icon"><i class='bx bx-user-x'></i></span><span class="button__text2"> Desligar</span></a>
+                <?php else: ?>
+                    <form method="post" action="<?= site_url('rh/reativarColaborador') ?>" style="display:inline" onsubmit="return confirm('Reativar este colaborador?')">
+                        <input type="hidden" name="id" value="<?= $c->id ?>">
+                        <button type="submit" class="button btn btn-success"><span class="button__text2">Reativar</span></button>
+                    </form>
+                <?php endif; ?>
+            <?php endif; ?>
+        </div>
+    </form>
+
+    <?php if ($edit && $c->situacao): ?>
+    <div id="modal-desligar" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <form method="post" action="<?= site_url('rh/desligarColaborador') ?>">
+            <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Desligar colaborador</h5></div>
+            <div class="modal-body">
+                <input type="hidden" name="id" value="<?= $c->id ?>">
+                <p>Desligar <strong><?= htmlspecialchars($c->nome) ?></strong>? O cadastro ficará inativo.</p>
+                <label>Data do desligamento</label>
+                <input type="date" name="demissao" class="span12" value="<?= date('Y-m-d') ?>" required>
+                <label style="margin-top:8px">Tipo</label>
+                <select name="tipo_desligamento" class="span12">
+                    <option value="pedido">Pedido de demissão</option>
+                    <option value="sem_justa_causa">Dispensa sem justa causa</option>
+                    <option value="justa_causa">Dispensa por justa causa</option>
+                    <option value="termino_contrato">Término de contrato</option>
+                    <option value="acordo">Acordo entre as partes</option>
+                    <option value="aposentadoria">Aposentadoria</option>
+                    <option value="outro">Outro</option>
+                </select>
+                <label style="margin-top:8px">Motivo / observações</label>
+                <textarea name="motivo_desligamento" rows="3" class="span12" placeholder="Descreva o motivo..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="button btn btn-danger"><span class="button__text2">Confirmar desligamento</span></button>
+            </div>
+        </form>
+    </div>
+    <?php endif; ?>
+>>>>>>> 43f6f5a (correcao sintaxe)
 </div>
 <script>
 document.getElementById('foto-input').addEventListener('change', function(e){

@@ -117,9 +117,52 @@ class Colaborador extends MY_Controller
         $data['ocorrencias'] = $this->rh_extras_model->listarOcorrencias([
             'colaborador_id' => $this->colaborador->id,
         ]);
+<<<<<<< HEAD
         $this->load->view('colaborador/ocorrencias', $data);
     }
 
+=======
+        $ref = $this->input->get('ref');
+        $data['ref_data'] = $ref ?: '';
+        $data['batidas_ref'] = $ref
+            ? $this->rh_ponto_model->getDoDia($this->colaborador->id, $ref)
+            : [];
+        $this->load->view('colaborador/ocorrencias', $data);
+    }
+
+    /**
+     * API JSON: batidas do próprio colaborador em uma data (para seleção na ocorrência).
+     */
+    public function batidasDoDia()
+    {
+        $data = $this->input->get('data') ?: date('Y-m-d');
+        if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $data)) {
+            $this->output->set_content_type('application/json')->set_output(json_encode([]));
+            return;
+        }
+        $batidas = $this->rh_ponto_model->getDoDia($this->colaborador->id, $data);
+        $labels = [
+            'entrada' => 'Entrada',
+            'saida' => 'Saída',
+            'inicio_intervalo' => 'Início do intervalo',
+            'fim_intervalo' => 'Fim do intervalo',
+        ];
+        $out = [];
+        foreach ($batidas as $b) {
+            $out[] = [
+                'id' => (int) $b->id,
+                'tipo' => $b->tipo,
+                'label' => $labels[$b->tipo] ?? $b->tipo,
+                'hora' => date('H:i', strtotime($b->data_hora)),
+                'data_hora' => $b->data_hora,
+                'latitude' => $b->latitude,
+                'longitude' => $b->longitude,
+            ];
+        }
+        $this->output->set_content_type('application/json')->set_output(json_encode($out));
+    }
+
+>>>>>>> 43f6f5a (correcao sintaxe)
     public function solicitarOcorrencia()
     {
         $tipo = $this->input->post('tipo');
@@ -128,17 +171,33 @@ class Colaborador extends MY_Controller
             redirect(site_url('colaborador/ocorrencias'));
         }
         $anexo = $this->arquivoParaBase64('anexo');
+<<<<<<< HEAD
+=======
+        $registroId = $this->input->post('registro_id') ?: null;
+        // Se escolheu uma batida registrada, valida se é do próprio colaborador
+        if ($registroId) {
+            $bat = $this->rh_ponto_model->getById($registroId);
+            if (! $bat || (int) $bat->colaborador_id !== (int) $this->colaborador->id) {
+                $registroId = null;
+            }
+        }
+>>>>>>> 43f6f5a (correcao sintaxe)
         $dados = [
             'colaborador_id' => $this->colaborador->id,
             'tipo' => $tipo,
             'data_referencia' => $this->input->post('data_referencia') ?: null,
+<<<<<<< HEAD
             'registro_id' => $this->input->post('registro_id') ?: null,
+=======
+            'registro_id' => $registroId,
+>>>>>>> 43f6f5a (correcao sintaxe)
             'descricao' => $this->input->post('descricao'),
             'anexo_base64' => $anexo['base64'],
             'anexo_mime' => $anexo['mime'],
             'anexo_nome' => $anexo['nome'],
             'status' => 'pendente',
         ];
+<<<<<<< HEAD
         // Correção de ponto: batida desejada (aplicada automaticamente na aprovação).
         // Só grava se a migration 20260712000005 tiver rodado.
         if ($tipo === 'correcao_ponto' && $this->db->field_exists('correcao_tipo', 'rh_ocorrencias')) {
@@ -146,6 +205,29 @@ class Colaborador extends MY_Controller
             $cdh = $this->input->post('correcao_data_hora');
             if (in_array($ct, ['entrada', 'saida', 'inicio_intervalo', 'fim_intervalo'], true) && $cdh) {
                 $dados['correcao_tipo'] = $ct;
+=======
+        // O que justificar: entrada / intervalo / saída (com ou sem batida registrada)
+        $justificar = $this->input->post('justificar_tipo');
+        if (in_array($justificar, ['entrada', 'saida', 'inicio_intervalo', 'fim_intervalo'], true)
+            && $this->db->field_exists('correcao_tipo', 'rh_ocorrencias')) {
+            $dados['correcao_tipo'] = $justificar;
+        }
+        // Se vinculou batida registrada, herda o tipo dela
+        if ($registroId && empty($dados['correcao_tipo'])) {
+            $bat = $this->rh_ponto_model->getById($registroId);
+            if ($bat && $this->db->field_exists('correcao_tipo', 'rh_ocorrencias')) {
+                $dados['correcao_tipo'] = $bat->tipo;
+            }
+        }
+        // Correção de ponto: batida desejada (aplicada automaticamente na aprovação).
+        if ($tipo === 'correcao_ponto' && $this->db->field_exists('correcao_tipo', 'rh_ocorrencias')) {
+            $ct = $this->input->post('correcao_tipo') ?: ($dados['correcao_tipo'] ?? null);
+            $cdh = $this->input->post('correcao_data_hora');
+            if (in_array($ct, ['entrada', 'saida', 'inicio_intervalo', 'fim_intervalo'], true)) {
+                $dados['correcao_tipo'] = $ct;
+            }
+            if ($cdh) {
+>>>>>>> 43f6f5a (correcao sintaxe)
                 $dados['correcao_data_hora'] = date('Y-m-d H:i:s', strtotime($cdh));
                 if (empty($dados['data_referencia'])) {
                     $dados['data_referencia'] = date('Y-m-d', strtotime($cdh));
@@ -212,6 +294,7 @@ class Colaborador extends MY_Controller
     public function holerite($competencia = null)
     {
         $competencia = $competencia ?: date('Y-m');
+<<<<<<< HEAD
         $data = $this->baseData('Holerite / Demonstrativo');
         $data['competencia'] = $competencia;
         $data['resumo'] = $this->rh_extras_model->resumoCompetencia($this->colaborador->id, $competencia);
@@ -220,6 +303,37 @@ class Colaborador extends MY_Controller
     }
 
     /** Baixa o PDF oficial do holerite DO PRÓPRIO colaborador. */
+=======
+        $this->load->library('rh_calculo');
+        $this->load->library('rh_clt');
+        $data = $this->baseData('Holerite / Demonstrativo');
+        $data['competencia'] = $competencia;
+        $resumo = $this->rh_extras_model->resumoCompetencia($this->colaborador->id, $competencia);
+        $salario = (float) ($this->colaborador->salario_base ?? 0);
+        $proventos = $salario + (float) $resumo['proventos'];
+        $legais = $this->rh_clt->descontosLegais($this->colaborador, $proventos);
+        $resumo['itens'] = array_merge(
+            $salario > 0 ? [(object) ['tipo' => 'salario', 'natureza' => 'provento', 'descricao' => 'Salário base', 'valor' => $salario]] : [],
+            $resumo['itens'],
+            $legais['itens']
+        );
+        $resumo['proventos'] = $proventos;
+        $resumo['descontos'] = (float) $resumo['descontos'] + $legais['total_descontos'];
+        $resumo['liquido'] = $resumo['proventos'] - $resumo['descontos'];
+        $resumo['fgts'] = $legais['fgts'];
+        $data['resumo'] = $resumo;
+        $holerite = $this->rh_extras_model->getHolerite($this->colaborador->id, $competencia);
+        // Só exibe o arquivo se estiver liberado (ou se a coluna ainda não existir — compatibilidade)
+        if ($holerite && $this->db->field_exists('liberado_colaborador', 'rh_holerites')
+            && empty($holerite->liberado_colaborador)) {
+            $holerite = null;
+        }
+        $data['holerite'] = $holerite;
+        $this->load->view('colaborador/holerite', $data);
+    }
+
+    /** Baixa o PDF oficial do holerite DO PRÓPRIO colaborador (somente se liberado). */
+>>>>>>> 43f6f5a (correcao sintaxe)
     public function baixarHolerite($competencia = null)
     {
         $competencia = $competencia ?: date('Y-m');
@@ -228,6 +342,13 @@ class Colaborador extends MY_Controller
             show_404();
             return;
         }
+<<<<<<< HEAD
+=======
+        if ($this->db->field_exists('liberado_colaborador', 'rh_holerites') && empty($h->liberado_colaborador)) {
+            show_404();
+            return;
+        }
+>>>>>>> 43f6f5a (correcao sintaxe)
         $base64 = $h->arquivo_base64;
         if (preg_match('/^data:([\w\/\+\.\-]+);base64,/', $base64, $m)) {
             $mime = $m[1];

@@ -197,10 +197,23 @@ class Rh_calculo
             return false;
         }
 
+<<<<<<< HEAD
         $criados = 0;
         $mapa = [
             'minutos_extras_50' => ['fator' => 1.5, 'desc' => 'Horas extras 50%'],
             'minutos_extras_100' => ['fator' => 2.0, 'desc' => 'Horas extras 100%'],
+=======
+        // Fatores e regra de aprovação vêm da config CLT (padrão: 50%/100%, sempre pendente).
+        $this->CI->load->library('rh_clt');
+        $fator50 = $this->CI->rh_clt->fatorExtra50();
+        $fator100 = $this->CI->rh_clt->fatorExtra100();
+        $requerAprov = $this->CI->rh_clt->heRequerAprovacao();
+
+        $criados = 0;
+        $mapa = [
+            'minutos_extras_50' => ['fator' => $fator50, 'desc' => 'Horas extras 50%'],
+            'minutos_extras_100' => ['fator' => $fator100, 'desc' => 'Horas extras 100%'],
+>>>>>>> 43f6f5a (correcao sintaxe)
         ];
 
         foreach ($mapa as $campo => $cfg) {
@@ -208,6 +221,13 @@ class Rh_calculo
             if ($min <= 0) {
                 continue;
             }
+<<<<<<< HEAD
+=======
+            // Não duplica se já existir lançamento automático desta referência/descrição.
+            if ($this->jaExisteExtraAutomatico($colaboradorId, $competencia, $cfg['desc'], $horas->id)) {
+                continue;
+            }
+>>>>>>> 43f6f5a (correcao sintaxe)
             $horasQtd = round($min / 60, 2);
             $valor = round($horasQtd * $valorHora * $cfg['fator'], 2);
 
@@ -219,7 +239,12 @@ class Rh_calculo
                 'descricao' => $cfg['desc'] . ' (' . $this->minParaHoras($min) . ')',
                 'quantidade' => $horasQtd,
                 'valor' => $valor,
+<<<<<<< HEAD
                 'aprovado' => 0,
+=======
+                // Horas extras sempre nascem pendentes se a config exigir aprovação.
+                'aprovado' => $requerAprov ? 0 : 0,
+>>>>>>> 43f6f5a (correcao sintaxe)
                 'origem' => 'automatico',
                 'referencia_id' => $horas->id,
             ]);
@@ -229,6 +254,26 @@ class Rh_calculo
         return $criados;
     }
 
+<<<<<<< HEAD
+=======
+    /** Evita duplicar HE automática na mesma competência/referência. */
+    private function jaExisteExtraAutomatico($colaboradorId, $competencia, $descPrefixo, $referenciaId)
+    {
+        if (! $this->CI->db->table_exists('rh_lancamentos')) {
+            return false;
+        }
+        $this->CI->db->where('colaborador_id', $colaboradorId);
+        $this->CI->db->where('competencia', $competencia);
+        $this->CI->db->where('tipo', 'hora_extra');
+        $this->CI->db->where('origem', 'automatico');
+        if ($referenciaId) {
+            $this->CI->db->where('referencia_id', $referenciaId);
+        }
+        $this->CI->db->like('descricao', $descPrefixo, 'after');
+        return $this->CI->db->count_all_results('rh_lancamentos') > 0;
+    }
+
+>>>>>>> 43f6f5a (correcao sintaxe)
     /** Valor da hora do colaborador (explícito ou derivado do salário / 220h). */
     public function valorHora($colaborador)
     {
