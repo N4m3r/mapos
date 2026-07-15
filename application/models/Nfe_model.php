@@ -58,7 +58,7 @@ class Nfe_model extends CI_Model
 
     /**
      * Mantém no array apenas as chaves que existem como coluna em notas_fiscais.
-     * Assim campos novos (ex.: descricao_servico) não quebram a gravação em
+     * Assim campos novos (ex.: descricao_servico, xml) não quebram a gravação em
      * instalações onde o update de schema ainda não foi aplicado.
      */
     private function filtrarColunas(array $data)
@@ -66,6 +66,60 @@ class Nfe_model extends CI_Model
         $cols = $this->db->list_fields('notas_fiscais');
 
         return array_intersect_key($data, array_flip($cols));
+    }
+
+    /**
+     * SELECT de notas sem a coluna xml (LONGTEXT) — evita carregar XMLs
+     * inteiros em listagens.
+     */
+    private function selectNotasSemXml()
+    {
+        if (! $this->db->field_exists('xml', 'notas_fiscais')) {
+            return 'notas_fiscais.*';
+        }
+
+        $cols = array_diff($this->db->list_fields('notas_fiscais'), ['xml']);
+
+        return implode(', ', array_map(function ($c) {
+            return 'notas_fiscais.' . $c;
+        }, $cols));
+    }
+
+    /**
+     * Conteúdo do XML autorizado: preferência pelo banco; fallback no arquivo.
+     *
+     * @param object|null $nota
+     * @return string|null
+     */
+    public function obterXmlConteudo($nota)
+    {
+        if (! $nota) {
+            return null;
+        }
+        if (isset($nota->xml) && $nota->xml !== null && $nota->xml !== '') {
+            return $nota->xml;
+        }
+        if (! empty($nota->xml_path) && is_file($nota->xml_path)) {
+            $conteudo = @file_get_contents($nota->xml_path);
+
+            return ($conteudo !== false && $conteudo !== '') ? $conteudo : null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Nome sugerido para download do XML.
+     */
+    public function nomeArquivoXml($nota)
+    {
+        if (! empty($nota->xml_path)) {
+            return basename($nota->xml_path);
+        }
+        $tipo = (! empty($nota->tipo) && $nota->tipo === 'nfse') ? 'nfse' : 'nfe';
+        $ref = ! empty($nota->chave) ? $nota->chave : (string) ($nota->numero ?? $nota->idNota);
+
+        return $tipo . '_' . $ref . '.xml';
     }
 
     public function getNotaById($idNota)
@@ -121,7 +175,7 @@ class Nfe_model extends CI_Model
 
     public function getNotas($porPagina = 0, $inicio = 0, $status = null)
     {
-        $this->db->select('notas_fiscais.*, clientes.nomeCliente');
+        $this->db->select($this->selectNotasSemXml() . ', clientes.nomeCliente', false);
         $this->db->from('notas_fiscais');
         $this->db->join('vendas', 'vendas.idVendas = notas_fiscais.vendas_id', 'left');
         $this->db->join('os', 'os.idOs = notas_fiscais.os_id', 'left');
@@ -159,7 +213,10 @@ class Nfe_model extends CI_Model
             return [];
         }
 
-        $this->db->select('notas_fiscais.*, clientes.nomeCliente, clientes.documento, COALESCE(vendas.clientes_id, os.clientes_id) AS clientes_id', false);
+        $this->db->select(
+            $this->selectNotasSemXml() . ', clientes.nomeCliente, clientes.documento, COALESCE(vendas.clientes_id, os.clientes_id) AS clientes_id',
+            false
+        );
         $this->db->from('notas_fiscais');
         $this->db->join('vendas', 'vendas.idVendas = notas_fiscais.vendas_id', 'left');
         $this->db->join('os', 'os.idOs = notas_fiscais.os_id', 'left');

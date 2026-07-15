@@ -48,10 +48,48 @@ class Notificacoes extends MY_Controller
         $this->data['gatilho'] = $gatilho;
         $this->data['templates'] = $this->templatesDisponiveis();
         $this->data['whatsappTemplates'] = $this->whatsapp_templates_model->getAll();
+        $this->data['clientesSelecionados'] = $this->clientesDoGatilho($gatilho);
 
         $this->data['view'] = 'notificacoes/editarNotificacao';
 
         return $this->layout();
+    }
+
+    /**
+     * Autocomplete de clientes para o filtro do gatilho WhatsApp.
+     */
+    public function autoCompleteCliente()
+    {
+        $q = trim((string) $this->input->get('term'));
+        if ($q === '') {
+            echo json_encode([]);
+
+            return;
+        }
+
+        $this->db->select('idClientes, nomeCliente, documento, celular, telefone');
+        $this->db->group_start();
+        $this->db->like('nomeCliente', $q);
+        $this->db->or_like('documento', $q);
+        $this->db->or_like('celular', $q);
+        $this->db->or_like('telefone', $q);
+        $this->db->group_end();
+        $this->db->order_by('nomeCliente', 'ASC');
+        $this->db->limit(25);
+        $rows = $this->db->get('clientes')->result();
+
+        $out = [];
+        foreach ($rows as $r) {
+            $doc = trim((string) $r->documento);
+            $label = $r->nomeCliente . ($doc !== '' ? ' — ' . $doc : '');
+            $out[] = [
+                'id' => (int) $r->idClientes,
+                'label' => $label,
+                'value' => $label,
+            ];
+        }
+
+        echo json_encode($out);
     }
 
     public function salvar()
@@ -76,6 +114,9 @@ class Notificacoes extends MY_Controller
         }
         if ($this->db->field_exists('whatsapp_template', 'notification_triggers')) {
             $data['whatsapp_template'] = $this->input->post('whatsapp_template') ?: null;
+        }
+        if ($this->db->field_exists('whatsapp_clientes', 'notification_triggers')) {
+            $data['whatsapp_clientes'] = $this->listaPost('whatsapp_clientes');
         }
 
         $this->notification_triggers_model->update($id, $data);
@@ -141,6 +182,9 @@ class Notificacoes extends MY_Controller
         if ($this->db->field_exists('whatsapp_template', 'notification_triggers')) {
             $data['whatsapp_template'] = $this->input->post('whatsapp_template') ?: null;
         }
+        if ($this->db->field_exists('whatsapp_clientes', 'notification_triggers')) {
+            $data['whatsapp_clientes'] = $this->listaPost('whatsapp_clientes');
+        }
 
         $id = $this->notification_triggers_model->create($data);
         if ($id) {
@@ -195,7 +239,43 @@ class Notificacoes extends MY_Controller
             return null;
         }
 
+        // IDs de clientes: só números positivos, únicos.
+        if ($campo === 'whatsapp_clientes') {
+            $ids = [];
+            foreach ($valores as $v) {
+                $id = (int) $v;
+                if ($id > 0 && ! in_array($id, $ids, true)) {
+                    $ids[] = $id;
+                }
+            }
+
+            return empty($ids) ? null : implode(',', $ids);
+        }
+
         return implode(',', array_map('strval', $valores));
+    }
+
+    /**
+     * Carrega dados dos clientes salvos no gatilho (para a UI de edição).
+     *
+     * @return object[]
+     */
+    private function clientesDoGatilho($gatilho)
+    {
+        if (! $gatilho || empty($gatilho->whatsapp_clientes) || ! $this->db->table_exists('clientes')) {
+            return [];
+        }
+
+        $ids = Notification_triggers_model::clientesIds($gatilho->whatsapp_clientes);
+        if (empty($ids)) {
+            return [];
+        }
+
+        $this->db->select('idClientes, nomeCliente, documento');
+        $this->db->where_in('idClientes', $ids);
+        $this->db->order_by('nomeCliente', 'ASC');
+
+        return $this->db->get('clientes')->result();
     }
 
     private function templatesDisponiveis()

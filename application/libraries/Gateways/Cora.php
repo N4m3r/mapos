@@ -866,12 +866,13 @@ class Cora extends BasePaymentGateway
         try {
             $this->ci->load->model('nfe_model');
             $nota = $this->ci->nfe_model->getNotaById($notaId);
-            if (! $nota || empty($nota->xml_path) || ! file_exists($nota->xml_path)) {
+            $xml = $nota ? $this->ci->nfe_model->obterXmlConteudo($nota) : null;
+            if (! $nota || $xml === null) {
                 return null;
             }
 
             if ($nota->tipo === 'nfe' && class_exists('\NFePHP\DA\NFe\Danfe')) {
-                $danfe = new \NFePHP\DA\NFe\Danfe(file_get_contents($nota->xml_path));
+                $danfe = new \NFePHP\DA\NFe\Danfe($xml);
                 $pdf = $danfe->render();
                 $dest = tempnam(sys_get_temp_dir(), 'mapnf_');
                 if ($dest !== false && file_put_contents($dest, $pdf) !== false) {

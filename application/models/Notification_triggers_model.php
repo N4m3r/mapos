@@ -168,4 +168,40 @@ class Notification_triggers_model extends CI_Model
 
         return array_values(array_filter(array_map('trim', explode(',', $valor))));
     }
+
+    /**
+     * IDs de clientes configurados no gatilho (filtro opcional).
+     *
+     * @return int[]
+     */
+    public static function clientesIds($valor)
+    {
+        $ids = [];
+        foreach (self::toList($valor) as $v) {
+            $id = (int) $v;
+            if ($id > 0) {
+                $ids[] = $id;
+            }
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    /**
+     * Se o gatilho tem filtro de clientes, a OS/cliente precisa estar na lista.
+     * Sem filtro (lista vazia), vale para todos.
+     */
+    public static function aplicaAoCliente($trigger, $clienteId)
+    {
+        if (! $trigger || ! isset($trigger->whatsapp_clientes) || $trigger->whatsapp_clientes === null || $trigger->whatsapp_clientes === '') {
+            return true;
+        }
+
+        $ids = self::clientesIds($trigger->whatsapp_clientes);
+        if (empty($ids)) {
+            return true;
+        }
+
+        return in_array((int) $clienteId, $ids, true);
+    }
 }

@@ -96,7 +96,7 @@ $gwConfig = $this->config->item('payment_gateways');
                             <?php } ?>
                         </td>
                         <td style="text-align:center;white-space:nowrap">
-                            <?php if (in_array($nota->status, ['autorizada', 'cancelada']) && !empty($nota->xml_path)) { ?>
+                            <?php if (in_array($nota->status, ['autorizada', 'cancelada'], true)) { ?>
                                 <a href="<?php echo site_url('nfe/xml/' . $nota->idNota); ?>" class="btn-nwe6" title="Baixar XML"><i class="bx bx-code-alt bx-xs"></i></a>
                             <?php } ?>
                             <?php if ($nota->status === 'autorizada') { ?>

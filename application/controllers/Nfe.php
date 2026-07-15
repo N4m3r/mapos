@@ -365,6 +365,7 @@ class Nfe extends MY_Controller
                     'chave' => null,
                     'protocolo' => null,
                     'xml_path' => null,
+                    'xml' => null,
                     'serie' => $config->serie_nfe,
                     'valor_total' => $valorTotal,
                     'ambiente' => $config->ambiente,
@@ -397,7 +398,10 @@ class Nfe extends MY_Controller
                 return $this->jsonResponse(false, "NF-e rejeitada pela SEFAZ: [{$resultado['cstat']}] {$resultado['motivo']}");
             }
 
-            $xmlPath = CertificadoHelper::salvarXml("nfe_{$resultado['chave']}.xml", $resultado['xml']);
+            $xmlConteudo = ! empty($resultado['xml']) ? $resultado['xml'] : null;
+            $xmlPath = $xmlConteudo
+                ? CertificadoHelper::salvarXml("nfe_{$resultado['chave']}.xml", $xmlConteudo)
+                : null;
 
             $this->nfe_model->updateNota($idNota, [
                 'status' => 'autorizada',
@@ -405,6 +409,7 @@ class Nfe extends MY_Controller
                 'protocolo' => $resultado['protocolo'],
                 'motivo' => "[{$resultado['cstat']}] {$resultado['motivo']}",
                 'xml_path' => $xmlPath,
+                'xml' => $xmlConteudo,
                 'data_autorizacao' => date('Y-m-d H:i:s'),
             ]);
 
@@ -479,6 +484,7 @@ class Nfe extends MY_Controller
                     'motivo' => null,
                     'chave' => null,
                     'xml_path' => null,
+                    'xml' => null,
                     'valor_total' => round($valorTotal, 2),
                     'ambiente' => $config->ambiente,
                     'data_emissao' => date('Y-m-d H:i:s'),
@@ -520,10 +526,10 @@ class Nfe extends MY_Controller
                 ]);
             }
 
-            $xmlPath = null;
-            if (!empty($resultado['xml'])) {
-                $xmlPath = CertificadoHelper::salvarXml("nfse_dps{$numero}_" . date('YmdHis') . '.xml', $resultado['xml']);
-            }
+            $xmlConteudo = ! empty($resultado['xml']) ? $resultado['xml'] : null;
+            $xmlPath = $xmlConteudo
+                ? CertificadoHelper::salvarXml("nfse_dps{$numero}_" . date('YmdHis') . '.xml', $xmlConteudo)
+                : null;
 
             $this->nfe_model->updateNota($idNota, [
                 'status' => 'autorizada',
@@ -531,6 +537,7 @@ class Nfe extends MY_Controller
                 'motivo' => $resultado['motivo'],
                 'descricao_servico' => $resultado['descricao_servico'] ?? null,
                 'xml_path' => $xmlPath,
+                'xml' => $xmlConteudo,
                 'data_autorizacao' => date('Y-m-d H:i:s'),
             ]);
 
@@ -641,16 +648,17 @@ class Nfe extends MY_Controller
                 ]);
             }
 
-            $xmlPath = null;
-            if (!empty($resultado['xml'])) {
-                $xmlPath = CertificadoHelper::salvarXml("nfse_subst_dps{$numero}_" . date('YmdHis') . '.xml', $resultado['xml']);
-            }
+            $xmlConteudo = ! empty($resultado['xml']) ? $resultado['xml'] : null;
+            $xmlPath = $xmlConteudo
+                ? CertificadoHelper::salvarXml("nfse_subst_dps{$numero}_" . date('YmdHis') . '.xml', $xmlConteudo)
+                : null;
             $this->nfe_model->updateNota($idNota, [
                 'status' => 'autorizada',
                 'chave' => $resultado['chave'],
                 'motivo' => 'Substitui a NFS-e nº ' . $original->numero,
                 'descricao_servico' => $resultado['descricao_servico'] ?? null,
                 'xml_path' => $xmlPath,
+                'xml' => $xmlConteudo,
                 'data_autorizacao' => date('Y-m-d H:i:s'),
             ]);
 
@@ -851,13 +859,14 @@ class Nfe extends MY_Controller
         }
 
         $nota = $this->nfe_model->getNotaById($idNota);
-        if (!$nota || empty($nota->xml_path) || !file_exists($nota->xml_path)) {
+        $xml = $nota ? $this->nfe_model->obterXmlConteudo($nota) : null;
+        if (! $nota || $xml === null) {
             $this->session->set_flashdata('error', 'XML não encontrado para esta nota.');
             redirect('nfe/gerenciar');
         }
 
         $this->load->helper('download');
-        force_download(basename($nota->xml_path), file_get_contents($nota->xml_path));
+        force_download($this->nfe_model->nomeArquivoXml($nota), $xml);
     }
 
     /**
@@ -878,13 +887,14 @@ class Nfe extends MY_Controller
 
         try {
             if ($nota->tipo === 'nfe') {
-                if (empty($nota->xml_path) || !file_exists($nota->xml_path)) {
-                    throw new Exception('XML da NF-e não encontrado em disco.');
+                $xmlNfe = $this->nfe_model->obterXmlConteudo($nota);
+                if ($xmlNfe === null) {
+                    throw new Exception('XML da NF-e não encontrado (banco ou disco).');
                 }
                 // Por padrão imprime o DANFE em HTML (estilo da OS). O PDF oficial
                 // (sped-da, com código de barras) fica em nfe/danfe/{id}/oficial.
                 if ($modo === 'oficial') {
-                    $danfe = new NFePHP\DA\NFe\Danfe(file_get_contents($nota->xml_path));
+                    $danfe = new NFePHP\DA\NFe\Danfe($xmlNfe);
                     $pdf = $danfe->render($this->logoEmitente($this->mapos_model->getEmitente()));
                     $this->output
                         ->set_content_type('application/pdf')
