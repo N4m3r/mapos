@@ -3,11 +3,12 @@ $fmt = function ($min) { return $this->rh_calculo->minParaHoras($min); };
 $brl = function ($v) { return number_format($v, 2, ',', '.'); };
 $emp = $emitente ?? null;
 $compLabel = date('m/Y', strtotime($competencia . '-01'));
-$lblTipo = ['hora_extra'=>'Horas extras','adicional'=>'Adicional','comissao'=>'Comissão','bonus'=>'Bônus','adiantamento'=>'Adiantamento','desconto'=>'Desconto','falta'=>'Falta','vale'=>'Vale'];
+$lblTipo = ['hora_extra'=>'Horas extras','adicional'=>'Adicional','comissao'=>'Comissão','bonus'=>'Bônus','adiantamento'=>'Adiantamento','desconto'=>'Desconto','falta'=>'Falta','vale'=>'Vale','inss'=>'INSS','irrf'=>'IRRF','vale_transporte'=>'Vale-transporte'];
 $itens = $dados['resumo']['itens'];
 $proventosItens = array_filter($itens, function ($i) { return $i->natureza !== 'desconto'; });
 $descontosItens = array_filter($itens, function ($i) { return $i->natureza === 'desconto'; });
 $h = $dados['horas'];
+$fgts = $dados['fgts'] ?? ($dados['resumo']['fgts'] ?? 0);
 ?>
 <style>
     body { font-family: sans-serif; font-size: 12px; color: #222; }
@@ -74,10 +75,16 @@ $h = $dados['horas'];
     </tr>
 </table>
 
+<?php if ($fgts > 0): ?>
+<div style="margin-top:10px;font-size:11px">
+    <strong>FGTS (depósito do empregador — não descontado do colaborador):</strong> R$ <?= $brl($fgts) ?>
+</div>
+<?php endif; ?>
+
 <table class="assinaturas">
     <tr><td>Colaborador</td><td><?= htmlspecialchars($emp->nome ?? 'Empresa') ?></td></tr>
 </table>
 
 <div style="text-align:right;margin-top:10px;font-size:9px;color:#888">
-    Demonstrativo gerencial — não inclui encargos fiscais (INSS/IRRF/FGTS). Emitido em <?= date('d/m/Y H:i') ?>.
+    Demonstrativo com descontos legais configurados (CLT). Emitido em <?= date('d/m/Y H:i') ?>.
 </div>

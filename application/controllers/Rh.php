@@ -238,7 +238,7 @@ class Rh extends MY_Controller
     {
         $salario = str_replace(['.', ','], ['', '.'], (string) $this->input->post('salario_base'));
         $valorHora = str_replace(['.', ','], ['', '.'], (string) $this->input->post('valor_hora'));
-        return [
+        $dados = [
             'nome' => trim($this->input->post('nome')),
             'cpf' => $this->input->post('cpf'),
             'rg' => $this->input->post('rg'),
@@ -260,6 +260,73 @@ class Rh extends MY_Controller
             'situacao' => $this->input->post('situacao') !== null ? (int) $this->input->post('situacao') : 1,
             'observacoes' => $this->input->post('observacoes'),
         ];
+        // Carteira de trabalho / PIS (migration 20260714000001)
+        if ($this->db->field_exists('ctps_numero', 'rh_colaboradores')) {
+            $dados['ctps_numero'] = $this->input->post('ctps_numero') ?: null;
+            $dados['ctps_serie'] = $this->input->post('ctps_serie') ?: null;
+            $dados['ctps_uf'] = $this->input->post('ctps_uf') ? strtoupper(substr($this->input->post('ctps_uf'), 0, 2)) : null;
+            $dados['ctps_data_emissao'] = $this->input->post('ctps_data_emissao') ?: null;
+            $dados['pis_pasep'] = $this->input->post('pis_pasep') ?: null;
+        }
+        return $dados;
+    }
+
+    /**
+     * Desligamento formal do colaborador (data, tipo, motivo).
+     * Inativa o cadastro e registra quem processou.
+     */
+    public function desligarColaborador()
+    {
+        $this->exigir('eRh', 'Você não tem permissão para desligar colaboradores.');
+        $id = $this->input->post('id');
+        $colaborador = $this->rh_colaboradores_model->getById($id);
+        if (! $colaborador) {
+            $this->session->set_flashdata('error', 'Colaborador não encontrado.');
+            redirect(site_url('rh/colaboradores'));
+        }
+        $demissao = $this->input->post('demissao') ?: date('Y-m-d');
+        $tipo = $this->input->post('tipo_desligamento') ?: 'outro';
+        $tiposOk = ['pedido', 'sem_justa_causa', 'justa_causa', 'termino_contrato', 'acordo', 'aposentadoria', 'outro'];
+        if (! in_array($tipo, $tiposOk, true)) {
+            $tipo = 'outro';
+        }
+        $dados = [
+            'situacao' => 0,
+            'demissao' => $demissao,
+        ];
+        if ($this->db->field_exists('tipo_desligamento', 'rh_colaboradores')) {
+            $dados['tipo_desligamento'] = $tipo;
+            $dados['motivo_desligamento'] = $this->input->post('motivo_desligamento');
+            $dados['desligado_por'] = $this->session->userdata('id_admin');
+            $dados['desligado_em'] = date('Y-m-d H:i:s');
+        }
+        $this->rh_colaboradores_model->edit($dados, $id);
+        log_info('RH: desligou colaborador ID ' . $id . ' tipo=' . $tipo);
+        $this->session->set_flashdata('success', 'Colaborador desligado com sucesso.');
+        redirect(site_url('rh/ficha/' . $id));
+    }
+
+    /** Reativa colaborador desligado (limpa desligamento). */
+    public function reativarColaborador()
+    {
+        $this->exigir('eRh', 'Sem permissão.');
+        $id = $this->input->post('id');
+        if (! $id) {
+            redirect(site_url('rh/colaboradores'));
+        }
+        $dados = [
+            'situacao' => 1,
+            'demissao' => null,
+        ];
+        if ($this->db->field_exists('tipo_desligamento', 'rh_colaboradores')) {
+            $dados['tipo_desligamento'] = null;
+            $dados['motivo_desligamento'] = null;
+            $dados['desligado_por'] = null;
+            $dados['desligado_em'] = null;
+        }
+        $this->rh_colaboradores_model->edit($dados, $id);
+        $this->session->set_flashdata('success', 'Colaborador reativado.');
+        redirect(site_url('rh/ficha/' . $id));
     }
 
     /** Processa o upload de foto do colaborador (multipart → base64 no banco). */
@@ -592,6 +659,20 @@ class Rh extends MY_Controller
         $valor = str_replace(['.', ','], ['', '.'], (string) $this->input->post('valor'));
         $tipo = $this->input->post('tipo');
         $descontos = ['desconto', 'adiantamento', 'falta', 'vale'];
+        $aprovado = $this->input->post('aprovado') ? 1 : 0;
+
+        // Horas extras: só aprovam quem tem permissão aprovarRh; senão ficam pendentes.
+        $this->load->library('rh_clt');
+        if ($tipo === 'hora_extra' && $this->rh_clt->heRequerAprovacao()) {
+            if ($aprovado && ! $this->permission->checkPermission($this->session->userdata('permissao'), 'aprovarRh')) {
+                $aprovado = 0;
+            }
+            // Lançamento novo de HE nunca nasce aprovado sem flag explícita de quem pode aprovar
+            if (! $this->input->post('id') && ! $this->permission->checkPermission($this->session->userdata('permissao'), 'aprovarRh')) {
+                $aprovado = 0;
+            }
+        }
+
         $dados = [
             'colaborador_id' => $this->input->post('colaborador_id'),
             'competencia' => $this->input->post('competencia') ?: date('Y-m'),
@@ -600,29 +681,39 @@ class Rh extends MY_Controller
             'descricao' => $this->input->post('descricao'),
             'quantidade' => $this->input->post('quantidade') ?: null,
             'valor' => $valor !== '' ? $valor : 0,
-            'aprovado' => $this->input->post('aprovado') ? 1 : 0,
-            'aprovador_id' => $this->input->post('aprovado') ? $this->session->userdata('id_admin') : null,
+            'aprovado' => $aprovado,
+            'aprovador_id' => $aprovado ? $this->session->userdata('id_admin') : null,
             'origem' => 'manual',
         ];
         $id = $this->input->post('id');
         if ($id) {
             $this->rh_extras_model->editLancamento($dados, $id);
-            $this->session->set_flashdata('success', 'Lançamento atualizado.');
+            $this->session->set_flashdata('success', 'Lançamento atualizado.' . ($tipo === 'hora_extra' && ! $aprovado ? ' Horas extras pendentes de aprovação.' : ''));
         } else {
             $this->rh_extras_model->addLancamento($dados);
-            $this->session->set_flashdata('success', 'Lançamento adicionado.');
+            $msg = 'Lançamento adicionado.';
+            if ($tipo === 'hora_extra' && ! $aprovado) {
+                $msg .= ' Horas extras ficaram pendentes de aprovação do administrativo.';
+            }
+            $this->session->set_flashdata('success', $msg);
         }
         redirect(site_url('rh/lancamentos?competencia=' . $dados['competencia']));
     }
 
     public function aprovarLancamento()
     {
-        $this->exigir('vRhFinanceiro', 'Sem permissão.');
+        // Aprovação de HE / lançamentos exige aprovarRh (ou vRhFinanceiro se não houver a flag).
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'aprovarRh')
+            && ! $this->permission->checkPermission($this->session->userdata('permissao'), 'vRhFinanceiro')) {
+            $this->session->set_flashdata('error', 'Sem permissão para aprovar lançamentos.');
+            redirect(site_url('rh/lancamentos'));
+        }
         if ($id = $this->input->post('id')) {
             $this->rh_extras_model->editLancamento([
                 'aprovado' => 1,
                 'aprovador_id' => $this->session->userdata('id_admin'),
             ], $id);
+            $this->session->set_flashdata('success', 'Lançamento aprovado.');
         }
         redirect($_SERVER['HTTP_REFERER'] ?? site_url('rh/lancamentos'));
     }
@@ -650,9 +741,21 @@ class Rh extends MY_Controller
             redirect(site_url('rh/colaboradores'));
         }
         $competencia = $competencia ?: date('Y-m');
+        $folha = $this->dadosFolha($colaborador, $competencia);
         $this->data['colaborador'] = $colaborador;
         $this->data['competencia'] = $competencia;
-        $this->data['resumo'] = $this->rh_extras_model->resumoCompetencia($colaborador_id, $competencia);
+        $this->data['resumo'] = $folha['resumo'];
+        // Inclui salário base no demonstrativo da tela
+        if ($folha['salario_base'] > 0) {
+            array_unshift($this->data['resumo']['itens'], (object) [
+                'tipo' => 'salario',
+                'natureza' => 'provento',
+                'descricao' => 'Salário base',
+                'valor' => $folha['salario_base'],
+            ]);
+            $this->data['resumo']['proventos'] = $folha['proventos'];
+            $this->data['resumo']['liquido'] = $folha['liquido'];
+        }
         $this->data['holerite'] = $this->rh_extras_model->getHolerite($colaborador_id, $competencia);
         $this->data['view'] = 'rh/holerite';
         return $this->layout();
@@ -686,12 +789,23 @@ class Rh extends MY_Controller
                 $dados['arquivo_base64'] = 'data:' . $mime . ';base64,' . base64_encode($conteudo);
                 $dados['arquivo_mime'] = $mime;
                 $dados['arquivo_nome'] = $_FILES['arquivo']['name'];
+                if ($this->db->field_exists('gerado_sistema', 'rh_holerites')) {
+                    $dados['gerado_sistema'] = 0;
+                }
+            }
+        }
+
+        // Liberar para o colaborador (checkbox no formulário)
+        if ($this->db->field_exists('liberado_colaborador', 'rh_holerites')) {
+            if ($this->input->post('liberar_colaborador')) {
+                $dados['liberado_colaborador'] = 1;
+                $dados['liberado_em'] = date('Y-m-d H:i:s');
             }
         }
 
         $this->rh_extras_model->salvarHolerite($colaboradorId, $competencia, $dados);
         log_info('RH: salvou holerite colaborador ' . $colaboradorId . ' comp ' . $competencia);
-        $this->session->set_flashdata('success', 'Holerite salvo.');
+        $this->session->set_flashdata('success', 'Holerite salvo.' . ($this->input->post('liberar_colaborador') ? ' Liberado para o colaborador.' : ''));
         redirect(site_url("rh/holerite/$colaboradorId/$competencia"));
     }
 
@@ -751,12 +865,26 @@ class Rh extends MY_Controller
     private function dadosFolha($colaborador, $competencia)
     {
         $this->load->library('rh_calculo');
+        $this->load->library('rh_clt');
         $horas = $this->rh_calculo->calcularCompetencia($colaborador->id, $competencia);
         $resumo = $this->rh_extras_model->resumoCompetencia($colaborador->id, $competencia);
         $salario = (float) ($colaborador->salario_base ?? 0);
         $proventosLanc = (float) $resumo['proventos'];
-        $descontos = (float) $resumo['descontos'];
+        $descontosLanc = (float) $resumo['descontos'];
         $proventos = $salario + $proventosLanc;
+
+        // Descontos legais CLT (INSS/IRRF/VT) sobre proventos totais
+        $legais = $this->rh_clt->descontosLegais($colaborador, $proventos);
+        $descontos = $descontosLanc + $legais['total_descontos'];
+
+        // Mescla itens legais no resumo para o PDF/tela
+        $resumo['itens'] = array_merge($resumo['itens'], $legais['itens']);
+        $resumo['descontos_legais'] = $legais['total_descontos'];
+        $resumo['descontos_lanc'] = $descontosLanc;
+        $resumo['descontos'] = $descontos;
+        $resumo['fgts'] = $legais['fgts'];
+        $resumo['liquido'] = $proventos - $descontos;
+
         return [
             'colaborador' => $colaborador,
             'horas' => $horas,
@@ -765,6 +893,8 @@ class Rh extends MY_Controller
             'proventos_lanc' => $proventosLanc,
             'proventos' => $proventos,
             'descontos' => $descontos,
+            'descontos_legais' => $legais,
+            'fgts' => $legais['fgts'],
             'liquido' => $proventos - $descontos,
         ];
     }
@@ -814,7 +944,10 @@ class Rh extends MY_Controller
         pdf_create($html, 'folha_' . $competencia . '.pdf', true, true);
     }
 
-    /** Holerite/recibo GERADO pelo sistema (a partir dos dados) em PDF. */
+    /**
+     * Holerite/recibo GERADO pelo sistema (PDF).
+     * Query: liberar=1 grava o PDF e libera na área do colaborador.
+     */
     public function holeritePdf($colaborador_id = null, $competencia = null)
     {
         $this->exigir('vRhFinanceiro', 'Sem permissão.');
@@ -824,6 +957,8 @@ class Rh extends MY_Controller
             return;
         }
         $competencia = $competencia ?: date('Y-m');
+        $liberar = $this->input->get('liberar') == '1';
+
         $this->data['dados'] = $this->dadosFolha($colaborador, $competencia);
         $this->data['colaborador'] = $colaborador;
         $this->data['competencia'] = $competencia;
@@ -831,7 +966,164 @@ class Rh extends MY_Controller
         $this->data['emitente'] = $this->mapos_model->getEmitente();
         $html = $this->load->view('rh/holerite_pdf', $this->data, true);
         $this->load->helper('mpdf');
+
+        if ($liberar) {
+            $path = pdf_create($html, 'holerite_' . $colaborador_id . '_' . $competencia, false);
+            if ($path && is_file($path)) {
+                $bin = file_get_contents($path);
+                $nome = 'holerite_' . $colaborador_id . '_' . $competencia . '.pdf';
+                $dadosH = [
+                    'arquivo_base64' => 'data:application/pdf;base64,' . base64_encode($bin),
+                    'arquivo_mime' => 'application/pdf',
+                    'arquivo_nome' => $nome,
+                    'valor_liquido' => $this->data['dados']['liquido'],
+                    'observacao' => 'Gerado e liberado pelo sistema em ' . date('d/m/Y H:i'),
+                    'created_by' => $this->session->userdata('id_admin'),
+                ];
+                if ($this->db->field_exists('liberado_colaborador', 'rh_holerites')) {
+                    $dadosH['liberado_colaborador'] = 1;
+                    $dadosH['liberado_em'] = date('Y-m-d H:i:s');
+                    $dadosH['gerado_sistema'] = 1;
+                }
+                $this->rh_extras_model->salvarHolerite($colaborador_id, $competencia, $dadosH);
+                @unlink($path);
+                log_info('RH: gerou e liberou holerite colab ' . $colaborador_id . ' ' . $competencia);
+                $this->session->set_flashdata('success', 'Holerite gerado e liberado para o colaborador.');
+                redirect(site_url("rh/holerite/$colaborador_id/$competencia"));
+                return;
+            }
+            $this->session->set_flashdata('error', 'Falha ao gerar o PDF do holerite.');
+            redirect(site_url("rh/holerite/$colaborador_id/$competencia"));
+            return;
+        }
+
         pdf_create($html, 'holerite_' . $colaborador_id . '_' . $competencia . '.pdf', true);
+    }
+
+    /** Libera (ou oculta) o holerite já anexado/gerado para o colaborador. */
+    public function liberarHolerite()
+    {
+        $this->exigir('vRhFinanceiro', 'Sem permissão.');
+        $colaboradorId = $this->input->post('colaborador_id');
+        $competencia = $this->input->post('competencia');
+        $liberar = (int) $this->input->post('liberar') === 1;
+        if (! $colaboradorId || ! $competencia) {
+            redirect(site_url('rh/colaboradores'));
+        }
+        if (! $this->db->field_exists('liberado_colaborador', 'rh_holerites')) {
+            $this->session->set_flashdata('error', 'Atualize o banco de dados para usar a liberação de holerite.');
+            redirect(site_url("rh/holerite/$colaboradorId/$competencia"));
+        }
+        $h = $this->rh_extras_model->getHolerite($colaboradorId, $competencia);
+        if (! $h || empty($h->arquivo_base64)) {
+            $this->session->set_flashdata('error', 'Não há holerite para liberar. Gere o PDF ou anexe o arquivo.');
+            redirect(site_url("rh/holerite/$colaboradorId/$competencia"));
+        }
+        $this->rh_extras_model->salvarHolerite($colaboradorId, $competencia, [
+            'liberado_colaborador' => $liberar ? 1 : 0,
+            'liberado_em' => $liberar ? date('Y-m-d H:i:s') : null,
+        ]);
+        $this->session->set_flashdata('success', $liberar ? 'Holerite liberado para o colaborador.' : 'Holerite ocultado do colaborador.');
+        redirect(site_url("rh/holerite/$colaboradorId/$competencia"));
+    }
+
+    // =====================================================================
+    // Configuração de descontos CLT
+    // =====================================================================
+
+    public function descontosClt()
+    {
+        $this->exigir('eRh', 'Você não tem permissão para configurar descontos.');
+        $this->load->library('rh_clt');
+        $this->load->model('mapos_model');
+
+        if ($this->input->post('salvar')) {
+            $pares = [
+                'rh_clt_calcular_inss' => $this->input->post('rh_clt_calcular_inss') ? '1' : '0',
+                'rh_clt_calcular_irrf' => $this->input->post('rh_clt_calcular_irrf') ? '1' : '0',
+                'rh_clt_mostrar_fgts' => $this->input->post('rh_clt_mostrar_fgts') ? '1' : '0',
+                'rh_clt_fgts_aliquota' => str_replace(',', '.', (string) $this->input->post('rh_clt_fgts_aliquota')),
+                'rh_clt_vt_ativo' => $this->input->post('rh_clt_vt_ativo') ? '1' : '0',
+                'rh_clt_vt_percentual' => str_replace(',', '.', (string) $this->input->post('rh_clt_vt_percentual')),
+                'rh_clt_vt_valor_fixo' => str_replace(',', '.', (string) $this->input->post('rh_clt_vt_valor_fixo')),
+                'rh_clt_outras_deducoes' => str_replace(',', '.', (string) $this->input->post('rh_clt_outras_deducoes')),
+                'rh_clt_dependente_deducao' => str_replace(',', '.', (string) $this->input->post('rh_clt_dependente_deducao')),
+                'rh_he_requer_aprovacao' => $this->input->post('rh_he_requer_aprovacao') ? '1' : '0',
+                'rh_he_percentual_50' => str_replace(',', '.', (string) $this->input->post('rh_he_percentual_50')),
+                'rh_he_percentual_100' => str_replace(',', '.', (string) $this->input->post('rh_he_percentual_100')),
+            ];
+            // Tabelas JSON (textarea)
+            $inssJson = trim((string) $this->input->post('rh_clt_inss_tabela'));
+            $irrfJson = trim((string) $this->input->post('rh_clt_irrf_tabela'));
+            if ($inssJson !== '' && json_decode($inssJson) !== null) {
+                $pares['rh_clt_inss_tabela'] = $inssJson;
+            }
+            if ($irrfJson !== '' && json_decode($irrfJson) !== null) {
+                $pares['rh_clt_irrf_tabela'] = $irrfJson;
+            }
+            // Limita VT a 6% (teto legal)
+            if (isset($pares['rh_clt_vt_percentual']) && (float) $pares['rh_clt_vt_percentual'] > 6) {
+                $pares['rh_clt_vt_percentual'] = '6';
+            }
+            $this->mapos_model->saveConfiguracao($pares);
+            $this->session->set_flashdata('success', 'Configurações de descontos CLT salvas.');
+            redirect(site_url('rh/descontosClt'));
+        }
+
+        $this->data['cfg'] = [];
+        $chaves = [
+            'rh_clt_calcular_inss', 'rh_clt_calcular_irrf', 'rh_clt_mostrar_fgts', 'rh_clt_fgts_aliquota',
+            'rh_clt_vt_ativo', 'rh_clt_vt_percentual', 'rh_clt_vt_valor_fixo', 'rh_clt_outras_deducoes',
+            'rh_clt_dependente_deducao', 'rh_clt_inss_tabela', 'rh_clt_irrf_tabela',
+            'rh_he_requer_aprovacao', 'rh_he_percentual_50', 'rh_he_percentual_100',
+        ];
+        foreach ($chaves as $k) {
+            $row = $this->db->get_where('configuracoes', ['config' => $k])->row();
+            $this->data['cfg'][$k] = $row ? $row->valor : $this->rh_clt->get($k);
+        }
+        $this->data['view'] = 'rh/descontos_clt';
+        return $this->layout();
+    }
+
+    // =====================================================================
+    // Ficha cadastral (para liberação de entrada em cliente) e crachá
+    // =====================================================================
+
+    /** PDF da ficha cadastral do colaborador (envio a clientes). */
+    public function fichaCadastralPdf($id = null)
+    {
+        $colaborador = $this->rh_colaboradores_model->getById($id);
+        if (! $colaborador) {
+            show_error('Colaborador não encontrado', 404);
+            return;
+        }
+        $this->data['colaborador'] = $colaborador;
+        $this->data['unidade'] = $colaborador->unidade_id
+            ? $this->rh_colaboradores_model->getUnidade($colaborador->unidade_id) : null;
+        $this->load->model('mapos_model');
+        $this->data['emitente'] = $this->mapos_model->getEmitente();
+        $html = $this->load->view('rh/ficha_cadastral_pdf', $this->data, true);
+        $this->load->helper('mpdf');
+        pdf_create($html, 'ficha_cadastral_' . $id . '.pdf', true);
+    }
+
+    /** PDF do crachá do colaborador. */
+    public function crachaPdf($id = null)
+    {
+        $colaborador = $this->rh_colaboradores_model->getById($id);
+        if (! $colaborador) {
+            show_error('Colaborador não encontrado', 404);
+            return;
+        }
+        $this->data['colaborador'] = $colaborador;
+        $this->data['unidade'] = $colaborador->unidade_id
+            ? $this->rh_colaboradores_model->getUnidade($colaborador->unidade_id) : null;
+        $this->load->model('mapos_model');
+        $this->data['emitente'] = $this->mapos_model->getEmitente();
+        $html = $this->load->view('rh/cracha_pdf', $this->data, true);
+        $this->load->helper('mpdf');
+        // Crachá em formato compacto (A6 landscape-ish via CSS)
+        pdf_create($html, 'cracha_' . $id . '.pdf', true);
     }
 
     // =====================================================================
