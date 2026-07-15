@@ -585,13 +585,14 @@ class Mine extends CI_Controller
             $this->session->set_flashdata('error', 'Nota não encontrada ou não pertence ao cliente logado.');
             redirect('mine/notas');
         }
-        if (empty($nota->xml_path) || ! is_file($nota->xml_path)) {
+        $xml = $this->nfe_model->obterXmlConteudo($nota);
+        if ($xml === null) {
             $this->session->set_flashdata('error', 'XML não encontrado para esta nota.');
             redirect('mine/notas');
         }
 
         $this->load->helper('download');
-        force_download(basename($nota->xml_path), file_get_contents($nota->xml_path));
+        force_download($this->nfe_model->nomeArquivoXml($nota), $xml);
     }
 
     /**

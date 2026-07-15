@@ -49,6 +49,30 @@ if (! function_exists('danfe_barcode_svg')) {
     }
 }
 
+if (! function_exists('danfe_xml_conteudo')) {
+    /**
+     * Obtém o XML da nota: coluna `xml` no banco ou arquivo em `xml_path`.
+     *
+     * @return string|null
+     */
+    function danfe_xml_conteudo($nota)
+    {
+        if (! $nota) {
+            return null;
+        }
+        if (isset($nota->xml) && $nota->xml !== null && $nota->xml !== '') {
+            return $nota->xml;
+        }
+        if (! empty($nota->xml_path) && is_file($nota->xml_path)) {
+            $conteudo = @file_get_contents($nota->xml_path);
+
+            return ($conteudo !== false && $conteudo !== '') ? $conteudo : null;
+        }
+
+        return null;
+    }
+}
+
 if (! function_exists('danfe_nfe_data')) {
     /**
      * Monta o array de dados do DANFE (NF-e / produtos) a partir do XML salvo.
@@ -57,11 +81,12 @@ if (! function_exists('danfe_nfe_data')) {
      */
     function danfe_nfe_data($nota)
     {
-        if (empty($nota->xml_path) || ! is_file($nota->xml_path)) {
+        $xml = danfe_xml_conteudo($nota);
+        if ($xml === null) {
             throw new Exception('XML da NF-e não encontrado para gerar o DANFE.');
         }
         $dom = new \DOMDocument();
-        if (! $dom->loadXML(file_get_contents($nota->xml_path))) {
+        if (! $dom->loadXML($xml)) {
             throw new Exception('XML da NF-e inválido.');
         }
         $xp = new \DOMXPath($dom);
@@ -196,11 +221,12 @@ if (! function_exists('danfe_nfse_data')) {
      */
     function danfe_nfse_data($nota)
     {
-        if (empty($nota->xml_path) || ! is_file($nota->xml_path)) {
+        $xml = danfe_xml_conteudo($nota);
+        if ($xml === null) {
             throw new Exception('XML da NFS-e não encontrado para gerar o DANFSe localmente.');
         }
         $dom = new \DOMDocument();
-        if (! $dom->loadXML(file_get_contents($nota->xml_path))) {
+        if (! $dom->loadXML($xml)) {
             throw new Exception('XML da NFS-e inválido.');
         }
         $xp = new \DOMXPath($dom);

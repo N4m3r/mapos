@@ -95,11 +95,12 @@ $check = function ($valor, $lista) {
             <?php } ?>
 
             <?php $selGrupos = isset($gatilho->whatsapp_grupos) ? Notification_triggers_model::toList($gatilho->whatsapp_grupos) : []; ?>
+            <?php $clientesSel = isset($clientesSelecionados) ? $clientesSelecionados : []; ?>
             <div class="control-group" style="margin-top:10px">
                 <fieldset style="border:1px solid #e2e6f0; border-radius:8px; padding:12px 14px;">
                     <legend style="font-size:14px; font-weight:700; color:#1e3a8a; width:auto; padding:0 6px;">Grupos de WhatsApp (opcional)</legend>
                     <p style="color:#6b7191; font-size:12px; margin:0 0 8px">
-                        Além dos destinatários acima, dispara a mensagem para os grupos selecionados.
+                        Além dos destinatários acima, dispara a mensagem (modelo selecionado) para os grupos abaixo.
                         Requer a Evolution API ativa e o canal <strong>WhatsApp</strong> marcado.
                     </p>
                     <button type="button" id="btnCarregarGrupos" class="btn btn-mini btn-primary">
@@ -116,6 +117,33 @@ $check = function ($valor, $lista) {
                         <?php if (empty($selGrupos)) { ?>
                             <span style="color:#8a90a6; font-size:12px">Nenhum grupo selecionado. Clique em "Carregar grupos do WhatsApp".</span>
                         <?php } ?>
+                    </div>
+
+                    <div style="margin-top:16px; padding-top:12px; border-top:1px dashed #e2e6f0;">
+                        <label style="font-weight:700; color:#1e3a8a; display:block; margin-bottom:6px;">
+                            Clientes que disparam este modelo no grupo
+                        </label>
+                        <p style="color:#6b7191; font-size:12px; margin:0 0 8px">
+                            Selecione os clientes cujas OS farão o envio do <strong>modelo de WhatsApp</strong> para o(s) grupo(s) acima.
+                            <strong>Sem clientes selecionados = todos os clientes</strong> (comportamento atual).
+                        </p>
+                        <input type="text" id="buscaClienteGatilho" class="span8" placeholder="Buscar cliente por nome, documento ou telefone..." autocomplete="off" style="margin-bottom:8px">
+                        <div id="listaClientesGatilho" style="display:flex; flex-wrap:wrap; gap:6px; min-height:36px; padding:8px; border:1px solid #e2e6f0; border-radius:6px; background:#fafbff;">
+                            <?php if (empty($clientesSel)) { ?>
+                                <span id="clientesGatilhoVazio" style="color:#8a90a6; font-size:12px">Nenhum cliente filtrado — o gatilho vale para todos.</span>
+                            <?php } ?>
+                            <?php foreach ($clientesSel as $c) {
+                                $doc = trim((string) $c->documento);
+                                $rotulo = $c->nomeCliente . ($doc !== '' ? ' — ' . $doc : '');
+                                ?>
+                                <span class="chip-cliente" data-id="<?= (int) $c->idClientes ?>" style="display:inline-flex; align-items:center; gap:6px; background:#dbeafe; color:#1e3a8a; border-radius:16px; padding:4px 10px; font-size:12px;">
+                                    <?= html_escape($rotulo) ?>
+                                    <input type="hidden" name="whatsapp_clientes[]" value="<?= (int) $c->idClientes ?>">
+                                    <a href="#" class="remover-cliente" title="Remover" style="color:#b91c1c; text-decoration:none; font-weight:700;">&times;</a>
+                                </span>
+                            <?php } ?>
+                        </div>
+                        <span id="contadorClientesGatilho" style="font-size:11px; color:#8a90a6; margin-top:4px; display:block"></span>
                     </div>
                 </fieldset>
             </div>
@@ -165,6 +193,8 @@ $check = function ($valor, $lista) {
     </div>
 </div>
 
+<link rel="stylesheet" href="<?= base_url() ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
+<script type="text/javascript" src="<?= base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
 <script>
     $(function () {
         var gruposSelecionados = <?= json_encode(array_values($selGrupos)) ?>;
@@ -172,6 +202,64 @@ $check = function ($valor, $lista) {
         function escapa(t) {
             return $('<div>').text(t == null ? '' : t).html();
         }
+
+        function atualizarContadorClientes() {
+            var n = $('#listaClientesGatilho .chip-cliente').length;
+            var $c = $('#contadorClientesGatilho');
+            if (n === 0) {
+                $c.text('Filtro desligado: envia para o grupo em qualquer OS.');
+                if (!$('#clientesGatilhoVazio').length) {
+                    $('#listaClientesGatilho').append(
+                        '<span id="clientesGatilhoVazio" style="color:#8a90a6; font-size:12px">Nenhum cliente filtrado — o gatilho vale para todos.</span>'
+                    );
+                }
+            } else {
+                $c.text(n + ' cliente(s) — só OS desses clientes disparam o modelo no grupo.');
+                $('#clientesGatilhoVazio').remove();
+            }
+        }
+
+        function idsClientesSelecionados() {
+            return $('#listaClientesGatilho input[name="whatsapp_clientes[]"]').map(function () {
+                return parseInt(this.value, 10);
+            }).get();
+        }
+
+        function adicionarCliente(id, label) {
+            id = parseInt(id, 10);
+            if (!id || idsClientesSelecionados().indexOf(id) !== -1) {
+                return;
+            }
+            $('#clientesGatilhoVazio').remove();
+            var html = '<span class="chip-cliente" data-id="' + id + '" style="display:inline-flex; align-items:center; gap:6px; background:#dbeafe; color:#1e3a8a; border-radius:16px; padding:4px 10px; font-size:12px;">'
+                + escapa(label)
+                + '<input type="hidden" name="whatsapp_clientes[]" value="' + id + '">'
+                + '<a href="#" class="remover-cliente" title="Remover" style="color:#b91c1c; text-decoration:none; font-weight:700;">&times;</a>'
+                + '</span>';
+            $('#listaClientesGatilho').append(html);
+            atualizarContadorClientes();
+        }
+
+        $('#listaClientesGatilho').on('click', '.remover-cliente', function (e) {
+            e.preventDefault();
+            $(this).closest('.chip-cliente').remove();
+            atualizarContadorClientes();
+        });
+
+        if ($.fn.autocomplete) {
+            $('#buscaClienteGatilho').autocomplete({
+                source: '<?= site_url('notificacoes/autoCompleteCliente') ?>',
+                minLength: 2,
+                select: function (event, ui) {
+                    if (ui.item && ui.item.id) {
+                        adicionarCliente(ui.item.id, ui.item.label);
+                    }
+                    $(this).val('');
+                    return false;
+                }
+            });
+        }
+        atualizarContadorClientes();
 
         $('#btnCarregarGrupos').on('click', function () {
             var $btn = $(this).prop('disabled', true);

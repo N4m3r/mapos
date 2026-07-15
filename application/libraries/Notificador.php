@@ -75,8 +75,16 @@ class Notificador
 
             // Cada gatilho pode ter seu próprio modelo de mensagem. Deduplica por
             // (destino + mensagem) para não enviar a mesma mensagem duas vezes.
+            // Filtro opcional whatsapp_clientes: se o gatilho listar clientes, só
+            // dispara (modelo + grupos + destinatários) para OS desses clientes.
             $enviados = [];
+            $clienteOs = isset($os->clientes_id) ? (int) $os->clientes_id
+                : (isset($os->idClientes) ? (int) $os->idClientes : 0);
             foreach ($triggers as $t) {
+                if ($t && ! Notification_triggers_model::aplicaAoCliente($t, $clienteOs)) {
+                    continue;
+                }
+
                 $slug = ($t && ! empty($t->whatsapp_template)) ? $t->whatsapp_template : 'os';
                 $conteudo = $this->ci->whatsapp_templates_model->conteudo($slug, $fallbackOs);
                 $mensagem = $this->ci->os_model->montarNotificacaoOs($os->idOs, $conteudo, $emitente);

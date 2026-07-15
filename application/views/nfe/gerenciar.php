@@ -88,9 +88,7 @@
                         echo '<td style="text-align:left;white-space:nowrap">';
 
                         if ($nota->status === 'autorizada' || $nota->status === 'cancelada') {
-                            if (!empty($nota->xml_path)) {
-                                echo '<a style="margin-right:1%" href="' . site_url('nfe/xml/' . $nota->idNota) . '" class="btn-nwe6" title="Baixar XML"><i class="bx bx-code-alt bx-xs"></i></a>';
-                            }
+                            echo '<a style="margin-right:1%" href="' . site_url('nfe/xml/' . $nota->idNota) . '" class="btn-nwe6" title="Baixar XML"><i class="bx bx-code-alt bx-xs"></i></a>';
                             if ($nota->status === 'autorizada') {
                                 echo '<a style="margin-right:1%" href="' . site_url('nfe/danfe/' . $nota->idNota) . '" target="_blank" class="btn-nwe6" title="Imprimir ' . ($nota->tipo === 'nfe' ? 'DANFE' : 'DANFSe') . '"><i class="bx bx-printer bx-xs"></i></a>';
                                 // Substituir NFS-e (só Padrão Nacional / serviços)
