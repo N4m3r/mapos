@@ -84,6 +84,19 @@ $chk = function ($k) use ($cfg) {
         </div>
 
         <div class="widget-box">
+            <div class="widget-title"><span class="icon"><i class="fas fa-user-clock"></i></span><h5>Faltas e desconto em folha</h5></div>
+            <div class="widget-content">
+                <label style="font-weight:normal"><input type="checkbox" name="rh_falta_desconto_automatico" value="1" <?= $chk('rh_falta_desconto_automatico') ? 'checked' : '' ?>>
+                    Gerar <strong>desconto em R$</strong> automaticamente nas faltas (lançamento aprovado)</label>
+                <p style="font-size:12px;color:#9ca3af;margin:6px 0 0">
+                    <strong>Desligado por padrão.</strong> Com a opção desligada, o sistema só mostra faltas/banco de horas no espelho
+                    (informativo). O desconto financeiro só roda depois que você marcar esta caixa e recalcular a competência.
+                    No cadastro do colaborador use “Início do controle de ponto” para não cobrar dias anteriores à implantação.
+                </p>
+            </div>
+        </div>
+
+        <div class="widget-box">
             <div class="widget-title"><span class="icon"><i class="fas fa-table"></i></span><h5>Tabelas INSS e IRRF (JSON)</h5></div>
             <div class="widget-content">
                 <div class="row-fluid">

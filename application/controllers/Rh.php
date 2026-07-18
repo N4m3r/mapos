@@ -169,6 +169,9 @@ class Rh extends MY_Controller
         $this->data['tem_biometria'] = $this->rh_colaboradores_model->temBiometria($id);
         $this->data['competencia'] = $competencia;
         $this->data['horas'] = $this->rh_calculo->calcularCompetencia($id, $competencia);
+        $this->data['totais_semana'] = $this->rh_calculo->totaisSemana($id);
+        $this->data['ponto_inicio'] = $this->rh_calculo->dataInicioControle($colaborador);
+        $this->data['desconto_auto'] = $this->rh_calculo->descontoFaltaAutomaticoAtivo();
         $this->data['ultimas_batidas'] = $this->rh_ponto_model->ultimasDoColaborador($id, 12);
         $this->data['ausencias'] = $this->rh_extras_model->listarAusencias(['colaborador_id' => $id]);
         $this->data['lancamentos'] = $this->rh_extras_model->listarLancamentos($id, $competencia);
@@ -230,7 +233,9 @@ class Rh extends MY_Controller
             'aprovador_id' => $this->session->userdata('id_admin'),
             'data_analise' => date('Y-m-d H:i:s'),
         ]);
-        $this->session->set_flashdata('success', 'Ausência registrada.');
+        // Atualiza faltas e desconto automático no período coberto
+        $this->recalcularCompetenciasPeriodo($colaboradorId, $inicio, $fim);
+        $this->session->set_flashdata('success', 'Ausência registrada. Desconto de faltas recalculado.');
         redirect(site_url('rh/ficha/' . $colaboradorId));
     }
 
@@ -267,6 +272,10 @@ class Rh extends MY_Controller
             $dados['ctps_uf'] = $this->input->post('ctps_uf') ? strtoupper(substr($this->input->post('ctps_uf'), 0, 2)) : null;
             $dados['ctps_data_emissao'] = $this->input->post('ctps_data_emissao') ?: null;
             $dados['pis_pasep'] = $this->input->post('pis_pasep') ?: null;
+        }
+        // Início do controle de ponto (faltas/banco). Vazio = não cobra dívida.
+        if ($this->db->field_exists('ponto_inicio', 'rh_colaboradores')) {
+            $dados['ponto_inicio'] = $this->input->post('ponto_inicio') ?: null;
         }
         return $dados;
     }
@@ -348,6 +357,36 @@ class Rh extends MY_Controller
         $conteudo = file_get_contents($tmp);
         if ($conteudo === false) {
             return null;
+        }
+        // Redimensiona/comprime para evitar HTML/PDF gigante (mPDF pcre.backtrack_limit)
+        // e base64 multi-MB no banco.
+        if (function_exists('imagecreatefromstring')) {
+            $src = @imagecreatefromstring($conteudo);
+            if ($src !== false) {
+                $w = imagesx($src);
+                $h = imagesy($src);
+                $max = 800;
+                if ($w > 0 && $h > 0 && ($w > $max || $h > $max)) {
+                    $scale = min($max / $w, $max / $h);
+                    $nw = max(1, (int) round($w * $scale));
+                    $nh = max(1, (int) round($h * $scale));
+                    $dst = imagecreatetruecolor($nw, $nh);
+                    if ($dst !== false) {
+                        $white = imagecolorallocate($dst, 255, 255, 255);
+                        imagefill($dst, 0, 0, $white);
+                        imagecopyresampled($dst, $src, 0, 0, 0, 0, $nw, $nh, $w, $h);
+                        ob_start();
+                        imagejpeg($dst, null, 85);
+                        $jpeg = ob_get_clean();
+                        imagedestroy($dst);
+                        if ($jpeg !== false && $jpeg !== '') {
+                            $conteudo = $jpeg;
+                            $mime = 'image/jpeg';
+                        }
+                    }
+                }
+                imagedestroy($src);
+            }
         }
         return [
             'foto_base64' => 'data:' . $mime . ';base64,' . base64_encode($conteudo),
@@ -595,6 +634,9 @@ class Rh extends MY_Controller
         $cargaDiaria = $jornada ? (int) $jornada->carga_diaria_min : 480;
         $tolerancia = $jornada ? (int) $jornada->tolerancia_min : 0;
         $diasEscala = $jornada ? array_map('trim', explode(',', $jornada->dias_semana)) : ['1', '2', '3', '4', '5'];
+        $diasAbonados = $this->rh_extras_model->diasAusenciaAprovada($colaborador->id, $inicio, $fim);
+        $pontoInicio = $this->rh_calculo->dataInicioControle($colaborador);
+        $hoje = date('Y-m-d');
 
         $linhas = [];
         $totalDias = (int) date('t', strtotime($inicio));
@@ -603,11 +645,29 @@ class Rh extends MY_Controller
             $dw = (int) date('w', strtotime($dia));
             $ehUtil = in_array((string) $dw, $diasEscala, true);
             $batidas = $porDia[$dia] ?? [];
-            $calc = $this->rh_calculo->calcularDia($batidas, $cargaDiaria, $tolerancia, $ehUtil);
+            $abonado = isset($diasAbonados[$dia]);
+            $cobraFalta = $this->rh_calculo->diaCobraFalta($colaborador, $dia);
+            $calc = $this->rh_calculo->calcularDia($batidas, $cargaDiaria, $tolerancia, $ehUtil, $cobraFalta && ! $abonado);
+            // Dia sem batida em dia útil + controle ativo: deve carga no banco
+            if (empty($batidas) && $ehUtil && $dia < $hoje && $cobraFalta) {
+                $calc['previsto'] = $cargaDiaria;
+                $calc['falta'] = $abonado ? 0 : $cargaDiaria;
+                $calc['saldo'] = $abonado ? 0 : -$cargaDiaria;
+            } elseif (empty($batidas)) {
+                $calc['previsto'] = 0;
+                $calc['falta'] = 0;
+                $calc['saldo'] = 0;
+            }
+            if ($abonado) {
+                $calc['falta'] = 0;
+            }
             $linhas[] = [
                 'data' => $dia,
                 'dia_semana' => $dw,
                 'eh_util' => $ehUtil,
+                'abonado' => $abonado,
+                'tipo_abono' => $abonado ? $diasAbonados[$dia] : null,
+                'cobra_falta' => $cobraFalta,
                 'batidas' => $batidas,
                 'calc' => $calc,
             ];
@@ -617,22 +677,35 @@ class Rh extends MY_Controller
         $this->data['competencia'] = $competencia;
         $this->data['linhas'] = $linhas;
         $this->data['totais'] = $this->rh_calculo->calcularCompetencia($colaborador->id, $competencia);
+        $this->data['totais_semana'] = $this->rh_calculo->totaisSemana($colaborador->id);
         $this->data['jornada'] = $jornada;
+        $this->data['ponto_inicio'] = $pontoInicio;
+        $this->data['desconto_auto'] = $this->rh_calculo->descontoFaltaAutomaticoAtivo();
     }
 
-    /** Recalcula a competência e opcionalmente gera os extras. */
+    /** Recalcula a competência (horas/banco). Desconto R$ só se config habilitada. */
     public function recalcular($colaborador_id = null, $competencia = null)
     {
         $this->exigir('eRh', 'Sem permissão.');
         $competencia = $competencia ?: date('Y-m');
         $this->load->library('rh_calculo');
-        $this->rh_calculo->calcularCompetencia($colaborador_id, $competencia);
+        $totais = $this->rh_calculo->calcularCompetencia($colaborador_id, $competencia);
+        $msg = 'Competência recalculada.';
+        $minFaltas = (int) ($totais['minutos_faltas'] ?? 0);
+        if (! $this->rh_calculo->descontoFaltaAutomaticoAtivo()) {
+            $msg .= $minFaltas > 0
+                ? ' Faltas/banco: ' . $this->rh_calculo->minParaHoras($minFaltas) . ' (só informativo — desconto em R$ desligado).'
+                : ' Sem faltas no período de controle.';
+        } elseif ($minFaltas > 0) {
+            $msg .= ' Desconto de faltas em R$ atualizado (' . $this->rh_calculo->minParaHoras($minFaltas) . ').';
+        } else {
+            $msg .= ' Sem faltas — desconto automático removido/zerado.';
+        }
         if ($this->input->get('extras') == '1' && $this->permission->checkPermission($this->session->userdata('permissao'), 'vRhFinanceiro')) {
             $n = $this->rh_calculo->gerarLancamentosExtras($colaborador_id, $competencia);
-            $this->session->set_flashdata('success', 'Competência recalculada. ' . (int) $n . ' lançamento(s) de extra gerado(s).');
-        } else {
-            $this->session->set_flashdata('success', 'Competência recalculada.');
+            $msg .= ' ' . (int) $n . ' lançamento(s) de extra gerado(s).';
         }
+        $this->session->set_flashdata('success', $msg);
         redirect(site_url("rh/espelho/$colaborador_id/$competencia"));
     }
 
@@ -1051,6 +1124,7 @@ class Rh extends MY_Controller
                 'rh_he_requer_aprovacao' => $this->input->post('rh_he_requer_aprovacao') ? '1' : '0',
                 'rh_he_percentual_50' => str_replace(',', '.', (string) $this->input->post('rh_he_percentual_50')),
                 'rh_he_percentual_100' => str_replace(',', '.', (string) $this->input->post('rh_he_percentual_100')),
+                'rh_falta_desconto_automatico' => $this->input->post('rh_falta_desconto_automatico') ? '1' : '0',
             ];
             // Tabelas JSON (textarea)
             $inssJson = trim((string) $this->input->post('rh_clt_inss_tabela'));
@@ -1076,10 +1150,17 @@ class Rh extends MY_Controller
             'rh_clt_vt_ativo', 'rh_clt_vt_percentual', 'rh_clt_vt_valor_fixo', 'rh_clt_outras_deducoes',
             'rh_clt_dependente_deducao', 'rh_clt_inss_tabela', 'rh_clt_irrf_tabela',
             'rh_he_requer_aprovacao', 'rh_he_percentual_50', 'rh_he_percentual_100',
+            'rh_falta_desconto_automatico',
         ];
         foreach ($chaves as $k) {
             $row = $this->db->get_where('configuracoes', ['config' => $k])->row();
-            $this->data['cfg'][$k] = $row ? $row->valor : $this->rh_clt->get($k);
+            if ($row) {
+                $this->data['cfg'][$k] = $row->valor;
+            } elseif ($k === 'rh_falta_desconto_automatico') {
+                $this->data['cfg'][$k] = '0';
+            } else {
+                $this->data['cfg'][$k] = $this->rh_clt->get($k);
+            }
         }
         $this->data['view'] = 'rh/descontos_clt';
         return $this->layout();
@@ -1307,10 +1388,33 @@ class Rh extends MY_Controller
         $status = $this->input->post('status');
         $resposta = $this->input->post('resposta');
         if ($id && in_array($status, ['aprovado', 'recusado'], true)) {
+            $aus = $this->rh_extras_model->getAusencia($id);
             $this->rh_extras_model->analisarAusencia($id, $status, $this->session->userdata('id_admin'), $resposta);
-            $this->session->set_flashdata('success', 'Solicitação ' . $status . '.');
+            // Reprocessa competências do período para recalcular faltas/desconto automático
+            if ($aus && ! empty($aus->colaborador_id) && ! empty($aus->data_inicio)) {
+                $this->recalcularCompetenciasPeriodo(
+                    $aus->colaborador_id,
+                    $aus->data_inicio,
+                    $aus->data_fim ?: $aus->data_inicio
+                );
+            }
+            $this->session->set_flashdata('success', 'Solicitação ' . $status . '. Desconto de faltas recalculado.');
         }
         redirect(site_url('rh/ausencias'));
+    }
+
+    /** Recalcula todas as competências (YYYY-MM) cobertas por um intervalo de datas. */
+    private function recalcularCompetenciasPeriodo($colaborador_id, $dataInicio, $dataFim)
+    {
+        $this->load->library('rh_calculo');
+        $ini = strtotime(date('Y-m-01', strtotime($dataInicio)));
+        $fim = strtotime(date('Y-m-01', strtotime($dataFim)));
+        if ($ini === false || $fim === false) {
+            return;
+        }
+        for ($ts = $ini; $ts <= $fim; $ts = strtotime('+1 month', $ts)) {
+            $this->rh_calculo->calcularCompetencia($colaborador_id, date('Y-m', $ts));
+        }
     }
 
     /** Anexo (atestado/comprovante) de ocorrência ou ausência. */

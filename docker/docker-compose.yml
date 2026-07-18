@@ -1,69 +1,105 @@
-version: '3.9'
-
 services:
   nginx:
     image: nginx:alpine
-    container_name: nginx
+    container_name: mapos-nginx
+    restart: always
     volumes:
-      - "./etc/nginx/default.conf:/etc/nginx/conf.d/default.conf"
+      - "./etc/nginx/default.template.conf:/etc/nginx/conf.d/default.template:ro"
       - "../:/var/www/html"
-      - "./etc/nginx/default.template.conf:/etc/nginx/conf.d/default.template"
     ports:
-      - "${NGINX_PORT}:${NGINX_PORT}"
+      - "${NGINX_PORT:-8000}:${NGINX_PORT:-8000}"
     env_file:
       - ".env"
-    command: /bin/sh -c "envsubst '$$NGINX_HOST $$NGINX_PORT' < /etc/nginx/conf.d/default.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
-    restart: always
+    environment:
+      NGINX_HOST: ${NGINX_HOST:-localhost}
+      NGINX_PORT: ${NGINX_PORT:-8000}
+    command: >-
+      /bin/sh -c "envsubst '$$NGINX_HOST $$NGINX_PORT'
+      < /etc/nginx/conf.d/default.template
+      > /etc/nginx/conf.d/default.conf
+      && nginx -g 'daemon off;'"
     depends_on:
-      - php-fpm
-      - mysql
+      php-fpm:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+    networks:
+      - mapos-net
+      - evolution-net
 
   php-fpm:
-    container_name: php-fpm
+    container_name: mapos-php
     build:
       context: ./etc/php
       dockerfile: Dockerfile
     restart: always
     volumes:
-      - "./etc/php/php.ini:/usr/local/etc/php/conf.d/php.ini"
-      - "./etc/php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini"
+      - "./etc/php/php.ini:/usr/local/etc/php/conf.d/php.ini:ro"
+      - "./etc/php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini:ro"
       - "../:/var/www/html"
+    networks:
+      - mapos-net
 
   composer:
-    container_name: composer
+    container_name: mapos-composer
     build:
       context: ./etc/composer
       dockerfile: Dockerfile
     volumes:
       - "../:/app"
-    command: install --ignore-platform-reqs --no-scripts
+    command: install --ignore-platform-reqs --no-scripts --no-dev
+    networks:
+      - mapos-net
+    profiles:
+      - setup
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: phpmyadmin
-    ports:
-      - "${PHP_MY_ADMIN_PORT}:80"
-    environment:
-      - PMA_ARBITRARY=1
-      - PMA_HOST=${MYSQL_MAPOS_HOST}
-      - PMA_USER=${MYSQL_MAPOS_USER}
-      - PMA_PASSWORD=${MYSQL_MAPOS_PASSWORD}
+    container_name: mapos-phpmyadmin
     restart: always
+    ports:
+      - "${PHP_MY_ADMIN_PORT:-8081}:80"
+    environment:
+      PMA_HOST: ${MYSQL_MAPOS_HOST:-mysql}
+      PMA_USER: ${MYSQL_MAPOS_USER:-mapos}
+      PMA_PASSWORD: ${MYSQL_MAPOS_PASSWORD:-mapos}
+      UPLOAD_LIMIT: 64M
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
+    networks:
+      - mapos-net
+    profiles:
+      - tools
 
   mysql:
-    image: mysql:${MYSQL_MAPOS_VERSION}
-    container_name: mysql
+    image: mysql:${MYSQL_MAPOS_VERSION:-8.4}
+    container_name: mapos-mysql
     restart: always
-    env_file:
-      - ".env"
     environment:
-      - MYSQL_DATABASE=${MYSQL_MAPOS_DATABASE}
-      - MYSQL_ROOT_PASSWORD=${MYSQL_MAPOS_ROOT_PASSWORD}
-      - MYSQL_USER=${MYSQL_MAPOS_USER}
-      - MYSQL_PASSWORD=${MYSQL_MAPOS_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_MAPOS_DATABASE:-mapos}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_MAPOS_ROOT_PASSWORD:-root}
+      MYSQL_USER: ${MYSQL_MAPOS_USER:-mapos}
+      MYSQL_PASSWORD: ${MYSQL_MAPOS_PASSWORD:-mapos}
     ports:
-      - "${MYSQL_MAPOS_PORT}:3306"
+      - "${MYSQL_MAPOS_PORT:-8989}:3306"
     volumes:
-      - "./data/db/mysql:/var/lib/mysql"
+      - mapos_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_MAPOS_ROOT_PASSWORD:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - mapos-net
+
+volumes:
+  mapos_mysql_data:
+
+networks:
+  mapos-net:
+    name: mapos-net
+  evolution-net:
+    external: true
+    name: evolution-net

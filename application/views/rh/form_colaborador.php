@@ -64,6 +64,16 @@ $action = $edit ? site_url('rh/editarColaborador/' . $c->id) : site_url('rh/adic
                 </div>
             </div>
             <div class="row-fluid">
+                <div class="span4">
+                    <label>Início do controle de ponto</label>
+                    <input type="date" name="ponto_inicio" class="span12" value="<?= $val('ponto_inicio') ?>">
+                    <small style="color:#6b7280">
+                        Enquanto vazio, <strong>não cobra</strong> faltas nem horas negativas no banco — só conta batidas reais.
+                        Preencha a data para começar a calcular dívida de dias sem ponto (ex.: data de implantação).
+                    </small>
+                </div>
+            </div>
+            <div class="row-fluid">
                 <div class="span3"><label>Salário base</label><input type="text" name="salario_base" class="span12" value="<?= $c && $c->salario_base ? number_format($c->salario_base,2,',','.') : '' ?>"></div>
                 <div class="span3"><label>Valor hora <small>(opcional)</small></label><input type="text" name="valor_hora" class="span12" value="<?= $c && $c->valor_hora ? number_format($c->valor_hora,2,',','.') : '' ?>"></div>
                 <div class="span3"><label>E-mail</label><input type="email" name="email" class="span12" value="<?= $val('email') ?>"></div>

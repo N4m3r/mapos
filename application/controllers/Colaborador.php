@@ -57,7 +57,11 @@ class Colaborador extends MY_Controller
         $data = $this->baseData('Minha Área');
         $data['batidas_hoje'] = $this->rh_ponto_model->getDoDia($this->colaborador->id);
         $data['proximo_tipo'] = $this->rh_ponto_model->proximoTipo($this->colaborador->id);
+        // Consolida mês (respeita ponto_inicio e flag de desconto)
+        $data['totais_mes'] = $this->rh_calculo->calcularCompetencia($this->colaborador->id, $competencia);
         $data['horas'] = $this->rh_extras_model->getHoras($this->colaborador->id, $competencia);
+        $data['totais_semana'] = $this->rh_calculo->totaisSemana($this->colaborador->id);
+        $data['ponto_inicio'] = $this->rh_calculo->dataInicioControle($this->colaborador);
         $data['pendentes'] = count($this->rh_extras_model->listarOcorrencias([
             'colaborador_id' => $this->colaborador->id, 'status' => 'pendente',
         ]));
@@ -84,6 +88,8 @@ class Colaborador extends MY_Controller
         $carga = $jornada ? (int) $jornada->carga_diaria_min : 480;
         $tol = $jornada ? (int) $jornada->tolerancia_min : 0;
         $dias = $jornada ? array_map('trim', explode(',', $jornada->dias_semana)) : ['1', '2', '3', '4', '5'];
+        $diasAbonados = $this->rh_extras_model->diasAusenciaAprovada($this->colaborador->id, $inicio, $fim);
+        $hoje = date('Y-m-d');
 
         $linhas = [];
         $totalDias = (int) date('t', strtotime($inicio));
@@ -92,10 +98,24 @@ class Colaborador extends MY_Controller
             $dw = (int) date('w', strtotime($dia));
             $ehUtil = in_array((string) $dw, $dias, true);
             $bat = $porDia[$dia] ?? [];
+            $abonado = isset($diasAbonados[$dia]);
+            $cobraFalta = $this->rh_calculo->diaCobraFalta($this->colaborador, $dia);
+            $calc = $this->rh_calculo->calcularDia($bat, $carga, $tol, $ehUtil, $cobraFalta && ! $abonado);
+            if (empty($bat) && $ehUtil && $dia < $hoje && $cobraFalta && ! $abonado) {
+                $calc['previsto'] = $carga;
+                $calc['falta'] = $carga;
+                $calc['saldo'] = -$carga;
+            } elseif (empty($bat)) {
+                $calc['previsto'] = 0;
+                $calc['falta'] = 0;
+                $calc['saldo'] = 0;
+            }
             $linhas[] = [
                 'data' => $dia, 'dia_semana' => $dw, 'eh_util' => $ehUtil,
+                'abonado' => $abonado,
+                'cobra_falta' => $cobraFalta,
                 'batidas' => $bat,
-                'calc' => $this->rh_calculo->calcularDia($bat, $carga, $tol, $ehUtil),
+                'calc' => $calc,
             ];
         }
 
@@ -103,6 +123,8 @@ class Colaborador extends MY_Controller
         $data['competencia'] = $competencia;
         $data['linhas'] = $linhas;
         $data['totais'] = $this->rh_calculo->calcularCompetencia($this->colaborador->id, $competencia);
+        $data['totais_semana'] = $this->rh_calculo->totaisSemana($this->colaborador->id);
+        $data['ponto_inicio'] = $this->rh_calculo->dataInicioControle($this->colaborador);
         $data['calc'] = $this->rh_calculo;
         $this->load->view('colaborador/espelho', $data);
     }
