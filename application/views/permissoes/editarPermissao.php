@@ -469,6 +469,18 @@ if (! is_array($permissoes)) {
                                     </label>
                                 </td>
                             </tr>
+                            <tr>
+                                <td colspan="4">
+                                    <label>
+                                        <input <?php if (isset($permissoes['aTecnicoAtividade'])) {
+                                            if ($permissoes['aTecnicoAtividade'] == '1') {
+                                                echo 'checked';
+                                            }
+                                        }?> name="aTecnicoAtividade" class="marcar" type="checkbox" value="1" />
+                                        <span class="lbl"> Abrir Atividade não programada (criar OS em campo, sem ver valores)</span>
+                                    </label>
+                                </td>
+                            </tr>
                         </table>
                         </div>
                     </div>

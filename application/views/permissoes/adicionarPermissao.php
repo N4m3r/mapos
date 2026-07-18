@@ -253,6 +253,14 @@
                                                 </label>
                                             </td>
                                         </tr>
+                                        <tr>
+                                            <td colspan="4">
+                                                <label>
+                                                    <input name="aTecnicoAtividade" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Abrir Atividade não programada (criar OS em campo, sem ver valores)</span>
+                                                </label>
+                                            </td>
+                                        </tr>
                                         </tbody>
                                     </table>
                                 </div>

@@ -11,6 +11,12 @@ $this->load->view('tecnico/_topo', [
 
 <div class="tec-container">
 
+    <?php if (!empty($pode_criar_atividade)): ?>
+        <a href="<?= site_url('tecnico/nova_atividade') ?>" class="btn-tec primary block lg" style="margin-bottom:18px;">
+            <i class='bx bx-plus-circle'></i> Nova Atividade não programada
+        </a>
+    <?php endif; ?>
+
     <!-- Estatisticas -->
     <div class="tec-stats">
         <div class="tec-stat">

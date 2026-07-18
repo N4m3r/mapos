@@ -25,6 +25,12 @@ $waNumero = function ($fone) {
 
 <div class="tec-container">
 
+    <?php if (!empty($pode_criar_atividade)): ?>
+        <a href="<?= site_url('tecnico/nova_atividade') ?>" class="btn-tec primary block lg" style="margin-bottom:14px;">
+            <i class='bx bx-plus-circle'></i> Nova Atividade não programada
+        </a>
+    <?php endif; ?>
+
     <input type="text" id="buscaOs" class="tec-search" placeholder="🔎 Buscar por nº da OS ou cliente...">
 
     <div class="chips">
@@ -62,7 +68,11 @@ $waNumero = function ($fone) {
             ?>
                 <div class="os-card <?= $classe ?>" data-busca="<?= html_escape(strtolower(sprintf('%04d', $os->idOs) . ' ' . $os->nomeCliente)) ?>">
                     <div class="os-head">
-                        <span class="os-num">#OS <?= sprintf('%04d', $os->idOs) ?></span>
+                        <span class="os-num">#OS <?= sprintf('%04d', $os->idOs) ?>
+                            <?php if (!empty($os->nao_programada)): ?>
+                                <span class="badge-status andamento" style="font-size:10px;"><i class='bx bx-bolt-circle'></i> Não programada</span>
+                            <?php endif; ?>
+                        </span>
                         <span class="badge-status <?= $classe ?>"><?= $os->status ?></span>
                     </div>
                     <div class="os-cliente">

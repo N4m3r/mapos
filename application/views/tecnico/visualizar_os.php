@@ -53,7 +53,11 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
     <!-- Dados da OS -->
     <div class="info-card">
         <h3><i class='bx bx-file'></i> Dados da OS</h3>
-        <div class="info-row"><span class="info-label">Número</span><span class="info-value">#<?= sprintf('%04d', $os->idOs) ?></span></div>
+        <div class="info-row"><span class="info-label">Número</span><span class="info-value">#<?= sprintf('%04d', $os->idOs) ?>
+            <?php if (!empty($os->nao_programada)): ?>
+                <span class="badge-status andamento" style="font-size:10px;"><i class='bx bx-bolt-circle'></i> Não programada</span>
+            <?php endif; ?>
+        </span></div>
         <div class="info-row"><span class="info-label">Status</span><span class="info-value"><span class="badge-status <?= in_array($os->status, ['Finalizado','Faturado']) ? 'finalizado' : ($os->status == 'Em Andamento' ? 'andamento' : 'pendente') ?>"><?= $os->status ?></span></span></div>
         <div class="info-row"><span class="info-label">Data</span><span class="info-value"><?= date('d/m/Y', strtotime($os->dataInicial)) ?></span></div>
         <div class="info-row"><span class="info-label">Garantia</span><span class="info-value"><?= $os->garantia ?: 'N/A' ?> dias</span></div>
@@ -122,6 +126,10 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
             </div>
         </div>
     <?php endif; ?>
+
+    <a href="<?= site_url('tecnico/assinatura_solicitante/' . $os->idOs) ?>" class="btn-tec success block" style="margin-bottom:8px;">
+        <i class='bx bx-pen'></i> Assinatura do Solicitante
+    </a>
 
     <a href="<?= site_url('os/imprimir/' . $os->idOs) ?>" target="_blank" class="btn-tec ghost block" style="margin-bottom:8px;">
         <i class='bx bx-printer'></i> Imprimir OS
