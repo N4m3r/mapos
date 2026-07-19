@@ -629,6 +629,90 @@ class Relatorios extends MY_Controller
         pdf_create($html, 'relatorio_os' . date('d/m/y'), true, true);
     }
 
+    /**
+     * Relatório do ciclo/faturamento das OS: orçamentos de um período separados
+     * por situação (em aberto x faturado) com as colunas das etapas — faturamento
+     * financeiro, NF emitida e boleto. Form + resultado renderizam na página.
+     */
+    public function cicloFaturamento()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'rOs')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para gerar relatórios de OS.');
+            redirect(base_url());
+        }
+
+        $dataInicial = $this->input->get('dataInicial');
+        $dataFinal = $this->input->get('dataFinal');
+        $periodo = $this->input->get('periodo') ?: 'abertura';
+        $cliente = $this->input->get('cliente');
+
+        $periodosValidos = ['abertura', 'aprovacao', 'aceite', 'nf'];
+        if (! in_array($periodo, $periodosValidos, true)) {
+            $periodo = 'abertura';
+        }
+
+        $resultados = null;
+        $resumo = null;
+
+        // Só consulta quando um período foi informado (evita varrer tudo à toa).
+        if ($dataInicial || $dataFinal) {
+            $resultados = $this->Relatorios_model->cicloOsCustom($dataInicial, $dataFinal, $periodo, $cliente);
+            $resumo = $this->resumirCicloOs($resultados);
+        }
+
+        $this->data['resultados'] = $resultados;
+        $this->data['resumo'] = $resumo;
+        $this->data['filtro'] = [
+            'dataInicial' => $dataInicial,
+            'dataFinal' => $dataFinal,
+            'periodo' => $periodo,
+            'cliente' => $cliente,
+        ];
+        $this->data['view'] = 'relatorios/rel_ciclo_os';
+
+        return $this->layout();
+    }
+
+    /**
+     * Agrega os contadores e somas do relatório de ciclo das OS.
+     */
+    private function resumirCicloOs($linhas)
+    {
+        $r = [
+            'total' => 0, 'em_aberto' => 0, 'faturado' => 0, 'cancelado' => 0,
+            'com_nf' => 0, 'com_boleto' => 0, 'boleto_pago' => 0,
+            'valor_total' => 0.0, 'valor_em_aberto' => 0.0, 'valor_faturado' => 0.0,
+        ];
+        foreach (($linhas ?: []) as $l) {
+            $valor = (float) $l->valor_os;
+            $faturado = ($l->status === 'Faturado') || ((int) $l->faturado === 1);
+            $cancelado = ($l->status === 'Cancelado');
+
+            $r['total']++;
+            $r['valor_total'] += $valor;
+            if ($cancelado) {
+                $r['cancelado']++;
+            } elseif ($faturado) {
+                $r['faturado']++;
+                $r['valor_faturado'] += $valor;
+            } else {
+                $r['em_aberto']++;
+                $r['valor_em_aberto'] += $valor;
+            }
+            if (! empty($l->data_nf)) {
+                $r['com_nf']++;
+            }
+            if (! empty($l->data_boleto)) {
+                $r['com_boleto']++;
+            }
+            if (! empty($l->boleto_pago)) {
+                $r['boleto_pago']++;
+            }
+        }
+
+        return $r;
+    }
+
     public function financeiro()
     {
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'rFinanceiro')) {

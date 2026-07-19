@@ -113,13 +113,10 @@ class Aprovacao extends CI_Controller
 
         log_info('OS #' . $os->idOs . ' teve aprovação "' . $decisao . '" registrada por ' . $nome . ' via link público.');
 
-        // Automação opcional na aprovação: emite NFS-e e gera boleto (se ligada
-        // globalmente e habilitada para o cliente). É best-effort — nunca
-        // interrompe o fluxo de aprovação.
+        // A automação de faturamento (NFS-e + boleto) NÃO ocorre mais na
+        // aprovação do orçamento: ela foi movida para o aceite da resolução do
+        // serviço realizado (ver Aceite::confirmar).
         if ($decisao === 'aprovado') {
-            $this->load->library('autoaprovacao');
-            $this->autoaprovacao->executar($os->idOs);
-
             // Notificação WhatsApp do evento os_aprovada (gatilhos ativos).
             $this->load->library('notificador');
             $this->notificador->whatsappOs($os->idOs, 'os_aprovada');

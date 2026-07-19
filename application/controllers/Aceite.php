@@ -126,6 +126,14 @@ class Aceite extends CI_Controller
 
         log_info('OS #' . $os->idOs . ' teve aceite "' . $decisao . '" registrado por ' . $nome . ' via link público.');
 
+        // Automação opcional de faturamento: ao ACEITAR a resolução do serviço,
+        // emite NFS-e e gera boleto (se ligada globalmente e habilitada para o
+        // cliente). É best-effort — nunca interrompe o fluxo de aceite.
+        if ($decisao === 'aceito') {
+            $this->load->library('autoaprovacao');
+            $this->autoaprovacao->executar($os->idOs);
+        }
+
         redirect('aceite/' . $token);
     }
 
