@@ -389,6 +389,50 @@
                         <div class="accordion-group widget-box">
                             <div class="accordion-heading">
                                 <div class="widget-title">
+                                    <a data-parent="#collapse-group" href="#collapseGFiscal" data-toggle="collapse">
+                                      <span><i class='bx bx-file icon-cli'></i></span>
+                                      <h5 style="padding-left: 28px">Fiscal (NF-e / NFS-e)</h5>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="collapse accordion-body" id="collapseGFiscal">
+                                <div class="widget-content">
+                                    <table class="table table-bordered">
+                                        <tbody>
+                                        <tr>
+                                            <td>
+                                                <label>
+                                                    <input name="vNfe" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Visualizar Notas Fiscais</span>
+                                                </label>
+                                            </td>
+                                            <td>
+                                                <label>
+                                                    <input name="eNfe" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Emitir Notas Fiscais</span>
+                                                </label>
+                                            </td>
+                                            <td>
+                                                <label>
+                                                    <input name="dNfe" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Cancelar Notas Fiscais</span>
+                                                </label>
+                                            </td>
+                                            <td>
+                                                <label>
+                                                    <input name="cNfe" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Configurar Módulo Fiscal</span>
+                                                </label>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-group widget-box">
+                            <div class="accordion-heading">
+                                <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGThree3333" data-toggle="collapse">
                                       <span><i class='bx bx-receipt icon-cli'></i></span>
                                       <h5 style="padding-left: 28px">Garantias</h5>

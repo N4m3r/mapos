@@ -129,6 +129,12 @@ class Permissoes extends MY_Controller
                 'dCobranca' => $this->input->post('dCobranca'),
                 'vCobranca' => $this->input->post('vCobranca'),
 
+                // Permissões Fiscais (NF-e / NFS-e)
+                'cNfe' => $this->input->post('cNfe'),
+                'eNfe' => $this->input->post('eNfe'),
+                'vNfe' => $this->input->post('vNfe'),
+                'dNfe' => $this->input->post('dNfe'),
+
                 // Permissões RH
                 'vRh' => $this->input->post('vRh'),
                 'eRh' => $this->input->post('eRh'),
@@ -251,6 +257,12 @@ class Permissoes extends MY_Controller
                 'eCobranca' => $this->input->post('eCobranca'),
                 'dCobranca' => $this->input->post('dCobranca'),
                 'vCobranca' => $this->input->post('vCobranca'),
+
+                // Permissões Fiscais (NF-e / NFS-e)
+                'cNfe' => $this->input->post('cNfe'),
+                'eNfe' => $this->input->post('eNfe'),
+                'vNfe' => $this->input->post('vNfe'),
+                'dNfe' => $this->input->post('dNfe'),
 
                 // Permissões RH
                 'vRh' => $this->input->post('vRh'),

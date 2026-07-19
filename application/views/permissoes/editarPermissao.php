@@ -669,6 +669,69 @@ if (! is_array($permissoes)) {
                 <div class="accordion-group widget-box">
                     <div class="accordion-heading">
                         <div class="widget-title">
+                            <a data-parent="#collapse-group" href="#collapseGFiscal" data-toggle="collapse">
+                                <span><i class='bx bx-file icon-cli' ></i></span>
+                                <h5 style="padding-left: 28px">Fiscal (NF-e / NFS-e)</h5>
+                                <span><i class='bx bx-chevron-right icon-clic'></i></span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="collapse accordion-body" id="collapseGFiscal">
+                        <div class="widget-content">
+                        <table class="table table-bordered">
+                            <tr>
+                                <td colspan="4"></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label>
+                                            <input <?php if (isset($permissoes['vNfe'])) {
+                                                if ($permissoes['vNfe'] == '1') {
+                                                    echo 'checked';
+                                                }
+                                            }?> name="vNfe" class="marcar" type="checkbox" value="1" />
+                                            <span class="lbl"> Visualizar Notas Fiscais</span>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <label>
+                                            <input <?php if (isset($permissoes['eNfe'])) {
+                                                if ($permissoes['eNfe'] == '1') {
+                                                    echo 'checked';
+                                                }
+                                            }?> name="eNfe" class="marcar" type="checkbox" value="1" />
+                                            <span class="lbl"> Emitir Notas Fiscais</span>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <label>
+                                            <input <?php if (isset($permissoes['dNfe'])) {
+                                                if ($permissoes['dNfe'] == '1') {
+                                                    echo 'checked';
+                                                }
+                                            }?> name="dNfe" class="marcar" type="checkbox" value="1" />
+                                            <span class="lbl"> Cancelar Notas Fiscais</span>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <label>
+                                            <input <?php if (isset($permissoes['cNfe'])) {
+                                                if ($permissoes['cNfe'] == '1') {
+                                                    echo 'checked';
+                                                }
+                                            }?> name="cNfe" class="marcar" type="checkbox" value="1" />
+                                            <span class="lbl"> Configurar Módulo Fiscal</span>
+                                        </label>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-group widget-box">
+                    <div class="accordion-heading">
+                        <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGSeven" data-toggle="collapse">
                                 <span><i class='bx bx-receipt icon-cli' ></i></span>
                                 <h5 style="padding-left: 28px">Garantias</h5>
