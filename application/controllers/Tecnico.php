@@ -498,14 +498,34 @@ class Tecnico extends MY_Controller
         $out = [];
         foreach ($lista as $c) {
             $fone = $c->celular ?: $c->telefone;
+            $doc = $this->formatarDocumento($c->documento);
+            $partes = array_filter([$c->nomeCliente, $doc, $fone]);
             $out[] = [
-                'id'    => $c->idClientes,
-                'label' => $c->nomeCliente . ($fone ? ' · ' . $fone : ''),
-                'nome'  => $c->nomeCliente,
+                'id'        => $c->idClientes,
+                'label'     => implode(' · ', $partes),
+                'nome'      => $c->nomeCliente,
+                'documento' => $doc,
             ];
         }
 
         $this->output->set_content_type('application/json')->set_output(json_encode($out));
+    }
+
+    /**
+     * Formata CPF (11 dígitos) ou CNPJ (14 dígitos); devolve como veio se não
+     * bater o tamanho (já formatado ou vazio).
+     */
+    private function formatarDocumento($doc)
+    {
+        $num = preg_replace('/\D/', '', (string) $doc);
+        if (strlen($num) === 14) {
+            return preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $num);
+        }
+        if (strlen($num) === 11) {
+            return preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $num);
+        }
+
+        return (string) $doc;
     }
 
     /**

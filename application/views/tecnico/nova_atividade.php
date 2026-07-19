@@ -178,7 +178,7 @@ $this->load->view('tecnico/_topo', [
         inputId: 'ac-cliente', listId: 'ac-cliente-list', endpoint: 'buscar_clientes',
         onPick: function (it) {
             document.getElementById('clientes_id').value = it.id;
-            document.getElementById('cliente-nome').textContent = it.nome;
+            document.getElementById('cliente-nome').textContent = it.nome + (it.documento ? ' · ' + it.documento : '');
             document.getElementById('cliente-selecionado').style.display = 'block';
             document.getElementById('ac-cliente-wrap').style.display = 'none';
         }
