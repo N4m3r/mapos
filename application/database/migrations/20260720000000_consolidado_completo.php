@@ -3,27 +3,23 @@
 defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
- * MIGRATION CONSOLIDADA — unifica as 73 migrations historicas do Mapos num unico
- * arquivo, idempotente para bancos NOVOS e EXISTENTES.
+ * MIGRATION CONSOLIDADA (enxuta) — cria o schema do Mapos de forma direta e
+ * idempotente: se a tabela nao existir, cria; se ja existir, mantem e apenas
+ * completa o que falta.
  *
- * Como funciona:
- *   - up() executa, em ordem cronologica, o corpo original de cada migration
- *     (metodos privados m<TIMESTAMP>_up). down() executa os m<TIMESTAMP>_down em
- *     ordem reversa. Nada foi reescrito a mao: o codigo de cada passo e o mesmo
- *     das migrations originais, apenas com os metodos prefixados pelo timestamp
- *     para evitar colisao de nomes (ex.: varios seedConfig()).
- *   - Durante up()/down(), $this->db->db_debug fica desligado: operacoes de
- *     schema ja aplicadas (tabela/coluna/indice/FK ja existentes) viram no-op em
- *     vez de abortar. Os seeds de dados (permissoes, configuracoes, templates) ja
- *     sao auto-guardados nas migrations originais.
+ *  1) criarBase(): CREATE TABLE IF NOT EXISTS de todas as tabelas base
+ *     (extraidas do banco.sql — 1 statement por tabela, rapido pro MySQL).
+ *  2) Passos das migrations que agregam algo novo (tabelas de modulos como
+ *     fiscal/Cora/RH/notificacoes, colunas e seeds de permissoes/config). Cada
+ *     passo e o codigo original da migration, ja idempotente (create_table IF
+ *     NOT EXISTS, field_exists antes de add_column, seeds com guarda).
  *
- * Por isso pode rodar sobre:
- *   - banco vazio  -> cria todo o schema do zero;
- *   - banco parcial-> aplica so o que falta;
- *   - banco atual  -> no-op (tudo ja existe).
+ * As migrations antigas cujas colunas o banco.sql ja possui foram descartadas
+ * (redundantes). Durante a execucao, FOREIGN_KEY_CHECKS e db_debug ficam
+ * desligados para que operacoes ja aplicadas virem no-op em vez de abortar.
  *
- * Timestamp 20260720000000 > ultima migration antiga (20260719000001), logo o
- * $this->migration->latest() do Mapos a executa uma vez em qualquer instalacao.
+ * Timestamp 20260720000000 > ultima antiga (20260719000001): roda 1x em qualquer
+ * instalacao via migration->latest().
  */
 class Migration_consolidado_completo extends CI_Migration
 {
@@ -31,13 +27,9 @@ class Migration_consolidado_completo extends CI_Migration
     {
         $dbg = $this->db->db_debug;
         $this->db->db_debug = false;
+        $this->db->query('SET FOREIGN_KEY_CHECKS = 0');
         try {
-            $this->m20121031100537_00_up();
-            $this->m20200306012421_01_up();
-            $this->m20200428012421_02_up();
-            $this->m20200921012421_03_up();
-            $this->m20200921012422_04_up();
-            $this->m20200921012423_05_up();
+            $this->criarBase();
             $this->m20201224012424_06_up();
             $this->m20201230231550_07_up();
             $this->m20210105223548_08_up();
@@ -48,18 +40,13 @@ class Migration_consolidado_completo extends CI_Migration
             $this->m20210114151943_13_up();
             $this->m20210114151944_14_up();
             $this->m20210125023104_15_up();
-            $this->m20210125151515_16_up();
             $this->m20210125173737_17_up();
             $this->m20210125173738_18_up();
             $this->m20210125173739_19_up();
             $this->m20210125173740_20_up();
             $this->m20210125173741_21_up();
-            $this->m20220216173741_22_up();
-            $this->m20220307173741_23_up();
             $this->m20220313023104_24_up();
             $this->m20220320173741_25_up();
-            $this->m20221112173741_26_up();
-            $this->m20221119210810_27_up();
             $this->m20221130180810_28_up();
             $this->m20230428110810_29_up();
             $this->m20240503170400_30_up();
@@ -106,6 +93,7 @@ class Migration_consolidado_completo extends CI_Migration
             $this->m20260718000001_71_up();
             $this->m20260719000001_72_up();
         } finally {
+            $this->db->query('SET FOREIGN_KEY_CHECKS = 1');
             $this->db->db_debug = $dbg;
         }
     }
@@ -114,6 +102,7 @@ class Migration_consolidado_completo extends CI_Migration
     {
         $dbg = $this->db->db_debug;
         $this->db->db_debug = false;
+        $this->db->query('SET FOREIGN_KEY_CHECKS = 0');
         try {
             $this->m20260719000001_72_down();
             $this->m20260718000001_71_down();
@@ -160,18 +149,13 @@ class Migration_consolidado_completo extends CI_Migration
             $this->m20240503170400_30_down();
             $this->m20230428110810_29_down();
             $this->m20221130180810_28_down();
-            $this->m20221119210810_27_down();
-            $this->m20221112173741_26_down();
             $this->m20220320173741_25_down();
             $this->m20220313023104_24_down();
-            $this->m20220307173741_23_down();
-            $this->m20220216173741_22_down();
             $this->m20210125173741_21_down();
             $this->m20210125173740_20_down();
             $this->m20210125173739_19_down();
             $this->m20210125173738_18_down();
             $this->m20210125173737_17_down();
-            $this->m20210125151515_16_down();
             $this->m20210125023104_15_down();
             $this->m20210114151944_14_down();
             $this->m20210114151943_13_down();
@@ -182,1576 +166,79 @@ class Migration_consolidado_completo extends CI_Migration
             $this->m20210105223548_08_down();
             $this->m20201230231550_07_down();
             $this->m20201224012424_06_down();
-            $this->m20200921012423_05_down();
-            $this->m20200921012422_04_down();
-            $this->m20200921012421_03_down();
-            $this->m20200428012421_02_down();
-            $this->m20200306012421_01_down();
-            $this->m20121031100537_00_down();
+            $this->dbforge->drop_table('configuracoes', true);
+            $this->dbforge->drop_table('anotacoes_os', true);
+            $this->dbforge->drop_table('email_queue', true);
+            $this->dbforge->drop_table('logs', true);
+            $this->dbforge->drop_table('equipamentos_os', true);
+            $this->dbforge->drop_table('equipamentos', true);
+            $this->dbforge->drop_table('marcas', true);
+            $this->dbforge->drop_table('documentos', true);
+            $this->dbforge->drop_table('anexos', true);
+            $this->dbforge->drop_table('itens_de_vendas', true);
+            $this->dbforge->drop_table('cobrancas', true);
+            $this->dbforge->drop_table('vendas', true);
+            $this->dbforge->drop_table('servicos_os', true);
+            $this->dbforge->drop_table('servicos', true);
+            $this->dbforge->drop_table('produtos_os', true);
+            $this->dbforge->drop_table('produtos', true);
+            $this->dbforge->drop_table('os', true);
+            $this->dbforge->drop_table('garantias', true);
+            $this->dbforge->drop_table('lancamentos', true);
+            $this->dbforge->drop_table('usuarios', true);
+            $this->dbforge->drop_table('permissoes', true);
+            $this->dbforge->drop_table('contas', true);
+            $this->dbforge->drop_table('categorias', true);
+            $this->dbforge->drop_table('resets_de_senha', true);
+            $this->dbforge->drop_table('clientes', true);
+            $this->dbforge->drop_table('ci_sessions', true);
         } finally {
+            $this->db->query('SET FOREIGN_KEY_CHECKS = 1');
             $this->db->db_debug = $dbg;
         }
     }
 
+    /** Cria as tabelas base (CREATE TABLE IF NOT EXISTS, do banco.sql). */
+    private function criarBase()
+    {
+        $tabelas = [
+            'CREATE TABLE IF NOT EXISTS `ci_sessions` ( `id` varchar(128) NOT NULL, `ip_address` varchar(45) NOT NULL, `timestamp` int(10) unsigned DEFAULT 0 NOT NULL, `data` blob NOT NULL, KEY `ci_sessions_timestamp` (`timestamp`) );',
+            'CREATE TABLE IF NOT EXISTS `clientes` ( `idClientes` INT(11) NOT NULL AUTO_INCREMENT, `asaas_id` VARCHAR(255) DEFAULT NULL, `nomeCliente` VARCHAR(255) NOT NULL, `sexo` VARCHAR(20) NULL, `pessoa_fisica` BOOLEAN NOT NULL DEFAULT 1, `documento` VARCHAR(20) NOT NULL, `telefone` VARCHAR(20) NOT NULL, `celular` VARCHAR(20) NULL DEFAULT NULL, `email` VARCHAR(100) NOT NULL, `senha` VARCHAR(200) NOT NULL, `dataCadastro` DATE NULL DEFAULT NULL, `rua` VARCHAR(70) NULL DEFAULT NULL, `numero` VARCHAR(15) NULL DEFAULT NULL, `bairro` VARCHAR(45) NULL DEFAULT NULL, `cidade` VARCHAR(45) NULL DEFAULT NULL, `estado` VARCHAR(20) NULL DEFAULT NULL, `cep` VARCHAR(20) NULL DEFAULT NULL, `contato` varchar(45) DEFAULT NULL, `complemento` varchar(45) DEFAULT NULL, `fornecedor` BOOLEAN NOT NULL DEFAULT 0, PRIMARY KEY (`idClientes`)) ENGINE = InnoDB AUTO_INCREMENT = 1 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `resets_de_senha` ( `id` INT NOT NULL AUTO_INCREMENT, `email` VARCHAR(200) NOT NULL , `token` VARCHAR(255) NOT NULL , `data_expiracao` DATETIME NOT NULL, `token_utilizado` TINYINT NOT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `categorias` ( `idCategorias` INT NOT NULL AUTO_INCREMENT, `categoria` VARCHAR(80) NULL, `cadastro` DATE NULL, `status` TINYINT(1) NULL, `tipo` VARCHAR(15) NULL, PRIMARY KEY (`idCategorias`)) ENGINE = InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `contas` ( `idContas` INT NOT NULL AUTO_INCREMENT, `conta` VARCHAR(45) NULL, `banco` VARCHAR(45) NULL, `numero` VARCHAR(45) NULL, `saldo` DECIMAL(10,2) NULL, `cadastro` DATE NULL, `status` TINYINT(1) NULL, `tipo` VARCHAR(80) NULL, PRIMARY KEY (`idContas`)) ENGINE = InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `permissoes` ( `idPermissao` INT NOT NULL AUTO_INCREMENT, `nome` VARCHAR(80) NOT NULL, `permissoes` TEXT NULL, `situacao` TINYINT(1) NULL, `data` DATE NULL, PRIMARY KEY (`idPermissao`)) ENGINE = InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `usuarios` ( `idUsuarios` INT(11) NOT NULL AUTO_INCREMENT, `nome` VARCHAR(80) NOT NULL, `rg` VARCHAR(20) NULL DEFAULT NULL, `cpf` VARCHAR(20) NOT NULL, `cep` VARCHAR(9) NOT NULL, `rua` VARCHAR(70) NULL DEFAULT NULL, `numero` VARCHAR(15) NULL DEFAULT NULL, `bairro` VARCHAR(45) NULL DEFAULT NULL, `cidade` VARCHAR(45) NULL DEFAULT NULL, `estado` VARCHAR(20) NULL DEFAULT NULL, `email` VARCHAR(80) NOT NULL, `senha` VARCHAR(200) NOT NULL, `telefone` VARCHAR(20) NOT NULL, `celular` VARCHAR(20) NULL DEFAULT NULL, `situacao` TINYINT(1) NOT NULL, `dataCadastro` DATE NOT NULL, `permissoes_id` INT NOT NULL, `dataExpiracao` date DEFAULT NULL, `url_image_user` VARCHAR(255) DEFAULT NULL, PRIMARY KEY (`idUsuarios`), INDEX `fk_usuarios_permissoes1_idx` (`permissoes_id` ASC), CONSTRAINT `fk_usuarios_permissoes1` FOREIGN KEY (`permissoes_id`) REFERENCES `permissoes` (`idPermissao`) ON DELETE NO ACTION ON UPDATE NO ACTION) ENGINE = InnoDB AUTO_INCREMENT = 1 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `lancamentos` ( `idLancamentos` INT(11) NOT NULL AUTO_INCREMENT, `descricao` VARCHAR(255) NULL DEFAULT NULL, `valor` DECIMAL(10, 2) NULL DEFAULT 0, `desconto` DECIMAL(10, 2) NULL DEFAULT 0, `valor_desconto` DECIMAL(10, 2) NULL DEFAULT 0, `tipo_desconto` varchar(8) NULL DEFAULT NULL, `data_vencimento` DATE NOT NULL, `data_pagamento` DATE NULL DEFAULT NULL, `baixado` TINYINT(1) NULL DEFAULT 0, `cliente_fornecedor` VARCHAR(255) NULL DEFAULT NULL, `forma_pgto` VARCHAR(100) NULL DEFAULT NULL, `tipo` VARCHAR(45) NULL DEFAULT NULL, `anexo` VARCHAR(250) NULL, `observacoes` TEXT NULL, `clientes_id` INT(11) NULL DEFAULT NULL, `categorias_id` INT NULL, `contas_id` INT NULL, `vendas_id` INT NULL, `usuarios_id` INT NOT NULL, PRIMARY KEY (`idLancamentos`), INDEX `fk_lancamentos_clientes1` (`clientes_id` ASC), INDEX `fk_lancamentos_categorias1_idx` (`categorias_id` ASC), INDEX `fk_lancamentos_contas1_idx` (`contas_id` ASC), INDEX `fk_lancamentos_usuarios1` (`usuarios_id` ASC), CONSTRAINT `fk_lancamentos_clientes1` FOREIGN KEY (`clientes_id`) REFERENCES `clientes` (`idClientes`) ON DELETE NO ACTION ON UPDATE NO ACTION, CONSTRAINT `fk_lancamentos_categorias1` FOREIGN KEY (`categorias_id`) REFERENCES `categorias` (`idCategorias`) ON DELETE NO ACTION ON UPDATE NO ACTION, CONSTRAINT `fk_lancamentos_contas1` FOREIGN KEY (`contas_id`) REFERENCES `contas` (`idContas`) ON DELETE NO ACTION ON UPDATE NO ACTION, CONSTRAINT `fk_lancamentos_usuarios1` FOREIGN KEY (`usuarios_id`) REFERENCES `usuarios` (`idUsuarios`) ON DELETE NO ACTION ON UPDATE NO ACTION) ENGINE = InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `garantias` ( `idGarantias` INT NOT NULL AUTO_INCREMENT, `dataGarantia` DATE NULL, `refGarantia` VARCHAR(15) NULL, `textoGarantia` TEXT NULL, `usuarios_id` INT(11) NULL, PRIMARY KEY (`idGarantias`), INDEX `fk_garantias_usuarios1` (`usuarios_id` ASC), CONSTRAINT `fk_garantias_usuarios1` FOREIGN KEY (`usuarios_id`) REFERENCES `usuarios` (`idUsuarios`) ON DELETE NO ACTION ON UPDATE NO ACTION) ENGINE = InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `os` ( `idOs` INT(11) NOT NULL AUTO_INCREMENT, `dataInicial` DATE NULL DEFAULT NULL, `dataFinal` DATE NULL DEFAULT NULL, `garantia` VARCHAR(45) NULL DEFAULT NULL, `descricaoProduto` TEXT NULL DEFAULT NULL, `defeito` TEXT NULL DEFAULT NULL, `status` VARCHAR(45) NULL DEFAULT NULL, `observacoes` TEXT NULL DEFAULT NULL, `laudoTecnico` TEXT NULL DEFAULT NULL, `valorTotal` DECIMAL(10, 2) NULL DEFAULT 0, `desconto`DECIMAL(10, 2) NULL DEFAULT 0, `valor_desconto` DECIMAL(10, 2) NULL DEFAULT 0, `tipo_desconto` varchar(8) NULL DEFAULT NULL, `clientes_id` INT(11) NOT NULL, `usuarios_id` INT(11) NOT NULL, `lancamento` INT(11) NULL DEFAULT NULL, `faturado` TINYINT(1) NOT NULL, `garantias_id` int(11) NULL, PRIMARY KEY (`idOs`), INDEX `fk_os_clientes1` (`clientes_id` ASC), INDEX `fk_os_usuarios1` (`usuarios_id` ASC), INDEX `fk_os_lancamentos1` (`lancamento` ASC), INDEX `fk_os_garantias1` (`garantias_id` ASC), CONSTRAINT `fk_os_clientes1` FOREIGN KEY (`clientes_id`) REFERENCES `clientes` (`idClientes`) ON DELETE NO ACTION ON UPDATE NO ACTION, CONSTRAINT `fk_os_lancamentos1` FOREIGN KEY (`lancamento`) REFERENCES `lancamentos` (`idLancamentos`) ON DELETE NO ACTION ON UPDATE NO ACTION, CONSTRAINT `fk_os_usuarios1` FOREIGN KEY (`usuarios_id`) REFERENCES `usuarios` (`idUsuarios`) ON DELETE NO ACTION ON UPDATE NO ACTION) ENGINE = InnoDB AUTO_INCREMENT = 1 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `produtos` ( `idProdutos` INT(11) NOT NULL AUTO_INCREMENT, `codDeBarra` VARCHAR(70) NOT NULL, `descricao` VARCHAR(80) NOT NULL, `unidade` VARCHAR(10) NULL DEFAULT NULL, `precoCompra` DECIMAL(10,2) NULL DEFAULT NULL, `precoVenda` DECIMAL(10,2) NOT NULL, `estoque` INT(11) NOT NULL, `estoqueMinimo` INT(11) NULL DEFAULT NULL, `saida` TINYINT(1) NULL DEFAULT NULL, `entrada` TINYINT(1) NULL DEFAULT NULL, PRIMARY KEY (`idProdutos`)) ENGINE = InnoDB AUTO_INCREMENT = 1 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `produtos_os` ( `idProdutos_os` INT(11) NOT NULL AUTO_INCREMENT, `quantidade` INT(11) NOT NULL, `descricao` VARCHAR(80) NULL, `preco` DECIMAL(10,2) NULL DEFAULT 0, `os_id` INT(11) NOT NULL, `produtos_id` INT(11) NOT NULL, `subTotal` DECIMAL(10,2) NULL DEFAULT 0, PRIMARY KEY (`idProdutos_os`), INDEX `fk_produtos_os_os1` (`os_id` ASC), INDEX `fk_produtos_os_produtos1` (`produtos_id` ASC), CONSTRAINT `fk_produtos_os_os1` FOREIGN KEY (`os_id`) REFERENCES `os` (`idOs`) ON DELETE NO ACTION ON UPDATE NO ACTION, CONSTRAINT `fk_produtos_os_produtos1` FOREIGN KEY (`produtos_id`) REFERENCES `produtos` (`idProdutos`) ON DELETE NO ACTION ON UPDATE NO ACTION) ENGINE = InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `servicos` ( `idServicos` INT(11) NOT NULL AUTO_INCREMENT, `nome` VARCHAR(45) NOT NULL, `descricao` VARCHAR(45) NULL DEFAULT NULL, `preco` DECIMAL(10,2) NOT NULL, PRIMARY KEY (`idServicos`)) ENGINE = InnoDB AUTO_INCREMENT = 1 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `servicos_os` ( `idServicos_os` INT(11) NOT NULL AUTO_INCREMENT, `servico` VARCHAR(80) NULL, `quantidade` DOUBLE NULL, `preco` DECIMAL(10,2) NULL DEFAULT 0, `os_id` INT(11) NOT NULL, `servicos_id` INT(11) NOT NULL, `subTotal` DECIMAL(10,2) NULL DEFAULT 0, PRIMARY KEY (`idServicos_os`), INDEX `fk_servicos_os_os1` (`os_id` ASC), INDEX `fk_servicos_os_servicos1` (`servicos_id` ASC), CONSTRAINT `fk_servicos_os_os1` FOREIGN KEY (`os_id`) REFERENCES `os` (`idOs`) ON DELETE NO ACTION ON UPDATE NO ACTION, CONSTRAINT `fk_servicos_os_servicos1` FOREIGN KEY (`servicos_id`) REFERENCES `servicos` (`idServicos`) ON DELETE NO ACTION ON UPDATE NO ACTION) ENGINE = InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `vendas` ( `idVendas` INT NOT NULL AUTO_INCREMENT, `dataVenda` DATE NULL, `valorTotal` DECIMAL(10, 2) NULL DEFAULT 0, `desconto` DECIMAL(10, 2) NULL DEFAULT 0, `valor_desconto` DECIMAL(10, 2) NULL DEFAULT 0, `tipo_desconto` varchar(8) NULL DEFAULT NULL, `faturado` TINYINT(1) NULL, `observacoes` TEXT NULL, `observacoes_cliente` TEXT NULL, `clientes_id` INT(11) NOT NULL, `usuarios_id` INT(11) NULL, `lancamentos_id` INT(11) NULL, `status` VARCHAR(45) NULL, `garantia` INT(11) NULL, PRIMARY KEY (`idVendas`), INDEX `fk_vendas_clientes1` (`clientes_id` ASC), INDEX `fk_vendas_usuarios1` (`usuarios_id` ASC), INDEX `fk_vendas_lancamentos1` (`lancamentos_id` ASC), CONSTRAINT `fk_vendas_clientes1` FOREIGN KEY (`clientes_id`) REFERENCES `clientes` (`idClientes`) ON DELETE NO ACTION ON UPDATE NO ACTION, CONSTRAINT `fk_vendas_usuarios1` FOREIGN KEY (`usuarios_id`) REFERENCES `usuarios` (`idUsuarios`) ON DELETE NO ACTION ON UPDATE NO ACTION, CONSTRAINT `fk_vendas_lancamentos1` FOREIGN KEY (`lancamentos_id`) REFERENCES `lancamentos` (`idLancamentos`) ON DELETE NO ACTION ON UPDATE NO ACTION) ENGINE = InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `cobrancas` ( `idCobranca` INT(11) NOT NULL AUTO_INCREMENT, `charge_id` varchar(255) DEFAULT NULL, `conditional_discount_date` date DEFAULT NULL, `created_at` datetime DEFAULT NULL, `custom_id` int(11) DEFAULT NULL, `expire_at` date NOT NULL, `message` varchar(255) NOT NULL, `payment_method` varchar(11) DEFAULT NULL, `payment_url` varchar(255) DEFAULT NULL, `request_delivery_address` varchar(64) DEFAULT NULL, `status` varchar(36) NOT NULL, `total` varchar(15) DEFAULT NULL, `barcode` varchar(255) NOT NULL, `link` varchar(255) NOT NULL, `payment_gateway` varchar(255) NULL DEFAULT NULL, `payment` varchar(64) NOT NULL, `pdf` varchar(255) DEFAULT NULL, `vendas_id` int(11) DEFAULT NULL, `os_id` int(11) DEFAULT NULL, `clientes_id` int(11) DEFAULT NULL, PRIMARY KEY (`idCobranca`), INDEX `fk_cobrancas_os1` (`os_id` ASC), CONSTRAINT `fk_cobrancas_os1` FOREIGN KEY (`os_id`) REFERENCES `os` (`idOs`) ON DELETE NO ACTION ON UPDATE NO ACTION, INDEX `fk_cobrancas_vendas1` (`vendas_id` ASC), CONSTRAINT `fk_cobrancas_vendas1` FOREIGN KEY (`vendas_id`) REFERENCES `vendas` (`idVendas`) ON DELETE NO ACTION ON UPDATE NO ACTION, INDEX `fk_cobrancas_clientes1` (`clientes_id` ASC), CONSTRAINT `fk_cobrancas_clientes1` FOREIGN KEY (`clientes_id`) REFERENCES `clientes` (`idClientes`) ON DELETE NO ACTION ON UPDATE NO ACTION ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `itens_de_vendas` ( `idItens` INT NOT NULL AUTO_INCREMENT, `subTotal` DECIMAL(10,2) NULL DEFAULT 0, `quantidade` INT(11) NULL, `preco` DECIMAL(10,2) NULL DEFAULT 0, `vendas_id` INT NOT NULL, `produtos_id` INT(11) NOT NULL, PRIMARY KEY (`idItens`), INDEX `fk_itens_de_vendas_vendas1` (`vendas_id` ASC), INDEX `fk_itens_de_vendas_produtos1` (`produtos_id` ASC), CONSTRAINT `fk_itens_de_vendas_vendas1` FOREIGN KEY (`vendas_id`) REFERENCES `vendas` (`idVendas`) ON DELETE NO ACTION ON UPDATE NO ACTION, CONSTRAINT `fk_itens_de_vendas_produtos1` FOREIGN KEY (`produtos_id`) REFERENCES `produtos` (`idProdutos`) ON DELETE NO ACTION ON UPDATE NO ACTION) ENGINE = InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `anexos` ( `idAnexos` INT NOT NULL AUTO_INCREMENT, `anexo` VARCHAR(45) NULL, `thumb` VARCHAR(45) NULL, `url` VARCHAR(300) NULL, `path` VARCHAR(300) NULL, `os_id` INT(11) NOT NULL, PRIMARY KEY (`idAnexos`), INDEX `fk_anexos_os1` (`os_id` ASC), CONSTRAINT `fk_anexos_os1` FOREIGN KEY (`os_id`) REFERENCES `os` (`idOs`) ON DELETE NO ACTION ON UPDATE NO ACTION) ENGINE = InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `documentos` ( `idDocumentos` INT NOT NULL AUTO_INCREMENT, `documento` VARCHAR(70) NULL, `descricao` TEXT NULL, `file` VARCHAR(100) NULL, `path` VARCHAR(300) NULL, `url` VARCHAR(300) NULL, `cadastro` DATE NULL, `categoria` VARCHAR(80) NULL, `tipo` VARCHAR(15) NULL, `tamanho` VARCHAR(45) NULL, PRIMARY KEY (`idDocumentos`)) ENGINE = InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `marcas` ( `idMarcas` INT NOT NULL AUTO_INCREMENT, `marca` VARCHAR(100) NULL, `cadastro` DATE NULL, `situacao` TINYINT(1) NULL, PRIMARY KEY (`idMarcas`)) ENGINE = InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `equipamentos` ( `idEquipamentos` INT NOT NULL AUTO_INCREMENT, `equipamento` VARCHAR(150) NOT NULL, `num_serie` VARCHAR(80) NULL, `modelo` VARCHAR(80) NULL, `cor` VARCHAR(45) NULL, `descricao` VARCHAR(150) NULL, `tensao` VARCHAR(45) NULL, `potencia` VARCHAR(45) NULL, `voltagem` VARCHAR(45) NULL, `data_fabricacao` DATE NULL, `marcas_id` INT NULL, `clientes_id` INT(11) NULL, PRIMARY KEY (`idEquipamentos`), INDEX `fk_equipanentos_marcas1_idx` (`marcas_id` ASC), INDEX `fk_equipanentos_clientes1_idx` (`clientes_id` ASC), CONSTRAINT `fk_equipanentos_marcas1` FOREIGN KEY (`marcas_id`) REFERENCES `marcas` (`idMarcas`) ON DELETE NO ACTION ON UPDATE NO ACTION, CONSTRAINT `fk_equipanentos_clientes1` FOREIGN KEY (`clientes_id`) REFERENCES `clientes` (`idClientes`) ON DELETE NO ACTION ON UPDATE NO ACTION) ENGINE = InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `equipamentos_os` ( `idEquipamentos_os` INT NOT NULL AUTO_INCREMENT, `defeito_declarado` VARCHAR(200) NULL, `defeito_encontrado` VARCHAR(200) NULL, `solucao` VARCHAR(45) NULL, `equipamentos_id` INT NULL, `os_id` INT(11) NULL, PRIMARY KEY (`idEquipamentos_os`), INDEX `fk_equipamentos_os_equipanentos1_idx` (`equipamentos_id` ASC), INDEX `fk_equipamentos_os_os1_idx` (`os_id` ASC), CONSTRAINT `fk_equipamentos_os_equipanentos1` FOREIGN KEY (`equipamentos_id`) REFERENCES `equipamentos` (`idEquipamentos`) ON DELETE NO ACTION ON UPDATE NO ACTION, CONSTRAINT `fk_equipamentos_os_os1` FOREIGN KEY (`os_id`) REFERENCES `os` (`idOs`) ON DELETE NO ACTION ON UPDATE NO ACTION) ENGINE = InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `logs` ( `idLogs` INT NOT NULL AUTO_INCREMENT, `usuario` VARCHAR(80) NULL, `tarefa` VARCHAR(100) NULL, `data` DATE NULL, `hora` TIME NULL, `ip` VARCHAR(45) NULL, PRIMARY KEY (`idLogs`)) ENGINE = InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `email_queue` ( `id` int(11) NOT NULL AUTO_INCREMENT, `to` varchar(255) NOT NULL, `cc` varchar(255) DEFAULT NULL, `bcc` varchar(255) DEFAULT NULL, `message` text NOT NULL, `status` enum(\'pending\',\'sending\',\'sent\',\'failed\') DEFAULT NULL, `date` datetime DEFAULT NULL, `headers` text, PRIMARY KEY (`id`) )ENGINE = InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `anotacoes_os` ( `idAnotacoes` INT(11) NOT NULL AUTO_INCREMENT, `anotacao` VARCHAR(255) NOT NULL , `data_hora` DATETIME NOT NULL , `os_id` INT(11) NOT NULL , PRIMARY KEY (`idAnotacoes`) ) ENGINE = InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;',
+            'CREATE TABLE IF NOT EXISTS `configuracoes` ( `idConfig` INT NOT NULL AUTO_INCREMENT , `config` VARCHAR(20) NOT NULL UNIQUE, `valor` TEXT NULL , PRIMARY KEY (`idConfig`) ) ENGINE = InnoDB CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;'
+        ];
+        foreach ($tabelas as $sql) {
+            $this->db->query($sql);
+        }
+    }
+
     // =====================================================================
-    // PASSOS — corpo original de cada migration (metodos prefixados)
+    // PASSOS — modulos/colunas/seeds (codigo original prefixado)
     // =====================================================================
 
-    // ---- 20121031100537_create_base.php ----
-    private function m20121031100537_00_up()
-    {
-        //# Create Table ci_sessions
-        $this->dbforge->add_field([
-            'id' => [
-                'type' => 'VARCHAR',
-                'constraint' => 128,
-                'null' => false,
-            ],
-            'ip_address' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => false,
-            ],
-            'timestamp' => [
-                'type' => 'INT',
-                'constraint' => 1,
-                'unsigned' => true,
-                'null' => false,
-                'default' => '0',
-            ],
-            'data' => [
-                'type' => 'BLOB',
-                'null' => false,
-            ],
-        ]);
-        $this->dbforge->create_table('ci_sessions', true);
-        $this->db->query('ALTER TABLE  `ci_sessions` ENGINE = InnoDB');
-
-        //# Create Table clientes
-        $this->dbforge->add_field([
-            'idClientes' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'nomeCliente' => [
-                'type' => 'VARCHAR',
-                'constraint' => 255,
-                'null' => false,
-            ],
-            'sexo' => [
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'null' => true,
-            ],
-            'pessoa_fisica' => [
-                'type' => 'TINYINT',
-                'constraint' => 1,
-                'null' => false,
-                'default' => '1',
-            ],
-            'documento' => [
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'null' => false,
-            ],
-            'telefone' => [
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'null' => false,
-            ],
-            'celular' => [
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'null' => true,
-            ],
-            'email' => [
-                'type' => 'VARCHAR',
-                'constraint' => 100,
-                'null' => false,
-            ],
-            'dataCadastro' => [
-                'type' => 'DATE',
-                'null' => true,
-            ],
-            'rua' => [
-                'type' => 'VARCHAR',
-                'constraint' => 70,
-                'null' => true,
-            ],
-            'numero' => [
-                'type' => 'VARCHAR',
-                'constraint' => 15,
-                'null' => true,
-            ],
-            'bairro' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'cidade' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'estado' => [
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'null' => true,
-            ],
-            'cep' => [
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'null' => true,
-            ],
-        ]);
-        $this->dbforge->add_key('idClientes', true);
-        $this->dbforge->create_table('clientes', true);
-        $this->db->query('ALTER TABLE  `clientes` ENGINE = InnoDB');
-
-        //# Create Table categorias
-        $this->dbforge->add_field([
-            'idCategorias' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'categoria' => [
-                'type' => 'VARCHAR',
-                'constraint' => 80,
-                'null' => true,
-            ],
-            'cadastro' => [
-                'type' => 'DATE',
-                'null' => true,
-            ],
-            'status' => [
-                'type' => 'TINYINT',
-                'constraint' => 1,
-                'null' => true,
-            ],
-            'tipo' => [
-                'type' => 'VARCHAR',
-                'constraint' => 15,
-                'null' => true,
-            ],
-        ]);
-        $this->dbforge->add_key('idCategorias', true);
-        $this->dbforge->create_table('categorias', true);
-        $this->db->query('ALTER TABLE  `categorias` ENGINE = InnoDB');
-
-        //# Create Table contas
-        $this->dbforge->add_field([
-            'idContas' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'conta' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'banco' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'numero' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'saldo' => [
-                'type' => 'DECIMAL',
-                'constraint' => 10, 2,
-                'null' => true,
-            ],
-            'cadastro' => [
-                'type' => 'DATE',
-                'null' => true,
-            ],
-            'status' => [
-                'type' => 'TINYINT',
-                'constraint' => 1,
-                'null' => true,
-            ],
-            'tipo' => [
-                'type' => 'VARCHAR',
-                'constraint' => 80,
-                'null' => true,
-            ],
-        ]);
-        $this->dbforge->add_key('idContas', true);
-        $this->dbforge->create_table('contas', true);
-        $this->db->query('ALTER TABLE  `contas` ENGINE = InnoDB');
-
-        //# Create Table lancamentos
-        $this->dbforge->add_field([
-            'idLancamentos' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'descricao' => [
-                'type' => 'VARCHAR',
-                'constraint' => 255,
-                'null' => true,
-            ],
-            'valor' => [
-                'type' => 'VARCHAR',
-                'constraint' => 15,
-                'null' => false,
-            ],
-            'data_vencimento' => [
-                'type' => 'DATE',
-                'null' => false,
-            ],
-            'data_pagamento' => [
-                'type' => 'DATE',
-                'null' => true,
-            ],
-            'baixado' => [
-                'type' => 'TINYINT',
-                'constraint' => 1,
-                'null' => true,
-                'default' => '0',
-            ],
-            'cliente_fornecedor' => [
-                'type' => 'VARCHAR',
-                'constraint' => 255,
-                'null' => true,
-            ],
-            'forma_pgto' => [
-                'type' => 'VARCHAR',
-                'constraint' => 100,
-                'null' => true,
-            ],
-            'tipo' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'anexo' => [
-                'type' => 'VARCHAR',
-                'constraint' => 250,
-                'null' => true,
-            ],
-            'clientes_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => true,
-            ],
-            'categorias_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => true,
-            ],
-            'contas_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => true,
-            ],
-            'vendas_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => true,
-            ],
-        ]);
-        $this->dbforge->add_key('idLancamentos', true);
-        $this->dbforge->create_table('lancamentos', true);
-        $this->db->query('ALTER TABLE  `lancamentos` ENGINE = InnoDB');
-        $this->db->query('ALTER TABLE  `lancamentos` ADD INDEX `fk_lancamentos_clientes1` (`clientes_id` ASC)');
-        $this->db->query('ALTER TABLE  `lancamentos` ADD INDEX `fk_lancamentos_categorias1_idx` (`categorias_id` ASC)');
-        $this->db->query('ALTER TABLE  `lancamentos` ADD INDEX `fk_lancamentos_contas1_idx` (`contas_id` ASC)');
-        $this->db->query('ALTER TABLE  `lancamentos` ADD CONSTRAINT `fk_lancamentos_clientes1`
-			FOREIGN KEY (`clientes_id`)
-			REFERENCES `clientes` (`idClientes`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `lancamentos` ADD CONSTRAINT `fk_lancamentos_categorias1`
-			FOREIGN KEY (`categorias_id`)
-			REFERENCES `categorias` (`idCategorias`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `lancamentos` ADD  CONSTRAINT `fk_lancamentos_contas1`
-			FOREIGN KEY (`contas_id`)
-			REFERENCES `contas` (`idContas`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-
-        //# Create Table permissoes
-        $this->dbforge->add_field([
-            'idPermissao' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'nome' => [
-                'type' => 'VARCHAR',
-                'constraint' => 80,
-                'null' => false,
-            ],
-            'permissoes' => [
-                'type' => 'TEXT',
-                'null' => true,
-            ],
-            'situacao' => [
-                'type' => 'TINYINT',
-                'constraint' => 1,
-                'null' => true,
-            ],
-            'data' => [
-                'type' => 'DATE',
-                'null' => true,
-            ],
-        ]);
-        $this->dbforge->add_key('idPermissao', true);
-        $this->dbforge->create_table('permissoes', true);
-        $this->db->query('ALTER TABLE  `permissoes` ENGINE = InnoDB');
-
-        //# Create Table usuarios
-        $this->dbforge->add_field([
-            'idUsuarios' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'nome' => [
-                'type' => 'VARCHAR',
-                'constraint' => 80,
-                'null' => false,
-            ],
-            'rg' => [
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'null' => true,
-            ],
-            'cpf' => [
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'null' => false,
-            ],
-            'rua' => [
-                'type' => 'VARCHAR',
-                'constraint' => 70,
-                'null' => true,
-            ],
-            'numero' => [
-                'type' => 'VARCHAR',
-                'constraint' => 15,
-                'null' => true,
-            ],
-            'bairro' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'cidade' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'estado' => [
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'null' => true,
-            ],
-            'email' => [
-                'type' => 'VARCHAR',
-                'constraint' => 80,
-                'null' => false,
-            ],
-            'senha' => [
-                'type' => 'VARCHAR',
-                'constraint' => 200,
-                'null' => false,
-            ],
-            'telefone' => [
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'null' => false,
-            ],
-            'celular' => [
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'null' => true,
-            ],
-            'situacao' => [
-                'type' => 'TINYINT',
-                'constraint' => 1,
-                'null' => false,
-            ],
-            'dataCadastro' => [
-                'type' => 'DATE',
-                'null' => false,
-            ],
-            'permissoes_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-            ],
-            'dataExpiracao' => [
-                'type' => 'DATE',
-                'null' => true,
-            ],
-        ]);
-        $this->dbforge->add_key('idUsuarios', true);
-        $this->dbforge->create_table('usuarios', true);
-        $this->db->query('ALTER TABLE  `usuarios` ENGINE = InnoDB');
-        $this->db->query('ALTER TABLE  `usuarios` ADD INDEX `fk_usuarios_permissoes1_idx` (`permissoes_id` ASC)');
-        $this->db->query('ALTER TABLE  `usuarios` ADD CONSTRAINT `fk_usuarios_permissoes1`
-			FOREIGN KEY (`permissoes_id`)
-			REFERENCES `permissoes` (`idPermissao`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-
-        //# Create Table garantias
-        $this->dbforge->add_field([
-            'idGarantias' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'dataGarantia' => [
-                'type' => 'DATE',
-                'null' => true,
-            ],
-            'refGarantia' => [
-                'type' => 'VARCHAR',
-                'constraint' => 15,
-                'null' => true,
-            ],
-            'textoGarantia' => [
-                'type' => 'TEXT',
-                'null' => true,
-            ],
-            'usuarios_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => true,
-            ],
-        ]);
-        $this->dbforge->add_key('idGarantias', true);
-        $this->dbforge->create_table('garantias', true);
-        $this->db->query('ALTER TABLE  `garantias` ADD INDEX `fk_garantias_usuarios1` (`usuarios_id` ASC)');
-        $this->db->query('ALTER TABLE  `garantias` ADD CONSTRAINT `fk_garantias_usuarios1`
-			FOREIGN KEY (`usuarios_id`)
-			REFERENCES `usuarios` (`idUsuarios`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `garantias` ENGINE = InnoDB');
-
-        //# Create Table os
-        $this->dbforge->add_field([
-            'idOs' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'dataInicial' => [
-                'type' => 'DATE',
-                'null' => true,
-            ],
-            'dataFinal' => [
-                'type' => 'DATE',
-                'null' => true,
-            ],
-            'garantia' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'descricaoProduto' => [
-                'type' => 'TEXT',
-                'null' => true,
-            ],
-            'defeito' => [
-                'type' => 'TEXT',
-                'null' => true,
-            ],
-            'status' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'observacoes' => [
-                'type' => 'TEXT',
-                'null' => true,
-            ],
-            'laudoTecnico' => [
-                'type' => 'TEXT',
-                'null' => true,
-            ],
-            'valorTotal' => [
-                'type' => 'VARCHAR',
-                'constraint' => 15,
-                'null' => true,
-            ],
-            'clientes_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-            ],
-            'usuarios_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-            ],
-            'lancamento' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => true,
-            ],
-            'faturado' => [
-                'type' => 'TINYINT',
-                'constraint' => 1,
-                'null' => false,
-            ],
-            'garantias_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => true,
-            ],
-        ]);
-        $this->dbforge->add_key('idOs', true);
-        $this->dbforge->create_table('os', true);
-        $this->db->query('ALTER TABLE  `os` ADD INDEX `fk_os_clientes1` (`clientes_id` ASC)');
-        $this->db->query('ALTER TABLE  `os` ADD INDEX `fk_os_usuarios1` (`usuarios_id` ASC)');
-        $this->db->query('ALTER TABLE  `os` ADD INDEX `fk_os_lancamentos1` (`lancamento` ASC)');
-        $this->db->query('ALTER TABLE  `os` ADD INDEX `fk_os_garantias1` (`garantias_id` ASC)');
-        $this->db->query('ALTER TABLE  `os` ADD CONSTRAINT `fk_os_clientes1`
-			FOREIGN KEY (`clientes_id`)
-			REFERENCES `clientes` (`idClientes`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `os` ADD CONSTRAINT `fk_os_lancamentos1`
-			FOREIGN KEY (`lancamento`)
-			REFERENCES `lancamentos` (`idLancamentos`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `os` ADD CONSTRAINT `fk_os_usuarios1`
-			FOREIGN KEY (`usuarios_id`)
-			REFERENCES `usuarios` (`idUsuarios`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `os` ENGINE = InnoDB');
-
-        //# Create Table produtos
-        $this->dbforge->add_field([
-            'idProdutos' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'codDeBarra' => [
-                'type' => 'VARCHAR',
-                'constraint' => 70,
-                'null' => false,
-            ],
-            'descricao' => [
-                'type' => 'VARCHAR',
-                'constraint' => 80,
-                'null' => false,
-            ],
-            'unidade' => [
-                'type' => 'VARCHAR',
-                'constraint' => 10,
-                'null' => true,
-            ],
-            'precoCompra' => [
-                'type' => 'DECIMAL',
-                'constraint' => 10, 2,
-                'null' => true,
-            ],
-            'precoVenda' => [
-                'type' => 'DECIMAL',
-                'constraint' => 10, 2,
-                'null' => false,
-            ],
-            'estoque' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-            ],
-            'estoqueMinimo' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => true,
-            ],
-            'saida' => [
-                'type' => 'TINYINT',
-                'constraint' => 1,
-                'null' => true,
-            ],
-            'entrada' => [
-                'type' => 'TINYINT',
-                'constraint' => 1,
-                'null' => true,
-            ],
-        ]);
-        $this->dbforge->add_key('idProdutos', true);
-        $this->dbforge->create_table('produtos', true);
-        $this->db->query('ALTER TABLE  `produtos` ENGINE = InnoDB');
-
-        //# Create Table produtos_os
-        $this->dbforge->add_field([
-            'idProdutos_os' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'quantidade' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-            ],
-            'descricao' => [
-                'type' => 'VARCHAR',
-                'constraint' => 80,
-                'null' => true,
-            ],
-            'preco' => [
-                'type' => 'VARCHAR',
-                'constraint' => 15,
-                'null' => true,
-            ],
-            'os_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-            ],
-            'produtos_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-            ],
-            'subTotal' => [
-                'type' => 'VARCHAR',
-                'constraint' => 15,
-                'null' => true,
-            ],
-        ]);
-        $this->dbforge->add_key('idProdutos_os', true);
-        $this->dbforge->create_table('produtos_os', true);
-        $this->db->query('ALTER TABLE  `produtos_os` ADD INDEX `fk_produtos_os_os1` (`os_id` ASC)');
-        $this->db->query('ALTER TABLE  `produtos_os` ADD INDEX `fk_produtos_os_produtos1` (`produtos_id` ASC)');
-        $this->db->query('ALTER TABLE  `produtos_os` ADD CONSTRAINT `fk_produtos_os_os1`
-			FOREIGN KEY (`os_id`)
-			REFERENCES `os` (`idOs`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `produtos_os` ADD CONSTRAINT `fk_produtos_os_produtos1`
-			FOREIGN KEY (`produtos_id`)
-			REFERENCES `produtos` (`idProdutos`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `produtos_os` ENGINE = InnoDB');
-
-        //# Create Table servicos
-        $this->dbforge->add_field([
-            'idServicos' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'nome' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => false,
-            ],
-            'descricao' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'preco' => [
-                'type' => 'DECIMAL',
-                'constraint' => 10, 2,
-                'null' => false,
-            ],
-        ]);
-        $this->dbforge->add_key('idServicos', true);
-        $this->dbforge->create_table('servicos', true);
-        $this->db->query('ALTER TABLE  `servicos` ENGINE = InnoDB');
-
-        //# Create Table servicos_os
-        $this->dbforge->add_field([
-            'idServicos_os' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'servico' => [
-                'type' => 'VARCHAR',
-                'constraint' => 80,
-                'null' => true,
-            ],
-            'quantidade' => [
-                'type' => 'DOUBLE',
-                'null' => true,
-            ],
-            'preco' => [
-                'type' => 'VARCHAR',
-                'constraint' => 15,
-                'null' => true,
-            ],
-            'os_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-            ],
-            'servicos_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-            ],
-            'subTotal' => [
-                'type' => 'VARCHAR',
-                'constraint' => 15,
-                'null' => true,
-            ],
-        ]);
-        $this->dbforge->add_key('idServicos_os', true);
-        $this->dbforge->create_table('servicos_os', true);
-        $this->db->query('ALTER TABLE  `servicos_os` ADD INDEX `fk_servicos_os_os1` (`os_id` ASC)');
-        $this->db->query('ALTER TABLE  `servicos_os` ADD INDEX `fk_servicos_os_servicos1` (`servicos_id` ASC)');
-        $this->db->query('ALTER TABLE  `servicos_os` ADD CONSTRAINT `fk_servicos_os_os1`
-			FOREIGN KEY (`os_id`)
-			REFERENCES `os` (`idOs`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `servicos_os` ADD CONSTRAINT `fk_servicos_os_servicos1`
-			FOREIGN KEY (`servicos_id`)
-			REFERENCES `servicos` (`idServicos`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `servicos_os` ENGINE = InnoDB');
-
-        //# Create Table vendas
-        $this->dbforge->add_field([
-            'idVendas' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'dataVenda' => [
-                'type' => 'DATE',
-                'null' => true,
-            ],
-            'valorTotal' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'desconto' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'faturado' => [
-                'type' => 'TINYINT',
-                'constraint' => 1,
-                'null' => true,
-            ],
-            'clientes_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-            ],
-            'usuarios_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => true,
-            ],
-            'lancamentos_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => true,
-            ],
-        ]);
-        $this->dbforge->add_key('idVendas', true);
-        $this->dbforge->create_table('vendas', true);
-        $this->db->query('ALTER TABLE  `vendas` ADD INDEX `fk_vendas_clientes1` (`clientes_id` ASC)');
-        $this->db->query('ALTER TABLE  `vendas` ADD INDEX `fk_vendas_usuarios1` (`usuarios_id` ASC)');
-        $this->db->query('ALTER TABLE  `vendas` ADD INDEX `fk_vendas_lancamentos1` (`lancamentos_id` ASC)');
-        $this->db->query('ALTER TABLE  `vendas` ADD CONSTRAINT `fk_vendas_clientes1`
-			FOREIGN KEY (`clientes_id`)
-			REFERENCES `clientes` (`idClientes`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `vendas` ADD CONSTRAINT `fk_vendas_usuarios1`
-			FOREIGN KEY (`usuarios_id`)
-			REFERENCES `usuarios` (`idUsuarios`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `vendas` ADD CONSTRAINT `fk_vendas_lancamentos1`
-			FOREIGN KEY (`lancamentos_id`)
-			REFERENCES `lancamentos` (`idLancamentos`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `vendas` ENGINE = InnoDB');
-
-        //# Create Table itens_de_vendas
-        $this->dbforge->add_field([
-            'idItens' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'subTotal' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'quantidade' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => true,
-            ],
-            'preco' => [
-                'type' => 'VARCHAR',
-                'constraint' => 15,
-                'null' => true,
-            ],
-            'vendas_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-            ],
-            'produtos_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-            ],
-        ]);
-        $this->dbforge->add_key('idItens', true);
-        $this->dbforge->create_table('itens_de_vendas', true);
-        $this->db->query('ALTER TABLE  `itens_de_vendas` ADD INDEX `fk_itens_de_vendas_vendas1` (`vendas_id` ASC)');
-        $this->db->query('ALTER TABLE  `itens_de_vendas` ADD INDEX `fk_itens_de_vendas_produtos1` (`produtos_id` ASC)');
-        $this->db->query('ALTER TABLE  `itens_de_vendas` ADD CONSTRAINT `fk_itens_de_vendas_vendas1`
-			FOREIGN KEY (`vendas_id`)
-			REFERENCES `vendas` (`idVendas`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `itens_de_vendas` ADD CONSTRAINT `fk_itens_de_vendas_produtos1`
-			FOREIGN KEY (`produtos_id`)
-			REFERENCES `produtos` (`idProdutos`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `itens_de_vendas` ENGINE = InnoDB');
-
-        //# Create Table anexos
-        $this->dbforge->add_field([
-            'idAnexos' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'anexo' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'thumb' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'url' => [
-                'type' => 'VARCHAR',
-                'constraint' => 300,
-                'null' => true,
-            ],
-            'path' => [
-                'type' => 'VARCHAR',
-                'constraint' => 300,
-                'null' => true,
-            ],
-            'os_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-            ],
-        ]);
-        $this->dbforge->add_key('idAnexos', true);
-        $this->dbforge->create_table('anexos', true);
-        $this->db->query('ALTER TABLE  `anexos` ADD INDEX `fk_anexos_os1` (`os_id` ASC)');
-        $this->db->query('ALTER TABLE  `anexos` ADD CONSTRAINT `fk_anexos_os1`
-			FOREIGN KEY (`os_id`)
-			REFERENCES `os` (`idOs`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `anexos` ENGINE = InnoDB');
-
-        //# Create Table documentos
-        $this->dbforge->add_field([
-            'idDocumentos' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'documento' => [
-                'type' => 'VARCHAR',
-                'constraint' => 70,
-                'null' => true,
-            ],
-            'descricao' => [
-                'type' => 'TEXT',
-                'null' => true,
-            ],
-            'file' => [
-                'type' => 'VARCHAR',
-                'constraint' => 100,
-                'null' => true,
-            ],
-            'path' => [
-                'type' => 'VARCHAR',
-                'constraint' => 300,
-                'null' => true,
-            ],
-            'url' => [
-                'type' => 'VARCHAR',
-                'constraint' => 300,
-                'null' => true,
-            ],
-            'cadastro' => [
-                'type' => 'DATE',
-                'null' => true,
-            ],
-            'categoria' => [
-                'type' => 'VARCHAR',
-                'constraint' => 80,
-                'null' => true,
-            ],
-            'tipo' => [
-                'type' => 'VARCHAR',
-                'constraint' => 15,
-                'null' => true,
-            ],
-            'tamanho' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-        ]);
-        $this->dbforge->add_key('idDocumentos', true);
-        $this->dbforge->create_table('documentos', true);
-        $this->db->query('ALTER TABLE  `documentos` ENGINE = InnoDB');
-
-        //# Create Table marcas
-        $this->dbforge->add_field([
-            'idMarcas' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'marca' => [
-                'type' => 'VARCHAR',
-                'constraint' => 100,
-                'null' => true,
-            ],
-            'cadastro' => [
-                'type' => 'DATE',
-                'null' => true,
-            ],
-            'situacao' => [
-                'type' => 'TINYINT',
-                'constraint' => 1,
-                'null' => true,
-            ],
-        ]);
-        $this->dbforge->add_key('idMarcas', true);
-        $this->dbforge->create_table('marcas', true);
-        $this->db->query('ALTER TABLE  `marcas` ENGINE = InnoDB');
-
-        //# Create Table equipamentos
-        $this->dbforge->add_field([
-            'idEquipamentos' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'equipamento' => [
-                'type' => 'VARCHAR',
-                'constraint' => 150,
-                'null' => false,
-            ],
-            'num_serie' => [
-                'type' => 'VARCHAR',
-                'constraint' => 80,
-                'null' => true,
-            ],
-            'modelo' => [
-                'type' => 'VARCHAR',
-                'constraint' => 80,
-                'null' => true,
-            ],
-            'cor' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'descricao' => [
-                'type' => 'VARCHAR',
-                'constraint' => 150,
-                'null' => true,
-            ],
-            'tensao' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'potencia' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'voltagem' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'data_fabricacao' => [
-                'type' => 'DATE',
-                'null' => true,
-            ],
-            'marcas_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => true,
-            ],
-            'clientes_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => true,
-            ],
-        ]);
-        $this->dbforge->add_key('idEquipamentos', true);
-        $this->dbforge->create_table('equipamentos', true);
-        $this->db->query('ALTER TABLE  `equipamentos` ADD INDEX `fk_equipanentos_marcas1_idx` (`marcas_id` ASC)');
-        $this->db->query('ALTER TABLE  `equipamentos` ADD INDEX `fk_equipanentos_clientes1_idx` (`clientes_id` ASC)');
-        $this->db->query('ALTER TABLE  `equipamentos` ADD CONSTRAINT `fk_equipanentos_marcas1`
-			FOREIGN KEY (`marcas_id`)
-			REFERENCES `marcas` (`idMarcas`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `equipamentos` ADD CONSTRAINT `fk_equipanentos_clientes1`
-			FOREIGN KEY (`clientes_id`)
-			REFERENCES `clientes` (`idClientes`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `equipamentos` ENGINE = InnoDB');
-
-        //# Create Table equipamentos_os
-        $this->dbforge->add_field([
-            'idEquipamentos_os' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'defeito_declarado' => [
-                'type' => 'VARCHAR',
-                'constraint' => 200,
-                'null' => true,
-            ],
-            'defeito_encontrado' => [
-                'type' => 'VARCHAR',
-                'constraint' => 200,
-                'null' => true,
-            ],
-            'solucao' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'equipamentos_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => true,
-            ],
-            'os_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => true,
-            ],
-        ]);
-        $this->dbforge->add_key('idEquipamentos_os', true);
-        $this->dbforge->create_table('equipamentos_os', true);
-        $this->db->query('ALTER TABLE  `equipamentos_os` ADD INDEX `fk_equipamentos_os_equipanentos1_idx` (`equipamentos_id` ASC)');
-        $this->db->query('ALTER TABLE  `equipamentos_os` ADD INDEX `fk_equipamentos_os_os1_idx` (`os_id` ASC)');
-        $this->db->query('ALTER TABLE  `equipamentos_os` ADD CONSTRAINT `fk_equipamentos_os_equipanentos1`
-			FOREIGN KEY (`equipamentos_id`)
-			REFERENCES `equipamentos` (`idEquipamentos`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `equipamentos_os` ADD CONSTRAINT `fk_equipamentos_os_os1`
-			FOREIGN KEY (`os_id`)
-			REFERENCES `os` (`idOs`)
-			ON DELETE NO ACTION
-			ON UPDATE NO ACTION
-		');
-        $this->db->query('ALTER TABLE  `equipamentos_os` ENGINE = InnoDB');
-
-        //# Create Table logs
-        $this->dbforge->add_field([
-            'idLogs' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'usuario' => [
-                'type' => 'VARCHAR',
-                'constraint' => 80,
-                'null' => true,
-            ],
-            'tarefa' => [
-                'type' => 'VARCHAR',
-                'constraint' => 100,
-                'null' => true,
-            ],
-            'data' => [
-                'type' => 'DATE',
-                'null' => true,
-            ],
-            'hora' => [
-                'type' => 'TIME',
-                'null' => true,
-            ],
-            'ip' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-        ]);
-        $this->dbforge->add_key('idLogs', true);
-        $this->dbforge->create_table('logs', true);
-        $this->db->query('ALTER TABLE  `logs` ENGINE = InnoDB');
-
-        //# Create Table emitente
-        $this->dbforge->add_field([
-            'id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'nome' => [
-                'type' => 'VARCHAR',
-                'constraint' => 255,
-                'null' => true,
-            ],
-            'cnpj' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'ie' => [
-                'type' => 'VARCHAR',
-                'constraint' => 50,
-                'null' => true,
-            ],
-            'rua' => [
-                'type' => 'VARCHAR',
-                'constraint' => 70,
-                'null' => true,
-            ],
-            'numero' => [
-                'type' => 'VARCHAR',
-                'constraint' => 15,
-                'null' => true,
-            ],
-            'bairro' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'cidade' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-            ],
-            'uf' => [
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'null' => true,
-            ],
-            'telefone' => [
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'null' => true,
-            ],
-            'email' => [
-                'type' => 'VARCHAR',
-                'constraint' => 255,
-                'null' => true,
-            ],
-            'url_logo' => [
-                'type' => 'VARCHAR',
-                'constraint' => 225,
-                'null' => true,
-            ],
-        ]);
-        $this->dbforge->add_key('id', true);
-        $this->dbforge->create_table('emitente', true);
-        $this->db->query('ALTER TABLE  `emitente` ENGINE = InnoDB');
-
-        //# Create Table email_queue
-        $this->dbforge->add_field([
-            'id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'to' => [
-                'type' => 'VARCHAR',
-                'constraint' => 255,
-                'null' => false,
-            ],
-            'cc' => [
-                'type' => 'VARCHAR',
-                'constraint' => 255,
-                'null' => true,
-            ],
-            'bcc' => [
-                'type' => 'VARCHAR',
-                'constraint' => 255,
-                'null' => true,
-            ],
-            'message' => [
-                'type' => 'TEXT',
-                'null' => false,
-            ],
-            'status' => [
-                'type' => 'ENUM("pending","sending","sent","failed")',
-                'null' => true,
-            ],
-            'date' => [
-                'type' => 'DATETIME',
-                'null' => true,
-            ],
-            'headers' => [
-                'type' => 'TEXT',
-                'null' => true,
-            ],
-        ]);
-        $this->dbforge->add_key('id', true);
-        $this->dbforge->create_table('email_queue', true);
-        $this->db->query('ALTER TABLE  `email_queue` ENGINE = InnoDB');
-
-        //# Create Table anotacoes_os
-        $this->dbforge->add_field([
-            'idAnotacoes' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'anotacao' => [
-                'type' => 'VARCHAR',
-                'constraint' => 255,
-                'null' => false,
-            ],
-            'data_hora' => [
-                'type' => 'DATETIME',
-                'null' => false,
-            ],
-            'os_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-            ],
-        ]);
-        $this->dbforge->add_key('idAnotacoes', true);
-        $this->dbforge->create_table('anotacoes_os', true);
-        $this->db->query('ALTER TABLE `anotacoes_os` ENGINE = InnoDB');
-
-        //# Create Table configuracoes
-        $this->dbforge->add_field([
-            'idConfig' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'config' => [
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'null' => false,
-            ],
-            'valor' => [
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'null' => false,
-            ],
-        ]);
-        $this->dbforge->add_key('idConfig', true);
-        $this->dbforge->create_table('configuracoes', true);
-        $this->db->query('ALTER TABLE `configuracoes` ADD CONSTRAINT `unique_valor` UNIQUE (`config`)');
-        $this->db->query('ALTER TABLE `configuracoes` ENGINE = InnoDB');
-
-        //# Create Table anotacoes_os
-        $this->dbforge->add_field([
-            'idPag' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'null' => false,
-                'auto_increment' => true,
-            ],
-            'nome' => [
-                'type' => 'VARCHAR',
-                'constraint' => 50,
-                'null' => false,
-            ],
-            'client_id' => [
-                'type' => 'VARCHAR',
-                'constraint' => 200,
-                'null' => false,
-            ],
-            'client_secret' => [
-                'type' => 'VARCHAR',
-                'constraint' => 200,
-                'null' => false,
-            ],
-            'public_key' => [
-                'type' => 'VARCHAR',
-                'constraint' => 200,
-                'null' => false,
-            ],
-            'access_token' => [
-                'type' => 'VARCHAR',
-                'constraint' => 200,
-                'null' => false,
-            ],
-
-            'default_pag' => [
-                'type' => 'INT',
-                'null' => false,
-            ],
-        ]);
-        $this->dbforge->add_key('idPag', true);
-        $this->dbforge->create_table('pagamento', true);
-        $this->db->query('ALTER TABLE `pagamento` ENGINE = InnoDB');
-    }
-
-    private function m20121031100537_00_down()
-    {
-        //## Drop table configuracoes ##
-        $this->dbforge->drop_table('configuracoes', true);
-
-        //## Drop table anotacoes_os ##
-        $this->dbforge->drop_table('anotacoes_os', true);
-
-        //## Drop table email_queue ##
-        $this->dbforge->drop_table('email_queue', true);
-
-        //## Drop table emitente ##
-        $this->dbforge->drop_table('emitente', true);
-
-        //## Drop table logs ##
-        $this->dbforge->drop_table('logs', true);
-
-        //## Drop table equipamentos_os ##
-        $this->dbforge->drop_table('equipamentos_os', true);
-
-        //## Drop table equipamentos ##
-        $this->dbforge->drop_table('equipamentos', true);
-
-        //## Drop table marcas ##
-        $this->dbforge->drop_table('marcas', true);
-
-        //## Drop table documentos ##
-        $this->dbforge->drop_table('documentos', true);
-
-        //## Drop table anexos ##
-        $this->dbforge->drop_table('anexos', true);
-
-        //## Drop table itens_de_vendas ##
-        $this->dbforge->drop_table('itens_de_vendas', true);
-
-        //## Drop table vendas ##
-        $this->dbforge->drop_table('vendas', true);
-
-        //## Drop table servicos_os ##
-        $this->dbforge->drop_table('servicos_os', true);
-
-        //## Drop table servicos ##
-        $this->dbforge->drop_table('servicos', true);
-
-        //## Drop table produtos_os ##
-        $this->dbforge->drop_table('produtos_os', true);
-
-        //## Drop table produtos ##
-        $this->dbforge->drop_table('produtos', true);
-
-        //## Drop table os ##
-        $this->dbforge->drop_table('os', true);
-
-        //## Drop table garantias ##
-        $this->dbforge->drop_table('garantias', true);
-
-        //## Drop table usuarios ##
-        $this->dbforge->drop_table('usuarios', true);
-
-        //## Drop table permissoes ##
-        $this->dbforge->drop_table('permissoes', true);
-
-        //## Drop table lancamentos ##
-        $this->dbforge->drop_table('lancamentos', true);
-
-        //## Drop table contas ##
-        $this->dbforge->drop_table('contas', true);
-
-        //## Drop table clientes ##
-        $this->dbforge->drop_table('categorias', true);
-
-        //## Drop table clientes ##
-        $this->dbforge->drop_table('clientes', true);
-
-        //## Drop table ci_sessions ##
-        $this->dbforge->drop_table('ci_sessions', true);
-
-        //## Drop table pagamento ##
-        $this->dbforge->drop_table('pagamento', true);
-    }
-
-    // ---- 20200306012421_add_cep_to_usuarios_table.php ----
-    private function m20200306012421_01_up()
-    {
-        $this->dbforge->add_column('usuarios', [
-            'cep' => [
-                'type' => 'VARCHAR',
-                'constraint' => 9,
-                'null' => false,
-                'default' => '70005-115',
-            ],
-        ]);
-    }
-
-    private function m20200306012421_01_down()
-    {
-        $this->dbforge->drop_column('usuarios', 'cep');
-    }
-
-    // ---- 20200428012421_add_contato_and_complemento_to_clientes_table.php ----
-    private function m20200428012421_02_up()
-    {
-        $this->dbforge->add_column('clientes', [
-            'contato' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-                'default' => null,
-            ],
-            'complemento' => [
-                'type' => 'VARCHAR',
-                'constraint' => 45,
-                'null' => true,
-                'default' => null,
-            ],
-        ]);
-    }
-
-    private function m20200428012421_02_down()
-    {
-        $this->dbforge->drop_column('clientes', 'contato');
-        $this->dbforge->drop_column('clientes', 'complemento');
-    }
-
-    // ---- 20200921012421_add_observacoes_to_vendas_table.php ----
-    private function m20200921012421_03_up()
-    {
-        $this->dbforge->add_column('vendas', [
-            'observacoes' => [
-                'type' => 'TEXT',
-                'null' => true,
-                'default' => null,
-            ],
-        ]);
-    }
-
-    private function m20200921012421_03_down()
-    {
-        $this->dbforge->drop_column('vendas', 'observacoes');
-    }
-
-    // ---- 20200921012422_add_observacoes_cliente_to_vendas_table.php ----
-    private function m20200921012422_04_up()
-    {
-        $this->dbforge->add_column('vendas', [
-            'observacoes_cliente' => [
-                'type' => 'TEXT',
-                'null' => true,
-                'default' => null,
-            ],
-        ]);
-    }
-
-    private function m20200921012422_04_down()
-    {
-        $this->dbforge->drop_column('vendas', 'observacoes_cliente');
-    }
-
-    // ---- 20200921012423_add_observacoes_to_lancamentos_table.php ----
-    private function m20200921012423_05_up()
-    {
-        $this->dbforge->add_column('lancamentos', [
-            'observacoes' => [
-                'type' => 'TEXT',
-                'null' => true,
-                'default' => null,
-            ],
-        ]);
-    }
-
-    private function m20200921012423_05_down()
-    {
-        $this->dbforge->drop_column('lancamentos', 'observacoes');
-    }
-
-    // ---- 20201224012424_add_cep_to_emitente_table.php ----
+    // ---- 20201224012424_add_cep_to_emitente_table.php (add coluna nao coberta: emitente.cep) ----
     private function m20201224012424_06_up()
     {
         $this->dbforge->add_column('emitente', [
@@ -1769,7 +256,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->dbforge->drop_column('emitente', 'cep');
     }
 
-    // ---- 20201230231550_add_controle_cobrancas.php ----
+    // ---- 20201230231550_add_controle_cobrancas.php (faz seed (insert/update)) ----
     private function m20201230231550_07_up()
     {
         $this->dbforge->add_field([
@@ -1886,7 +373,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->dbforge->drop_table('cobrancas');
     }
 
-    // ---- 20210105223548_add_cobrancas_cliente.php ----
+    // ---- 20210105223548_add_cobrancas_cliente.php (faz seed (insert/update)) ----
     private function m20210105223548_08_up()
     {
         $this->dbforge->add_column('cobrancas', [
@@ -1910,7 +397,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->dbforge->drop_table('cobrancas');
     }
 
-    // ---- 20210107190526_fix_table_cobrancas.php ----
+    // ---- 20210107190526_fix_table_cobrancas.php (muda tipo/charset/drop) ----
     private function m20210107190526_09_up()
     {
         $this->db->query('ALTER TABLE `cobrancas` CHANGE `idCobranca` `idCobranca` INT(11) NOT NULL AUTO_INCREMENT');
@@ -1921,7 +408,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->dbforge->drop_table('cobrancas');
     }
 
-    // ---- 20210108201419_add_usuarios_lancamentos.php ----
+    // ---- 20210108201419_add_usuarios_lancamentos.php (faz seed (insert/update)) ----
     private function m20210108201419_10_up()
     {
         $this->dbforge->add_column('lancamentos', [
@@ -1945,7 +432,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->dbforge->drop_column('lancamentos', 'usuarios_id');
     }
 
-    // ---- 20210110153941_feature_notificawhats.php ----
+    // ---- 20210110153941_feature_notificawhats.php (faz seed (insert/update); muda tipo/charset/drop) ----
     private function m20210110153941_11_up()
     {
         $this->db->query('ALTER TABLE `configuracoes` CHANGE `valor` `valor` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL');
@@ -1959,7 +446,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->db->query('ALTER TABLE `configuracoes` CHANGE `valor` `valor` VARCHAR(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL;');
     }
 
-    // ---- 20210114151942_feature_control_baixaretroativa.php ----
+    // ---- 20210114151942_feature_control_baixaretroativa.php (faz seed (insert/update)) ----
     private function m20210114151942_12_up()
     {
         $sql = "INSERT INTO `configuracoes` (`idConfig`, `config`, `valor`) VALUES (8, 'control_baixa', 0)";
@@ -1971,7 +458,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->db->query('DELETE FROM `configuracoes` WHERE `configuracoes`.`idConfig` = 8');
     }
 
-    // ---- 20210114151943_drop_table_pagamento.php ----
+    // ---- 20210114151943_drop_table_pagamento.php (faz seed (insert/update); muda tipo/charset/drop) ----
     private function m20210114151943_13_up()
     {
         $this->dbforge->drop_table('pagamento');
@@ -1999,7 +486,7 @@ class Migration_consolidado_completo extends CI_Migration
         ) ENGINE=InnoDB;');
     }
 
-    // ---- 20210114151944_add_payment_gateway_to_cobrancas.php ----
+    // ---- 20210114151944_add_payment_gateway_to_cobrancas.php (faz seed (insert/update)) ----
     private function m20210114151944_14_up()
     {
         $this->dbforge->add_column('cobrancas', [
@@ -2019,7 +506,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->dbforge->drop_column('cobrancas', 'payment_gateway');
     }
 
-    // ---- 20210125023104_controle_editar_os.php ----
+    // ---- 20210125023104_controle_editar_os.php (faz seed (insert/update)) ----
     private function m20210125023104_15_up()
     {
         $sql = "INSERT INTO `configuracoes` (`idConfig`, `config`, `valor`) VALUES (9, 'control_editos', 1)";
@@ -2031,19 +518,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->db->query('DELETE FROM `configuracoes` WHERE `configuracoes`.`idConfig` = 9');
     }
 
-    // ---- 20210125151515_add_clientefornecedor.php ----
-    private function m20210125151515_16_up()
-    {
-        $sql = 'ALTER TABLE `clientes` ADD `fornecedor` BOOLEAN NOT NULL DEFAULT FALSE';
-        $this->db->query($sql);
-    }
-
-    private function m20210125151515_16_down()
-    {
-        $this->db->query('ALTER TABLE `clientes` DROP `fornecedor`;');
-    }
-
-    // ---- 20210125173737_add_control_datatable.php ----
+    // ---- 20210125173737_add_control_datatable.php (faz seed (insert/update)) ----
     private function m20210125173737_17_up()
     {
         $sql = "INSERT INTO `configuracoes` (`idConfig`, `config`, `valor`) VALUES (10, 'control_datatable', 1)";
@@ -2055,7 +530,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->db->query('DELETE FROM `configuracoes` WHERE `configuracoes`.`idConfig` = 10');
     }
 
-    // ---- 20210125173738_add_pix_key.php ----
+    // ---- 20210125173738_add_pix_key.php (faz seed (insert/update)) ----
     private function m20210125173738_18_up()
     {
         $sql = "INSERT INTO `configuracoes` (`idConfig`, `config`, `valor`) VALUES (11, 'pix_key', '')";
@@ -2067,7 +542,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->db->query('DELETE FROM `configuracoes` WHERE `configuracoes`.`idConfig` = 11');
     }
 
-    // ---- 20210125173739_add_os_status_list.php ----
+    // ---- 20210125173739_add_os_status_list.php (faz seed (insert/update)) ----
     private function m20210125173739_19_up()
     {
         $sql = "INSERT INTO `configuracoes` (`idConfig`, `config`, `valor`) VALUES (12, 'os_status_list', '[\"Aberto\",\"Faturado\",\"Negocia\\u00e7\\u00e3o\",\"Em Andamento\",\"Or\\u00e7amento\",\"Finalizado\",\"Cancelado\",\"Aguardando Pe\\u00e7as\"]')";
@@ -2079,7 +554,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->db->query('DELETE FROM `configuracoes` WHERE `configuracoes`.`idConfig` = 12');
     }
 
-    // ---- 20210125173740_add_aprovado_to_status_list.php ----
+    // ---- 20210125173740_add_aprovado_to_status_list.php (faz seed (insert/update)) ----
     private function m20210125173740_20_up()
     {
         $configurationSql = '
@@ -2106,7 +581,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->db->query("UPDATE `configuracoes` SET valor = '[\"Aberto\",\"Faturado\",\"Negocia\\u00e7\\u00e3o\",\"Em Andamento\",\"Or\\u00e7amento\",\"Finalizado\",\"Cancelado\",\"Aguardando Pe\\u00e7as\"]' WHERE idConfig = 12");
     }
 
-    // ---- 20210125173741_asaas_payment_gateway.php ----
+    // ---- 20210125173741_asaas_payment_gateway.php (muda tipo/charset/drop) ----
     private function m20210125173741_21_up()
     {
         // Um comando SQL por chamada: o driver mysqli/MySQL 8 rejeita
@@ -2125,40 +600,7 @@ class Migration_consolidado_completo extends CI_Migration
         }
     }
 
-    // ---- 20220216173741_upload_image_user.php ----
-    private function m20220216173741_22_up()
-    {
-        $this->db->query('ALTER TABLE `usuarios` ADD `url_image_user` varchar(255) NULL');
-    }
-
-    private function m20220216173741_22_down()
-    {
-        $this->db->query('ALTER TABLE `usuarios` DROP `url_image_user`;');
-    }
-
-    // ---- 20220307173741_add_password_client.php ----
-    private function m20220307173741_23_up()
-    {
-        $this->db->query('ALTER TABLE `clientes` ADD `senha` VARCHAR(200) NOT NULL;');
-        $this->db->query('CREATE TABLE `resets_de_senha` ( 
-                `id` INT NOT NULL AUTO_INCREMENT,
-                `email` VARCHAR(200) NOT NULL , 
-                `token` VARCHAR(255) NOT NULL , 
-                `data_expiracao` DATETIME NOT NULL, 
-                `token_utilizado` TINYINT NOT NULL,
-                PRIMARY KEY (`id`))
-              ENGINE = InnoDB
-              DEFAULT CHARACTER SET = latin1;
-        ');
-    }
-
-    private function m20220307173741_23_down()
-    {
-        $this->db->query('ALTER TABLE `clientes` DROP `senha`;');
-        $this->db->query('DROP TABLE `resets_de_senha`;');
-    }
-
-    // ---- 20220313023104_controle_editar_vendas.php ----
+    // ---- 20220313023104_controle_editar_vendas.php (faz seed (insert/update)) ----
     private function m20220313023104_24_up()
     {
         $this->db->query("INSERT INTO `configuracoes` (`idConfig`, `config`, `valor`) VALUES (13, 'control_edit_vendas', 1);");
@@ -2169,7 +611,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->db->query('DELETE FROM `configuracoes` WHERE `configuracoes`.`idConfig` = 13');
     }
 
-    // ---- 20220320173741_add_desconto_lancamentos_os_vendas.php ----
+    // ---- 20220320173741_add_desconto_lancamentos_os_vendas.php (faz seed (insert/update); muda tipo/charset/drop) ----
     private function m20220320173741_25_up()
     {
         $this->db->query('ALTER TABLE `lancamentos` CHANGE `valor` `valor` DECIMAL(10,2) NOT NULL DEFAULT 0');
@@ -2202,35 +644,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->db->query('DELETE FROM `configuracoes` WHERE `configuracoes`.`idConfig` = 14');
     }
 
-    // ---- 20221112173741_add_tipo_desconto_os_vendas.php ----
-    private function m20221112173741_26_up()
-    {
-        $this->db->query('ALTER TABLE `os` ADD `tipo_desconto` VARCHAR(8) NULL DEFAULT NULL');
-        $this->db->query('ALTER TABLE `vendas` ADD `tipo_desconto` VARCHAR(8) NULL DEFAULT NULL');
-        $this->db->query('ALTER TABLE `lancamentos` ADD `tipo_desconto` VARCHAR(8) NULL DEFAULT NULL');
-    }
-
-    private function m20221112173741_26_down()
-    {
-        $this->db->query('ALTER TABLE `os` DROP `tipo_desconto`');
-        $this->db->query('ALTER TABLE `vendas` DROP `tipo_desconto`');
-        $this->db->query('ALTER TABLE `lancamentos` DROP `tipo_desconto`');
-    }
-
-    // ---- 20221119210810_add_asaas_id_clientes.php ----
-    private function m20221119210810_27_up()
-    {
-        $this->db->query('ALTER TABLE `clientes` ADD `asaas_id` VARCHAR(255) NULL DEFAULT NULL');
-        $this->db->query('ALTER TABLE `usuarios` DROP `asaas_id`');
-    }
-
-    private function m20221119210810_27_down()
-    {
-        $this->db->query('ALTER TABLE `clientes` DROP `asaas_id`');
-        $this->db->query('ALTER TABLE `usuarios` DROP `asaas_id`');
-    }
-
-    // ---- 20221130180810_add_config_control_print_2ways_os.php ----
+    // ---- 20221130180810_add_config_control_print_2ways_os.php (faz seed (insert/update)) ----
     private function m20221130180810_28_up()
     {
         $this->db->query("INSERT INTO `configuracoes` (`idConfig`, `config`, `valor`) VALUES (15, 'control_2vias', 0);");
@@ -2241,7 +655,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->db->query('DELETE FROM `configuracoes` WHERE `configuracoes`.`idConfig` = 15');
     }
 
-    // ---- 20230428110810_alter_charset_configuracoes.php ----
+    // ---- 20230428110810_alter_charset_configuracoes.php (faz seed (insert/update); muda tipo/charset/drop) ----
     private function m20230428110810_29_up()
     {
         $this->db->query('ALTER TABLE `configuracoes` CHANGE `config` `config` VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL;');
@@ -2253,7 +667,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->db->query('DELETE FROM `configuracoes` WHERE `configuracoes`.`idConfig` = 7');
     }
 
-    // ---- 20240503170400_add_garantia_status_to_vendas_table.php ----
+    // ---- 20240503170400_add_garantia_status_to_vendas_table.php (add coluna nao parseavel (mantida por seguranca)) ----
     private function m20240503170400_30_up()
     {
         // Adiciona o campo garantia
@@ -2284,7 +698,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->dbforge->drop_column('vendas', 'status');
     }
 
-    // ---- 20250403000001_add_checkin_tables.php ----
+    // ---- 20250403000001_add_checkin_tables.php (cria tabela nova: os_assinaturas,os_checkin,os_fotos_atendimento) ----
     private function m20250403000001_31_up()
     {
         // Tabela de Check-in/Check-out da OS
@@ -2505,7 +919,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->dbforge->drop_table('os_fotos_atendimento', true);
     }
 
-    // ---- 20250403000002_add_permissao_atendimentos.php ----
+    // ---- 20250403000002_add_permissao_atendimentos.php (faz seed (insert/update)) ----
     private function m20250403000002_32_up()
     {
         // Adiciona a permissão vRelatorioAtendimentos ao grupo de permissões
@@ -2536,7 +950,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->db->delete('permissoes');
     }
 
-    // ---- 20250404000001_add_tecnico_os_relacao.php ----
+    // ---- 20250404000001_add_tecnico_os_relacao.php (cria tabela nova: os_tecnico_atribuicao; faz seed (insert/update)) ----
     private function m20250404000001_33_up()
     {
         // Adicionar campo tecnico_responsavel na tabela os
@@ -2637,7 +1051,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->dbforge->drop_table('os_tecnico_atribuicao', true);
     }
 
-    // ---- 20250404000002_add_permissoes_tecnico.php ----
+    // ---- 20250404000002_add_permissoes_tecnico.php (faz seed (insert/update)) ----
     private function m20250404000002_34_up()
     {
         // Verificar se ja existe um grupo de permissao chamado "Tecnico"
@@ -2742,7 +1156,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->db->delete('permissoes');
     }
 
-    // ---- 20250404000003_fix_home_acesso.php ----
+    // ---- 20250404000003_fix_home_acesso.php (cria tabela nova: os_tecnico_atribuicao) ----
     private function m20250404000003_35_up()
     {
         // Garantir que as permissões de técnico existam mas não bloqueiem o acesso
@@ -2815,7 +1229,7 @@ class Migration_consolidado_completo extends CI_Migration
         // Nao remove nada para manter a compatibilidade
     }
 
-    // ---- 20250405000001_add_permissao_btn_atendimento.php ----
+    // ---- 20250405000001_add_permissao_btn_atendimento.php (sem efeito detectavel — mantida por seguranca) ----
     private function m20250405000001_36_up()
     {
         // Esta migration documenta a adição da permissão vBtnAtendimento
@@ -2850,7 +1264,7 @@ class Migration_consolidado_completo extends CI_Migration
         log_message('info', 'Rollback vBtnAtendimento - nenhuma ação necessária');
     }
 
-    // ---- 20250405000002_add_dashboard_perm_admin.php ----
+    // ---- 20250405000002_add_dashboard_perm_admin.php (faz seed (insert/update)) ----
     private function m20250405000002_37_up()
     {
         // Buscar o grupo Administrador (idPermissao = 1)
@@ -2903,7 +1317,7 @@ class Migration_consolidado_completo extends CI_Migration
         }
     }
 
-    // ---- 20250405000003_fotos_atendimento_blob.php ----
+    // ---- 20250405000003_fotos_atendimento_blob.php (add coluna nao parseavel (mantida por seguranca)) ----
     private function m20250405000003_38_up()
     {
         // Adiciona coluna para armazenar imagem em base64
@@ -2967,7 +1381,7 @@ class Migration_consolidado_completo extends CI_Migration
         }
     }
 
-    // ---- 20250406000001_add_permissao_dashboard.php ----
+    // ---- 20250406000001_add_permissao_dashboard.php (faz seed (insert/update)) ----
     private function m20250406000001_39_up()
     {
         // Verificar se ja existe uma permissao chamada "Dashboard"
@@ -3017,7 +1431,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->db->delete('permissoes');
     }
 
-    // ---- 20260705000001_add_modulo_fiscal.php ----
+    // ---- 20260705000001_add_modulo_fiscal.php (cria tabela nova: configuracoes_nfe,notas_fiscais; faz seed (insert/update); muda tipo/charset/drop) ----
     private function m20260705000001_40_up()
     {
         // Tabela de configurações do módulo fiscal (NF-e / NFS-e Nacional)
@@ -3351,7 +1765,7 @@ class Migration_consolidado_completo extends CI_Migration
         }
     }
 
-    // ---- 20260706000001_add_cora_boleto_cobrancas.php ----
+    // ---- 20260706000001_add_cora_boleto_cobrancas.php (muda tipo/charset/drop) ----
     private function m20260706000001_41_up()
     {
         // charge_id: INT -> VARCHAR(64). Gateways (Cora, Asaas) usam id textual.
@@ -3407,7 +1821,7 @@ class Migration_consolidado_completo extends CI_Migration
         // charge_id permanece VARCHAR (compatível com todos os gateways).
     }
 
-    // ---- 20260706000002_add_configuracoes_cora.php ----
+    // ---- 20260706000002_add_configuracoes_cora.php (cria tabela nova: configuracoes_cora; faz seed (insert/update); muda tipo/charset/drop) ----
     private function m20260706000002_42_up()
     {
         $this->dbforge->add_field([
@@ -3477,7 +1891,7 @@ class Migration_consolidado_completo extends CI_Migration
         $this->dbforge->drop_table('configuracoes_cora', true);
     }
 
-    // ---- 20260706000003_add_codigo_tributacao_municipal.php ----
+    // ---- 20260706000003_add_codigo_tributacao_municipal.php (add coluna nao coberta: servicos.codigo_tributacao_municipal) ----
     private function m20260706000003_43_up()
     {
         if (!$this->db->field_exists('codigo_tributacao_municipal', 'servicos')) {
@@ -3499,7 +1913,7 @@ class Migration_consolidado_completo extends CI_Migration
         }
     }
 
-    // ---- 20260706000004_add_substituicao_nfse.php ----
+    // ---- 20260706000004_add_substituicao_nfse.php (add coluna nao coberta: notas_fiscais.substitui_nota_id) ----
     private function m20260706000004_44_up()
     {
         if (!$this->db->field_exists('substitui_nota_id', 'notas_fiscais')) {
@@ -3521,7 +1935,7 @@ class Migration_consolidado_completo extends CI_Migration
         }
     }
 
-    // ---- 20260706000005_add_webhook_cora.php ----
+    // ---- 20260706000005_add_webhook_cora.php (add coluna nao coberta: configuracoes_cora.webhook_endpoint_id) ----
     private function m20260706000005_45_up()
     {
         if (! $this->db->field_exists('webhook_endpoint_id', 'configuracoes_cora')) {
@@ -3543,7 +1957,7 @@ class Migration_consolidado_completo extends CI_Migration
         }
     }
 
-    // ---- 20260708000001_add_email_secundario_clientes.php ----
+    // ---- 20260708000001_add_email_secundario_clientes.php (add coluna nao coberta: clientes.email_secundario) ----
     private function m20260708000001_46_up()
     {
         // E-mail secundário (financeiro) do cliente, usado como destinatário
@@ -3568,7 +1982,7 @@ class Migration_consolidado_completo extends CI_Migration
         }
     }
 
-    // ---- 20260708000002_create_email_templates.php ----
+    // ---- 20260708000002_create_email_templates.php (cria tabela nova: email_templates) ----
     private function m20260708000002_47_up()
     {
         // Tabela de modelos de e-mail (um registro por tipo de e-mail enviado).
@@ -3775,7 +2189,7 @@ HTML;
 HTML;
     }
 
-    // ---- 20260709000001_create_notification_triggers.php ----
+    // ---- 20260709000001_create_notification_triggers.php (cria tabela nova: notification_triggers) ----
     private function m20260709000001_48_up()
     {
         if (! $this->db->table_exists('notification_triggers')) {
@@ -3850,7 +2264,7 @@ HTML;
         ];
     }
 
-    // ---- 20260709000002_add_attachments_email_queue.php ----
+    // ---- 20260709000002_add_attachments_email_queue.php (add coluna nao coberta: email_queue.attachments) ----
     private function m20260709000002_49_up()
     {
         // Anexos do e-mail: JSON com URLs (públicas) e/ou caminhos locais.
@@ -3873,7 +2287,7 @@ HTML;
         }
     }
 
-    // ---- 20260709000003_add_automacao_aprovacao.php ----
+    // ---- 20260709000003_add_automacao_aprovacao.php (add coluna nao coberta: clientes.automacao_aprovacao) ----
     private function m20260709000003_50_up()
     {
         // Flag por cliente: usar a automação de aprovação (NFS-e + boleto).
@@ -3916,7 +2330,7 @@ HTML;
         }
     }
 
-    // ---- 20260709000004_add_automacao_override_os_e_permissao.php ----
+    // ---- 20260709000004_add_automacao_override_os_e_permissao.php (faz seed (insert/update)) ----
     private function m20260709000004_51_up()
     {
         // Override por OS: NULL = herda do cliente; 1 = forçar ativo; 0 = desativar nesta OS.
@@ -3954,7 +2368,7 @@ HTML;
         }
     }
 
-    // ---- 20260709000005_add_tp_ret_issqn_cliente.php ----
+    // ---- 20260709000005_add_tp_ret_issqn_cliente.php (add coluna nao coberta: clientes.tp_ret_issqn) ----
     private function m20260709000005_52_up()
     {
         // Retenção de ISS da NFS-e por cliente:
@@ -3979,7 +2393,7 @@ HTML;
         }
     }
 
-    // ---- 20260709000006_widen_configuracoes.php ----
+    // ---- 20260709000006_widen_configuracoes.php (muda tipo/charset/drop) ----
     private function m20260709000006_53_up()
     {
         // A tabela configuracoes foi criada com config/valor em VARCHAR(20),
@@ -3995,7 +2409,7 @@ HTML;
         // Não reverte: voltar para VARCHAR(20) truncaria dados existentes.
     }
 
-    // ---- 20260710000001_add_faturamento_agendado.php ----
+    // ---- 20260710000001_add_faturamento_agendado.php (cria tabela nova: faturamentos_agendados; faz seed (insert/update)) ----
     private function m20260710000001_54_up()
     {
         // Flag por cliente: segurar a emissão até o dia de faturamento.
@@ -4091,7 +2505,7 @@ HTML;
         $this->db->where('config', 'automacao_faturamento_dia')->delete('configuracoes');
     }
 
-    // ---- 20260711000001_consolidado_updates_sessao.php ----
+    // ---- 20260711000001_consolidado_updates_sessao.php (cria tabela nova: clientes_vinculos,email_envios,whatsapp_envios,whatsapp_templates; faz seed (insert/update); muda tipo/charset/drop) ----
     private function m20260711000001_55_up()
     {
         /* 1) Portal do cliente multi-CNPJ ------------------------------- */
@@ -4292,7 +2706,7 @@ HTML;
         }
     }
 
-    // ---- 20260711000002_add_os_aprovacao.php ----
+    // ---- 20260711000002_add_os_aprovacao.php (add coluna nao parseavel (mantida por seguranca)) ----
     private $colunas = [
         'aprovacao_token' => "`aprovacao_token` VARCHAR(64) NULL DEFAULT NULL",
         'aprovacao_status' => "`aprovacao_status` VARCHAR(20) NULL DEFAULT NULL",
@@ -4334,7 +2748,7 @@ HTML;
         }
     }
 
-    // ---- 20260711000003_create_rh_estrutura.php ----
+    // ---- 20260711000003_create_rh_estrutura.php (cria tabela nova: rh_colaboradores,rh_jornadas,rh_unidades) ----
     private function m20260711000003_57_up()
     {
         // ------------------------------------------------------------------
@@ -4603,7 +3017,7 @@ HTML;
         }
     }
 
-    // ---- 20260711000004_create_rh_ponto.php ----
+    // ---- 20260711000004_create_rh_ponto.php (cria tabela nova: rh_face_biometria,rh_ocorrencias,rh_ponto_registros) ----
     private function m20260711000004_58_up()
     {
         // ------------------------------------------------------------------
@@ -4866,7 +3280,7 @@ HTML;
         }
     }
 
-    // ---- 20260711000005_create_rh_extras.php ----
+    // ---- 20260711000005_create_rh_extras.php (cria tabela nova: rh_ausencias,rh_horas,rh_lancamentos) ----
     private function m20260711000005_59_up()
     {
         // ------------------------------------------------------------------
@@ -5127,7 +3541,7 @@ HTML;
         }
     }
 
-    // ---- 20260711000006_add_rh_permissoes_e_config.php ----
+    // ---- 20260711000006_add_rh_permissoes_e_config.php (faz seed (insert/update); muda tipo/charset/drop) ----
     /** Flags exclusivas do administrador de RH. */
     private $flagsAdmin = ['vRh', 'eRh', 'aprovarRh', 'vRhFinanceiro', 'fecharFolha'];
 
@@ -5245,7 +3659,7 @@ HTML;
         }
     }
 
-    // ---- 20260712000001_create_rh_holerites.php ----
+    // ---- 20260712000001_create_rh_holerites.php (cria tabela nova: rh_holerites) ----
     private function m20260712000001_61_up()
     {
         if (! $this->db->table_exists('rh_holerites')) {
@@ -5318,7 +3732,7 @@ HTML;
         }
     }
 
-    // ---- 20260712000002_add_aprovacao_verificacao_token.php ----
+    // ---- 20260712000002_add_aprovacao_verificacao_token.php (add coluna nao parseavel (mantida por seguranca)) ----
     private $colunasOs = [
         'aprovacao_exige_token' => "`aprovacao_exige_token` TINYINT(1) NOT NULL DEFAULT 0",
         'aprovacao_codigo' => "`aprovacao_codigo` VARCHAR(64) NULL DEFAULT NULL",
@@ -5365,7 +3779,7 @@ HTML;
         }
     }
 
-    // ---- 20260712000003_add_aprovacao_token_numeros.php ----
+    // ---- 20260712000003_add_aprovacao_token_numeros.php (add coluna nao coberta: os.aprovacao_token_numeros,clientes.aprovacao_token_numeros) ----
     private function m20260712000003_63_up()
     {
         if ($this->db->table_exists('os') && ! $this->db->field_exists('aprovacao_token_numeros', 'os')) {
@@ -5387,7 +3801,7 @@ HTML;
         }
     }
 
-    // ---- 20260712000004_add_ponto_os_vinculo.php ----
+    // ---- 20260712000004_add_ponto_os_vinculo.php (add coluna nao coberta: rh_ponto_registros.os_id,os.latitude,os.longitude) ----
     private function m20260712000004_64_up()
     {
         if ($this->db->table_exists('rh_ponto_registros')
@@ -5426,7 +3840,7 @@ HTML;
         // Mantém os.latitude/longitude (podem ser usados por outros recursos).
     }
 
-    // ---- 20260712000005_add_ocorrencia_correcao.php ----
+    // ---- 20260712000005_add_ocorrencia_correcao.php (add coluna nao coberta: rh_ocorrencias.correcao_tipo,rh_ocorrencias.correcao_data_hora,rh_ocorrencias.correcao_aplicada) ----
     private function m20260712000005_65_up()
     {
         if (! $this->db->table_exists('rh_ocorrencias')) {
@@ -5473,7 +3887,7 @@ HTML;
         }
     }
 
-    // ---- 20260714000001_rh_melhorias_clt.php ----
+    // ---- 20260714000001_rh_melhorias_clt.php (faz seed (insert/update); muda tipo/charset/drop) ----
     private function m20260714000001_66_up()
     {
         // ------------------------------------------------------------------
@@ -5656,7 +4070,7 @@ HTML;
         }
     }
 
-    // ---- 20260715000001_add_whatsapp_clientes_gatilhos.php ----
+    // ---- 20260715000001_add_whatsapp_clientes_gatilhos.php (add coluna nao coberta: notification_triggers.whatsapp_clientes) ----
     private function m20260715000001_67_up()
     {
         if (! $this->db->table_exists('notification_triggers')) {
@@ -5681,7 +4095,7 @@ HTML;
         }
     }
 
-    // ---- 20260715000002_add_xml_notas_fiscais.php ----
+    // ---- 20260715000002_add_xml_notas_fiscais.php (add coluna nao coberta: notas_fiscais.xml) ----
     private function m20260715000002_68_up()
     {
         if (! $this->db->table_exists('notas_fiscais')) {
@@ -5707,7 +4121,7 @@ HTML;
         }
     }
 
-    // ---- 20260716000001_rh_ponto_inicio_e_desconto_flag.php ----
+    // ---- 20260716000001_rh_ponto_inicio_e_desconto_flag.php (faz seed (insert/update)) ----
     private function m20260716000001_69_up()
     {
         if ($this->db->table_exists('rh_colaboradores')
@@ -5744,7 +4158,7 @@ HTML;
         }
     }
 
-    // ---- 20260718000001_add_os_data_atribuicao.php ----
+    // ---- 20260718000001_add_os_data_atribuicao.php (faz seed (insert/update)) ----
     private function m20260718000001_70_up()
     {
         if (! $this->db->table_exists('os')) {
@@ -5797,7 +4211,7 @@ HTML;
         }
     }
 
-    // ---- 20260718000001_add_os_nao_programada.php ----
+    // ---- 20260718000001_add_os_nao_programada.php (faz seed (insert/update)) ----
     private function m20260718000001_71_up()
     {
         // 1) Coluna de marcação da OS -----------------------------------
@@ -5858,7 +4272,7 @@ HTML;
         }
     }
 
-    // ---- 20260719000001_restore_permissao_fiscal_admin.php ----
+    // ---- 20260719000001_restore_permissao_fiscal_admin.php (faz seed (insert/update)) ----
     private function m20260719000001_72_up()
     {
         if (! $this->db->table_exists('permissoes')) {
