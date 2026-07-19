@@ -28,6 +28,9 @@ ci_sessions/
 
 uploads
 application/.env
+application/.env.*
+application/cache/*.lock
+graphify-out/
 assets/userImage
 
 # Dados de runtime (não versionar)
