@@ -80,6 +80,7 @@ class Permissoes extends MY_Controller
                 'eTecnicoCheckin' => $this->input->post('eTecnicoCheckin'),
                 'eTecnicoCheckout' => $this->input->post('eTecnicoCheckout'),
                 'eTecnicoFotos' => $this->input->post('eTecnicoFotos'),
+                'vTecnicoMapa' => $this->input->post('vTecnicoMapa'),
                 'aTecnicoAtividade' => $this->input->post('aTecnicoAtividade'),
                 'vTecnicoDashboard' => $this->input->post('vTecnicoDashboard'),
 
@@ -210,6 +211,7 @@ class Permissoes extends MY_Controller
                 'eTecnicoCheckin' => $this->input->post('eTecnicoCheckin'),
                 'eTecnicoCheckout' => $this->input->post('eTecnicoCheckout'),
                 'eTecnicoFotos' => $this->input->post('eTecnicoFotos'),
+                'vTecnicoMapa' => $this->input->post('vTecnicoMapa'),
                 'aTecnicoAtividade' => $this->input->post('aTecnicoAtividade'),
                 'vTecnicoDashboard' => $this->input->post('vTecnicoDashboard'),
 

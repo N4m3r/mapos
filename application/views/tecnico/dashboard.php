@@ -17,6 +17,13 @@ $this->load->view('tecnico/_topo', [
         </a>
     <?php endif; ?>
 
+    <?php if (!empty($nao_realizadas_pendentes)): ?>
+        <a href="<?= site_url('tecnico/nao_realizadas') ?>" class="btn-tec block" style="margin-bottom:18px; background:rgba(231,76,60,.12); color:var(--tec-danger,#e74c3c); display:flex; align-items:center; justify-content:space-between;">
+            <span><i class='bx bx-x-circle'></i> Serviços não realizados</span>
+            <span class="count" style="background:var(--tec-danger,#e74c3c); color:#fff;"><?= (int) $nao_realizadas_pendentes ?></span>
+        </a>
+    <?php endif; ?>
+
     <!-- Estatisticas -->
     <div class="tec-stats">
         <div class="tec-stat">

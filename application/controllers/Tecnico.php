@@ -16,6 +16,8 @@ class Tecnico extends MY_Controller
         $this->load->model('assinaturas_model');
         $this->load->model('fotosatendimento_model');
         $this->load->model('tecnico_model');
+        $this->load->model('localizacao_model');
+        $this->load->model('naorealizada_model');
         $this->load->model('mapos_model');
 
         // Helper 'text' (character_limiter) usado nas views do tecnico; nao esta no autoload
@@ -54,6 +56,9 @@ class Tecnico extends MY_Controller
         $data['pode_ver_sistema'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs');
         $data['pode_criar_atividade'] = $this->podeCriarAtividade();
         $data['nome_tecnico'] = $this->session->userdata('nome_admin');
+
+        // Serviços não realizados aguardando decisão (reagendar/refazer)
+        $data['nao_realizadas_pendentes'] = $this->naorealizada_model->contarPendentes($tecnico_id);
 
         // Titulo da pagina
         $data['titulo'] = 'Área do Técnico - Dashboard';
@@ -169,6 +174,16 @@ class Tecnico extends MY_Controller
             $this->session->userdata('permissao'),
             'eTecnicoCheckout'
         );
+
+        // Serviço não realizado: permissão, lista de motivos e ocorrência
+        // pendente (se a OS já está em espera).
+        $data['permissao_nao_realizado'] = $this->permission->checkPermission(
+            $this->session->userdata('permissao'),
+            'eTecnicoNaoRealizado'
+        );
+        $data['motivos_nao_realizado'] = $this->naorealizada_model->getMotivos(true);
+        $data['nao_realizada_pendente'] = $this->naorealizada_model->getPendentePorOs($os_id);
+        $data['nao_realizada_historico'] = $this->naorealizada_model->getHistoricoPorOs($os_id);
 
         // Atalho para o painel principal (se tiver acesso)
         $data['pode_ver_sistema'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs');
@@ -289,6 +304,304 @@ class Tecnico extends MY_Controller
         // Nota: Não usar redirect em AJAX - retorna sucesso para o cliente chamar
         echo json_encode(['success' => true, 'message' => 'Pronto para finalizar atendimento', 'redirect' => 'checkin/finalizar']);
         return;
+    }
+
+    /**
+     * Recebe um ping de localização em tempo real do dispositivo do técnico.
+     * Só grava se houver um check-in ativo do próprio técnico na OS informada,
+     * garantindo que o rastreio acontece apenas durante um atendimento em campo.
+     */
+    public function registrar_localizacao()
+    {
+        if (!$this->input->is_ajax_request()) {
+            echo json_encode(['success' => false, 'message' => 'Requisição inválida']);
+            return;
+        }
+
+        $tecnico_id = $this->session->userdata('id_admin');
+        $os_id      = $this->input->post('os_id');
+        $latitude   = $this->input->post('latitude');
+        $longitude  = $this->input->post('longitude');
+
+        if (!$os_id || $latitude === null || $latitude === '' || $longitude === null || $longitude === '') {
+            echo json_encode(['success' => false, 'message' => 'Coordenadas ou OS ausentes']);
+            return;
+        }
+
+        // A OS precisa pertencer ao técnico logado.
+        $os = $this->tecnico_model->getOsById($os_id, $tecnico_id);
+        if (!$os) {
+            echo json_encode(['success' => false, 'message' => 'OS não designada a você']);
+            return;
+        }
+
+        // Precisa existir um check-in ativo (atendimento em andamento).
+        $checkin = $this->checkin_model->getCheckinAtivo($os_id);
+        if (!$checkin) {
+            echo json_encode(['success' => false, 'active' => false, 'message' => 'Sem atendimento ativo']);
+            return;
+        }
+
+        $precisao   = $this->input->post('precisao');
+        $velocidade = $this->input->post('velocidade');
+        $bateria    = $this->input->post('bateria');
+
+        $id = $this->localizacao_model->registrarPing([
+            'usuarios_id' => $tecnico_id,
+            'os_id'       => $os_id,
+            'checkin_id'  => $checkin->idCheckin,
+            'latitude'    => $latitude,
+            'longitude'   => $longitude,
+            'precisao'    => ($precisao !== null && $precisao !== '') ? $precisao : null,
+            'velocidade'  => ($velocidade !== null && $velocidade !== '') ? $velocidade : null,
+            'bateria'     => ($bateria !== null && $bateria !== '') ? (int) $bateria : null,
+            'data_hora'   => date('Y-m-d H:i:s'),
+        ]);
+
+        echo json_encode([
+            'success' => (bool) $id,
+            'active'  => true,
+        ]);
+    }
+
+    /* ================================================================= *
+     *  SERVIÇO NÃO REALIZADO (não foi possível executar em campo)
+     * ================================================================= */
+
+    /**
+     * Marca a OS como "Não Realizado", com motivo padronizado + observação.
+     * A OS fica num painel de espera para depois ser reagendada ou reaberta.
+     */
+    public function nao_realizado()
+    {
+        if (!$this->input->is_ajax_request()) {
+            echo json_encode(['success' => false, 'message' => 'Requisição inválida']);
+            return;
+        }
+
+        if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'eTecnicoNaoRealizado')) {
+            echo json_encode(['success' => false, 'message' => 'Sem permissão para registrar serviço não realizado']);
+            return;
+        }
+
+        $os_id = (int) $this->input->post('os_id');
+        $tecnico_id = $this->session->userdata('id_admin');
+
+        $os = $this->tecnico_model->getOsById($os_id, $tecnico_id);
+        if (!$os) {
+            echo json_encode(['success' => false, 'message' => 'OS não encontrada ou não designada a você']);
+            return;
+        }
+
+        // Não faz sentido marcar como não realizado uma OS já concluída.
+        if (in_array($os->status, ['Finalizado', 'Faturado', 'Cancelado'], true)) {
+            echo json_encode(['success' => false, 'message' => 'Esta OS já está ' . $os->status . ' e não pode ser marcada como não realizada.']);
+            return;
+        }
+
+        $motivo_id = (int) $this->input->post('motivo_id');
+        $observacao = trim((string) $this->input->post('observacao'));
+
+        // Exige ao menos um motivo OU uma observação.
+        if (!$motivo_id && $observacao === '') {
+            echo json_encode(['success' => false, 'message' => 'Selecione um motivo ou descreva o que aconteceu.']);
+            return;
+        }
+
+        // Se houver atendimento em andamento, finaliza-o registrando o motivo.
+        $checkin = $this->checkin_model->getCheckinAtivo($os_id);
+        if ($checkin) {
+            $this->checkin_model->finalizarAtendimento($checkin->idCheckin, [
+                'data_saida' => date('Y-m-d H:i:s'),
+                'observacao_saida' => 'Serviço não realizado' . ($observacao !== '' ? ': ' . $observacao : ''),
+                'status' => 'Finalizado',
+            ]);
+        }
+
+        $id = $this->naorealizada_model->registrar(
+            $os_id,
+            $tecnico_id,
+            $motivo_id,
+            $observacao,
+            $os->status
+        );
+
+        if (!$id) {
+            echo json_encode(['success' => false, 'message' => 'Não foi possível registrar. Verifique se o banco está atualizado.']);
+            return;
+        }
+
+        log_info('Técnico marcou OS como não realizada. OS ID: ' . $os_id);
+        echo json_encode([
+            'success' => true,
+            'message' => 'Registrado! A OS ficou em espera na aba "Não Realizadas".',
+        ]);
+    }
+
+    /**
+     * Painel de espera: OS marcadas como "Não Realizado" aguardando decisão.
+     */
+    public function nao_realizadas()
+    {
+        $tecnico_id = $this->session->userdata('id_admin');
+
+        $data['ocorrencias'] = $this->naorealizada_model->getPendentes($tecnico_id);
+        $data['emitente'] = $this->mapos_model->getEmitente();
+        $data['pode_ver_sistema'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs');
+        $data['pode_gerenciar_motivos'] = $this->podeGerenciarMotivos();
+        $data['titulo'] = 'Serviços Não Realizados';
+
+        $this->load->view('tecnico/nao_realizadas', $data);
+    }
+
+    /**
+     * Reagenda uma OS não realizada para uma nova data (volta à agenda).
+     */
+    public function reagendar_atividade()
+    {
+        if (!$this->input->is_ajax_request()) {
+            echo json_encode(['success' => false, 'message' => 'Requisição inválida']);
+            return;
+        }
+
+        $ocorrencia_id = (int) $this->input->post('ocorrencia_id');
+        $nova_data = trim((string) $this->input->post('nova_data'));
+        $tecnico_id = $this->session->userdata('id_admin');
+
+        $oc = $this->naorealizada_model->getOcorrencia($ocorrencia_id);
+        if (!$oc) {
+            echo json_encode(['success' => false, 'message' => 'Ocorrência não encontrada.']);
+            return;
+        }
+
+        // Confirma que a OS pertence ao técnico.
+        if (!$this->tecnico_model->getOsById($oc->os_id, $tecnico_id)) {
+            echo json_encode(['success' => false, 'message' => 'OS não designada a você.']);
+            return;
+        }
+
+        if ($nova_data === '' || !strtotime($nova_data)) {
+            echo json_encode(['success' => false, 'message' => 'Informe uma data válida para o reagendamento.']);
+            return;
+        }
+
+        if (!$this->naorealizada_model->reagendar($ocorrencia_id, $nova_data, $tecnico_id)) {
+            echo json_encode(['success' => false, 'message' => 'Não foi possível reagendar (talvez já resolvida).']);
+            return;
+        }
+
+        log_info('Técnico reagendou OS não realizada. OS ID: ' . $oc->os_id);
+        echo json_encode(['success' => true, 'message' => 'OS reagendada para ' . date('d/m/Y', strtotime($nova_data)) . '.']);
+    }
+
+    /**
+     * Reabre uma OS não realizada para refazer (sem alterar a data).
+     */
+    public function reabrir_atividade()
+    {
+        if (!$this->input->is_ajax_request()) {
+            echo json_encode(['success' => false, 'message' => 'Requisição inválida']);
+            return;
+        }
+
+        $ocorrencia_id = (int) $this->input->post('ocorrencia_id');
+        $tecnico_id = $this->session->userdata('id_admin');
+
+        $oc = $this->naorealizada_model->getOcorrencia($ocorrencia_id);
+        if (!$oc) {
+            echo json_encode(['success' => false, 'message' => 'Ocorrência não encontrada.']);
+            return;
+        }
+
+        if (!$this->tecnico_model->getOsById($oc->os_id, $tecnico_id)) {
+            echo json_encode(['success' => false, 'message' => 'OS não designada a você.']);
+            return;
+        }
+
+        if (!$this->naorealizada_model->reabrir($ocorrencia_id, $tecnico_id)) {
+            echo json_encode(['success' => false, 'message' => 'Não foi possível reabrir (talvez já resolvida).']);
+            return;
+        }
+
+        log_info('Técnico reabriu OS não realizada. OS ID: ' . $oc->os_id);
+        echo json_encode(['success' => true, 'message' => 'OS reaberta para refazer.']);
+    }
+
+    /* ================================================================= *
+     *  MOTIVOS (lista gerenciável de "não realizado")
+     * ================================================================= */
+
+    private function podeGerenciarMotivos()
+    {
+        return $this->permission->checkPermission(
+            $this->session->userdata('permissao'),
+            'cMotivoNaoRealizado'
+        );
+    }
+
+    /**
+     * Tela para gerenciar (adicionar/remover) os motivos de "não realizado".
+     */
+    public function motivos_nao_realizado()
+    {
+        if (!$this->podeGerenciarMotivos()) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para gerenciar motivos.');
+            redirect('tecnico/nao_realizadas');
+        }
+
+        $data['motivos'] = $this->naorealizada_model->getMotivos(false);
+        $data['emitente'] = $this->mapos_model->getEmitente();
+        $data['pode_ver_sistema'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs');
+        $data['titulo'] = 'Motivos de Não Realizado';
+
+        $this->load->view('tecnico/motivos_nao_realizado', $data);
+    }
+
+    public function salvar_motivo_nao_realizado()
+    {
+        if (!$this->podeGerenciarMotivos()) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para gerenciar motivos.');
+            redirect('tecnico/nao_realizadas');
+        }
+
+        $nome = trim((string) $this->input->post('nome'));
+        if ($nome === '') {
+            $this->session->set_flashdata('error', 'Informe o nome do motivo.');
+        } elseif (!$this->naorealizada_model->addMotivo($nome)) {
+            $this->session->set_flashdata('error', 'Motivo inválido ou já existente.');
+        } else {
+            $this->session->set_flashdata('success', 'Motivo adicionado.');
+        }
+
+        redirect('tecnico/motivos_nao_realizado');
+    }
+
+    public function remover_motivo_nao_realizado($id = null)
+    {
+        if (!$this->podeGerenciarMotivos()) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para gerenciar motivos.');
+            redirect('tecnico/nao_realizadas');
+        }
+
+        if ($this->naorealizada_model->removerMotivo((int) $id)) {
+            $this->session->set_flashdata('success', 'Motivo removido.');
+        } else {
+            $this->session->set_flashdata('error', 'Não foi possível remover o motivo.');
+        }
+
+        redirect('tecnico/motivos_nao_realizado');
+    }
+
+    public function reativar_motivo_nao_realizado($id = null)
+    {
+        if (!$this->podeGerenciarMotivos()) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para gerenciar motivos.');
+            redirect('tecnico/nao_realizadas');
+        }
+
+        $this->naorealizada_model->reativarMotivo((int) $id);
+        $this->session->set_flashdata('success', 'Motivo reativado.');
+        redirect('tecnico/motivos_nao_realizado');
     }
 
     /**

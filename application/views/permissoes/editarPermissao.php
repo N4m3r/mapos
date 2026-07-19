@@ -472,6 +472,18 @@ if (! is_array($permissoes)) {
                             <tr>
                                 <td colspan="4">
                                     <label>
+                                        <input <?php if (isset($permissoes['vTecnicoMapa'])) {
+                                            if ($permissoes['vTecnicoMapa'] == '1') {
+                                                echo 'checked';
+                                            }
+                                        }?> name="vTecnicoMapa" class="marcar" type="checkbox" value="1" />
+                                        <span class="lbl"> <strong>Ver Mapa dos Técnicos</strong> (localização em tempo real — tela de despacho)</span>
+                                    </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="4">
+                                    <label>
                                         <input <?php if (isset($permissoes['aTecnicoAtividade'])) {
                                             if ($permissoes['aTecnicoAtividade'] == '1') {
                                                 echo 'checked';

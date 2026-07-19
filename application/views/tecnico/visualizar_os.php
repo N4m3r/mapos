@@ -35,6 +35,25 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
         </div>
     <?php endif; ?>
 
+    <!-- Banner: serviço não realizado (em espera) -->
+    <?php $nr_pendente = isset($nao_realizada_pendente) ? $nao_realizada_pendente : null; ?>
+    <?php if ($nr_pendente): ?>
+        <div class="info-card" style="border-left:4px solid var(--tec-danger, #e74c3c);">
+            <h3 style="color:var(--tec-danger, #e74c3c);"><i class='bx bx-x-circle'></i> Serviço não realizado</h3>
+            <?php if (!empty($nr_pendente->motivo_texto)): ?>
+                <div class="info-row"><span class="info-label">Motivo</span><span class="info-value"><?= html_escape($nr_pendente->motivo_texto) ?></span></div>
+            <?php endif; ?>
+            <?php if (!empty($nr_pendente->observacao)): ?>
+                <div class="info-row"><span class="info-label">Observação</span><span class="info-value"><?= nl2br(html_escape($nr_pendente->observacao)) ?></span></div>
+            <?php endif; ?>
+            <div class="info-row"><span class="info-label">Registrado</span><span class="info-value"><?= !empty($nr_pendente->data_registro) ? date('d/m/Y H:i', strtotime($nr_pendente->data_registro)) : '--' ?></span></div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+                <button type="button" class="btn-tec warning" onclick="abrirReagendar(<?= (int) $nr_pendente->idOcorrencia ?>)"><i class='bx bx-calendar-plus'></i> Reagendar</button>
+                <button type="button" class="btn-tec neutral" data-ocorrencia="<?= (int) $nr_pendente->idOcorrencia ?>" onclick="reabrirAtividade(this)"><i class='bx bx-revision'></i> Reabrir p/ refazer</button>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <!-- Atalhos de contato -->
     <?php if ($foneTel || $mapUrl): ?>
         <div class="quick-actions" style="margin-bottom:16px;">
@@ -140,6 +159,16 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
         </a>
     <?php endif; ?>
 
+    <?php
+    // Botão "Não foi possível realizar": só quando há permissão, a OS ainda não
+    // está em espera e não está concluída.
+    $nr_concluida = in_array($os->status, ['Finalizado', 'Faturado', 'Cancelado'], true);
+    if (!empty($permissao_nao_realizado) && empty($nr_pendente) && !$nr_concluida): ?>
+        <button type="button" class="btn-tec danger block" style="margin-top:8px;" onclick="abrirNaoRealizado()">
+            <i class='bx bx-x-circle'></i> Não foi possível realizar o serviço
+        </button>
+    <?php endif; ?>
+
     <?php if ($permissao_checkin || $permissao_checkout): ?>
         <div style="height:76px;"></div><!-- espaco para a barra de acao fixa -->
     <?php endif; ?>
@@ -166,6 +195,61 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
     <img id="fotoModalImg" src="" alt="Foto" style="max-width:100%; max-height:100%; border-radius:8px;">
 </div>
 
+<!-- Modal: registrar "não foi possível realizar" -->
+<?php if (!empty($permissao_nao_realizado) && empty($nr_pendente) && !$nr_concluida): ?>
+<div id="naoRealizadoModal" class="nr-modal" style="display:none;">
+    <div class="nr-modal-box">
+        <h3><i class='bx bx-x-circle'></i> Serviço não realizado</h3>
+        <p class="nr-modal-sub">Registre o motivo para a OS ficar em espera e poder ser reagendada depois.</p>
+
+        <label class="nr-label">Motivo</label>
+        <select id="nr-motivo" class="atv-input">
+            <option value="">— Selecione um motivo —</option>
+            <?php foreach ($motivos_nao_realizado as $m): ?>
+                <option value="<?= (int) $m->idMotivo ?>"><?= html_escape($m->nome) ?></option>
+            <?php endforeach; ?>
+        </select>
+
+        <label class="nr-label">Observação</label>
+        <textarea id="nr-obs" class="atv-input" rows="3" placeholder="Descreva o que aconteceu (opcional se escolheu um motivo)"></textarea>
+
+        <div class="nr-modal-actions">
+            <button type="button" class="btn-tec ghost" onclick="fecharNaoRealizado()">Cancelar</button>
+            <button type="button" id="nr-confirmar" class="btn-tec danger" onclick="confirmarNaoRealizado()"><i class='bx bx-check'></i> Confirmar</button>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<!-- Modal: reagendar -->
+<?php if (!empty($nr_pendente)): ?>
+<div id="reagendarModal" class="nr-modal" style="display:none;">
+    <div class="nr-modal-box">
+        <h3><i class='bx bx-calendar-plus'></i> Reagendar OS</h3>
+        <p class="nr-modal-sub">Escolha a nova data. A OS volta para a sua agenda como "Aberto".</p>
+        <input type="hidden" id="reag-ocorrencia" value="">
+        <label class="nr-label">Nova data</label>
+        <input type="date" id="reag-data" class="atv-input" min="<?= date('Y-m-d') ?>" value="<?= date('Y-m-d') ?>">
+        <div class="nr-modal-actions">
+            <button type="button" class="btn-tec ghost" onclick="fecharReagendar()">Cancelar</button>
+            <button type="button" class="btn-tec warning" onclick="confirmarReagendar()"><i class='bx bx-check'></i> Reagendar</button>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<style>
+.nr-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2100;display:flex;align-items:flex-end;justify-content:center;padding:0;}
+.nr-modal-box{background:var(--tec-card,#fff);width:100%;max-width:520px;border-radius:16px 16px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.25);}
+.nr-modal-box h3{margin:0 0 4px;font-size:17px;display:flex;align-items:center;gap:8px;}
+.nr-modal-sub{margin:0 0 14px;font-size:13px;color:#8a8fa3;}
+.nr-label{display:block;font-size:12px;font-weight:600;color:#8a8fa3;margin:10px 0 5px;}
+.nr-modal-box .atv-input{width:100%;padding:11px 12px;border:1px solid rgba(0,0,0,.15);border-radius:10px;font-size:15px;background:transparent;color:inherit;box-sizing:border-box;}
+.nr-modal-actions{display:flex;gap:10px;margin-top:18px;}
+.nr-modal-actions .btn-tec{flex:1;justify-content:center;}
+@media (min-width:600px){.nr-modal{align-items:center;}.nr-modal-box{border-radius:16px;}}
+</style>
+
 <?php $this->load->view('tecnico/_nav', ['nav_ativo' => 'os', 'pode_ver_sistema' => isset($pode_ver_sistema) ? $pode_ver_sistema : false]); ?>
 
 <!-- UI de atendimento (check-in/out, assinaturas, fotos) -->
@@ -179,6 +263,86 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
     function abrirFoto(url) {
         document.getElementById('fotoModalImg').src = url;
         document.getElementById('fotoModal').style.display = 'flex';
+    }
+
+    // ---- Serviço não realizado -------------------------------------
+    var NR_OS_ID = <?= (int) $os->idOs ?>;
+    var NR_BASE = '<?= site_url('tecnico') ?>';
+
+    function abrirNaoRealizado() {
+        var m = document.getElementById('naoRealizadoModal');
+        if (m) { m.style.display = 'flex'; }
+    }
+    function fecharNaoRealizado() {
+        var m = document.getElementById('naoRealizadoModal');
+        if (m) { m.style.display = 'none'; }
+    }
+    function confirmarNaoRealizado() {
+        var motivo = document.getElementById('nr-motivo').value;
+        var obs = document.getElementById('nr-obs').value.trim();
+        if (!motivo && obs === '') {
+            alert('Selecione um motivo ou descreva o que aconteceu.');
+            return;
+        }
+        var btn = document.getElementById('nr-confirmar');
+        btn.disabled = true;
+        $.ajax({
+            url: NR_BASE + '/nao_realizado',
+            type: 'POST',
+            dataType: 'json',
+            data: { os_id: NR_OS_ID, motivo_id: motivo, observacao: obs }
+        }).done(function (r) {
+            if (r && r.success) {
+                alert(r.message || 'Registrado.');
+                window.location.href = NR_BASE + '/nao_realizadas';
+            } else {
+                alert((r && r.message) || 'Falha ao registrar.');
+                btn.disabled = false;
+            }
+        }).fail(function () {
+            alert('Erro de conexão. Tente novamente.');
+            btn.disabled = false;
+        });
+    }
+
+    // ---- Reagendar / reabrir (OS já em espera) ---------------------
+    function abrirReagendar(ocorrenciaId) {
+        var inp = document.getElementById('reag-ocorrencia');
+        if (inp) { inp.value = ocorrenciaId; }
+        var m = document.getElementById('reagendarModal');
+        if (m) { m.style.display = 'flex'; }
+    }
+    function fecharReagendar() {
+        var m = document.getElementById('reagendarModal');
+        if (m) { m.style.display = 'none'; }
+    }
+    function confirmarReagendar() {
+        var oc = document.getElementById('reag-ocorrencia').value;
+        var data = document.getElementById('reag-data').value;
+        if (!data) { alert('Escolha uma data.'); return; }
+        $.ajax({
+            url: NR_BASE + '/reagendar_atividade',
+            type: 'POST',
+            dataType: 'json',
+            data: { ocorrencia_id: oc, nova_data: data }
+        }).done(function (r) {
+            alert((r && r.message) || (r && r.success ? 'Reagendado.' : 'Falha.'));
+            if (r && r.success) { window.location.reload(); }
+        }).fail(function () { alert('Erro de conexão.'); });
+    }
+    function reabrirAtividade(btn) {
+        if (!confirm('Reabrir esta OS para refazer o serviço?')) { return; }
+        var oc = btn.getAttribute('data-ocorrencia');
+        btn.disabled = true;
+        $.ajax({
+            url: NR_BASE + '/reabrir_atividade',
+            type: 'POST',
+            dataType: 'json',
+            data: { ocorrencia_id: oc }
+        }).done(function (r) {
+            alert((r && r.message) || (r && r.success ? 'Reaberta.' : 'Falha.'));
+            if (r && r.success) { window.location.reload(); } else { btn.disabled = false; }
+        }).fail(function () { alert('Erro de conexão.'); btn.disabled = false; });
     }
 </script>
 </body>

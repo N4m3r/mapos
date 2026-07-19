@@ -95,6 +95,17 @@
                     </li>
                 <?php } ?>
 
+                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vTecnicoMapa')) { ?>
+                    <li class="<?php if (isset($menuLocalizacao)) {
+                        echo 'active';
+                    }; ?>">
+                        <a class="tip-bottom" title="" href="<?= site_url('localizacao/mapa') ?>"><i class='bx bx-map-alt iconX'></i>
+                            <span class="title">Mapa dos Técnicos</span>
+                            <span class="title-tooltip">Mapa</span>
+                        </a>
+                    </li>
+                <?php } ?>
+
                 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vTecnicoDashboard')) { ?>
                     <li class="<?php if (isset($menuTecnico)) {
                         echo 'active';
