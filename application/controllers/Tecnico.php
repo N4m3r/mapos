@@ -696,4 +696,91 @@ class Tecnico extends MY_Controller
             'expira' => date('d/m/Y', strtotime($res['expira'])),
         ]);
     }
+
+    /**
+     * Envia o link de aprovação/assinatura por e-mail para um endereço
+     * informado manualmente pelo técnico. Reaproveita o token de aceite
+     * existente (gera um novo se ainda não houver) e enfileira o e-mail.
+     */
+    public function enviar_link_solicitante_email()
+    {
+        if (!$this->input->is_ajax_request()) {
+            echo json_encode(['success' => false, 'message' => 'Requisição inválida']);
+            return;
+        }
+
+        $os_id = (int) $this->input->post('os_id');
+        $email = trim((string) $this->input->post('email'));
+        $tecnico_id = $this->session->userdata('id_admin');
+
+        $os = $this->tecnico_model->getOsById($os_id, $tecnico_id);
+        if (!$os) {
+            echo json_encode(['success' => false, 'message' => 'OS não encontrada ou não designada a você']);
+            return;
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            echo json_encode(['success' => false, 'message' => 'Informe um e-mail válido.']);
+            return;
+        }
+
+        $this->load->model('aceite_model');
+        if (!$this->aceite_model->suportado()) {
+            echo json_encode(['success' => false, 'message' => 'Recurso de link de assinatura não está disponível neste sistema.']);
+            return;
+        }
+
+        // Reaproveita o token pendente; senão, gera um novo.
+        $token = (!empty($os->aceite_token) && $this->aceite_model->situacao($os) === 'pendente')
+            ? $os->aceite_token
+            : null;
+
+        if (!$token) {
+            $res = $this->aceite_model->gerarLink($os_id);
+            if (!$res) {
+                echo json_encode(['success' => false, 'message' => 'Não foi possível gerar o link.']);
+                return;
+            }
+            $token = $res['token'];
+        }
+
+        $link = site_url('aceite/' . $token);
+        $emitente = $this->mapos_model->getEmitente();
+        if (!$emitente || empty($emitente->email)) {
+            echo json_encode(['success' => false, 'message' => 'E-mail do emitente não configurado. Configure em Emitente.']);
+            return;
+        }
+
+        $nomeCliente = html_escape($os->nomeCliente ?: 'Cliente');
+        $nomeEmitente = html_escape($emitente->nome ?: 'Equipe');
+        $assunto = 'Assinatura do serviço - OS #' . sprintf('%04d', $os_id);
+        $html =
+            '<p>Olá, ' . $nomeCliente . '!</p>' .
+            '<p>Por favor, confirme e assine o serviço realizado (OS #' . sprintf('%04d', $os_id) . ') no link abaixo:</p>' .
+            '<p><a href="' . $link . '" style="display:inline-block;padding:12px 20px;background:#667eea;color:#fff;text-decoration:none;border-radius:6px">Abrir e assinar</a></p>' .
+            '<p>Ou copie e cole no navegador:<br>' . $link . '</p>' .
+            '<p>Atenciosamente,<br>' . $nomeEmitente . '</p>';
+
+        $this->load->model('email_model');
+        $headers = ['From' => $emitente->email, 'Subject' => $assunto, 'Return-Path' => ''];
+        $ok = $this->email_model->add('email_queue', [
+            'to' => $email,
+            'message' => $html,
+            'status' => 'pending',
+            'date' => date('Y-m-d H:i:s'),
+            'headers' => serialize($headers),
+        ]);
+
+        if (!$ok) {
+            echo json_encode(['success' => false, 'message' => 'Falha ao enfileirar o e-mail.']);
+            return;
+        }
+
+        log_info('Técnico enviou link de assinatura por e-mail (' . $email . ') da OS: ' . $os_id);
+        echo json_encode([
+            'success' => true,
+            'message' => 'E-mail enfileirado para ' . $email . '. O envio ocorre automaticamente em instantes.',
+            'link' => $link,
+        ]);
+    }
 }

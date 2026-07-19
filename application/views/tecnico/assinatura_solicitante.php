@@ -9,6 +9,7 @@ $this->load->view('tecnico/_topo', [
 $fone = !empty($cliente->celular) ? $cliente->celular : (!empty($cliente->telefone) ? $cliente->telefone : '');
 $wa = preg_replace('/\D/', '', $fone);
 if ($wa !== '' && strlen($wa) <= 11) { $wa = '55' . $wa; }
+$emailCliente = !empty($cliente->email) ? $cliente->email : '';
 ?>
 
 <style>
@@ -107,15 +108,33 @@ if ($wa !== '' && strlen($wa) <= 11) { $wa = '55' . $wa; }
                     <div class="asg-link-box">
                         <span id="asg-link-text"><?= html_escape($aceite_link) ?></span>
                     </div>
-                    <div style="display:flex; gap:8px; margin-top:10px;">
-                        <button type="button" class="btn-tec neutral" id="asg-copiar" style="flex:1;">
-                            <i class='bx bx-copy'></i> Copiar
-                        </button>
-                        <?php if ($wa): ?>
-                            <a href="#" target="_blank" rel="noopener" class="btn-tec success" id="asg-whats" style="flex:1;">
-                                <i class='bx bxl-whatsapp'></i> WhatsApp
-                            </a>
-                        <?php endif; ?>
+                    <button type="button" class="btn-tec neutral block" id="asg-copiar" style="margin-top:10px;">
+                        <i class='bx bx-copy'></i> Copiar link
+                    </button>
+
+                    <!-- Envio manual: o técnico digita o destino -->
+                    <div style="margin-top:18px;">
+                        <label style="display:block; font-size:13px; font-weight:700; color:#55596e; margin-bottom:6px;">
+                            <i class='bx bxl-whatsapp'></i> Enviar por WhatsApp
+                        </label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="tel" class="asg-input" id="asg-wa-num" placeholder="Número com DDD" value="<?= html_escape($fone) ?>" style="margin-bottom:0; flex:1;">
+                            <button type="button" class="btn-tec success" id="asg-whats" style="flex:0 0 auto;">
+                                <i class='bx bxl-whatsapp'></i> Abrir
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:12px;">
+                        <label style="display:block; font-size:13px; font-weight:700; color:#55596e; margin-bottom:6px;">
+                            <i class='bx bx-envelope'></i> Enviar por e-mail
+                        </label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="email" class="asg-input" id="asg-email" placeholder="email@exemplo.com" value="<?= html_escape($emailCliente) ?>" style="margin-bottom:0; flex:1;">
+                            <button type="button" class="btn-tec primary" id="asg-enviar-email" style="flex:0 0 auto;">
+                                <i class='bx bx-send'></i> Enviar
+                            </button>
+                        </div>
                     </div>
                 </div>
             <?php endif; ?>
@@ -200,26 +219,57 @@ if ($wa !== '' && strlen($wa) <= 11) { $wa = '55' . $wa; }
     });
 
     // ---- Link público ----------------------------------------------
-    function montarWhats(link) {
-        var texto = 'Olá! Por favor, assine a confirmação do serviço neste link: ' + link;
-        return 'https://wa.me/' + WA + '?text=' + encodeURIComponent(texto);
+    function linkAtual() {
+        var el = document.getElementById('asg-link-text');
+        return el ? el.textContent.trim() : '';
     }
 
     function mostrarLink(link) {
         document.getElementById('asg-link-text').textContent = link;
         document.getElementById('asg-link-container').style.display = 'block';
-        var wa = document.getElementById('asg-whats');
-        if (wa) wa.href = montarWhats(link);
     }
 
-    // Inicializa link do WhatsApp se já houver link.
-    (function () {
-        var existente = document.getElementById('asg-link-text');
-        var wa = document.getElementById('asg-whats');
-        if (existente && wa && existente.textContent.trim()) {
-            wa.href = montarWhats(existente.textContent.trim());
-        }
-    })();
+    // WhatsApp: usa o número digitado manualmente (fallback: número do cliente).
+    var whatsBtn = document.getElementById('asg-whats');
+    if (whatsBtn) {
+        whatsBtn.addEventListener('click', function () {
+            var link = linkAtual();
+            if (!link) { msg('Gere o link primeiro.', false); return; }
+            var num = (document.getElementById('asg-wa-num').value || '').replace(/\D/g, '');
+            if (num && num.length <= 11) { num = '55' + num; }
+            if (!num) { msg('Informe um número de WhatsApp.', false); return; }
+            var texto = 'Olá! Por favor, assine a confirmação do serviço neste link: ' + link;
+            window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(texto), '_blank');
+        });
+    }
+
+    // E-mail: envia o link para o endereço digitado manualmente (via fila).
+    var emailBtn = document.getElementById('asg-enviar-email');
+    if (emailBtn) {
+        emailBtn.addEventListener('click', function () {
+            var email = (document.getElementById('asg-email').value || '').trim();
+            if (!email) { msg('Informe um e-mail.', false); return; }
+            var btn = this;
+            btn.setAttribute('disabled', 'disabled');
+            $.ajax({
+                url: BASE + 'enviar_link_solicitante_email',
+                method: 'POST',
+                dataType: 'json',
+                data: { os_id: OS_ID, email: email }
+            }).done(function (res) {
+                if (res && res.success) {
+                    if (res.link) { mostrarLink(res.link); }
+                    msg(res.message || 'E-mail enviado!', true);
+                } else {
+                    msg((res && res.message) || 'Erro ao enviar o e-mail.', false);
+                }
+            }).fail(function () {
+                msg('Erro de comunicação ao enviar o e-mail.', false);
+            }).always(function () {
+                btn.removeAttribute('disabled');
+            });
+        });
+    }
 
     var gerarBtn = document.getElementById('asg-gerar-link');
     if (gerarBtn) {
