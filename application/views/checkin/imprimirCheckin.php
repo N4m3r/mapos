@@ -561,6 +561,41 @@
             </div>
         </div>
 
+        <!-- Respostas dos Formulários de Atendimento -->
+        <?php
+        $respostasPorEtapa = isset($respostasPorEtapa) && is_array($respostasPorEtapa) ? $respostasPorEtapa : [];
+        if (!empty($respostasPorEtapa)) {
+            $rotulosEtapa = [
+                'iniciar' => 'Ao iniciar o atendimento',
+                'durante' => 'Durante o atendimento',
+                'finalizar' => 'Ao finalizar o atendimento',
+                'outros' => 'Outros',
+            ];
+        ?>
+            <div class="section">
+                <div class="section-header">Formulários de Atendimento</div>
+                <div class="section-content">
+                    <?php foreach (['iniciar', 'durante', 'finalizar', 'outros'] as $etapaKey) {
+                        if (empty($respostasPorEtapa[$etapaKey])) { continue; } ?>
+                        <h4 style="margin: 10px 0 6px; color: #2d335b; font-size: 13px;"><?= htmlspecialchars($rotulosEtapa[$etapaKey]) ?></h4>
+                        <?php foreach ($respostasPorEtapa[$etapaKey] as $resposta) { ?>
+                            <div style="border: 1px solid #ddd; border-radius: 5px; padding: 10px 12px; margin-bottom: 10px;">
+                                <div style="font-weight: bold; margin-bottom: 6px;"><?= htmlspecialchars($resposta->formulario_nome) ?></div>
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <?php foreach ($resposta->itens as $item) { ?>
+                                        <tr>
+                                            <td style="padding: 3px 8px 3px 0; color: #555; width: 40%; vertical-align: top;"><?= htmlspecialchars($item->label) ?></td>
+                                            <td style="padding: 3px 0; vertical-align: top;"><?= $item->valor !== null && $item->valor !== '' ? nl2br(htmlspecialchars($item->valor)) : '<span style="color:#999">—</span>' ?></td>
+                                        </tr>
+                                    <?php } ?>
+                                </table>
+                            </div>
+                        <?php } ?>
+                    <?php } ?>
+                </div>
+            </div>
+        <?php } ?>
+
         <!-- Assinaturas -->
         <?php if (!empty($assinaturas) && is_array($assinaturas) && count($assinaturas) > 0) { ?>
             <div class="section">

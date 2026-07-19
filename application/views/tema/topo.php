@@ -121,6 +121,9 @@
             <li><a href="<?= site_url('whatsapptemplates') ?>">Modelos de WhatsApp</a></li>
             <li><a href="<?= site_url('notificacoes') ?>">Notificações / Gatilhos</a></li>
             <li><a href="<?= site_url('automacao') ?>">Automação (aprovação)</a></li>
+            <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'cFormularioAtendimento')) { ?>
+              <li><a href="<?= site_url('formularios') ?>">Formulários de Atendimento</a></li>
+            <?php } ?>
             <li><a href="<?= site_url('mapos/backup') ?>">Backup</a></li>
           </ul>
         </li>

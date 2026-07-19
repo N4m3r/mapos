@@ -748,6 +748,12 @@
                                                     <span class="lbl"> Automação (aprovação → NFS-e/boleto)</span>
                                                 </label>
                                             </td>
+                                            <td>
+                                                <label>
+                                                    <input name="cFormularioAtendimento" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Formulários de Atendimento</span>
+                                                </label>
+                                            </td>
                                         </tr>
                                         </tbody>
                                     </table>

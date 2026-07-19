@@ -1087,6 +1087,14 @@ class Checkin extends MY_Controller
             $fotosPorEtapa[$foto->etapa][] = $foto;
         }
 
+        // Respostas dos formulários de atendimento personalizados (agrupadas por etapa)
+        $this->load->model('formularios_atendimento_model', 'formularios');
+        $respostasPorEtapa = [];
+        foreach ($this->formularios->getRespostasByOs($os_id) as $resposta) {
+            $etapaResp = $resposta->etapa ?: 'outros';
+            $respostasPorEtapa[$etapaResp][] = $resposta;
+        }
+
         // Prepara dados para a view
         $data = [
             'os' => $os,
@@ -1095,6 +1103,7 @@ class Checkin extends MY_Controller
             'checkins' => $checkins,
             'assinaturas' => $assinaturasPorTipo,
             'fotosPorEtapa' => $fotosPorEtapa,
+            'respostasPorEtapa' => $respostasPorEtapa,
             'titulo' => 'Relatório de Atendimento - OS #' . sprintf('%04d', $os_id)
         ];
 

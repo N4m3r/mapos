@@ -732,6 +732,110 @@ class Mine extends CI_Controller
         $this->load->view('conecte/template', $data);
     }
 
+    /**
+     * Lista as OS do cliente que possuem registro de atendimento
+     * (check-in ou respostas de formulários) — aba "Relatório de Atendimento".
+     */
+    public function atendimentos()
+    {
+        if (! session_id() || ! $this->session->userdata('conectado')) {
+            redirect('mine');
+        }
+
+        $permitidos = $this->clientesPermitidos();
+        $data['menuAtendimentos'] = 'atendimentos';
+        $data['results'] = [];
+
+        if (! empty($permitidos)) {
+            // OS do cliente que têm check-in registrado.
+            $comCheckin = [];
+            if ($this->db->table_exists('os_checkin')) {
+                $rows = $this->db->select('DISTINCT(os_checkin.os_id) as os_id', false)
+                    ->from('os_checkin')
+                    ->join('os', 'os.idOs = os_checkin.os_id')
+                    ->where_in('os.clientes_id', $permitidos)
+                    ->get()->result();
+                foreach ($rows as $r) { $comCheckin[(int) $r->os_id] = true; }
+            }
+            // OS do cliente que têm respostas de formulários.
+            if ($this->db->table_exists('formularios_atendimento_respostas')) {
+                $rows = $this->db->select('DISTINCT(r.os_id) as os_id', false)
+                    ->from('formularios_atendimento_respostas r')
+                    ->join('os', 'os.idOs = r.os_id')
+                    ->where_in('os.clientes_id', $permitidos)
+                    ->get()->result();
+                foreach ($rows as $r) { $comCheckin[(int) $r->os_id] = true; }
+            }
+
+            if (! empty($comCheckin)) {
+                $data['results'] = $this->db->select('idOs, dataInicial, dataFinal, status, descricaoProduto')
+                    ->from('os')
+                    ->where_in('idOs', array_keys($comCheckin))
+                    ->order_by('idOs', 'desc')
+                    ->get()->result();
+            }
+        }
+
+        $data['output'] = 'conecte/atendimentos';
+        $this->load->view('conecte/template', $data);
+    }
+
+    /**
+     * Relatório de atendimento de uma OS, no portal do cliente (com checagem
+     * de posse). Reaproveita a view do relatório usado na área administrativa.
+     */
+    public function relatorioAtendimento($id = null)
+    {
+        if (! session_id() || ! $this->session->userdata('conectado')) {
+            redirect('mine');
+        }
+
+        $id = $id ?: $this->uri->segment(3);
+        $this->load->model('os_model');
+        $this->load->model('mapos_model');
+        $this->load->model('clientes_model');
+        $this->load->model('checkin_model');
+        $this->load->model('assinaturas_model');
+        $this->load->model('fotosatendimento_model');
+        $this->load->model('formularios_atendimento_model', 'formularios');
+
+        $os = $this->os_model->getById($id);
+        if (! $os) {
+            show_error('OS não encontrada', 404);
+            return;
+        }
+        if (! in_array((int) $os->idClientes, $this->clientesPermitidos())) {
+            $this->session->set_flashdata('error', 'Esta OS não pertence ao cliente logado.');
+            redirect('mine/atendimentos');
+        }
+
+        $assinaturasPorTipo = [];
+        foreach ($this->assinaturas_model->getByOs($id) as $assinatura) {
+            $assinaturasPorTipo[$assinatura->tipo] = $assinatura;
+        }
+
+        $fotosPorEtapa = ['entrada' => [], 'durante' => [], 'saida' => []];
+        foreach ($this->fotosatendimento_model->getByOs($id) as $foto) {
+            $fotosPorEtapa[$foto->etapa][] = $foto;
+        }
+
+        $respostasPorEtapa = [];
+        foreach ($this->formularios->getRespostasByOs($id) as $resposta) {
+            $respostasPorEtapa[$resposta->etapa ?: 'outros'][] = $resposta;
+        }
+
+        $this->load->view('checkin/imprimirCheckin', [
+            'os' => $os,
+            'cliente' => $this->clientes_model->getById($os->clientes_id),
+            'emitente' => $this->mapos_model->getEmitente(),
+            'checkins' => $this->checkin_model->getAllByOs($id),
+            'assinaturas' => $assinaturasPorTipo,
+            'fotosPorEtapa' => $fotosPorEtapa,
+            'respostasPorEtapa' => $respostasPorEtapa,
+            'titulo' => 'Relatório de Atendimento - OS #' . sprintf('%04d', $id),
+        ]);
+    }
+
     public function validarCPF($cpf)
     {
         $cpf = preg_replace('/[^0-9]/', '', $cpf);

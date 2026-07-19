@@ -402,6 +402,16 @@ class Os extends MY_Controller
         $this->data['assinaturas'] = $this->assinaturas_model->getByOs($os_id);
         log_info('OS Visualizar - Assinaturas carregadas: ' . count($this->data['assinaturas']));
         $this->data['fotosAtendimento'] = $this->fotosatendimento_model->getByOs($os_id);
+
+        // Respostas dos formulários de atendimento personalizados (agrupadas por etapa)
+        $this->load->model('formularios_atendimento_model', 'formularios');
+        $respostasPorEtapa = [];
+        foreach ($this->formularios->getRespostasByOs($os_id) as $respostaFormulario) {
+            $etapaResp = $respostaFormulario->etapa ?: 'outros';
+            $respostasPorEtapa[$etapaResp][] = $respostaFormulario;
+        }
+        $this->data['respostasFormularios'] = $respostasPorEtapa;
+
         $this->data['qrCode'] = $this->os_model->getQrCode(
             $this->uri->segment(3),
             $this->data['configuration']['pix_key'],

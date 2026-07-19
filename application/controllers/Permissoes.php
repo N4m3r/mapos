@@ -116,6 +116,7 @@ class Permissoes extends MY_Controller
                 'cEmail' => $this->input->post('cEmail'),
                 'cSistema' => $this->input->post('cSistema'),
                 'cAutomacao' => $this->input->post('cAutomacao'),
+                'cFormularioAtendimento' => $this->input->post('cFormularioAtendimento'),
 
                 'rCliente' => $this->input->post('rCliente'),
                 'rProduto' => $this->input->post('rProduto'),
@@ -245,6 +246,7 @@ class Permissoes extends MY_Controller
                 'cEmail' => $this->input->post('cEmail'),
                 'cSistema' => $this->input->post('cSistema'),
                 'cAutomacao' => $this->input->post('cAutomacao'),
+                'cFormularioAtendimento' => $this->input->post('cFormularioAtendimento'),
 
                 'rCliente' => $this->input->post('rCliente'),
                 'rProduto' => $this->input->post('rProduto'),

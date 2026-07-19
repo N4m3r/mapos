@@ -88,6 +88,9 @@
                     <li class="<?php if (isset($menuAprovacoes)) {
                                     echo 'active';
                                 }; ?>"><a class="tip-bottom" title="" href="<?php echo base_url() ?>index.php/mine/aprovacoes"><i class='bx bx-check-double iconX'></i> <span class="title">Aprovações</span></a></li>
+                    <li class="<?php if (isset($menuAtendimentos)) {
+                                    echo 'active';
+                                }; ?>"><a class="tip-bottom" title="" href="<?php echo base_url() ?>index.php/mine/atendimentos"><i class='bx bx-clipboard iconX'></i> <span class="title">Relatório de Atendimento</span></a></li>
                 </ul>
             </div>
 

@@ -1142,6 +1142,12 @@ if (! is_array($permissoes)) {
                                             <span class="lbl"> Automação (aprovação → NFS-e/boleto)</span>
                                         </label>
                                     </td>
+                                    <td>
+                                        <label>
+                                            <input <?php echo (isset($permissoes['cFormularioAtendimento']) && $permissoes['cFormularioAtendimento'] == 1) ? 'checked' : ''; ?> name="cFormularioAtendimento" class="marcar" type="checkbox" value="1" />
+                                            <span class="lbl"> Formulários de Atendimento</span>
+                                        </label>
+                                    </td>
                                 </tr>
                             </table>
                         </div>

@@ -67,6 +67,7 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
                 <button type="button" id="btn-geo-checkin" class="btn btn-small"><i class="bx bx-map"></i> Capturar Localização</button>
                 <span id="checkin-geo-status" class="text-muted" style="margin-left:10px;"></span>
             </div>
+            <div id="formularios-iniciar" class="checkin-section"></div>
         </form>
     </div>
     <div class="modal-footer">
@@ -128,6 +129,8 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
                 <button type="button" id="btn-geo-checkout" class="btn btn-small"><i class="bx bx-map"></i> Capturar Localização</button>
                 <span id="checkout-geo-status" class="text-muted" style="margin-left:10px;"></span>
             </div>
+            <div id="formularios-durante" class="checkin-section"></div>
+            <div id="formularios-finalizar" class="checkin-section"></div>
         </form>
     </div>
     <div class="modal-footer">
@@ -140,6 +143,7 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
 <script src="<?= base_url('assets/js/assinatura-canvas.js?v=3') ?>"></script>
 <script src="<?= base_url('assets/js/checkin-fotos.js?v=3') ?>"></script>
 <script src="<?= base_url('assets/js/checkin.js?v=3') ?>"></script>
+<script src="<?= base_url('assets/js/checkin-formularios.js?v=1') ?>"></script>
 <script src="<?= base_url('assets/js/csrf.js?v=3') ?>"></script>
 <script>
     window.checkinConfig = { baseUrl: '<?= base_url() ?>', osId: <?= $os_id ?>, debug: false };
@@ -159,11 +163,35 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
             catch (e) { console.error('Erro assinatura ' + id, e); }
         }
 
+        // Formulários de atendimento personalizados
+        var FA = window.CheckinFormularios;
+        function faReady() { return typeof FA !== 'undefined' && FA; }
+
         $(document).on('shown.bs.modal', '#modal-checkin', function () {
             setTimeout(function () { criarAssinatura('assinatura-tecnico-entrada', 'assinatura-tecnico-entrada-canvas'); }, isMobile() ? 300 : 100);
+            if (faReady()) { FA.carregar('iniciar', '#formularios-iniciar', window.checkinConfig.osId); }
+        });
+
+        // Salva as respostas dos formulários ao confirmar cada etapa (independente do check-in).
+        $(document).on('click', '#btn-confirmar-checkin', function () {
+            if (!faReady()) { return; }
+            FA.salvar('iniciar', '#formularios-iniciar', window.checkinConfig.osId, '')
+                .fail(function (msg) { if (msg) { console.warn(msg); } });
+        });
+
+        $(document).on('click', '#btn-confirmar-checkout', function () {
+            if (!faReady()) { return; }
+            FA.salvar('durante', '#formularios-durante', window.checkinConfig.osId, '')
+                .fail(function (msg) { if (msg) { console.warn(msg); } });
+            FA.salvar('finalizar', '#formularios-finalizar', window.checkinConfig.osId, '')
+                .fail(function (msg) { if (msg) { console.warn(msg); } });
         });
 
         $(document).on('shown.bs.modal', '#modal-checkout', function () {
+            if (faReady()) {
+                FA.carregar('durante', '#formularios-durante', window.checkinConfig.osId);
+                FA.carregar('finalizar', '#formularios-finalizar', window.checkinConfig.osId);
+            }
             var nome = <?= json_encode($nome_cliente) ?>;
             var doc = <?= json_encode($documento_cliente) ?>;
             if (nome && $('#assinatura-cliente-saida-nome').length) {
@@ -180,6 +208,7 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
 
         $(document).ready(function () {
             if (typeof CheckinFotos !== 'undefined') { CheckinFotos.init({ baseUrl: window.checkinConfig.baseUrl }); }
+            if (faReady()) { FA.init({ baseUrl: window.checkinConfig.baseUrl, osId: window.checkinConfig.osId }); }
             if (typeof CheckinManager !== 'undefined' && !CheckinManager._inicializado) {
                 CheckinManager._inicializado = true;
                 CheckinManager.init(window.checkinConfig);

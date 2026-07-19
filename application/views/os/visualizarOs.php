@@ -9,6 +9,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
 <script src="<?php echo base_url(); ?>assets/js/assinatura-canvas.js?v=3"></script>
 <script src="<?php echo base_url(); ?>assets/js/checkin-fotos.js?v=3"></script>
 <script src="<?php echo base_url(); ?>assets/js/checkin.js?v=3"></script>
+<script src="<?php echo base_url(); ?>assets/js/checkin-formularios.js?v=1"></script>
 <script src="<?php echo base_url(); ?>assets/js/csrf.js?v=3"></script>
 <script>
     // Configuração do CheckinManager
@@ -378,7 +379,8 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                         $assinaturas = isset($assinaturas) ? $assinaturas : array();
                         $fotosAtendimento = isset($fotosAtendimento) ? $fotosAtendimento : array();
 
-                        if (!empty($checkins) || !empty($assinaturas) || !empty($fotosAtendimento)) {
+                        $respostasFormularios = isset($respostasFormularios) && is_array($respostasFormularios) ? $respostasFormularios : [];
+                        if (!empty($checkins) || !empty($assinaturas) || !empty($fotosAtendimento) || !empty($respostasFormularios)) {
                         ?>
                         <div class="widget-box" style="margin-top: 20px;">
                             <div class="widget-title">
@@ -436,6 +438,36 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                         </div>
                                         <?php } ?>
                                     </div>
+                                </div>
+                                <?php } ?>
+
+                                <!-- Respostas dos Formulários de Atendimento -->
+                                <?php if (!empty($respostasFormularios)) {
+                                    $rotulosEtapaFA = [
+                                        'iniciar' => 'Ao iniciar o atendimento',
+                                        'durante' => 'Durante o atendimento',
+                                        'finalizar' => 'Ao finalizar o atendimento',
+                                        'outros' => 'Outros',
+                                    ]; ?>
+                                <div class="respostas-formularios" style="margin-bottom: 20px;">
+                                    <h6><i class="bx bx-list-check"></i> Formulários de Atendimento</h6>
+                                    <?php foreach (['iniciar', 'durante', 'finalizar', 'outros'] as $etapaFA) {
+                                        if (empty($respostasFormularios[$etapaFA])) { continue; } ?>
+                                        <p style="margin: 8px 0 4px; font-weight: bold; color: #2d335b;"><?php echo $rotulosEtapaFA[$etapaFA]; ?></p>
+                                        <?php foreach ($respostasFormularios[$etapaFA] as $respostaFA) { ?>
+                                            <div style="border: 1px solid #e2e5ef; border-radius: 6px; padding: 10px 12px; margin-bottom: 10px; background: #fafbff;">
+                                                <div style="font-weight: 600; margin-bottom: 6px;"><?php echo htmlspecialchars($respostaFA->formulario_nome); ?></div>
+                                                <table class="table table-condensed" style="margin-bottom: 0;">
+                                                    <?php foreach ($respostaFA->itens as $itemFA) { ?>
+                                                        <tr>
+                                                            <td style="width: 40%; color: #555; border-top: none;"><?php echo htmlspecialchars($itemFA->label); ?></td>
+                                                            <td style="border-top: none;"><?php echo ($itemFA->valor !== null && $itemFA->valor !== '') ? nl2br(htmlspecialchars($itemFA->valor)) : '<span style="color:#999">—</span>'; ?></td>
+                                                        </tr>
+                                                    <?php } ?>
+                                                </table>
+                                            </div>
+                                        <?php } ?>
+                                    <?php } ?>
                                 </div>
                                 <?php } ?>
 
@@ -1364,6 +1396,11 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
             } else {
                 console.warn('CheckinManager não está disponível');
             }
+
+            // Formulários de atendimento personalizados
+            if (typeof CheckinFormularios !== 'undefined') {
+                CheckinFormularios.init({ baseUrl: checkinConfig.baseUrl, osId: checkinConfig.osId });
+            }
         }
 
         // Adia a inicialização do CheckinManager para não bloquear o carregamento
@@ -1656,6 +1693,7 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
                 </button>
                 <span id="checkin-geo-status" class="text-muted" style="margin-left: 10px;"></span>
             </div>
+            <div id="formularios-iniciar" class="checkin-section"></div>
         </form>
     </div>
     <div class="modal-footer">
@@ -2029,6 +2067,8 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
                 </button>
                 <span id="checkout-geo-status" class="text-muted" style="margin-left: 10px;"></span>
             </div>
+            <div id="formularios-durante" class="checkin-section"></div>
+            <div id="formularios-finalizar" class="checkin-section"></div>
         </form>
     </div>
     <div class="modal-footer">
@@ -2104,9 +2144,28 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
         if (listenersRegistrados) return;
         listenersRegistrados = true;
 
+        // Salva as respostas dos formulários ao confirmar cada etapa (independente do check-in).
+        $(document).on('click', '#btn-confirmar-checkin', function() {
+            if (typeof CheckinFormularios !== 'undefined') {
+                CheckinFormularios.salvar('iniciar', '#formularios-iniciar', checkinConfig.osId, '')
+                    .fail(function(msg) { if (msg) { console.warn(msg); } });
+            }
+        });
+        $(document).on('click', '#btn-confirmar-checkout', function() {
+            if (typeof CheckinFormularios !== 'undefined') {
+                CheckinFormularios.salvar('durante', '#formularios-durante', checkinConfig.osId, '')
+                    .fail(function(msg) { if (msg) { console.warn(msg); } });
+                CheckinFormularios.salvar('finalizar', '#formularios-finalizar', checkinConfig.osId, '')
+                    .fail(function(msg) { if (msg) { console.warn(msg); } });
+            }
+        });
+
         // Inicializa assinaturas quando o modal de checkin é aberto
         $(document).on('shown.bs.modal', '#modal-checkin', function() {
             console.log('Modal checkin aberto');
+            if (typeof CheckinFormularios !== 'undefined') {
+                CheckinFormularios.carregar('iniciar', '#formularios-iniciar', checkinConfig.osId);
+            }
 
             // Delay maior para mobile garantir que o modal esteja totalmente renderizado
             var delay = isMobile() ? 300 : 100;
@@ -2126,6 +2185,10 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
         // Inicializa assinaturas quando o modal de checkout é aberto
         $(document).on('shown.bs.modal', '#modal-checkout', function() {
             console.log('Modal checkout aberto');
+            if (typeof CheckinFormularios !== 'undefined') {
+                CheckinFormularios.carregar('durante', '#formularios-durante', checkinConfig.osId);
+                CheckinFormularios.carregar('finalizar', '#formularios-finalizar', checkinConfig.osId);
+            }
 
             // Pré-preenche o nome do cliente com os dados da OS
             var nomeCliente = '<?php echo addslashes($result->nomeCliente); ?>';
