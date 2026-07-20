@@ -94,7 +94,10 @@ $waNumero = function ($fone) {
                             <span><i class='bx bx-calendar'></i> <?= date('d/m/Y', strtotime($os->dataInicial)) ?></span>
                             <span><i class='bx bx-time'></i> <?= date('H:i', strtotime($os->dataInicial)) ?></span>
                         </span>
-                        <a href="<?= site_url('tecnico/visualizar/' . $os->idOs) ?>" class="btn-tec primary"><i class='bx bx-show'></i> Abrir</a>
+                        <span class="os-actions">
+                            <a href="<?= site_url('checkin/imprimir/' . $os->idOs) ?>" target="_blank" rel="noopener" class="btn-tec neutral"><i class='bx bx-time'></i> Relatório</a>
+                            <a href="<?= site_url('tecnico/visualizar/' . $os->idOs) ?>" class="btn-tec primary"><i class='bx bx-show'></i> Abrir</a>
+                        </span>
                     </div>
                 </div>
             <?php endforeach; ?>

@@ -166,6 +166,7 @@ body.tec-body {
 .os-cliente i { color: var(--tec-grad-1); }
 .os-desc { color: var(--tec-ink); font-size: 14px; margin-bottom: 11px; line-height: 1.45; }
 .os-foot { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+.os-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .os-meta { font-size: 12px; color: var(--tec-muted); display: flex; gap: 14px; flex-wrap: wrap; }
 .os-meta i { margin-right: 3px; }
 

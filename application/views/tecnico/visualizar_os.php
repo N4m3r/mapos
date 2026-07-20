@@ -146,14 +146,21 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
         </div>
     <?php endif; ?>
 
-    <a href="<?= site_url('tecnico/assinatura_solicitante/' . $os->idOs) ?>" class="btn-tec success block" style="margin-bottom:8px;">
-        <i class='bx bx-pen'></i> Assinatura do Solicitante
-    </a>
+    <?php
+    // Ações de atendimento (assinatura, impressão e relatório) só fazem sentido
+    // depois que o atendimento começou: há check-in ativo, ou já existem
+    // assinaturas/fotos registradas para esta OS.
+    $atendimento_iniciado = !empty($checkin_ativo) || !empty($assinaturas) || !empty($fotos);
+    ?>
+    <?php if ($atendimento_iniciado): ?>
+        <a href="<?= site_url('tecnico/assinatura_solicitante/' . $os->idOs) ?>" class="btn-tec success block" style="margin-bottom:8px;">
+            <i class='bx bx-pen'></i> Assinatura do Solicitante
+        </a>
 
-    <a href="<?= site_url('os/imprimir/' . $os->idOs) ?>" target="_blank" class="btn-tec ghost block" style="margin-bottom:8px;">
-        <i class='bx bx-printer'></i> Imprimir OS
-    </a>
-    <?php if (!empty($checkin_ativo) || (isset($assinaturas) && !empty($assinaturas))): ?>
+        <a href="<?= site_url('os/imprimir/' . $os->idOs) ?>" target="_blank" class="btn-tec ghost block" style="margin-bottom:8px;">
+            <i class='bx bx-printer'></i> Imprimir OS
+        </a>
+
         <a href="<?= site_url('checkin/imprimir/' . $os->idOs) ?>" target="_blank" class="btn-tec neutral block">
             <i class='bx bx-time'></i> Relatório de Atendimento
         </a>
