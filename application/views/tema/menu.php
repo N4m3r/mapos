@@ -151,9 +151,9 @@
                     <li class="<?php if (isset($menuAtribuir)) {
                         echo 'active';
                     }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('os/atribuir') ?>"><i class='bx bx-user-plus iconX'></i>
-                            <span class="title">Atribuir Técnico</span>
-                            <span class="title-tooltip">Atribuir Téc.</span>
+                        <a class="tip-bottom" title="" href="<?= site_url('os/atribuir') ?>"><i class='bx bx-headphone iconX'></i>
+                            <span class="title">Central de Atendimento</span>
+                            <span class="title-tooltip">Atendimento</span>
                         </a>
                     </li>
                 <?php } ?>

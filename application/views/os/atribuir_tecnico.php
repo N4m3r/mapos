@@ -26,107 +26,211 @@ function corStatusAtribuir($status)
         case 'Faturado': return '#B266FF';
         case 'Aguardando Peças': return '#FF7F00';
         case 'Aprovado': return '#808080';
+        case 'Não Realizado': return '#CD0000';
         default: return '#E0E4CC';
     }
 }
-$filtro = $this->input->get('filtro');
+$aba = isset($aba) ? $aba : 'todos';
 if (!isset($ordens) || !is_array($ordens)) {
     $ordens = [];
 }
+if (!isset($naoRealizadas) || !is_array($naoRealizadas)) {
+    $naoRealizadas = [];
+}
+$kpis = isset($kpis) ? $kpis : ['total' => 0, 'sem_tecnico' => 0, 'em_atendimento' => 0, 'aguardando' => 0, 'nao_realizadas' => 0];
+$statusDisponiveis = isset($statusDisponiveis) ? $statusDisponiveis : [];
+$base = base_url() . 'index.php/os/atribuir';
 ?>
 
 <div class="new122">
     <div class="widget-title" style="margin: -20px 0 0">
         <span class="icon">
-            <i class="fas fa-user-cog"></i>
+            <i class="fas fa-headset"></i>
         </span>
-        <h5>Atribuir Técnico às OS</h5>
+        <h5>Central de Atendimento</h5>
     </div>
 
-    <div class="span12" style="margin-left: 0; margin-top: 10px;">
-        <div class="span12" style="margin-left: 0">
-            <a href="<?php echo base_url(); ?>index.php/os/atribuir" class="button btn btn-mini <?= !$filtro ? 'btn-primary' : 'btn-inverse' ?>">
-                <span class="button__icon"><i class='bx bx-list-ul'></i></span><span class="button__text2">Todas</span>
-            </a>
-            <a href="<?php echo base_url(); ?>index.php/os/atribuir?filtro=sem_tecnico" class="button btn btn-mini <?= $filtro == 'sem_tecnico' ? 'btn-primary' : 'btn-inverse' ?>">
-                <span class="button__icon"><i class='bx bx-user-x'></i></span><span class="button__text2">Sem Técnico</span>
-            </a>
-            <a href="<?php echo base_url(); ?>index.php/os/atribuir?filtro=com_tecnico" class="button btn btn-mini <?= $filtro == 'com_tecnico' ? 'btn-primary' : 'btn-inverse' ?>">
-                <span class="button__icon"><i class='bx bx-user-check'></i></span><span class="button__text2">Com Técnico</span>
-            </a>
-        </div>
+    <!-- ============ KPIs ============ -->
+    <div class="tec-kpis">
+        <a href="<?= $base ?>?aba=todos" class="tec-kpi <?= $aba === 'todos' ? 'ativo' : '' ?>" style="--kpi:#436eee">
+            <span class="tec-kpi-num"><?= (int) $kpis['total'] ?></span>
+            <span class="tec-kpi-lbl"><i class='bx bx-list-ul'></i> Chamados abertos</span>
+        </a>
+        <a href="<?= $base ?>?aba=sem_tecnico" class="tec-kpi <?= $aba === 'sem_tecnico' ? 'ativo' : '' ?>" style="--kpi:#FF7F00">
+            <span class="tec-kpi-num"><?= (int) $kpis['sem_tecnico'] ?></span>
+            <span class="tec-kpi-lbl"><i class='bx bx-user-x'></i> Sem técnico</span>
+        </a>
+        <a href="<?= $base ?>?aba=em_atendimento" class="tec-kpi <?= $aba === 'em_atendimento' ? 'ativo' : '' ?>" style="--kpi:#256">
+            <span class="tec-kpi-num"><?= (int) $kpis['em_atendimento'] ?></span>
+            <span class="tec-kpi-lbl"><i class='bx bx-user-check'></i> Em atendimento</span>
+        </a>
+        <span class="tec-kpi" style="--kpi:#B266FF; cursor:default">
+            <span class="tec-kpi-num"><?= (int) $kpis['aguardando'] ?></span>
+            <span class="tec-kpi-lbl"><i class='bx bx-time-five'></i> Aguardando</span>
+        </span>
+        <a href="<?= $base ?>?aba=nao_realizadas" class="tec-kpi <?= $aba === 'nao_realizadas' ? 'ativo' : '' ?>" style="--kpi:#CD0000">
+            <span class="tec-kpi-num"><?= (int) $kpis['nao_realizadas'] ?></span>
+            <span class="tec-kpi-lbl"><i class='bx bx-x-circle'></i> Não realizadas</span>
+        </a>
     </div>
 
-    <div class="widget-box" style="margin-top: 8px">
-        <div class="widget-content nopadding">
-            <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>N°</th>
-                            <th>Cliente</th>
-                            <th>Descrição</th>
-                            <th>Data</th>
-                            <th>Status</th>
-                            <th>Técnico Atual</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (empty($ordens)) { ?>
+    <!-- ============ Abas ============ -->
+    <div class="span12" style="margin-left: 0; margin-top: 12px;">
+        <a href="<?= $base ?>?aba=todos" class="button btn btn-mini <?= $aba === 'todos' ? 'btn-primary' : 'btn-inverse' ?>">
+            <span class="button__icon"><i class='bx bx-list-ul'></i></span><span class="button__text2">Todos</span>
+        </a>
+        <a href="<?= $base ?>?aba=sem_tecnico" class="button btn btn-mini <?= $aba === 'sem_tecnico' ? 'btn-primary' : 'btn-inverse' ?>">
+            <span class="button__icon"><i class='bx bx-user-x'></i></span><span class="button__text2">Sem Técnico</span>
+        </a>
+        <a href="<?= $base ?>?aba=em_atendimento" class="button btn btn-mini <?= $aba === 'em_atendimento' ? 'btn-primary' : 'btn-inverse' ?>">
+            <span class="button__icon"><i class='bx bx-user-check'></i></span><span class="button__text2">Em Atendimento</span>
+        </a>
+        <a href="<?= $base ?>?aba=nao_realizadas" class="button btn btn-mini <?= $aba === 'nao_realizadas' ? 'btn-primary' : 'btn-inverse' ?>">
+            <span class="button__icon"><i class='bx bx-x-circle'></i></span><span class="button__text2">Não Realizadas</span>
+        </a>
+    </div>
+
+    <?php if ($aba === 'nao_realizadas') { ?>
+        <!-- ============ Aba: Não Realizadas ============ -->
+        <div class="widget-box" style="margin-top: 8px">
+            <div class="widget-content nopadding">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
                             <tr>
-                                <td colspan="7">Nenhuma OS encontrada</td>
+                                <th>N°</th>
+                                <th>Cliente</th>
+                                <th>Motivo</th>
+                                <th>Técnico</th>
+                                <th>Registrado em</th>
+                                <th>Ações</th>
                             </tr>
-                        <?php } else {
-                            foreach ($ordens as $os) {
-                                $cor = corStatusAtribuir($os->status); ?>
-                                <tr>
-                                    <td><?php echo $os->idOs; ?></td>
-                                    <td>
-                                        <?php echo $os->nomeCliente; ?>
-                                        <?php if (!empty($os->telefone)) { ?><br><small><?php echo $os->telefone; ?></small><?php } ?>
-                                    </td>
-                                    <td><?php echo character_limiter(strip_tags($os->descricaoProduto), 50); ?></td>
-                                    <td><?php echo date('d/m/Y', strtotime($os->dataInicial)); ?></td>
-                                    <td><span class="badge" style="background-color: <?php echo $cor; ?>; border-color: <?php echo $cor; ?>"><?php echo $os->status; ?></span></td>
-                                    <td>
-                                        <?php if ($os->tecnico_responsavel) { ?>
-                                            <span class="badge" style="background-color: #256; border-color: #256"><i class='bx bx-user'></i> <?php echo $os->nome_tecnico; ?></span>
-                                        <?php } else { ?>
-                                            <span class="badge" style="background-color: #FF7F00; border-color: #FF7F00"><i class='bx bx-user-x'></i> Não atribuído</span>
-                                        <?php } ?>
-                                    </td>
-                                    <td>
-                                        <button class="button btn btn-mini btn-success btn-atribuir"
-                                            data-os="<?php echo $os->idOs; ?>"
-                                            data-cliente="<?php echo htmlspecialchars($os->nomeCliente); ?>"
-                                            data-tecnico-atual="<?php echo $os->tecnico_responsavel; ?>"
-                                            data-tecnico-nome="<?php echo htmlspecialchars($os->nome_tecnico ?? ''); ?>">
-                                            <span class="button__icon"><i class='bx bx-user-plus'></i></span>
-                                            <span class="button__text2"><?php echo $os->tecnico_responsavel ? 'Trocar' : 'Atribuir'; ?></span>
-                                        </button>
-                                        <a href="<?php echo base_url(); ?>index.php/os/visualizar/<?php echo $os->idOs; ?>" class="button btn btn-mini btn-inverse" title="Ver OS">
-                                            <span class="button__icon"><i class='bx bx-show'></i></span>
-                                        </a>
-                                        <?php if ($os->tecnico_responsavel) { ?>
-                                            <button class="button btn btn-mini btn-danger btn-remover"
-                                                data-os="<?php echo $os->idOs; ?>"
-                                                data-cliente="<?php echo htmlspecialchars($os->nomeCliente); ?>">
-                                                <span class="button__icon"><i class='bx bx-user-x'></i></span>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($naoRealizadas)) { ?>
+                                <tr><td colspan="6">Nenhuma OS em espera (não realizada).</td></tr>
+                            <?php } else {
+                                foreach ($naoRealizadas as $nr) { ?>
+                                    <tr>
+                                        <td><?= $nr->os_id ?></td>
+                                        <td>
+                                            <?= htmlspecialchars($nr->nomeCliente ?? '') ?>
+                                            <?php if (!empty($nr->telefone)) { ?><br><small><?= $nr->telefone ?></small><?php } ?>
+                                        </td>
+                                        <td>
+                                            <?= htmlspecialchars($nr->motivo_texto ?? '—') ?>
+                                            <?php if (!empty($nr->observacao)) { ?>
+                                                <br><small style="color:#888"><?= htmlspecialchars($nr->observacao) ?></small>
+                                            <?php } ?>
+                                        </td>
+                                        <td><?= htmlspecialchars($nr->nome_tecnico ?? '—') ?></td>
+                                        <td><?= !empty($nr->data_registro) ? date('d/m/Y H:i', strtotime($nr->data_registro)) : '—' ?></td>
+                                        <td>
+                                            <button class="button btn btn-mini btn-success btn-reagendar"
+                                                data-ocorrencia="<?= $nr->idOcorrencia ?>" data-os="<?= $nr->os_id ?>">
+                                                <span class="button__icon"><i class='bx bx-calendar'></i></span>
+                                                <span class="button__text2">Reagendar</span>
                                             </button>
-                                        <?php } ?>
-                                    </td>
-                                </tr>
-                            <?php }
-                        } ?>
-                    </tbody>
-                </table>
+                                            <button class="button btn btn-mini btn-warning btn-reabrir"
+                                                data-ocorrencia="<?= $nr->idOcorrencia ?>" data-os="<?= $nr->os_id ?>">
+                                                <span class="button__icon"><i class='bx bx-revision'></i></span>
+                                                <span class="button__text2">Reabrir</span>
+                                            </button>
+                                            <a href="<?= base_url() ?>index.php/os/visualizar/<?= $nr->os_id ?>" class="button btn btn-mini btn-inverse" title="Ver OS">
+                                                <span class="button__icon"><i class='bx bx-show'></i></span>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php }
+                            } ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
+    <?php } else { ?>
+        <!-- ============ Abas: Todos / Sem Técnico / Em Atendimento ============ -->
+        <div class="widget-box" style="margin-top: 8px">
+            <div class="widget-content nopadding">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>N°</th>
+                                <th>Cliente</th>
+                                <th>Descrição</th>
+                                <th>Data</th>
+                                <th>Status</th>
+                                <th>Técnico Atual</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($ordens)) { ?>
+                                <tr><td colspan="7">Nenhuma OS encontrada</td></tr>
+                            <?php } else {
+                                foreach ($ordens as $os) {
+                                    $cor = corStatusAtribuir($os->status);
+                                    $podeMudarStatus = in_array($os->status, $statusDisponiveis, true); ?>
+                                    <tr>
+                                        <td><?= $os->idOs ?></td>
+                                        <td>
+                                            <?= htmlspecialchars($os->nomeCliente) ?>
+                                            <?php if (!empty($os->telefone)) { ?><br><small><?= $os->telefone ?></small><?php } ?>
+                                        </td>
+                                        <td><?= character_limiter(strip_tags($os->descricaoProduto), 50) ?></td>
+                                        <td><?= date('d/m/Y', strtotime($os->dataInicial)) ?></td>
+                                        <td>
+                                            <?php if ($podeMudarStatus) { ?>
+                                                <select class="status-inline" data-os="<?= $os->idOs ?>" data-atual="<?= htmlspecialchars($os->status) ?>"
+                                                    style="border-left:4px solid <?= $cor ?>; padding:2px 4px; max-width:150px;">
+                                                    <?php foreach ($statusDisponiveis as $st) { ?>
+                                                        <option value="<?= htmlspecialchars($st) ?>" <?= $os->status === $st ? 'selected' : '' ?>><?= $st ?></option>
+                                                    <?php } ?>
+                                                </select>
+                                            <?php } else { ?>
+                                                <span class="badge" style="background-color: <?= $cor ?>; border-color: <?= $cor ?>"><?= $os->status ?></span>
+                                            <?php } ?>
+                                        </td>
+                                        <td>
+                                            <?php if ($os->tecnico_responsavel) { ?>
+                                                <span class="badge" style="background-color: #256; border-color: #256"><i class='bx bx-user'></i> <?= htmlspecialchars($os->nome_tecnico) ?></span>
+                                            <?php } else { ?>
+                                                <span class="badge" style="background-color: #FF7F00; border-color: #FF7F00"><i class='bx bx-user-x'></i> Não atribuído</span>
+                                            <?php } ?>
+                                        </td>
+                                        <td>
+                                            <button class="button btn btn-mini btn-success btn-atribuir"
+                                                data-os="<?= $os->idOs ?>"
+                                                data-cliente="<?= htmlspecialchars($os->nomeCliente) ?>"
+                                                data-tecnico-atual="<?= $os->tecnico_responsavel ?>"
+                                                data-tecnico-nome="<?= htmlspecialchars($os->nome_tecnico ?? '') ?>">
+                                                <span class="button__icon"><i class='bx bx-user-plus'></i></span>
+                                                <span class="button__text2"><?= $os->tecnico_responsavel ? 'Trocar' : 'Atribuir'; ?></span>
+                                            </button>
+                                            <a href="<?= base_url() ?>index.php/os/visualizar/<?= $os->idOs ?>" class="button btn btn-mini btn-inverse" title="Ver OS">
+                                                <span class="button__icon"><i class='bx bx-show'></i></span>
+                                            </a>
+                                            <?php if ($os->tecnico_responsavel) { ?>
+                                                <button class="button btn btn-mini btn-danger btn-remover"
+                                                    data-os="<?= $os->idOs ?>"
+                                                    data-cliente="<?= htmlspecialchars($os->nomeCliente) ?>">
+                                                    <span class="button__icon"><i class='bx bx-user-x'></i></span>
+                                                </button>
+                                            <?php } ?>
+                                        </td>
+                                    </tr>
+                                <?php }
+                            } ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-    <?php if (isset($pagination) && $pagination) { ?>
-        <div class="pagination alternate" style="text-align: center;"><?php echo $pagination; ?></div>
+        <?php if (isset($pagination) && $pagination) { ?>
+            <div class="pagination alternate" style="text-align: center;"><?= $pagination ?></div>
+        <?php } ?>
     <?php } ?>
 </div>
 
@@ -136,7 +240,7 @@ if (!isset($ordens) || !is_array($ordens)) {
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h4 id="modalAtribuirLabel"><i class='bx bx-user-plus'></i> Atribuir Técnico</h4>
     </div>
-    <form action="<?php echo base_url(); ?>index.php/os/atribuirTecnicoAction" method="POST" id="formAtribuir">
+    <form action="<?= base_url() ?>index.php/os/atribuirTecnicoAction" method="POST" id="formAtribuir">
         <div class="modal-body">
             <input type="hidden" name="os_id" id="os_id_atribuir">
 
@@ -152,7 +256,7 @@ if (!isset($ordens) || !is_array($ordens)) {
                         <?php if (!empty($tecnicos) && is_array($tecnicos)) {
                             foreach ($tecnicos as $t) {
                                 if (is_object($t)) { ?>
-                                    <option value="<?php echo $t->idUsuarios; ?>"><?php echo $t->nome; ?> (<?php echo $t->email; ?>)</option>
+                                    <option value="<?= $t->idUsuarios ?>"><?= htmlspecialchars($t->nome) ?> (<?= htmlspecialchars($t->email) ?>)</option>
                                 <?php }
                             }
                         } else { ?>
@@ -187,7 +291,7 @@ if (!isset($ordens) || !is_array($ordens)) {
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h4 id="modalRemoverLabel"><i class='bx bx-user-x'></i> Remover Técnico</h4>
     </div>
-    <form action="<?php echo base_url(); ?>index.php/os/removerTecnicoAction" method="POST" id="formRemover">
+    <form action="<?= base_url() ?>index.php/os/removerTecnicoAction" method="POST" id="formRemover">
         <div class="modal-body">
             <input type="hidden" name="os_id" id="os_id_remover">
 
@@ -210,8 +314,33 @@ if (!isset($ordens) || !is_array($ordens)) {
     </form>
 </div>
 
+<!-- Modal Reagendar (Não Realizada) -->
+<div id="modalReagendar" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4><i class='bx bx-calendar'></i> Reagendar OS #<span id="reag_os"></span></h4>
+    </div>
+    <div class="modal-body">
+        <input type="hidden" id="reag_ocorrencia">
+        <div class="control-group">
+            <label class="control-label" for="reag_data">Nova data de atendimento:</label>
+            <div class="controls">
+                <input type="date" id="reag_data" class="span12">
+            </div>
+        </div>
+        <small style="color:#888">A OS volta para a agenda como "Aberto" na data informada.</small>
+    </div>
+    <div class="modal-footer">
+        <button class="btn" data-dismiss="modal" aria-hidden="true">Cancelar</button>
+        <button type="button" class="btn btn-success" id="btnConfirmarReagendar"><i class='bx bx-check'></i> Confirmar</button>
+    </div>
+</div>
+
 <script type="text/javascript">
     $(document).ready(function() {
+        var BASE = '<?= base_url() ?>index.php/os/';
+
+        // ---- Atribuir / Trocar técnico ----
         $('.btn-atribuir').click(function() {
             var osId = $(this).data('os');
             var cliente = $(this).data('cliente');
@@ -230,18 +359,13 @@ if (!isset($ordens) || !is_array($ordens)) {
                 $('#tecnico-atual-info').addClass('hide');
                 $('#modalAtribuirLabel').html('<i class="bx bx-user-plus"></i> Atribuir Técnico');
             }
-
             $('#modalAtribuir').modal('show');
         });
 
         $('.btn-remover').click(function() {
-            var osId = $(this).data('os');
-            var cliente = $(this).data('cliente');
-
-            $('#os_id_remover').val(osId);
-            $('#os_numero_remover').text(osId);
-            $('#os_cliente_remover').text(cliente);
-
+            $('#os_id_remover').val($(this).data('os'));
+            $('#os_numero_remover').text($(this).data('os'));
+            $('#os_cliente_remover').text($(this).data('cliente'));
             $('#modalRemover').modal('show');
         });
 
@@ -252,5 +376,95 @@ if (!isset($ordens) || !is_array($ordens)) {
                 return false;
             }
         });
+
+        // ---- Mudança de status inline (AJAX) ----
+        $('.status-inline').change(function() {
+            var $sel = $(this);
+            var osId = $sel.data('os');
+            var novo = $sel.val();
+            var atual = $sel.data('atual');
+            if (novo === atual) { return; }
+
+            $sel.prop('disabled', true);
+            $.ajax({
+                url: BASE + 'alterarStatusAction',
+                type: 'POST',
+                dataType: 'json',
+                data: { os_id: osId, status: novo },
+                success: function(r) {
+                    if (r && r.success) {
+                        $sel.data('atual', novo);
+                    } else {
+                        alert((r && r.message) || 'Erro ao alterar status.');
+                        $sel.val(atual);
+                    }
+                },
+                error: function() {
+                    alert('Falha de comunicação ao alterar status.');
+                    $sel.val(atual);
+                },
+                complete: function() { $sel.prop('disabled', false); }
+            });
+        });
+
+        // ---- Não realizadas: reagendar ----
+        $('.btn-reagendar').click(function() {
+            $('#reag_ocorrencia').val($(this).data('ocorrencia'));
+            $('#reag_os').text($(this).data('os'));
+            $('#reag_data').val('');
+            $('#modalReagendar').modal('show');
+        });
+
+        $('#btnConfirmarReagendar').click(function() {
+            var $btn = $(this);
+            var oc = $('#reag_ocorrencia').val();
+            var data = $('#reag_data').val();
+            if (!data) { alert('Informe a nova data.'); return; }
+
+            $btn.prop('disabled', true);
+            $.ajax({
+                url: BASE + 'resolverNaoRealizadaAction',
+                type: 'POST',
+                dataType: 'json',
+                data: { ocorrencia_id: oc, acao: 'reagendar', nova_data: data },
+                success: function(r) {
+                    alert((r && r.message) || 'Concluído.');
+                    if (r && r.success) { location.reload(); }
+                },
+                error: function() { alert('Falha de comunicação.'); },
+                complete: function() { $btn.prop('disabled', false); }
+            });
+        });
+
+        // ---- Não realizadas: reabrir ----
+        $('.btn-reabrir').click(function() {
+            if (!confirm('Reabrir a OS #' + $(this).data('os') + ' para refazer?')) { return; }
+            var oc = $(this).data('ocorrencia');
+            $.ajax({
+                url: BASE + 'resolverNaoRealizadaAction',
+                type: 'POST',
+                dataType: 'json',
+                data: { ocorrencia_id: oc, acao: 'reabrir' },
+                success: function(r) {
+                    alert((r && r.message) || 'Concluído.');
+                    if (r && r.success) { location.reload(); }
+                },
+                error: function() { alert('Falha de comunicação.'); }
+            });
+        });
     });
 </script>
+
+<style>
+.tec-kpis { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+.tec-kpi { flex:1 1 150px; min-width:140px; display:flex; flex-direction:column; gap:4px;
+    padding:12px 14px; border-radius:8px; background:#fff; border:1px solid #e5e5e5;
+    border-top:3px solid var(--kpi,#436eee); text-decoration:none; color:#333;
+    box-shadow:0 1px 2px rgba(0,0,0,.05); transition:transform .1s ease, box-shadow .1s ease; }
+.tec-kpi:hover { transform:translateY(-2px); box-shadow:0 3px 8px rgba(0,0,0,.12); color:#333; text-decoration:none; }
+.tec-kpi.ativo { box-shadow:0 0 0 2px var(--kpi,#436eee) inset; }
+.tec-kpi-num { font-size:26px; font-weight:700; line-height:1; color:var(--kpi,#436eee); }
+.tec-kpi-lbl { font-size:12px; color:#666; }
+.tec-kpi-lbl i { vertical-align:middle; }
+.status-inline { height:auto; }
+</style>

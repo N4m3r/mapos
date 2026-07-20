@@ -1591,23 +1591,38 @@ class Os extends MY_Controller
     }
 
     /**
-     * ETAPA 4: Interface de atribuição de técnico às OS
-     * Tela para administradores gerenciarem a atribuição de técnicos
+     * Statuses que podem ser aplicados pela Central de Atendimento (mudança
+     * inline). Exclui os terminais (Finalizado/Faturado/Cancelado) e o
+     * "Não Realizado" porque têm efeitos colaterais (estoque, faturamento,
+     * ocorrência de não realizado) que devem passar pela OS ou pelo fluxo próprio.
+     */
+    private function statusChamadoPermitidos()
+    {
+        return ['Aberto', 'Em Andamento', 'Orçamento', 'Negociação', 'Aprovado', 'Aguardando Peças'];
+    }
+
+    /**
+     * CENTRAL DE ATENDIMENTO: gestão dos chamados (OS) + atribuição de técnicos.
+     * Layout híbrido: faixa de indicadores (KPIs) + abas por situação do
+     * atendimento (Todos / Sem Técnico / Em Atendimento / Não Realizadas).
+     * Acesso pela permissão eOs (Editar OS).
      */
     public function atribuir()
     {
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
-            $this->session->set_flashdata('error', 'Você não tem permissão para atribuir técnicos às OS.');
+            $this->session->set_flashdata('error', 'Você não tem permissão para acessar a Central de Atendimento.');
             redirect(base_url());
         }
 
         $this->load->model('tecnico_model');
+        $this->load->model('naorealizada_model');
         $this->load->library('pagination');
         $this->load->helper('text');
         $this->load->model('os_model');
 
-        // Filtro de exibição
-        $filtro = $this->input->get('filtro');
+        // Aba ativa (situação do atendimento). Mantém compatibilidade com o
+        // parâmetro antigo ?filtro= usado por links/bookmarks.
+        $aba = $this->input->get('aba') ?: $this->input->get('filtro') ?: 'todos';
 
         // Configuração da paginação
         $config['base_url'] = site_url('os/atribuir');
@@ -1637,21 +1652,39 @@ class Os extends MY_Controller
         // Offset baseado na query string
         $page = $this->input->get('page') ? (int)$this->input->get('page') : 0;
 
-        if ($filtro == 'sem_tecnico') {
-            // Buscar OS onde tecnico_responsavel é NULL
+        if ($aba == 'sem_tecnico') {
+            // OS sem técnico responsável
             $ordens = $this->os_model->getOsSemTecnico($config['per_page'], $page);
             $config['total_rows'] = $this->tecnico_model->countOsSemTecnico();
-        } elseif ($filtro == 'com_tecnico') {
-            // Buscar OS com técnico
+        } elseif ($aba == 'em_atendimento' || $aba == 'com_tecnico') {
+            // OS já com técnico atribuído
             $ordens = $this->os_model->getOsComTecnico($config['per_page'], $page);
             $config['total_rows'] = $this->tecnico_model->countOsComTecnico();
+        } elseif ($aba == 'nao_realizadas') {
+            // Tratada à parte (lista de ocorrências), sem paginação nesta versão.
+            $ordens = [];
+            $config['total_rows'] = 0;
         } else {
-            // Buscar todas as OS pendentes
+            $aba = 'todos';
+            // Todas as OS pendentes de atendimento
             $ordens = $this->os_model->getOsPendentesAtribuicao($config['per_page'], $page);
             $config['total_rows'] = $this->tecnico_model->countOsParaAtribuicao();
         }
 
         $this->data['ordens'] = $ordens ?: [];
+        $this->data['aba'] = $aba;
+
+        // Ocorrências de "Não Realizado" pendentes (visão de gestão, todos os técnicos)
+        $this->data['naoRealizadas'] = $this->naorealizada_model->getPendentes(null, 100);
+
+        // Indicadores (KPIs) do topo
+        $this->data['kpis'] = [
+            'total'          => $this->tecnico_model->countOsParaAtribuicao(),
+            'sem_tecnico'    => $this->tecnico_model->countOsSemTecnico(),
+            'em_atendimento' => $this->tecnico_model->countOsComTecnico(),
+            'aguardando'     => $this->os_model->contarPorStatus(['Aguardando Peças', 'Aprovado', 'Orçamento', 'Negociação']),
+            'nao_realizadas' => $this->naorealizada_model->contarPendentes(),
+        ];
 
         // Inicializar paginação
         $this->pagination->initialize($config);
@@ -1660,11 +1693,118 @@ class Os extends MY_Controller
         // Carregar lista de técnicos (apenas usuários de grupos com permissão de técnico)
         $this->data['tecnicos'] = $this->tecnico_model->getTecnicosPorPermissao();
 
+        // Statuses aplicáveis inline
+        $this->data['statusDisponiveis'] = $this->statusChamadoPermitidos();
+
         // Ativar menu
         $this->data['menuAtribuir'] = 'Atribuir';
         $this->data['view'] = 'os/atribuir_tecnico';
 
         return $this->layout();
+    }
+
+    /**
+     * Ação AJAX: altera o status do chamado direto pela Central de Atendimento.
+     * Restrita aos statuses de fluxo (statusChamadoPermitidos), evitando os
+     * terminais que têm efeitos colaterais (estoque/faturamento).
+     */
+    public function alterarStatusAction()
+    {
+        if (! $this->input->is_ajax_request()) {
+            echo json_encode(['success' => false, 'message' => 'Requisição inválida.']);
+            return;
+        }
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
+            echo json_encode(['success' => false, 'message' => 'Sem permissão para alterar o status.']);
+            return;
+        }
+
+        $os_id  = (int) $this->input->post('os_id');
+        $status = trim((string) $this->input->post('status'));
+
+        if (! $os_id || $status === '') {
+            echo json_encode(['success' => false, 'message' => 'Dados incompletos.']);
+            return;
+        }
+        if (! in_array($status, $this->statusChamadoPermitidos(), true)) {
+            echo json_encode(['success' => false, 'message' => 'Status não permitido por aqui. Use a OS para cancelar, finalizar ou faturar.']);
+            return;
+        }
+
+        $os = $this->os_model->getById($os_id);
+        if (! $os) {
+            echo json_encode(['success' => false, 'message' => 'OS não encontrada.']);
+            return;
+        }
+        if (in_array($os->status, ['Finalizado', 'Faturado', 'Cancelado'], true)) {
+            echo json_encode(['success' => false, 'message' => 'Esta OS está ' . $os->status . ' e não pode mudar de status por aqui.']);
+            return;
+        }
+        if ($os->status === 'Não Realizado') {
+            echo json_encode(['success' => false, 'message' => 'OS em espera. Use "Reagendar" ou "Reabrir" na aba Não Realizadas.']);
+            return;
+        }
+
+        if ($this->os_model->edit('os', ['status' => $status], 'idOs', $os_id)) {
+            log_info('Alterou status da OS #' . $os_id . ' para "' . $status . '" pela Central de Atendimento.');
+            echo json_encode(['success' => true, 'message' => 'Status da OS #' . $os_id . ' atualizado para ' . $status . '.', 'status' => $status]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar o status.']);
+        }
+    }
+
+    /**
+     * Ação AJAX: resolve uma ocorrência de "Não Realizado" pela Central
+     * (perfil de gestão), reagendando para nova data ou reabrindo para refazer.
+     */
+    public function resolverNaoRealizadaAction()
+    {
+        if (! $this->input->is_ajax_request()) {
+            echo json_encode(['success' => false, 'message' => 'Requisição inválida.']);
+            return;
+        }
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
+            echo json_encode(['success' => false, 'message' => 'Sem permissão.']);
+            return;
+        }
+
+        $this->load->model('naorealizada_model');
+        $ocorrencia_id = (int) $this->input->post('ocorrencia_id');
+        $acao          = $this->input->post('acao');
+        $usuario       = $this->session->userdata('idUsuarios');
+
+        $oc = $this->naorealizada_model->getOcorrencia($ocorrencia_id);
+        if (! $oc) {
+            echo json_encode(['success' => false, 'message' => 'Ocorrência não encontrada.']);
+            return;
+        }
+
+        if ($acao === 'reagendar') {
+            $nova_data = trim((string) $this->input->post('nova_data'));
+            if ($nova_data === '' || ! strtotime($nova_data)) {
+                echo json_encode(['success' => false, 'message' => 'Informe uma data válida para o reagendamento.']);
+                return;
+            }
+            if (! $this->naorealizada_model->reagendar($ocorrencia_id, $nova_data, $usuario)) {
+                echo json_encode(['success' => false, 'message' => 'Não foi possível reagendar (talvez já resolvida).']);
+                return;
+            }
+            log_info('Reagendou OS não realizada pela Central. OS ID: ' . $oc->os_id);
+            echo json_encode(['success' => true, 'message' => 'OS #' . $oc->os_id . ' reagendada para ' . date('d/m/Y', strtotime($nova_data)) . '.']);
+            return;
+        }
+
+        if ($acao === 'reabrir') {
+            if (! $this->naorealizada_model->reabrir($ocorrencia_id, $usuario)) {
+                echo json_encode(['success' => false, 'message' => 'Não foi possível reabrir (talvez já resolvida).']);
+                return;
+            }
+            log_info('Reabriu OS não realizada pela Central. OS ID: ' . $oc->os_id);
+            echo json_encode(['success' => true, 'message' => 'OS #' . $oc->os_id . ' reaberta para refazer.']);
+            return;
+        }
+
+        echo json_encode(['success' => false, 'message' => 'Ação inválida.']);
     }
 
     /**

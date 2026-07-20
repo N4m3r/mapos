@@ -199,10 +199,11 @@ class Naorealizada_model extends CI_Model
             return [];
         }
 
-        $this->db->select('nr.*, os.idOs, os.status, os.dataInicial, os.descricaoProduto, os.tecnico_responsavel, clientes.nomeCliente, clientes.telefone, clientes.celular');
+        $this->db->select('nr.*, os.idOs, os.status, os.dataInicial, os.descricaoProduto, os.tecnico_responsavel, clientes.nomeCliente, clientes.telefone, clientes.celular, usuarios.nome as nome_tecnico');
         $this->db->from('os_nao_realizada nr');
         $this->db->join('os', 'os.idOs = nr.os_id');
         $this->db->join('clientes', 'clientes.idClientes = os.clientes_id', 'left');
+        $this->db->join('usuarios', 'usuarios.idUsuarios = os.tecnico_responsavel', 'left');
         $this->db->where('nr.resolvido', 0);
         $this->db->where('os.status', 'Não Realizado');
         if ($tecnico_id !== null) {

@@ -517,4 +517,20 @@ class Os_model extends CI_Model
         $query = $this->db->get();
         return ($query && $query->num_rows() > 0) ? $query->result() : [];
     }
+
+    /**
+     * Conta OS por status (aceita string única ou array de status).
+     * Usado nos indicadores (KPIs) da Central de Atendimento.
+     */
+    public function contarPorStatus($status)
+    {
+        if (is_array($status)) {
+            $this->db->where_in('status', $status);
+        } else {
+            $this->db->where('status', $status);
+        }
+        $r = $this->db->count_all_results('os');
+
+        return ($r !== false) ? $r : 0;
+    }
 }
