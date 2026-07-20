@@ -117,6 +117,55 @@ const CheckinManager = {
             const assinaturaId = $(this).data('assinatura-id');
             self.removerAssinatura(assinaturaId);
         });
+
+        // Captura automatica de localizacao ao abrir os modais (sem botao)
+        $(document).on('shown.bs.modal', '#modal-checkin', function() {
+            self.capturarLocalizacao('checkin');
+        });
+        $(document).on('shown.bs.modal', '#modal-checkout', function() {
+            self.capturarLocalizacao('checkout');
+        });
+    },
+
+    // Exibe uma notificacao usando swal quando disponivel (fallback: alert)
+    notificar: function(titulo, mensagem, tipo) {
+        if (typeof swal !== 'undefined') {
+            swal(titulo || '', mensagem || '', tipo || 'info');
+        } else {
+            alert((titulo ? titulo + ': ' : '') + (mensagem || ''));
+        }
+    },
+
+    /**
+     * Captura a geolocalizacao em segundo plano assim que o modal abre,
+     * preenchendo os campos ocultos e mostrando um status discreto.
+     * prefixo = 'checkin' | 'checkout'
+     */
+    capturarLocalizacao: function(prefixo) {
+        var status = $('#' + prefixo + '-geo-status');
+        var latEl = $('#' + prefixo + '-latitude');
+        var lngEl = $('#' + prefixo + '-longitude');
+
+        if (!('geolocation' in navigator)) {
+            status.html('<i class="bx bx-error-circle"></i> GPS indisponivel neste dispositivo').css('color', '#c0392b');
+            return;
+        }
+
+        latEl.val('');
+        lngEl.val('');
+        status.html('<i class="bx bx-loader bx-spin"></i> Obtendo localizacao...').css('color', '#8a939c');
+
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            latEl.val(pos.coords.latitude);
+            lngEl.val(pos.coords.longitude);
+            var prec = pos.coords.accuracy ? ' (±' + Math.round(pos.coords.accuracy) + ' m)' : '';
+            status.html('<i class="bx bx-map"></i> Localizacao capturada' + prec).css('color', '#2e7d32');
+        }, function(err) {
+            var msg = (err && err.code === 1)
+                ? 'Permissao de localizacao negada'
+                : 'Nao foi possivel obter a localizacao';
+            status.html('<i class="bx bx-error-circle"></i> ' + msg).css('color', '#c0392b');
+        }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
     },
 
     carregarStatus: function() {
@@ -222,11 +271,14 @@ const CheckinManager = {
             return;
         }
 
-        // Coleta dados da assinatura
-        let assinaturaImg = '';
-        if (!assinatura.estaVazio()) {
-            assinaturaImg = assinatura.obterImagem();
+        // Assinatura do técnico é obrigatória para iniciar o atendimento
+        if (assinatura.estaVazio()) {
+            self.notificar('Atenção', 'Faça a assinatura do técnico para iniciar o atendimento.', 'warning');
+            return;
         }
+
+        // Coleta dados da assinatura
+        const assinaturaImg = assinatura.obterImagem();
 
         // Usar FormData para enviar dados sem codificação URL
         let dados = new FormData();
@@ -260,9 +312,9 @@ const CheckinManager = {
                     self.config.checkinId = response.checkin_id;
                     self.estado.emAtendimento = true;
                     self.atualizarUI();
-                    alert('Atendimento iniciado com sucesso!');
+                    self.notificar('Sucesso!', 'Atendimento iniciado com sucesso!', 'success');
                 } else {
-                    alert(response.message || 'Erro ao iniciar atendimento');
+                    self.notificar('Erro', response.message || 'Erro ao iniciar atendimento', 'error');
                 }
             },
             error: function(xhr, status, error) {
@@ -279,7 +331,7 @@ const CheckinManager = {
                 } else if (xhr.status === 403) {
                     msg = 'Erro de permissão ou token CSRF inválido. Recarregue a página.';
                 }
-                alert(msg);
+                self.notificar('Erro', msg, 'error');
             }
         });
     },
@@ -310,12 +362,12 @@ const CheckinManager = {
 
         // Verifica se as assinaturas foram preenchidas
         if (assinaturaTecnico.estaVazio()) {
-            alert('Por favor, faça a assinatura do técnico');
+            self.notificar('Atenção', 'Por favor, faça a assinatura do técnico.', 'warning');
             return;
         }
 
         if (assinaturaCliente.estaVazio()) {
-            alert('Por favor, faça a assinatura do cliente');
+            self.notificar('Atenção', 'Por favor, faça a assinatura do cliente.', 'warning');
             return;
         }
 
@@ -380,9 +432,9 @@ const CheckinManager = {
                     self.config.checkinId = null;
                     self.estado.emAtendimento = false;
                     self.atualizarUI();
-                    alert('Atendimento finalizado com sucesso!');
+                    self.notificar('Sucesso!', 'Atendimento finalizado com sucesso!', 'success');
                 } else {
-                    alert(response.message || 'Erro ao finalizar atendimento');
+                    self.notificar('Erro', response.message || 'Erro ao finalizar atendimento', 'error');
                 }
             },
             error: function(xhr, status, error) {
@@ -399,7 +451,7 @@ const CheckinManager = {
                 } else if (xhr.status === 403) {
                     msg = 'Erro de permissão ou token CSRF inválido. Recarregue a página.';
                 }
-                alert(msg);
+                self.notificar('Erro', msg, 'error');
             }
         });
     },

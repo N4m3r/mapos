@@ -23,12 +23,19 @@ $container_preview_id = $id . '-preview';
     <h5><?php echo $titulo; ?></h5>
 
     <!-- Canvas -->
-    <div class="assinatura-canvas-wrapper" style="border: 2px solid #ddd; border-radius: 4px; margin-bottom: 10px; background: #fff; touch-action: none;">
+    <div class="assinatura-canvas-wrapper" style="position: relative; border: 2px solid #ddd; border-radius: 4px; margin-bottom: 10px; background: #fff; touch-action: none;">
         <canvas id="<?php echo $canvas_id; ?>" width="400" height="150" style="width: 100%; height: auto; cursor: crosshair; touch-action: none; -webkit-touch-callout: none; user-select: none;"></canvas>
+        <!-- Tarja de toque (visivel apenas no mobile via CSS) -->
+        <div class="assinatura-tap-hint" data-titulo="<?php echo htmlspecialchars($titulo, ENT_QUOTES); ?>">
+            <i class="bx bx-edit"></i> Toque para assinar em tela cheia
+        </div>
     </div>
 
     <!-- Botões -->
     <div class="assinatura-botoes" style="margin-bottom: 15px;">
+        <button type="button" class="btn btn-small btn-primary btn-assinatura-ampliar" data-target="<?php echo $id; ?>" data-titulo="<?php echo htmlspecialchars($titulo, ENT_QUOTES); ?>">
+            <i class="bx bx-fullscreen"></i> Assinar em tela cheia
+        </button>
         <button type="button" class="btn btn-small" id="<?php echo $btn_limpar_id; ?>">
             <i class="bx bx-eraser"></i> Limpar
         </button>
@@ -88,6 +95,10 @@ $container_preview_id = $id . '-preview';
         if (assinatura) {
             assinatura.limpar();
             $('#<?php echo $container_preview_id; ?>').hide().find('img').attr('src', '');
+            // Reseta o estado visual da tarja de "assinar em tela cheia"
+            $('#' + containerId).removeClass('assinado')
+                .find('.assinatura-tap-hint')
+                .html('<i class="bx bx-edit"></i> Toque para assinar em tela cheia');
         }
     });
 
