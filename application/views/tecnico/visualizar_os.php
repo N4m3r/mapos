@@ -160,26 +160,29 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
     <?php endif; ?>
 
     <?php
-    // Botão "Não foi possível realizar": só quando há permissão, a OS ainda não
-    // está em espera e não está concluída.
+    // "Não foi possível realizar": disponível quando há permissão, a OS ainda
+    // não está em espera e não está concluída. Fica na barra de ação, junto do
+    // "Iniciar Atendimento" (parte do fluxo de início).
     $nr_concluida = in_array($os->status, ['Finalizado', 'Faturado', 'Cancelado'], true);
-    if (!empty($permissao_nao_realizado) && empty($nr_pendente) && !$nr_concluida): ?>
-        <button type="button" class="btn-tec danger block" style="margin-top:8px;" onclick="abrirNaoRealizado()">
-            <i class='bx bx-x-circle'></i> Não foi possível realizar o serviço
-        </button>
-    <?php endif; ?>
+    $mostrar_nao_realizado = !empty($permissao_nao_realizado) && empty($nr_pendente) && !$nr_concluida;
+    ?>
 
-    <?php if ($permissao_checkin || $permissao_checkout): ?>
+    <?php if ($permissao_checkin || $permissao_checkout || $mostrar_nao_realizado): ?>
         <div style="height:76px;"></div><!-- espaco para a barra de acao fixa -->
     <?php endif; ?>
 </div>
 
-<!-- Barra de acao fixa: iniciar / finalizar -->
-<?php if ($permissao_checkin || $permissao_checkout): ?>
+<!-- Barra de acao fixa: iniciar / nao realizado / finalizar -->
+<?php if ($permissao_checkin || $permissao_checkout || $mostrar_nao_realizado): ?>
 <div class="action-bar">
     <?php if ($permissao_checkin): ?>
         <button type="button" id="btn-iniciar-atendimento" class="btn-tec success lg <?= $checkin_ativo ? 'hidden' : '' ?>">
             <i class='bx bx-log-in'></i> Iniciar Atendimento
+        </button>
+    <?php endif; ?>
+    <?php if ($mostrar_nao_realizado): ?>
+        <button type="button" id="btn-nao-realizado-bar" class="btn-tec lg btn-nr-outline <?= $checkin_ativo ? 'hidden' : '' ?>" onclick="abrirNaoRealizado()">
+            <i class='bx bx-x-circle'></i> Não realizado
         </button>
     <?php endif; ?>
     <?php if ($permissao_checkout): ?>
@@ -196,7 +199,7 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
 </div>
 
 <!-- Modal: registrar "não foi possível realizar" -->
-<?php if (!empty($permissao_nao_realizado) && empty($nr_pendente) && !$nr_concluida): ?>
+<?php if ($mostrar_nao_realizado): ?>
 <div id="naoRealizadoModal" class="nr-modal" style="display:none;">
     <div class="nr-modal-box">
         <h3><i class='bx bx-x-circle'></i> Serviço não realizado</h3>
@@ -248,6 +251,10 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
 .nr-modal-actions{display:flex;gap:10px;margin-top:18px;}
 .nr-modal-actions .btn-tec{flex:1;justify-content:center;}
 @media (min-width:600px){.nr-modal{align-items:center;}.nr-modal-box{border-radius:16px;}}
+/* Botão "Não realizado" na barra de ação: destaque secundário (contorno). */
+.btn-nr-outline{background:#fff;color:#f5576c;border:1.5px solid #f5576c;}
+/* Garante o toggle de visibilidade dos botões da barra (iniciar/finalizar/nao-realizado). */
+.action-bar .hidden{display:none !important;}
 </style>
 
 <?php $this->load->view('tecnico/_nav', ['nav_ativo' => 'os', 'pode_ver_sistema' => isset($pode_ver_sistema) ? $pode_ver_sistema : false]); ?>

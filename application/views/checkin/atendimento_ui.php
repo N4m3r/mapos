@@ -142,7 +142,7 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
 <!-- Bibliotecas do fluxo de atendimento (mesmas da tela administrativa) -->
 <script src="<?= base_url('assets/js/assinatura-canvas.js?v=3') ?>"></script>
 <script src="<?= base_url('assets/js/checkin-fotos.js?v=3') ?>"></script>
-<script src="<?= base_url('assets/js/checkin.js?v=3') ?>"></script>
+<script src="<?= base_url('assets/js/checkin.js?v=4') ?>"></script>
 <script src="<?= base_url('assets/js/checkin-formularios.js?v=1') ?>"></script>
 <script src="<?= base_url('assets/js/csrf.js?v=3') ?>"></script>
 <script src="<?= base_url('assets/js/tecnico-localizacao.js?v=1') ?>"></script>

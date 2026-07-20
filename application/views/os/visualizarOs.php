@@ -8,7 +8,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
 <!-- Scripts do Sistema de Check-in (carregados antes dos modais) -->
 <script src="<?php echo base_url(); ?>assets/js/assinatura-canvas.js?v=3"></script>
 <script src="<?php echo base_url(); ?>assets/js/checkin-fotos.js?v=3"></script>
-<script src="<?php echo base_url(); ?>assets/js/checkin.js?v=3"></script>
+<script src="<?php echo base_url(); ?>assets/js/checkin.js?v=4"></script>
 <script src="<?php echo base_url(); ?>assets/js/checkin-formularios.js?v=1"></script>
 <script src="<?php echo base_url(); ?>assets/js/csrf.js?v=3"></script>
 <script>

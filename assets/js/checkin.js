@@ -154,9 +154,11 @@ const CheckinManager = {
     atualizarUI: function() {
         if (this.estado.emAtendimento) {
             $('#btn-iniciar-atendimento').addClass('hidden');
+            $('#btn-nao-realizado-bar').addClass('hidden');
             $('#btn-finalizar-atendimento').removeClass('hidden');
         } else {
             $('#btn-iniciar-atendimento').removeClass('hidden');
+            $('#btn-nao-realizado-bar').removeClass('hidden');
             $('#btn-finalizar-atendimento').addClass('hidden');
         }
     },
