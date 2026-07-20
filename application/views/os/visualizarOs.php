@@ -590,11 +590,29 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
 
                                 <!-- Assinaturas -->
                                 <?php log_info('View VisualizarOS - Assinaturas recebidas: ' . count($assinaturas)); ?>
-                                <?php if (!empty($assinaturas)) { ?>
+                                <?php
+                                // "cliente_aceite" (link publico de aceite) e "solicitante" (coletada
+                                // pelo tecnico) sao a MESMA assinatura. Exibe uma unica, como "Solicitante".
+                                $temSolicitante = false;
+                                foreach ($assinaturas as $a) {
+                                    if ($a->tipo === 'solicitante') { $temSolicitante = true; break; }
+                                }
+                                $assinaturasExib = [];
+                                $solExibida = false;
+                                foreach ($assinaturas as $a) {
+                                    if (in_array($a->tipo, ['solicitante', 'cliente_aceite'], true)) {
+                                        if ($solExibida) { continue; }
+                                        if ($a->tipo === 'cliente_aceite' && $temSolicitante) { continue; }
+                                        $solExibida = true;
+                                    }
+                                    $assinaturasExib[] = $a;
+                                }
+                                ?>
+                                <?php if (!empty($assinaturasExib)) { ?>
                                 <div class="assinaturas-section" style="margin-top: 20px;">
                                     <h6><i class="bx bx-pen"></i> Assinaturas</h6>
                                     <div class="row-fluid">
-                                        <?php foreach ($assinaturas as $assinatura) { ?>
+                                        <?php foreach ($assinaturasExib as $assinatura) { ?>
                                         <div class="span3" id="assinatura-item-<?php echo $assinatura->idAssinatura; ?>" style="text-align: center; margin-bottom: 15px;">
                                             <div style="border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
                                                 <?php
@@ -618,6 +636,10 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                                                 break;
                                                             case 'cliente_saida':
                                                                 echo 'Cliente';
+                                                                break;
+                                                            case 'solicitante':
+                                                            case 'cliente_aceite':
+                                                                echo 'Solicitante';
                                                                 break;
                                                             default:
                                                                 echo $assinatura->tipo;

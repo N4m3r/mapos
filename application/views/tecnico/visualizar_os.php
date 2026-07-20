@@ -123,13 +123,33 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
     <?php endif; ?>
 
     <!-- Assinaturas ja coletadas -->
-    <?php if (!empty($assinaturas)): ?>
+    <?php
+    // "cliente_aceite" (assinatura pelo link publico de aceite) e "solicitante"
+    // (assinatura coletada no aparelho do tecnico) sao a MESMA assinatura: a
+    // pessoa que solicita/recebe o servico. Exibimos uma unica, rotulada como
+    // "Solicitante". Prefere a linha 'solicitante' quando as duas existirem.
+    $assinaturas_exibicao = [];
+    $solicitante_exibido = false;
+    foreach ($assinaturas as $a) {
+        if (in_array($a->tipo, ['solicitante', 'cliente_aceite'], true)) {
+            if ($solicitante_exibido) {
+                continue;
+            }
+            if ($a->tipo === 'cliente_aceite' && !empty($assinaturas_tipo['solicitante'])) {
+                continue;
+            }
+            $solicitante_exibido = true;
+        }
+        $assinaturas_exibicao[] = $a;
+    }
+    ?>
+    <?php if (!empty($assinaturas_exibicao)): ?>
         <div class="info-card">
             <h3><i class='bx bx-pen'></i> Assinaturas</h3>
             <div class="row" style="display:flex; flex-wrap:wrap; gap:14px;">
-                <?php foreach ($assinaturas as $assinatura): ?>
+                <?php foreach ($assinaturas_exibicao as $assinatura): ?>
                     <div style="flex:1 1 140px; text-align:center;">
-                        <h5 style="font-size:12px; color:#8a8fa3; margin:0 0 8px;"><?= ucfirst(str_replace('_', ' ', $assinatura->tipo)) ?></h5>
+                        <h5 style="font-size:12px; color:#8a8fa3; margin:0 0 8px;"><?= in_array($assinatura->tipo, ['solicitante', 'cliente_aceite'], true) ? 'Solicitante' : ucfirst(str_replace('_', ' ', $assinatura->tipo)) ?></h5>
                         <div class="assinatura-box">
                             <?php if (!empty($assinatura->is_base64)): ?>
                                 <img src="<?= $assinatura->url_visualizacao ?>" alt="Assinatura">
@@ -153,7 +173,7 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
     $atendimento_iniciado = !empty($checkin_ativo) || !empty($assinaturas) || !empty($fotos);
     ?>
     <?php if ($atendimento_iniciado): ?>
-        <?php $tem_assinatura_solicitante = !empty($assinaturas_tipo['solicitante']); ?>
+        <?php $tem_assinatura_solicitante = !empty($assinaturas_tipo['solicitante']) || !empty($assinaturas_tipo['cliente_aceite']); ?>
         <?php if (!empty($os->nao_programada) && !$tem_assinatura_solicitante): ?>
             <a href="<?= site_url('tecnico/assinatura_solicitante/' . $os->idOs) ?>" class="btn-tec success block" style="margin-bottom:8px;">
                 <i class='bx bx-pen'></i> Assinatura do Solicitante
