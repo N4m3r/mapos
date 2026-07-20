@@ -1038,8 +1038,11 @@ class Checkin extends MY_Controller
             return;
         }
 
-        // Verifica permissão
-        if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
+        // Verifica permissão: libera para quem enxerga OS (vOs) ou para o
+        // perfil técnico (área do técnico), que acessa o relatório pelo app.
+        $permissao = $this->session->userdata('permissao');
+        if (!$this->permission->checkPermission($permissao, 'vOs') &&
+            !$this->permission->checkPermission($permissao, 'vTecnicoDashboard')) {
             $this->session->set_flashdata('error', 'Você não tem permissão para visualizar este relatório.');
             redirect(base_url());
         }

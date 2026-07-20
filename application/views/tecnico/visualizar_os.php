@@ -153,9 +153,11 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
     $atendimento_iniciado = !empty($checkin_ativo) || !empty($assinaturas) || !empty($fotos);
     ?>
     <?php if ($atendimento_iniciado): ?>
-        <a href="<?= site_url('tecnico/assinatura_solicitante/' . $os->idOs) ?>" class="btn-tec success block" style="margin-bottom:8px;">
-            <i class='bx bx-pen'></i> Assinatura do Solicitante
-        </a>
+        <?php if (!empty($os->nao_programada)): ?>
+            <a href="<?= site_url('tecnico/assinatura_solicitante/' . $os->idOs) ?>" class="btn-tec success block" style="margin-bottom:8px;">
+                <i class='bx bx-pen'></i> Assinatura do Solicitante
+            </a>
+        <?php endif; ?>
 
         <a href="<?= site_url('os/imprimir/' . $os->idOs) ?>" target="_blank" class="btn-tec ghost block" style="margin-bottom:8px;">
             <i class='bx bx-printer'></i> Imprimir OS
