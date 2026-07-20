@@ -153,10 +153,15 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
     $atendimento_iniciado = !empty($checkin_ativo) || !empty($assinaturas) || !empty($fotos);
     ?>
     <?php if ($atendimento_iniciado): ?>
-        <?php if (!empty($os->nao_programada)): ?>
+        <?php $tem_assinatura_solicitante = !empty($assinaturas_tipo['solicitante']); ?>
+        <?php if (!empty($os->nao_programada) && !$tem_assinatura_solicitante): ?>
             <a href="<?= site_url('tecnico/assinatura_solicitante/' . $os->idOs) ?>" class="btn-tec success block" style="margin-bottom:8px;">
                 <i class='bx bx-pen'></i> Assinatura do Solicitante
             </a>
+        <?php elseif (!empty($os->nao_programada) && $tem_assinatura_solicitante): ?>
+            <div class="btn-tec ghost block" style="margin-bottom:8px; cursor:default; opacity:.85;">
+                <i class='bx bx-check-circle'></i> Assinatura do solicitante coletada
+            </div>
         <?php endif; ?>
 
         <a href="<?= site_url('os/imprimir/' . $os->idOs) ?>" target="_blank" class="btn-tec ghost block" style="margin-bottom:8px;">
@@ -176,13 +181,14 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
     $mostrar_nao_realizado = !empty($permissao_nao_realizado) && empty($nr_pendente) && !$nr_concluida;
     ?>
 
-    <?php if ($permissao_checkin || $permissao_checkout || $mostrar_nao_realizado): ?>
+    <?php $permissao_fotos = isset($permissao_fotos) ? $permissao_fotos : false; ?>
+    <?php if ($permissao_checkin || $permissao_checkout || $mostrar_nao_realizado || $permissao_fotos): ?>
         <div style="height:76px;"></div><!-- espaco para a barra de acao fixa -->
     <?php endif; ?>
 </div>
 
 <!-- Barra de acao fixa: iniciar / nao realizado / finalizar -->
-<?php if ($permissao_checkin || $permissao_checkout || $mostrar_nao_realizado): ?>
+<?php if ($permissao_checkin || $permissao_checkout || $mostrar_nao_realizado || $permissao_fotos): ?>
 <div class="action-bar">
     <?php if ($permissao_checkin): ?>
         <button type="button" id="btn-iniciar-atendimento" class="btn-tec success lg <?= $checkin_ativo ? 'hidden' : '' ?>">
@@ -192,6 +198,11 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
     <?php if ($mostrar_nao_realizado): ?>
         <button type="button" id="btn-nao-realizado-bar" class="btn-tec lg btn-nr-outline <?= $checkin_ativo ? 'hidden' : '' ?>" onclick="abrirNaoRealizado()">
             <i class='bx bx-x-circle'></i> Não realizado
+        </button>
+    <?php endif; ?>
+    <?php if ($permissao_fotos): ?>
+        <button type="button" id="btn-foto-servico" class="btn-tec info lg <?= $checkin_ativo ? '' : 'hidden' ?>">
+            <i class='bx bx-camera'></i> Enviar Foto
         </button>
     <?php endif; ?>
     <?php if ($permissao_checkout): ?>

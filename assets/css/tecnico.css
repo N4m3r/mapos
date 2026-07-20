@@ -194,6 +194,7 @@ body.tec-body {
 .btn-tec.danger  { background: linear-gradient(135deg, #f093fb, #f5576c); color: #fff; }
 .btn-tec.ghost   { background: #fff; color: var(--tec-grad-1); border: 1.5px solid var(--tec-grad-1); }
 .btn-tec.neutral { background: #eef0f7; color: #55596e; }
+.btn-tec.info    { background: linear-gradient(135deg, #4facfe, #2f80ed); color: #fff; }
 .btn-tec.block   { width: 100%; }
 .btn-tec.lg      { padding: 14px 20px; font-size: 15px; border-radius: 12px; }
 

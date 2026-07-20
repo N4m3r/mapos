@@ -205,10 +205,12 @@ const CheckinManager = {
             $('#btn-iniciar-atendimento').addClass('hidden');
             $('#btn-nao-realizado-bar').addClass('hidden');
             $('#btn-finalizar-atendimento').removeClass('hidden');
+            $('#btn-foto-servico').removeClass('hidden');
         } else {
             $('#btn-iniciar-atendimento').removeClass('hidden');
             $('#btn-nao-realizado-bar').removeClass('hidden');
             $('#btn-finalizar-atendimento').addClass('hidden');
+            $('#btn-foto-servico').addClass('hidden');
         }
     },
 

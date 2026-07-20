@@ -175,6 +175,12 @@ class Tecnico extends MY_Controller
             $this->session->userdata('permissao'),
             'eTecnicoCheckout'
         );
+        // Foto do serviço (etapa "durante") pode ser enviada a qualquer momento
+        // durante o atendimento, desde que o técnico tenha permissão de fotos.
+        $data['permissao_fotos'] = $this->permission->checkPermission(
+            $this->session->userdata('permissao'),
+            'eTecnicoFotos'
+        );
 
         // Serviço não realizado: permissão, lista de motivos e ocorrência
         // pendente (se a OS já está em espera).

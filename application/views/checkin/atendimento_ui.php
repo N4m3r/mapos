@@ -137,11 +137,41 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
     </div>
 </div>
 
+<!-- Modal: Enviar Foto do Serviço (etapa "durante") -->
+<div id="modal-foto-servico" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3><i class="bx bx-camera"></i> Enviar Foto do Serviço</h3>
+    </div>
+    <div class="modal-body">
+        <div class="checkin-section">
+            <div class="upload-area">
+                <input type="file" id="fs-input" accept="image/*" capture="environment" style="display:none;">
+                <button type="button" class="btn btn-info" onclick="document.getElementById('fs-input').click()"><i class="bx bx-camera"></i> Tirar / Escolher Foto</button>
+                <p class="text-muted" style="margin:10px 0 0;">Uma foto por vez (JPG, PNG). Máx. 10MB.</p>
+            </div>
+            <div id="fs-preview" style="text-align:center; margin-top:10px; display:none;"></div>
+        </div>
+        <div class="checkin-section">
+            <h6><i class="bx bx-note"></i> Descrição (opcional)</h6>
+            <textarea id="fs-descricao" class="span12" rows="2" placeholder="Ex.: peça trocada, etapa concluída, etc."></textarea>
+        </div>
+        <div id="fs-enviadas-wrap" class="checkin-section" style="display:none;">
+            <h6><i class="bx bx-check-circle"></i> Enviadas nesta sessão</h6>
+            <div id="fs-enviadas"></div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn" data-dismiss="modal" aria-hidden="true">Fechar</button>
+        <button class="btn btn-success" id="btn-fs-enviar" disabled><i class="bx bx-upload"></i> Enviar Foto</button>
+    </div>
+</div>
+
 <!-- Bibliotecas do fluxo de atendimento (mesmas da tela administrativa) -->
 <script src="<?= base_url('assets/js/assinatura-canvas.js?v=3') ?>"></script>
 <script src="<?= base_url('assets/js/assinatura-fullscreen.js?v=1') ?>"></script>
 <script src="<?= base_url('assets/js/checkin-fotos.js?v=3') ?>"></script>
-<script src="<?= base_url('assets/js/checkin.js?v=5') ?>"></script>
+<script src="<?= base_url('assets/js/checkin.js?v=6') ?>"></script>
 <script src="<?= base_url('assets/js/checkin-formularios.js?v=1') ?>"></script>
 <script src="<?= base_url('assets/js/csrf.js?v=3') ?>"></script>
 <script src="<?= base_url('assets/js/tecnico-localizacao.js?v=1') ?>"></script>
@@ -204,6 +234,74 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
                 criarAssinatura('assinatura-tecnico-saida', 'assinatura-tecnico-saida-canvas');
                 criarAssinatura('assinatura-cliente-saida', 'assinatura-cliente-saida-canvas');
             }, isMobile() ? 300 : 100);
+        });
+
+        // ---- Foto do serviço (etapa "durante", enviada durante o atendimento) ----
+        var fsArquivo = null;
+        var fsEnviadas = 0;
+
+        function fsReset() {
+            fsArquivo = null;
+            $('#fs-input').val('');
+            $('#fs-descricao').val('');
+            $('#fs-preview').empty().hide();
+            $('#btn-fs-enviar').prop('disabled', true);
+        }
+
+        $(document).on('click', '#btn-foto-servico', function () {
+            fsReset();
+            fsEnviadas = 0;
+            $('#fs-enviadas').empty();
+            $('#fs-enviadas-wrap').hide();
+            $('#modal-foto-servico').modal('show');
+        });
+
+        $(document).on('change', '#fs-input', function () {
+            var file = this.files && this.files[0];
+            if (!file) { return; }
+            if (typeof CheckinFotos !== 'undefined') {
+                var v = CheckinFotos.validarArquivo(file);
+                if (!v.valido) { alert(v.erro); this.value = ''; return; }
+            }
+            fsArquivo = file;
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $('#fs-preview').html('<img src="' + e.target.result + '" style="max-width:100%; max-height:180px; border-radius:8px;">').show();
+            };
+            reader.readAsDataURL(file);
+            $('#btn-fs-enviar').prop('disabled', false);
+        });
+
+        $(document).on('click', '#btn-fs-enviar', function () {
+            if (!fsArquivo || typeof CheckinFotos === 'undefined') { return; }
+            var $btn = $(this).prop('disabled', true);
+            var descricao = $('#fs-descricao').val();
+            CheckinFotos.processarImagem(fsArquivo, function (imgBase64) {
+                if (!imgBase64) { alert('Não foi possível processar a imagem.'); $btn.prop('disabled', false); return; }
+                CheckinFotos.uploadFoto(
+                    { os_id: window.checkinConfig.osId, foto: imgBase64, descricao: descricao },
+                    {
+                        success: function (resp) {
+                            if (resp && resp.success) {
+                                fsEnviadas++;
+                                $('#fs-enviadas-wrap').show();
+                                $('#fs-enviadas').append('<img src="' + (resp.url || '') + '" style="width:70px; height:70px; object-fit:cover; border-radius:6px; border:1px solid #ddd; margin:4px;">');
+                                fsReset();
+                                if (typeof swal !== 'undefined') { swal('Enviada!', 'Foto do serviço enviada.', 'success'); }
+                            } else {
+                                alert('Erro: ' + ((resp && resp.message) || 'falha ao enviar a foto'));
+                                $btn.prop('disabled', false);
+                            }
+                        },
+                        error: function () { alert('Erro ao enviar foto. Verifique sua conexão.'); $btn.prop('disabled', false); }
+                    }
+                );
+            });
+        });
+
+        // Ao fechar o modal, recarrega a página se algo foi enviado (para refletir na galeria).
+        $(document).on('hidden.bs.modal', '#modal-foto-servico', function () {
+            if (fsEnviadas > 0) { window.location.reload(); }
         });
 
         $(document).ready(function () {
