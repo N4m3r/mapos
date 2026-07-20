@@ -104,6 +104,14 @@
                             <span class="title-tooltip">Mapa</span>
                         </a>
                     </li>
+                    <li class="<?php if (isset($menuPercurso)) {
+                        echo 'active';
+                    }; ?>">
+                        <a class="tip-bottom" title="" href="<?= site_url('localizacao/trajeto') ?>"><i class='bx bx-trip iconX'></i>
+                            <span class="title">Percurso do Técnico</span>
+                            <span class="title-tooltip">Percurso</span>
+                        </a>
+                    </li>
                 <?php } ?>
 
                 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vTecnicoDashboard')) { ?>

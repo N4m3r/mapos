@@ -108,6 +108,59 @@ class Localizacao_model extends CI_Model
     }
 
     /**
+     * Lista os técnicos que possuem algum registro de localização (para popular
+     * o seletor da tela de histórico de percurso).
+     */
+    public function getTecnicosComRegistro()
+    {
+        if (! $this->tabelaExiste()) {
+            return [];
+        }
+
+        $this->db->distinct();
+        $this->db->select('tl.usuarios_id, u.nome');
+        $this->db->from('tecnico_localizacao tl');
+        $this->db->join('usuarios u', 'u.idUsuarios = tl.usuarios_id', 'left');
+        $this->db->order_by('u.nome', 'ASC');
+
+        $query = $this->db->get();
+
+        return $query ? $query->result() : [];
+    }
+
+    /**
+     * Percurso de um técnico em um intervalo de datas/horas (pings ordenados).
+     * Inclui checkin_id e os_id para permitir segmentar por atendimento.
+     *
+     * @param int      $usuario_id
+     * @param string   $inicio datetime 'Y-m-d H:i:s'
+     * @param string   $fim    datetime 'Y-m-d H:i:s'
+     * @param int|null $os_id  filtra por uma OS específica (opcional)
+     */
+    public function getTrajetoPorPeriodo($usuario_id, $inicio, $fim, $os_id = null)
+    {
+        if (! $this->tabelaExiste()) {
+            return [];
+        }
+
+        $this->db->select('tl.idLocalizacao, tl.checkin_id, tl.os_id, tl.latitude, tl.longitude, tl.precisao, tl.velocidade, tl.data_hora, o.status AS os_status, c.nomeCliente');
+        $this->db->from('tecnico_localizacao tl');
+        $this->db->join('os o', 'o.idOs = tl.os_id', 'left');
+        $this->db->join('clientes c', 'c.idClientes = o.clientes_id', 'left');
+        $this->db->where('tl.usuarios_id', $usuario_id);
+        $this->db->where('tl.data_hora >=', $inicio);
+        $this->db->where('tl.data_hora <=', $fim);
+        if ($os_id) {
+            $this->db->where('tl.os_id', $os_id);
+        }
+        $this->db->order_by('tl.data_hora', 'ASC');
+
+        $query = $this->db->get();
+
+        return $query ? $query->result() : [];
+    }
+
+    /**
      * Remove pings antigos (higiene da tabela). Chamável por rotina/cron.
      */
     public function limparAntigos($dias = 30)

@@ -26,6 +26,7 @@
             </label>
             <button class="btn btn-small" id="loc-refresh"><i class="bx bx-refresh"></i> Atualizar agora</button>
             <button class="btn btn-small" id="loc-fit"><i class="bx bx-expand"></i> Enquadrar</button>
+            <a class="btn btn-small" href="<?= site_url('localizacao/trajeto') ?>"><i class="bx bx-trip"></i> Ver percurso (histórico)</a>
         </div>
 
         <div id="mapa-tecnicos"></div>
