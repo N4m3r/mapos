@@ -152,6 +152,7 @@ body.tec-body {
 .os-card.pendente   { border-left-color: var(--tec-warning); }
 .os-card.andamento  { border-left-color: var(--tec-info); }
 .os-card.finalizado { border-left-color: var(--tec-success); }
+.os-card.nao-realizado { border-left-color: var(--tec-danger); }
 
 .os-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 8px; }
 .os-num { font-weight: 800; font-size: 15px; }
@@ -161,6 +162,7 @@ body.tec-body {
 .badge-status.andamento  { background: var(--tec-info-bg);    color: var(--tec-info); }
 .badge-status.finalizado { background: var(--tec-success-bg); color: var(--tec-success); }
 .badge-status.cancelado  { background: var(--tec-danger-bg);  color: var(--tec-danger); }
+.badge-status.nao-realizado { background: var(--tec-danger-bg); color: var(--tec-danger); }
 
 .os-cliente { color: #55596e; font-size: 14px; margin-bottom: 5px; }
 .os-cliente i { color: var(--tec-grad-1); }

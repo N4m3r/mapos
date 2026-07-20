@@ -59,6 +59,7 @@ class Tecnico extends MY_Controller
 
         // Serviços não realizados aguardando decisão (reagendar/refazer)
         $data['nao_realizadas_pendentes'] = $this->naorealizada_model->contarPendentes($tecnico_id);
+        $data['nao_realizadas'] = $this->naorealizada_model->getPendentes($tecnico_id, 3);
 
         // Titulo da pagina
         $data['titulo'] = 'Área do Técnico - Dashboard';

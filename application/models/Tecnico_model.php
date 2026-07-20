@@ -27,6 +27,8 @@ class Tecnico_model extends CI_Model
                 $this->db->where('os.status', 'Em Andamento');
             } elseif ($status === 'finalizado') {
                 $this->db->where_in('os.status', ['Finalizado', 'Faturado']);
+            } elseif ($status === 'nao_realizado') {
+                $this->db->where('os.status', 'Não Realizado');
             }
         }
 
