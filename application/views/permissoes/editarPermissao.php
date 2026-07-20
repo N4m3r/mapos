@@ -493,6 +493,30 @@ if (! is_array($permissoes)) {
                                     </label>
                                 </td>
                             </tr>
+                            <tr>
+                                <td colspan="4">
+                                    <label>
+                                        <input <?php if (isset($permissoes['eTecnicoNaoRealizado'])) {
+                                            if ($permissoes['eTecnicoNaoRealizado'] == '1') {
+                                                echo 'checked';
+                                            }
+                                        }?> name="eTecnicoNaoRealizado" class="marcar" type="checkbox" value="1" />
+                                        <span class="lbl"> Marcar Serviço Não Realizado (registrar motivo e deixar a OS em espera para reagendar/refazer)</span>
+                                    </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="4">
+                                    <label>
+                                        <input <?php if (isset($permissoes['cMotivoNaoRealizado'])) {
+                                            if ($permissoes['cMotivoNaoRealizado'] == '1') {
+                                                echo 'checked';
+                                            }
+                                        }?> name="cMotivoNaoRealizado" class="marcar" type="checkbox" value="1" />
+                                        <span class="lbl"> Gerenciar Motivos de Não Realizado (adicionar/remover a lista de motivos)</span>
+                                    </label>
+                                </td>
+                            </tr>
                         </table>
                         </div>
                     </div>

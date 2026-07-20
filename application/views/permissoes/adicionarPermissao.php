@@ -269,6 +269,22 @@
                                                 </label>
                                             </td>
                                         </tr>
+                                        <tr>
+                                            <td colspan="4">
+                                                <label>
+                                                    <input name="eTecnicoNaoRealizado" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Marcar Serviço Não Realizado (registrar motivo e deixar a OS em espera para reagendar/refazer)</span>
+                                                </label>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="4">
+                                                <label>
+                                                    <input name="cMotivoNaoRealizado" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Gerenciar Motivos de Não Realizado (adicionar/remover a lista de motivos)</span>
+                                                </label>
+                                            </td>
+                                        </tr>
                                         </tbody>
                                     </table>
                                 </div>
