@@ -1623,6 +1623,15 @@ class Os extends MY_Controller
         // Aba ativa (situação do atendimento). Mantém compatibilidade com o
         // parâmetro antigo ?filtro= usado por links/bookmarks.
         $aba = $this->input->get('aba') ?: $this->input->get('filtro') ?: 'todos';
+        if ($aba === 'com_tecnico') {
+            $aba = 'em_atendimento';
+        }
+
+        // Filtros de busca e período (aplicados às abas baseadas em OS).
+        $busca    = trim((string) $this->input->get('busca'));
+        $data_de  = trim((string) $this->input->get('data_de'));
+        $data_ate = trim((string) $this->input->get('data_ate'));
+        $filtros  = ['busca' => $busca, 'data_de' => $data_de, 'data_ate' => $data_ate];
 
         // Configuração da paginação
         $config['base_url'] = site_url('os/atribuir');
@@ -1652,31 +1661,25 @@ class Os extends MY_Controller
         // Offset baseado na query string
         $page = $this->input->get('page') ? (int)$this->input->get('page') : 0;
 
-        if ($aba == 'sem_tecnico') {
-            // OS sem técnico responsável
-            $ordens = $this->os_model->getOsSemTecnico($config['per_page'], $page);
-            $config['total_rows'] = $this->tecnico_model->countOsSemTecnico();
-        } elseif ($aba == 'em_atendimento' || $aba == 'com_tecnico') {
-            // OS já com técnico atribuído
-            $ordens = $this->os_model->getOsComTecnico($config['per_page'], $page);
-            $config['total_rows'] = $this->tecnico_model->countOsComTecnico();
-        } elseif ($aba == 'finalizados') {
-            // Chamados já concluídos (Finalizado/Faturado)
-            $ordens = $this->os_model->getOsFinalizadas($config['per_page'], $page);
-            $config['total_rows'] = $this->os_model->contarPorStatus(['Finalizado', 'Faturado']);
-        } elseif ($aba == 'nao_realizadas') {
+        if ($aba == 'nao_realizadas') {
             // Tratada à parte (lista de ocorrências), sem paginação nesta versão.
             $ordens = [];
             $config['total_rows'] = 0;
         } else {
-            $aba = 'todos';
-            // Todas as OS pendentes de atendimento
-            $ordens = $this->os_model->getOsPendentesAtribuicao($config['per_page'], $page);
-            $config['total_rows'] = $this->tecnico_model->countOsParaAtribuicao();
+            // Abas baseadas em OS (todos, sem_tecnico, em_atendimento, finalizados)
+            // com filtros de busca e período aplicados de forma unificada.
+            if (! in_array($aba, ['todos', 'sem_tecnico', 'em_atendimento', 'finalizados'], true)) {
+                $aba = 'todos';
+            }
+            $ordens = $this->os_model->getOsCentral($aba, $filtros, $config['per_page'], $page);
+            $config['total_rows'] = $this->os_model->countOsCentral($aba, $filtros);
         }
 
         $this->data['ordens'] = $ordens ?: [];
         $this->data['aba'] = $aba;
+        $this->data['busca'] = $busca;
+        $this->data['data_de'] = $data_de;
+        $this->data['data_ate'] = $data_ate;
 
         // Ocorrências de "Não Realizado" pendentes (visão de gestão, todos os técnicos)
         $this->data['naoRealizadas'] = $this->naorealizada_model->getPendentes(null, 100);

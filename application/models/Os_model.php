@@ -465,17 +465,72 @@ class Os_model extends CI_Model
         return $pix->getQRCode();
     }
 
+    /* ============================================================= *
+     *  Central de Atendimento — listagem unificada com filtros
+     *  (situação/aba + busca + período). Reaproveitada na contagem.
+     * ============================================================= */
+
     /**
-     * Obter OS sem técnico atribuído (para atribuição)
+     * Aplica ao query builder as condições da Central de Atendimento:
+     *   - situação (aba): todos, sem_tecnico, em_atendimento, finalizados
+     *   - busca: cliente, nº da OS ou descrição
+     *   - período: intervalo de dataInicial
+     * Define o FROM e o JOIN com clientes (necessário para a busca por nome).
      */
-    public function getOsSemTecnico($limite = 20, $offset = 0)
+    private function aplicarFiltrosCentral($aba, $filtros = [])
     {
-        $this->db->select('os.*, clientes.nomeCliente, clientes.telefone, usuarios.nome as nome_tecnico');
         $this->db->from('os');
         $this->db->join('clientes', 'clientes.idClientes = os.clientes_id', 'left');
+
+        switch ($aba) {
+            case 'sem_tecnico':
+                $this->db->where('os.tecnico_responsavel IS NULL');
+                $this->db->where_not_in('os.status', ['Finalizado', 'Cancelado', 'Faturado']);
+                break;
+            case 'em_atendimento':
+            case 'com_tecnico':
+                $this->db->where('os.tecnico_responsavel IS NOT NULL');
+                $this->db->where_not_in('os.status', ['Finalizado', 'Cancelado', 'Faturado']);
+                break;
+            case 'finalizados':
+                $this->db->where_in('os.status', ['Finalizado', 'Faturado']);
+                break;
+            default: // todos
+                $this->db->where_not_in('os.status', ['Finalizado', 'Cancelado', 'Faturado']);
+                break;
+        }
+
+        // Busca por cliente, nº da OS ou descrição
+        $busca = isset($filtros['busca']) ? trim((string) $filtros['busca']) : '';
+        if ($busca !== '') {
+            $this->db->group_start();
+            $this->db->like('clientes.nomeCliente', $busca);
+            $this->db->or_like('os.descricaoProduto', $busca);
+            if (ctype_digit($busca)) {
+                $this->db->or_where('os.idOs', (int) $busca);
+            }
+            $this->db->group_end();
+        }
+
+        // Período (data inicial da OS)
+        $de  = isset($filtros['data_de'])  ? trim((string) $filtros['data_de'])  : '';
+        $ate = isset($filtros['data_ate']) ? trim((string) $filtros['data_ate']) : '';
+        if ($de !== '' && strtotime($de)) {
+            $this->db->where('DATE(os.dataInicial) >=', date('Y-m-d', strtotime($de)));
+        }
+        if ($ate !== '' && strtotime($ate)) {
+            $this->db->where('DATE(os.dataInicial) <=', date('Y-m-d', strtotime($ate)));
+        }
+    }
+
+    /**
+     * Lista de OS da Central de Atendimento aplicando aba + busca + período.
+     */
+    public function getOsCentral($aba, $filtros = [], $limite = 20, $offset = 0)
+    {
+        $this->db->select('os.*, clientes.nomeCliente, clientes.telefone, usuarios.nome as nome_tecnico');
+        $this->aplicarFiltrosCentral($aba, $filtros);
         $this->db->join('usuarios', 'usuarios.idUsuarios = os.tecnico_responsavel', 'left');
-        $this->db->where('os.tecnico_responsavel IS NULL');
-        $this->db->where_not_in('os.status', ['Finalizado', 'Cancelado', 'Faturado']);
         $this->db->order_by('os.dataInicial', 'DESC');
         $this->db->limit($limite, $offset);
 
@@ -484,56 +539,13 @@ class Os_model extends CI_Model
     }
 
     /**
-     * Obter OS com técnico atribuído
+     * Contagem correspondente a getOsCentral (para a paginação).
      */
-    public function getOsComTecnico($limite = 20, $offset = 0)
+    public function countOsCentral($aba, $filtros = [])
     {
-        $this->db->select('os.*, clientes.nomeCliente, clientes.telefone, usuarios.nome as nome_tecnico');
-        $this->db->from('os');
-        $this->db->join('clientes', 'clientes.idClientes = os.clientes_id', 'left');
-        $this->db->join('usuarios', 'usuarios.idUsuarios = os.tecnico_responsavel', 'left');
-        $this->db->where('os.tecnico_responsavel IS NOT NULL');
-        $this->db->where_not_in('os.status', ['Finalizado', 'Cancelado', 'Faturado']);
-        $this->db->order_by('os.dataInicial', 'DESC');
-        $this->db->limit($limite, $offset);
-
-        $query = $this->db->get();
-        return ($query && $query->num_rows() > 0) ? $query->result() : [];
-    }
-
-    /**
-     * Obter OS pendentes para atribuição (todas exceto finalizadas)
-     */
-    public function getOsPendentesAtribuicao($limite = 20, $offset = 0)
-    {
-        $this->db->select('os.*, clientes.nomeCliente, clientes.telefone, usuarios.nome as nome_tecnico');
-        $this->db->from('os');
-        $this->db->join('clientes', 'clientes.idClientes = os.clientes_id', 'left');
-        $this->db->join('usuarios', 'usuarios.idUsuarios = os.tecnico_responsavel', 'left');
-        $this->db->where_not_in('os.status', ['Finalizado', 'Cancelado', 'Faturado']);
-        $this->db->order_by('os.dataInicial', 'DESC');
-        $this->db->limit($limite, $offset);
-
-        $query = $this->db->get();
-        return ($query && $query->num_rows() > 0) ? $query->result() : [];
-    }
-
-    /**
-     * Obter OS já finalizadas/faturadas (chamados concluídos).
-     * Usado na aba "Finalizados" da Central de Atendimento.
-     */
-    public function getOsFinalizadas($limite = 20, $offset = 0)
-    {
-        $this->db->select('os.*, clientes.nomeCliente, clientes.telefone, usuarios.nome as nome_tecnico');
-        $this->db->from('os');
-        $this->db->join('clientes', 'clientes.idClientes = os.clientes_id', 'left');
-        $this->db->join('usuarios', 'usuarios.idUsuarios = os.tecnico_responsavel', 'left');
-        $this->db->where_in('os.status', ['Finalizado', 'Faturado']);
-        $this->db->order_by('os.dataInicial', 'DESC');
-        $this->db->limit($limite, $offset);
-
-        $query = $this->db->get();
-        return ($query && $query->num_rows() > 0) ? $query->result() : [];
+        $this->aplicarFiltrosCentral($aba, $filtros);
+        $result = $this->db->count_all_results();
+        return ($result !== false) ? $result : 0;
     }
 
     /**

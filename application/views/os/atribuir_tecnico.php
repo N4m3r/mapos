@@ -87,15 +87,45 @@ $base = base_url() . 'index.php/os/atribuir';
         </a>
     </div>
 
-    <!-- ============ Filtro (lista suspensa) ============ -->
-    <div class="tec-filtro">
-        <label for="filtroAba"><i class='bx bx-filter-alt'></i> Filtrar chamados:</label>
-        <select id="filtroAba" class="tec-filtro-select" data-base="<?= $base ?>">
-            <?php foreach ($abasDisponiveis as $valor => $rotulo) { ?>
-                <option value="<?= $valor ?>" <?= $aba === $valor ? 'selected' : '' ?>><?= $rotulo ?></option>
-            <?php } ?>
-        </select>
-    </div>
+    <!-- ============ Filtros (situação / busca / período) ============ -->
+    <?php
+    $busca    = isset($busca) ? $busca : '';
+    $data_de  = isset($data_de) ? $data_de : '';
+    $data_ate = isset($data_ate) ? $data_ate : '';
+    ?>
+    <form method="get" action="<?= $base ?>" class="tec-filtros" id="formFiltros">
+        <div class="tec-filtro">
+            <label for="filtroAba"><i class='bx bx-filter-alt'></i> Situação:</label>
+            <select name="aba" id="filtroAba" class="tec-filtro-select">
+                <?php foreach ($abasDisponiveis as $valor => $rotulo) { ?>
+                    <option value="<?= $valor ?>" <?= $aba === $valor ? 'selected' : '' ?>><?= $rotulo ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <?php if ($aba !== 'nao_realizadas') { ?>
+            <div class="tec-filtro tec-filtro-busca">
+                <label for="filtroBusca"><i class='bx bx-search'></i> Busca:</label>
+                <input type="text" name="busca" id="filtroBusca" class="tec-filtro-input"
+                    value="<?= htmlspecialchars($busca) ?>" placeholder="Cliente, nº da OS ou descrição">
+            </div>
+            <div class="tec-filtro">
+                <label for="filtroDe">Período:</label>
+                <input type="date" name="data_de" id="filtroDe" class="tec-filtro-date" value="<?= htmlspecialchars($data_de) ?>" title="Data inicial (de)">
+                <span style="color:#999">até</span>
+                <input type="date" name="data_ate" id="filtroAte" class="tec-filtro-date" value="<?= htmlspecialchars($data_ate) ?>" title="Data final (até)">
+            </div>
+            <div class="tec-filtro">
+                <button type="submit" class="button btn btn-mini btn-primary">
+                    <span class="button__icon"><i class='bx bx-filter'></i></span><span class="button__text2">Filtrar</span>
+                </button>
+                <?php if ($busca !== '' || $data_de !== '' || $data_ate !== '') { ?>
+                    <a href="<?= $base ?>?aba=<?= $aba ?>" class="button btn btn-mini btn-inverse" title="Limpar filtros">
+                        <span class="button__icon"><i class='bx bx-x'></i></span><span class="button__text2">Limpar</span>
+                    </a>
+                <?php } ?>
+            </div>
+        <?php } ?>
+    </form>
 
     <?php if ($aba === 'nao_realizadas') { ?>
         <!-- ============ Aba: Não Realizadas ============ -->
@@ -350,10 +380,14 @@ $base = base_url() . 'index.php/os/atribuir';
     $(document).ready(function() {
         var BASE = '<?= base_url() ?>index.php/os/';
 
-        // ---- Filtro por lista suspensa ----
+        // ---- Filtro por situação (submete o formulário de filtros) ----
         $('#filtroAba').change(function() {
-            var base = $(this).data('base');
-            window.location.href = base + '?aba=' + encodeURIComponent($(this).val());
+            // Ao trocar a situação, zera busca/período para evitar combinações
+            // sem resultados, e volta para a primeira página.
+            $('#filtroBusca').val('');
+            $('#filtroDe').val('');
+            $('#filtroAte').val('');
+            $('#formFiltros').submit();
         });
 
         // ---- Atribuir / Trocar técnico ----
@@ -483,9 +517,15 @@ $base = base_url() . 'index.php/os/atribuir';
 .tec-kpi-lbl { font-size:12px; color:#666; }
 .tec-kpi-lbl i { vertical-align:middle; }
 .status-inline { height:auto; }
-.tec-filtro { display:flex; align-items:center; gap:8px; margin:14px 0 0; flex-wrap:wrap; }
-.tec-filtro label { margin:0; font-size:13px; color:#666; font-weight:600; }
+.tec-filtros { display:flex; align-items:flex-end; gap:14px; margin:14px 0 0; flex-wrap:wrap; }
+.tec-filtro { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.tec-filtro label { margin:0; font-size:13px; color:#666; font-weight:600; white-space:nowrap; }
 .tec-filtro label i { vertical-align:middle; }
-.tec-filtro-select { height:auto; margin:0; padding:6px 10px; min-width:200px; max-width:280px;
-    border:1px solid #ccc; border-radius:6px; background:#fff; font-size:13px; }
+.tec-filtro-select, .tec-filtro-input, .tec-filtro-date {
+    height:auto; margin:0; padding:6px 10px; border:1px solid #ccc; border-radius:6px;
+    background:#fff; font-size:13px; box-sizing:border-box; }
+.tec-filtro-select { min-width:180px; max-width:260px; }
+.tec-filtro-busca { flex:1 1 240px; }
+.tec-filtro-input { flex:1 1 auto; min-width:200px; }
+.tec-filtro-date { width:150px; }
 </style>
