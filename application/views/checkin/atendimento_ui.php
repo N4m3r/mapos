@@ -60,11 +60,11 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
                 <h6><i class="bx bx-note"></i> Observações de Entrada</h6>
                 <textarea id="checkin-observacao" class="span12" rows="3" placeholder="Estado inicial, equipamento recebido, etc."></textarea>
             </div>
-            <div class="checkin-section">
-                <h6><i class="bx bx-map"></i> Localização</h6>
+            <!-- Localização capturada em segundo plano (não exibida no modal) -->
+            <div class="checkin-section" style="display:none;">
                 <input type="hidden" id="checkin-latitude">
                 <input type="hidden" id="checkin-longitude">
-                <span id="checkin-geo-status" class="text-muted"><i class="bx bx-loader bx-spin"></i> Obtendo localização...</span>
+                <span id="checkin-geo-status"></span>
             </div>
             <div id="formularios-iniciar" class="checkin-section"></div>
         </form>
@@ -121,11 +121,11 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
                 <h6><i class="bx bx-note"></i> Observações de Saída</h6>
                 <textarea id="checkout-observacao" class="span12" rows="3" placeholder="Serviço realizado, peças trocadas, recomendações, etc."></textarea>
             </div>
-            <div class="checkin-section">
-                <h6><i class="bx bx-map"></i> Localização de Saída</h6>
+            <!-- Localização capturada em segundo plano (não exibida no modal) -->
+            <div class="checkin-section" style="display:none;">
                 <input type="hidden" id="checkout-latitude">
                 <input type="hidden" id="checkout-longitude">
-                <span id="checkout-geo-status" class="text-muted"><i class="bx bx-loader bx-spin"></i> Obtendo localização...</span>
+                <span id="checkout-geo-status"></span>
             </div>
             <div id="formularios-durante" class="checkin-section"></div>
             <div id="formularios-finalizar" class="checkin-section"></div>
