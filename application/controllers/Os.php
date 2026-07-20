@@ -189,6 +189,33 @@ class Os extends MY_Controller
         return $this->layout();
     }
 
+    public function duplicar()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'aOs')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para adicionar O.S.');
+            redirect(base_url());
+        }
+
+        $idOrigem = $this->input->post('idOs');
+        $clientesId = $this->input->post('clientes_id');
+
+        if (! is_numeric($idOrigem) || ! is_numeric($clientesId)) {
+            $this->session->set_flashdata('error', 'Selecione a OS de origem e o cliente/CNPJ de destino.');
+            redirect(site_url('os'));
+        }
+
+        $novoId = $this->os_model->duplicarOs($idOrigem, $clientesId);
+
+        if (is_numeric($novoId)) {
+            $this->session->set_flashdata('success', 'OS #' . $idOrigem . ' copiada com sucesso para o cliente selecionado. Revise os dados da nova OS.');
+            log_info('Duplicou a OS #' . $idOrigem . ' para nova OS #' . $novoId . ' (cliente ' . $clientesId . ').');
+            redirect(site_url('os/editar/') . $novoId);
+        }
+
+        $this->session->set_flashdata('error', 'Ocorreu um erro ao copiar a OS.');
+        redirect(site_url('os'));
+    }
+
     public function editar()
     {
         if (! $this->uri->segment(3) || ! is_numeric($this->uri->segment(3))) {

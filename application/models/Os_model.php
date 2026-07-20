@@ -147,6 +147,76 @@ class Os_model extends CI_Model
         return $this->db->get()->result();
     }
 
+    /**
+     * Duplica uma OS existente para outro cliente/CNPJ.
+     *
+     * Copia o cabeçalho (defeito, laudo, garantia, técnico, descrições) e todos
+     * os itens (produtos_os e servicos_os), trocando o cliente vinculado. A cópia
+     * nasce como rascunho ("Orçamento"), não faturada, com datas de hoje. NÃO
+     * copia estoque (a baixa já ocorreu na OS original), nem assinaturas,
+     * cobranças ou notas fiscais — que são específicas da OS de origem.
+     *
+     * @param int $idOrigem   OS a copiar
+     * @param int $clientesId Cliente/CNPJ de destino
+     * @return int|false      ID da nova OS, ou false em caso de falha
+     */
+    public function duplicarOs($idOrigem, $clientesId)
+    {
+        // Lê a linha de os direto (getById faz join com clientes.* e pode colidir
+        // colunas); aqui só queremos os campos da própria OS.
+        $origem = $this->db->where('idOs', $idOrigem)->get('os')->row();
+        if (! $origem) {
+            return false;
+        }
+
+        $this->db->trans_start();
+
+        $data = [
+            'dataInicial'      => date('Y-m-d'),
+            'dataFinal'        => date('Y-m-d'),
+            'clientes_id'      => $clientesId,
+            'usuarios_id'      => $origem->usuarios_id,
+            'garantia'         => $origem->garantia,
+            'garantias_id'     => $origem->garantias_id,
+            'descricaoProduto' => $origem->descricaoProduto,
+            'defeito'          => $origem->defeito,
+            'observacoes'      => $origem->observacoes,
+            'laudoTecnico'     => $origem->laudoTecnico,
+            'status'           => 'Orçamento',
+            'faturado'         => 0,
+        ];
+        $this->db->insert('os', $data);
+        $novoId = $this->db->insert_id();
+
+        foreach ($this->db->where('os_id', $idOrigem)->get('produtos_os')->result() as $p) {
+            $this->db->insert('produtos_os', [
+                'produtos_id' => $p->produtos_id,
+                'quantidade'  => $p->quantidade,
+                'preco'       => $p->preco,
+                'subTotal'    => $p->subTotal,
+                'os_id'       => $novoId,
+            ]);
+        }
+
+        foreach ($this->db->where('os_id', $idOrigem)->get('servicos_os')->result() as $s) {
+            $this->db->insert('servicos_os', [
+                'servicos_id' => $s->servicos_id,
+                'quantidade'  => $s->quantidade,
+                'preco'       => $s->preco,
+                'subTotal'    => $s->subTotal,
+                'os_id'       => $novoId,
+            ]);
+        }
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === false) {
+            return false;
+        }
+
+        return $novoId;
+    }
+
     public function add($table, $data, $returnId = false)
     {
         $this->db->insert($table, $data);

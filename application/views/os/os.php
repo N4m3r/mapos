@@ -178,6 +178,9 @@
                                 if ($editavel) {
                                     echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/os/editar/' . $r->idOs . '" class="btn-nwe3" title="Editar OS"><i class="bx bx-edit"></i></a>';
                                 }
+                                if ($this->permission->checkPermission($this->session->userdata('permissao'), 'aOs')) {
+                                    echo '<a style="margin-right: 1%" href="#modal-duplicar" role="button" data-toggle="modal" data-os-origem="' . $r->idOs . '" class="btn-nwe3 btn-duplicar-os" title="Copiar OS para outro cliente/CNPJ"><i class="bx bx-copy"></i></a>';
+                                }
                                 if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dOs') && $editavel) {
                                     echo '<a href="#modal-excluir" role="button" data-toggle="modal" os="' . $r->idOs . '" class="btn-nwe4" title="Excluir OS"><i class="bx bx-trash-alt"></i></a>  ';
                                 }
@@ -211,6 +214,29 @@
                 <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true">
                     <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
                 <button class="button btn btn-danger"><span class="button__icon"><i class='bx bx-trash'></i></span> <span class="button__text2">Excluir</span></button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Modal Duplicar OS para outro cliente/CNPJ -->
+    <div id="modal-duplicar" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <form id="form-duplicar" action="<?php echo base_url() ?>index.php/os/duplicar" method="post">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h5>Copiar OS para outro cliente/CNPJ</h5>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="dup-idOs" name="idOs" value="" />
+                <input type="hidden" id="dup-clientes_id" name="clientes_id" value="" />
+                <p>A OS <strong>#<span id="dup-num"></span></strong> será copiada (cabeçalho, produtos e serviços) para o cliente selecionado. A nova OS nasce como <strong>Orçamento</strong> não faturado. Assinaturas, cobranças e notas fiscais não são copiadas.</p>
+                <label for="dup-cliente">Cliente / CNPJ de destino</label>
+                <input type="text" id="dup-cliente" class="span12" autocomplete="off" placeholder="Digite o nome do cliente de destino" />
+                <span id="dup-erro" style="color:#f24c6f; display:none">Selecione um cliente da lista.</span>
+            </div>
+            <div class="modal-footer" style="display:flex;justify-content: center">
+                <button type="button" class="button btn btn-warning" data-dismiss="modal" aria-hidden="true">
+                    <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
+                <button type="submit" class="button btn btn-success"><span class="button__icon"><i class='bx bx-copy'></i></span> <span class="button__text2">Copiar OS</span></button>
             </div>
         </form>
     </div>
@@ -254,6 +280,39 @@
         });
         $(".datepicker").datepicker({
             dateFormat: 'dd/mm/yy'
+        });
+
+        // Duplicar OS: preenche o modal com a OS de origem
+        $(document).on('click', '.btn-duplicar-os', function() {
+            var os = $(this).attr('data-os-origem');
+            $('#dup-idOs').val(os);
+            $('#dup-num').text(os);
+            $('#dup-cliente').val('');
+            $('#dup-clientes_id').val('');
+            $('#dup-erro').hide();
+        });
+
+        // Autocomplete de cliente destino (reusa endpoint da tela de adicionar)
+        $('#dup-cliente').autocomplete({
+            source: "<?php echo base_url(); ?>index.php/os/autoCompleteCliente",
+            minLength: 1,
+            select: function(event, ui) {
+                $('#dup-clientes_id').val(ui.item.id);
+                $('#dup-erro').hide();
+            }
+        });
+
+        // Se o usuário digitar sem escolher da lista, invalida a seleção anterior
+        $('#dup-cliente').on('input', function() {
+            $('#dup-clientes_id').val('');
+        });
+
+        // Exige um cliente escolhido antes de enviar
+        $('#form-duplicar').on('submit', function(e) {
+            if (!$('#dup-clientes_id').val()) {
+                e.preventDefault();
+                $('#dup-erro').show();
+            }
         });
     });
 </script>
