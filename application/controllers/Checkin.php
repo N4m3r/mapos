@@ -995,10 +995,13 @@ class Checkin extends MY_Controller
                 $mime_type = 'image/png';
             }
 
-            // Decodificar e exibir
-            $image_data = base64_decode($base64_data, true);
+            // Decodificar e exibir. Remove espacos/quebras que podem ter entrado
+            // no base64 (ex.: '+' virou espaco em algum ponto do transporte) e
+            // usa decode nao-estrito para nao falhar por um caractere solto.
+            $base64_data = preg_replace('/\s+/', '', $base64_data);
+            $image_data = base64_decode($base64_data);
 
-            if ($image_data === false) {
+            if ($image_data === false || $image_data === '') {
                 show_error('Erro ao decodificar imagem', 500);
                 return;
             }

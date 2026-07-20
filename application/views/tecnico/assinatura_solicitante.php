@@ -51,7 +51,7 @@ $emailCliente = !empty($cliente->email) ? $cliente->email : '';
                         <div class="assinatura-box" style="border:1px solid #eee; background:#fff; padding:4px; border-radius:8px;">
                             <?php if (!empty($a->is_base64)): ?>
                                 <img src="<?= $a->url_visualizacao ?>" alt="Assinatura" style="max-width:100%;">
-                            <?php elseif (!empty($a->assinatura) && file_exists($a->assinatura)): ?>
+                            <?php elseif (!empty($a->assinatura) && (file_exists($a->assinatura) || file_exists(FCPATH . $a->assinatura))): ?>
                                 <img src="<?= base_url($a->assinatura) ?>" alt="Assinatura" style="max-width:100%;">
                             <?php else: ?>
                                 <span style="color:#aaa; font-size:12px;">Indisponível</span>

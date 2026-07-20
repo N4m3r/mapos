@@ -133,7 +133,7 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
                         <div class="assinatura-box">
                             <?php if (!empty($assinatura->is_base64)): ?>
                                 <img src="<?= $assinatura->url_visualizacao ?>" alt="Assinatura">
-                            <?php elseif (!empty($assinatura->assinatura) && file_exists($assinatura->assinatura)): ?>
+                            <?php elseif (!empty($assinatura->assinatura) && (file_exists($assinatura->assinatura) || file_exists(FCPATH . $assinatura->assinatura))): ?>
                                 <img src="<?= base_url($assinatura->assinatura) ?>" alt="Assinatura">
                             <?php else: ?>
                                 <span class="vazia">Indisponível</span>
