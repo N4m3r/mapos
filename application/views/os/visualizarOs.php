@@ -7,8 +7,9 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
 
 <!-- Scripts do Sistema de Check-in (carregados antes dos modais) -->
 <script src="<?php echo base_url(); ?>assets/js/assinatura-canvas.js?v=3"></script>
+<script src="<?php echo base_url(); ?>assets/js/assinatura-fullscreen.js?v=1"></script>
 <script src="<?php echo base_url(); ?>assets/js/checkin-fotos.js?v=3"></script>
-<script src="<?php echo base_url(); ?>assets/js/checkin.js?v=4"></script>
+<script src="<?php echo base_url(); ?>assets/js/checkin.js?v=5"></script>
 <script src="<?php echo base_url(); ?>assets/js/checkin-formularios.js?v=1"></script>
 <script src="<?php echo base_url(); ?>assets/js/csrf.js?v=3"></script>
 <script>
@@ -1688,10 +1689,7 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
                 <h6><i class="bx bx-map"></i> Localização</h6>
                 <input type="hidden" id="checkin-latitude">
                 <input type="hidden" id="checkin-longitude">
-                <button type="button" id="btn-geo-checkin" class="btn btn-small">
-                    <i class="bx bx-map"></i> Capturar Localização
-                </button>
-                <span id="checkin-geo-status" class="text-muted" style="margin-left: 10px;"></span>
+                <span id="checkin-geo-status" class="text-muted"><i class="bx bx-loader bx-spin"></i> Obtendo localização...</span>
             </div>
             <div id="formularios-iniciar" class="checkin-section"></div>
         </form>
@@ -2062,10 +2060,7 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
                 <h6><i class="bx bx-map"></i> Localização de Saída</h6>
                 <input type="hidden" id="checkout-latitude">
                 <input type="hidden" id="checkout-longitude">
-                <button type="button" id="btn-geo-checkout" class="btn btn-small">
-                    <i class="bx bx-map"></i> Capturar Localização
-                </button>
-                <span id="checkout-geo-status" class="text-muted" style="margin-left: 10px;"></span>
+                <span id="checkout-geo-status" class="text-muted"><i class="bx bx-loader bx-spin"></i> Obtendo localização...</span>
             </div>
             <div id="formularios-durante" class="checkin-section"></div>
             <div id="formularios-finalizar" class="checkin-section"></div>
