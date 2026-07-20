@@ -181,7 +181,9 @@ class Checkin extends MY_Controller
             log_info('Checkin - Iniciando salvamento da imagem. Tamanho: ' . strlen($assinatura_tecnico));
             $imagem = $this->assinaturas_model->salvarImagem($assinatura_tecnico, $os_id, 'tecnico_entrada');
             log_info('Checkin - Imagem salva: ' . print_r($imagem, true));
-            if ($imagem) {
+            // Só insere aqui no modo "arquivo": no modo "banco" o model já gravou
+            // a linha (evita duplicar com um path 'BASE64:<id>' inválido).
+            if ($imagem && isset($imagem['modo']) && $imagem['modo'] === 'arquivo') {
                 $data_assinatura = [
                     'os_id' => $os_id,
                     'checkin_id' => $checkin_id,
@@ -193,7 +195,7 @@ class Checkin extends MY_Controller
                 ];
                 $result = $this->assinaturas_model->add($data_assinatura);
                 log_info('Checkin - Assinatura salva no BD: ' . ($result ? 'Sim' : 'Não'));
-            } else {
+            } elseif (!$imagem) {
                 log_info('Checkin - Erro ao salvar imagem da assinatura');
             }
         } else {
@@ -305,12 +307,15 @@ class Checkin extends MY_Controller
             return;
         }
 
-        // Salva assinatura do técnico na saída
+        // Salva assinatura do técnico na saída.
+        // salvarImagem já grava a linha em os_assinaturas quando cai no modo
+        // "banco" (base64). Só inserimos aqui quando salvou em "arquivo", senão
+        // duplicaríamos a linha (a 2ª com um path 'BASE64:<id>' inválido/quebrado).
         if ($assinatura_tecnico) {
             $imagem = $this->assinaturas_model->salvarImagem($assinatura_tecnico, $os_id, 'tecnico_saida');
             log_info('Checkout - Imagem técnico salva: ' . print_r($imagem, true));
 
-            if ($imagem) {
+            if ($imagem && isset($imagem['modo']) && $imagem['modo'] === 'arquivo') {
                 $data_assinatura = [
                     'os_id' => $os_id,
                     'checkin_id' => $checkin->idCheckin,
@@ -325,12 +330,12 @@ class Checkin extends MY_Controller
             }
         }
 
-        // Salva assinatura do cliente
+        // Salva assinatura do cliente (mesma lógica: só insere no modo "arquivo").
         if ($assinatura_cliente) {
             $imagem = $this->assinaturas_model->salvarImagem($assinatura_cliente, $os_id, 'cliente_saida');
             log_info('Checkout - Imagem cliente salva: ' . print_r($imagem, true));
 
-            if ($imagem) {
+            if ($imagem && isset($imagem['modo']) && $imagem['modo'] === 'arquivo') {
                 $data_assinatura = [
                     'os_id' => $os_id,
                     'checkin_id' => $checkin->idCheckin,
