@@ -1660,6 +1660,10 @@ class Os extends MY_Controller
             // OS já com técnico atribuído
             $ordens = $this->os_model->getOsComTecnico($config['per_page'], $page);
             $config['total_rows'] = $this->tecnico_model->countOsComTecnico();
+        } elseif ($aba == 'finalizados') {
+            // Chamados já concluídos (Finalizado/Faturado)
+            $ordens = $this->os_model->getOsFinalizadas($config['per_page'], $page);
+            $config['total_rows'] = $this->os_model->contarPorStatus(['Finalizado', 'Faturado']);
         } elseif ($aba == 'nao_realizadas') {
             // Tratada à parte (lista de ocorrências), sem paginação nesta versão.
             $ordens = [];
@@ -1684,6 +1688,7 @@ class Os extends MY_Controller
             'em_atendimento' => $this->tecnico_model->countOsComTecnico(),
             'aguardando'     => $this->os_model->contarPorStatus(['Aguardando Peças', 'Aprovado', 'Orçamento', 'Negociação']),
             'nao_realizadas' => $this->naorealizada_model->contarPendentes(),
+            'finalizados'    => $this->os_model->contarPorStatus(['Finalizado', 'Faturado']),
         ];
 
         // Inicializar paginação

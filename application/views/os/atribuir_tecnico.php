@@ -37,7 +37,16 @@ if (!isset($ordens) || !is_array($ordens)) {
 if (!isset($naoRealizadas) || !is_array($naoRealizadas)) {
     $naoRealizadas = [];
 }
-$kpis = isset($kpis) ? $kpis : ['total' => 0, 'sem_tecnico' => 0, 'em_atendimento' => 0, 'aguardando' => 0, 'nao_realizadas' => 0];
+$kpis = isset($kpis) ? $kpis : ['total' => 0, 'sem_tecnico' => 0, 'em_atendimento' => 0, 'aguardando' => 0, 'nao_realizadas' => 0, 'finalizados' => 0];
+$kpis['finalizados'] = isset($kpis['finalizados']) ? $kpis['finalizados'] : 0;
+// Rótulos das situações do atendimento (usado na lista suspensa de filtro).
+$abasDisponiveis = [
+    'todos'          => 'Todos',
+    'sem_tecnico'    => 'Sem Técnico',
+    'em_atendimento' => 'Em Atendimento',
+    'nao_realizadas' => 'Não Realizadas',
+    'finalizados'    => 'Finalizados',
+];
 $statusDisponiveis = isset($statusDisponiveis) ? $statusDisponiveis : [];
 $base = base_url() . 'index.php/os/atribuir';
 ?>
@@ -72,22 +81,20 @@ $base = base_url() . 'index.php/os/atribuir';
             <span class="tec-kpi-num"><?= (int) $kpis['nao_realizadas'] ?></span>
             <span class="tec-kpi-lbl"><i class='bx bx-x-circle'></i> Não realizadas</span>
         </a>
+        <a href="<?= $base ?>?aba=finalizados" class="tec-kpi <?= $aba === 'finalizados' ? 'ativo' : '' ?>" style="--kpi:#256">
+            <span class="tec-kpi-num"><?= (int) $kpis['finalizados'] ?></span>
+            <span class="tec-kpi-lbl"><i class='bx bx-check-circle'></i> Finalizados</span>
+        </a>
     </div>
 
-    <!-- ============ Abas ============ -->
-    <div class="span12" style="margin-left: 0; margin-top: 12px;">
-        <a href="<?= $base ?>?aba=todos" class="button btn btn-mini <?= $aba === 'todos' ? 'btn-primary' : 'btn-inverse' ?>">
-            <span class="button__icon"><i class='bx bx-list-ul'></i></span><span class="button__text2">Todos</span>
-        </a>
-        <a href="<?= $base ?>?aba=sem_tecnico" class="button btn btn-mini <?= $aba === 'sem_tecnico' ? 'btn-primary' : 'btn-inverse' ?>">
-            <span class="button__icon"><i class='bx bx-user-x'></i></span><span class="button__text2">Sem Técnico</span>
-        </a>
-        <a href="<?= $base ?>?aba=em_atendimento" class="button btn btn-mini <?= $aba === 'em_atendimento' ? 'btn-primary' : 'btn-inverse' ?>">
-            <span class="button__icon"><i class='bx bx-user-check'></i></span><span class="button__text2">Em Atendimento</span>
-        </a>
-        <a href="<?= $base ?>?aba=nao_realizadas" class="button btn btn-mini <?= $aba === 'nao_realizadas' ? 'btn-primary' : 'btn-inverse' ?>">
-            <span class="button__icon"><i class='bx bx-x-circle'></i></span><span class="button__text2">Não Realizadas</span>
-        </a>
+    <!-- ============ Filtro (lista suspensa) ============ -->
+    <div class="tec-filtro">
+        <label for="filtroAba"><i class='bx bx-filter-alt'></i> Filtrar chamados:</label>
+        <select id="filtroAba" class="tec-filtro-select" data-base="<?= $base ?>">
+            <?php foreach ($abasDisponiveis as $valor => $rotulo) { ?>
+                <option value="<?= $valor ?>" <?= $aba === $valor ? 'selected' : '' ?>><?= $rotulo ?></option>
+            <?php } ?>
+        </select>
     </div>
 
     <?php if ($aba === 'nao_realizadas') { ?>
@@ -200,18 +207,21 @@ $base = base_url() . 'index.php/os/atribuir';
                                             <?php } ?>
                                         </td>
                                         <td>
-                                            <button class="button btn btn-mini btn-success btn-atribuir"
-                                                data-os="<?= $os->idOs ?>"
-                                                data-cliente="<?= htmlspecialchars($os->nomeCliente) ?>"
-                                                data-tecnico-atual="<?= $os->tecnico_responsavel ?>"
-                                                data-tecnico-nome="<?= htmlspecialchars($os->nome_tecnico ?? '') ?>">
-                                                <span class="button__icon"><i class='bx bx-user-plus'></i></span>
-                                                <span class="button__text2"><?= $os->tecnico_responsavel ? 'Trocar' : 'Atribuir'; ?></span>
-                                            </button>
+                                            <?php $chamadoConcluido = in_array($os->status, ['Finalizado', 'Faturado', 'Cancelado'], true); ?>
+                                            <?php if (! $chamadoConcluido) { ?>
+                                                <button class="button btn btn-mini btn-success btn-atribuir"
+                                                    data-os="<?= $os->idOs ?>"
+                                                    data-cliente="<?= htmlspecialchars($os->nomeCliente) ?>"
+                                                    data-tecnico-atual="<?= $os->tecnico_responsavel ?>"
+                                                    data-tecnico-nome="<?= htmlspecialchars($os->nome_tecnico ?? '') ?>">
+                                                    <span class="button__icon"><i class='bx bx-user-plus'></i></span>
+                                                    <span class="button__text2"><?= $os->tecnico_responsavel ? 'Trocar' : 'Atribuir'; ?></span>
+                                                </button>
+                                            <?php } ?>
                                             <a href="<?= base_url() ?>index.php/os/visualizar/<?= $os->idOs ?>" class="button btn btn-mini btn-inverse" title="Ver OS">
                                                 <span class="button__icon"><i class='bx bx-show'></i></span>
                                             </a>
-                                            <?php if ($os->tecnico_responsavel) { ?>
+                                            <?php if (! $chamadoConcluido && $os->tecnico_responsavel) { ?>
                                                 <button class="button btn btn-mini btn-danger btn-remover"
                                                     data-os="<?= $os->idOs ?>"
                                                     data-cliente="<?= htmlspecialchars($os->nomeCliente) ?>">
@@ -340,6 +350,12 @@ $base = base_url() . 'index.php/os/atribuir';
     $(document).ready(function() {
         var BASE = '<?= base_url() ?>index.php/os/';
 
+        // ---- Filtro por lista suspensa ----
+        $('#filtroAba').change(function() {
+            var base = $(this).data('base');
+            window.location.href = base + '?aba=' + encodeURIComponent($(this).val());
+        });
+
         // ---- Atribuir / Trocar técnico ----
         $('.btn-atribuir').click(function() {
             var osId = $(this).data('os');
@@ -467,4 +483,9 @@ $base = base_url() . 'index.php/os/atribuir';
 .tec-kpi-lbl { font-size:12px; color:#666; }
 .tec-kpi-lbl i { vertical-align:middle; }
 .status-inline { height:auto; }
+.tec-filtro { display:flex; align-items:center; gap:8px; margin:14px 0 0; flex-wrap:wrap; }
+.tec-filtro label { margin:0; font-size:13px; color:#666; font-weight:600; }
+.tec-filtro label i { vertical-align:middle; }
+.tec-filtro-select { height:auto; margin:0; padding:6px 10px; min-width:200px; max-width:280px;
+    border:1px solid #ccc; border-radius:6px; background:#fff; font-size:13px; }
 </style>

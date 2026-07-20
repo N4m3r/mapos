@@ -519,6 +519,24 @@ class Os_model extends CI_Model
     }
 
     /**
+     * Obter OS já finalizadas/faturadas (chamados concluídos).
+     * Usado na aba "Finalizados" da Central de Atendimento.
+     */
+    public function getOsFinalizadas($limite = 20, $offset = 0)
+    {
+        $this->db->select('os.*, clientes.nomeCliente, clientes.telefone, usuarios.nome as nome_tecnico');
+        $this->db->from('os');
+        $this->db->join('clientes', 'clientes.idClientes = os.clientes_id', 'left');
+        $this->db->join('usuarios', 'usuarios.idUsuarios = os.tecnico_responsavel', 'left');
+        $this->db->where_in('os.status', ['Finalizado', 'Faturado']);
+        $this->db->order_by('os.dataInicial', 'DESC');
+        $this->db->limit($limite, $offset);
+
+        $query = $this->db->get();
+        return ($query && $query->num_rows() > 0) ? $query->result() : [];
+    }
+
+    /**
      * Conta OS por status (aceita string única ou array de status).
      * Usado nos indicadores (KPIs) da Central de Atendimento.
      */
