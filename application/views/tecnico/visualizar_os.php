@@ -164,7 +164,7 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
             </div>
         <?php endif; ?>
 
-        <a href="<?= site_url('os/imprimir/' . $os->idOs) ?>" target="_blank" class="btn-tec ghost block" style="margin-bottom:8px;">
+        <a href="<?= site_url('tecnico/imprimir/' . $os->idOs) ?>" target="_blank" class="btn-tec ghost block" style="margin-bottom:8px;">
             <i class='bx bx-printer'></i> Imprimir OS
         </a>
 

@@ -205,6 +205,48 @@ class Tecnico extends MY_Controller
     }
 
     /**
+     * Impressão da OS para o técnico — SEM valores financeiros.
+     *
+     * Reusa a view os/imprimirOs, mas força permissao_eOs=false para
+     * ocultar preços unitários, subtotais, totais e o resumo de valores
+     * (o técnico não precisa saber quanto o cliente paga). Só imprime OS
+     * designada ao técnico logado.
+     */
+    public function imprimir($os_id = null)
+    {
+        if (!$os_id || !is_numeric($os_id)) {
+            $this->session->set_flashdata('error', 'OS não informada.');
+            redirect('tecnico/os');
+        }
+
+        $tecnico_id = $this->session->userdata('id_admin');
+
+        // Só pode imprimir OS designada a ele
+        $os = $this->tecnico_model->getOsById($os_id, $tecnico_id);
+        if (!$os) {
+            $this->session->set_flashdata('error', 'OS não encontrada ou não está designada a você.');
+            redirect('tecnico/os');
+        }
+
+        $this->data['result']      = $this->os_model->getById($os_id);
+        $this->data['produtos']    = $this->os_model->getProdutos($os_id);
+        $this->data['servicos']    = $this->os_model->getServicos($os_id);
+        $this->data['anexos']      = $this->os_model->getAnexos($os_id);
+        $this->data['emitente']    = $this->mapos_model->getEmitente();
+        $this->data['assinaturas'] = $this->assinaturas_model->getByOs($os_id);
+
+        // Técnico NUNCA vê valores na impressão: isso desliga colunas de preço,
+        // linhas de total, resumo de valores e o bloco de pagamento/QR Code Pix.
+        $this->data['permissao_eOs'] = false;
+
+        $this->data['imprimirAnexo'] = isset($_ENV['IMPRIMIR_ANEXOS'])
+            ? (filter_var($_ENV['IMPRIMIR_ANEXOS'] ?? false, FILTER_VALIDATE_BOOLEAN))
+            : false;
+
+        $this->load->view('os/imprimirOs', $this->data);
+    }
+
+    /**
      * Iniciar atendimento (check-in) via AJAX
      */
     public function iniciar_atendimento()
