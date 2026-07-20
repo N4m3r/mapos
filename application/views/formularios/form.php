@@ -64,7 +64,10 @@ $comOpcoes = $tiposComOpcoes ?? ['select', 'radio', 'checkbox'];
 
             <div id="lista-campos"></div>
 
-            <button type="button" class="btn" id="btn-add-campo" style="margin-top:8px">
+            <button type="button" id="btn-add-campo"
+                    style="margin-top:8px;width:100%;padding:12px;border:2px dashed #b7c0e0;
+                           border-radius:6px;background:#f5f7ff;color:#3d5afe;font-weight:600;
+                           cursor:pointer;text-align:center">
                 <i class="bx bx-plus"></i> Adicionar campo
             </button>
 
