@@ -1,0 +1,28 @@
+/* Módulo de Obras */
+.obra-progress { background:#e5e7eb; border-radius:6px; height:14px; overflow:hidden; width:100%; }
+.obra-progress.mini { height:8px; }
+.obra-progress-bar { background:linear-gradient(90deg,#2e7d32,#66bb6a); height:100%; }
+
+.obra-header { margin-bottom:10px; }
+.obra-header .label { margin-top:6px; display:inline-block; }
+
+.obra-tabs { margin:0 0 10px; border-bottom:2px solid #dcdcdc; padding-left:0; display:flex; flex-wrap:wrap; list-style:none; }
+.obra-tabs li { margin:0 2px -2px 0; }
+.obra-tabs li a { display:block; padding:8px 14px; color:#555; text-decoration:none; border:1px solid transparent; border-radius:6px 6px 0 0; }
+.obra-tabs li.active a { background:#fff; border-color:#dcdcdc; border-bottom-color:#fff; color:#2e7d32; font-weight:bold; }
+
+.obra-fotos-prev { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+.obra-fotos-prev img { width:70px; height:70px; object-fit:cover; border-radius:6px; border:1px solid #ccc; }
+
+/* Scanner de código de barras */
+.scanner-box { border:1px dashed #bbb; border-radius:8px; padding:10px; margin-bottom:10px; background:#fafafa; }
+.scanner-box video { width:100%; max-width:420px; border-radius:8px; background:#000; }
+.scanner-actions { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
+.scanner-status { font-size:12px; color:#666; }
+
+/* Assinatura */
+.assinatura-pad { border:1px solid #bbb; border-radius:8px; background:#fff; touch-action:none; width:100%; max-width:420px; height:150px; }
+
+/* Tabela de itens */
+.itens-material td input { margin:0; }
+.itens-material .col-qtd input { width:90px; }

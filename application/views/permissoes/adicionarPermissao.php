@@ -325,6 +325,53 @@
                         <div class="accordion-group widget-box">
                             <div class="accordion-heading">
                                 <div class="widget-title">
+                                    <a data-parent="#collapse-group" href="#collapseGObras" data-toggle="collapse">
+                                      <span><i class='bx bx-building-house icon-cli'></i></span>
+                                      <h5 style="padding-left: 28px">Obras</h5>
+                                      <span><i class='bx bx-chevron-right icon-clic'></i></span>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="collapse accordion-body" id="collapseGObras">
+                                <div class="widget-content">
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <td><label><input name="vObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Visualizar Obras</strong></span></label></td>
+                                        <td><label><input name="cObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Cadastrar Obra</span></label></td>
+                                        <td><label><input name="eObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Editar Obra</span></label></td>
+                                        <td><label><input name="dObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Excluir Obra</span></label></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label><input name="vObraCronograma" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Ver cronograma</span></label></td>
+                                        <td><label><input name="eObraCronograma" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Editar cronograma/etapas</span></label></td>
+                                        <td><label><input name="vObraRdo" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Ver Diário de Obra (RDO)</span></label></td>
+                                        <td><label><input name="cObraRdo" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Registrar RDO</span></label></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label><input name="vObraMedicao" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Ver medições</span></label></td>
+                                        <td><label><input name="cObraMedicao" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Lançar medição</span></label></td>
+                                        <td><label><input name="aObraMedicao" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Aprovar medição</span></label></td>
+                                        <td><label><input name="vObraCusto" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Ver custos</span></label></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label><input name="vObraMaterial" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Almoxarifado da obra</strong></span></label></td>
+                                        <td><label><input name="rObraMaterial" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Receber material (entrada)</span></label></td>
+                                        <td><label><input name="sObraMaterial" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Entregar material (saída)</span></label></td>
+                                        <td><label><input name="cObraMaterial" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Gerenciar material</span></label></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label><input name="cObraEquipe" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Gerenciar equipes</span></label></td>
+                                        <td><label><input name="vObraCampo" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Área de Campo (encarregado)</span></label></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-group widget-box">
+                            <div class="accordion-heading">
+                                <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGThree33" data-toggle="collapse">
                                       <span><i class='bx bx-cart-alt icon-cli'></i></span>
                                       <h5 style="padding-left: 28px">Vendas</h5>

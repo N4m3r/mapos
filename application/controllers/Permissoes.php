@@ -152,6 +152,26 @@ class Permissoes extends MY_Controller
                 'vDashboard' => $this->input->post('vDashboard'),
                 'vRelatorioCompleto' => $this->input->post('vRelatorioCompleto'),
                 'vExportarDados' => $this->input->post('vExportarDados'),
+
+                // Permissões Obras
+                'vObras' => $this->input->post('vObras'),
+                'cObras' => $this->input->post('cObras'),
+                'eObras' => $this->input->post('eObras'),
+                'dObras' => $this->input->post('dObras'),
+                'vObraCronograma' => $this->input->post('vObraCronograma'),
+                'eObraCronograma' => $this->input->post('eObraCronograma'),
+                'vObraRdo' => $this->input->post('vObraRdo'),
+                'cObraRdo' => $this->input->post('cObraRdo'),
+                'vObraMedicao' => $this->input->post('vObraMedicao'),
+                'cObraMedicao' => $this->input->post('cObraMedicao'),
+                'aObraMedicao' => $this->input->post('aObraMedicao'),
+                'vObraCusto' => $this->input->post('vObraCusto'),
+                'vObraMaterial' => $this->input->post('vObraMaterial'),
+                'cObraMaterial' => $this->input->post('cObraMaterial'),
+                'rObraMaterial' => $this->input->post('rObraMaterial'),
+                'sObraMaterial' => $this->input->post('sObraMaterial'),
+                'cObraEquipe' => $this->input->post('cObraEquipe'),
+                'vObraCampo' => $this->input->post('vObraCampo'),
             ];
             $permissoes = serialize($permissoes);
 

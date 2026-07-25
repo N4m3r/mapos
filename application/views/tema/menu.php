@@ -95,6 +95,17 @@
                     </li>
                 <?php } ?>
 
+                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vObras')) { ?>
+                    <li class="<?php if (isset($menuObras)) {
+                        echo 'active';
+                    }; ?>">
+                        <a class="tip-bottom" title="" href="<?= site_url('obras') ?>"><i class='bx bx-building-house iconX'></i>
+                            <span class="title">Obras</span>
+                            <span class="title-tooltip">Obras</span>
+                        </a>
+                    </li>
+                <?php } ?>
+
                 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vTecnicoMapa')) { ?>
                     <li class="<?php if (isset($menuLocalizacao)) {
                         echo 'active';
