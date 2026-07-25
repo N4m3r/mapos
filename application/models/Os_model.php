@@ -103,6 +103,99 @@ class Os_model extends CI_Model
         return $this->db->get()->row();
     }
 
+    /**
+     * Monta a linha do tempo ("onde estamos") da OS a partir do estado REAL:
+     * status, agendamento, check-in/out, aceite do cliente, nota fiscal e
+     * pagamento. Cada etapa vem com estado (concluida | atual | pendente) e a
+     * data em que aconteceu (quando houver).
+     *
+     * A regra de "atual" é em cascata: uma etapa anterior é considerada
+     * concluída se QUALQUER etapa posterior já aconteceu (ex.: se já houve
+     * check-in, "Agendada" conta como cumprida mesmo sem data marcada).
+     *
+     * Reutilizada no administrativo (visualizar OS) e no portal do cliente.
+     */
+    public function getTimeline($os_id)
+    {
+        $os_id = (int) $os_id;
+        $os = $this->db->get_where('os', ['idOs' => $os_id])->row();
+        if (! $os) {
+            return null;
+        }
+
+        // Check-in/out (primeira entrada, última saída).
+        $entrada = $saida = null;
+        if ($this->db->table_exists('os_checkin')) {
+            $r = $this->db->select('MIN(data_entrada) AS ent, MAX(data_saida) AS sai', false)
+                ->where('os_id', $os_id)->get('os_checkin')->row();
+            $entrada = $r->ent ?? null;
+            $saida = $r->sai ?? null;
+        }
+
+        // Nota fiscal autorizada (faturamento).
+        $notaAut = false;
+        $dataNota = null;
+        if ($this->db->table_exists('notas_fiscais')) {
+            $n = $this->db->select('data_autorizacao, data_emissao')
+                ->where('os_id', $os_id)->where('status', 'autorizada')
+                ->order_by('idNota', 'DESC')->limit(1)
+                ->get('notas_fiscais')->row();
+            if ($n) {
+                $notaAut = true;
+                $dataNota = $n->data_autorizacao ?: $n->data_emissao;
+            }
+        }
+
+        // Pagamento (boleto/cobrança quitada).
+        $paga = false;
+        if ($this->db->table_exists('cobrancas')) {
+            $paga = $this->db->where('os_id', $os_id)->where('status', 'PAID')
+                ->count_all_results('cobrancas') > 0;
+        }
+
+        $agend = (isset($os->data_agendamento) && $os->data_agendamento) ? $os->data_agendamento : null;
+        $aceito = (isset($os->aceite_status) && $os->aceite_status === 'aceito');
+        $concluida = ($saida || in_array($os->status, ['Finalizado', 'Faturado'], true));
+
+        $stages = [
+            ['chave' => 'aberta', 'label' => 'Aberta', 'icone' => 'bx-folder-open', 'done' => true, 'data' => $os->dataInicial ?? null],
+            ['chave' => 'agendada', 'label' => 'Agendada', 'icone' => 'bx-calendar-event', 'done' => (bool) $agend, 'data' => $agend],
+            ['chave' => 'em_atendimento', 'label' => 'Em atendimento', 'icone' => 'bx-wrench', 'done' => (bool) $entrada, 'data' => $entrada],
+            ['chave' => 'concluida', 'label' => 'Atendimento concluído', 'icone' => 'bx-check-circle', 'done' => (bool) $concluida, 'data' => $saida],
+            ['chave' => 'aceite', 'label' => 'Aceite do cliente', 'icone' => 'bx-user-check', 'done' => $aceito, 'data' => $aceito ? ($os->aceite_data ?? null) : null],
+            ['chave' => 'faturada', 'label' => 'Faturada', 'icone' => 'bx-receipt', 'done' => $notaAut, 'data' => $dataNota],
+            ['chave' => 'paga', 'label' => 'Paga', 'icone' => 'bx-dollar-circle', 'done' => $paga, 'data' => null],
+        ];
+
+        // Cascata: etapa é dada como concluída se qualquer posterior aconteceu.
+        $total = count($stages);
+        $atualDefinido = false;
+        for ($i = 0; $i < $total; $i++) {
+            $doneCascata = $stages[$i]['done'];
+            for ($j = $i + 1; $j < $total; $j++) {
+                if ($stages[$j]['done']) {
+                    $doneCascata = true;
+                    break;
+                }
+            }
+            if ($doneCascata) {
+                $stages[$i]['estado'] = 'concluida';
+            } elseif (! $atualDefinido) {
+                $stages[$i]['estado'] = 'atual';
+                $atualDefinido = true;
+            } else {
+                $stages[$i]['estado'] = 'pendente';
+            }
+        }
+
+        return [
+            'stages' => $stages,
+            'status' => $os->status,
+            'cancelado' => ($os->status === 'Cancelado'),
+            'nao_realizado' => ($os->status === 'Não Realizado'),
+        ];
+    }
+
     public function getByIdCobrancas($id)
     {
         $this->db->select('os.*, clientes.*, clientes.celular as celular_cliente, garantias.refGarantia, garantias.textoGarantia, usuarios.telefone as telefone_usuario, usuarios.email as email_usuario, usuarios.nome,cobrancas.os_id,cobrancas.idCobranca,cobrancas.status');

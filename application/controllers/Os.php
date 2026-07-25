@@ -430,6 +430,9 @@ class Os extends MY_Controller
         // Batidas de ponto (RH) vinculadas a esta OS — presença em campo.
         $this->load->model('rh_ponto_model');
         $this->data['batidasPonto'] = $this->rh_ponto_model->getByOs($os_id);
+
+        // Linha do tempo ("onde estamos") da OS.
+        $this->data['timeline'] = $this->os_model->getTimeline($os_id);
         $this->data['assinaturas'] = $this->assinaturas_model->getByOs($os_id);
         log_info('OS Visualizar - Assinaturas carregadas: ' . count($this->data['assinaturas']));
         $this->data['fotosAtendimento'] = $this->fotosatendimento_model->getByOs($os_id);
@@ -1859,6 +1862,7 @@ class Os extends MY_Controller
         $os_id = $this->input->post('os_id');
         $tecnico_id = $this->input->post('tecnico_id');
         $observacao = $this->input->post('observacao');
+        $agendamento = $this->input->post('data_agendamento');
 
         if (! $os_id || ! $tecnico_id) {
             $this->session->set_flashdata('error', 'Dados incompletos para atribuição.');
@@ -1875,6 +1879,9 @@ class Os extends MY_Controller
         $atribuido_por = $this->session->userdata('idUsuarios');
 
         if ($this->tecnico_model->atribuirTecnico($os_id, $tecnico_id, $atribuido_por, $observacao)) {
+            // Agendamento do atendimento (data + hora). O input datetime-local
+            // manda "Y-m-d\TH:i"; normaliza para DATETIME do banco.
+            $this->salvarAgendamentoOs($os_id, $agendamento);
             $this->notificarTecnicoAtribuicao($os_id, $tecnico_id);
             $this->session->set_flashdata('success', 'Técnico atribuído à OS #' . $os_id . ' com sucesso!');
             log_info('Atribuiu técnico ' . $tecnico_id . ' à OS #' . $os_id);
@@ -1883,6 +1890,25 @@ class Os extends MY_Controller
         }
 
         redirect('os/atribuir');
+    }
+
+    /**
+     * Grava a data/hora agendada do atendimento na OS. O input datetime-local
+     * envia "Y-m-d\TH:i"; normaliza para DATETIME. Valor vazio limpa o agendamento.
+     */
+    private function salvarAgendamentoOs($os_id, $agendamento)
+    {
+        if (! $this->db->field_exists('data_agendamento', 'os')) {
+            return; // migration ainda não aplicada
+        }
+        $valor = null;
+        if (! empty($agendamento)) {
+            $ts = strtotime(str_replace('T', ' ', $agendamento));
+            if ($ts) {
+                $valor = date('Y-m-d H:i:s', $ts);
+            }
+        }
+        $this->os_model->edit('os', ['data_agendamento' => $valor], 'idOs', $os_id);
     }
 
     /**
@@ -1903,9 +1929,13 @@ class Os extends MY_Controller
 
             $emitente = $this->mapos_model->getEmitente();
             $endereco = trim(($os->rua ?? '') . ' ' . ($os->numero ?? '') . ' ' . ($os->bairro ?? '') . ' ' . ($os->cidade ?? ''));
+            $agendaTxt = ! empty($os->data_agendamento)
+                ? "\nAgendado para: " . date('d/m/Y \à\s H:i', strtotime($os->data_agendamento))
+                : '';
             $msg = "Olá {$tecnico->nome}! Você recebeu a OS #{$os_id}."
                 . "\nCliente: " . ($os->nomeCliente ?? '')
                 . "\nEquipamento/Defeito: " . strip_tags((string) ($os->defeito ?? ''))
+                . $agendaTxt
                 . ($endereco !== '' ? "\nEndereço: {$endereco}" : '')
                 . ($emitente ? "\n\n{$emitente->nome}" : '');
 

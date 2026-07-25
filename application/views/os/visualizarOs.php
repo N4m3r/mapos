@@ -221,6 +221,9 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                     ?>
                 </div>
             </div>
+            <?php if (! empty($timeline)) { ?>
+                <?php $this->load->view('os/_timeline', ['timeline' => $timeline]); ?>
+            <?php } ?>
             <div class="widget-content" id="printOs">
                 <div class="invoice-content">
                     <div class="invoice-head" style="margin-bottom: 0; margin-top:-30px">

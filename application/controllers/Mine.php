@@ -728,6 +728,9 @@ class Mine extends CI_Controller
             }
         }
 
+        // Linha do tempo ("onde estamos") desta OS para o cliente acompanhar.
+        $data['timeline'] = $this->os_model->getTimeline($osId);
+
         $data['output'] = 'conecte/visualizar_os';
         $this->load->view('conecte/template', $data);
     }

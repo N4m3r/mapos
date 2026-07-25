@@ -14,6 +14,13 @@ foreach ($notasFiscais as $n) {
 }
 $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido', 'CANCELLED' => 'Cancelado', 'IN_PROTEST' => 'Em protesto'];
 ?>
+<?php if (! empty($timeline)) { ?>
+<div class="row-fluid" style="margin-top: 0">
+    <div class="span12">
+        <?php $this->load->view('os/_timeline', ['timeline' => $timeline]); ?>
+    </div>
+</div>
+<?php } ?>
 <div class="row-fluid" style="margin-top: 0">
     <div class="span12">
         <div class="widget-box">

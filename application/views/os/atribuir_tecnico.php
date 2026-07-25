@@ -1,3 +1,29 @@
+<style>
+.tec-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;padding:12px}
+.tec-card{border:1px solid #e5e7eb;border-left:4px solid var(--cor,#ccc);border-radius:10px;padding:12px 14px;background:#fff;display:flex;flex-direction:column;gap:8px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.tec-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tec-card-os{font-weight:600;color:#374151;font-size:14px}
+.tec-card-status{max-width:160px;padding:3px 6px;border-radius:6px;font-size:12px;margin:0}
+.tec-card-cliente{font-size:14px;color:#111827;font-weight:500}
+.tec-card-cliente small{display:block;color:#9ca3af;font-weight:400;font-size:12px}
+.tec-card-desc{font-size:12px;color:#6b7280;line-height:1.4;min-height:16px}
+.tec-card-meta{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:#6b7280}
+.tec-card-agenda{color:#2563eb;font-weight:500}
+.tec-badge{display:inline-flex;align-items:center;gap:4px;color:#fff;padding:3px 9px;border-radius:20px;font-size:11px;white-space:nowrap}
+.tec-badge-tec{background:#256}
+.tec-badge-semtec{background:#FF7F00}
+.tec-card-acoes{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.tec-vazio{padding:26px;text-align:center;color:#9ca3af}
+@media (max-width:600px){
+    .tec-cards{grid-template-columns:1fr;padding:8px}
+    .tec-kpis{flex-wrap:wrap}
+    .tec-kpi{flex:1 1 45%}
+    .tec-filtros{flex-direction:column;align-items:stretch}
+    .tec-filtro{width:100%}
+    .tec-filtro-input,.tec-filtro-select,.tec-filtro-date{width:100%}
+}
+</style>
+
 <?php if ($this->session->flashdata('success') != null) { ?>
     <div class="alert alert-success">
         <button type="button" class="close" data-dismiss="alert">&times;</button>
@@ -189,82 +215,70 @@ $base = base_url() . 'index.php/os/atribuir';
         <!-- ============ Abas: Todos / Sem Técnico / Em Atendimento ============ -->
         <div class="widget-box" style="margin-top: 8px">
             <div class="widget-content nopadding">
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>N°</th>
-                                <th>Cliente</th>
-                                <th>Descrição</th>
-                                <th>Data</th>
-                                <th>Status</th>
-                                <th>Técnico Atual</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (empty($ordens)) { ?>
-                                <tr><td colspan="7">Nenhuma OS encontrada</td></tr>
-                            <?php } else {
-                                foreach ($ordens as $os) {
-                                    $cor = corStatusAtribuir($os->status);
-                                    $podeMudarStatus = in_array($os->status, $statusDisponiveis, true); ?>
-                                    <tr>
-                                        <td><?= $os->idOs ?></td>
-                                        <td>
-                                            <?= htmlspecialchars($os->nomeCliente) ?>
-                                            <?php if (!empty($os->telefone)) { ?><br><small><?= $os->telefone ?></small><?php } ?>
-                                        </td>
-                                        <td><?= character_limiter(strip_tags($os->descricaoProduto), 50) ?></td>
-                                        <td><?= date('d/m/Y', strtotime($os->dataInicial)) ?></td>
-                                        <td>
-                                            <?php if ($podeMudarStatus) { ?>
-                                                <select class="status-inline" data-os="<?= $os->idOs ?>" data-atual="<?= htmlspecialchars($os->status) ?>"
-                                                    style="border-left:4px solid <?= $cor ?>; padding:2px 4px; max-width:150px;">
-                                                    <?php foreach ($statusDisponiveis as $st) { ?>
-                                                        <option value="<?= htmlspecialchars($st) ?>" <?= $os->status === $st ? 'selected' : '' ?>><?= $st ?></option>
-                                                    <?php } ?>
-                                                </select>
-                                            <?php } else { ?>
-                                                <span class="badge" style="background-color: <?= $cor ?>; border-color: <?= $cor ?>"><?= $os->status ?></span>
+                <?php if (empty($ordens)) { ?>
+                    <div class="tec-vazio"><i class='bx bx-inbox'></i> Nenhuma OS encontrada</div>
+                <?php } else { ?>
+                    <div class="tec-cards">
+                        <?php foreach ($ordens as $os) {
+                            $cor = corStatusAtribuir($os->status);
+                            $podeMudarStatus = in_array($os->status, $statusDisponiveis, true);
+                            $chamadoConcluido = in_array($os->status, ['Finalizado', 'Faturado', 'Cancelado'], true);
+                            $ag = ! empty($os->data_agendamento) ? date('d/m/Y H:i', strtotime($os->data_agendamento)) : null;
+                            $agInput = ! empty($os->data_agendamento) ? date('Y-m-d\TH:i', strtotime($os->data_agendamento)) : '';
+                        ?>
+                            <div class="tec-card" style="--cor:<?= $cor ?>">
+                                <div class="tec-card-top">
+                                    <span class="tec-card-os">OS #<?= sprintf('%04d', $os->idOs) ?></span>
+                                    <?php if ($podeMudarStatus) { ?>
+                                        <select class="status-inline tec-card-status" data-os="<?= $os->idOs ?>" data-atual="<?= htmlspecialchars($os->status) ?>" style="border-left:4px solid <?= $cor ?>">
+                                            <?php foreach ($statusDisponiveis as $st) { ?>
+                                                <option value="<?= htmlspecialchars($st) ?>" <?= $os->status === $st ? 'selected' : '' ?>><?= $st ?></option>
                                             <?php } ?>
-                                        </td>
-                                        <td>
-                                            <?php if ($os->tecnico_responsavel) { ?>
-                                                <span class="badge" style="background-color: #256; border-color: #256"><i class='bx bx-user'></i> <?= htmlspecialchars($os->nome_tecnico) ?></span>
-                                            <?php } else { ?>
-                                                <span class="badge" style="background-color: #FF7F00; border-color: #FF7F00"><i class='bx bx-user-x'></i> Não atribuído</span>
-                                            <?php } ?>
-                                        </td>
-                                        <td>
-                                            <?php $chamadoConcluido = in_array($os->status, ['Finalizado', 'Faturado', 'Cancelado'], true); ?>
-                                            <?php if (! $chamadoConcluido) { ?>
-                                                <button class="button btn btn-mini btn-success btn-atribuir"
-                                                    data-os="<?= $os->idOs ?>"
-                                                    data-cliente="<?= htmlspecialchars($os->nomeCliente) ?>"
-                                                    data-tecnico-atual="<?= $os->tecnico_responsavel ?>"
-                                                    data-tecnico-nome="<?= htmlspecialchars($os->nome_tecnico ?? '') ?>">
-                                                    <span class="button__icon"><i class='bx bx-user-plus'></i></span>
-                                                    <span class="button__text2"><?= $os->tecnico_responsavel ? 'Trocar' : 'Atribuir'; ?></span>
-                                                </button>
-                                            <?php } ?>
-                                            <a href="<?= base_url() ?>index.php/os/visualizar/<?= $os->idOs ?>" class="button btn btn-mini btn-inverse" title="Ver OS">
-                                                <span class="button__icon"><i class='bx bx-show'></i></span>
-                                            </a>
-                                            <?php if (! $chamadoConcluido && $os->tecnico_responsavel) { ?>
-                                                <button class="button btn btn-mini btn-danger btn-remover"
-                                                    data-os="<?= $os->idOs ?>"
-                                                    data-cliente="<?= htmlspecialchars($os->nomeCliente) ?>">
-                                                    <span class="button__icon"><i class='bx bx-user-x'></i></span>
-                                                </button>
-                                            <?php } ?>
-                                        </td>
-                                    </tr>
-                                <?php }
-                            } ?>
-                        </tbody>
-                    </table>
-                </div>
+                                        </select>
+                                    <?php } else { ?>
+                                        <span class="tec-badge" style="background:<?= $cor ?>"><?= $os->status ?></span>
+                                    <?php } ?>
+                                </div>
+                                <div class="tec-card-cliente"><i class='bx bxs-user'></i> <?= htmlspecialchars($os->nomeCliente) ?>
+                                    <?php if (! empty($os->telefone)) { ?><small><?= $os->telefone ?></small><?php } ?>
+                                </div>
+                                <div class="tec-card-desc"><?= character_limiter(strip_tags($os->descricaoProduto), 70) ?></div>
+                                <div class="tec-card-meta">
+                                    <span><i class='bx bx-calendar'></i> <?= date('d/m/Y', strtotime($os->dataInicial)) ?></span>
+                                    <?php if ($ag) { ?><span class="tec-card-agenda"><i class='bx bx-calendar-event'></i> <?= $ag ?></span><?php } ?>
+                                </div>
+                                <div class="tec-card-tec">
+                                    <?php if ($os->tecnico_responsavel) { ?>
+                                        <span class="tec-badge tec-badge-tec"><i class='bx bx-user'></i> <?= htmlspecialchars($os->nome_tecnico) ?></span>
+                                    <?php } else { ?>
+                                        <span class="tec-badge tec-badge-semtec"><i class='bx bx-user-x'></i> Sem técnico</span>
+                                    <?php } ?>
+                                </div>
+                                <div class="tec-card-acoes">
+                                    <?php if (! $chamadoConcluido) { ?>
+                                        <button class="button btn btn-mini btn-success btn-atribuir"
+                                            data-os="<?= $os->idOs ?>"
+                                            data-cliente="<?= htmlspecialchars($os->nomeCliente) ?>"
+                                            data-tecnico-atual="<?= $os->tecnico_responsavel ?>"
+                                            data-tecnico-nome="<?= htmlspecialchars($os->nome_tecnico ?? '') ?>"
+                                            data-agendamento="<?= $agInput ?>">
+                                            <span class="button__icon"><i class='bx <?= $os->tecnico_responsavel ? 'bx-calendar-edit' : 'bx-user-plus' ?>'></i></span>
+                                            <span class="button__text2"><?= $os->tecnico_responsavel ? 'Agendar / trocar' : 'Atribuir' ?></span>
+                                        </button>
+                                    <?php } ?>
+                                    <a href="<?= base_url() ?>index.php/os/visualizar/<?= $os->idOs ?>" class="button btn btn-mini btn-inverse" title="Ver OS">
+                                        <span class="button__icon"><i class='bx bx-show'></i></span>
+                                    </a>
+                                    <?php if (! $chamadoConcluido && $os->tecnico_responsavel) { ?>
+                                        <button class="button btn btn-mini btn-danger btn-remover" data-os="<?= $os->idOs ?>" data-cliente="<?= htmlspecialchars($os->nomeCliente) ?>" title="Remover técnico">
+                                            <span class="button__icon"><i class='bx bx-user-x'></i></span>
+                                        </button>
+                                    <?php } ?>
+                                </div>
+                            </div>
+                        <?php } ?>
+                    </div>
+                <?php } ?>
             </div>
         </div>
 
@@ -303,6 +317,14 @@ $base = base_url() . 'index.php/os/atribuir';
                             <option value="" disabled>Nenhum técnico disponível</option>
                         <?php } ?>
                     </select>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label" for="data_agendamento"><i class='bx bx-calendar-event'></i> Agendar atendimento (data e hora):</label>
+                <div class="controls">
+                    <input type="datetime-local" name="data_agendamento" id="data_agendamento" class="span12">
+                    <span class="help-inline">Opcional. Notifica o técnico com o horário marcado da visita.</span>
                 </div>
             </div>
 
@@ -400,11 +422,15 @@ $base = base_url() . 'index.php/os/atribuir';
             $('#os_id_atribuir').val(osId);
             $('#os_numero').text(osId);
             $('#os_cliente').text(cliente);
+            $('#data_agendamento').val($(this).data('agendamento') || '');
+
+            // Pré-seleciona o técnico atual para permitir só (re)agendar sem trocar.
+            $('#tecnico_id').val(tecnicoAtual || '');
 
             if (tecnicoAtual) {
                 $('#tecnico-atual-nome').text(tecnicoNome);
                 $('#tecnico-atual-info').removeClass('hide');
-                $('#modalAtribuirLabel').html('<i class="bx bx-transfer"></i> Trocar Técnico');
+                $('#modalAtribuirLabel').html('<i class="bx bx-calendar-edit"></i> Agendar / trocar técnico');
             } else {
                 $('#tecnico-atual-info').addClass('hide');
                 $('#modalAtribuirLabel').html('<i class="bx bx-user-plus"></i> Atribuir Técnico');
