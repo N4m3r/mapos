@@ -197,20 +197,34 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
     // "Não foi possível realizar": disponível quando há permissão, a OS ainda
     // não está em espera e não está concluída. Fica na barra de ação, junto do
     // "Iniciar Atendimento" (parte do fluxo de início).
-    $nr_concluida = in_array($os->status, ['Finalizado', 'Faturado', 'Cancelado'], true);
-    $mostrar_nao_realizado = !empty($permissao_nao_realizado) && empty($nr_pendente) && !$nr_concluida;
+    $os_concluida = in_array($os->status, ['Finalizado', 'Faturado', 'Cancelado'], true);
+    $mostrar_nao_realizado = !empty($permissao_nao_realizado) && empty($nr_pendente) && !$os_concluida;
+
+    // "Iniciar Atendimento" só aparece enquanto a OS ainda está "Aberto" ou
+    // "Em Andamento" E ainda não tem nenhuma assinatura coletada. Assim o botão
+    // some depois que o serviço é assinado/finalizado e não reaparece por engano.
+    $status_permite_iniciar = in_array($os->status, ['Aberto', 'Em Andamento'], true);
+    $tem_assinatura = !empty($assinaturas);
+    $pode_iniciar = $permissao_checkin && $status_permite_iniciar && !$tem_assinatura;
+    $permissao_fotos = isset($permissao_fotos) ? $permissao_fotos : false;
+
+    // A barra de ação fixa só deve existir se ao menos um botão for realmente
+    // exibido — evita renderizar uma barra branca vazia numa OS concluída.
+    $tem_acao_barra = ($pode_iniciar && !$checkin_ativo)
+        || ($mostrar_nao_realizado && !$checkin_ativo)
+        || ($permissao_fotos && $checkin_ativo)
+        || ($permissao_checkout && $checkin_ativo);
     ?>
 
-    <?php $permissao_fotos = isset($permissao_fotos) ? $permissao_fotos : false; ?>
-    <?php if ($permissao_checkin || $permissao_checkout || $mostrar_nao_realizado || $permissao_fotos): ?>
+    <?php if ($tem_acao_barra): ?>
         <div style="height:76px;"></div><!-- espaco para a barra de acao fixa -->
     <?php endif; ?>
 </div>
 
 <!-- Barra de acao fixa: iniciar / nao realizado / finalizar -->
-<?php if ($permissao_checkin || $permissao_checkout || $mostrar_nao_realizado || $permissao_fotos): ?>
+<?php if ($tem_acao_barra): ?>
 <div class="action-bar">
-    <?php if ($permissao_checkin): ?>
+    <?php if ($pode_iniciar): ?>
         <button type="button" id="btn-iniciar-atendimento" class="btn-tec success lg <?= $checkin_ativo ? 'hidden' : '' ?>">
             <i class='bx bx-log-in'></i> Iniciar Atendimento
         </button>

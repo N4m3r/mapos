@@ -270,8 +270,9 @@ details.tec-adv summary { color: var(--tec-grad-1); font-size: 13px; cursor: poi
 /* ---------- Barra de acao fixa (tela de atendimento) ---------- */
 .action-bar {
   position: fixed;
-  /* fica logo acima da bottom-nav, respeitando a area segura */
-  bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  /* fica logo acima da bottom-nav (que tem ~63px de altura), respeitando a
+     area segura — com 60px a borda inferior ficava escondida atras do menu */
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
   left: 0; right: 0;
   background: #fff;
   padding: 12px 16px;
