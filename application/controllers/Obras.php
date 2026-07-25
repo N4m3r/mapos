@@ -29,13 +29,31 @@ class Obras extends MY_Controller
 
     public function index()
     {
-        $this->gerenciar();
+        $this->painel();
+    }
+
+    /**
+     * Painel de gestão de obras: KPIs + pendências que cruzam todas as obras
+     * (medições a aprovar, obras em execução, custódia de material do cliente).
+     */
+    public function painel()
+    {
+        $this->precisa('vObras', 'Você não tem permissão para visualizar Obras.');
+
+        $this->data['kpis'] = $this->obras_model->kpis();
+        $this->data['obras_execucao'] = $this->obras_model->getObrasPorStatus('em_execucao', 8);
+        $this->data['medicoes_abertas'] = $this->obras_model->getMedicoesAbertas(10);
+        $this->data['rdos_recentes'] = $this->obras_model->getRdosRecentes(8);
+        $this->data['obra_menu'] = 'painel';
+        $this->data['view'] = 'obras/painel';
+        return $this->layout();
     }
 
     public function gerenciar()
     {
         $this->precisa('vObras', 'Você não tem permissão para visualizar Obras.');
         $this->load->library('pagination');
+        $this->data['obra_menu'] = 'obras';
 
         $filtros = [
             'pesquisa' => $this->input->get('pesquisa'),
@@ -120,8 +138,62 @@ class Obras extends MY_Controller
         $this->data['recebimentos'] = $this->obra_material_model->getRecebimentos($id);
         $this->data['entregas'] = $this->obra_material_model->getEntregas($id);
         $this->data['custo'] = $this->obras_model->getResumoCusto($id);
+        $this->data['apontamentos'] = $this->obras_model->getApontamentos($id);
+        $this->data['apontamento_total'] = $this->obras_model->getTotalApontamento($id);
         $this->data['view'] = 'obras/visualizar';
         return $this->layout();
+    }
+
+    /* ======================= Apontamento / efetivo ======================= */
+
+    /** Consolida o efetivo do dia a partir do ponto facial/GPS. */
+    public function consolidarPonto()
+    {
+        $this->precisa('cObraRdo', 'Você não tem permissão para registrar efetivo.');
+        $obra_id = (int) $this->input->post('obra_id');
+        $data = $this->dataOuNull($this->input->post('data')) ?: date('Y-m-d');
+        $n = $this->obras_model->consolidarPonto($obra_id, $data);
+        if ($n > 0) {
+            $this->session->set_flashdata('success', $n . ' colaborador(es) consolidado(s) do ponto em ' . date('d/m/Y', strtotime($data)) . '.');
+        } else {
+            $this->session->set_flashdata('error', 'Nenhuma batida de ponto vinculada a esta obra nesse dia.');
+        }
+        redirect('obras/visualizar/' . $obra_id . '#maodeobra');
+    }
+
+    /** Apontamento manual do encarregado (sem exigir ponto facial). */
+    public function salvarApontamento()
+    {
+        $this->precisa('cObraRdo', 'Você não tem permissão para registrar efetivo.');
+        $obra_id = (int) $this->input->post('obra_id');
+        $nome = trim((string) $this->input->post('nome'));
+        if ($nome === '') {
+            $this->session->set_flashdata('error', 'Informe o nome do colaborador.');
+            redirect('obras/visualizar/' . $obra_id . '#maodeobra');
+        }
+        $diaria = $this->input->post('diaria') ? 1 : 0;
+        $this->obras_model->addApontamento([
+            'obra_id' => $obra_id,
+            'colaborador_id' => (int) $this->input->post('colaborador_id') ?: null,
+            'nome' => $nome,
+            'funcao' => $this->input->post('funcao'),
+            'data' => $this->dataOuNull($this->input->post('data')) ?: date('Y-m-d'),
+            'horas' => (float) $this->input->post('horas'),
+            'diaria' => $diaria,
+            'origem' => 'manual',
+            'valor' => (float) $this->input->post('valor'),
+        ]);
+        $this->session->set_flashdata('success', 'Apontamento registrado.');
+        redirect('obras/visualizar/' . $obra_id . '#maodeobra');
+    }
+
+    public function excluirApontamento()
+    {
+        $this->precisa('cObraRdo', 'Sem permissão.');
+        $obra_id = (int) $this->input->post('obra_id');
+        $this->obras_model->deleteApontamento((int) $this->input->post('idApontamento'), $obra_id);
+        $this->session->set_flashdata('success', 'Apontamento removido.');
+        redirect('obras/visualizar/' . $obra_id . '#maodeobra');
     }
 
     public function excluir()

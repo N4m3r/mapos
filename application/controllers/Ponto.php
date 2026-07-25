@@ -78,6 +78,75 @@ class Ponto extends MY_Controller
         return null;
     }
 
+    /**
+     * Obras ativas para o colaborador registrar ponto no canteiro.
+     * Prioriza obras onde ele está alocado (via equipe) ou é responsável;
+     * se não houver vínculo, devolve todas as obras ativas (mantém usável).
+     */
+    private function minhasObrasAtivas($usuarios_id)
+    {
+        if (! $this->db->table_exists('obras')) {
+            return [];
+        }
+        $ativas = ['planejamento', 'em_execucao', 'paralisada'];
+
+        $vinculadas = [];
+        if ($usuarios_id) {
+            $this->db->select('DISTINCT obras.idObra, obras.nome, obras.status, obras.latitude, obras.longitude', false);
+            $this->db->from('obras');
+            $temEquipe = $this->db->table_exists('obra_equipe_alocacao') && $this->db->table_exists('equipe_membros');
+            if ($temEquipe) {
+                $this->db->join('obra_equipe_alocacao a', 'a.obra_id = obras.idObra', 'left');
+                $this->db->join('equipe_membros em', 'em.equipe_id = a.equipe_id AND em.colaborador_id = ' . (int) $usuarios_id, 'left');
+            }
+            $this->db->group_start();
+            $this->db->where('obras.responsavel_id', (int) $usuarios_id);
+            if ($temEquipe) {
+                $this->db->or_where('em.idMembro IS NOT NULL', null, false);
+            }
+            $this->db->group_end();
+            $this->db->where_in('obras.status', $ativas);
+            $this->db->order_by('obras.nome', 'ASC');
+            $q = $this->db->get();
+            $vinculadas = $q ? $q->result() : [];
+        }
+
+        if ($vinculadas) {
+            return $vinculadas;
+        }
+
+        // Fallback: todas as obras ativas.
+        $this->db->select('idObra, nome, status, latitude, longitude');
+        $this->db->where_in('status', $ativas);
+        $this->db->order_by('nome', 'ASC');
+        $this->db->limit(50);
+        $q = $this->db->get('obras');
+        return $q ? $q->result() : [];
+    }
+
+    /** Valida que a obra existe e está ativa; devolve seus dados (ou null). */
+    private function obraDoColaborador($obraId, $usuarios_id)
+    {
+        foreach ($this->minhasObrasAtivas($usuarios_id) as $o) {
+            if ($o->idObra == $obraId) {
+                return $o;
+            }
+        }
+        return null;
+    }
+
+    /** Grava o local do canteiro a partir da primeira batida com GPS. */
+    private function aprenderLocalObra($obraId, $lat, $lng)
+    {
+        if (! $this->db->field_exists('latitude', 'obras')) {
+            return;
+        }
+        $this->db->where('idObra', $obraId)->update('obras', [
+            'latitude' => $lat,
+            'longitude' => $lng,
+        ]);
+    }
+
     /** Grava o local da OS a partir da primeira batida com GPS. */
     private function aprenderLocalOs($osId, $lat, $lng)
     {
@@ -104,6 +173,7 @@ class Ponto extends MY_Controller
         $data['proximo_tipo'] = $this->rh_ponto_model->proximoTipo($colaborador->id);
         $data['unidades'] = $this->rh_colaboradores_model->listarUnidades(true);
         $data['minhas_os'] = $this->minhasOsAtivas($colaborador->usuarios_id);
+        $data['minhas_obras'] = $this->minhasObrasAtivas($colaborador->usuarios_id);
         $data['tem_biometria'] = $this->rh_colaboradores_model->temBiometria($colaborador->id);
         $data['cfg'] = [
             'geofence_obrigatorio' => (int) ($this->data['configuration']['rh_geofence_obrigatorio'] ?? 0),
@@ -174,9 +244,21 @@ class Ponto extends MY_Controller
             $unidadeId = null; // ao vincular à OS, a unidade fixa não se aplica
         }
 
+        // Vínculo com Obra (ponto no canteiro). Só quando não houver OS.
+        $obraId = (! $osVinculada) ? ($this->input->post('obra_id') ?: null) : null;
+        $obraVinculada = null;
+        if ($obraId) {
+            $obraVinculada = $this->obraDoColaborador($obraId, $colaborador->usuarios_id);
+            if (! $obraVinculada) {
+                echo json_encode(['success' => false, 'message' => 'Obra inválida ou não disponível.']);
+                return;
+            }
+            $unidadeId = null; // no canteiro, a unidade fixa não se aplica
+        }
+
         $cfgGeofenceObrig = (int) ($this->data['configuration']['rh_geofence_obrigatorio'] ?? 0);
-        // Em atendimento por OS o local varia (cliente); geofence fixo não bloqueia.
-        if ($osVinculada) {
+        // Em campo (OS ou Obra) o local varia; geofence fixo da unidade não bloqueia.
+        if ($osVinculada || $obraVinculada) {
             $cfgGeofenceObrig = 0;
         }
         $cfgFaceObrig = (int) ($this->data['configuration']['rh_face_obrigatorio'] ?? 0);
@@ -235,6 +317,20 @@ class Ponto extends MY_Controller
             }
         }
 
+        // ---- Localização por Obra (canteiro; referência de 300m) ----
+        if ($obraVinculada && $latitude && $longitude) {
+            if (! empty($obraVinculada->latitude) && ! empty($obraVinculada->longitude)) {
+                $distancia = (int) round($this->distanciaMetros(
+                    (float) $latitude, (float) $longitude,
+                    (float) $obraVinculada->latitude, (float) $obraVinculada->longitude
+                ));
+                $dentro = $distancia <= 300 ? 1 : 0;
+            } else {
+                // "Aprende" o local do canteiro a partir da primeira batida com GPS.
+                $this->aprenderLocalObra($obraVinculada->idObra, $latitude, $longitude);
+            }
+        }
+
         // ---- Selfie ----
         $fotoMime = null;
         if ($foto && preg_match('/^data:(image\/\w+);base64,/', $foto, $m)) {
@@ -262,6 +358,10 @@ class Ponto extends MY_Controller
         if ($osVinculada && $this->db->field_exists('os_id', 'rh_ponto_registros')) {
             $dadosBatida['os_id'] = $osVinculada->idOs;
         }
+        // Idem para obra_id (migration add_obra_ponto).
+        if ($obraVinculada && $this->db->field_exists('obra_id', 'rh_ponto_registros')) {
+            $dadosBatida['obra_id'] = $obraVinculada->idObra;
+        }
         $registroId = $this->rh_ponto_model->registrar($dadosBatida, true);
 
         if (! $registroId) {
@@ -285,6 +385,7 @@ class Ponto extends MY_Controller
             'proximo_tipo' => $this->rh_ponto_model->proximoTipo($colaborador->id),
             'fora_area' => ($dentro === 0),
             'os_id' => $osVinculada ? $osVinculada->idOs : null,
+            'obra_id' => $obraVinculada ? $obraVinculada->idObra : null,
         ]);
     }
 

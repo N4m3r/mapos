@@ -42,6 +42,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
     <li><a href="#tab-rdo" data-tab="rdo">Diário de Obra</a></li>
     <li><a href="#tab-medicao" data-tab="medicao">Medição</a></li>
     <li><a href="#tab-equipe" data-tab="equipe">Equipe</a></li>
+    <li><a href="#tab-maodeobra" data-tab="maodeobra">Mão de obra</a></li>
 </ul>
 
 <div class="obra-tab-content">
@@ -197,6 +198,9 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
 
     <!-- EQUIPE -->
     <div class="obra-pane" id="tab-equipe" style="display:none">
+        <?php if ($perm('cObraEquipe')): ?>
+            <div style="margin-bottom:8px"><a href="<?= site_url('obraequipe') ?>" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-group'></i></span><span class="button__text2">Gerenciar equipes</span></a></div>
+        <?php endif; ?>
         <div class="widget-box"><div class="widget-content nopadding">
             <table class="table table-bordered">
                 <thead><tr><th>Equipe</th><th>Encarregado</th><th>Início</th><th>Fim</th><th>Ativa</th></tr></thead>
@@ -209,7 +213,68 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
             </table>
         </div></div>
     </div>
+
+    <!-- MÃO DE OBRA / EFETIVO -->
+    <div class="obra-pane" id="tab-maodeobra" style="display:none">
+        <?php $verValor = $perm('vObraCusto'); ?>
+        <?php if ($perm('cObraRdo')): ?>
+            <div class="widget-box"><div class="widget-content" style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
+                <form action="<?= site_url('obras/consolidarPonto') ?>" method="post" style="display:flex;gap:6px;align-items:flex-end;margin:0">
+                    <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
+                    <div><label>Gerar efetivo do dia (ponto facial/GPS)</label><input type="text" class="datepicker" name="data" value="<?= date('d/m/Y') ?>" style="width:130px"></div>
+                    <button class="button btn btn-mini btn-primary" onclick="return confirm('Consolidar as batidas de ponto vinculadas a esta obra nesse dia?')"><span class="button__icon"><i class='bx bx-sync'></i></span><span class="button__text2">Consolidar ponto</span></button>
+                </form>
+                <span class="scanner-status">As batidas de ponto que o colaborador vincular a esta obra viram efetivo aqui (horas/diária e custo de mão de obra).</span>
+            </div></div>
+        <?php endif; ?>
+
+        <div class="widget-box"><div class="widget-title"><h5>Efetivo apontado<?php if ($verValor): ?> — total R$ <?= $fmt($apontamento_total) ?><?php endif; ?></h5></div>
+            <div class="widget-content nopadding">
+                <table class="table table-bordered">
+                    <thead><tr><th>Data</th><th>Colaborador</th><th>Função</th><th>Horas</th><th>Diária</th><th>Origem</th><?php if ($verValor): ?><th>Valor</th><?php endif; ?><?php if ($perm('cObraRdo')): ?><th></th><?php endif; ?></tr></thead>
+                    <tbody>
+                        <?php if (! $apontamentos) echo '<tr><td colspan="9">Nenhum apontamento. Consolide o ponto do dia ou lance manualmente.</td></tr>'; ?>
+                        <?php foreach ($apontamentos as $ap): ?>
+                            <tr>
+                                <td><?= $data_br($ap->data) ?></td>
+                                <td><?= html_escape($ap->nome ?: ('#' . $ap->colaborador_id)) ?></td>
+                                <td><?= html_escape($ap->funcao) ?></td>
+                                <td><?= $fmt($ap->horas, 2) ?></td>
+                                <td><?= $ap->diaria ? '1' : '—' ?></td>
+                                <td><span class="label"><?= $ap->origem === 'ponto_facial' ? 'Ponto' : 'Manual' ?></span></td>
+                                <?php if ($verValor): ?><td>R$ <?= $fmt($ap->valor) ?></td><?php endif; ?>
+                                <?php if ($perm('cObraRdo')): ?>
+                                    <td><a href="#" class="btn-nwe4" title="Remover" onclick="excluirApont(<?= $ap->idApontamento ?>);return false;"><i class="bx bx-trash-alt bx-xs"></i></a></td>
+                                <?php endif; ?>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                <?php if ($perm('cObraRdo')): ?>
+                    <form action="<?= site_url('obras/salvarApontamento') ?>" method="post" style="padding:8px">
+                        <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
+                        <div class="span3" style="margin-left:0"><label>Data</label><input type="text" class="span12 datepicker" name="data" value="<?= date('d/m/Y') ?>"></div>
+                        <div class="span3"><label>Colaborador</label><input type="text" class="span12" name="nome" placeholder="Nome"></div>
+                        <div class="span2"><label>Função</label><input type="text" class="span12" name="funcao"></div>
+                        <div class="span1"><label>Horas</label><input type="number" step="0.5" class="span12" name="horas" value="0"></div>
+                        <div class="span1"><label>Diária</label><br><input type="checkbox" name="diaria" value="1"></div>
+                        <div class="span2"><label>Valor (R$)</label><input type="number" step="0.01" class="span12" name="valor" value="0"></div>
+                        <div class="span12" style="margin-left:0;margin-top:6px"><button class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-plus'></i></span><span class="button__text2">Lançar manual</span></button></div>
+                    </form>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
 </div>
+
+<?php if ($perm('cObraRdo')): ?>
+<form id="formExcluirApont" action="<?= site_url('obras/excluirApontamento') ?>" method="post" style="display:none">
+    <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>"><input type="hidden" name="idApontamento" id="del_apont">
+</form>
+<script>
+    function excluirApont(id){ if(confirm('Remover apontamento?')){ document.getElementById('del_apont').value=id; document.getElementById('formExcluirApont').submit(); } }
+</script>
+<?php endif; ?>
 
 <!-- Modal Etapa -->
 <div id="modal-etapa" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">

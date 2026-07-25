@@ -1,5 +1,9 @@
-<div class="new122">
-    <div class="widget-title" style="margin: -20px 0 0">
+<link rel="stylesheet" href="<?= base_url() ?>assets/css/obras.css">
+
+<?php $this->load->view('obras/_nav'); ?>
+
+<div class="new122" style="margin-top:0">
+    <div class="widget-title" style="margin: -6px 0 8px">
         <span class="icon"><i class="fas fa-hard-hat"></i></span>
         <h5>Obras</h5>
     </div>

@@ -61,6 +61,19 @@ $labelsTipo = [
     </div>
     <?php endif; ?>
 
+    <?php if (! empty($minhas_obras)): ?>
+    <div style="margin-top:12px">
+        <label style="font-size:13px;color:#6b7280"><i class='bx bx-building-house'></i> Vincular a uma Obra (canteiro)</label>
+        <select id="obra-vinculo" class="span12" style="width:100%">
+            <option value="">— Não, ponto normal —</option>
+            <?php foreach ($minhas_obras as $ob): ?>
+                <option value="<?= $ob->idObra ?>"><?= htmlspecialchars($ob->nome) ?> (<?= htmlspecialchars(str_replace('_', ' ', $ob->status)) ?>)</option>
+            <?php endforeach; ?>
+        </select>
+        <small style="color:#9ca3af">Registra a presença no canteiro. Alimenta o efetivo/mão de obra da obra.</small>
+    </div>
+    <?php endif; ?>
+
     <div class="ponto-tipo">
         <div class="lbl">Próxima batida</div>
         <div class="val" id="proximo-tipo-label"><?= $labelsTipo[$proximo_tipo] ?? 'Entrada' ?></div>
@@ -200,7 +213,12 @@ $this->load->view('colaborador/_nav', ['nav_ativo' => 'ponto', 'pode_bater_ponto
 
     // ---- Vínculo com OS (atendimento em campo) ----
     var selOs = document.getElementById('os-vinculo');
+    var selObra = document.getElementById('obra-vinculo');
     function osSelecionada(){ return (selOs && selOs.value) ? selOs.value : ''; }
+    function obraSelecionada(){ return (selObra && selObra.value) ? selObra.value : ''; }
+    // OS e Obra são mutuamente exclusivos: escolher um limpa o outro.
+    if (selOs) selOs.addEventListener('change', function(){ if (selOs.value && selObra) selObra.value=''; });
+    if (selObra) selObra.addEventListener('change', function(){ if (selObra.value && selOs) selOs.value=''; });
     if (selOs) selOs.addEventListener('change', function () {
         var osOn = !!this.value;
         if (selU) selU.disabled = osOn;
@@ -243,7 +261,7 @@ $this->load->view('colaborador/_nav', ['nav_ativo' => 'ponto', 'pode_bater_ponto
             alerta('Reconhecimento facial obrigatório e não confirmado. Ajuste a iluminação e tente novamente.', 'error');
             btn.disabled = false; return;
         }
-        if (CFG.geofenceObrigatorio && !osSelecionada() && geo.ok === false) {
+        if (CFG.geofenceObrigatorio && !osSelecionada() && !obraSelecionada() && geo.ok === false) {
             alerta('Você está fora da área permitida. Aproxime-se do local.', 'error');
             btn.disabled = false; return;
         }
@@ -258,7 +276,9 @@ $this->load->view('colaborador/_nav', ['nav_ativo' => 'ponto', 'pode_bater_ponto
         if (geo.lat !== null) { fd.append('latitude', geo.lat); fd.append('longitude', geo.lng); }
         if (faceScore !== null) fd.append('face_score', faceScore.toFixed(4));
         var osId = osSelecionada();
+        var obraId = obraSelecionada();
         if (osId) { fd.append('os_id', osId); }
+        else if (obraId) { fd.append('obra_id', obraId); }
         else if (sel) { fd.append('unidade_id', sel.value); }
 
         try {
