@@ -310,7 +310,12 @@ class Ponto extends MY_Controller
                     (float) $latitude, (float) $longitude,
                     (float) $osVinculada->latitude, (float) $osVinculada->longitude
                 ));
-                $dentro = $distancia <= 200 ? 1 : 0; // referência de 200m do local da OS
+                // Mesmo raio configurado para o geofence de atendimento.
+                $raioOs = (int) ($this->data['configuration']['os_geofence_raio_metros'] ?? 200);
+                if ($raioOs <= 0) {
+                    $raioOs = 200;
+                }
+                $dentro = $distancia <= $raioOs ? 1 : 0;
             } else {
                 // "Aprende" o local da OS a partir da primeira batida com GPS.
                 $this->aprenderLocalOs($osVinculada->idOs, $latitude, $longitude);

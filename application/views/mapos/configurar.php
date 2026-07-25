@@ -435,6 +435,23 @@
                                     <span class="help-inline">Ativar ou desativar impressão de OS em 2 vias.</span>
                                 </div>
                             </div>
+                            <div class="span8" style="margin-left: 3em; margin-top: 1em;">
+                                <label for="os_geofence_modo" class="control-label"><i class="bx bx-map-pin"></i> Geofence do Atendimento (fechar OS no local)</label>
+                                <div class="controls">
+                                    <?php $geoModo = $configuration['os_geofence_modo'] ?? 'off'; ?>
+                                    <select name="os_geofence_modo" id="os_geofence_modo">
+                                        <option value="off" <?= $geoModo == 'off' ? 'selected' : ''; ?>>Desativado — não valida localização</option>
+                                        <option value="soft" <?= $geoModo == 'soft' ? 'selected' : ''; ?>>Aviso (soft) — deixa fechar, mas marca "fora da área"</option>
+                                        <option value="hard" <?= $geoModo == 'hard' ? 'selected' : ''; ?>>Bloqueio (hard) — só fecha dentro da área</option>
+                                    </select>
+                                    <span class="help-inline">No fechamento do atendimento (check-out), compara o GPS com o local da OS. Comece em "Aviso" e troque para "Bloqueio" depois da adaptação.</span>
+                                    <div style="margin-top: .8em;">
+                                        <label for="os_geofence_raio_metros" class="control-label">Raio da área (metros)</label>
+                                        <input type="number" min="20" max="5000" step="10" name="os_geofence_raio_metros" id="os_geofence_raio_metros" value="<?= (int) ($configuration['os_geofence_raio_metros'] ?? 200) ?>">
+                                        <span class="help-inline">Distância máxima do local da OS considerada "dentro da área".</span>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="span8">
                                 <span6 class="span10" style="margin-left: 2em;"> Defina a vizualização padrão, onde o que ficar checado será exibida na listagem de OS por padrão. </span6>
                                 <div class="span10" style="margin-left: 3em;">

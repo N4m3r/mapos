@@ -17,6 +17,116 @@ class Checkin extends MY_Controller
         $this->load->helper('date');
     }
 
+    // ------------------------------------------------------------------
+    // Geofence do atendimento (amarra o check-in/out ao local da OS)
+    // ------------------------------------------------------------------
+
+    /** Config global do geofence de atendimento: [modo, raio_metros]. */
+    private function geoConfigOs()
+    {
+        $modo = $this->data['configuration']['os_geofence_modo'] ?? 'off';
+        if (! in_array($modo, ['off', 'soft', 'hard'], true)) {
+            $modo = 'off';
+        }
+        $raio = (int) ($this->data['configuration']['os_geofence_raio_metros'] ?? 200);
+        if ($raio <= 0) {
+            $raio = 200;
+        }
+
+        return [$modo, $raio];
+    }
+
+    /** Coordenadas cadastradas da OS (consulta direta, sem ambiguidade de JOIN). */
+    private function getOsCoords($os_id)
+    {
+        if (! $this->db->field_exists('latitude', 'os') || ! $this->db->field_exists('longitude', 'os')) {
+            return null;
+        }
+        $row = $this->db->select('latitude, longitude')->get_where('os', ['idOs' => (int) $os_id])->row();
+        if (! $row) {
+            return null;
+        }
+        $temCoords = ($row->latitude !== null && $row->latitude !== '' && $row->longitude !== null && $row->longitude !== '');
+
+        return $temCoords ? $row : null;
+    }
+
+    /** Distância (metros) entre duas coordenadas — fórmula de Haversine. */
+    private function geoDistanciaMetros($lat1, $lon1, $lat2, $lon2)
+    {
+        $raioTerra = 6371000; // metros
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+        $a = sin($dLat / 2) ** 2
+            + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLon / 2) ** 2;
+
+        return $raioTerra * 2 * atan2(sqrt($a), sqrt(1 - $a));
+    }
+
+    /**
+     * Geofence na CHEGADA (check-in): fixa o local da OS na 1ª batida com GPS
+     * e devolve as colunas de distância/dentro para gravar no check-in. Nunca
+     * bloqueia — a chegada é o início do atendimento.
+     */
+    private function avaliarGeofenceEntrada($os_id, $lat, $lng)
+    {
+        // Sem a coluna (migration não aplicada) não grava nada.
+        if (! $this->db->field_exists('dentro_geofence_entrada', 'os_checkin')) {
+            return [];
+        }
+        $out = ['distancia_entrada_metros' => null, 'dentro_geofence_entrada' => null];
+        if (! $lat || ! $lng) {
+            return $out;
+        }
+
+        $coords = $this->getOsCoords($os_id);
+        if (! $coords) {
+            // "Aprende" o local da OS a partir da 1ª chegada com GPS.
+            if ($this->db->field_exists('latitude', 'os') && $this->db->field_exists('longitude', 'os')) {
+                $this->os_model->edit('os', ['latitude' => $lat, 'longitude' => $lng], 'idOs', $os_id);
+            }
+            $out['distancia_entrada_metros'] = 0;
+            $out['dentro_geofence_entrada'] = 1;
+
+            return $out;
+        }
+
+        [, $raio] = $this->geoConfigOs();
+        $dist = (int) round($this->geoDistanciaMetros((float) $lat, (float) $lng, (float) $coords->latitude, (float) $coords->longitude));
+        $out['distancia_entrada_metros'] = $dist;
+        $out['dentro_geofence_entrada'] = $dist <= $raio ? 1 : 0;
+
+        return $out;
+    }
+
+    /**
+     * Geofence na SAÍDA (check-out): avalia se o técnico está dentro da área
+     * do atendimento. Devolve o modo + distância/dentro para decidir bloqueio
+     * (hard) e para gravar no check-in.
+     */
+    private function avaliarGeofenceSaida($os_id, $lat, $lng)
+    {
+        [$modo, $raio] = $this->geoConfigOs();
+        $temGps = ($lat && $lng);
+        $coords = $this->getOsCoords($os_id);
+
+        $dist = null;
+        $dentro = null;
+        if ($temGps && $coords) {
+            $dist = (int) round($this->geoDistanciaMetros((float) $lat, (float) $lng, (float) $coords->latitude, (float) $coords->longitude));
+            $dentro = $dist <= $raio ? 1 : 0;
+        }
+
+        return [
+            'modo' => $modo,
+            'raio' => $raio,
+            'temGps' => $temGps,
+            'temCoords' => $coords ? true : false,
+            'distancia' => $dist,
+            'dentro' => $dentro,
+        ];
+    }
+
     /**
      * Obtém status do check-in de uma OS (JSON)
      */
@@ -155,6 +265,9 @@ class Checkin extends MY_Controller
             }
         }
 
+        // Geofence: fixa o local da OS na chegada e mede a distância (não bloqueia).
+        $geoEntrada = $this->avaliarGeofenceEntrada($os_id, $latitude, $longitude);
+
         // Dados do check-in
         $data_checkin = [
             'os_id' => $os_id,
@@ -165,6 +278,8 @@ class Checkin extends MY_Controller
             'observacao_entrada' => $observacao,
             'status' => 'Em Andamento'
         ];
+        // Só grava as colunas de geofence se a migration já rodou.
+        $data_checkin = array_merge($data_checkin, $geoEntrada);
         log_info('Checkin iniciar - Dados checkin: ' . print_r($data_checkin, true));
 
         // Insere check-in
@@ -289,6 +404,19 @@ class Checkin extends MY_Controller
             }
         }
 
+        // Geofence do fechamento: em "hard" só fecha dentro da área do atendimento.
+        $geoSaida = $this->avaliarGeofenceSaida($os_id, $latitude, $longitude);
+        if ($geoSaida['modo'] === 'hard') {
+            if (! $geoSaida['temGps']) {
+                echo json_encode(['success' => false, 'message' => 'Localização obrigatória para fechar a OS. Ative o GPS e permita o acesso à localização.']);
+                return;
+            }
+            if ($geoSaida['temCoords'] && $geoSaida['dentro'] === 0) {
+                echo json_encode(['success' => false, 'message' => 'Você está fora da área do atendimento (' . $geoSaida['distancia'] . 'm). Aproxime-se do local para fechar a OS.']);
+                return;
+            }
+        }
+
         // Dados do check-out
         $data_checkout = [
             'data_saida' => date('Y-m-d H:i:s'),
@@ -298,6 +426,11 @@ class Checkin extends MY_Controller
             'status' => 'Finalizado',
             'data_atualizacao' => date('Y-m-d H:i:s')
         ];
+        // Registra a distância/dentro da saída (modo soft: prova para o gestor).
+        if ($this->db->field_exists('dentro_geofence_saida', 'os_checkin')) {
+            $data_checkout['distancia_saida_metros'] = $geoSaida['distancia'];
+            $data_checkout['dentro_geofence_saida'] = $geoSaida['dentro'];
+        }
 
         // Atualiza check-in
         $resultado = $this->checkin_model->finalizarAtendimento($checkin->idCheckin, $data_checkout);

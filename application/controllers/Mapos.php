@@ -671,6 +671,10 @@ class Mapos extends MY_Controller {
                 'pix_key' => $this->input->post('pix_key'),
                 'os_status_list' => json_encode($this->input->post('os_status_list')),
                 'control_2vias' => $this->input->post('control_2vias'),
+                // Geofence do atendimento em campo (fechamento da OS).
+                'os_geofence_modo' => in_array($this->input->post('os_geofence_modo'), ['off', 'soft', 'hard'], true)
+                    ? $this->input->post('os_geofence_modo') : 'off',
+                'os_geofence_raio_metros' => (int) $this->input->post('os_geofence_raio_metros') ?: 200,
             ];
             if ($this->mapos_model->saveConfiguracao($data) == true) {
                 $this->session->set_flashdata('success', 'Configurações do sistema atualizadas com sucesso!');

@@ -381,7 +381,8 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                         $fotosAtendimento = isset($fotosAtendimento) ? $fotosAtendimento : array();
 
                         $respostasFormularios = isset($respostasFormularios) && is_array($respostasFormularios) ? $respostasFormularios : [];
-                        if (!empty($checkins) || !empty($assinaturas) || !empty($fotosAtendimento) || !empty($respostasFormularios)) {
+                        $batidasPonto = isset($batidasPonto) ? $batidasPonto : array();
+                        if (!empty($checkins) || !empty($assinaturas) || !empty($fotosAtendimento) || !empty($respostasFormularios) || !empty($batidasPonto)) {
                         ?>
                         <div class="widget-box" style="margin-top: 20px;">
                             <div class="widget-title">
@@ -405,6 +406,12 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                                             <i class="bx bx-map"></i>
                                                         </a>
                                                     <?php } ?>
+                                                    <?php if (isset($checkin->dentro_geofence_entrada) && $checkin->dentro_geofence_entrada !== null) {
+                                                        $distEnt = isset($checkin->distancia_entrada_metros) && $checkin->distancia_entrada_metros !== null ? ' (' . (int) $checkin->distancia_entrada_metros . 'm)' : '';
+                                                        echo $checkin->dentro_geofence_entrada
+                                                            ? '<span class="label label-success" title="Dentro da área do atendimento"><i class="bx bx-check"></i> na área' . $distEnt . '</span>'
+                                                            : '<span class="label label-important" title="Fora da área do atendimento"><i class="bx bx-error"></i> fora da área' . $distEnt . '</span>';
+                                                    } ?>
                                                 </p>
 
                                                 <?php if ($checkin->data_saida) { ?>
@@ -414,6 +421,12 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                                             <i class="bx bx-map"></i>
                                                         </a>
                                                     <?php } ?>
+                                                    <?php if (isset($checkin->dentro_geofence_saida) && $checkin->dentro_geofence_saida !== null) {
+                                                        $distSai = isset($checkin->distancia_saida_metros) && $checkin->distancia_saida_metros !== null ? ' (' . (int) $checkin->distancia_saida_metros . 'm)' : '';
+                                                        echo $checkin->dentro_geofence_saida
+                                                            ? '<span class="label label-success" title="Fechou dentro da área do atendimento"><i class="bx bx-check"></i> na área' . $distSai . '</span>'
+                                                            : '<span class="label label-important" title="Fechou fora da área do atendimento"><i class="bx bx-error"></i> fora da área' . $distSai . '</span>';
+                                                    } ?>
                                                 </p>
                                                 <p><strong>Tempo Total:</strong>
                                                     <?php
@@ -439,6 +452,51 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                         </div>
                                         <?php } ?>
                                     </div>
+                                </div>
+                                <?php } ?>
+
+                                <!-- Batidas de Ponto vinculadas (presença em campo) -->
+                                <?php if (!empty($batidasPonto)) {
+                                    $labelsPonto = [
+                                        'entrada' => 'Entrada', 'saida' => 'Saída',
+                                        'inicio_intervalo' => 'Início do intervalo', 'fim_intervalo' => 'Fim do intervalo',
+                                    ];
+                                ?>
+                                <div class="checkin-timeline" style="margin-bottom: 20px;">
+                                    <h6><i class="bx bx-fingerprint"></i> Batidas de Ponto neste Atendimento</h6>
+                                    <table class="table table-striped" style="margin-bottom: 0;">
+                                        <thead>
+                                            <tr>
+                                                <th>Colaborador</th>
+                                                <th>Tipo</th>
+                                                <th>Data/Hora</th>
+                                                <th>Local</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($batidasPonto as $bp) { ?>
+                                            <tr>
+                                                <td><?php echo htmlspecialchars($bp->nome_colaborador ?: '—'); ?></td>
+                                                <td><?php echo isset($labelsPonto[$bp->tipo]) ? $labelsPonto[$bp->tipo] : $bp->tipo; ?></td>
+                                                <td><?php echo date('d/m/Y H:i', strtotime($bp->data_hora)); ?></td>
+                                                <td>
+                                                    <?php if (!empty($bp->latitude) && !empty($bp->longitude)) { ?>
+                                                        <a href="https://www.google.com/maps?q=<?php echo $bp->latitude; ?>,<?php echo $bp->longitude; ?>" target="_blank" class="btn btn-mini" title="Ver no mapa">
+                                                            <i class="bx bx-map"></i>
+                                                        </a>
+                                                    <?php } ?>
+                                                    <?php if (isset($bp->dentro_geofence) && $bp->dentro_geofence !== null) {
+                                                        $distBp = isset($bp->distancia_metros) && $bp->distancia_metros !== null ? ' (' . (int) $bp->distancia_metros . 'm)' : '';
+                                                        echo $bp->dentro_geofence
+                                                            ? '<span class="label label-success" title="Dentro da área"><i class="bx bx-check"></i> na área' . $distBp . '</span>'
+                                                            : '<span class="label label-important" title="Fora da área"><i class="bx bx-error"></i> fora' . $distBp . '</span>';
+                                                    } ?>
+                                                </td>
+                                            </tr>
+                                            <?php } ?>
+                                        </tbody>
+                                    </table>
+                                    <small style="color:#888;">Batidas de ponto que o colaborador vinculou a esta OS ao registrar presença em campo.</small>
                                 </div>
                                 <?php } ?>
 

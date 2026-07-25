@@ -426,6 +426,10 @@ class Os extends MY_Controller
         $os_id = $this->uri->segment(3);
         $this->data['checkins'] = $this->checkin_model->getAllByOs($os_id);
         $this->data['checkinAtivo'] = $this->checkin_model->getCheckinAtivo($os_id);
+
+        // Batidas de ponto (RH) vinculadas a esta OS — presença em campo.
+        $this->load->model('rh_ponto_model');
+        $this->data['batidasPonto'] = $this->rh_ponto_model->getByOs($os_id);
         $this->data['assinaturas'] = $this->assinaturas_model->getByOs($os_id);
         log_info('OS Visualizar - Assinaturas carregadas: ' . count($this->data['assinaturas']));
         $this->data['fotosAtendimento'] = $this->fotosatendimento_model->getByOs($os_id);
