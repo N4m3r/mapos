@@ -160,6 +160,30 @@ class Obra_material_model extends CI_Model
         return $recId;
     }
 
+    /**
+     * Resumo do material comprado pela empresa (origem 'compra'): valor total
+     * e nº de recebimentos. Alimenta o card "Compras da empresa" da aba Material.
+     */
+    public function getResumoCompras($obra_id)
+    {
+        $out = ['total' => 0, 'recebimentos' => 0];
+        if (! $this->db->table_exists('obra_material_recebimento')
+            || ! $this->db->table_exists('obra_material_recebimento_item')) {
+            return $out;
+        }
+        $r = $this->db->select('SUM(i.quantidade_conferida * i.valor_unitario) total, COUNT(DISTINCT r.idRecebimento) recs', false)
+            ->from('obra_material_recebimento_item i')
+            ->join('obra_material_recebimento r', 'r.idRecebimento = i.recebimento_id')
+            ->where('r.obra_id', (int) $obra_id)
+            ->where('r.origem', 'compra')
+            ->get()->row();
+        if ($r) {
+            $out['total'] = (float) $r->total;
+            $out['recebimentos'] = (int) $r->recs;
+        }
+        return $out;
+    }
+
     public function getRecebimentos($obra_id)
     {
         if (! $this->db->table_exists('obra_material_recebimento')) {

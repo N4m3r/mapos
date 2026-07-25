@@ -17,7 +17,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
         <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;align-items:center">
             <div>
                 <h4 style="margin:0"><?= html_escape($obra->nome) ?> <?= $obra->codigo ? '<small>#' . html_escape($obra->codigo) . '</small>' : '' ?></h4>
-                <div><i class='bx bx-user'></i> <?= html_escape($obra->nomeCliente ?: '—') ?> &nbsp; <i class='bx bx-hard-hat'></i> <?= html_escape($obra->responsavel ?: '—') ?></div>
+                <div><i class='bx bx-user'></i> <?= html_escape($obra->nomeCliente ?: '—') ?> &nbsp; <i class='bx bx-wrench'></i> <?= html_escape($obra->responsavel ?: '—') ?></div>
                 <div><i class='bx bx-map'></i> <?= html_escape(trim($obra->logradouro . ', ' . $obra->numero . ' - ' . $obra->cidade . '/' . $obra->uf, ' ,-/')) ?: '—' ?></div>
                 <span class="label"><?= $statusLabels[$obra->status] ?? $obra->status ?></span>
             </div>
@@ -105,6 +105,15 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
             <?php if ($perm('rObraMaterial')): ?><a href="<?= site_url('obramaterial/receber/' . $obra->idObra) ?>" class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-down-arrow-circle'></i></span><span class="button__text2">Receber (do cliente)</span></a><?php endif; ?>
             <?php if ($perm('sObraMaterial')): ?><a href="<?= site_url('obramaterial/entregar/' . $obra->idObra) ?>" class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-up-arrow-circle'></i></span><span class="button__text2">Entregar (à equipe)</span></a><?php endif; ?>
         </div>
+        <div class="widget-box"><div class="widget-title"><h5><i class='bx bx-cart-alt'></i> Compras da empresa</h5></div><div class="widget-content">
+            <div class="obra-compras">
+                <div class="k-icon" style="background:#e7f5ec;color:#2e7d32;width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px"><i class='bx bx-cart-alt'></i></div>
+                <div>
+                    <div class="c-total">R$ <?= $fmt($compras['total']) ?></div>
+                    <div class="c-lbl">Material comprado pela empresa — <?= (int) $compras['recebimentos'] ?> recebimento(s) por compra própria. Entra no custo realizado do projeto.</div>
+                </div>
+            </div>
+        </div></div>
         <div class="widget-box"><div class="widget-title"><h5>Almoxarifado — saldo atual</h5></div><div class="widget-content nopadding">
             <table class="table table-bordered">
                 <thead><tr><th>Item</th><th>Cód. barras</th><th>Un.</th><th>Origem</th><th>Saldo</th></tr></thead>

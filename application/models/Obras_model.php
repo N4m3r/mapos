@@ -330,6 +330,42 @@ class Obras_model extends CI_Model
         }
     }
 
+    /**
+     * Mantém uma linha única de custo "Material (compras da empresa)" com o
+     * total realizado a partir dos recebimentos cuja origem é 'compra'
+     * (material comprado pela empresa). Idempotente.
+     */
+    public function recalcularCustoMaterialCompra($obra_id)
+    {
+        if (! $this->db->table_exists('obra_custo')
+            || ! $this->db->table_exists('obra_material_recebimento')
+            || ! $this->db->table_exists('obra_material_recebimento_item')) {
+            return;
+        }
+        $obra_id = (int) $obra_id;
+        $r = $this->db->select('SUM(i.quantidade_conferida * i.valor_unitario) t', false)
+            ->from('obra_material_recebimento_item i')
+            ->join('obra_material_recebimento r', 'r.idRecebimento = i.recebimento_id')
+            ->where('r.obra_id', $obra_id)
+            ->where('r.origem', 'compra')
+            ->get()->row();
+        $total = $r ? (float) $r->t : 0;
+
+        $desc = 'Material (compras da empresa)';
+        $ex = $this->db->where('obra_id', $obra_id)->where('categoria', 'material')
+            ->where('descricao', $desc)->get('obra_custo')->row();
+        if ($ex) {
+            $this->db->where('idCusto', $ex->idCusto)->update('obra_custo', [
+                'valor_realizado' => $total, 'data' => date('Y-m-d'),
+            ]);
+        } else {
+            $this->db->insert('obra_custo', [
+                'obra_id' => $obra_id, 'categoria' => 'material', 'descricao' => $desc,
+                'valor_previsto' => 0, 'valor_realizado' => $total, 'data' => date('Y-m-d'),
+            ]);
+        }
+    }
+
     /* ========================= Apontamento (efetivo) ========================= */
 
     public function getApontamentos($obra_id, $limite = 200)

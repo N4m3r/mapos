@@ -10,17 +10,17 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
 
 <div class="new122" style="margin-top:0">
     <div class="widget-title" style="margin:-6px 0 8px">
-        <span class="icon"><i class="fas fa-hard-hat"></i></span>
-        <h5>Painel de Obras</h5>
+        <span class="icon"><i class="fas fa-network-wired"></i></span>
+        <h5>Painel de Projetos</h5>
     </div>
     <?php if ($perm('cObras')): ?>
         <a href="<?= site_url('obras/adicionar') ?>" class="button btn btn-mini btn-success" style="max-width:160px">
-            <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova Obra</span></a>
+            <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Novo Projeto</span></a>
     <?php endif; ?>
 
     <!-- KPIs -->
     <div class="obra-kpis">
-        <div class="obra-kpi"><div class="k-icon" style="background:#eef2ff;color:#4f46e5"><i class='bx bx-building-house'></i></div><div><div class="k-num"><?= (int) $kpis['total'] ?></div><div class="k-lbl">Obras cadastradas</div></div></div>
+        <div class="obra-kpi"><div class="k-icon" style="background:#eef2ff;color:#4f46e5"><i class='bx bx-building-house'></i></div><div><div class="k-num"><?= (int) $kpis['total'] ?></div><div class="k-lbl">Projetos cadastrados</div></div></div>
         <div class="obra-kpi"><div class="k-icon" style="background:#e7f5ec;color:#2e7d32"><i class='bx bx-loader-circle'></i></div><div><div class="k-num"><?= (int) $kpis['em_execucao'] ?></div><div class="k-lbl">Em execução</div></div></div>
         <div class="obra-kpi"><div class="k-icon" style="background:#fff4e5;color:#b26a00"><i class='bx bx-pause-circle'></i></div><div><div class="k-num"><?= (int) $kpis['paralisadas'] ?></div><div class="k-lbl">Paralisadas</div></div></div>
         <div class="obra-kpi"><div class="k-icon" style="background:#e6f7fb;color:#0277bd"><i class='bx bx-check-circle'></i></div><div><div class="k-num"><?= (int) $kpis['concluidas'] ?></div><div class="k-lbl">Concluídas</div></div></div>
@@ -33,12 +33,12 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
     <div class="row-fluid">
         <!-- Obras em execução -->
         <div class="span7" style="margin-left:0">
-            <div class="widget-box"><div class="widget-title"><h5><i class='bx bx-loader-circle'></i> Obras em execução</h5></div>
+            <div class="widget-box"><div class="widget-title"><h5><i class='bx bx-loader-circle'></i> Projetos em execução</h5></div>
                 <div class="widget-content nopadding">
                     <table class="table table-bordered">
-                        <thead><tr><th>Obra</th><th>Cliente</th><th>Progresso</th><th></th></tr></thead>
+                        <thead><tr><th>Projeto</th><th>Cliente</th><th>Progresso</th><th></th></tr></thead>
                         <tbody>
-                            <?php if (! $obras_execucao) echo '<tr><td colspan="4">Nenhuma obra em execução.</td></tr>'; ?>
+                            <?php if (! $obras_execucao) echo '<tr><td colspan="4">Nenhum projeto em execução.</td></tr>'; ?>
                             <?php foreach ($obras_execucao as $o): ?>
                                 <tr>
                                     <td><?= html_escape($o->nome) ?></td>
@@ -61,7 +61,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
             <div class="widget-box"><div class="widget-title"><h5><i class='bx bx-receipt'></i> Medições aguardando aprovação</h5></div>
                 <div class="widget-content nopadding">
                     <table class="table table-bordered">
-                        <thead><tr><th>Obra</th><th>Nº</th><th>Valor</th><th></th></tr></thead>
+                        <thead><tr><th>Projeto</th><th>Nº</th><th>Valor</th><th></th></tr></thead>
                         <tbody>
                             <?php if (! $medicoes_abertas) echo '<tr><td colspan="4">Nenhuma medição pendente.</td></tr>'; ?>
                             <?php foreach ($medicoes_abertas as $m): ?>
@@ -83,7 +83,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
     <div class="widget-box"><div class="widget-title"><h5><i class='bx bx-notepad'></i> Diários de Obra recentes</h5></div>
         <div class="widget-content nopadding">
             <table class="table table-bordered">
-                <thead><tr><th>Data</th><th>Obra</th><th>Nº</th><th>Condição</th><th>Efetivo</th><th>Responsável</th></tr></thead>
+                <thead><tr><th>Data</th><th>Projeto</th><th>Nº</th><th>Condição</th><th>Efetivo</th><th>Responsável</th></tr></thead>
                 <tbody>
                     <?php if (! $rdos_recentes) echo '<tr><td colspan="6">Nenhum RDO registrado.</td></tr>'; ?>
                     <?php foreach ($rdos_recentes as $r): ?>

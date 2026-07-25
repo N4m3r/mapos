@@ -20,6 +20,9 @@
                     </div>
                     <div class="span5"><label>Fornecedor / quem entregou</label><input type="text" class="span12" name="fornecedor_nome"></div>
                     <div class="span4"><label>Documento (NF/romaneio)</label><input type="text" class="span12" name="documento"></div>
+                    <div class="span12" style="margin-left:0">
+                        <span class="scanner-status"><i class='bx bx-info-circle'></i> Em <strong>Compra própria</strong>, informe o <strong>valor unitário</strong> — o material comprado pela empresa entra no custo realizado do projeto.</span>
+                    </div>
                 </div>
 
                 <!-- Scanner -->
@@ -39,7 +42,7 @@
                 <!-- Itens -->
                 <div class="span12" style="margin-left:0">
                     <table class="table table-bordered itens-material">
-                        <thead><tr><th>Descrição</th><th>Cód. barras</th><th>Un.</th><th>Qtd. recebida</th><th></th></tr></thead>
+                        <thead><tr><th>Descrição</th><th>Cód. barras</th><th>Un.</th><th>Qtd. recebida</th><th>Valor unit. (R$)</th><th></th></tr></thead>
                         <tbody id="itens-tbody"></tbody>
                     </table>
                 </div>

@@ -4,7 +4,7 @@ $permE = $this->permission->checkPermission($this->session->userdata('permissao'
 ?>
 <ul class="nav nav-tabs obra-tabs obra-mainnav">
     <li class="<?= $ativo === 'painel' ? 'active' : '' ?>"><a href="<?= site_url('obras/painel') ?>"><i class='bx bx-grid-alt'></i> Painel</a></li>
-    <li class="<?= $ativo === 'obras' ? 'active' : '' ?>"><a href="<?= site_url('obras/gerenciar') ?>"><i class='bx bx-building-house'></i> Obras</a></li>
+    <li class="<?= $ativo === 'obras' ? 'active' : '' ?>"><a href="<?= site_url('obras/gerenciar') ?>"><i class='bx bx-network-chart'></i> Projetos</a></li>
     <?php if ($permE): ?>
         <li class="<?= $ativo === 'equipes' ? 'active' : '' ?>"><a href="<?= site_url('obraequipe') ?>"><i class='bx bx-group'></i> Equipes</a></li>
     <?php endif; ?>

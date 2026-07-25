@@ -4,7 +4,7 @@
 <?php $this->load->view('obras/_nav'); ?>
 
 <div class="new122" style="margin-top:0">
-    <div class="widget-title" style="margin:-6px 0 8px"><span class="icon"><i class="fas fa-users"></i></span><h5>Equipes de Obra</h5></div>
+    <div class="widget-title" style="margin:-6px 0 8px"><span class="icon"><i class="fas fa-users"></i></span><h5>Equipes de Projeto</h5></div>
     <?php if ($perm('cObraEquipe')): ?>
         <a href="#modal-equipe" data-toggle="modal" class="button btn btn-mini btn-success" style="max-width:160px" onclick="novaEquipe()"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova Equipe</span></a>
     <?php endif; ?>

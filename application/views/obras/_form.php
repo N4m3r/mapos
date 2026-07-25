@@ -15,8 +15,8 @@ $statusAtual = $o ? $o->status : 'planejamento';
     <div class="span12">
         <div class="widget-box">
             <div class="widget-title">
-                <span class="icon"><i class="fas fa-hard-hat"></i></span>
-                <h5><?= $o ? 'Editar Obra' : 'Nova Obra' ?></h5>
+                <span class="icon"><i class="fas fa-network-wired"></i></span>
+                <h5><?= $o ? 'Editar Projeto' : 'Novo Projeto' ?></h5>
             </div>
             <div class="widget-content">
                 <form action="<?= current_url() ?>" method="post" id="formObra">
@@ -26,12 +26,20 @@ $statusAtual = $o ? $o->status : 'planejamento';
                             <input type="text" class="span12" name="codigo" value="<?= $val('codigo') ?>">
                         </div>
                         <div class="span6">
-                            <label>Nome da obra <span class="required">*</span></label>
+                            <label>Nome do projeto <span class="required">*</span></label>
                             <input type="text" class="span12" name="nome" required value="<?= $val('nome') ?>">
                         </div>
                         <div class="span3">
                             <label>Tipo</label>
-                            <input type="text" class="span12" name="tipo_obra" placeholder="Residencial, reforma..." value="<?= $val('tipo_obra') ?>">
+                            <input type="text" class="span12" name="tipo_obra" list="tipos_projeto" placeholder="Rede estruturada, CFTV IP..." value="<?= $val('tipo_obra') ?>">
+                            <datalist id="tipos_projeto">
+                                <option value="Rede estruturada">
+                                <option value="CFTV IP">
+                                <option value="Rede estruturada + CFTV IP">
+                                <option value="Cabeamento óptico / fibra">
+                                <option value="Controle de acesso">
+                                <option value="Manutenção">
+                            </datalist>
                         </div>
 
                         <div class="span5">
@@ -76,7 +84,7 @@ $statusAtual = $o ? $o->status : 'planejamento';
                     </div>
 
                     <div class="span12">
-                        <h5 style="margin-top:10px">Endereço da obra</h5>
+                        <h5 style="margin-top:10px">Endereço do projeto</h5>
                         <div class="span2"><label>CEP</label><input type="text" class="span12" name="cep" value="<?= $val('cep') ?>"></div>
                         <div class="span6"><label>Logradouro</label><input type="text" class="span12" name="logradouro" value="<?= $val('logradouro') ?>"></div>
                         <div class="span2"><label>Número</label><input type="text" class="span12" name="numero" value="<?= $val('numero') ?>"></div>

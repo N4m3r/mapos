@@ -581,7 +581,7 @@ if (! is_array($permissoes)) {
                         <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGObras" data-toggle="collapse">
                                 <span><i class='bx bx-building-house icon-cli' ></i></span>
-                                <h5 style="padding-left: 28px">Obras</h5>
+                                <h5 style="padding-left: 28px">Projetos</h5>
                                 <span><i class='bx bx-chevron-right icon-clic'></i></span>
                             </a>
                         </div>
@@ -590,10 +590,10 @@ if (! is_array($permissoes)) {
                         <div class="widget-content">
                         <table class="table table-bordered">
                             <tr>
-                                <td><label><input <?php if (! empty($permissoes['vObras']) && $permissoes['vObras'] == '1') echo 'checked'; ?> name="vObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Visualizar Obras</strong></span></label></td>
-                                <td><label><input <?php if (! empty($permissoes['cObras']) && $permissoes['cObras'] == '1') echo 'checked'; ?> name="cObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Cadastrar Obra</span></label></td>
-                                <td><label><input <?php if (! empty($permissoes['eObras']) && $permissoes['eObras'] == '1') echo 'checked'; ?> name="eObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Editar Obra</span></label></td>
-                                <td><label><input <?php if (! empty($permissoes['dObras']) && $permissoes['dObras'] == '1') echo 'checked'; ?> name="dObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Excluir Obra</span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['vObras']) && $permissoes['vObras'] == '1') echo 'checked'; ?> name="vObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Visualizar Projetos</strong></span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['cObras']) && $permissoes['cObras'] == '1') echo 'checked'; ?> name="cObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Cadastrar Projeto</span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['eObras']) && $permissoes['eObras'] == '1') echo 'checked'; ?> name="eObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Editar Projeto</span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['dObras']) && $permissoes['dObras'] == '1') echo 'checked'; ?> name="dObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Excluir Projeto</span></label></td>
                             </tr>
                             <tr>
                                 <td><label><input <?php if (! empty($permissoes['vObraCronograma']) && $permissoes['vObraCronograma'] == '1') echo 'checked'; ?> name="vObraCronograma" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Ver cronograma</span></label></td>
@@ -608,7 +608,7 @@ if (! is_array($permissoes)) {
                                 <td><label><input <?php if (! empty($permissoes['vObraCusto']) && $permissoes['vObraCusto'] == '1') echo 'checked'; ?> name="vObraCusto" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Ver custos</span></label></td>
                             </tr>
                             <tr>
-                                <td><label><input <?php if (! empty($permissoes['vObraMaterial']) && $permissoes['vObraMaterial'] == '1') echo 'checked'; ?> name="vObraMaterial" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Almoxarifado da obra</strong></span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['vObraMaterial']) && $permissoes['vObraMaterial'] == '1') echo 'checked'; ?> name="vObraMaterial" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Almoxarifado do projeto</strong></span></label></td>
                                 <td><label><input <?php if (! empty($permissoes['rObraMaterial']) && $permissoes['rObraMaterial'] == '1') echo 'checked'; ?> name="rObraMaterial" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Receber material (entrada)</span></label></td>
                                 <td><label><input <?php if (! empty($permissoes['sObraMaterial']) && $permissoes['sObraMaterial'] == '1') echo 'checked'; ?> name="sObraMaterial" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Entregar material (saída)</span></label></td>
                                 <td><label><input <?php if (! empty($permissoes['cObraMaterial']) && $permissoes['cObraMaterial'] == '1') echo 'checked'; ?> name="cObraMaterial" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Gerenciar material</span></label></td>

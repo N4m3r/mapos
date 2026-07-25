@@ -47,7 +47,7 @@ $podeGerir = $perm('cObraEquipe');
                             </select>
                         </div>
                         <div class="span6"><label>ou Nome</label><input type="text" class="span12" name="nome"></div>
-                        <div class="span4" style="margin-left:0"><label>Função</label><input type="text" class="span12" name="funcao" placeholder="Pedreiro, Servente..."></div>
+                        <div class="span4" style="margin-left:0"><label>Função</label><input type="text" class="span12" name="funcao" placeholder="Técnico, Instalador..."></div>
                         <div class="span4"><label>Diária (R$)</label><input type="number" step="0.01" class="span12" name="valor_diaria" value="0"></div>
                         <div class="span4"><label>Valor/hora</label><input type="number" step="0.01" class="span12" name="valor_hora" value="0"></div>
                         <div class="span12" style="margin-left:0;margin-top:6px"><button class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-plus'></i></span><span class="button__text2">Adicionar membro</span></button></div>
@@ -59,10 +59,10 @@ $podeGerir = $perm('cObraEquipe');
 
     <!-- Alocações -->
     <div class="span6">
-        <div class="widget-box"><div class="widget-title"><h5><i class='bx bx-building-house'></i> Alocação em obras</h5></div>
+        <div class="widget-box"><div class="widget-title"><h5><i class='bx bx-network-chart'></i> Alocação em projetos</h5></div>
             <div class="widget-content nopadding">
                 <table class="table table-bordered">
-                    <thead><tr><th>Obra</th><th>Início</th><th>Fim</th><?php if ($podeGerir): ?><th></th><?php endif; ?></tr></thead>
+                    <thead><tr><th>Projeto</th><th>Início</th><th>Fim</th><?php if ($podeGerir): ?><th></th><?php endif; ?></tr></thead>
                     <tbody>
                         <?php if (! $alocacoes) echo '<tr><td colspan="4">Não alocada.</td></tr>'; ?>
                         <?php foreach ($alocacoes as $a): ?>
@@ -80,7 +80,7 @@ $podeGerir = $perm('cObraEquipe');
                 <?php if ($podeGerir): ?>
                     <form action="<?= site_url('obraequipe/alocar') ?>" method="post" style="padding:8px">
                         <input type="hidden" name="equipe_id" value="<?= $equipe->idEquipe ?>">
-                        <div class="span5" style="margin-left:0"><label>Obra</label>
+                        <div class="span5" style="margin-left:0"><label>Projeto</label>
                             <select name="obra_id" class="span12" required>
                                 <option value="">— Selecione —</option>
                                 <?php foreach ($obras as $o): ?><option value="<?= $o->idObra ?>"><?= html_escape($o->nome) ?></option><?php endforeach; ?>

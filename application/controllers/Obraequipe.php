@@ -26,7 +26,7 @@ class Obraequipe extends MY_Controller
 
     public function index()
     {
-        $this->precisa('vObras', 'Você não tem permissão para visualizar Obras.');
+        $this->precisa('vObras', 'Você não tem permissão para visualizar Projetos.');
         $this->data['equipes'] = $this->obra_equipe_model->getEquipes();
         $this->data['obra_menu'] = 'equipes';
         $this->data['view'] = 'obras/equipes';
@@ -132,7 +132,7 @@ class Obraequipe extends MY_Controller
             $ini = $this->dataOuNull($this->input->post('data_inicio'));
             $fim = $this->dataOuNull($this->input->post('data_fim'));
             $this->obra_equipe_model->alocar($obra_id, $equipe_id, $ini, $fim);
-            $this->session->set_flashdata('success', 'Equipe alocada à obra.');
+            $this->session->set_flashdata('success', 'Equipe alocada ao projeto.');
         }
         redirect('obraequipe/membros/' . $equipe_id);
     }

@@ -30,7 +30,7 @@ class Obramaterial extends MY_Controller
     {
         $obra = $this->obras_model->getObra((int) $id);
         if (! $obra) {
-            $this->session->set_flashdata('error', 'Obra não encontrada.');
+            $this->session->set_flashdata('error', 'Projeto não encontrado.');
             redirect('obras');
         }
         return $obra;
@@ -76,7 +76,11 @@ class Obramaterial extends MY_Controller
             ];
             $fotos = $this->coletarFotos();
             $recId = $this->obra_material_model->registrarRecebimento($cab, $itens, $fotos);
-            log_info('Recebeu material na obra ' . $obra_id . ' (recebimento ' . $recId . ')');
+            // Compra própria alimenta o custo realizado do projeto.
+            if (($cab['origem'] ?? '') === 'compra') {
+                $this->obras_model->recalcularCustoMaterialCompra($obra_id);
+            }
+            log_info('Recebeu material no projeto ' . $obra_id . ' (recebimento ' . $recId . ')');
             $this->session->set_flashdata('success', 'Recebimento registrado e saldo atualizado.');
             redirect('obras/visualizar/' . $obra_id . '#material');
         }
@@ -155,6 +159,7 @@ class Obramaterial extends MY_Controller
         $qtdConf = (array) $this->input->post('quantidade_conferida');
         $qtdPrev = (array) $this->input->post('quantidade_prevista');
         $qtd = (array) $this->input->post('quantidade');
+        $valor = (array) $this->input->post('valor_unitario');
 
         $itens = [];
         foreach ($descr as $i => $d) {
@@ -172,6 +177,7 @@ class Obramaterial extends MY_Controller
             if ($campoQtd === 'conferida') {
                 $item['quantidade_conferida'] = (float) ($qtdConf[$i] ?? 0);
                 $item['quantidade_prevista'] = (float) ($qtdPrev[$i] ?? ($qtdConf[$i] ?? 0));
+                $item['valor_unitario'] = (float) ($valor[$i] ?? 0);
             } else {
                 $item['quantidade'] = (float) ($qtd[$i] ?? 0);
             }

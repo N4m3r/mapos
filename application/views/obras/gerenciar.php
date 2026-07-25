@@ -4,13 +4,13 @@
 
 <div class="new122" style="margin-top:0">
     <div class="widget-title" style="margin: -6px 0 8px">
-        <span class="icon"><i class="fas fa-hard-hat"></i></span>
-        <h5>Obras</h5>
+        <span class="icon"><i class="fas fa-network-wired"></i></span>
+        <h5>Projetos</h5>
     </div>
 
     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'cObras')) { ?>
         <a href="<?= site_url('obras/adicionar') ?>" class="button btn btn-mini btn-success" style="max-width: 160px">
-            <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova Obra</span></a>
+            <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Novo Projeto</span></a>
     <?php } ?>
 
     <form action="<?= site_url('obras/gerenciar') ?>" method="get" style="margin: 10px 0; display:flex; gap:8px; flex-wrap:wrap">
@@ -31,7 +31,7 @@
                     <tr>
                         <th>#</th>
                         <th>Código</th>
-                        <th>Obra</th>
+                        <th>Projeto</th>
                         <th>Cliente</th>
                         <th>Responsável</th>
                         <th>Status</th>
@@ -41,7 +41,7 @@
                 </thead>
                 <tbody>
                     <?php if (! $results) {
-                        echo '<tr><td colspan="8">Nenhuma obra cadastrada.</td></tr>';
+                        echo '<tr><td colspan="8">Nenhum projeto cadastrado.</td></tr>';
                     } ?>
                     <?php foreach ($results as $r): ?>
                         <tr>
@@ -77,11 +77,11 @@
     <form action="<?= site_url('obras/excluir') ?>" method="post">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h5>Excluir Obra</h5>
+            <h5>Excluir Projeto</h5>
         </div>
         <div class="modal-body">
             <input type="hidden" id="idObra" name="idObra" value="" />
-            <h5 style="text-align:center">Excluir esta obra e todos os seus dados (etapas, RDO, medições, material)?</h5>
+            <h5 style="text-align:center">Excluir este projeto e todos os seus dados (etapas, RDO, medições, material)?</h5>
         </div>
         <div class="modal-footer" style="display:flex;justify-content:center">
             <button class="button btn btn-warning" data-dismiss="modal" type="button"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>

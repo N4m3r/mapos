@@ -99,9 +99,9 @@
                     <li class="<?php if (isset($menuObras)) {
                         echo 'active';
                     }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('obras') ?>"><i class='bx bx-building-house iconX'></i>
-                            <span class="title">Obras</span>
-                            <span class="title-tooltip">Obras</span>
+                        <a class="tip-bottom" title="" href="<?= site_url('obras') ?>"><i class='bx bx-network-chart iconX'></i>
+                            <span class="title">Projetos</span>
+                            <span class="title-tooltip">Projetos</span>
                         </a>
                     </li>
                 <?php } ?>

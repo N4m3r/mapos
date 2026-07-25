@@ -1,4 +1,4 @@
-/* Módulo de Obras */
+/* Módulo de Projetos (rede estruturada / CFTV IP) */
 .obra-progress { background:#e5e7eb; border-radius:6px; height:14px; overflow:hidden; width:100%; }
 .obra-progress.mini { height:8px; }
 .obra-progress-bar { background:linear-gradient(90deg,#2e7d32,#66bb6a); height:100%; }
@@ -26,8 +26,9 @@
 /* Tabela de itens */
 .itens-material td input { margin:0; }
 .itens-material .col-qtd input { width:90px; }
+.itens-material .col-valor input { width:100px; }
 
-/* Sub-navegação da área de Obras */
+/* Sub-navegação da área de Projetos */
 .obra-mainnav { margin-bottom:12px; }
 .obra-mainnav li a i { margin-right:4px; vertical-align:middle; }
 
@@ -37,3 +38,58 @@
 .obra-kpi .k-icon { width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:22px; flex:0 0 auto; }
 .obra-kpi .k-num { font-size:20px; font-weight:700; line-height:1.1; color:#111827; }
 .obra-kpi .k-lbl { font-size:12px; color:#6b7280; }
+
+/* Resumo de compras da empresa (aba Material) */
+.obra-compras { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.obra-compras .c-total { font-size:22px; font-weight:700; color:#2e7d32; }
+.obra-compras .c-lbl { font-size:12px; color:#6b7280; }
+
+/* ==========================================================================
+   Conformidade com temas escuros — quando o fundo é escuro, a letra fica clara.
+   O <body data-theme="..."> é definido em application/views/tema/topo.php.
+   Sem estas regras, as cores fixas acima (fundo #fff, texto #111827/#6b7280…)
+   ficam ilegíveis nos temas puredark / darkviolet / darkorange.
+   ========================================================================== */
+body[data-theme="puredark"] .obra-kpi,
+body[data-theme="darkviolet"] .obra-kpi,
+body[data-theme="darkorange"] .obra-kpi { background:var(--dark-2); border-color:rgba(255,255,255,.08); }
+
+body[data-theme="puredark"] .obra-kpi .k-num,
+body[data-theme="darkviolet"] .obra-kpi .k-num,
+body[data-theme="darkorange"] .obra-kpi .k-num { color:var(--branco); }
+
+body[data-theme="puredark"] .obra-kpi .k-lbl,
+body[data-theme="darkviolet"] .obra-kpi .k-lbl,
+body[data-theme="darkorange"] .obra-kpi .k-lbl,
+body[data-theme="puredark"] .obra-compras .c-lbl,
+body[data-theme="darkviolet"] .obra-compras .c-lbl,
+body[data-theme="darkorange"] .obra-compras .c-lbl,
+body[data-theme="puredark"] .scanner-status,
+body[data-theme="darkviolet"] .scanner-status,
+body[data-theme="darkorange"] .scanner-status { color:var(--dark-cinz); }
+
+body[data-theme="puredark"] .obra-compras .c-total,
+body[data-theme="darkviolet"] .obra-compras .c-total,
+body[data-theme="darkorange"] .obra-compras .c-total { color:#66bb6a; }
+
+/* Abas: aba ativa acompanha o fundo do tema em vez do branco fixo */
+body[data-theme="puredark"] .obra-tabs,
+body[data-theme="darkviolet"] .obra-tabs,
+body[data-theme="darkorange"] .obra-tabs { border-bottom-color:rgba(255,255,255,.12); }
+
+body[data-theme="puredark"] .obra-tabs li a,
+body[data-theme="darkviolet"] .obra-tabs li a,
+body[data-theme="darkorange"] .obra-tabs li a { color:var(--branco); }
+
+body[data-theme="puredark"] .obra-tabs li.active a,
+body[data-theme="darkviolet"] .obra-tabs li.active a,
+body[data-theme="darkorange"] .obra-tabs li.active a { background:var(--dark-2); border-color:rgba(255,255,255,.12); border-bottom-color:var(--dark-2); color:#66bb6a; }
+
+/* Scanner e barra de progresso em fundo escuro */
+body[data-theme="puredark"] .scanner-box,
+body[data-theme="darkviolet"] .scanner-box,
+body[data-theme="darkorange"] .scanner-box { background:var(--dark-0); border-color:rgba(255,255,255,.12); }
+
+body[data-theme="puredark"] .obra-progress,
+body[data-theme="darkviolet"] .obra-progress,
+body[data-theme="darkorange"] .obra-progress { background:rgba(255,255,255,.12); }

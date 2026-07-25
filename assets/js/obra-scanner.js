@@ -33,15 +33,19 @@
         dados = dados || {};
         var modo = cfg.modo;
         var tr = document.createElement('tr');
+        // Só o recebimento captura valor unitário (custo do material comprado).
         var colQtd = modo === 'receber'
             ? '<td class="col-qtd"><input type="number" step="0.001" name="quantidade_conferida" value="' + (dados.qtd || 1) + '"></td>'
             : '<td class="col-qtd"><input type="number" step="0.001" name="quantidade" value="' + (dados.qtd || 1) + '"></td>';
+        var colValor = modo === 'receber'
+            ? '<td class="col-valor"><input type="number" step="0.01" name="valor_unitario" value="' + (dados.preco || 0) + '"></td>'
+            : '';
         tr.innerHTML =
             '<td><input type="hidden" name="produto_id" value="' + (dados.produto_id || '') + '">' +
             '<input type="text" name="descricao" class="span12" value="' + (dados.descricao || '') + '" placeholder="Descrição do item"></td>' +
             '<td><input type="text" name="cod_barras" value="' + (dados.cod_barras || '') + '" style="width:120px"></td>' +
             '<td><input type="text" name="unidade" value="' + (dados.unidade || '') + '" style="width:60px"></td>' +
-            colQtd +
+            colQtd + colValor +
             '<td><a href="#" class="btn-nwe4" title="Remover"><i class="bx bx-trash-alt"></i></a></td>';
         tr.querySelector('a.btn-nwe4').addEventListener('click', function (e) { e.preventDefault(); tr.remove(); });
         $('itens-tbody').appendChild(tr);
@@ -78,7 +82,7 @@
             var p = null;
             try { p = JSON.parse(xhr.responseText); } catch (e) {}
             if (p && !p.erro) {
-                novaLinha({ produto_id: p.id, descricao: p.descricao, cod_barras: p.cod_barras, unidade: p.unidade || '' });
+                novaLinha({ produto_id: p.id, descricao: p.descricao, cod_barras: p.cod_barras, unidade: p.unidade || '', preco: p.preco || 0 });
                 status('Adicionado: ' + p.descricao);
             } else {
                 // item avulso: sem cadastro, só com o código

@@ -76,7 +76,7 @@
   </script>
 </head>
 
-<body>
+<body data-theme="<?= html_escape($configuration['app_theme'] ?: 'white') ?>">
   <!--top-Header-menu-->
   <div class="navebarn">
     <div id="user-nav" class="navbar navbar-inverse">

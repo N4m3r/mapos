@@ -38,7 +38,7 @@ class Obras extends MY_Controller
      */
     public function painel()
     {
-        $this->precisa('vObras', 'Você não tem permissão para visualizar Obras.');
+        $this->precisa('vObras', 'Você não tem permissão para visualizar Projetos.');
 
         $this->data['kpis'] = $this->obras_model->kpis();
         $this->data['obras_execucao'] = $this->obras_model->getObrasPorStatus('em_execucao', 8);
@@ -51,7 +51,7 @@ class Obras extends MY_Controller
 
     public function gerenciar()
     {
-        $this->precisa('vObras', 'Você não tem permissão para visualizar Obras.');
+        $this->precisa('vObras', 'Você não tem permissão para visualizar Projetos.');
         $this->load->library('pagination');
         $this->data['obra_menu'] = 'obras';
 
@@ -75,17 +75,17 @@ class Obras extends MY_Controller
 
     public function adicionar()
     {
-        $this->precisa('cObras', 'Você não tem permissão para adicionar Obras.');
+        $this->precisa('cObras', 'Você não tem permissão para adicionar Projetos.');
 
         if ($this->input->post()) {
             $nome = trim((string) $this->input->post('nome'));
             if ($nome === '') {
-                $this->session->set_flashdata('error', 'Informe o nome da obra.');
+                $this->session->set_flashdata('error', 'Informe o nome do projeto.');
             } else {
                 $id = $this->obras_model->add($this->montarDados());
                 if ($id) {
-                    log_info('Adicionou uma obra. ID: ' . $id);
-                    $this->session->set_flashdata('success', 'Obra cadastrada com sucesso.');
+                    log_info('Adicionou um projeto. ID: ' . $id);
+                    $this->session->set_flashdata('success', 'Projeto cadastrado com sucesso.');
                     redirect('obras/visualizar/' . $id);
                 }
                 $this->session->set_flashdata('error', 'Ocorreu um erro ao salvar.');
@@ -100,16 +100,16 @@ class Obras extends MY_Controller
     public function editar()
     {
         $id = (int) $this->uri->segment(3);
-        $this->precisa('eObras', 'Você não tem permissão para editar Obras.');
+        $this->precisa('eObras', 'Você não tem permissão para editar Projetos.');
         if (! $id || ! ($obra = $this->obras_model->getObra($id))) {
-            $this->session->set_flashdata('error', 'Obra não encontrada.');
+            $this->session->set_flashdata('error', 'Projeto não encontrado.');
             redirect('obras');
         }
 
         if ($this->input->post()) {
             $this->obras_model->edit($id, $this->montarDados(false));
-            log_info('Editou a obra. ID: ' . $id);
-            $this->session->set_flashdata('success', 'Obra atualizada com sucesso.');
+            log_info('Editou o projeto. ID: ' . $id);
+            $this->session->set_flashdata('success', 'Projeto atualizado com sucesso.');
             redirect('obras/visualizar/' . $id);
         }
 
@@ -122,9 +122,9 @@ class Obras extends MY_Controller
     public function visualizar()
     {
         $id = (int) $this->uri->segment(3);
-        $this->precisa('vObras', 'Você não tem permissão para visualizar Obras.');
+        $this->precisa('vObras', 'Você não tem permissão para visualizar Projetos.');
         if (! $id || ! ($obra = $this->obras_model->getObra($id))) {
-            $this->session->set_flashdata('error', 'Obra não encontrada.');
+            $this->session->set_flashdata('error', 'Projeto não encontrado.');
             redirect('obras');
         }
 
@@ -137,6 +137,7 @@ class Obras extends MY_Controller
         $this->data['saldos'] = $this->obra_material_model->getSaldos($id);
         $this->data['recebimentos'] = $this->obra_material_model->getRecebimentos($id);
         $this->data['entregas'] = $this->obra_material_model->getEntregas($id);
+        $this->data['compras'] = $this->obra_material_model->getResumoCompras($id);
         $this->data['custo'] = $this->obras_model->getResumoCusto($id);
         $this->data['apontamentos'] = $this->obras_model->getApontamentos($id);
         $this->data['apontamento_total'] = $this->obras_model->getTotalApontamento($id);
@@ -198,12 +199,12 @@ class Obras extends MY_Controller
 
     public function excluir()
     {
-        $this->precisa('dObras', 'Você não tem permissão para excluir Obras.');
+        $this->precisa('dObras', 'Você não tem permissão para excluir Projetos.');
         $id = (int) $this->input->post('idObra');
         if ($id) {
             $this->obras_model->delete($id);
-            log_info('Removeu a obra. ID: ' . $id);
-            $this->session->set_flashdata('success', 'Obra excluída com sucesso.');
+            log_info('Removeu o projeto. ID: ' . $id);
+            $this->session->set_flashdata('success', 'Projeto excluído com sucesso.');
         }
         redirect('obras');
     }
