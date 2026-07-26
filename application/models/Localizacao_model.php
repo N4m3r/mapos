@@ -161,6 +161,60 @@ class Localizacao_model extends CI_Model
     }
 
     /**
+     * OS atribuídas a um técnico cujo agendamento (ou, na falta, a dataInicial)
+     * cai dentro do período informado. Usado para mostrar, ao lado do percurso,
+     * quais atendimentos o técnico tinha para o dia — com endereço e coordenadas
+     * (quando o local já foi aprendido em algum check-in).
+     *
+     * @param int    $usuario_id  técnico responsável (usuarios.idUsuarios)
+     * @param string $data_ini    'Y-m-d'
+     * @param string $data_fim    'Y-m-d'
+     */
+    public function getOsDoDiaPorTecnico($usuario_id, $data_ini, $data_fim)
+    {
+        if (! $this->db->table_exists('os')) {
+            return [];
+        }
+
+        $usuario_id = (int) $usuario_id;
+        $di = $this->db->escape($data_ini);
+        $df = $this->db->escape($data_fim);
+
+        $temAgendamento = $this->db->field_exists('data_agendamento', 'os');
+        $temCoords      = $this->db->field_exists('latitude', 'os') && $this->db->field_exists('longitude', 'os');
+
+        $cols = 'o.idOs, o.status, o.dataInicial, o.dataFinal, '
+              . 'c.nomeCliente, c.rua, c.numero, c.bairro, c.cidade, c.estado, c.celular';
+        if ($temAgendamento) {
+            $cols .= ', o.data_agendamento';
+        }
+        if ($temCoords) {
+            $cols .= ', o.latitude, o.longitude';
+        }
+
+        $this->db->select($cols);
+        $this->db->from('os o');
+        $this->db->join('clientes c', 'c.idClientes = o.clientes_id', 'left');
+        $this->db->where('o.tecnico_responsavel', $usuario_id);
+
+        if ($temAgendamento) {
+            // Prioriza o agendamento; sem ele, cai no dataInicial do ciclo.
+            $this->db->where(
+                "( (o.data_agendamento IS NOT NULL AND DATE(o.data_agendamento) BETWEEN $di AND $df)"
+                . " OR (o.data_agendamento IS NULL AND DATE(o.dataInicial) BETWEEN $di AND $df) )"
+            );
+            $this->db->order_by('COALESCE(o.data_agendamento, o.dataInicial)', 'ASC');
+        } else {
+            $this->db->where("DATE(o.dataInicial) BETWEEN $di AND $df");
+            $this->db->order_by('o.dataInicial', 'ASC');
+        }
+
+        $query = $this->db->get();
+
+        return $query ? $query->result() : [];
+    }
+
+    /**
      * Remove pings antigos (higiene da tabela). Chamável por rotina/cron.
      */
     public function limparAntigos($dias = 30)

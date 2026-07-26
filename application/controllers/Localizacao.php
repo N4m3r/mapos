@@ -18,7 +18,9 @@ class Localizacao extends MY_Controller
     }
 
     /**
-     * Tela do mapa (protegida por vTecnicoMapa).
+     * Gestão do técnico no mapa: tela única com abas de tempo real (posição
+     * atual dos técnicos em campo) e percurso (histórico de trajeto por
+     * período). Protegida por vTecnicoMapa.
      */
     public function mapa()
     {
@@ -27,9 +29,10 @@ class Localizacao extends MY_Controller
             redirect(base_url());
         }
 
+        $this->data['tecnicos'] = $this->localizacao_model->getTecnicosComRegistro();
         $this->data['emitente'] = $this->mapos_model->getEmitente();
-        $this->data['titulo'] = 'Mapa dos Técnicos';
-        $this->data['view'] = 'localizacao/mapa';
+        $this->data['titulo'] = 'Gestão do Técnico no Mapa';
+        $this->data['view'] = 'localizacao/gestao';
 
         return $this->layout();
     }
@@ -55,17 +58,27 @@ class Localizacao extends MY_Controller
 
         $tecnicos = [];
         foreach ($registros as $r) {
+            $ha_min = $r->data_hora ? floor((time() - strtotime($r->data_hora)) / 60) : null;
+
+            // Status operacional: em atendimento (ping vinculado a uma OS/check-in)
+            // ou em deslocamento. "inativo" é derivado no cliente por ha_minutos.
+            $status = ($r->idOs || (isset($r->checkin_id) && $r->checkin_id)) ? 'atendimento' : 'deslocamento';
+
             $tecnicos[] = [
                 'usuarios_id' => (int) $r->usuarios_id,
                 'nome'        => $r->nome_tecnico,
                 'latitude'    => (float) $r->latitude,
                 'longitude'   => (float) $r->longitude,
                 'precisao'    => $r->precisao !== null ? (float) $r->precisao : null,
+                'velocidade'  => isset($r->velocidade) && $r->velocidade !== null ? (float) $r->velocidade : null,
+                'bateria'     => isset($r->bateria) && $r->bateria !== null ? (int) $r->bateria : null,
                 'os_id'       => $r->idOs ? (int) $r->idOs : null,
                 'os_status'   => $r->os_status,
+                'checkin_id'  => isset($r->checkin_id) && $r->checkin_id ? (int) $r->checkin_id : null,
+                'status'      => $status,
                 'cliente'     => $r->nomeCliente,
                 'data_hora'   => $r->data_hora,
-                'ha_minutos'  => $r->data_hora ? floor((time() - strtotime($r->data_hora)) / 60) : null,
+                'ha_minutos'  => $ha_min !== null ? (int) $ha_min : null,
             ];
         }
 
@@ -79,22 +92,12 @@ class Localizacao extends MY_Controller
     }
 
     /**
-     * Tela de histórico de percurso: seleciona técnico + período e desenha o
-     * trajeto percorrido no mapa. Protegida por vTecnicoMapa.
+     * Compatibilidade: a tela de percurso foi absorvida pela aba "Percurso"
+     * da gestão no mapa. Mantém links antigos funcionando.
      */
     public function trajeto()
     {
-        if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'vTecnicoMapa')) {
-            $this->session->set_flashdata('error', 'Você não tem permissão para ver o percurso dos técnicos.');
-            redirect(base_url());
-        }
-
-        $this->data['tecnicos'] = $this->localizacao_model->getTecnicosComRegistro();
-        $this->data['emitente'] = $this->mapos_model->getEmitente();
-        $this->data['titulo'] = 'Percurso do Técnico';
-        $this->data['view'] = 'localizacao/trajeto';
-
-        return $this->layout();
+        redirect('localizacao/mapa');
     }
 
     /**
@@ -180,6 +183,61 @@ class Localizacao extends MY_Controller
                 'segmentos'       => $segmentos,
                 'total_pontos'    => $total_pontos,
                 'distancia_total' => round($distancia_total),
+            ]));
+    }
+
+    /**
+     * OS atribuídas ao técnico no período (JSON) — consumido pela aba de percurso
+     * para listar os atendimentos do dia e plotar seus pinos no mapa.
+     */
+    public function os_do_dia()
+    {
+        if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'vTecnicoMapa')) {
+            $this->output->set_status_header(403);
+            echo json_encode(['success' => false, 'message' => 'Sem permissão']);
+            return;
+        }
+
+        $usuario_id = (int) $this->input->get('usuario_id');
+        $data       = $this->input->get('data');
+        $data_fim   = $this->input->get('data_fim') ?: $data;
+
+        if (!$usuario_id || !$data) {
+            echo json_encode(['success' => false, 'message' => 'Informe o técnico e a data']);
+            return;
+        }
+
+        $rows = $this->localizacao_model->getOsDoDiaPorTecnico($usuario_id, $data, $data_fim);
+
+        $lista = [];
+        foreach ($rows as $r) {
+            $endereco = trim(implode(', ', array_filter([
+                trim(($r->rua ?? '') . (!empty($r->numero) ? ', ' . $r->numero : '')),
+                $r->bairro ?? '',
+                trim(($r->cidade ?? '') . (!empty($r->estado) ? '/' . $r->estado : '')),
+            ])), ', ');
+
+            $agendamento = property_exists($r, 'data_agendamento') ? $r->data_agendamento : null;
+
+            $lista[] = [
+                'idOs'         => (int) $r->idOs,
+                'status'       => $r->status,
+                'cliente'      => $r->nomeCliente,
+                'celular'      => $r->celular,
+                'agendamento'  => $agendamento,
+                'data_inicial' => $r->dataInicial,
+                'endereco'     => $endereco ?: null,
+                'latitude'     => (property_exists($r, 'latitude') && $r->latitude !== null) ? (float) $r->latitude : null,
+                'longitude'    => (property_exists($r, 'longitude') && $r->longitude !== null) ? (float) $r->longitude : null,
+            ];
+        }
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'success' => true,
+                'total'   => count($lista),
+                'os'      => $lista,
             ]));
     }
 

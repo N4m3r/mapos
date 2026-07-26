@@ -111,16 +111,8 @@
                         echo 'active';
                     }; ?>">
                         <a class="tip-bottom" title="" href="<?= site_url('localizacao/mapa') ?>"><i class='bx bx-map-alt iconX'></i>
-                            <span class="title">Mapa dos Técnicos</span>
+                            <span class="title">Gestão no Mapa</span>
                             <span class="title-tooltip">Mapa</span>
-                        </a>
-                    </li>
-                    <li class="<?php if (isset($menuPercurso)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('localizacao/trajeto') ?>"><i class='bx bx-trip iconX'></i>
-                            <span class="title">Percurso do Técnico</span>
-                            <span class="title-tooltip">Percurso</span>
                         </a>
                     </li>
                 <?php } ?>
