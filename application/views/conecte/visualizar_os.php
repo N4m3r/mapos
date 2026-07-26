@@ -130,6 +130,8 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                     <?php if (! empty($temAtendimento)) { ?>
                         <a title="Ver atendimento do técnico" class="button btn btn-mini" style="background-color: #6c757d; border-color: #6c757d; color: white;" href="#atendimento-tecnico">
                             <span class="button__icon"><i class="bx bx-user-check"></i></span> <span class="button__text">Atendimento do Técnico</span></a>
+                        <a target="_blank" title="Visualizar relatório / detalhe do atendimento" class="button btn btn-mini btn-success" href="<?php echo site_url('mine/relatorioAtendimento/' . $result->idOs); ?>">
+                            <span class="button__icon"><i class="bx bx-show"></i></span> <span class="button__text">Visualizar Atendimento</span></a>
                     <?php } ?>
                 </div>
             </div>
