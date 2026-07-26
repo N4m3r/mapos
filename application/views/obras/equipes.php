@@ -11,13 +11,14 @@
 
     <div class="widget-box"><div class="widget-content nopadding">
         <table class="table table-bordered">
-            <thead><tr><th>#</th><th>Equipe</th><th>Encarregado</th><th>Membros</th><th>Ativa</th><th>Ações</th></tr></thead>
+            <thead><tr><th>#</th><th>Equipe</th><th>Tipo</th><th>Encarregado</th><th>Membros</th><th>Ativa</th><th>Ações</th></tr></thead>
             <tbody>
-                <?php if (! $equipes) echo '<tr><td colspan="6">Nenhuma equipe cadastrada.</td></tr>'; ?>
+                <?php if (! $equipes) echo '<tr><td colspan="7">Nenhuma equipe cadastrada.</td></tr>'; ?>
                 <?php foreach ($equipes as $q): ?>
                     <tr>
                         <td><?= $q->idEquipe ?></td>
                         <td><?= html_escape($q->nome) ?></td>
+                        <td><?= (isset($q->tipo) && $q->tipo === 'terceirizada') ? '<span class="label label-warning">Terceirizada</span>' : '<span class="label">Interna</span>' ?></td>
                         <td><?= html_escape($q->encarregado ?: '—') ?></td>
                         <td><?= (int) $q->total_membros ?></td>
                         <td><?= $q->ativo ? '<span class="label label-success">Sim</span>' : '<span class="label">Não</span>' ?></td>
@@ -52,6 +53,16 @@
                     <?php endforeach; ?>
                 </select>
             </div>
+            <div class="span6" style="margin-left:0"><label>Tipo</label>
+                <select name="tipo" id="eq_tipo" class="span12">
+                    <option value="interna">Interna</option>
+                    <option value="terceirizada">Terceirizada</option>
+                </select>
+            </div>
+            <div class="span6" style="margin-left:0"><label>Custo padrão (R$)</label><input type="text" class="span12" name="custo_padrao" id="eq_custo" placeholder="Diária/empreitada de referência"></div>
+            <div class="span6" style="margin-left:0"><label>CPF/CNPJ (terceiro)</label><input type="text" class="span12" name="documento" id="eq_doc"></div>
+            <div class="span6" style="margin-left:0"><label>Contato</label><input type="text" class="span12" name="contato" id="eq_contato"></div>
+            <div class="span6" style="margin-left:0"><label>Telefone</label><input type="text" class="span12" name="telefone" id="eq_tel"></div>
             <div class="span12" style="margin-left:0"><label class="checkbox"><input type="checkbox" name="ativo" id="eq_ativo" value="1" checked> Ativa</label></div>
         </div>
         <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Salvar</span></button></div>
@@ -61,10 +72,15 @@
 <?php endif; ?>
 
 <script>
-    function novaEquipe() { $('#eq_id').val(''); $('#eq_nome').val(''); $('#eq_enc').val(''); $('#eq_ativo').prop('checked', true); }
+    function novaEquipe() {
+        $('#eq_id').val(''); $('#eq_nome').val(''); $('#eq_enc').val(''); $('#eq_ativo').prop('checked', true);
+        $('#eq_tipo').val('interna'); $('#eq_custo').val(''); $('#eq_doc').val(''); $('#eq_contato').val(''); $('#eq_tel').val('');
+    }
     function editarEquipe(q) {
         $('#eq_id').val(q.idEquipe); $('#eq_nome').val(q.nome); $('#eq_enc').val(q.encarregado_id || '');
         $('#eq_ativo').prop('checked', q.ativo == 1);
+        $('#eq_tipo').val(q.tipo || 'interna'); $('#eq_custo').val(q.custo_padrao || '');
+        $('#eq_doc').val(q.documento || ''); $('#eq_contato').val(q.contato || ''); $('#eq_tel').val(q.telefone || '');
         $('#modal-equipe').modal('show');
     }
     function excluirEquipe(id) { if (confirm('Excluir esta equipe? Membros e alocações serão removidos.')) { $('#del_equipe').val(id); $('#formExcluirEquipe').submit(); } }

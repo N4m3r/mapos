@@ -281,6 +281,9 @@ class Os extends MY_Controller
                 $this->debitarEstoque($this->input->post('idOs'));
             }
 
+            // Contrato/SLA e equipe (só grava se as colunas existirem).
+            $data = array_merge($data, $this->montarCamposContratoEquipe($os));
+
             if ($this->os_model->edit('os', $data, 'idOs', $this->input->post('idOs')) == true) {
                 $this->load->model('mapos_model');
                 $this->load->model('usuarios_model');
@@ -340,6 +343,20 @@ class Os extends MY_Controller
         $this->data['anexos'] = $this->os_model->getAnexos($this->uri->segment(3));
         $this->data['anotacoes'] = $this->os_model->getAnotacoes($this->uri->segment(3));
 
+        // Contratos e equipes para os seletores da OS (resiliente aos módulos).
+        $this->data['contratosSelect'] = [];
+        $this->data['equipesSelect'] = [];
+        $this->data['prioridadesSla'] = [];
+        if ($this->db->table_exists('contratos')) {
+            $this->load->model('contratos_model');
+            $this->data['contratosSelect'] = $this->contratos_model->getContratosSelect();
+            $this->data['prioridadesSla'] = array_keys(Contratos_model::prioridadesPadrao());
+        }
+        if ($this->db->table_exists('equipes')) {
+            $this->load->model('obra_equipe_model');
+            $this->data['equipesSelect'] = $this->obra_equipe_model->getEquipesSelect();
+        }
+
         if ($return = $this->os_model->valorTotalOS($this->uri->segment(3))) {
             $this->data['totalServico'] = $return['totalServico'];
             $this->data['totalProdutos'] = $return['totalProdutos'];
@@ -366,6 +383,91 @@ class Os extends MY_Controller
         $this->data['view'] = 'os/editarOs';
 
         return $this->layout();
+    }
+
+    /**
+     * Monta os campos de Contrato/SLA e Equipe para gravar na OS, com base no
+     * POST do formulário e no estado atual da OS ($osAtual).
+     *
+     * - Recalcula os prazos de SLA (resposta/solução) quando o contrato ou a
+     *   prioridade mudam, ou quando ainda não havia prazo definido.
+     * - Cronometra o cumprimento: marca "respondido" ao entrar em atendimento
+     *   e "solucionado" ao finalizar/faturar.
+     * - Só devolve colunas que existem no banco (resiliente a migration não
+     *   aplicada), para não quebrar o UPDATE.
+     */
+    private function montarCamposContratoEquipe($osAtual)
+    {
+        $extra = [];
+
+        // --- Contrato + prioridade + SLA -----------------------------------
+        if ($this->db->field_exists('contrato_id', 'os')) {
+            $contrato_id = (int) $this->input->post('contrato_id') ?: null;
+            $prioridade = trim((string) $this->input->post('prioridade')) ?: null;
+            $extra['contrato_id'] = $contrato_id;
+            $extra['prioridade'] = $prioridade;
+
+            if ($this->db->field_exists('sla_solucao_prazo', 'os')) {
+                $mudou = ((int) ($osAtual->contrato_id ?? 0) !== (int) $contrato_id)
+                    || (($osAtual->prioridade ?? null) !== $prioridade);
+
+                if ($contrato_id && $prioridade && $this->db->table_exists('contrato_sla')) {
+                    if ($mudou || empty($osAtual->sla_solucao_prazo)) {
+                        $this->load->model('contratos_model');
+                        $sla = $this->contratos_model->slaPara($contrato_id, $prioridade);
+                        $base = time();
+                        $extra['sla_resposta_prazo'] = ($sla && $sla->resposta_horas > 0)
+                            ? date('Y-m-d H:i:s', $base + ((int) $sla->resposta_horas * 3600)) : null;
+                        $extra['sla_solucao_prazo'] = ($sla && $sla->solucao_horas > 0)
+                            ? date('Y-m-d H:i:s', $base + ((int) $sla->solucao_horas * 3600)) : null;
+                    }
+                } else {
+                    // Sem contrato/prioridade → zera os prazos.
+                    $extra['sla_resposta_prazo'] = null;
+                    $extra['sla_solucao_prazo'] = null;
+                }
+            }
+
+            // Cronômetro de cumprimento pelo status.
+            $novoStatus = trim((string) $this->input->post('status'));
+            if ($this->db->field_exists('sla_resposta_em', 'os')
+                && empty($osAtual->sla_resposta_em)
+                && in_array($novoStatus, ['Em Andamento', 'Finalizado', 'Faturado'], true)) {
+                $extra['sla_resposta_em'] = date('Y-m-d H:i:s');
+            }
+            if ($this->db->field_exists('sla_solucao_em', 'os')
+                && empty($osAtual->sla_solucao_em)
+                && in_array($novoStatus, ['Finalizado', 'Faturado'], true)) {
+                $extra['sla_solucao_em'] = date('Y-m-d H:i:s');
+            }
+        }
+
+        // --- Equipe (externa/terceira) + custo -----------------------------
+        if ($this->db->field_exists('equipe_id', 'os')) {
+            $extra['equipe_id'] = (int) $this->input->post('equipe_id') ?: null;
+        }
+        // Só toca no custo se o campo veio no POST (o input é oculto para quem
+        // não tem permissão financeira — não podemos zerar o valor existente).
+        if ($this->db->field_exists('custo_equipe', 'os') && $this->input->post('custo_equipe') !== null) {
+            $extra['custo_equipe'] = $this->parseMoeda($this->input->post('custo_equipe'));
+        }
+
+        return $extra;
+    }
+
+    /** Converte um valor monetário digitado (pt-BR ou simples) em float. */
+    private function parseMoeda($raw)
+    {
+        $raw = trim((string) $raw);
+        if ($raw === '') {
+            return 0.0;
+        }
+        // "1.500,00" (pt-BR): ponto é milhar, vírgula é decimal.
+        if (strpos($raw, ',') !== false) {
+            $raw = str_replace('.', '', $raw);
+            $raw = str_replace(',', '.', $raw);
+        }
+        return (float) $raw;
     }
 
     public function visualizar()

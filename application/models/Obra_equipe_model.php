@@ -31,6 +31,26 @@ class Obra_equipe_model extends CI_Model
         return $this->db->get()->result();
     }
 
+    /**
+     * Seletor enxuto de equipes ativas para telas fora do módulo de Projetos
+     * (ex.: atribuição de equipe na OS). Resiliente: não depende de
+     * `equipe_membros` e só inclui `tipo` se a coluna existir.
+     */
+    public function getEquipesSelect()
+    {
+        if (! $this->db->table_exists('equipes')) {
+            return [];
+        }
+        $cols = 'idEquipe, nome';
+        if ($this->db->field_exists('tipo', 'equipes')) {
+            $cols .= ', tipo';
+        }
+        return $this->db->select($cols)
+            ->where('ativo', 1)
+            ->order_by('nome', 'ASC')
+            ->get('equipes')->result();
+    }
+
     public function getEquipe($id)
     {
         if (! $this->db->table_exists('equipes')) {

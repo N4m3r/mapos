@@ -172,6 +172,13 @@ class Permissoes extends MY_Controller
                 'sObraMaterial' => $this->input->post('sObraMaterial'),
                 'cObraEquipe' => $this->input->post('cObraEquipe'),
                 'vObraCampo' => $this->input->post('vObraCampo'),
+
+                // Permissões Contratos
+                'vContrato' => $this->input->post('vContrato'),
+                'cContrato' => $this->input->post('cContrato'),
+                'eContrato' => $this->input->post('eContrato'),
+                'dContrato' => $this->input->post('dContrato'),
+                'fContrato' => $this->input->post('fContrato'),
             ];
             $permissoes = serialize($permissoes);
 

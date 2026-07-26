@@ -164,6 +164,85 @@
                                             <input id="garantias_id" class="span12" type="hidden" name="garantias_id" value="<?php echo $result->garantias_id ?>" />
                                         </div>
                                     </div>
+
+                                    <?php
+                                    // Contrato/SLA e Equipe — só aparecem quando os módulos estão instalados.
+                                    $temContrato = ! empty($contratosSelect) || isset($result->contrato_id);
+                                    $temEquipe = ! empty($equipesSelect) || isset($result->equipe_id);
+                                    $slaPrioridades = isset($prioridadesSla) ? $prioridadesSla : ['Crítica', 'Alta', 'Normal', 'Baixa'];
+                                    $verCusto = $this->permission->checkPermission($this->session->userdata('permissao'), 'vLancamento');
+                                    ?>
+                                    <?php if ($temContrato || $temEquipe): ?>
+                                    <div class="span12" style="padding: 1%; margin-left: 0; border-top:1px dashed #e0e0e0; margin-top:6px">
+                                        <?php if ($temContrato): ?>
+                                            <div class="span4">
+                                                <label for="contrato_id"><i class='bx bx-file-blank'></i> Contrato de manutenção</label>
+                                                <select class="span12" name="contrato_id" id="contrato_id">
+                                                    <option value="">— Sem contrato —</option>
+                                                    <?php foreach ($contratosSelect as $ct): ?>
+                                                        <option value="<?= $ct->idContrato ?>" <?= (isset($result->contrato_id) && $result->contrato_id == $ct->idContrato) ? 'selected' : '' ?>>
+                                                            <?= html_escape(($ct->codigo ? $ct->codigo . ' — ' : '') . $ct->descricao) ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
+                                            <div class="span3">
+                                                <label for="prioridade">Prioridade (SLA)</label>
+                                                <select class="span12" name="prioridade" id="prioridade">
+                                                    <option value="">— Não definida —</option>
+                                                    <?php foreach ($slaPrioridades as $p): ?>
+                                                        <option value="<?= html_escape($p) ?>" <?= (isset($result->prioridade) && $result->prioridade === $p) ? 'selected' : '' ?>><?= html_escape($p) ?></option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
+                                            <?php
+                                            $prazoSol = $result->sla_solucao_prazo ?? null;
+                                            $solEm = $result->sla_solucao_em ?? null;
+                                            if (! empty($prazoSol)):
+                                                $statusAberto = ! in_array($result->status, ['Finalizado', 'Faturado', 'Cancelado'], true);
+                                                if (! empty($solEm)) {
+                                                    $ok = strtotime($solEm) <= strtotime($prazoSol);
+                                                    $badge = $ok ? '<span class="label label-success">Solucionado no prazo</span>' : '<span class="label label-important">Solucionado fora do prazo</span>';
+                                                } elseif ($statusAberto && strtotime($prazoSol) < time()) {
+                                                    $badge = '<span class="label label-important">SLA estourado</span>';
+                                                } else {
+                                                    $badge = '<span class="label label-warning">Dentro do prazo</span>';
+                                                }
+                                            ?>
+                                                <div class="span5">
+                                                    <label>Status do SLA</label>
+                                                    <div style="padding-top:6px">
+                                                        <?= $badge ?>
+                                                        <small style="display:block;color:#888">Prazo de solução: <?= date('d/m/Y H:i', strtotime($prazoSol)) ?></small>
+                                                    </div>
+                                                </div>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php if ($temEquipe): ?>
+                                    <div class="span12" style="padding: 1%; margin-left: 0">
+                                        <div class="span5">
+                                            <label for="equipe_id"><i class='bx bx-group'></i> Equipe designada</label>
+                                            <select class="span12" name="equipe_id" id="equipe_id">
+                                                <option value="">— Nenhuma —</option>
+                                                <?php foreach ($equipesSelect as $eq): ?>
+                                                    <option value="<?= $eq->idEquipe ?>" <?= (isset($result->equipe_id) && $result->equipe_id == $eq->idEquipe) ? 'selected' : '' ?>>
+                                                        <?= html_escape($eq->nome) ?><?= (isset($eq->tipo) && $eq->tipo === 'terceirizada') ? ' (terceirizada)' : '' ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <?php if ($verCusto): ?>
+                                            <div class="span3">
+                                                <label for="custo_equipe">Custo da equipe (R$)</label>
+                                                <input type="text" class="span12" id="custo_equipe" name="custo_equipe" placeholder="0,00" value="<?= isset($result->custo_equipe) ? number_format((float) $result->custo_equipe, 2, ',', '') : '' ?>">
+                                                <small style="color:#888">Valor pago à equipe/terceiro por esta OS.</small>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php endif; ?>
+                                    <?php endif; ?>
+
                                     <div class="span6" style="padding: 1%; margin-left: 0">
                                         <label for="descricaoProduto"><h4>Descrição Produto/Serviço</h4></label>
                                         <textarea class="span12 editor" name="descricaoProduto" id="descricaoProduto" cols="30" rows="5"><?php echo $result->descricaoProduto ?></textarea>

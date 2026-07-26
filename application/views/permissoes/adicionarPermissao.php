@@ -372,6 +372,35 @@
                         <div class="accordion-group widget-box">
                             <div class="accordion-heading">
                                 <div class="widget-title">
+                                    <a data-parent="#collapse-group" href="#collapseGContratos" data-toggle="collapse">
+                                      <span><i class='bx bx-file-blank icon-cli'></i></span>
+                                      <h5 style="padding-left: 28px">Contratos</h5>
+                                      <span><i class='bx bx-chevron-right icon-clic'></i></span>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="collapse accordion-body" id="collapseGContratos">
+                                <div class="widget-content">
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <td><label><input name="vContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Visualizar Contratos</strong></span></label></td>
+                                        <td><label><input name="cContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Cadastrar Contrato</span></label></td>
+                                        <td><label><input name="eContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Editar Contrato</span></label></td>
+                                        <td><label><input name="dContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Excluir Contrato</span></label></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label><input name="fContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Faturar mensalidade</span></label></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-group widget-box">
+                            <div class="accordion-heading">
+                                <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGThree33" data-toggle="collapse">
                                       <span><i class='bx bx-cart-alt icon-cli'></i></span>
                                       <h5 style="padding-left: 28px">Vendas</h5>

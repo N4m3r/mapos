@@ -47,6 +47,18 @@ class Obraequipe extends MY_Controller
             'encarregado_id' => (int) $this->input->post('encarregado_id') ?: null,
             'ativo' => $this->input->post('ativo') !== null ? 1 : 0,
         ];
+        // Campos de equipe externa/terceira (só se as colunas existirem).
+        foreach ([
+            'tipo' => $this->input->post('tipo') ?: 'interna',
+            'documento' => $this->input->post('documento'),
+            'contato' => $this->input->post('contato'),
+            'telefone' => $this->input->post('telefone'),
+            'custo_padrao' => $this->parseMoeda($this->input->post('custo_padrao')),
+        ] as $campo => $valor) {
+            if ($this->db->field_exists($campo, 'equipes')) {
+                $dados[$campo] = $valor;
+            }
+        }
         if ($id) {
             $this->obra_equipe_model->edit($id, $dados);
             $this->session->set_flashdata('success', 'Equipe atualizada.');
@@ -159,5 +171,19 @@ class Obraequipe extends MY_Controller
             }
         }
         return $valor;
+    }
+
+    /** Converte um valor monetário digitado (pt-BR ou simples) em float. */
+    private function parseMoeda($raw)
+    {
+        $raw = trim((string) $raw);
+        if ($raw === '') {
+            return 0.0;
+        }
+        if (strpos($raw, ',') !== false) {
+            $raw = str_replace('.', '', $raw);
+            $raw = str_replace(',', '.', $raw);
+        }
+        return (float) $raw;
     }
 }

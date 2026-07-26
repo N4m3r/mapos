@@ -627,6 +627,36 @@ if (! is_array($permissoes)) {
                 <div class="accordion-group widget-box">
                     <div class="accordion-heading">
                         <div class="widget-title">
+                            <a data-parent="#collapse-group" href="#collapseGContratos" data-toggle="collapse">
+                                <span><i class='bx bx-file-blank icon-cli' ></i></span>
+                                <h5 style="padding-left: 28px">Contratos</h5>
+                                <span><i class='bx bx-chevron-right icon-clic'></i></span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="collapse accordion-body" id="collapseGContratos">
+                        <div class="widget-content">
+                        <table class="table table-bordered">
+                            <tr>
+                                <td><label><input <?php if (! empty($permissoes['vContrato']) && $permissoes['vContrato'] == '1') echo 'checked'; ?> name="vContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Visualizar Contratos</strong></span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['cContrato']) && $permissoes['cContrato'] == '1') echo 'checked'; ?> name="cContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Cadastrar Contrato</span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['eContrato']) && $permissoes['eContrato'] == '1') echo 'checked'; ?> name="eContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Editar Contrato</span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['dContrato']) && $permissoes['dContrato'] == '1') echo 'checked'; ?> name="dContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Excluir Contrato</span></label></td>
+                            </tr>
+                            <tr>
+                                <td><label><input <?php if (! empty($permissoes['fContrato']) && $permissoes['fContrato'] == '1') echo 'checked'; ?> name="fContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Faturar mensalidade</span></label></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-group widget-box">
+                    <div class="accordion-heading">
+                        <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGFive" data-toggle="collapse">
                                 <span><i class='bx bx-cart-alt icon-cli' ></i></span>
                                 <h5 style="padding-left: 28px">Vendas</h5>
