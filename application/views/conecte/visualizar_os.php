@@ -127,6 +127,10 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                 <div class="buttons" style=" padding-left:5px;">
                     <a target="_blank" title="Imprimir Relatório" class="button btn btn-mini btn-inverse" href="<?php echo site_url() ?>/mine/imprimirOs/<?php echo $result->idOs; ?>">
                         <span class="button__icon"><i class="bx bx-printer"></i></span> <span class="button__text">Imprimir Relatório</span></a>
+                    <?php if (! empty($temAtendimento)) { ?>
+                        <a target="_blank" title="Relatório de Atendimento do Técnico" class="button btn btn-mini" style="background-color: #6c757d; border-color: #6c757d; color: white;" href="<?php echo site_url('mine/relatorioAtendimento/' . $result->idOs); ?>">
+                            <span class="button__icon"><i class="bx bx-time"></i></span> <span class="button__text">Relatório de Atendimento</span></a>
+                    <?php } ?>
                 </div>
             </div>
             <div class="widget-content" id="printOs">

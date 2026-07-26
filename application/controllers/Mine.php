@@ -731,6 +731,17 @@ class Mine extends CI_Controller
         // Linha do tempo ("onde estamos") desta OS para o cliente acompanhar.
         $data['timeline'] = $this->os_model->getTimeline($osId);
 
+        // Indica se a OS tem registro de atendimento (check-in ou respostas de
+        // formulários) para exibir o botão do relatório do técnico na OS.
+        $temAtendimento = false;
+        if ($this->db->table_exists('os_checkin')) {
+            $temAtendimento = $this->db->where('os_id', $osId)->count_all_results('os_checkin') > 0;
+        }
+        if (! $temAtendimento && $this->db->table_exists('formularios_atendimento_respostas')) {
+            $temAtendimento = $this->db->where('os_id', $osId)->count_all_results('formularios_atendimento_respostas') > 0;
+        }
+        $data['temAtendimento'] = $temAtendimento;
+
         $data['output'] = 'conecte/visualizar_os';
         $this->load->view('conecte/template', $data);
     }
