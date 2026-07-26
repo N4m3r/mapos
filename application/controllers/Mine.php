@@ -386,10 +386,12 @@ class Mine extends CI_Controller
         $this->load->library('pagination');
 
         $permitidos = $this->clientesPermitidos();
+        $filtros = $this->filtrosPortal($permitidos);
 
         $config['base_url'] = base_url() . 'index.php/mine/compras/';
-        $config['total_rows'] = $this->Conecte_model->count('vendas', $permitidos);
+        $config['total_rows'] = $this->Conecte_model->count('vendas', $permitidos, $filtros);
         $config['per_page'] = 10;
+        $config['reuse_query_string'] = true;
         $config['next_link'] = 'Próxima';
         $config['prev_link'] = 'Anterior';
         $config['full_tag_open'] = '<div class="pagination alternate"><ul>';
@@ -411,7 +413,10 @@ class Mine extends CI_Controller
 
         $this->pagination->initialize($config);
 
-        $data['results'] = $this->Conecte_model->getCompras('vendas', '*', '', $config['per_page'], $this->uri->segment(3), '', '', $permitidos);
+        $data['results'] = $this->Conecte_model->getCompras('vendas', '*', '', $config['per_page'], $this->uri->segment(3), '', '', $permitidos, $filtros);
+
+        $data['clientesFiltro'] = $this->Conecte_model->getClientesByIds($permitidos);
+        $data['filtros'] = $filtros;
 
         $data['output'] = 'conecte/compras';
         $this->load->view('conecte/template', $data);
@@ -427,12 +432,14 @@ class Mine extends CI_Controller
         $this->load->config('payment_gateways');
 
         $permitidos = $this->clientesPermitidos();
+        $filtros = $this->filtrosPortal($permitidos);
 
         $data['menuCobrancas'] = 'cobrancas';
 
         $config['base_url'] = base_url() . 'index.php/mine/cobrancas/';
-        $config['total_rows'] = $this->Conecte_model->count('cobrancas', $permitidos);
+        $config['total_rows'] = $this->Conecte_model->count('cobrancas', $permitidos, $filtros);
         $config['per_page'] = 10;
+        $config['reuse_query_string'] = true;
         $config['next_link'] = 'Próxima';
         $config['prev_link'] = 'Anterior';
         $config['full_tag_open'] = '<div class="pagination alternate"><ul>';
@@ -454,7 +461,9 @@ class Mine extends CI_Controller
 
         $this->pagination->initialize($config);
 
-        $data['results'] = $this->Conecte_model->getCobrancas('cobrancas', '*', '', $config['per_page'], $this->uri->segment(3), '', '', $permitidos);
+        $data['results'] = $this->Conecte_model->getCobrancas('cobrancas', '*', '', $config['per_page'], $this->uri->segment(3), '', '', $permitidos, $filtros);
+        $data['clientesFiltro'] = $this->Conecte_model->getClientesByIds($permitidos);
+        $data['filtros'] = $filtros;
         $data['output'] = 'conecte/cobrancas';
 
         $this->load->view('conecte/template', $data);
@@ -513,12 +522,16 @@ class Mine extends CI_Controller
 
         $permitidos = $this->clientesPermitidos();
 
+        // Filtros do portal: CNPJ/cliente vinculado e período (data inicial da OS).
+        $filtros = $this->filtrosPortal($permitidos);
+
         $data['menuOs'] = 'os';
         $this->load->library('pagination');
 
         $config['base_url'] = base_url() . 'index.php/mine/os/';
-        $config['total_rows'] = $this->Conecte_model->count('os', $permitidos);
+        $config['total_rows'] = $this->Conecte_model->count('os', $permitidos, $filtros);
         $config['per_page'] = 10;
+        $config['reuse_query_string'] = true;
         $config['next_link'] = 'Próxima';
         $config['prev_link'] = 'Anterior';
         $config['full_tag_open'] = '<div class="pagination alternate"><ul>';
@@ -540,10 +553,47 @@ class Mine extends CI_Controller
 
         $this->pagination->initialize($config);
 
-        $data['results'] = $this->Conecte_model->getOs('os', '*', '', $config['per_page'], $this->uri->segment(3), '', '', $permitidos);
+        $data['results'] = $this->Conecte_model->getOs('os', '*', '', $config['per_page'], $this->uri->segment(3), '', '', $permitidos, $filtros);
+
+        // CNPJs/clientes acessíveis para popular o filtro (dropdown aparece só
+        // quando o login enxerga mais de um cliente).
+        $data['clientesFiltro'] = $this->Conecte_model->getClientesByIds($permitidos);
+        $data['filtros'] = $filtros;
 
         $data['output'] = 'conecte/os';
         $this->load->view('conecte/template', $data);
+    }
+
+    /**
+     * Lê e valida os filtros do portal (CNPJ/cliente e período) a partir do
+     * query string. O cliente escolhido precisa estar entre os $permitidos.
+     *
+     * @param int[] $permitidos
+     */
+    private function filtrosPortal($permitidos)
+    {
+        $filtroCliente = $this->input->get('cliente_id');
+        $filtroCliente = (is_numeric($filtroCliente) && in_array((int) $filtroCliente, $permitidos))
+            ? (int) $filtroCliente : null;
+
+        return [
+            'cliente_id' => $filtroCliente,
+            'data_inicio' => $this->dataValida($this->input->get('data_inicio')) ? $this->input->get('data_inicio') : null,
+            'data_fim' => $this->dataValida($this->input->get('data_fim')) ? $this->input->get('data_fim') : null,
+        ];
+    }
+
+    /**
+     * Valida uma data no formato Y-m-d (usada nos filtros do portal).
+     */
+    private function dataValida($data)
+    {
+        if (empty($data)) {
+            return false;
+        }
+        $d = \DateTime::createFromFormat('Y-m-d', $data);
+
+        return $d && $d->format('Y-m-d') === $data;
     }
 
     /**

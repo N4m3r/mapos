@@ -44,13 +44,14 @@ class Conecte_model extends CI_Model
         return $this->db->get()->result();
     }
 
-    public function getCompras($table, $fields, $where, $perpage, $start, $one, $array, $cliente)
+    public function getCompras($table, $fields, $where, $perpage, $start, $one, $array, $cliente, $filtros = [])
     {
         $this->db->select($fields);
         $this->db->from($table);
         $this->db->join('usuarios', 'vendas.usuarios_id = usuarios.idUsuarios', 'left');
         $this->db->order_by('idVendas', 'desc');
-        $this->db->where_in('clientes_id', (array) $cliente);
+        $this->db->where_in('vendas.clientes_id', (array) $cliente);
+        $this->aplicarFiltros($filtros, 'vendas.clientes_id', 'vendas.dataVenda');
         $this->db->limit($perpage, $start);
         $this->db->order_by('idVendas', 'desc');
         if ($where) {
@@ -64,12 +65,13 @@ class Conecte_model extends CI_Model
         return $result;
     }
 
-    public function getCobrancas($table, $fields, $where, $perpage, $start, $one, $array, $cliente)
+    public function getCobrancas($table, $fields, $where, $perpage, $start, $one, $array, $cliente, $filtros = [])
     {
         $this->db->select($fields);
         $this->db->from($table);
         $this->db->join('clientes', 'cobrancas.clientes_id = clientes.idClientes', 'left');
         $this->db->where_in('cobrancas.clientes_id', (array) $cliente);
+        $this->aplicarFiltros($filtros, 'cobrancas.clientes_id', 'cobrancas.expire_at');
         $this->db->order_by('expire_at', 'desc');
         $this->db->limit($perpage, $start);
         $this->db->order_by('idCobranca', 'desc');
@@ -84,12 +86,13 @@ class Conecte_model extends CI_Model
         return $result;
     }
 
-    public function getOs($table, $fields, $where, $perpage, $start, $one, $array, $cliente)
+    public function getOs($table, $fields, $where, $perpage, $start, $one, $array, $cliente, $filtros = [])
     {
         $this->db->select($fields);
         $this->db->from($table);
         $this->db->join('usuarios', 'os.usuarios_id = usuarios.idUsuarios', 'left');
-        $this->db->where_in('clientes_id', (array) $cliente);
+        $this->db->where_in('os.clientes_id', (array) $cliente);
+        $this->aplicarFiltros($filtros, 'os.clientes_id', 'os.dataInicial');
         $this->db->limit($perpage, $start);
         $this->db->order_by('idOs', 'desc');
         if ($where) {
@@ -101,6 +104,47 @@ class Conecte_model extends CI_Model
         $result = ! $one ? $query->result() : $query->row();
 
         return $result;
+    }
+
+    /**
+     * Aplica os filtros do portal (CNPJ/cliente e período) ao query builder
+     * atual. Usado pelas listagens e por count() para manter lista e contagem
+     * da paginação coerentes. As colunas variam por módulo, por isso são
+     * recebidas como parâmetro.
+     *
+     * @param array       $filtros    ['cliente_id', 'data_inicio', 'data_fim']
+     * @param string      $clienteCol coluna do cliente (ex.: 'os.clientes_id')
+     * @param string|null $dataCol    coluna de data p/ o período (null = sem)
+     */
+    private function aplicarFiltros($filtros, $clienteCol, $dataCol)
+    {
+        if (! empty($filtros['cliente_id'])) {
+            $this->db->where($clienteCol, (int) $filtros['cliente_id']);
+        }
+        if ($dataCol !== null && ! empty($filtros['data_inicio'])) {
+            $this->db->where($dataCol . ' >=', $filtros['data_inicio']);
+        }
+        if ($dataCol !== null && ! empty($filtros['data_fim'])) {
+            $this->db->where($dataCol . ' <=', $filtros['data_fim']);
+        }
+    }
+
+    /**
+     * Clientes/CNPJs acessíveis (para popular o filtro do portal).
+     *
+     * @param int[] $ids
+     */
+    public function getClientesByIds($ids)
+    {
+        if (empty($ids)) {
+            return [];
+        }
+        $this->db->select('idClientes, nomeCliente, documento');
+        $this->db->from('clientes');
+        $this->db->where_in('idClientes', (array) $ids);
+        $this->db->order_by('nomeCliente', 'asc');
+
+        return $this->db->get()->result();
     }
 
     /**
@@ -156,9 +200,16 @@ class Conecte_model extends CI_Model
         return $this->db->get()->row();
     }
 
-    public function count($table, $cliente)
+    public function count($table, $cliente, $filtros = [])
     {
         $this->db->where_in('clientes_id', (array) $cliente);
+        if (! empty($filtros)) {
+            // count_all_results() usa uma única tabela (sem join), então as
+            // colunas não precisam de prefixo. A coluna de data varia por módulo.
+            $dataCols = ['os' => 'dataInicial', 'vendas' => 'dataVenda', 'cobrancas' => 'expire_at'];
+            $dataCol = isset($dataCols[$table]) ? $dataCols[$table] : null;
+            $this->aplicarFiltros($filtros, 'clientes_id', $dataCol);
+        }
 
         return $this->db->count_all_results($table);
     }
