@@ -128,8 +128,8 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                     <a target="_blank" title="Imprimir Relatório" class="button btn btn-mini btn-inverse" href="<?php echo site_url() ?>/mine/imprimirOs/<?php echo $result->idOs; ?>">
                         <span class="button__icon"><i class="bx bx-printer"></i></span> <span class="button__text">Imprimir Relatório</span></a>
                     <?php if (! empty($temAtendimento)) { ?>
-                        <a target="_blank" title="Relatório de Atendimento do Técnico" class="button btn btn-mini" style="background-color: #6c757d; border-color: #6c757d; color: white;" href="<?php echo site_url('mine/relatorioAtendimento/' . $result->idOs); ?>">
-                            <span class="button__icon"><i class="bx bx-time"></i></span> <span class="button__text">Relatório de Atendimento</span></a>
+                        <a title="Ver atendimento do técnico" class="button btn btn-mini" style="background-color: #6c757d; border-color: #6c757d; color: white;" href="#atendimento-tecnico">
+                            <span class="button__icon"><i class="bx bx-user-check"></i></span> <span class="button__text">Atendimento do Técnico</span></a>
                     <?php } ?>
                 </div>
             </div>
@@ -360,6 +360,17 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
         </div>
     </div>
 </div>
+
+<?php if (! empty($temAtendimento)) { ?>
+    <div id="atendimento-tecnico"></div>
+    <?php $this->load->view('conecte/_atendimento_tecnico', [
+        'result' => $result,
+        'checkins' => isset($checkins) ? $checkins : [],
+        'assinaturas' => isset($assinaturas) ? $assinaturas : [],
+        'fotosPorEtapa' => isset($fotosPorEtapa) ? $fotosPorEtapa : [],
+        'respostasPorEtapa' => isset($respostasPorEtapa) ? $respostasPorEtapa : [],
+    ]); ?>
+<?php } ?>
 
 <script type="text/javascript">
     $(document).ready(function() {

@@ -731,16 +731,36 @@ class Mine extends CI_Controller
         // Linha do tempo ("onde estamos") desta OS para o cliente acompanhar.
         $data['timeline'] = $this->os_model->getTimeline($osId);
 
-        // Indica se a OS tem registro de atendimento (check-in ou respostas de
-        // formulários) para exibir o botão do relatório do técnico na OS.
-        $temAtendimento = false;
-        if ($this->db->table_exists('os_checkin')) {
-            $temAtendimento = $this->db->where('os_id', $osId)->count_all_results('os_checkin') > 0;
+        // Dados do atendimento do técnico (check-ins, formulários, assinaturas e
+        // fotos) para exibir a aba "Atendimento do Técnico" dentro da OS.
+        $this->load->model('checkin_model');
+        $this->load->model('assinaturas_model');
+        $this->load->model('fotosatendimento_model');
+        $this->load->model('formularios_atendimento_model', 'formularios');
+
+        $data['checkins'] = $this->checkin_model->getAllByOs($osId);
+
+        $assinaturasPorTipo = [];
+        foreach ($this->assinaturas_model->getByOs($osId) as $assinatura) {
+            $assinaturasPorTipo[$assinatura->tipo] = $assinatura;
         }
-        if (! $temAtendimento && $this->db->table_exists('formularios_atendimento_respostas')) {
-            $temAtendimento = $this->db->where('os_id', $osId)->count_all_results('formularios_atendimento_respostas') > 0;
+        $data['assinaturas'] = $assinaturasPorTipo;
+
+        $fotosPorEtapa = ['entrada' => [], 'durante' => [], 'saida' => []];
+        foreach ($this->fotosatendimento_model->getByOs($osId) as $foto) {
+            $fotosPorEtapa[$foto->etapa][] = $foto;
         }
-        $data['temAtendimento'] = $temAtendimento;
+        $data['fotosPorEtapa'] = $fotosPorEtapa;
+
+        $respostasPorEtapa = [];
+        foreach ($this->formularios->getRespostasByOs($osId) as $resposta) {
+            $respostasPorEtapa[$resposta->etapa ?: 'outros'][] = $resposta;
+        }
+        $data['respostasPorEtapa'] = $respostasPorEtapa;
+
+        $data['temAtendimento'] = ! empty($data['checkins']) || ! empty($respostasPorEtapa)
+            || ! empty($assinaturasPorTipo)
+            || ! empty($fotosPorEtapa['entrada']) || ! empty($fotosPorEtapa['durante']) || ! empty($fotosPorEtapa['saida']);
 
         $data['output'] = 'conecte/visualizar_os';
         $this->load->view('conecte/template', $data);
