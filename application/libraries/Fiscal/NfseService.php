@@ -85,6 +85,29 @@ class NfseService
     }
 
     /**
+     * Escapa caracteres reservados de XML (& < > " ') para um campo da DPS.
+     * A biblioteca monta o XML com DOMDocument::createElement($tag, $valor), que
+     * interpreta o valor como marcação — um "&" cru (ex.: razão social
+     * "F&F Distribuidora...") vira início de entidade e dispara
+     * "unterminated entity reference". Pré-escapar produz o valor correto, pois o
+     * createElement decodifica a entidade de volta no caractere original.
+     */
+    private function escaparXml(string $texto): string
+    {
+        return htmlspecialchars($texto, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+    }
+
+    /**
+     * Prepara um campo de texto curto (nome, endereço) para a DPS: limpa,
+     * trunca no limite do schema e então escapa para XML. Trunca antes de
+     * escapar para não cortar no meio de uma entidade (ex.: "&amp;").
+     */
+    private function limparCampo(string $texto, int $max): string
+    {
+        return $this->escaparXml(mb_substr($this->limparTexto($texto), 0, $max));
+    }
+
+    /**
      * Formata a resposta de rejeição do Sefin Nacional em:
      *   [0] mensagem legível (lista "Codigo - Descricao [ - Complemento]")
      *   [1] detalhe técnico completo (JSON pretty do retorno inteiro)
@@ -199,7 +222,7 @@ class NfseService
             $std->infDPS->subst->chSubstda = preg_replace('/\D/', '', (string) $subst['chSubstda']);
             $std->infDPS->subst->cMotivo = str_pad((string) $subst['cMotivo'], 2, '0', STR_PAD_LEFT);
             if (!empty($subst['xMotivo'])) {
-                $std->infDPS->subst->xMotivo = mb_substr((string) $subst['xMotivo'], 0, 255);
+                $std->infDPS->subst->xMotivo = $this->limparCampo((string) $subst['xMotivo'], 255);
             }
         }
 
@@ -229,7 +252,7 @@ class NfseService
         } else {
             $std->infDPS->toma->CPF = $documento;
         }
-        $std->infDPS->toma->xNome = mb_substr($os->nomeCliente, 0, 150);
+        $std->infDPS->toma->xNome = $this->limparCampo((string) $os->nomeCliente, 150);
 
         // Endereço do tomador — obrigatório quando o ISS é retido (E0237) e
         // recomendado sempre. O cadastro de cliente não guarda o código IBGE,
@@ -238,10 +261,10 @@ class NfseService
         $tomaCep = preg_replace('/\D/', '', (string) ($os->cep ?? ''));
         if ($tomaRua !== '' && strlen($tomaCep) === 8) {
             $std->infDPS->toma->end = new stdClass();
-            $std->infDPS->toma->end->xLgr = mb_substr($tomaRua, 0, 255);
-            $std->infDPS->toma->end->nro = mb_substr(trim((string) ($os->numero ?? '')) ?: 'S/N', 0, 60);
+            $std->infDPS->toma->end->xLgr = $this->limparCampo($tomaRua, 255);
+            $std->infDPS->toma->end->nro = $this->limparCampo(trim((string) ($os->numero ?? '')) ?: 'S/N', 60);
             if (!empty($os->bairro)) {
-                $std->infDPS->toma->end->xBairro = mb_substr((string) $os->bairro, 0, 60);
+                $std->infDPS->toma->end->xBairro = $this->limparCampo((string) $os->bairro, 60);
             }
             $std->infDPS->toma->end->endNac = new stdClass();
             $std->infDPS->toma->end->endNac->cMun = (string) $this->config->codigo_municipio;
@@ -287,7 +310,7 @@ class NfseService
         if ($descServico === '') {
             $descServico = 'OS nr. ' . $os->idOs;
         }
-        $std->infDPS->serv->cServ->xDescServ = mb_substr($descServico, 0, 2000);
+        $std->infDPS->serv->cServ->xDescServ = $this->escaparXml(mb_substr($descServico, 0, 2000));
 
         // valores
         $tpRet = isset($opcoes['tp_ret_issqn']) && $opcoes['tp_ret_issqn'] !== ''
@@ -376,7 +399,7 @@ class NfseService
         $std->infPedReg->e101101 = new stdClass();
         $std->infPedReg->e101101->xDesc = 'Cancelamento de NFS-e';
         $std->infPedReg->e101101->cMotivo = 1; // erro na emissão
-        $std->infPedReg->e101101->xMotivo = mb_substr($motivo, 0, 255);
+        $std->infPedReg->e101101->xMotivo = $this->limparCampo($motivo, 255);
 
         $resposta = $this->tools->cancelaNfse($std);
 
