@@ -838,6 +838,26 @@ if (! is_array($permissoes)) {
                                         </label>
                                     </td>
                                 </tr>
+                                <tr>
+                                    <td>
+                                        <label>
+                                            <input <?php if (! empty($permissoes['vEntrada']) && $permissoes['vEntrada'] == '1') echo 'checked'; ?> name="vEntrada" class="marcar" type="checkbox" value="1" />
+                                            <span class="lbl"> Visualizar Entradas / Créditos</span>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <label>
+                                            <input <?php if (! empty($permissoes['cEntrada']) && $permissoes['cEntrada'] == '1') echo 'checked'; ?> name="cEntrada" class="marcar" type="checkbox" value="1" />
+                                            <span class="lbl"> Importar/Lançar Entradas</span>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <label>
+                                            <input <?php if (! empty($permissoes['dEntrada']) && $permissoes['dEntrada'] == '1') echo 'checked'; ?> name="dEntrada" class="marcar" type="checkbox" value="1" />
+                                            <span class="lbl"> Excluir Entradas</span>
+                                        </label>
+                                    </td>
+                                </tr>
                             </table>
                         </div>
                     </div>

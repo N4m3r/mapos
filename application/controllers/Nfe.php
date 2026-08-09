@@ -130,6 +130,19 @@ class Nfe extends MY_Controller
                         $data['ctribmun_padrao'] = $munPad !== '' ? $munPad : '100';
                     }
 
+                    // Reforma Tributária (IBS/CBS) — checkbox mestre + parâmetros.
+                    // Guardado por field_exists p/ não quebrar antes da migration.
+                    if ($this->db->field_exists('reforma_ativa', 'configuracoes_nfe')) {
+                        $data['reforma_ativa'] = $this->input->post('reforma_ativa') ? 1 : 0;
+                        $data['reforma_cbs'] = (float) str_replace(',', '.', (string) $this->input->post('reforma_cbs'));
+                        $data['reforma_ibs_uf'] = (float) str_replace(',', '.', (string) $this->input->post('reforma_ibs_uf'));
+                        $data['reforma_ibs_mun'] = (float) str_replace(',', '.', (string) $this->input->post('reforma_ibs_mun'));
+                        $cst = preg_replace('/\D/', '', (string) $this->input->post('reforma_cst'));
+                        $cct = preg_replace('/\D/', '', (string) $this->input->post('reforma_cclasstrib'));
+                        $data['reforma_cst'] = $cst !== '' ? substr(str_pad($cst, 3, '0', STR_PAD_LEFT), 0, 3) : '000';
+                        $data['reforma_cclasstrib'] = $cct !== '' ? substr(str_pad($cct, 6, '0', STR_PAD_LEFT), 0, 6) : '000001';
+                    }
+
                     $this->nfe_model->saveConfig($data);
 
                     // valida o certificado imediatamente para dar retorno claro ao usuário

@@ -159,6 +159,61 @@
                         </div>
                     </div>
 
+                    <h5 style="margin-top:20px">Reforma Tributária — IBS/CBS (NF-e)</h5>
+
+                    <div class="control-group">
+                        <label class="control-label" for="reforma_ativa">Emitir grupo IBS/CBS</label>
+                        <div class="controls">
+                            <label class="checkbox" style="display:inline-flex;align-items:center;gap:8px">
+                                <input type="checkbox" id="reforma_ativa" name="reforma_ativa" value="1" <?= !empty($configNfe->reforma_ativa) ? 'checked' : '' ?> />
+                                Ativar os campos de IBS/CBS na NF-e (layout PL_010 da reforma)
+                            </label>
+                            <span class="hint"><strong>Desligado</strong>, a NF-e sai como hoje. <strong>Ligado</strong>, cada item passa a levar o grupo IBS/CBS. Comece em <strong>Homologação</strong>. Valores conforme o contador (regime por dentro × híbrido e Zona Franca de Manaus).</span>
+                        </div>
+                    </div>
+
+                    <div id="reforma_campos" style="<?= !empty($configNfe->reforma_ativa) ? '' : 'display:none' ?>">
+                        <div class="control-group">
+                            <label class="control-label" for="reforma_cbs">Alíquota CBS (%)</label>
+                            <div class="controls">
+                                <input type="text" id="reforma_cbs" name="reforma_cbs" value="<?= html_escape(isset($configNfe->reforma_cbs) ? $configNfe->reforma_cbs : '0.9000') ?>" style="width:90px" />
+                                <span class="hint">Ano-teste 2026: 0,9%. Federal (substitui PIS/COFINS).</span>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="reforma_ibs_uf">Alíquota IBS - UF (%)</label>
+                            <div class="controls">
+                                <input type="text" id="reforma_ibs_uf" name="reforma_ibs_uf" value="<?= html_escape(isset($configNfe->reforma_ibs_uf) ? $configNfe->reforma_ibs_uf : '0.1000') ?>" style="width:90px" />
+                                <span class="hint">Parte estadual do IBS. Ano-teste 2026: 0,1% (total IBS).</span>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="reforma_ibs_mun">Alíquota IBS - Município (%)</label>
+                            <div class="controls">
+                                <input type="text" id="reforma_ibs_mun" name="reforma_ibs_mun" value="<?= html_escape(isset($configNfe->reforma_ibs_mun) ? $configNfe->reforma_ibs_mun : '0.0000') ?>" style="width:90px" />
+                                <span class="hint">Parte municipal do IBS. Em geral 0 no ano-teste.</span>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="reforma_cst">CST do IBS/CBS</label>
+                            <div class="controls">
+                                <input type="text" id="reforma_cst" name="reforma_cst" maxlength="3" value="<?= html_escape(isset($configNfe->reforma_cst) && $configNfe->reforma_cst !== '' ? $configNfe->reforma_cst : '000') ?>" style="width:70px" />
+                                <span class="hint">3 dígitos. 000 = tributação integral (padrão). Confirme com o contador.</span>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="reforma_cclasstrib">cClassTrib</label>
+                            <div class="controls">
+                                <input type="text" id="reforma_cclasstrib" name="reforma_cclasstrib" maxlength="6" value="<?= html_escape(isset($configNfe->reforma_cclasstrib) && $configNfe->reforma_cclasstrib !== '' ? $configNfe->reforma_cclasstrib : '000001') ?>" style="width:90px" />
+                                <span class="hint">6 dígitos. Código de Classificação Tributária do IBS/CBS. 000001 = tributação integral.</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <h5>NFS-e Padrão Nacional (Ordens de Serviço)</h5>
 
                     <div class="control-group">
@@ -235,6 +290,11 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
+        // Mostra/oculta os parâmetros de IBS/CBS conforme o checkbox mestre.
+        $('#reforma_ativa').on('change', function() {
+            $('#reforma_campos').toggle(this.checked);
+        });
+
         $('#btnSalvarCert').on('click', function() {
             var btn = $(this);
             var fd = new FormData();

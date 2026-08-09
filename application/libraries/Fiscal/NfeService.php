@@ -74,7 +74,11 @@ class NfeService
             throw new Exception('A venda não possui produtos para emissão da NF-e.');
         }
 
-        $make = new Make();
+        // Reforma Tributária (Fase 2): quando ligada, o Make é montado no layout
+        // PL_010 (schema > 9), que habilita o grupo IBS/CBS por item e o
+        // totalizador. Desligada, mantém o PL_009 (comportamento atual, sem risco).
+        $reforma = !empty($this->config->reforma_ativa);
+        $make = $reforma ? new Make('PL_010') : new Make();
 
         $std = new stdClass();
         $std->versao = '4.00';
@@ -239,6 +243,32 @@ class NfeService
             $std->pCOFINS = 0.0000;
             $std->vCOFINS = 0.00;
             $make->tagCOFINS($std);
+
+            // Grupo IBS/CBS (reforma tributária) — só quando ativado nas
+            // configurações. Alíquotas/CST/cClassTrib são parametrizáveis; a
+            // base é o valor do item. O totalizador é montado pela lib.
+            if ($reforma) {
+                $pIBSUF = (float) ($this->config->reforma_ibs_uf ?? 0);
+                $pIBSMun = (float) ($this->config->reforma_ibs_mun ?? 0);
+                $pCBS = (float) ($this->config->reforma_cbs ?? 0);
+                $vIBSUF = round($subTotal * $pIBSUF / 100, 2);
+                $vIBSMun = round($subTotal * $pIBSMun / 100, 2);
+                $vCBS = round($subTotal * $pCBS / 100, 2);
+
+                $std = new stdClass();
+                $std->item = $nItem;
+                $std->CST = $this->config->reforma_cst ?: '000';
+                $std->cClassTrib = $this->config->reforma_cclasstrib ?: '000001';
+                $std->vBC = number_format($subTotal, 2, '.', '');
+                $std->gIBSUF_pIBSUF = $pIBSUF;
+                $std->gIBSUF_vIBSUF = number_format($vIBSUF, 2, '.', '');
+                $std->gIBSMun_pIBSMun = $pIBSMun;
+                $std->gIBSMun_vIBSMun = number_format($vIBSMun, 2, '.', '');
+                $std->vIBS = number_format($vIBSUF + $vIBSMun, 2, '.', '');
+                $std->gCBS_pCBS = $pCBS;
+                $std->gCBS_vCBS = number_format($vCBS, 2, '.', '');
+                $make->tagIBSCBS($std);
+            }
         }
 
         // desconto aplicado sobre o total (rateado pela lib no ICMSTot)

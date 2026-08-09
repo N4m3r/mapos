@@ -139,6 +139,10 @@ class Permissoes extends MY_Controller
                 'vNfe' => $this->input->post('vNfe'),
                 'dNfe' => $this->input->post('dNfe'),
 
+                'vEntrada' => $this->input->post('vEntrada'),
+                'cEntrada' => $this->input->post('cEntrada'),
+                'dEntrada' => $this->input->post('dEntrada'),
+
                 // Permissões RH
                 'vRh' => $this->input->post('vRh'),
                 'eRh' => $this->input->post('eRh'),
@@ -298,6 +302,10 @@ class Permissoes extends MY_Controller
                 'eNfe' => $this->input->post('eNfe'),
                 'vNfe' => $this->input->post('vNfe'),
                 'dNfe' => $this->input->post('dNfe'),
+
+                'vEntrada' => $this->input->post('vEntrada'),
+                'cEntrada' => $this->input->post('cEntrada'),
+                'dEntrada' => $this->input->post('dEntrada'),
 
                 // Permissões RH
                 'vRh' => $this->input->post('vRh'),

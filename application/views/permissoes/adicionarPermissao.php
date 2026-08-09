@@ -525,6 +525,27 @@
                                                 </label>
                                             </td>
                                         </tr>
+                                        <tr>
+                                            <td>
+                                                <label>
+                                                    <input name="vEntrada" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Visualizar Entradas / Créditos</span>
+                                                </label>
+                                            </td>
+                                            <td>
+                                                <label>
+                                                    <input name="cEntrada" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Importar/Lançar Entradas</span>
+                                                </label>
+                                            </td>
+                                            <td>
+                                                <label>
+                                                    <input name="dEntrada" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Excluir Entradas</span>
+                                                </label>
+                                            </td>
+                                            <td></td>
+                                        </tr>
                                         </tbody>
                                     </table>
                                 </div>

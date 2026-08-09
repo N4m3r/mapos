@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c3c6bc03bf675eaf30c6d20c3f93e934",
+    "content-hash": "470fe1f5f670a1a4b69925acea478d1c",
     "packages": [
         {
             "name": "chillerlan/php-qrcode",
@@ -1228,6 +1228,127 @@
             "time": "2024-07-18T11:15:46+00:00"
         },
         {
+            "name": "hadder/nfse-nacional",
+            "version": "1.0.22",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Rainzart/nfse-nacional.git",
+                "reference": "ddf01b8fd79b995730dcc408b06883380894ff79"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Rainzart/nfse-nacional/zipball/ddf01b8fd79b995730dcc408b06883380894ff79",
+                "reference": "ddf01b8fd79b995730dcc408b06883380894ff79",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-dom": "*",
+                "ext-mbstring": "*",
+                "ext-openssl": "*",
+                "ext-zlib": "*",
+                "nfephp-org/sped-common": "^5.1",
+                "php": "^8.1",
+                "symfony/var-dumper": "^7.1|^6.4",
+                "tecnickcom/tcpdf": "^6.7"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "Helpers.php"
+                ],
+                "psr-4": {
+                    "Hadder\\NfseNacional\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fernando Friedrich",
+                    "email": "fernando@hadder.com.br"
+                }
+            ],
+            "description": "Pacote para geração de NFSe Nacional usando componentes NFePHP (https://github.com/nfephp-org)",
+            "keywords": [
+                "mei",
+                "nfse",
+                "nfse-nacional"
+            ],
+            "support": {
+                "issues": "https://github.com/Rainzart/nfse-nacional/issues",
+                "source": "https://github.com/Rainzart/nfse-nacional/tree/1.0.22"
+            },
+            "time": "2026-05-12T15:13:28+00:00"
+        },
+        {
+            "name": "justinrainbow/json-schema",
+            "version": "5.3.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jsonrainbow/json-schema.git",
+                "reference": "7df70ffaf31d98726801b4bc099e1fbdbe2e5e54"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jsonrainbow/json-schema/zipball/7df70ffaf31d98726801b4bc099e1fbdbe2e5e54",
+                "reference": "7df70ffaf31d98726801b4bc099e1fbdbe2e5e54",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "~2.2.20||~2.15.1",
+                "json-schema/json-schema-test-suite": "1.2.0",
+                "phpunit/phpunit": "^4.8.35"
+            },
+            "bin": [
+                "bin/validate-json"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "JsonSchema\\": "src/JsonSchema/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Bruno Prieto Reis",
+                    "email": "bruno.p.reis@gmail.com"
+                },
+                {
+                    "name": "Justin Rainbow",
+                    "email": "justin.rainbow@gmail.com"
+                },
+                {
+                    "name": "Igor Wiedler",
+                    "email": "igor@wiedler.ch"
+                },
+                {
+                    "name": "Robert Schönthal",
+                    "email": "seroscho@googlemail.com"
+                }
+            ],
+            "description": "A library to validate a json schema.",
+            "homepage": "https://github.com/justinrainbow/json-schema",
+            "keywords": [
+                "json",
+                "schema"
+            ],
+            "support": {
+                "issues": "https://github.com/jsonrainbow/json-schema/issues",
+                "source": "https://github.com/jsonrainbow/json-schema/tree/5.3.4"
+            },
+            "time": "2026-05-04T18:54:58+00:00"
+        },
+        {
             "name": "laminas/laminas-escaper",
             "version": "2.15.0",
             "source": {
@@ -1686,6 +1807,325 @@
                 }
             ],
             "time": "2024-11-08T17:47:46+00:00"
+        },
+        {
+            "name": "nfephp-org/sped-common",
+            "version": "v5.1.17",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nfephp-org/sped-common.git",
+                "reference": "83c944a508635bc52575fe15198897b60a5679ac"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nfephp-org/sped-common/zipball/83c944a508635bc52575fe15198897b60a5679ac",
+                "reference": "83c944a508635bc52575fe15198897b60a5679ac",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-dom": "*",
+                "ext-mbstring": "*",
+                "ext-openssl": "*",
+                "ext-soap": "*",
+                "php": ">= 7.4",
+                "psr/log": "^1.0||^2.0||^3.0"
+            },
+            "require-dev": {
+                "phpcompatibility/php-compatibility": "^9.3",
+                "phpstan/phpstan": "^1.4",
+                "phpunit/phpunit": "^9.3",
+                "scrutinizer/ocular": "^1.8",
+                "squizlabs/php_codesniffer": "^3.6"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-v5.0": "5.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "NFePHP\\Common\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0-or-later",
+                "GPL-3.0-or-later",
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Roberto L. Machado",
+                    "email": "linux.rlm@gmail.com.br",
+                    "homepage": "http://www.nfephp.org",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Gustavo Lidani",
+                    "email": "lidanig0@gmail.com",
+                    "homepage": "https://github.com/lidani",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Comunidade NFePHP",
+                    "homepage": "https://github.com/nfephp-org/sped-common/graphs/contributors"
+                }
+            ],
+            "description": "sped-common é parte do projeto NFePHP.",
+            "homepage": "https://github.com/nfephp-org/sped-common",
+            "keywords": [
+                "nfe",
+                "nfephp",
+                "sped"
+            ],
+            "support": {
+                "issues": "https://github.com/nfephp-org/sped-common/issues",
+                "source": "https://github.com/nfephp-org/sped-common/tree/v5.1.17"
+            },
+            "time": "2026-05-25T17:11:24+00:00"
+        },
+        {
+            "name": "nfephp-org/sped-da",
+            "version": "v1.1.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nfephp-org/sped-da.git",
+                "reference": "93ae550adcf5dd0c43598f27e323a8af84ceba22"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nfephp-org/sped-da/zipball/93ae550adcf5dd0c43598f27e323a8af84ceba22",
+                "reference": "93ae550adcf5dd0c43598f27e323a8af84ceba22",
+                "shasum": ""
+            },
+            "require": {
+                "ext-dom": "*",
+                "ext-gd": "*",
+                "ext-mbstring": "*",
+                "nfephp-org/sped-common": "^5.1.0",
+                "php": ">= 7.4",
+                "tecnickcom/tc-lib-barcode": "^1"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^1.4",
+                "phpunit/phpunit": "^9.3",
+                "scrutinizer/ocular": "^1.8",
+                "sebastian/phpcpd": "^6.0",
+                "squizlabs/php_codesniffer": "^3.6"
+            },
+            "suggest": {
+                "nfephp-org/posprint": "^0.1"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "0.3.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "NFePHP\\DA\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0-or-later+",
+                "GPL-3.0-or-later",
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Roberto L. Machado",
+                    "email": "linux.rlm@gmail.com.br",
+                    "homepage": "http://www.nfephp.org",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Comunidade NFePHP",
+                    "homepage": "https://github.com/nfephp-org/sped-da/graphs/contributors"
+                }
+            ],
+            "description": "sped-da contêm as classes para criação dos documentos auxiliares referidos no projeto Sped.",
+            "homepage": "https://github.com/nfephp-org/sped-da",
+            "keywords": [
+                "CCe",
+                "Dacte",
+                "Danfe",
+                "nfe",
+                "nfephp",
+                "sped"
+            ],
+            "support": {
+                "issues": "https://github.com/nfephp-org/sped-da/issues",
+                "source": "https://github.com/nfephp-org/sped-da/tree/v1.1.6"
+            },
+            "time": "2024-05-07T19:32:22+00:00"
+        },
+        {
+            "name": "nfephp-org/sped-gtin",
+            "version": "v1.1.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nfephp-org/sped-gtin.git",
+                "reference": "a00b9bc26f91bd5583f24ec341b7e5149a9769a1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nfephp-org/sped-gtin/zipball/a00b9bc26f91bd5583f24ec341b7e5149a9769a1",
+                "reference": "a00b9bc26f91bd5583f24ec341b7e5149a9769a1",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-dom": "*",
+                "ext-json": "*",
+                "ext-libxml": "*",
+                "ext-openssl": "*",
+                "ext-simplexml": "*",
+                "ext-soap": "*",
+                "nfephp-org/sped-common": "^5.1.0",
+                "php": ">= 7.4"
+            },
+            "require-dev": {
+                "phpcompatibility/php-compatibility": "^9.3",
+                "phpstan/phpstan": "^1.4",
+                "phpunit/phpunit": "^9.3",
+                "scrutinizer/ocular": "^1.8",
+                "squizlabs/php_codesniffer": "dev-master"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "v1.0": "1.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "NFePHP\\Gtin\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0-or-later",
+                "GPL-3.0-or-later",
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Roberto L. Machado",
+                    "email": "linux.rlm@gmail.com.br",
+                    "homepage": "https://github.com/nfephp-org",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Gustavo Lidani",
+                    "email": "lidanig0@gmail.com",
+                    "homepage": "https://github.com/lidani",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Comunidade NFePHP",
+                    "homepage": "https://github.com/nfephp-org/sped-gtin/graphs/contributors"
+                }
+            ],
+            "description": "Classes for validation of GTIN codes.",
+            "homepage": "https://github.com/nfephp-org/sped-gtin",
+            "keywords": [
+                "gtin",
+                "nfce",
+                "nfe",
+                "nfephp",
+                "sped"
+            ],
+            "support": {
+                "issues": "https://github.com/nfephp-org/sped-gtin/issues",
+                "source": "https://github.com/nfephp-org/sped-gtin/tree/v1.1.2"
+            },
+            "time": "2025-05-30T20:52:05+00:00"
+        },
+        {
+            "name": "nfephp-org/sped-nfe",
+            "version": "v5.2.8",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nfephp-org/sped-nfe.git",
+                "reference": "759fb2365e3c20141e9e445592893a01afa638a5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nfephp-org/sped-nfe/zipball/759fb2365e3c20141e9e445592893a01afa638a5",
+                "reference": "759fb2365e3c20141e9e445592893a01afa638a5",
+                "shasum": ""
+            },
+            "require": {
+                "ext-dom": "*",
+                "ext-json": "*",
+                "ext-libxml": "*",
+                "ext-openssl": "*",
+                "ext-simplexml": "*",
+                "ext-soap": "*",
+                "ext-zlib": "*",
+                "justinrainbow/json-schema": "^5.2",
+                "nfephp-org/sped-common": "^5.1.0",
+                "nfephp-org/sped-gtin": "^1.1.0",
+                "php": ">= 7.4"
+            },
+            "require-dev": {
+                "phpcompatibility/php-compatibility": "^9.3",
+                "phpstan/phpstan": "^1.4",
+                "phpunit/phpunit": "^9.3",
+                "squizlabs/php_codesniffer": "^3.6"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "v5.1": "5.1-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "NFePHP\\NFe\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0-or-later",
+                "GPL-3.0-or-later",
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Roberto L. Machado",
+                    "email": "linux.rlm@gmail.com.br",
+                    "homepage": "https://www.nfephp.com.br/",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Gustavo Lidani",
+                    "email": "lidanig0@gmail.com",
+                    "homepage": "https://github.com/lidani",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Comunidade NFePHP",
+                    "homepage": "https://github.com/nfephp-org/sped-nfe/graphs/contributors"
+                }
+            ],
+            "description": "API para geração e comunicação da NFe e NFCe com as SEFAZ autorizadoras.",
+            "homepage": "https://github.com/nfephp-org/sped-nfe",
+            "keywords": [
+                "nfce",
+                "nfe",
+                "nfephp",
+                "sped"
+            ],
+            "support": {
+                "issues": "https://github.com/nfephp-org/sped-nfe/issues",
+                "source": "https://github.com/nfephp-org/sped-nfe/tree/v5.2.8"
+            },
+            "time": "2026-07-27T19:27:25+00:00"
         },
         {
             "name": "paragonie/random_compat",
@@ -2587,16 +3027,16 @@
         },
         {
             "name": "symfony/deprecation-contracts",
-            "version": "v3.5.1",
+            "version": "v3.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/deprecation-contracts.git",
-                "reference": "74c71c939a79f7d5bf3c1ce9f5ea37ba0114c6f6"
+                "reference": "f3202fa1b5097b0af062dc978b32ecf63404e31d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/deprecation-contracts/zipball/74c71c939a79f7d5bf3c1ce9f5ea37ba0114c6f6",
-                "reference": "74c71c939a79f7d5bf3c1ce9f5ea37ba0114c6f6",
+                "url": "https://api.github.com/repos/symfony/deprecation-contracts/zipball/f3202fa1b5097b0af062dc978b32ecf63404e31d",
+                "reference": "f3202fa1b5097b0af062dc978b32ecf63404e31d",
                 "shasum": ""
             },
             "require": {
@@ -2609,7 +3049,7 @@
                     "name": "symfony/contracts"
                 },
                 "branch-alias": {
-                    "dev-main": "3.5-dev"
+                    "dev-main": "3.7-dev"
                 }
             },
             "autoload": {
@@ -2634,7 +3074,7 @@
             "description": "A generic function and convention to trigger deprecation notices",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/deprecation-contracts/tree/v3.5.1"
+                "source": "https://github.com/symfony/deprecation-contracts/tree/v3.7.1"
             },
             "funding": [
                 {
@@ -2646,11 +3086,15 @@
                     "type": "github"
                 },
                 {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
                     "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-09-25T14:20:29+00:00"
+            "time": "2026-06-05T06:23:12+00:00"
         },
         {
             "name": "symfony/polyfill-ctype",
@@ -2733,19 +3177,20 @@
         },
         {
             "name": "symfony/polyfill-mbstring",
-            "version": "v1.31.0",
+            "version": "v1.38.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",
-                "reference": "85181ba99b2345b0ef10ce42ecac37612d9fd341"
+                "reference": "d3d318bad5e7a1bfbd026009c8bfb8d8f99ae6b6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/85181ba99b2345b0ef10ce42ecac37612d9fd341",
-                "reference": "85181ba99b2345b0ef10ce42ecac37612d9fd341",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/d3d318bad5e7a1bfbd026009c8bfb8d8f99ae6b6",
+                "reference": "d3d318bad5e7a1bfbd026009c8bfb8d8f99ae6b6",
                 "shasum": ""
             },
             "require": {
+                "ext-iconv": "*",
                 "php": ">=7.2"
             },
             "provide": {
@@ -2793,7 +3238,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.31.0"
+                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.38.2"
             },
             "funding": [
                 {
@@ -2805,11 +3250,15 @@
                     "type": "github"
                 },
                 {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
                     "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-09-09T11:45:10+00:00"
+            "time": "2026-05-27T06:59:30+00:00"
         },
         {
             "name": "symfony/polyfill-php80",
@@ -2975,6 +3424,94 @@
             "time": "2024-09-25T14:20:29+00:00"
         },
         {
+            "name": "symfony/var-dumper",
+            "version": "v6.4.43",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/var-dumper.git",
+                "reference": "6638cfe00907b2b980b749fcf2cd4cd6b2b1396e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/6638cfe00907b2b980b749fcf2cd4cd6b2b1396e",
+                "reference": "6638cfe00907b2b980b749fcf2cd4cd6b2b1396e",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1",
+                "symfony/deprecation-contracts": "^2.5|^3",
+                "symfony/polyfill-mbstring": "~1.0"
+            },
+            "conflict": {
+                "symfony/console": "<5.4"
+            },
+            "require-dev": {
+                "symfony/console": "^5.4|^6.0|^7.0",
+                "symfony/error-handler": "^6.3|^7.0",
+                "symfony/http-kernel": "^5.4|^6.0|^7.0",
+                "symfony/process": "^5.4|^6.0|^7.0",
+                "symfony/uid": "^5.4|^6.0|^7.0",
+                "twig/twig": "^2.13|^3.0.4|^4.0"
+            },
+            "bin": [
+                "Resources/bin/var-dump-server"
+            ],
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "Resources/functions/dump.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Component\\VarDumper\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Provides mechanisms for walking through any arbitrary PHP variable",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "debug",
+                "dump"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/var-dumper/tree/v6.4.43"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-07-06T08:03:42+00:00"
+        },
+        {
             "name": "symfony/var-exporter",
             "version": "v7.2.0",
             "source": {
@@ -3049,6 +3586,252 @@
                 }
             ],
             "time": "2024-10-18T07:58:17+00:00"
+        },
+        {
+            "name": "tecnickcom/tc-lib-barcode",
+            "version": "1.18.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tecnickcom/tc-lib-barcode.git",
+                "reference": "cd81392e6e1e57e0f6ff8519b1edbc11d8e47a44"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/tecnickcom/tc-lib-barcode/zipball/cd81392e6e1e57e0f6ff8519b1edbc11d8e47a44",
+                "reference": "cd81392e6e1e57e0f6ff8519b1edbc11d8e47a44",
+                "shasum": ""
+            },
+            "require": {
+                "ext-bcmath": "*",
+                "ext-date": "*",
+                "ext-gd": "*",
+                "ext-pcre": "*",
+                "php": ">=5.6",
+                "tecnickcom/tc-lib-color": "^1.14"
+            },
+            "require-dev": {
+                "pdepend/pdepend": "2.13.0",
+                "phpmd/phpmd": "2.13.0",
+                "phpunit/phpunit": "10.1.2 || 9.6.7 || 8.5.31 || 7.5.20 || 6.5.14 || 5.7.27 || 4.8.36",
+                "squizlabs/php_codesniffer": "3.7.2 || 2.9.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Com\\Tecnick\\Barcode\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Nicola Asuni",
+                    "email": "info@tecnick.com",
+                    "role": "lead"
+                }
+            ],
+            "description": "PHP library to generate linear and bidimensional barcodes",
+            "homepage": "http://www.tecnick.com",
+            "keywords": [
+                "3 of 9",
+                "ANSI MH10.8M-1983",
+                "CBC",
+                "CODABAR",
+                "CODE 11",
+                "CODE 128 A B C",
+                "CODE 39",
+                "CODE 93",
+                "EAN 13",
+                "EAN 8",
+                "ECC200",
+                "ISO IEC 15438 2006",
+                "ISO IEC 16022",
+                "ISO IEC 24778 2008",
+                "Intelligent Mail Barcode",
+                "Interleaved 2 of 5",
+                "KIX",
+                "Klant",
+                "MSI",
+                "Onecode",
+                "PHARMACODE",
+                "PHARMACODE TWO-TRACKS",
+                "POSTNET",
+                "RMS4CC",
+                "Standard 2 of 5",
+                "UPC-A",
+                "UPC-E",
+                "USD-3",
+                "USPS-B-3200",
+                "USS-93",
+                "aztec",
+                "barcode",
+                "datamatrix",
+                "pdf417",
+                "planet",
+                "qr-code",
+                "royal mail",
+                "tc-lib-barcode",
+                "upc"
+            ],
+            "support": {
+                "issues": "https://github.com/tecnickcom/tc-lib-barcode/issues",
+                "source": "https://github.com/tecnickcom/tc-lib-barcode/tree/1.18.4"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&currency_code=GBP&business=paypal@tecnick.com&item_name=donation%20for%20tc-lib-barcode%20project",
+                    "type": "custom"
+                }
+            ],
+            "time": "2023-10-23T09:30:01+00:00"
+        },
+        {
+            "name": "tecnickcom/tc-lib-color",
+            "version": "1.14.39",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tecnickcom/tc-lib-color.git",
+                "reference": "f7a414e7ddbdcd98105506ca1eecc68d4820fb89"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/tecnickcom/tc-lib-color/zipball/f7a414e7ddbdcd98105506ca1eecc68d4820fb89",
+                "reference": "f7a414e7ddbdcd98105506ca1eecc68d4820fb89",
+                "shasum": ""
+            },
+            "require": {
+                "ext-pcre": "*",
+                "php": ">=5.3"
+            },
+            "require-dev": {
+                "pdepend/pdepend": "2.13.0",
+                "phpmd/phpmd": "2.13.0",
+                "phpunit/phpunit": "10.1.2 || 9.6.7 || 8.5.31 || 7.5.20 || 6.5.14 || 5.7.27 || 4.8.36",
+                "squizlabs/php_codesniffer": "3.7.2 || 2.9.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Com\\Tecnick\\Color\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Nicola Asuni",
+                    "email": "info@tecnick.com",
+                    "role": "lead"
+                }
+            ],
+            "description": "PHP library to manipulate various color representations",
+            "homepage": "http://www.tecnick.com",
+            "keywords": [
+                "cmyk",
+                "color",
+                "colors",
+                "colour",
+                "colours",
+                "hsl",
+                "hsla",
+                "javascript",
+                "rgb",
+                "rgba",
+                "tc-lib-color",
+                "web"
+            ],
+            "support": {
+                "issues": "https://github.com/tecnickcom/tc-lib-color/issues",
+                "source": "https://github.com/tecnickcom/tc-lib-color/tree/1.14.39"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&currency_code=GBP&business=paypal@tecnick.com&item_name=donation%20for%20tc-lib-color%20project",
+                    "type": "custom"
+                }
+            ],
+            "time": "2023-10-23T09:28:20+00:00"
+        },
+        {
+            "name": "tecnickcom/tcpdf",
+            "version": "6.11.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tecnickcom/TCPDF.git",
+                "reference": "b18f6119161019916c5bb07cb8da5205ae5c1b63"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/tecnickcom/TCPDF/zipball/b18f6119161019916c5bb07cb8da5205ae5c1b63",
+                "reference": "b18f6119161019916c5bb07cb8da5205ae5c1b63",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "php": ">=7.1.0"
+            },
+            "suggest": {
+                "ext-gd": "Enables additional image handling in some workflows.",
+                "ext-imagick": "Enables additional image format support when available.",
+                "ext-zlib": "Recommended for compressed streams and related features.",
+                "tecnickcom/tc-lib-pdf": "Modern replacement for TCPDF for new projects."
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "config",
+                    "include",
+                    "tcpdf.php",
+                    "tcpdf_barcodes_1d.php",
+                    "tcpdf_barcodes_2d.php",
+                    "include/tcpdf_colors.php",
+                    "include/tcpdf_filters.php",
+                    "include/tcpdf_font_data.php",
+                    "include/tcpdf_fonts.php",
+                    "include/tcpdf_images.php",
+                    "include/tcpdf_static.php",
+                    "include/barcodes/datamatrix.php",
+                    "include/barcodes/pdf417.php",
+                    "include/barcodes/qrcode.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Nicola Asuni",
+                    "email": "info@tecnick.com",
+                    "role": "lead"
+                }
+            ],
+            "description": "Deprecated legacy PDF engine for PHP. For new projects use tecnickcom/tc-lib-pdf.",
+            "homepage": "https://tcpdf.org",
+            "keywords": [
+                "PDFD32000-2008",
+                "TCPDF",
+                "barcodes",
+                "datamatrix",
+                "pdf",
+                "pdf417",
+                "qrcode"
+            ],
+            "support": {
+                "issues": "https://github.com/tecnickcom/TCPDF/issues",
+                "source": "https://github.com/tecnickcom/TCPDF"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.com/donate/?hosted_button_id=NZUEC5XS8MFBJ",
+                    "type": "paypal"
+                }
+            ],
+            "time": "2026-04-21T17:00:18+00:00"
         },
         {
             "name": "vlucas/phpdotenv",
@@ -5233,96 +6016,11 @@
                 }
             ],
             "time": "2024-11-13T13:31:26+00:00"
-        },
-        {
-            "name": "symfony/var-dumper",
-            "version": "v6.4.15",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/var-dumper.git",
-                "reference": "38254d5a5ac2e61f2b52f9caf54e7aa3c9d36b80"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/38254d5a5ac2e61f2b52f9caf54e7aa3c9d36b80",
-                "reference": "38254d5a5ac2e61f2b52f9caf54e7aa3c9d36b80",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=8.1",
-                "symfony/deprecation-contracts": "^2.5|^3",
-                "symfony/polyfill-mbstring": "~1.0"
-            },
-            "conflict": {
-                "symfony/console": "<5.4"
-            },
-            "require-dev": {
-                "ext-iconv": "*",
-                "symfony/console": "^5.4|^6.0|^7.0",
-                "symfony/error-handler": "^6.3|^7.0",
-                "symfony/http-kernel": "^5.4|^6.0|^7.0",
-                "symfony/process": "^5.4|^6.0|^7.0",
-                "symfony/uid": "^5.4|^6.0|^7.0",
-                "twig/twig": "^2.13|^3.0.4"
-            },
-            "bin": [
-                "Resources/bin/var-dump-server"
-            ],
-            "type": "library",
-            "autoload": {
-                "files": [
-                    "Resources/functions/dump.php"
-                ],
-                "psr-4": {
-                    "Symfony\\Component\\VarDumper\\": ""
-                },
-                "exclude-from-classmap": [
-                    "/Tests/"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Nicolas Grekas",
-                    "email": "p@tchwork.com"
-                },
-                {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
-                }
-            ],
-            "description": "Provides mechanisms for walking through any arbitrary PHP variable",
-            "homepage": "https://symfony.com",
-            "keywords": [
-                "debug",
-                "dump"
-            ],
-            "support": {
-                "source": "https://github.com/symfony/var-dumper/tree/v6.4.15"
-            },
-            "funding": [
-                {
-                    "url": "https://symfony.com/sponsor",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://github.com/fabpot",
-                    "type": "github"
-                },
-                {
-                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
-                    "type": "tidelift"
-                }
-            ],
-            "time": "2024-11-08T15:28:48+00:00"
         }
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
@@ -5330,6 +6028,6 @@
         "ext-curl": "*",
         "ext-gd": "*"
     },
-    "platform-dev": [],
-    "plugin-api-version": "2.6.0"
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
 }

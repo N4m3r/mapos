@@ -161,6 +161,17 @@
                     </li>
                 <?php } ?>
 
+                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vEntrada')) { ?>
+                    <li class="<?php if (isset($menuEntradas)) {
+                        echo 'active';
+                    }; ?>">
+                        <a class="tip-bottom" title="" href="<?= site_url('entradas') ?>"><i class='bx bx-import iconX'></i>
+                            <span class="title">Entradas</span>
+                            <span class="title-tooltip">Créditos IBS/CBS</span>
+                        </a>
+                    </li>
+                <?php } ?>
+
                 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) { ?>
                     <li class="<?php if (isset($menuAtribuir)) {
                         echo 'active';
