@@ -47,10 +47,13 @@ class Colaborador extends MY_Controller
     /** Exibe um aviso e encerra a requisição, evitando o loop de redirecionamento. */
     private function bloquear($mensagem)
     {
-        $this->load->view('colaborador/bloqueado', [
+        // Captura como string (3º arg = true) e imprime com echo: como damos exit()
+        // no construtor, o CI_Output::_display() nunca rodaria para enviar o buffer
+        // padrão de saída — o que resultaria em tela branca.
+        echo $this->load->view('colaborador/bloqueado', [
             'titulo' => 'Área do Colaborador',
             'mensagem' => $mensagem,
-        ]);
+        ], true);
         exit;
     }
 

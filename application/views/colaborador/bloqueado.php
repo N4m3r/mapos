@@ -9,7 +9,9 @@
  */
 $titulo = isset($titulo) ? $titulo : 'Área do Colaborador';
 $mensagem = isset($mensagem) ? $mensagem : 'Não foi possível abrir a Área do Colaborador.';
-$this->load->view('colaborador/_topo', ['titulo' => $titulo, 'header_icone' => 'bxs-lock-alt']);
+// return=true para que o cabeçalho entre no buffer desta view (capturada como
+// string pelo controller antes do exit), e não no buffer de saída do CI.
+echo $this->load->view('colaborador/_topo', ['titulo' => $titulo, 'header_icone' => 'bxs-lock-alt'], true);
 ?>
     <main class="tec-main">
         <div class="rh-card" style="max-width:520px;margin:24px auto;text-align:center;">
