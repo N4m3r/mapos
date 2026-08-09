@@ -10,6 +10,18 @@ $dataBr = function ($d) {
     return (!empty($d) && $d !== '0000-00-00') ? date('d/m/Y', strtotime($d)) : '—';
 };
 $end = trim(($obra->logradouro ?? '') . ', ' . ($obra->numero ?? '') . ' - ' . ($obra->bairro ?? '') . ' - ' . ($obra->cidade ?? '') . '/' . ($obra->uf ?? ''), ' ,-/');
+
+// Produtos/serviços distintos das OS do projeto (para seleção no registro)
+$matDistinct = [];
+foreach ($os_produtos as $mp) {
+    if (empty($mp->produtos_id)) { continue; }
+    $matDistinct[(int) $mp->produtos_id] = $mp->nome ?: 'Produto';
+}
+$servDistinct = [];
+foreach ($os_servicos as $ms) {
+    if (empty($ms->servicos_id)) { continue; }
+    $servDistinct[(int) $ms->servicos_id] = $ms->nome ?: 'Serviço';
+}
 ?>
 
 <div class="tec-container">
@@ -38,7 +50,35 @@ $end = trim(($obra->logradouro ?? '') . ', ' . ($obra->numero ?? '') . ' - ' . (
     <form action="<?= site_url('tecnico/salvar_registro_projeto') ?>" method="post" class="info-card" id="formRegistro">
         <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
         <label style="font-weight:600;display:block;margin-bottom:6px;">O que você fez hoje? (<?= date('d/m/Y') ?>)</label>
-        <textarea name="atividades" rows="4" required placeholder="Descreva a atividade realizada..." style="width:100%;border:1px solid #ccc;border-radius:8px;padding:10px;font-size:15px;"></textarea>
+        <textarea name="atividades" rows="4" placeholder="Descreva a atividade realizada... (opcional)" style="width:100%;border:1px solid #ccc;border-radius:8px;padding:10px;font-size:15px;"></textarea>
+
+        <?php if (!empty($matDistinct)): ?>
+            <details style="margin-top:10px;border:1px solid #eee;border-radius:8px;padding:6px 10px;">
+                <summary style="font-weight:600;cursor:pointer;"><i class='bx bx-package'></i> Material utilizado (opcional)</summary>
+                <p style="color:#888;font-size:12px;margin:6px 0;">Informe a quantidade usada — dá baixa no estoque.</p>
+                <?php foreach ($matDistinct as $pid => $pnome): ?>
+                    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f2f2f2;">
+                        <span style="flex:1;"><?= html_escape($pnome) ?></span>
+                        <input type="hidden" name="material_nome[<?= $pid ?>]" value="<?= html_escape($pnome) ?>">
+                        <input type="number" name="material[<?= $pid ?>]" min="0" step="0.01" placeholder="0" style="width:80px;border:1px solid #ccc;border-radius:6px;padding:6px;text-align:center;">
+                    </div>
+                <?php endforeach; ?>
+            </details>
+        <?php endif; ?>
+
+        <?php if (!empty($servDistinct)): ?>
+            <details style="margin-top:10px;border:1px solid #eee;border-radius:8px;padding:6px 10px;">
+                <summary style="font-weight:600;cursor:pointer;"><i class='bx bx-list-check'></i> Serviços executados (opcional)</summary>
+                <p style="color:#888;font-size:12px;margin:6px 0;">Marque os serviços que você concluiu.</p>
+                <?php foreach ($servDistinct as $sid => $snome): ?>
+                    <label style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f2f2f2;cursor:pointer;">
+                        <input type="checkbox" name="servico[<?= $sid ?>]" value="<?= html_escape($snome) ?>" style="width:20px;height:20px;">
+                        <span><?= html_escape($snome) ?></span>
+                    </label>
+                <?php endforeach; ?>
+            </details>
+        <?php endif; ?>
+
         <label class="btn-tec ghost block" style="margin-top:10px;cursor:pointer;">
             <i class='bx bx-camera'></i> Adicionar fotos (opcional)
             <input type="file" accept="image/*" capture="environment" multiple id="regFotos" style="display:none;">
@@ -102,6 +142,34 @@ $end = trim(($obra->logradouro ?? '') . ', ' . ($obra->numero ?? '') . ' - ' . (
         <?php endforeach; ?>
     <?php else: ?>
         <div class="empty-state" style="padding:16px;"><i class='bx bx-clipboard'></i><p>Nenhuma OS vinculada a este projeto.</p></div>
+    <?php endif; ?>
+
+    <!-- CONSUMO REGISTRADO -->
+    <?php
+    $consMat = array_filter($consumo, function ($c) { return $c->tipo === 'material'; });
+    $consServ = array_filter($consumo, function ($c) { return $c->tipo === 'servico'; });
+    ?>
+    <?php if (!empty($consMat) || !empty($consServ)): ?>
+        <h2 class="tec-section-title"><i class='bx bx-task'></i> Já registrado</h2>
+        <?php if (!empty($consMat)): ?>
+            <div class="info-card" style="padding:0;">
+                <div style="padding:8px 12px;font-weight:600;background:#f7f7f7;"><i class='bx bx-package'></i> Material utilizado</div>
+                <?php foreach ($consMat as $c): ?>
+                    <div style="padding:8px 12px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;gap:8px;">
+                        <span><?= html_escape($c->descricao ?: 'Produto') ?></span>
+                        <span style="color:#888;"><?= number_format((float) $c->quantidade, 2, ',', '.') ?></span>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+        <?php if (!empty($consServ)): ?>
+            <div class="info-card" style="padding:0;">
+                <div style="padding:8px 12px;font-weight:600;background:#f7f7f7;"><i class='bx bx-list-check'></i> Serviços concluídos</div>
+                <?php foreach ($consServ as $c): ?>
+                    <div style="padding:8px 12px;border-bottom:1px solid #eee;"><i class='bx bx-check' style="color:#2b7;"></i> <?= html_escape($c->descricao ?: 'Serviço') ?></div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
     <?php endif; ?>
 
     <!-- DIÁRIO / MEUS REGISTROS -->

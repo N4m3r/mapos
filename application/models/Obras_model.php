@@ -83,7 +83,7 @@ class Obras_model extends CI_Model
     public function delete($id)
     {
         $id = (int) $id;
-        foreach (['obra_etapas', 'obra_os', 'obra_usuario', 'obra_rdo', 'obra_medicao', 'obra_custo',
+        foreach (['obra_etapas', 'obra_os', 'obra_usuario', 'obra_consumo', 'obra_rdo', 'obra_medicao', 'obra_custo',
             'obra_material_saldo', 'obra_apontamento', 'obra_equipe_alocacao'] as $t) {
             if ($this->db->table_exists($t)) {
                 $this->db->where('obra_id', $id)->delete($t);
@@ -91,6 +91,32 @@ class Obras_model extends CI_Model
         }
         $this->db->where('idObra', $id)->delete('obras');
         return true;
+    }
+
+    /* ======================= Consumo (baixa) ===================== */
+
+    /** Registra um item consumido/executado no projeto (material ou serviço). */
+    public function addConsumo($data)
+    {
+        if (! $this->db->table_exists('obra_consumo')) {
+            return false;
+        }
+        $this->db->insert('obra_consumo', $data);
+        return $this->db->insert_id();
+    }
+
+    /** Itens consumidos/executados de um projeto (para exibição). */
+    public function getConsumo($obra_id, $tipo = null)
+    {
+        if (! $this->db->table_exists('obra_consumo')) {
+            return [];
+        }
+        $this->db->where('obra_id', (int) $obra_id);
+        if ($tipo) {
+            $this->db->where('tipo', $tipo);
+        }
+        $this->db->order_by('idConsumo', 'DESC');
+        return $this->db->get('obra_consumo')->result();
     }
 
     /* ==================== Usuários do projeto ==================== */
@@ -189,6 +215,22 @@ class Obras_model extends CI_Model
             ->count_all_results('obra_usuario');
     }
 
+    /** True se a OS está vinculada a algum projeto que o usuário pode acessar. */
+    public function osEmProjetoDoUsuario($os_id, $usuario_id)
+    {
+        if (! $this->db->table_exists('obra_os')) {
+            return false;
+        }
+        $vinculos = $this->db->select('obra_id')->where('os_id', (int) $os_id)
+            ->get('obra_os')->result();
+        foreach ($vinculos as $v) {
+            if ($this->usuarioTemAcesso($v->obra_id, $usuario_id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /* ======================= OS vinculadas ======================= */
 
     /** OS ligadas ao projeto, com cliente, técnico e status de execução. */
@@ -262,7 +304,7 @@ class Obras_model extends CI_Model
         if (! $this->db->table_exists('obra_os') || ! $this->db->table_exists('servicos_os')) {
             return [];
         }
-        $this->db->select('servicos_os.os_id, servicos.nome, servicos_os.quantidade, servicos_os.preco');
+        $this->db->select('servicos_os.os_id, servicos_os.servicos_id, servicos.nome, servicos_os.quantidade, servicos_os.preco');
         $this->db->from('obra_os');
         $this->db->join('servicos_os', 'servicos_os.os_id = obra_os.os_id');
         $this->db->join('servicos', 'servicos.idServicos = servicos_os.servicos_id', 'left');
@@ -277,7 +319,7 @@ class Obras_model extends CI_Model
         if (! $this->db->table_exists('obra_os') || ! $this->db->table_exists('produtos_os')) {
             return [];
         }
-        $this->db->select('produtos_os.os_id, produtos.descricao as nome, produtos_os.quantidade, produtos_os.preco');
+        $this->db->select('produtos_os.os_id, produtos_os.produtos_id, produtos.descricao as nome, produtos_os.quantidade, produtos_os.preco');
         $this->db->from('obra_os');
         $this->db->join('produtos_os', 'produtos_os.os_id = obra_os.os_id');
         $this->db->join('produtos', 'produtos.idProdutos = produtos_os.produtos_id', 'left');

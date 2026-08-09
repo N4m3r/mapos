@@ -143,6 +143,7 @@ class Tecnico extends MY_Controller
         $data['os_servicos'] = $this->obras_model->getServicosDasOs($id);
         $data['os_produtos'] = $this->obras_model->getProdutosDasOs($id);
         $data['rdos'] = $this->obras_model->getRdos($id);
+        $data['consumo'] = $this->obras_model->getConsumo($id);
         $data['pode_ver_sistema'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs');
         $data['titulo'] = $obra->nome;
         $this->load->view('tecnico/projeto', $data);
@@ -160,20 +161,33 @@ class Tecnico extends MY_Controller
             redirect('tecnico/projetos');
         }
         $atividades = trim((string) $this->input->post('atividades'));
-        if ($atividades === '') {
-            $this->session->set_flashdata('error', 'Descreva o que foi realizado.');
+        $materiais = (array) $this->input->post('material');   // [produtos_id => qtd]
+        $servicos = (array) $this->input->post('servico');     // [servicos_id => nome]
+
+        // Ao menos um registro: texto, material ou serviço.
+        $temMaterial = false;
+        foreach ($materiais as $qtd) {
+            if ((float) $qtd > 0) {
+                $temMaterial = true;
+                break;
+            }
+        }
+        if ($atividades === '' && !$temMaterial && empty($servicos)) {
+            $this->session->set_flashdata('error', 'Descreva o que foi feito, ou marque material/serviço utilizado.');
             redirect('tecnico/projeto/' . $obra_id);
         }
+
         $rdoId = $this->obras_model->addRdo([
             'obra_id' => $obra_id,
             'numero' => $this->obras_model->proximoNumeroRdo($obra_id),
             'data' => date('Y-m-d'),
             'condicao' => 'praticavel',
             'responsavel_id' => $uid,
-            'atividades' => $atividades,
+            'atividades' => $atividades !== '' ? $atividades : '(sem descrição)',
             'status' => 'finalizado',
             'data_registro' => date('Y-m-d H:i:s'),
         ]);
+
         foreach ((array) $this->input->post('fotos') as $b64) {
             if (!$b64 || strpos($b64, 'base64,') === false) {
                 continue;
@@ -183,6 +197,51 @@ class Tecnico extends MY_Controller
                 $this->obras_model->addRdoFoto($rdoId, $bin);
             }
         }
+
+        $agora = date('Y-m-d H:i:s');
+
+        // Material utilizado (opcional) -> registra consumo e da baixa no estoque.
+        if ($temMaterial) {
+            $this->load->model('produtos_model');
+            $nomes = (array) $this->input->post('material_nome');
+            foreach ($materiais as $produtoId => $qtd) {
+                $produtoId = (int) $produtoId;
+                $qtd = (float) $qtd;
+                if (!$produtoId || $qtd <= 0) {
+                    continue;
+                }
+                $this->obras_model->addConsumo([
+                    'obra_id' => $obra_id,
+                    'rdo_id' => $rdoId,
+                    'tipo' => 'material',
+                    'referencia_id' => $produtoId,
+                    'descricao' => isset($nomes[$produtoId]) ? substr((string) $nomes[$produtoId], 0, 150) : null,
+                    'quantidade' => $qtd,
+                    'usuario_id' => $uid,
+                    'data' => $agora,
+                ]);
+                $this->produtos_model->updateEstoque($produtoId, $qtd, '-');
+            }
+        }
+
+        // Serviços executados (opcional) -> apenas registra o que foi feito.
+        foreach ($servicos as $servicoId => $nome) {
+            $servicoId = (int) $servicoId;
+            if (!$servicoId) {
+                continue;
+            }
+            $this->obras_model->addConsumo([
+                'obra_id' => $obra_id,
+                'rdo_id' => $rdoId,
+                'tipo' => 'servico',
+                'referencia_id' => $servicoId,
+                'descricao' => substr((string) $nome, 0, 150),
+                'quantidade' => 1,
+                'usuario_id' => $uid,
+                'data' => $agora,
+            ]);
+        }
+
         log_info('Técnico registrou execução no projeto ' . $obra_id);
         $this->session->set_flashdata('success', 'Execução registrada!');
         redirect('tecnico/projeto/' . $obra_id);
@@ -203,10 +262,22 @@ class Tecnico extends MY_Controller
         // Verificar se a OS existe e se esta designada ao tecnico logado
         $os = $this->tecnico_model->getOsById($os_id, $tecnico_id);
 
+        // Se nao e designada a ele, ainda pode ABRIR (somente leitura, sem
+        // valores) quando a OS esta vinculada a um projeto que ele acessa.
+        $somente_leitura = false;
+        if (!$os) {
+            $this->load->model('obras_model');
+            if ($this->obras_model->osEmProjetoDoUsuario($os_id, $tecnico_id)) {
+                $os = $this->tecnico_model->getOsById($os_id);
+                $somente_leitura = true;
+            }
+        }
+
         if (!$os) {
             $this->session->set_flashdata('error', 'OS não encontrada ou não está designada a você.');
             redirect('tecnico/os');
         }
+        $data['somente_leitura'] = $somente_leitura;
 
         // Carregar dados do cliente
         $data['cliente'] = $this->clientes_model->getById($os->clientes_id);
@@ -244,25 +315,27 @@ class Tecnico extends MY_Controller
         // Dados da OS
         $data['os'] = $os;
 
-        // Verificar permissoes
-        $data['permissao_checkin'] = $this->permission->checkPermission(
+        // Verificar permissoes. Em modo somente-leitura (OS aberta pelo
+        // projeto, sem ser designada ao tecnico) nenhuma acao de campo e
+        // liberada — a OS fica apenas para consulta, sem valores.
+        $data['permissao_checkin'] = !$somente_leitura && $this->permission->checkPermission(
             $this->session->userdata('permissao'),
             'eTecnicoCheckin'
         );
-        $data['permissao_checkout'] = $this->permission->checkPermission(
+        $data['permissao_checkout'] = !$somente_leitura && $this->permission->checkPermission(
             $this->session->userdata('permissao'),
             'eTecnicoCheckout'
         );
         // Foto do serviço (etapa "durante") pode ser enviada a qualquer momento
         // durante o atendimento, desde que o técnico tenha permissão de fotos.
-        $data['permissao_fotos'] = $this->permission->checkPermission(
+        $data['permissao_fotos'] = !$somente_leitura && $this->permission->checkPermission(
             $this->session->userdata('permissao'),
             'eTecnicoFotos'
         );
 
         // Serviço não realizado: permissão, lista de motivos e ocorrência
         // pendente (se a OS já está em espera).
-        $data['permissao_nao_realizado'] = $this->permission->checkPermission(
+        $data['permissao_nao_realizado'] = !$somente_leitura && $this->permission->checkPermission(
             $this->session->userdata('permissao'),
             'eTecnicoNaoRealizado'
         );

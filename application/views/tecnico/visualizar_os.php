@@ -27,6 +27,14 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
 
 <div class="tec-container">
 
+    <!-- Banner: OS aberta pelo projeto (somente leitura) -->
+    <?php if (!empty($somente_leitura)): ?>
+        <div class="info-card" style="border-left:4px solid var(--tec-grad-1, #667eea);">
+            <h3 style="color:var(--tec-grad-1, #667eea);"><i class='bx bx-show'></i> Visualização pelo projeto</h3>
+            <p style="margin:0;color:#666;">Esta OS está vinculada a um projeto seu. Você pode consultar os detalhes, mas o atendimento (check-in) é feito pelo técnico responsável pela OS.</p>
+        </div>
+    <?php endif; ?>
+
     <!-- Banner de atendimento em andamento -->
     <?php if ($checkin_ativo): ?>
         <div class="checkin-banner">
