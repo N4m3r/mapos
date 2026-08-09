@@ -42,14 +42,25 @@ $statusAtual = $o ? $o->status : 'planejamento';
                             </datalist>
                         </div>
 
+                        <?php
+                        $clienteAtualNome = '';
+                        if ($o && $o->clientes_id) {
+                            foreach ($clientes as $c) {
+                                if ($c->idClientes == $o->clientes_id) {
+                                    $clienteAtualNome = $c->nomeCliente . ($c->documento ? ' — ' . $c->documento : '');
+                                    break;
+                                }
+                            }
+                        }
+                        ?>
                         <div class="span5">
                             <label>Cliente</label>
-                            <select name="clientes_id" class="span12">
-                                <option value="">— Selecione —</option>
-                                <?php foreach ($clientes as $c): ?>
-                                    <option value="<?= $c->idClientes ?>" <?= $o && $o->clientes_id == $c->idClientes ? 'selected' : '' ?>><?= html_escape($c->nomeCliente) ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                            <div style="position:relative">
+                                <input type="text" id="cliente_busca" class="span12" autocomplete="off" placeholder="Buscar por nome ou CNPJ/CPF..." value="<?= html_escape($clienteAtualNome) ?>">
+                                <input type="hidden" name="clientes_id" id="clientes_id" value="<?= $o ? (int) $o->clientes_id : '' ?>">
+                                <a href="#" id="cliente_limpar" title="Limpar" style="position:absolute;right:8px;top:6px;color:#999;<?= $clienteAtualNome ? '' : 'display:none' ?>"><i class="bx bx-x"></i></a>
+                            </div>
+                            <small style="color:#888">Digite o nome ou o documento do cliente.</small>
                         </div>
                         <div class="span4">
                             <label>Responsável técnico</label>
@@ -122,4 +133,59 @@ $statusAtual = $o ? $o->status : 'planejamento';
 <script src="<?= base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
 <script>
     $(function () { $('.datepicker').datepicker({ dateFormat: 'dd/mm/yy' }); });
+
+    // Busca de cliente (nome + CNPJ/CPF) com autocomplete local
+    var CLIENTES = <?= json_encode(array_map(function ($c) {
+        $doc = $c->documento ? ' — ' . $c->documento : '';
+        return ['id' => (int) $c->idClientes, 'label' => $c->nomeCliente . $doc, 'nome' => $c->nomeCliente, 'doc' => (string) $c->documento];
+    }, $clientes), JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>;
+
+    $(function () {
+        var $busca = $('#cliente_busca');
+        var $id = $('#clientes_id');
+        var $limpar = $('#cliente_limpar');
+
+        function limpar() {
+            $id.val('');
+            $busca.val('');
+            $limpar.hide();
+        }
+
+        $busca.autocomplete({
+            minLength: 0,
+            delay: 100,
+            source: function (request, response) {
+                var t = (request.term || '').toLowerCase().replace(/[.\-\/\s]/g, '');
+                var termoNome = (request.term || '').toLowerCase();
+                var res = CLIENTES.filter(function (c) {
+                    var docLimpo = (c.doc || '').toLowerCase().replace(/[.\-\/\s]/g, '');
+                    return c.nome.toLowerCase().indexOf(termoNome) !== -1 || (t !== '' && docLimpo.indexOf(t) !== -1);
+                }).slice(0, 20);
+                response(res);
+            },
+            focus: function (event, ui) {
+                $busca.val(ui.item.label);
+                return false;
+            },
+            select: function (event, ui) {
+                $busca.val(ui.item.label);
+                $id.val(ui.item.id);
+                $limpar.show();
+                return false;
+            }
+        }).on('focus', function () { $(this).autocomplete('search', $(this).val()); });
+
+        // Se o usuário apagar/alterar o texto sem escolher, invalida a seleção
+        $busca.on('input', function () {
+            if ($.trim($(this).val()) === '') { limpar(); }
+            else { $id.val(''); $limpar.show(); }
+        });
+
+        $limpar.on('click', function (e) { e.preventDefault(); limpar(); $busca.focus(); });
+
+        // Garante que só envia com um cliente válido selecionado (ou vazio)
+        $('#formObra').on('submit', function () {
+            if ($.trim($busca.val()) === '') { $id.val(''); }
+        });
+    });
 </script>

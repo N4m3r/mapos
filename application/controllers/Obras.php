@@ -547,7 +547,7 @@ class Obras extends MY_Controller
 
     private function carregarSelects()
     {
-        $this->data['clientes'] = $this->db->select('idClientes, nomeCliente')
+        $this->data['clientes'] = $this->db->select('idClientes, nomeCliente, documento')
             ->order_by('nomeCliente', 'ASC')->get('clientes')->result();
         $this->data['usuarios'] = $this->db->select('idUsuarios, nome')
             ->where('situacao', 1)->order_by('nome', 'ASC')->get('usuarios')->result();
