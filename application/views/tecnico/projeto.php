@@ -68,13 +68,14 @@ foreach ($os_servicos as $ms) {
 
         <?php if (!empty($servDistinct)): ?>
             <details style="margin-top:10px;border:1px solid #eee;border-radius:8px;padding:6px 10px;">
-                <summary style="font-weight:600;cursor:pointer;"><i class='bx bx-list-check'></i> Serviços executados (opcional)</summary>
-                <p style="color:#888;font-size:12px;margin:6px 0;">Marque os serviços que você concluiu.</p>
+                <summary style="font-weight:600;cursor:pointer;"><i class='bx bx-list-check'></i> Serviços realizados (opcional)</summary>
+                <p style="color:#888;font-size:12px;margin:6px 0;">Informe a quantidade realizada de cada serviço.</p>
                 <?php foreach ($servDistinct as $sid => $snome): ?>
-                    <label style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f2f2f2;cursor:pointer;">
-                        <input type="checkbox" name="servico[<?= $sid ?>]" value="<?= html_escape($snome) ?>" style="width:20px;height:20px;">
-                        <span><?= html_escape($snome) ?></span>
-                    </label>
+                    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f2f2f2;">
+                        <span style="flex:1;"><?= html_escape($snome) ?></span>
+                        <input type="hidden" name="servico_nome[<?= $sid ?>]" value="<?= html_escape($snome) ?>">
+                        <input type="number" name="servico[<?= $sid ?>]" min="0" step="0.01" placeholder="0" style="width:80px;border:1px solid #ccc;border-radius:6px;padding:6px;text-align:center;">
+                    </div>
                 <?php endforeach; ?>
             </details>
         <?php endif; ?>
@@ -164,9 +165,12 @@ foreach ($os_servicos as $ms) {
         <?php endif; ?>
         <?php if (!empty($consServ)): ?>
             <div class="info-card" style="padding:0;">
-                <div style="padding:8px 12px;font-weight:600;background:#f7f7f7;"><i class='bx bx-list-check'></i> Serviços concluídos</div>
+                <div style="padding:8px 12px;font-weight:600;background:#f7f7f7;"><i class='bx bx-list-check'></i> Serviços realizados</div>
                 <?php foreach ($consServ as $c): ?>
-                    <div style="padding:8px 12px;border-bottom:1px solid #eee;"><i class='bx bx-check' style="color:#2b7;"></i> <?= html_escape($c->descricao ?: 'Serviço') ?></div>
+                    <div style="padding:8px 12px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;gap:8px;">
+                        <span><i class='bx bx-check' style="color:#2b7;"></i> <?= html_escape($c->descricao ?: 'Serviço') ?></span>
+                        <span style="color:#888;"><?= number_format((float) $c->quantidade, 2, ',', '.') ?></span>
+                    </div>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>

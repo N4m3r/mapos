@@ -162,7 +162,7 @@ class Tecnico extends MY_Controller
         }
         $atividades = trim((string) $this->input->post('atividades'));
         $materiais = (array) $this->input->post('material');   // [produtos_id => qtd]
-        $servicos = (array) $this->input->post('servico');     // [servicos_id => nome]
+        $servicos = (array) $this->input->post('servico');     // [servicos_id => qtd]
 
         // Ao menos um registro: texto, material ou serviço.
         $temMaterial = false;
@@ -172,8 +172,15 @@ class Tecnico extends MY_Controller
                 break;
             }
         }
-        if ($atividades === '' && !$temMaterial && empty($servicos)) {
-            $this->session->set_flashdata('error', 'Descreva o que foi feito, ou marque material/serviço utilizado.');
+        $temServico = false;
+        foreach ($servicos as $qtd) {
+            if ((float) $qtd > 0) {
+                $temServico = true;
+                break;
+            }
+        }
+        if ($atividades === '' && !$temMaterial && !$temServico) {
+            $this->session->set_flashdata('error', 'Descreva o que foi feito, ou informe material/serviço realizado.');
             redirect('tecnico/projeto/' . $obra_id);
         }
 
@@ -224,22 +231,26 @@ class Tecnico extends MY_Controller
             }
         }
 
-        // Serviços executados (opcional) -> apenas registra o que foi feito.
-        foreach ($servicos as $servicoId => $nome) {
-            $servicoId = (int) $servicoId;
-            if (!$servicoId) {
-                continue;
+        // Serviços realizados (opcional) -> registra o serviço e a quantidade.
+        if ($temServico) {
+            $servNomes = (array) $this->input->post('servico_nome');
+            foreach ($servicos as $servicoId => $qtd) {
+                $servicoId = (int) $servicoId;
+                $qtd = (float) $qtd;
+                if (!$servicoId || $qtd <= 0) {
+                    continue;
+                }
+                $this->obras_model->addConsumo([
+                    'obra_id' => $obra_id,
+                    'rdo_id' => $rdoId,
+                    'tipo' => 'servico',
+                    'referencia_id' => $servicoId,
+                    'descricao' => isset($servNomes[$servicoId]) ? substr((string) $servNomes[$servicoId], 0, 150) : null,
+                    'quantidade' => $qtd,
+                    'usuario_id' => $uid,
+                    'data' => $agora,
+                ]);
             }
-            $this->obras_model->addConsumo([
-                'obra_id' => $obra_id,
-                'rdo_id' => $rdoId,
-                'tipo' => 'servico',
-                'referencia_id' => $servicoId,
-                'descricao' => substr((string) $nome, 0, 150),
-                'quantidade' => 1,
-                'usuario_id' => $uid,
-                'data' => $agora,
-            ]);
         }
 
         log_info('Técnico registrou execução no projeto ' . $obra_id);
