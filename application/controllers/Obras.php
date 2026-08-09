@@ -432,6 +432,27 @@ class Obras extends MY_Controller
         }
     }
 
+    /** Versão imprimível de um RDO (o que foi feito), com cabeçalho do emitente. */
+    public function imprimirRdo()
+    {
+        $this->precisa('vObras', 'Você não tem permissão para visualizar Projetos.');
+        $id = (int) $this->uri->segment(3);
+        $rdo = $this->obras_model->getRdo($id);
+        if (! $id || ! $rdo) {
+            $this->session->set_flashdata('error', 'RDO não encontrado.');
+            redirect('obras');
+        }
+        $this->load->model('mapos_model');
+        $resp = $this->db->select('nome')->where('idUsuarios', (int) $rdo->responsavel_id)
+            ->get('usuarios')->row();
+        $this->data['rdo'] = $rdo;
+        $this->data['obra'] = $this->obras_model->getObra($rdo->obra_id);
+        $this->data['responsavel'] = $resp ? $resp->nome : '';
+        $this->data['fotos'] = $this->obras_model->getRdoFotos($id);
+        $this->data['emitente'] = $this->mapos_model->getEmitente();
+        $this->load->view('obras/imprimir_rdo', $this->data);
+    }
+
     /* =========================== Medição =========================== */
 
     public function salvarMedicao()

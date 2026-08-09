@@ -154,9 +154,9 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                 <div style="padding:8px"><a href="#modal-rdo" data-toggle="modal" class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Novo RDO</span></a></div>
             <?php endif; ?>
             <table class="table table-bordered">
-                <thead><tr><th>#</th><th>Data</th><th>O que foi feito</th><th>Clima (M/T/N)</th><th>Condição</th><th>Efetivo</th><th>Responsável</th></tr></thead>
+                <thead><tr><th>#</th><th>Data</th><th>O que foi feito</th><th>Clima (M/T/N)</th><th>Condição</th><th>Efetivo</th><th>Responsável</th><th style="width:60px">Ações</th></tr></thead>
                 <tbody>
-                    <?php if (! $rdos) echo '<tr><td colspan="7">Nenhum RDO registrado.</td></tr>'; ?>
+                    <?php if (! $rdos) echo '<tr><td colspan="8">Nenhum RDO registrado.</td></tr>'; ?>
                     <?php foreach ($rdos as $r): ?>
                         <tr>
                             <td><?= $r->numero ?></td>
@@ -166,6 +166,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                             <td><?= html_escape($r->condicao) ?></td>
                             <td><?= (int) $r->efetivo_total ?></td>
                             <td><?= html_escape($r->responsavel) ?></td>
+                            <td><a href="<?= site_url('obras/imprimirRdo/' . $r->idRdo) ?>" target="_blank" class="btn-nwe" title="Imprimir RDO"><i class="bx bx-printer bx-xs"></i></a></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
