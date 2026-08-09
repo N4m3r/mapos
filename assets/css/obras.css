@@ -93,3 +93,59 @@ body[data-theme="darkorange"] .scanner-box { background:var(--dark-0); border-co
 body[data-theme="puredark"] .obra-progress,
 body[data-theme="darkviolet"] .obra-progress,
 body[data-theme="darkorange"] .obra-progress { background:rgba(255,255,255,.12); }
+
+/* ==========================================================================
+   Registro de material — stepper de quantidade (−/+) para toque rápido.
+   ========================================================================== */
+.qtd-stepper { display:inline-flex; align-items:center; }
+.qtd-stepper button { width:34px; height:34px; flex:0 0 auto; padding:0; border:1px solid #cfd4dc; background:#f3f4f6; color:#111827; font-size:18px; line-height:1; border-radius:6px; cursor:pointer; }
+.qtd-stepper button:active { background:#e5e7eb; }
+.qtd-stepper .qs-input { width:66px; text-align:center; margin:0 4px; }
+.col-rem .rem-txt { display:none; }
+
+/* ==========================================================================
+   Mobile: registro rápido de material (receber/entregar).
+   Câmera em destaque, itens viram cartões com rótulo e barra de ação fixa.
+   ========================================================================== */
+@media (max-width: 640px) {
+    #obra-material .scanner-actions { flex-direction:column; align-items:stretch; gap:8px; }
+    #obra-material .scanner-actions #cod-barras { max-width:none !important; width:100% !important; min-height:44px; font-size:16px; }
+    #obra-material .scanner-actions .button { width:100%; justify-content:center; min-height:46px; margin:0; }
+    #obra-material .scanner-actions #btn-scan { order:-1; } /* Ler código (câmera) primeiro */
+    #obra-material .scanner-status { display:block; }
+
+    /* Itens empilhados como cartões */
+    .itens-material thead { display:none; }
+    .itens-material, .itens-material tbody { display:block; width:100%; }
+    .itens-material tr { display:block; border:1px solid #e5e7eb; border-radius:10px; padding:6px 10px; margin-bottom:10px; background:#fff; }
+    .itens-material td { display:flex; align-items:center; gap:10px; border:none !important; padding:5px 0; }
+    .itens-material td::before { content:attr(data-label); flex:0 0 90px; font-size:12px; color:#6b7280; }
+    .itens-material td input:not(.qs-input) { width:100% !important; min-height:40px; font-size:16px; }
+    .itens-material td.col-qtd { justify-content:space-between; }
+    .itens-material td.col-qtd .qs-input { width:72px !important; min-height:40px; }
+    .itens-material td.col-qtd .qtd-stepper button { width:44px; height:44px; }
+    .itens-material td.col-rem { justify-content:flex-end; }
+    .itens-material td.col-rem::before { display:none; }
+    .itens-material .col-rem .rem-txt { display:inline; }
+    .itens-material .col-rem .btn-nwe4 { border:1px solid #f0c2c2; color:#c0392b; border-radius:8px; padding:8px 14px; }
+
+    /* Barra de ação fixa no rodapé */
+    .obra-actionbar { position:sticky; bottom:0; background:#fff; margin:10px -10px 0; padding:10px; border-top:1px solid #e5e7eb; display:flex !important; gap:8px; z-index:5; }
+    .obra-actionbar .button { flex:1; justify-content:center; min-height:48px; margin:0; }
+
+    .assinatura-pad { height:170px; }
+}
+
+/* Stepper e cartões em temas escuros */
+body[data-theme="puredark"] .qtd-stepper button,
+body[data-theme="darkviolet"] .qtd-stepper button,
+body[data-theme="darkorange"] .qtd-stepper button { background:var(--dark-0); border-color:rgba(255,255,255,.14); color:var(--branco); }
+
+@media (max-width: 640px) {
+    body[data-theme="puredark"] .itens-material tr,
+    body[data-theme="darkviolet"] .itens-material tr,
+    body[data-theme="darkorange"] .itens-material tr,
+    body[data-theme="puredark"] .obra-actionbar,
+    body[data-theme="darkviolet"] .obra-actionbar,
+    body[data-theme="darkorange"] .obra-actionbar { background:var(--dark-2); border-color:rgba(255,255,255,.12); }
+}

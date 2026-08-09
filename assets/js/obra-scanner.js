@@ -33,21 +33,29 @@
         dados = dados || {};
         var modo = cfg.modo;
         var tr = document.createElement('tr');
+        var qtdName = modo === 'receber' ? 'quantidade_conferida' : 'quantidade';
+        // Qtd. com stepper (−/+): registro rápido no celular sem teclado numérico.
+        var colQtd =
+            '<td class="col-qtd" data-label="Qtd."><div class="qtd-stepper">' +
+            '<button type="button" class="qs-minus" tabindex="-1" aria-label="Diminuir">−</button>' +
+            '<input type="number" step="0.001" min="0" inputmode="decimal" class="qs-input" name="' + qtdName + '" value="' + (dados.qtd || 1) + '">' +
+            '<button type="button" class="qs-plus" tabindex="-1" aria-label="Aumentar">+</button>' +
+            '</div></td>';
         // Só o recebimento captura valor unitário (custo do material comprado).
-        var colQtd = modo === 'receber'
-            ? '<td class="col-qtd"><input type="number" step="0.001" name="quantidade_conferida" value="' + (dados.qtd || 1) + '"></td>'
-            : '<td class="col-qtd"><input type="number" step="0.001" name="quantidade" value="' + (dados.qtd || 1) + '"></td>';
         var colValor = modo === 'receber'
-            ? '<td class="col-valor"><input type="number" step="0.01" name="valor_unitario" value="' + (dados.preco || 0) + '"></td>'
+            ? '<td class="col-valor" data-label="Valor unit. (R$)"><input type="number" step="0.01" min="0" inputmode="decimal" name="valor_unitario" value="' + (dados.preco || 0) + '"></td>'
             : '';
         tr.innerHTML =
-            '<td><input type="hidden" name="produto_id" value="' + (dados.produto_id || '') + '">' +
+            '<td data-label="Item"><input type="hidden" name="produto_id" value="' + (dados.produto_id || '') + '">' +
             '<input type="text" name="descricao" class="span12" value="' + (dados.descricao || '') + '" placeholder="Descrição do item"></td>' +
-            '<td><input type="text" name="cod_barras" value="' + (dados.cod_barras || '') + '" style="width:120px"></td>' +
-            '<td><input type="text" name="unidade" value="' + (dados.unidade || '') + '" style="width:60px"></td>' +
+            '<td data-label="Código"><input type="text" name="cod_barras" value="' + (dados.cod_barras || '') + '" style="width:120px"></td>' +
+            '<td data-label="Un."><input type="text" name="unidade" value="' + (dados.unidade || '') + '" style="width:60px"></td>' +
             colQtd + colValor +
-            '<td><a href="#" class="btn-nwe4" title="Remover"><i class="bx bx-trash-alt"></i></a></td>';
+            '<td class="col-rem" data-label=""><a href="#" class="btn-nwe4" title="Remover"><i class="bx bx-trash-alt"></i> <span class="rem-txt">Remover</span></a></td>';
         tr.querySelector('a.btn-nwe4').addEventListener('click', function (e) { e.preventDefault(); tr.remove(); });
+        var inQ = tr.querySelector('.qs-input');
+        tr.querySelector('.qs-minus').addEventListener('click', function () { inQ.value = Math.max(0, (parseFloat(inQ.value || 0) - 1)); });
+        tr.querySelector('.qs-plus').addEventListener('click', function () { inQ.value = (parseFloat(inQ.value || 0) + 1); });
         $('itens-tbody').appendChild(tr);
         return tr;
     }

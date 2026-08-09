@@ -67,7 +67,7 @@
 
                 <div class="span12" style="margin-left:0"><label>Observação</label><textarea class="span12" name="observacao" rows="2"></textarea></div>
 
-                <div class="span12" style="padding:1%; margin-left:0"><div class="span6 offset3" style="display:flex;justify-content:center">
+                <div class="span12" style="padding:1%; margin-left:0"><div class="span6 offset3 obra-actionbar" style="display:flex;justify-content:center">
                     <button class="button btn btn-success"><span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Confirmar entrega</span></button>
                     <a href="<?= site_url('obras/visualizar/' . $obra->idObra) ?>" class="button btn btn-mini btn-warning"><span class="button__icon"><i class="bx bx-undo"></i></span><span class="button__text2">Voltar</span></a>
                 </div></div>
