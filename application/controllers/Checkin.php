@@ -520,10 +520,69 @@ class Checkin extends MY_Controller
         // Log
         log_info('Finalizou atendimento da OS. ID: ' . $os_id);
 
+        // Ao resolver o chamado, dispara o link de aceite (assinatura do cliente)
+        // para o(s) grupo(s)/cliente do gatilho "os_aceite". Best-effort.
+        $this->dispararAceiteWhatsapp($os_id);
+
         echo json_encode([
             'success' => true,
             'message' => 'Atendimento finalizado com sucesso'
         ]);
+    }
+
+    /**
+     * Gera (ou reaproveita) o link público de aceite da OS, encurta-o e dispara
+     * o evento "os_aceite" por WhatsApp aos destinos configurados no gatilho.
+     * Blindado: qualquer falha só vai para o log, nunca quebra o checkout.
+     */
+    private function dispararAceiteWhatsapp($os_id)
+    {
+        try {
+            $this->load->model('aceite_model');
+            if (! $this->aceite_model->suportado()) {
+                return;
+            }
+
+            $os = $this->os_model->getById($os_id);
+            if (! $os) {
+                return;
+            }
+
+            // Reaproveita o token pendente; senão, gera um novo (7 dias).
+            $token = (! empty($os->aceite_token) && $this->aceite_model->situacao($os) === 'pendente')
+                ? $os->aceite_token
+                : null;
+            if (! $token) {
+                $res = $this->aceite_model->gerarLink($os_id, 7);
+                if (! $res) {
+                    return;
+                }
+                $token = $res['token'];
+            }
+
+            $url = site_url('aceite/' . $token);
+            $this->load->library('encurtador');
+            $link = $this->encurtador->encurtar($url, 7);
+
+            $numeroCliente = $this->os_model->numeroNotificacao($os);
+            $clienteId = isset($os->clientes_id) ? (int) $os->clientes_id : 0;
+
+            $this->load->library('notificador');
+            $this->notificador->whatsappLinkEvento(
+                'os_aceite',
+                [
+                    '{CLIENTE_NOME}' => $os->nomeCliente ?? '',
+                    '{NUMERO_OS}' => $os_id,
+                    '{LINK}' => $link,
+                ],
+                $clienteId,
+                $numeroCliente,
+                'aceite',
+                "Olá {CLIENTE_NOME}! O serviço (OS #{NUMERO_OS}) foi concluído. Confirme o aceite e assine pelo link:\n{LINK}"
+            );
+        } catch (\Throwable $e) {
+            log_info('Falha ao disparar aceite por WhatsApp (OS #' . $os_id . '): ' . $e->getMessage());
+        }
     }
 
     /**

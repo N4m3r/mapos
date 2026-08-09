@@ -459,6 +459,64 @@ class Obras_model extends CI_Model
         return $this->db->where('rdo_id', (int) $rdo_id)->get('obra_rdo_foto')->result();
     }
 
+    /**
+     * Gera (ou reaproveita) um token público para abrir o RDO por link temporário
+     * (dominio/rdo/<token>), usado no envio ao grupo de WhatsApp. Só funciona se a
+     * coluna `token` existir (migration add_links_grupo_events).
+     *
+     * @return string|null o token, ou null se indisponível
+     */
+    public function gerarTokenRdo($rdo_id, $diasValidade = 30)
+    {
+        if (! $this->db->field_exists('token', 'obra_rdo')) {
+            return null;
+        }
+        $rdo = $this->getRdo($rdo_id);
+        if (! $rdo) {
+            return null;
+        }
+
+        // Reaproveita o token ainda válido.
+        if (! empty($rdo->token) && (empty($rdo->token_expira) || strtotime($rdo->token_expira) > time())) {
+            return $rdo->token;
+        }
+
+        $token = bin2hex(random_bytes(24));
+        $expira = date('Y-m-d H:i:s', strtotime('+' . (int) $diasValidade . ' days'));
+        $this->db->where('idRdo', (int) $rdo_id)->update('obra_rdo', [
+            'token' => $token,
+            'token_expira' => $expira,
+        ]);
+
+        return $token;
+    }
+
+    /**
+     * Carrega um RDO pelo token público (com nome do responsável), respeitando
+     * a validade. Retorna null se o token não existir ou tiver expirado.
+     */
+    public function getRdoByToken($token)
+    {
+        if (empty($token) || ! $this->db->field_exists('token', 'obra_rdo')) {
+            return null;
+        }
+        $this->db->select('obra_rdo.*, usuarios.nome as responsavel');
+        $this->db->from('obra_rdo');
+        $this->db->join('usuarios', 'usuarios.idUsuarios = obra_rdo.responsavel_id', 'left');
+        $this->db->where('obra_rdo.token', $token);
+        $this->db->limit(1);
+        $rdo = $this->db->get()->row();
+
+        if (! $rdo) {
+            return null;
+        }
+        if (! empty($rdo->token_expira) && strtotime($rdo->token_expira) < time()) {
+            return null;
+        }
+
+        return $rdo;
+    }
+
     /* ========================== Medição ========================== */
 
     public function getMedicoes($obra_id)

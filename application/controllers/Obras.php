@@ -239,6 +239,15 @@ class Obras extends MY_Controller
         }
 
         log_info('Registro rápido de execução na obra ' . $obra_id);
+
+        // Envia o RDO ao(s) grupo(s)/cliente do gatilho "rdo_registrado". Best-effort.
+        try {
+            $this->load->library('notificador');
+            $this->notificador->whatsappRdo($rdoId);
+        } catch (\Throwable $e) {
+            log_info('Falha ao disparar RDO por WhatsApp (RDO #' . $rdoId . '): ' . $e->getMessage());
+        }
+
         $this->session->set_flashdata('success', 'Execução registrada. Obrigado!');
         redirect('obras/visualizar/' . $obra_id . '#rdo');
     }
@@ -415,6 +424,15 @@ class Obras extends MY_Controller
         }
 
         log_info('Registrou RDO na obra ' . $obra_id);
+
+        // Envia o RDO ao(s) grupo(s)/cliente do gatilho "rdo_registrado". Best-effort.
+        try {
+            $this->load->library('notificador');
+            $this->notificador->whatsappRdo($rdoId);
+        } catch (\Throwable $e) {
+            log_info('Falha ao disparar RDO por WhatsApp (RDO #' . $rdoId . '): ' . $e->getMessage());
+        }
+
         $this->session->set_flashdata('success', 'RDO registrado.');
         redirect('obras/visualizar/' . $obra_id . '#rdo');
     }

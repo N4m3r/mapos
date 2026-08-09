@@ -37,7 +37,7 @@ class Whatsapp_templates_model extends CI_Model
     /** Slugs dos modelos fixos do sistema (não podem ser excluídos). */
     public static function slugsCore()
     {
-        return ['os', 'cobranca', 'aprovacao', 'aceite'];
+        return ['os', 'cobranca', 'aprovacao', 'aceite', 'rdo'];
     }
 
     /** Tags disponíveis por padrão para um modelo novo (contexto de OS). */
