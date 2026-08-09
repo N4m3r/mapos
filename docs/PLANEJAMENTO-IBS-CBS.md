@@ -182,7 +182,12 @@ echo in_array("NFePHP\\NFe\\Traits\\TraitTagGALCZFMCBS",$t)?"OK ZFM\n":"FALTA ZF
   `reforma_ativa` + alíquotas (CBS, IBS-UF, IBS-Mun), `CST` e `cClassTrib`, todos
   parametrizáveis. Defaults do ano-teste 2026 (CBS 0,9% / IBS 0,1%). Aplicar via
   **Configurar sistema → Atualizar Banco de dados** (`mapos/atualizarBanco`).
-- ⬜ **Pendente — NFS-e** (`NfseService`): incluir IBS/CBS na DPS (layout novo do hadder).
+- 🟡 **NFS-e** (`NfseService`): scaffold pronto e **inerte**. A lib `hadder/nfse-nacional 1.0.22`
+  ainda não gera IBS/CBS (bloco comentado no `Dps.php`; schemas só até `DPS_v1.01`, sem o grupo).
+  O `NfseService` já monta o grupo IBS/CBS (mesmas alíquotas da NF-e) e o anexa **apenas** quando
+  `reforma_ativa` está ligado **e** `nfseSuportaIbsCbs()` detecta um schema DPS com `IBSCBS` — ou seja,
+  **hoje não executa** (emissão idêntica à atual). Ao atualizar o hadder para uma versão com a reforma,
+  a NFS-e passa a levar IBS/CBS automaticamente. ⚠️ Conferir os nomes dos nós da DPS na release.
 - ⬜ **Pendente — ZFM avançado:** grupo `gCredPresIBSZFM` / `gALCZFMCBS` (crédito presumido
   da Zona Franca) — depende da classificação `tpCredPresIBSZFM` e do valor apurado; definir
   com o contador. Por ora, o benefício da ZFM é obtido zerando a CBS no campo de alíquota.

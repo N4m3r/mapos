@@ -168,7 +168,7 @@
                                 <input type="checkbox" id="reforma_ativa" name="reforma_ativa" value="1" <?= !empty($configNfe->reforma_ativa) ? 'checked' : '' ?> />
                                 Ativar os campos de IBS/CBS na NF-e (layout PL_010 da reforma)
                             </label>
-                            <span class="hint"><strong>Desligado</strong>, a NF-e sai como hoje. <strong>Ligado</strong>, cada item passa a levar o grupo IBS/CBS. Comece em <strong>Homologação</strong>. Valores conforme o contador (regime por dentro × híbrido e Zona Franca de Manaus).</span>
+                            <span class="hint"><strong>Desligado</strong>, a NF-e sai como hoje. <strong>Ligado</strong>, cada item passa a levar o grupo IBS/CBS. Comece em <strong>Homologação</strong>. Valores conforme o contador (regime por dentro × híbrido e Zona Franca de Manaus). <em>A NFS-e já fica preparada: passa a levar IBS/CBS automaticamente quando a biblioteca do padrão nacional liberar o layout.</em></span>
                         </div>
                     </div>
 

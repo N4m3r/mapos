@@ -67,6 +67,81 @@ class NfseService
     }
 
     /**
+     * Reforma Tributária na NFS-e — DETECÇÃO DE SUPORTE.
+     *
+     * A biblioteca hadder/nfse-nacional 1.0.22 ainda NÃO gera o grupo IBS/CBS na
+     * DPS (o bloco está comentado no Dps.php) e os schemas embarcados vão só até
+     * DPS_v1.01, que não têm o grupo. Enquanto isso não muda, anexar os campos
+     * geraria rejeição por schema no SEFIN Nacional.
+     *
+     * Esta função detecta, de forma segura, se a versão instalada já traz o
+     * layout: procura o termo "IBSCBS" em algum schema DPS embarcado. Só quando
+     * um schema com IBS/CBS existir é que os campos passam a ser anexados —
+     * até lá a emissão sai idêntica à de hoje. Assim, ao atualizar o hadder para
+     * uma versão com a reforma, a NFS-e passa a levar IBS/CBS automaticamente.
+     */
+    private function nfseSuportaIbsCbs(): bool
+    {
+        $dir = APPPATH . 'vendor/hadder/nfse-nacional/storage/schemes';
+        foreach (glob($dir . '/DPS_*.xsd') ?: [] as $xsd) {
+            $conteudo = @file_get_contents($xsd);
+            if ($conteudo !== false && stripos($conteudo, 'IBSCBS') !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Reforma Tributária na NFS-e — MONTAGEM DO GRUPO IBS/CBS (provisório).
+     *
+     * Preenche em $std->infDPS->valores->trib->ibscbs os valores de IBS/CBS a
+     * partir das alíquotas configuráveis (as mesmas da NF-e: reforma_ibs_uf,
+     * reforma_ibs_mun, reforma_cbs), espelhando a estrutura do grupo da NF-e.
+     *
+     * IMPORTANTE: os nomes exatos dos nós da DPS de IBS/CBS devem ser conferidos
+     * contra a versão do hadder que liberar o layout (NT 004 do padrão nacional).
+     * Como o método só é chamado quando nfseSuportaIbsCbs() é verdadeiro (schema
+     * com IBS/CBS presente), hoje ele NÃO executa — fica de scaffold pronto.
+     */
+    private function anexarIbsCbsDps(stdClass $std, float $total): void
+    {
+        $pIBSUF = (float) ($this->config->reforma_ibs_uf ?? 0);
+        $pIBSMun = (float) ($this->config->reforma_ibs_mun ?? 0);
+        $pCBS = (float) ($this->config->reforma_cbs ?? 0);
+        $vIBSUF = round($total * $pIBSUF / 100, 2);
+        $vIBSMun = round($total * $pIBSMun / 100, 2);
+        $vCBS = round($total * $pCBS / 100, 2);
+
+        $ibscbs = new stdClass();
+        $ibscbs->CST = $this->config->reforma_cst ?? '000';
+        $ibscbs->cClassTrib = $this->config->reforma_cclasstrib ?? '000001';
+
+        $ibscbs->gIBSCBS = new stdClass();
+        $ibscbs->gIBSCBS->vBC = number_format($total, 2, '.', '');
+
+        $ibscbs->gIBSCBS->gIBS = new stdClass();
+        $ibscbs->gIBSCBS->gIBS->gIBSUF = new stdClass();
+        $ibscbs->gIBSCBS->gIBS->gIBSUF->pIBSUF = number_format($pIBSUF, 4, '.', '');
+        $ibscbs->gIBSCBS->gIBS->gIBSUF->vIBSUF = number_format($vIBSUF, 2, '.', '');
+        $ibscbs->gIBSCBS->gIBS->gIBSMun = new stdClass();
+        $ibscbs->gIBSCBS->gIBS->gIBSMun->pIBSMun = number_format($pIBSMun, 4, '.', '');
+        $ibscbs->gIBSCBS->gIBS->gIBSMun->vIBSMun = number_format($vIBSMun, 2, '.', '');
+        $ibscbs->gIBSCBS->gIBS->vIBS = number_format($vIBSUF + $vIBSMun, 2, '.', '');
+
+        $ibscbs->gIBSCBS->gCBS = new stdClass();
+        $ibscbs->gIBSCBS->gCBS->pCBS = number_format($pCBS, 4, '.', '');
+        $ibscbs->gIBSCBS->gCBS->vCBS = number_format($vCBS, 2, '.', '');
+
+        // Anexa ao grupo de tributos da DPS (estrutura a confirmar na release).
+        if (!isset($std->infDPS->valores->trib)) {
+            $std->infDPS->valores->trib = new stdClass();
+        }
+        $std->infDPS->valores->trib->ibscbs = $ibscbs;
+    }
+
+    /**
      * Normaliza um texto livre para ir num campo da DPS (ex.: xDescServ).
      * Remove marcação HTML, decodifica entidades, tira caracteres de controle e
      * colapsa espaços/quebras. Evita conteúdo que possa ser reserializado de
@@ -340,6 +415,14 @@ class NfseService
             $std->infDPS->valores->trib->totTrib->pTotTribSN = number_format($aliquota > 0 ? $aliquota : 0, 2, '.', '');
         } else {
             $std->infDPS->valores->trib->totTrib->indTotTrib = 0;
+        }
+
+        // Reforma Tributária: anexa o grupo IBS/CBS à DPS SOMENTE quando o
+        // checkbox estiver ligado E a lib/schema do hadder já suportarem o layout
+        // (senão a DPS seria rejeitada por schema). Hoje nfseSuportaIbsCbs() é
+        // falso → nada muda; ao atualizar o hadder, passa a valer automaticamente.
+        if (!empty($this->config->reforma_ativa) && $this->nfseSuportaIbsCbs()) {
+            $this->anexarIbsCbsDps($std, $total);
         }
 
         $dps = new Dps($std);
