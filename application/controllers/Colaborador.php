@@ -25,19 +25,33 @@ class Colaborador extends MY_Controller
             redirect('login');
         }
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'vAreaColaborador')) {
+            // Sem a permissão o painel principal (Mapos) não reencaminha para cá,
+            // então redirecionar para base_url() é seguro (não gera loop).
             $this->session->set_flashdata('error', 'Você não tem permissão para acessar a Área do Colaborador.');
             redirect(base_url());
         }
+        // A partir daqui o usuário TEM vAreaColaborador. Como o Mapos reencaminha
+        // esse perfil de volta para /colaborador, qualquer redirect(base_url())
+        // aqui geraria um loop (ERR_TOO_MANY_REDIRECTS). Por isso mostramos um
+        // aviso inline em vez de redirecionar.
         if (! $this->rh_colaboradores_model->suportado()) {
-            $this->session->set_flashdata('error', 'O módulo de RH ainda não foi ativado. Procure o RH.');
-            redirect(base_url());
+            $this->bloquear('O módulo de RH ainda não foi ativado. Procure o RH.');
         }
 
         $this->colaborador = $this->rh_colaboradores_model->getByUsuario($this->session->userdata('id_admin'));
         if (! $this->colaborador) {
-            $this->session->set_flashdata('error', 'Seu usuário não está vinculado a um cadastro de colaborador. Procure o RH.');
-            redirect(base_url());
+            $this->bloquear('Seu usuário não está vinculado a um cadastro de colaborador ativo. Procure o RH para concluir o vínculo.');
         }
+    }
+
+    /** Exibe um aviso e encerra a requisição, evitando o loop de redirecionamento. */
+    private function bloquear($mensagem)
+    {
+        $this->load->view('colaborador/bloqueado', [
+            'titulo' => 'Área do Colaborador',
+            'mensagem' => $mensagem,
+        ]);
+        exit;
     }
 
     private function baseData($titulo)
