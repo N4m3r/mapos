@@ -86,6 +86,23 @@ foreach ($os_servicos as $ms) {
         </label>
         <div id="regFotosHidden"></div>
         <div id="regFotosPrev" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
+
+        <!-- Assinatura do cliente (opcional) -->
+        <label style="display:flex;align-items:center;gap:10px;margin-top:14px;cursor:pointer;">
+            <input type="checkbox" id="reg-quer-assinatura" style="width:20px;height:20px;">
+            <span style="font-weight:600;"><i class='bx bx-pen'></i> Coletar assinatura do cliente</span>
+        </label>
+        <div id="reg-assinatura-box" style="display:none;margin-top:8px;">
+            <p style="color:#888;font-size:12px;margin:6px 0;">Entregue o aparelho ao cliente para assinar abaixo.</p>
+            <div style="border:2px dashed #c7ccdd;border-radius:12px;background:#fff;touch-action:none;">
+                <canvas id="reg-assinatura-canvas" style="display:block;width:100%;touch-action:none;border-radius:10px;"></canvas>
+            </div>
+            <button type="button" class="btn-tec neutral" id="reg-assinatura-limpar" style="margin-top:8px;">
+                <i class='bx bx-eraser'></i> Limpar assinatura
+            </button>
+        </div>
+        <input type="hidden" name="assinatura" id="reg-assinatura-hidden">
+
         <button type="submit" class="btn-tec success block lg" style="margin-top:12px;">
             <i class='bx bx-save'></i> Registrar execução
         </button>
@@ -187,6 +204,9 @@ foreach ($os_servicos as $ms) {
                 </div>
                 <div style="color:#555;margin-top:4px;"><?= html_escape($r->atividades ?: '—') ?></div>
                 <small style="color:#999;"><i class='bx bx-user'></i> <?= html_escape($r->responsavel ?: '—') ?></small>
+                <?php if (!empty($r->assinatura)): ?>
+                    <small style="color:#2b7;margin-left:8px;"><i class='bx bx-pen'></i> Assinado pelo cliente</small>
+                <?php endif; ?>
             </div>
         <?php endforeach; ?>
     <?php else: ?>
@@ -195,8 +215,33 @@ foreach ($os_servicos as $ms) {
 </div>
 
 <?php $this->load->view('tecnico/_nav', ['nav_ativo' => 'projetos', 'pode_ver_sistema' => isset($pode_ver_sistema) ? $pode_ver_sistema : false]); ?>
+<script src="<?= base_url('assets/js/assinatura-canvas.js') ?>"></script>
 <script src="<?= base_url('assets/js/csrf.js?v=3') ?>"></script>
 <script>
+    // Assinatura do cliente (opcional) — revelada pelo checkbox.
+    (function () {
+        var chk = document.getElementById('reg-quer-assinatura');
+        var box = document.getElementById('reg-assinatura-box');
+        var hidden = document.getElementById('reg-assinatura-hidden');
+        var form = document.getElementById('formRegistro');
+        if (!chk || !box || !form) return;
+        var manager = null;
+        chk.addEventListener('change', function () {
+            box.style.display = this.checked ? 'block' : 'none';
+            if (this.checked && !manager && typeof AssinaturaManager !== 'undefined') {
+                // Cria depois de exibir para o canvas medir a largura certa.
+                manager = AssinaturaManager.criar('rdo', 'reg-assinatura-canvas');
+            }
+        });
+        var limpar = document.getElementById('reg-assinatura-limpar');
+        if (limpar) {
+            limpar.addEventListener('click', function () { if (manager) manager.limpar(); });
+        }
+        form.addEventListener('submit', function () {
+            hidden.value = (chk.checked && manager && !manager.estaVazio()) ? manager.obterImagem() : '';
+        });
+    })();
+
     (function () {
         var input = document.getElementById('regFotos');
         if (!input) return;

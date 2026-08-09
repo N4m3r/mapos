@@ -90,11 +90,14 @@ $condicoes = ['praticavel' => 'Praticável', 'parcial' => 'Parcialmente praticá
         </div>
     <?php endif; ?>
 
+    <?php $temAssinatura = ! empty($rdo->assinatura) && strpos((string) $rdo->assinatura, 'base64') !== false; ?>
     <div class="assinatura">
-        <?php if (! empty($rdo->assinatura) && strpos((string) $rdo->assinatura, 'base64') !== false): ?>
-            <img src="<?= $rdo->assinatura ?>" alt="Assinatura">
+        <?php if ($temAssinatura): ?>
+            <img src="<?= $rdo->assinatura ?>" alt="Assinatura do cliente">
+            <div class="linha">Assinatura do cliente</div>
+        <?php else: ?>
+            <div class="linha"><?= html_escape($responsavel ?: 'Responsável') ?></div>
         <?php endif; ?>
-        <div class="linha"><?= html_escape($responsavel ?: 'Responsável') ?></div>
     </div>
 
     <div class="rodape">Emitido em <?= date('d/m/Y H:i') ?></div>

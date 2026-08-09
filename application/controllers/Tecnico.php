@@ -184,6 +184,10 @@ class Tecnico extends MY_Controller
             redirect('tecnico/projeto/' . $obra_id);
         }
 
+        // Assinatura do cliente (opcional, só quando o checkbox foi marcado).
+        $assinatura = (string) $this->input->post('assinatura');
+        $assinatura = (strpos($assinatura, 'base64') !== false) ? $assinatura : null;
+
         $rdoId = $this->obras_model->addRdo([
             'obra_id' => $obra_id,
             'numero' => $this->obras_model->proximoNumeroRdo($obra_id),
@@ -192,6 +196,7 @@ class Tecnico extends MY_Controller
             'responsavel_id' => $uid,
             'atividades' => $atividades !== '' ? $atividades : '(sem descrição)',
             'status' => 'finalizado',
+            'assinatura' => $assinatura,
             'data_registro' => date('Y-m-d H:i:s'),
         ]);
 
