@@ -141,8 +141,137 @@ class Obras extends MY_Controller
         $this->data['custo'] = $this->obras_model->getResumoCusto($id);
         $this->data['apontamentos'] = $this->obras_model->getApontamentos($id);
         $this->data['apontamento_total'] = $this->obras_model->getTotalApontamento($id);
+        $this->data['os_vinculadas'] = $this->obras_model->getOsVinculadas($id);
+        $this->data['os_disponiveis'] = $this->obras_model->getOsDisponiveis();
+        $this->data['os_servicos'] = $this->obras_model->getServicosDasOs($id);
+        $this->data['os_produtos'] = $this->obras_model->getProdutosDasOs($id);
+
+        // Executores do projeto + controle de acesso à execução
+        $this->data['usuarios_projeto'] = $this->obras_model->getUsuariosProjeto($id);
+        $idsVinculados = array_map(function ($u) {
+            return (int) $u->usuario_id;
+        }, $this->data['usuarios_projeto']);
+        $this->db->select('idUsuarios, nome')->where('situacao', 1);
+        if ($idsVinculados) {
+            $this->db->where_not_in('idUsuarios', $idsVinculados);
+        }
+        $this->data['usuarios_disponiveis'] = $this->db->order_by('nome', 'ASC')->get('usuarios')->result();
+        $uid = $this->session->userdata('id_admin');
+        $this->data['pode_executar'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'cObraRdo')
+            || $this->obras_model->usuarioTemAcesso($id, $uid);
+
         $this->data['view'] = 'obras/visualizar';
         return $this->layout();
+    }
+
+    /* ==================== Usuários do projeto ==================== */
+
+    public function vincularUsuario()
+    {
+        $this->precisa('eObras', 'Você não tem permissão para gerenciar o acesso ao projeto.');
+        $obra_id = (int) $this->input->post('obra_id');
+        $usuario_id = (int) $this->input->post('usuario_id');
+        if (! $obra_id || ! $usuario_id) {
+            $this->session->set_flashdata('error', 'Selecione um usuário.');
+            redirect('obras/visualizar/' . $obra_id . '#equipe');
+        }
+        if ($this->obras_model->vincularUsuario($obra_id, $usuario_id)) {
+            log_info('Vinculou o usuário ' . $usuario_id . ' ao projeto ' . $obra_id);
+            $this->session->set_flashdata('success', 'Usuário vinculado ao projeto.');
+        } else {
+            $this->session->set_flashdata('error', 'Usuário já vinculado ou inválido.');
+        }
+        redirect('obras/visualizar/' . $obra_id . '#equipe');
+    }
+
+    public function desvincularUsuario()
+    {
+        $this->precisa('eObras', 'Você não tem permissão para gerenciar o acesso ao projeto.');
+        $obra_id = (int) $this->input->post('obra_id');
+        $this->obras_model->desvincularUsuario((int) $this->input->post('idObraUsuario'), $obra_id);
+        log_info('Desvinculou um usuário do projeto ' . $obra_id);
+        $this->session->set_flashdata('success', 'Acesso removido.');
+        redirect('obras/visualizar/' . $obra_id . '#equipe');
+    }
+
+    /**
+     * Registro rápido (one-click) do que foi executado no projeto.
+     * Reaproveita o RDO: grava só "o que foi feito" + fotos, com data e
+     * responsável automáticos. Só executores com acesso podem registrar.
+     */
+    public function registrarExecucao()
+    {
+        $obra_id = (int) $this->input->post('obra_id');
+        $obra = $this->obras_model->getObra($obra_id);
+        if (! $obra) {
+            $this->session->set_flashdata('error', 'Projeto não encontrado.');
+            redirect('obras');
+        }
+        $uid = $this->session->userdata('id_admin');
+        $ehGestor = $this->permission->checkPermission($this->session->userdata('permissao'), 'cObraRdo');
+        if (! $ehGestor && ! $this->obras_model->usuarioTemAcesso($obra_id, $uid)) {
+            $this->session->set_flashdata('error', 'Você não tem acesso para registrar execução neste projeto.');
+            redirect('obras/visualizar/' . $obra_id);
+        }
+
+        $atividades = trim((string) $this->input->post('atividades'));
+        if ($atividades === '') {
+            $this->session->set_flashdata('error', 'Descreva o que foi realizado.');
+            redirect('obras/visualizar/' . $obra_id . '#rdo');
+        }
+
+        $rdoId = $this->obras_model->addRdo([
+            'obra_id' => $obra_id,
+            'numero' => $this->obras_model->proximoNumeroRdo($obra_id),
+            'data' => date('Y-m-d'),
+            'condicao' => 'praticavel',
+            'responsavel_id' => $uid,
+            'atividades' => $atividades,
+            'status' => 'finalizado',
+            'data_registro' => date('Y-m-d H:i:s'),
+        ]);
+
+        foreach ((array) $this->input->post('fotos') as $b64) {
+            $bin = $this->base64ParaBlob($b64);
+            if ($bin !== null) {
+                $this->obras_model->addRdoFoto($rdoId, $bin);
+            }
+        }
+
+        log_info('Registro rápido de execução na obra ' . $obra_id);
+        $this->session->set_flashdata('success', 'Execução registrada. Obrigado!');
+        redirect('obras/visualizar/' . $obra_id . '#rdo');
+    }
+
+    /* ========================= OS vinculadas ===================== */
+
+    /** Vincula uma OS existente ao projeto (representa o que será executado). */
+    public function vincularOs()
+    {
+        $this->precisa('eObras', 'Você não tem permissão para vincular OS ao projeto.');
+        $obra_id = (int) $this->input->post('obra_id');
+        $os_id = (int) $this->input->post('os_id');
+        if (! $obra_id || ! $os_id) {
+            $this->session->set_flashdata('error', 'Selecione uma Ordem de Serviço.');
+            redirect('obras/visualizar/' . $obra_id . '#os');
+        }
+        if ($this->obras_model->vincularOs($obra_id, $os_id, $this->input->post('etapa_id'))) {
+            log_info('Vinculou a OS ' . $os_id . ' ao projeto ' . $obra_id);
+            $this->session->set_flashdata('success', 'OS vinculada ao projeto.');
+        } else {
+            $this->session->set_flashdata('error', 'Não foi possível vincular (a OS já pode estar em um projeto).');
+        }
+        redirect('obras/visualizar/' . $obra_id . '#os');
+    }
+
+    public function desvincularOs()
+    {
+        $this->precisa('eObras', 'Você não tem permissão para desvincular OS.');
+        $obra_id = (int) $this->input->post('obra_id');
+        $this->obras_model->desvincularOs((int) $this->input->post('idVinculo'), $obra_id);
+        log_info('Desvinculou uma OS do projeto ' . $obra_id);
+        $this->session->set_flashdata('success', 'OS desvinculada do projeto.');
+        redirect('obras/visualizar/' . $obra_id . '#os');
     }
 
     /* ======================= Apontamento / efetivo ======================= */

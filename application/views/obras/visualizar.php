@@ -27,6 +27,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
             </div>
         </div>
         <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+            <?php if (! empty($pode_executar)): ?><a href="#modal-registro" data-toggle="modal" class="button btn btn-success" style="font-weight:bold"><span class="button__icon"><i class='bx bx-check-circle'></i></span><span class="button__text2">Registrar execução de hoje</span></a><?php endif; ?>
             <?php if ($perm('eObras')): ?><a href="<?= site_url('obras/editar/' . $obra->idObra) ?>" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-edit'></i></span><span class="button__text2">Editar</span></a><?php endif; ?>
             <?php if ($perm('rObraMaterial')): ?><a href="<?= site_url('obramaterial/receber/' . $obra->idObra) ?>" class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-down-arrow-circle'></i></span><span class="button__text2">Receber material</span></a><?php endif; ?>
             <?php if ($perm('sObraMaterial')): ?><a href="<?= site_url('obramaterial/entregar/' . $obra->idObra) ?>" class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-up-arrow-circle'></i></span><span class="button__text2">Entregar material</span></a><?php endif; ?>
@@ -43,6 +44,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
     <li><a href="#tab-medicao" data-tab="medicao">Medição</a></li>
     <li><a href="#tab-equipe" data-tab="equipe">Equipe</a></li>
     <li><a href="#tab-maodeobra" data-tab="maodeobra">Mão de obra</a></li>
+    <li><a href="#tab-os" data-tab="os">Ordens de Serviço</a></li>
 </ul>
 
 <div class="obra-tab-content">
@@ -152,13 +154,14 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                 <div style="padding:8px"><a href="#modal-rdo" data-toggle="modal" class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Novo RDO</span></a></div>
             <?php endif; ?>
             <table class="table table-bordered">
-                <thead><tr><th>#</th><th>Data</th><th>Clima (M/T/N)</th><th>Condição</th><th>Efetivo</th><th>Responsável</th></tr></thead>
+                <thead><tr><th>#</th><th>Data</th><th>O que foi feito</th><th>Clima (M/T/N)</th><th>Condição</th><th>Efetivo</th><th>Responsável</th></tr></thead>
                 <tbody>
-                    <?php if (! $rdos) echo '<tr><td colspan="6">Nenhum RDO registrado.</td></tr>'; ?>
+                    <?php if (! $rdos) echo '<tr><td colspan="7">Nenhum RDO registrado.</td></tr>'; ?>
                     <?php foreach ($rdos as $r): ?>
                         <tr>
                             <td><?= $r->numero ?></td>
                             <td><?= $data_br($r->data) ?></td>
+                            <td><?= html_escape(mb_strimwidth((string) $r->atividades, 0, 80, '…')) ?: '—' ?></td>
                             <td><?= html_escape(($r->clima_manha ?: '-') . '/' . ($r->clima_tarde ?: '-') . '/' . ($r->clima_noite ?: '-')) ?></td>
                             <td><?= html_escape($r->condicao) ?></td>
                             <td><?= (int) $r->efetivo_total ?></td>
@@ -221,6 +224,42 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                 </tbody>
             </table>
         </div></div>
+
+        <!-- Usuários com acesso de execução -->
+        <div class="widget-box"><div class="widget-title"><h5 style="padding-left:8px"><i class='bx bx-user-check'></i> Usuários com acesso ao projeto</h5></div>
+            <div class="widget-content nopadding">
+                <p style="padding:8px 8px 0;margin:0;color:#888">Apenas estes usuários (e o responsável do projeto) podem registrar a execução das atividades.</p>
+                <table class="table table-bordered">
+                    <thead><tr><th>Usuário</th><th>E-mail</th><?php if ($perm('eObras')): ?><th style="width:60px">Ações</th><?php endif; ?></tr></thead>
+                    <tbody>
+                        <?php if (! $usuarios_projeto) echo '<tr><td colspan="3">Nenhum usuário vinculado. O responsável do projeto ainda pode registrar.</td></tr>'; ?>
+                        <?php foreach ($usuarios_projeto as $u): ?>
+                            <tr>
+                                <td><?= html_escape($u->nome ?: '—') ?></td>
+                                <td><?= html_escape($u->email ?: '—') ?></td>
+                                <?php if ($perm('eObras')): ?>
+                                    <td><a href="#" class="btn-nwe4" title="Remover acesso" onclick="desvincularUsuario(<?= (int) $u->idObraUsuario ?>);return false;"><i class="bx bx-user-x bx-xs"></i></a></td>
+                                <?php endif; ?>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                <?php if ($perm('eObras')): ?>
+                    <form action="<?= site_url('obras/vincularUsuario') ?>" method="post" style="padding:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+                        <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
+                        <div style="flex:1;min-width:220px"><label>Adicionar usuário</label>
+                            <select name="usuario_id" class="span12" required>
+                                <option value="">Selecione...</option>
+                                <?php foreach ($usuarios_disponiveis as $ud): ?>
+                                    <option value="<?= (int) $ud->idUsuarios ?>"><?= html_escape($ud->nome) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <button class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-plus'></i></span><span class="button__text2">Dar acesso</span></button>
+                    </form>
+                <?php endif; ?>
+            </div>
+        </div>
     </div>
 
     <!-- MÃO DE OBRA / EFETIVO -->
@@ -274,7 +313,137 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
             </div>
         </div>
     </div>
+
+    <!-- ORDENS DE SERVIÇO -->
+    <?php
+    $osStatusLabel = function ($s) {
+        return $s ? html_escape($s) : '—';
+    };
+    ?>
+    <div class="obra-pane" id="tab-os" style="display:none">
+        <?php if ($perm('eObras')): ?>
+            <div style="padding:8px 0">
+                <a href="#modal-vincular-os" data-toggle="modal" class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-link'></i></span><span class="button__text2">Vincular OS ao projeto</span></a>
+            </div>
+        <?php endif; ?>
+
+        <div class="widget-box"><div class="widget-content nopadding">
+            <table class="table table-bordered">
+                <thead><tr><th>OS</th><th>Cliente</th><th>Técnico</th><th>Status</th><th>Etapa</th><th style="min-width:190px">Ações</th></tr></thead>
+                <tbody>
+                    <?php if (! $os_vinculadas) echo '<tr><td colspan="6">Nenhuma OS vinculada. Use "Vincular OS ao projeto" para trazer o que será executado.</td></tr>'; ?>
+                    <?php foreach ($os_vinculadas as $o): ?>
+                        <tr>
+                            <td>#<?= (int) $o->idOs ?></td>
+                            <td><?= html_escape($o->nomeCliente ?: '—') ?></td>
+                            <td><?= html_escape($o->tecnico ?: '—') ?></td>
+                            <td><span class="label"><?= $osStatusLabel($o->status) ?></span></td>
+                            <td><?= html_escape($o->etapa_nome ?: '—') ?></td>
+                            <td>
+                                <a href="<?= site_url('os/visualizar/' . $o->idOs) ?>" class="btn-nwe" title="Abrir OS"><i class="bx bx-show bx-xs"></i></a>
+                                <a href="<?= site_url('tecnico/visualizar/' . $o->idOs) ?>" class="button btn btn-mini btn-primary" style="margin:0 4px" title="Executar em campo"><span class="button__icon"><i class='bx bx-play-circle'></i></span><span class="button__text2">Executar</span></a>
+                                <?php if ($perm('eObras')): ?>
+                                    <a href="#" class="btn-nwe4" title="Desvincular" onclick="desvincularOs(<?= (int) $o->idVinculo ?>);return false;"><i class="bx bx-unlink bx-xs"></i></a>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div></div>
+
+        <?php if ($os_vinculadas): ?>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <div class="widget-box" style="flex:1;min-width:280px"><div class="widget-title"><h5 style="padding-left:8px"><i class='bx bx-list-check'></i> O que executar (serviços)</h5></div>
+                <div class="widget-content nopadding">
+                    <table class="table table-bordered">
+                        <thead><tr><th>OS</th><th>Serviço</th><th>Qtd.</th></tr></thead>
+                        <tbody>
+                            <?php if (! $os_servicos) echo '<tr><td colspan="3">Sem serviços lançados nas OS.</td></tr>'; ?>
+                            <?php foreach ($os_servicos as $s): ?>
+                                <tr><td>#<?= (int) $s->os_id ?></td><td><?= html_escape($s->nome ?: '—') ?></td><td><?= $fmt($s->quantidade) ?></td></tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="widget-box" style="flex:1;min-width:280px"><div class="widget-title"><h5 style="padding-left:8px"><i class='bx bx-package'></i> Material a utilizar (produtos)</h5></div>
+                <div class="widget-content nopadding">
+                    <table class="table table-bordered">
+                        <thead><tr><th>OS</th><th>Produto</th><th>Qtd.</th></tr></thead>
+                        <tbody>
+                            <?php if (! $os_produtos) echo '<tr><td colspan="3">Sem produtos lançados nas OS.</td></tr>'; ?>
+                            <?php foreach ($os_produtos as $p): ?>
+                                <tr><td>#<?= (int) $p->os_id ?></td><td><?= html_escape($p->nome ?: '—') ?></td><td><?= $fmt($p->quantidade) ?></td></tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+    </div>
 </div>
+
+<?php if ($perm('eObras')): ?>
+<!-- Modal Vincular OS -->
+<div id="modal-vincular-os" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <form action="<?= site_url('obras/vincularOs') ?>" method="post">
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Vincular Ordem de Serviço</h5></div>
+        <div class="modal-body">
+            <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
+            <div class="span12" style="margin-left:0"><label>Ordem de Serviço *</label>
+                <select name="os_id" class="span12" required>
+                    <option value="">Selecione a OS...</option>
+                    <?php foreach ($os_disponiveis as $d): ?>
+                        <option value="<?= (int) $d->idOs ?>">#<?= (int) $d->idOs ?> — <?= html_escape($d->nomeCliente ?: 'sem cliente') ?><?= $d->status ? ' (' . html_escape($d->status) . ')' : '' ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <?php if (! $os_disponiveis): ?><small>Nenhuma OS livre para vincular (todas já estão em algum projeto).</small><?php endif; ?>
+            </div>
+            <div class="span12" style="margin-left:0"><label>Etapa do cronograma (opcional)</label>
+                <select name="etapa_id" class="span12">
+                    <option value="">— sem etapa —</option>
+                    <?php foreach ($etapas as $e): ?>
+                        <option value="<?= (int) $e->idEtapa ?>"><?= html_escape($e->nome) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Vincular</span></button></div>
+    </form>
+</div>
+<form id="formDesvincularOs" action="<?= site_url('obras/desvincularOs') ?>" method="post" style="display:none">
+    <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>"><input type="hidden" name="idVinculo" id="del_vinculo">
+</form>
+<form id="formDesvincularUsuario" action="<?= site_url('obras/desvincularUsuario') ?>" method="post" style="display:none">
+    <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>"><input type="hidden" name="idObraUsuario" id="del_usuario">
+</form>
+<script>
+    function desvincularOs(id){ if(confirm('Desvincular esta OS do projeto? A OS não é excluída.')){ document.getElementById('del_vinculo').value=id; document.getElementById('formDesvincularOs').submit(); } }
+    function desvincularUsuario(id){ if(confirm('Remover o acesso deste usuário ao projeto?')){ document.getElementById('del_usuario').value=id; document.getElementById('formDesvincularUsuario').submit(); } }
+</script>
+<?php endif; ?>
+
+<?php if (! empty($pode_executar)): ?>
+<!-- Modal Registro rápido de execução (reusa RDO) -->
+<div id="modal-registro" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <form action="<?= site_url('obras/registrarExecucao') ?>" method="post">
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5><i class='bx bx-check-circle'></i> Registrar execução — <?= date('d/m/Y') ?></h5></div>
+        <div class="modal-body">
+            <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
+            <div class="span12" style="margin-left:0"><label>O que foi feito hoje? *</label>
+                <textarea name="atividades" id="reg_atividades" class="span12" rows="4" placeholder="Descreva a atividade executada..." required></textarea>
+            </div>
+            <div class="span12" style="margin-left:0"><label>Fotos (opcional)</label>
+                <input type="file" accept="image/*" multiple id="regFotos" capture="environment">
+                <div id="regFotosHidden"></div><div id="regFotosPrev" class="obra-fotos-prev"></div>
+            </div>
+        </div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Registrar</span></button></div>
+    </form>
+</div>
+<?php endif; ?>
 
 <?php if ($perm('cObraRdo')): ?>
 <form id="formExcluirApont" action="<?= site_url('obras/excluirApontamento') ?>" method="post" style="display:none">
@@ -372,18 +541,22 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
         var h = (location.hash || '').replace('#', '');
         if (h && $('#tab-' + h).length) ativar(h);
 
-        // fotos do RDO -> base64 em hidden
-        $('#rdoFotos').on('change', function () {
-            $('#rdoFotosHidden').empty(); $('#rdoFotosPrev').empty();
-            Array.prototype.forEach.call(this.files, function (file) {
-                var reader = new FileReader();
-                reader.onload = function (ev) {
-                    $('#rdoFotosHidden').append('<input type="hidden" name="fotos[]" value="' + ev.target.result + '">');
-                    $('#rdoFotosPrev').append('<img src="' + ev.target.result + '">');
-                };
-                reader.readAsDataURL(file);
+        // fotos (RDO e registro rápido) -> base64 em hidden
+        function fotosParaBase64(input, alvoHidden, alvoPrev) {
+            $(input).on('change', function () {
+                $(alvoHidden).empty(); $(alvoPrev).empty();
+                Array.prototype.forEach.call(this.files, function (file) {
+                    var reader = new FileReader();
+                    reader.onload = function (ev) {
+                        $(alvoHidden).append('<input type="hidden" name="fotos[]" value="' + ev.target.result + '">');
+                        $(alvoPrev).append('<img src="' + ev.target.result + '">');
+                    };
+                    reader.readAsDataURL(file);
+                });
             });
-        });
+        }
+        fotosParaBase64('#rdoFotos', '#rdoFotosHidden', '#rdoFotosPrev');
+        fotosParaBase64('#regFotos', '#regFotosHidden', '#regFotosPrev');
     });
 
     function novaEtapa() {

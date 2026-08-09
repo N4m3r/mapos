@@ -83,7 +83,7 @@ class Obras_model extends CI_Model
     public function delete($id)
     {
         $id = (int) $id;
-        foreach (['obra_etapas', 'obra_os', 'obra_rdo', 'obra_medicao', 'obra_custo',
+        foreach (['obra_etapas', 'obra_os', 'obra_usuario', 'obra_rdo', 'obra_medicao', 'obra_custo',
             'obra_material_saldo', 'obra_apontamento', 'obra_equipe_alocacao'] as $t) {
             if ($this->db->table_exists($t)) {
                 $this->db->where('obra_id', $id)->delete($t);
@@ -91,6 +91,172 @@ class Obras_model extends CI_Model
         }
         $this->db->where('idObra', $id)->delete('obras');
         return true;
+    }
+
+    /* ==================== Usuários do projeto ==================== */
+
+    /** Usuários vinculados ao projeto (executores com acesso). */
+    public function getUsuariosProjeto($obra_id)
+    {
+        if (! $this->db->table_exists('obra_usuario')) {
+            return [];
+        }
+        $this->db->select('obra_usuario.idObraUsuario, obra_usuario.usuario_id, usuarios.nome, usuarios.email');
+        $this->db->from('obra_usuario');
+        $this->db->join('usuarios', 'usuarios.idUsuarios = obra_usuario.usuario_id', 'left');
+        $this->db->where('obra_usuario.obra_id', (int) $obra_id);
+        $this->db->order_by('usuarios.nome', 'ASC');
+        return $this->db->get()->result();
+    }
+
+    public function vincularUsuario($obra_id, $usuario_id)
+    {
+        if (! $this->db->table_exists('obra_usuario')) {
+            return false;
+        }
+        $obra_id = (int) $obra_id;
+        $usuario_id = (int) $usuario_id;
+        if (! $obra_id || ! $usuario_id) {
+            return false;
+        }
+        if ($this->db->where(['obra_id' => $obra_id, 'usuario_id' => $usuario_id])->count_all_results('obra_usuario')) {
+            return false;
+        }
+        $this->db->insert('obra_usuario', [
+            'obra_id' => $obra_id,
+            'usuario_id' => $usuario_id,
+            'data_vinculo' => date('Y-m-d H:i:s'),
+        ]);
+        return $this->db->insert_id();
+    }
+
+    public function desvincularUsuario($id, $obra_id)
+    {
+        if (! $this->db->table_exists('obra_usuario')) {
+            return false;
+        }
+        $this->db->where('idObraUsuario', (int) $id)
+            ->where('obra_id', (int) $obra_id)
+            ->delete('obra_usuario');
+        return true;
+    }
+
+    /**
+     * Quem pode dar seguimento/registrar a execução do projeto:
+     * o responsável do projeto ou qualquer usuário vinculado a ele.
+     */
+    public function usuarioTemAcesso($obra_id, $usuario_id)
+    {
+        $usuario_id = (int) $usuario_id;
+        if (! $usuario_id) {
+            return false;
+        }
+        $obra = $this->getObra($obra_id);
+        if ($obra && (int) $obra->responsavel_id === $usuario_id) {
+            return true;
+        }
+        if (! $this->db->table_exists('obra_usuario')) {
+            return false;
+        }
+        return (bool) $this->db->where(['obra_id' => (int) $obra_id, 'usuario_id' => $usuario_id])
+            ->count_all_results('obra_usuario');
+    }
+
+    /* ======================= OS vinculadas ======================= */
+
+    /** OS ligadas ao projeto, com cliente, técnico e status de execução. */
+    public function getOsVinculadas($obra_id)
+    {
+        if (! $this->db->table_exists('obra_os') || ! $this->db->table_exists('os')) {
+            return [];
+        }
+        $this->db->select('obra_os.idVinculo, obra_os.etapa_id, os.idOs, os.status, os.dataInicial, clientes.nomeCliente, usuarios.nome as tecnico, etapa.nome as etapa_nome');
+        $this->db->from('obra_os');
+        $this->db->join('os', 'os.idOs = obra_os.os_id');
+        $this->db->join('clientes', 'clientes.idClientes = os.clientes_id', 'left');
+        $this->db->join('usuarios', 'usuarios.idUsuarios = os.usuarios_id', 'left');
+        $this->db->join('obra_etapas etapa', 'etapa.idEtapa = obra_os.etapa_id', 'left');
+        $this->db->where('obra_os.obra_id', (int) $obra_id);
+        $this->db->order_by('os.idOs', 'desc');
+        return $this->db->get()->result();
+    }
+
+    /** OS ainda não vinculadas a nenhum projeto (candidatas ao vínculo). */
+    public function getOsDisponiveis($limite = 300)
+    {
+        if (! $this->db->table_exists('obra_os') || ! $this->db->table_exists('os')) {
+            return [];
+        }
+        $this->db->select('os.idOs, os.status, os.dataInicial, clientes.nomeCliente');
+        $this->db->from('os');
+        $this->db->join('clientes', 'clientes.idClientes = os.clientes_id', 'left');
+        $this->db->where('os.idOs NOT IN (SELECT os_id FROM obra_os)', null, false);
+        $this->db->order_by('os.idOs', 'desc');
+        $this->db->limit((int) $limite);
+        return $this->db->get()->result();
+    }
+
+    public function vincularOs($obra_id, $os_id, $etapa_id = null)
+    {
+        if (! $this->db->table_exists('obra_os')) {
+            return false;
+        }
+        $obra_id = (int) $obra_id;
+        $os_id = (int) $os_id;
+        if (! $obra_id || ! $os_id) {
+            return false;
+        }
+        // não duplica o mesmo vínculo
+        if ($this->db->where(['obra_id' => $obra_id, 'os_id' => $os_id])->count_all_results('obra_os')) {
+            return false;
+        }
+        $this->db->insert('obra_os', [
+            'obra_id' => $obra_id,
+            'os_id' => $os_id,
+            'etapa_id' => $etapa_id ? (int) $etapa_id : null,
+        ]);
+        return $this->db->insert_id();
+    }
+
+    public function desvincularOs($idVinculo, $obra_id)
+    {
+        if (! $this->db->table_exists('obra_os')) {
+            return false;
+        }
+        $this->db->where('idVinculo', (int) $idVinculo)
+            ->where('obra_id', (int) $obra_id)
+            ->delete('obra_os');
+        return true;
+    }
+
+    /** Serviços das OS ligadas — "o que executar" no projeto. */
+    public function getServicosDasOs($obra_id)
+    {
+        if (! $this->db->table_exists('obra_os') || ! $this->db->table_exists('servicos_os')) {
+            return [];
+        }
+        $this->db->select('servicos_os.os_id, servicos.nome, servicos_os.quantidade, servicos_os.preco');
+        $this->db->from('obra_os');
+        $this->db->join('servicos_os', 'servicos_os.os_id = obra_os.os_id');
+        $this->db->join('servicos', 'servicos.idServicos = servicos_os.servicos_id', 'left');
+        $this->db->where('obra_os.obra_id', (int) $obra_id);
+        $this->db->order_by('servicos_os.os_id', 'asc');
+        return $this->db->get()->result();
+    }
+
+    /** Produtos das OS ligadas — "material a utilizar" no projeto. */
+    public function getProdutosDasOs($obra_id)
+    {
+        if (! $this->db->table_exists('obra_os') || ! $this->db->table_exists('produtos_os')) {
+            return [];
+        }
+        $this->db->select('produtos_os.os_id, produtos.descricao as nome, produtos_os.quantidade, produtos_os.preco');
+        $this->db->from('obra_os');
+        $this->db->join('produtos_os', 'produtos_os.os_id = obra_os.os_id');
+        $this->db->join('produtos', 'produtos.idProdutos = produtos_os.produtos_id', 'left');
+        $this->db->where('obra_os.obra_id', (int) $obra_id);
+        $this->db->order_by('produtos_os.os_id', 'asc');
+        return $this->db->get()->result();
     }
 
     /* ============================ Etapas ========================== */
