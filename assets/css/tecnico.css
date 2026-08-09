@@ -331,10 +331,20 @@ details.tec-adv summary { color: var(--tec-grad-1); font-size: 13px; cursor: poi
   text-decoration: none;
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   font-size: 11px;
+  line-height: 1.2;
   flex: 1;
+  min-width: 0; /* permite encolher entre 5 itens sem empurrar a linha */
   padding: 4px 2px;
   border-radius: 10px;
 }
-.tec-bottomnav a i { font-size: 22px; }
+.tec-bottomnav a i { font-size: 22px; line-height: 1; }
+/* rotulo sempre em UMA linha: fonte grande (acessibilidade) nao pode quebrar
+   o texto e aumentar a altura do menu, senao ele volta a cobrir o conteudo */
+.tec-bottomnav a span {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .tec-bottomnav a.active { color: var(--tec-grad-1); }
 .tec-bottomnav a.active i { transform: translateY(-1px); }
