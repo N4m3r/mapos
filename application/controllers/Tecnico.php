@@ -110,6 +110,84 @@ class Tecnico extends MY_Controller
         $this->load->view('tecnico/minhas_os', $data);
     }
 
+    /* ============================ Projetos ============================ */
+
+    /** Lista os projetos que o tecnico pode executar (responsavel ou vinculado). */
+    public function projetos()
+    {
+        $this->load->model('obras_model');
+        $uid = $this->session->userdata('id_admin');
+        $data['projetos'] = $this->obras_model->getProjetosDoUsuario($uid);
+        $data['pode_ver_sistema'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs');
+        $data['titulo'] = 'Meus Projetos';
+        $this->load->view('tecnico/projetos', $data);
+    }
+
+    /** Tela do projeto na Area do Tecnico: o que executar, material, OS e registro. */
+    public function projeto($id = null)
+    {
+        $this->load->model('obras_model');
+        $id = (int) $id;
+        $uid = $this->session->userdata('id_admin');
+        $obra = $id ? $this->obras_model->getObra($id) : null;
+        if (!$obra) {
+            $this->session->set_flashdata('error', 'Projeto não encontrado.');
+            redirect('tecnico/projetos');
+        }
+        if (!$this->obras_model->usuarioTemAcesso($id, $uid)) {
+            $this->session->set_flashdata('error', 'Você não tem acesso a este projeto.');
+            redirect('tecnico/projetos');
+        }
+        $data['obra'] = $obra;
+        $data['os_vinculadas'] = $this->obras_model->getOsVinculadas($id);
+        $data['os_servicos'] = $this->obras_model->getServicosDasOs($id);
+        $data['os_produtos'] = $this->obras_model->getProdutosDasOs($id);
+        $data['rdos'] = $this->obras_model->getRdos($id);
+        $data['pode_ver_sistema'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs');
+        $data['titulo'] = $obra->nome;
+        $this->load->view('tecnico/projeto', $data);
+    }
+
+    /** Registro rapido (one-click) do que foi feito no projeto — grava um RDO. */
+    public function salvar_registro_projeto()
+    {
+        $this->load->model('obras_model');
+        $obra_id = (int) $this->input->post('obra_id');
+        $uid = $this->session->userdata('id_admin');
+        $obra = $obra_id ? $this->obras_model->getObra($obra_id) : null;
+        if (!$obra || !$this->obras_model->usuarioTemAcesso($obra_id, $uid)) {
+            $this->session->set_flashdata('error', 'Você não tem acesso a este projeto.');
+            redirect('tecnico/projetos');
+        }
+        $atividades = trim((string) $this->input->post('atividades'));
+        if ($atividades === '') {
+            $this->session->set_flashdata('error', 'Descreva o que foi realizado.');
+            redirect('tecnico/projeto/' . $obra_id);
+        }
+        $rdoId = $this->obras_model->addRdo([
+            'obra_id' => $obra_id,
+            'numero' => $this->obras_model->proximoNumeroRdo($obra_id),
+            'data' => date('Y-m-d'),
+            'condicao' => 'praticavel',
+            'responsavel_id' => $uid,
+            'atividades' => $atividades,
+            'status' => 'finalizado',
+            'data_registro' => date('Y-m-d H:i:s'),
+        ]);
+        foreach ((array) $this->input->post('fotos') as $b64) {
+            if (!$b64 || strpos($b64, 'base64,') === false) {
+                continue;
+            }
+            $bin = base64_decode(explode('base64,', $b64)[1], true);
+            if ($bin) {
+                $this->obras_model->addRdoFoto($rdoId, $bin);
+            }
+        }
+        log_info('Técnico registrou execução no projeto ' . $obra_id);
+        $this->session->set_flashdata('success', 'Execução registrada!');
+        redirect('tecnico/projeto/' . $obra_id);
+    }
+
     /**
      * Visualizar OS especifica (somente se designada ao tecnico)
      */

@@ -109,6 +109,33 @@ class Obras_model extends CI_Model
         return $this->db->get()->result();
     }
 
+    /** Projetos que um usuário pode executar: onde é responsável ou está vinculado. */
+    public function getProjetosDoUsuario($usuario_id)
+    {
+        if (! $this->db->table_exists('obras')) {
+            return [];
+        }
+        $usuario_id = (int) $usuario_id;
+        $ids = [];
+        if ($this->db->table_exists('obra_usuario')) {
+            $rows = $this->db->select('obra_id')->where('usuario_id', $usuario_id)
+                ->get('obra_usuario')->result();
+            foreach ($rows as $r) {
+                $ids[] = (int) $r->obra_id;
+            }
+        }
+        $this->db->select('obras.*, clientes.nomeCliente');
+        $this->db->from('obras');
+        $this->db->join('clientes', 'clientes.idClientes = obras.clientes_id', 'left');
+        $this->db->group_start()->where('obras.responsavel_id', $usuario_id);
+        if ($ids) {
+            $this->db->or_where_in('obras.idObra', $ids);
+        }
+        $this->db->group_end();
+        $this->db->order_by('obras.idObra', 'DESC');
+        return $this->db->get()->result();
+    }
+
     public function vincularUsuario($obra_id, $usuario_id)
     {
         if (! $this->db->table_exists('obra_usuario')) {
