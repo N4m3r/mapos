@@ -108,6 +108,34 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                         </a>
                     <?php } ?>
 
+                    <?php
+                    // Atalho: gerar boleto/PIX (Cora) direto do topo da OS, para cada
+                    // nota fiscal autorizada que ainda não tem boleto ativo. Reusa o
+                    // modal #modal-gerar-boleto e o handler .btn-gerar-boleto do
+                    // partial de Notas Fiscais (renderizado abaixo, exige vNfe).
+                    if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vNfe')
+                        && $this->permission->checkPermission($this->session->userdata('permissao'), 'aCobranca')) {
+                        $boletosMapa = isset($boletosPorNota) && is_array($boletosPorNota) ? $boletosPorNota : [];
+                        $notasParaBoleto = array_filter([
+                            isset($notaFiscal) ? $notaFiscal : null,
+                            isset($notaFiscalNfe) ? $notaFiscalNfe : null,
+                        ], fn ($n) => $n && $n->status === 'autorizada');
+                        foreach ($notasParaBoleto as $n) {
+                            $lista = $boletosMapa[$n->idNota] ?? [];
+                            $temAtivo = ! empty(array_filter($lista, fn ($b) => ! in_array($b->status, ['CANCELLED', 'cancelada'], true)));
+                            if (! $temAtivo) {
+                                $rot = $n->tipo === 'nfe' ? 'NF-e' : 'NFS-e';
+                                ?>
+                                <a title="Gerar boleto/PIX (Cora) da <?php echo $rot . ' nº ' . $n->numero; ?>, à vista ou parcelado" href="#modal-gerar-boleto" role="button"
+                                   class="button btn btn-mini btn-info btn-gerar-boleto"
+                                   data-nota="<?php echo $n->idNota; ?>" data-valor="<?php echo number_format((float) $n->valor_total, 2, '.', ''); ?>">
+                                    <span class="button__icon"><i class="bx bx-barcode"></i></span> <span class="button__text">Boleto <?php echo $rot; ?></span>
+                                </a>
+                            <?php }
+                        }
+                    }
+                    ?>
+
                     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vCobranca')): ?>
                         <a href="#modal-gerar-pagamento" id="btn-forma-pagamento" role="button" data-toggle="modal" class="button btn btn-mini btn-primary">
                             <span class="button__icon"><i class='bx bx-dollar'></i></span><span class="button__text">Gerar Pagamento</span>
