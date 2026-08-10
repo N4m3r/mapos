@@ -272,6 +272,9 @@ $configNfeBoleto = $this->nfe_model->getConfig();
     $('#boletoIntervaloDias').on('input', boletoAtualizarResumo);
 
     // Confirma a geração do(s) boleto(s) conforme parcelas/vencimento escolhidos.
+    function boletoResetBotao($btn) {
+        $btn.prop('disabled', false).html("<span class='button__icon'><i class='bx bx-dollar'></i></span><span class='button__text2'>Gerar</span>");
+    }
     $('#boletoConfirmarGerar').on('click', function () {
         var $btn = $(this);
         var notaId = $('#boletoNotaId').val();
@@ -280,6 +283,7 @@ $configNfeBoleto = $this->nfe_model->getConfig();
             type: 'POST',
             url: urlGerar,
             dataType: 'json',
+            timeout: 90000,
             data: {
                 nota_id: notaId,
                 parcelas: $('#boletoParcelas').val(),
@@ -287,15 +291,29 @@ $configNfeBoleto = $this->nfe_model->getConfig();
                 intervalo_tipo: $('#boletoIntervaloTipo').val(),
                 intervalo_dias: $('#boletoIntervaloDias').val()
             },
-            success: function () {
+            success: function (resp) {
+                // Segurança: alguns erros podem vir com HTTP 200 + {message}.
+                if (resp && resp.message && !resp.charge_id && !resp.idCobranca) {
+                    boletoResetBotao($btn);
+                    swal({ type: 'error', title: 'Atenção', text: resp.message });
+                    return;
+                }
                 $('#modal-gerar-boleto').modal('hide');
                 swal({ type: 'success', title: 'Boleto gerado!', text: 'Boleto híbrido (boleto + PIX) criado com sucesso.' },
                     function () { location.reload(); });
             },
-            error: function (xhr) {
-                var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Erro ao gerar boleto.';
+            error: function (xhr, textStatus) {
+                boletoResetBotao($btn);
+                var msg;
+                if (textStatus === 'timeout') {
+                    msg = 'A geração demorou demais (timeout). O boleto PODE ter sido criado na Cora — atualize a página e verifique na aba Notas Fiscais antes de gerar de novo.';
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                } else {
+                    var corpo = (xhr.responseText || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                    msg = 'Erro ao gerar boleto (HTTP ' + xhr.status + ').' + (corpo ? ' Detalhe: ' + corpo.substring(0, 300) : '');
+                }
                 swal({ type: 'error', title: 'Atenção', text: msg });
-                $btn.prop('disabled', false).html("<span class='button__icon'><i class='bx bx-dollar'></i></span><span class='button__text2'>Gerar</span>");
             }
         });
     });

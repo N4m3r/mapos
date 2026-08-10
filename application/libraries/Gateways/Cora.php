@@ -328,6 +328,7 @@ class Cora extends BasePaymentGateway
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSLCERT => $cert,
             CURLOPT_SSLKEY => $key,
+            CURLOPT_CONNECTTIMEOUT => 15,
             CURLOPT_TIMEOUT => (int) ($this->coraConfig['timeout'] ?? 30),
         ];
         if ($body !== null) {
