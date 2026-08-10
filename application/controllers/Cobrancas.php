@@ -311,6 +311,8 @@ class Cobrancas extends MY_Controller
         $opcoes = [
             'parcelas' => (int) $this->input->post('parcelas') ?: 1,
             'vencimento' => trim((string) $this->input->post('vencimento')),
+            'intervalo_tipo' => $this->input->post('intervalo_tipo') === 'dias' ? 'dias' : 'mensal',
+            'intervalo_dias' => (int) $this->input->post('intervalo_dias') ?: 30,
         ];
 
         $this->load->library('Gateways/Cora', null, 'PaymentGateway');

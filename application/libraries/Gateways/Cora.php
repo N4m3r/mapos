@@ -426,6 +426,10 @@ class Cora extends BasePaymentGateway
             $primeiroVenc = (new DateTime())->add(new DateInterval($this->coraConfig['boleto_expiration']));
         }
 
+        // Intervalo da 2ª parcela em diante: mensal (mesmo dia) ou a cada N dias.
+        $intervaloTipo = (($opcoes['intervalo_tipo'] ?? 'mensal') === 'dias') ? 'dias' : 'mensal';
+        $intervaloDias = max(1, min(365, (int) ($opcoes['intervalo_dias'] ?? 30)));
+
         $tipoLabel = $nota->tipo === 'nfe' ? 'NF-e' : 'NFS-e';
         $descricaoDoc = $tipoLabel . ' nº ' . $nota->numero . ($tipoOrigem === PaymentGateway::PAYMENT_TYPE_OS ? " - OS #$origemId" : " - Venda #$origemId");
         // Descrição do serviço no boleto: usa a MESMA descrição enviada na NF
@@ -456,7 +460,10 @@ class Cora extends BasePaymentGateway
         $criadas = [];
         for ($i = 0; $i < $parcelas; $i++) {
             $parcelaCents = $baseCents + ($i === 0 ? $restoCents : 0);
-            $dueDate = (clone $primeiroVenc)->modify('+' . $i . ' month')->format('Y-m-d');
+            $modificador = $intervaloTipo === 'dias'
+                ? '+' . ($i * $intervaloDias) . ' day'
+                : '+' . $i . ' month';
+            $dueDate = (clone $primeiroVenc)->modify($modificador)->format('Y-m-d');
             $sufixoParcela = $parcelas > 1 ? ' (' . ($i + 1) . '/' . $parcelas . ')' : '';
             // Registra o ISS retido só na 1ª parcela para não somar em dobro.
             $issRetParcela = $i === 0 ? $issRetido : 0.0;
