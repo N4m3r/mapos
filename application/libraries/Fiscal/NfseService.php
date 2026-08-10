@@ -183,6 +183,63 @@ class NfseService
     }
 
     /**
+     * Resolve o código IBGE do município (cMun, 7 dígitos) a partir do CEP,
+     * consultando o ViaCEP. Necessário porque o cadastro de cliente guarda só o
+     * NOME da cidade — e o Padrão Nacional exige que o cMun do endereço do
+     * tomador corresponda ao CEP (senão rejeita com E0240). Best-effort, com
+     * cache em memória e em disco; devolve o cMun ou null se não resolver.
+     */
+    private function ibgePorCep(string $cep): ?string
+    {
+        $cep = preg_replace('/\D/', '', $cep);
+        if (strlen($cep) !== 8) {
+            return null;
+        }
+
+        static $memo = [];
+        if (array_key_exists($cep, $memo)) {
+            return $memo[$cep];
+        }
+
+        // Cache em disco — evita repetir a consulta entre emissões.
+        $cacheFile = APPPATH . 'cache/cep_ibge_' . $cep . '.json';
+        if (is_file($cacheFile)) {
+            $c = json_decode((string) file_get_contents($cacheFile), true);
+            $ibge = is_array($c) && !empty($c['ibge']) ? (string) $c['ibge'] : null;
+
+            return $memo[$cep] = ($ibge !== null && strlen($ibge) === 7 ? $ibge : null);
+        }
+
+        $ibge = null;
+        try {
+            $ch = curl_init('https://viacep.com.br/ws/' . $cep . '/json/');
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 6,
+                CURLOPT_CONNECTTIMEOUT => 4,
+            ]);
+            $resp = curl_exec($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            if (is_string($resp) && $code >= 200 && $code < 300) {
+                $d = json_decode($resp, true);
+                if (is_array($d) && empty($d['erro']) && !empty($d['ibge']) && strlen((string) $d['ibge']) === 7) {
+                    $ibge = (string) $d['ibge'];
+                    @file_put_contents($cacheFile, json_encode([
+                        'ibge' => $ibge,
+                        'localidade' => $d['localidade'] ?? '',
+                        'uf' => $d['uf'] ?? '',
+                    ]));
+                }
+            }
+        } catch (\Throwable $e) {
+            // best-effort: silencioso, cai no fallback do chamador
+        }
+
+        return $memo[$cep] = $ibge;
+    }
+
+    /**
      * Formata a resposta de rejeição do Sefin Nacional em:
      *   [0] mensagem legível (lista "Codigo - Descricao [ - Complemento]")
      *   [1] detalhe técnico completo (JSON pretty do retorno inteiro)
@@ -320,6 +377,12 @@ class NfseService
         }
         $std->infDPS->prest->regTrib->regEspTrib = (int) $this->config->reg_esp_trib;
 
+        // Retenção do ISSQN — usada aqui (endereço obrigatório quando retido) e
+        // adiante no grupo de valores.
+        $tpRet = isset($opcoes['tp_ret_issqn']) && $opcoes['tp_ret_issqn'] !== ''
+            ? (int) $opcoes['tp_ret_issqn']
+            : (int) $this->config->tp_ret_issqn;
+
         // tomador
         $std->infDPS->toma = new stdClass();
         if (strlen($documento) === 14) {
@@ -329,21 +392,27 @@ class NfseService
         }
         $std->infDPS->toma->xNome = $this->limparCampo((string) $os->nomeCliente, 150);
 
-        // Endereço do tomador — obrigatório quando o ISS é retido (E0237) e
-        // recomendado sempre. O cadastro de cliente não guarda o código IBGE,
-        // então assume-se o município do emitente (caso comum: tomador local).
+        // Endereço do tomador — obrigatório quando o ISS é retido (E0237). O cMun
+        // DEVE corresponder ao CEP do tomador, senão a SEFIN rejeita com E0240.
+        // Como o cadastro guarda só o NOME da cidade, resolvemos o código IBGE
+        // pelo CEP (ViaCEP). Sem um cMun confiável: se o ISS não é retido o
+        // endereço é opcional e é mais seguro omiti-lo do que arriscar o E0240;
+        // se é retido, cai no município do emitente como último recurso.
         $tomaRua = trim((string) ($os->rua ?? ''));
         $tomaCep = preg_replace('/\D/', '', (string) ($os->cep ?? ''));
         if ($tomaRua !== '' && strlen($tomaCep) === 8) {
-            $std->infDPS->toma->end = new stdClass();
-            $std->infDPS->toma->end->xLgr = $this->limparCampo($tomaRua, 255);
-            $std->infDPS->toma->end->nro = $this->limparCampo(trim((string) ($os->numero ?? '')) ?: 'S/N', 60);
-            if (!empty($os->bairro)) {
-                $std->infDPS->toma->end->xBairro = $this->limparCampo((string) $os->bairro, 60);
+            $cMunToma = $this->ibgePorCep($tomaCep);
+            if ($cMunToma !== null || $tpRet === 2) {
+                $std->infDPS->toma->end = new stdClass();
+                $std->infDPS->toma->end->xLgr = $this->limparCampo($tomaRua, 255);
+                $std->infDPS->toma->end->nro = $this->limparCampo(trim((string) ($os->numero ?? '')) ?: 'S/N', 60);
+                if (!empty($os->bairro)) {
+                    $std->infDPS->toma->end->xBairro = $this->limparCampo((string) $os->bairro, 60);
+                }
+                $std->infDPS->toma->end->endNac = new stdClass();
+                $std->infDPS->toma->end->endNac->cMun = $cMunToma ?? (string) $this->config->codigo_municipio;
+                $std->infDPS->toma->end->endNac->CEP = $tomaCep;
             }
-            $std->infDPS->toma->end->endNac = new stdClass();
-            $std->infDPS->toma->end->endNac->cMun = (string) $this->config->codigo_municipio;
-            $std->infDPS->toma->end->endNac->CEP = $tomaCep;
         }
 
         // serviço
@@ -387,10 +456,7 @@ class NfseService
         }
         $std->infDPS->serv->cServ->xDescServ = $this->escaparXml(mb_substr($descServico, 0, 2000));
 
-        // valores
-        $tpRet = isset($opcoes['tp_ret_issqn']) && $opcoes['tp_ret_issqn'] !== ''
-            ? (int) $opcoes['tp_ret_issqn']
-            : (int) $this->config->tp_ret_issqn;
+        // valores ($tpRet já resolvido acima, no bloco do tomador)
         $aliquota = isset($opcoes['aliquota_iss']) && $opcoes['aliquota_iss'] !== ''
             ? (float) str_replace(',', '.', (string) $opcoes['aliquota_iss'])
             : (float) $this->config->aliquota_iss;
