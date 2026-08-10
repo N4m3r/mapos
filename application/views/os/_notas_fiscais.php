@@ -275,9 +275,20 @@ $configNfeBoleto = $this->nfe_model->getConfig();
     function boletoResetBotao($btn) {
         $btn.prop('disabled', false).html("<span class='button__icon'><i class='bx bx-dollar'></i></span><span class='button__text2'>Gerar</span>");
     }
-    $('#boletoConfirmarGerar').on('click', function () {
+    // Mostra alerta via swal quando disponível; senão cai no alert() nativo.
+    function boletoAlerta(tipo, titulo, texto, aoFechar) {
+        if (typeof swal === 'function') {
+            swal({ type: tipo, title: titulo, text: texto }, aoFechar);
+        } else {
+            alert(titulo + '\n\n' + texto);
+            if (typeof aoFechar === 'function') { aoFechar(); }
+        }
+    }
+    // Delegado (resiliente a mudanças de DOM do modal) e à prova de swal ausente.
+    $(document).on('click', '#boletoConfirmarGerar', function () {
         var $btn = $(this);
         var notaId = $('#boletoNotaId').val();
+        console.log('[boleto] Gerar clicado. nota=', notaId, 'url=', urlGerar);
         $btn.prop('disabled', true).html("<span class='button__icon'><i class='bx bx-loader bx-spin'></i></span><span class='button__text2'>Gerando...</span>");
         $.ajax({
             type: 'POST',
@@ -292,17 +303,19 @@ $configNfeBoleto = $this->nfe_model->getConfig();
                 intervalo_dias: $('#boletoIntervaloDias').val()
             },
             success: function (resp) {
+                console.log('[boleto] success', resp);
                 // Segurança: alguns erros podem vir com HTTP 200 + {message}.
                 if (resp && resp.message && !resp.charge_id && !resp.idCobranca) {
                     boletoResetBotao($btn);
-                    swal({ type: 'error', title: 'Atenção', text: resp.message });
+                    boletoAlerta('error', 'Atenção', resp.message);
                     return;
                 }
                 $('#modal-gerar-boleto').modal('hide');
-                swal({ type: 'success', title: 'Boleto gerado!', text: 'Boleto híbrido (boleto + PIX) criado com sucesso.' },
+                boletoAlerta('success', 'Boleto gerado!', 'Boleto híbrido (boleto + PIX) criado com sucesso.',
                     function () { location.reload(); });
             },
             error: function (xhr, textStatus) {
+                console.log('[boleto] error', xhr.status, textStatus, xhr.responseText);
                 boletoResetBotao($btn);
                 var msg;
                 if (textStatus === 'timeout') {
@@ -313,7 +326,7 @@ $configNfeBoleto = $this->nfe_model->getConfig();
                     var corpo = (xhr.responseText || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
                     msg = 'Erro ao gerar boleto (HTTP ' + xhr.status + ').' + (corpo ? ' Detalhe: ' + corpo.substring(0, 300) : '');
                 }
-                swal({ type: 'error', title: 'Atenção', text: msg });
+                boletoAlerta('error', 'Atenção', msg);
             }
         });
     });
