@@ -19,6 +19,10 @@ $podeVerBoleto = $this->permission->checkPermission($this->session->userdata('pe
 $this->load->config('payment_gateways');
 $this->load->helper('general');
 $gwConfig = $this->config->item('payment_gateways');
+// Config fiscal — usada para mostrar, no botão/modal do boleto, o desconto de
+// ISS retido e o valor líquido efetivamente cobrado (mesma regra do gateway Cora).
+$this->load->model('nfe_model');
+$configNfeBoleto = $this->nfe_model->getConfig();
 ?>
 <div class="table-responsive">
     <table class="table table-bordered">
@@ -107,8 +111,9 @@ $gwConfig = $this->config->item('payment_gateways');
                                         </span>
                                     </div>
                                 <?php }
-                            } elseif ($nota->status === 'autorizada' && $podeGerarBoleto) { ?>
-                                <button type="button" class="btn btn-mini btn-info btn-gerar-boleto" data-nota="<?php echo $nota->idNota; ?>" data-valor="<?php echo number_format((float) $nota->valor_total, 2, '.', ''); ?>" title="Gerar boleto híbrido (boleto + PIX) na Cora, à vista ou parcelado">
+                            } elseif ($nota->status === 'autorizada' && $podeGerarBoleto) {
+                                $valBoleto = boletoValoresNota($nota, $configNfeBoleto); ?>
+                                <button type="button" class="btn btn-mini btn-info btn-gerar-boleto" data-nota="<?php echo $nota->idNota; ?>" data-valor="<?php echo number_format($valBoleto['bruto'], 2, '.', ''); ?>" data-iss="<?php echo number_format($valBoleto['iss'], 2, '.', ''); ?>" data-liquido="<?php echo number_format($valBoleto['liquido'], 2, '.', ''); ?>" title="Gerar boleto híbrido (boleto + PIX) na Cora, à vista ou parcelado">
                                     <i class="bx bx-dollar bx-xs"></i> Gerar Boleto/PIX
                                 </button>
                             <?php } else { ?>
@@ -154,7 +159,11 @@ $gwConfig = $this->config->item('payment_gateways');
     </div>
     <div class="modal-body">
         <input type="hidden" id="boletoNotaId" value="" />
-        <p style="margin-bottom:8px">Valor da nota fiscal: <strong id="boletoValorNota">—</strong></p>
+        <p style="margin-bottom:4px">Valor da nota fiscal: <strong id="boletoValorNota">—</strong></p>
+        <div id="boletoIssBox" style="display:none;margin-bottom:8px;padding:6px 8px;border:1px solid #f0e0b0;border-radius:4px;background:#fffbe6;font-size:12px">
+            <div>ISS retido pelo tomador (descontado): <strong id="boletoIssValor" style="color:#c0392b">—</strong></div>
+            <div>Valor líquido cobrado no boleto: <strong id="boletoLiquido">—</strong></div>
+        </div>
         <div class="control-group">
             <label for="boletoParcelas"><strong>Parcelas</strong></label>
             <select id="boletoParcelas" class="span12">
@@ -212,8 +221,10 @@ $gwConfig = $this->config->item('payment_gateways');
     }
 
     // Atualiza o resumo do parcelamento (valor por parcela e intervalo) no modal.
+    // Baseia-se no valor LÍQUIDO (já sem o ISS retido), que é o efetivamente cobrado.
     function boletoAtualizarResumo() {
-        var valor = parseFloat($('#boletoNotaId').data('valor')) || 0;
+        var valor = parseFloat($('#boletoNotaId').data('liquido'));
+        if (isNaN(valor)) { valor = parseFloat($('#boletoNotaId').data('valor')) || 0; }
         var parcelas = parseInt($('#boletoParcelas').val(), 10) || 1;
         // O intervalo só faz sentido a partir de 2 parcelas.
         $('#boletoIntervaloBox').toggle(parcelas > 1);
@@ -229,8 +240,20 @@ $gwConfig = $this->config->item('payment_gateways');
     $(document).on('click', '.btn-gerar-boleto', function (e) {
         e.preventDefault();
         var $btn = $(this);
-        $('#boletoNotaId').val($btn.data('nota')).data('valor', $btn.data('valor'));
-        $('#boletoValorNota').text(boletoMoney($btn.data('valor')));
+        var valorBruto = parseFloat($btn.data('valor')) || 0;
+        var iss = parseFloat($btn.data('iss')) || 0;
+        var liquido = parseFloat($btn.data('liquido'));
+        if (isNaN(liquido)) { liquido = Math.round((valorBruto - iss) * 100) / 100; }
+        $('#boletoNotaId').val($btn.data('nota')).data('valor', valorBruto).data('liquido', liquido);
+        $('#boletoValorNota').text(boletoMoney(valorBruto));
+        // Mostra o desconto do ISS retido e o valor líquido só quando houver retenção.
+        if (iss > 0) {
+            $('#boletoIssValor').text('− ' + boletoMoney(iss));
+            $('#boletoLiquido').text(boletoMoney(liquido));
+            $('#boletoIssBox').show();
+        } else {
+            $('#boletoIssBox').hide();
+        }
         $('#boletoParcelas').val('1');
         $('#boletoVencimento').val('');
         $('#boletoIntervaloTipo').val('mensal');

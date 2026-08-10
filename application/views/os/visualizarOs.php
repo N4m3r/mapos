@@ -115,6 +115,9 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                     // partial de Notas Fiscais (renderizado abaixo, exige vNfe).
                     if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vNfe')
                         && $this->permission->checkPermission($this->session->userdata('permissao'), 'aCobranca')) {
+                        $this->load->helper('general');
+                        $this->load->model('nfe_model');
+                        $configNfeTopo = $this->nfe_model->getConfig();
                         $boletosMapa = isset($boletosPorNota) && is_array($boletosPorNota) ? $boletosPorNota : [];
                         $notasParaBoleto = array_filter([
                             isset($notaFiscal) ? $notaFiscal : null,
@@ -125,10 +128,11 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                             $temAtivo = ! empty(array_filter($lista, fn ($b) => ! in_array($b->status, ['CANCELLED', 'cancelada'], true)));
                             if (! $temAtivo) {
                                 $rot = $n->tipo === 'nfe' ? 'NF-e' : 'NFS-e';
+                                $valTopo = boletoValoresNota($n, $configNfeTopo);
                                 ?>
                                 <a title="Gerar boleto/PIX (Cora) da <?php echo $rot . ' nº ' . $n->numero; ?>, à vista ou parcelado" href="#modal-gerar-boleto" role="button"
                                    class="button btn btn-mini btn-info btn-gerar-boleto"
-                                   data-nota="<?php echo $n->idNota; ?>" data-valor="<?php echo number_format((float) $n->valor_total, 2, '.', ''); ?>">
+                                   data-nota="<?php echo $n->idNota; ?>" data-valor="<?php echo number_format($valTopo['bruto'], 2, '.', ''); ?>" data-iss="<?php echo number_format($valTopo['iss'], 2, '.', ''); ?>" data-liquido="<?php echo number_format($valTopo['liquido'], 2, '.', ''); ?>">
                                     <span class="button__icon"><i class="bx bx-barcode"></i></span> <span class="button__text">Boleto <?php echo $rot; ?></span>
                                 </a>
                             <?php }

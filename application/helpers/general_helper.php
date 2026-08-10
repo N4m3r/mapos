@@ -66,6 +66,30 @@ if (! function_exists('getMoneyAsCents')) {
     }
 }
 
+if (! function_exists('boletoValoresNota')) {
+    /**
+     * Valores do boleto de uma nota fiscal, espelhando a lógica do gateway Cora:
+     * NFS-e com ISS retido pelo tomador (configuracoes_nfe.tp_ret_issqn = 2) sai
+     * líquido do ISS; NF-e (produtos) não tem retenção. Retorna
+     * ['bruto', 'iss', 'liquido'] em reais.
+     */
+    function boletoValoresNota($nota, $configNfe)
+    {
+        $bruto = (float) ($nota->valor_total ?? 0);
+        $iss = 0.0;
+        if (isset($nota->tipo) && $nota->tipo === 'nfse'
+            && $configNfe && (int) ($configNfe->tp_ret_issqn ?? 0) === 2) {
+            $iss = round($bruto * ((float) ($configNfe->aliquota_iss ?? 0)) / 100, 2);
+        }
+
+        return [
+            'bruto' => $bruto,
+            'iss' => $iss,
+            'liquido' => round($bruto - $iss, 2),
+        ];
+    }
+}
+
 if (! function_exists('getCobrancaTransactionStatus')) {
     function getCobrancaTransactionStatus($paymentGatewaysConfig, $paymentGateway, $status)
     {
