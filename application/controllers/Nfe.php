@@ -479,6 +479,25 @@ class Nfe extends MY_Controller
         $idNota = null;
         try {
             $servicos = $this->os_model->getServicos($idOs);
+
+            // Opção do wizard: incluir os produtos da OS na NFS-e, emitindo uma
+            // única nota de serviço com o valor total da OS (serviços + produtos).
+            // Cada produto entra como um "item" da nota (sem código de serviço —
+            // herda o cTribNac dos serviços/padrão configurado).
+            $incluirProdutos = (int) $this->input->post('incluir_produtos') === 1;
+            if ($incluirProdutos) {
+                foreach ($this->os_model->getProdutos($idOs) as $p) {
+                    $item = new stdClass();
+                    $item->nome = $p->descricao;
+                    $item->descricao = '';
+                    $item->quantidade = (float) $p->quantidade;
+                    $item->preco = (float) $p->preco;
+                    $item->codigo_servico_municipio = null;
+                    $item->codigo_tributacao_municipal = null;
+                    $servicos[] = $item;
+                }
+            }
+
             $service = new NfseService($config, $emitente);
 
             $valorTotal = 0.0;
@@ -723,6 +742,8 @@ class Nfe extends MY_Controller
         $avisos = [];
         $defaults = [];
         $total = 0.0;
+        $produtos = [];
+        $totalProdutos = 0.0;
 
         if ($tipo === 'nfe') {
             foreach ($this->os_model->getProdutos($idOs) as $p) {
@@ -781,6 +802,19 @@ class Nfe extends MY_Controller
                 'tp_ret_issqn' => (int) $config->tp_ret_issqn,
                 'desc_servico' => 'OS nr. ' . $os->idOs,
             ];
+
+            // Produtos da OS — retornados à parte para o wizard oferecer a opção
+            // de incluí-los no valor/descrição da NFS-e (nota de serviço única).
+            foreach ($this->os_model->getProdutos($idOs) as $p) {
+                $sub = (float) $p->quantidade * (float) $p->preco;
+                $totalProdutos += $sub;
+                $produtos[] = [
+                    'descricao' => $p->descricao,
+                    'quantidade' => (float) $p->quantidade,
+                    'preco' => (float) $p->preco,
+                    'subtotal' => $sub,
+                ];
+            }
         }
 
         return $this->output
@@ -794,6 +828,8 @@ class Nfe extends MY_Controller
                 ],
                 'itens' => $itens,
                 'total' => round($total, 2),
+                'produtos' => $produtos,
+                'totalProdutos' => round($totalProdutos, 2),
                 'avisos' => $avisos,
                 'defaults' => $defaults,
             ]));

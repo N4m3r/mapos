@@ -662,7 +662,8 @@ class Os extends MY_Controller
         $ids = array_map(fn ($n) => $n->idNota, $notas);
         $this->load->model('cobrancas_model');
 
-        return $this->cobrancas_model->getByNotaIds($ids);
+        // Lista (todas as parcelas) por nota — a aba de notas exibe cada boleto.
+        return $this->cobrancas_model->getListByNotaIds($ids);
     }
 
     /**

@@ -308,10 +308,15 @@ class Cobrancas extends MY_Controller
                 ->set_output(json_encode(['message' => 'Nota fiscal inválida.']));
         }
 
+        $opcoes = [
+            'parcelas' => (int) $this->input->post('parcelas') ?: 1,
+            'vencimento' => trim((string) $this->input->post('vencimento')),
+        ];
+
         $this->load->library('Gateways/Cora', null, 'PaymentGateway');
 
         try {
-            $cobranca = $this->PaymentGateway->gerarBoletoParaNota($notaId);
+            $cobranca = $this->PaymentGateway->gerarBoletoParaNota($notaId, $opcoes);
 
             return $this->output
                 ->set_content_type('application/json')

@@ -135,6 +135,28 @@ class Cobrancas_model extends CI_Model
         return $mapa;
     }
 
+    /**
+     * Mapa nota_id => LISTA de cobranças (todas as parcelas), para a aba de
+     * notas da OS exibir cada boleto do parcelamento.
+     */
+    public function getListByNotaIds(array $ids)
+    {
+        $mapa = [];
+        if (empty($ids)) {
+            return $mapa;
+        }
+        $rows = $this->db
+            ->where_in('nota_id', $ids)
+            ->order_by('idCobranca', 'ASC')
+            ->get('cobrancas')
+            ->result();
+        foreach ($rows as $row) {
+            $mapa[$row->nota_id][] = $row;
+        }
+
+        return $mapa;
+    }
+
     public function add($table, $data, $returnId = false)
     {
         $this->db->insert($table, $data);
