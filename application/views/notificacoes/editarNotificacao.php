@@ -150,6 +150,35 @@ $check = function ($valor, $lista) {
                 </fieldset>
             </div>
 
+            <?php if ($ehProjeto) { $projetosSel = isset($projetosSelecionados) ? $projetosSelecionados : []; ?>
+                <div class="control-group" style="margin-top:10px">
+                    <fieldset style="border:1px solid #e2e6f0; border-radius:8px; padding:12px 14px;">
+                        <legend style="font-size:14px; font-weight:700; color:#1e3a8a; width:auto; padding:0 6px;">Projetos que disparam este gatilho</legend>
+                        <p style="color:#6b7191; font-size:12px; margin:0 0 8px">
+                            Selecione os projetos cujo RDO dispara este gatilho (WhatsApp e/ou e-mail).
+                            <strong>Sem projeto selecionado = vale para todos os projetos.</strong>
+                        </p>
+                        <input type="text" id="buscaProjetoGatilho" class="span8" placeholder="Buscar projeto por nome ou código..." autocomplete="off" style="margin-bottom:8px">
+                        <div id="listaProjetosGatilho" style="display:flex; flex-wrap:wrap; gap:6px; min-height:36px; padding:8px; border:1px solid #e2e6f0; border-radius:6px; background:#fafbff;">
+                            <?php if (empty($projetosSel)) { ?>
+                                <span id="projetosGatilhoVazio" style="color:#8a90a6; font-size:12px">Nenhum projeto filtrado — o gatilho vale para todos.</span>
+                            <?php } ?>
+                            <?php foreach ($projetosSel as $p) {
+                                $cod = trim((string) $p->codigo);
+                                $rotulo = $p->nome . ($cod !== '' ? ' — ' . $cod : '');
+                                ?>
+                                <span class="chip-projeto" data-id="<?= (int) $p->idObra ?>" style="display:inline-flex; align-items:center; gap:6px; background:#dbeafe; color:#1e3a8a; border-radius:16px; padding:4px 10px; font-size:12px;">
+                                    <?= html_escape($rotulo) ?>
+                                    <input type="hidden" name="projetos_id[]" value="<?= (int) $p->idObra ?>">
+                                    <a href="#" class="remover-projeto" title="Remover" style="color:#b91c1c; text-decoration:none; font-weight:700;">&times;</a>
+                                </span>
+                            <?php } ?>
+                        </div>
+                        <span id="contadorProjetosGatilho" style="font-size:11px; color:#8a90a6; margin-top:4px; display:block"></span>
+                    </fieldset>
+                </div>
+            <?php } ?>
+
             <?php if ($ehProjeto) { $emailDestRaw = implode("\n", Notification_triggers_model::toList(isset($gatilho->email_destinatarios) ? $gatilho->email_destinatarios : null)); ?>
                 <div class="control-group" style="margin-top:10px">
                     <fieldset style="border:1px solid #e2e6f0; border-radius:8px; padding:12px 14px;">
@@ -285,6 +314,64 @@ $check = function ($valor, $lista) {
             });
         }
         atualizarContadorClientes();
+
+        function atualizarContadorProjetos() {
+            var n = $('#listaProjetosGatilho .chip-projeto').length;
+            var $c = $('#contadorProjetosGatilho');
+            if (n === 0) {
+                $c.text('Filtro desligado: vale para o RDO de qualquer projeto.');
+                if (!$('#projetosGatilhoVazio').length) {
+                    $('#listaProjetosGatilho').append(
+                        '<span id="projetosGatilhoVazio" style="color:#8a90a6; font-size:12px">Nenhum projeto filtrado — o gatilho vale para todos.</span>'
+                    );
+                }
+            } else {
+                $c.text(n + ' projeto(s) — só o RDO desses projetos dispara este gatilho.');
+                $('#projetosGatilhoVazio').remove();
+            }
+        }
+
+        function idsProjetosSelecionados() {
+            return $('#listaProjetosGatilho input[name="projetos_id[]"]').map(function () {
+                return parseInt(this.value, 10);
+            }).get();
+        }
+
+        function adicionarProjeto(id, label) {
+            id = parseInt(id, 10);
+            if (!id || idsProjetosSelecionados().indexOf(id) !== -1) {
+                return;
+            }
+            $('#projetosGatilhoVazio').remove();
+            var html = '<span class="chip-projeto" data-id="' + id + '" style="display:inline-flex; align-items:center; gap:6px; background:#dbeafe; color:#1e3a8a; border-radius:16px; padding:4px 10px; font-size:12px;">'
+                + escapa(label)
+                + '<input type="hidden" name="projetos_id[]" value="' + id + '">'
+                + '<a href="#" class="remover-projeto" title="Remover" style="color:#b91c1c; text-decoration:none; font-weight:700;">&times;</a>'
+                + '</span>';
+            $('#listaProjetosGatilho').append(html);
+            atualizarContadorProjetos();
+        }
+
+        $('#listaProjetosGatilho').on('click', '.remover-projeto', function (e) {
+            e.preventDefault();
+            $(this).closest('.chip-projeto').remove();
+            atualizarContadorProjetos();
+        });
+
+        if ($.fn.autocomplete) {
+            $('#buscaProjetoGatilho').autocomplete({
+                source: '<?= site_url('notificacoes/autoCompleteProjeto') ?>',
+                minLength: 2,
+                select: function (event, ui) {
+                    if (ui.item && ui.item.id) {
+                        adicionarProjeto(ui.item.id, ui.item.label);
+                    }
+                    $(this).val('');
+                    return false;
+                }
+            });
+        }
+        atualizarContadorProjetos();
 
         $('#btnCarregarGrupos').on('click', function () {
             var $btn = $(this).prop('disabled', true);

@@ -49,6 +49,7 @@ class Notificacoes extends MY_Controller
         $this->data['templates'] = $this->templatesDisponiveis();
         $this->data['whatsappTemplates'] = $this->whatsapp_templates_model->getAll();
         $this->data['clientesSelecionados'] = $this->clientesDoGatilho($gatilho);
+        $this->data['projetosSelecionados'] = $this->projetosDoGatilho($gatilho);
 
         $this->data['view'] = 'notificacoes/editarNotificacao';
 
@@ -92,6 +93,41 @@ class Notificacoes extends MY_Controller
         echo json_encode($out);
     }
 
+    /**
+     * Autocomplete de projetos para o filtro do gatilho (RDO).
+     */
+    public function autoCompleteProjeto()
+    {
+        $q = trim((string) $this->input->get('term'));
+        if ($q === '' || ! $this->db->table_exists('obras')) {
+            echo json_encode([]);
+
+            return;
+        }
+
+        $this->db->select('idObra, nome, codigo');
+        $this->db->group_start();
+        $this->db->like('nome', $q);
+        $this->db->or_like('codigo', $q);
+        $this->db->group_end();
+        $this->db->order_by('nome', 'ASC');
+        $this->db->limit(25);
+        $rows = $this->db->get('obras')->result();
+
+        $out = [];
+        foreach ($rows as $r) {
+            $cod = trim((string) $r->codigo);
+            $label = $r->nome . ($cod !== '' ? ' — ' . $cod : '');
+            $out[] = [
+                'id' => (int) $r->idObra,
+                'label' => $label,
+                'value' => $label,
+            ];
+        }
+
+        echo json_encode($out);
+    }
+
     public function salvar()
     {
         $id = $this->input->post('id');
@@ -123,6 +159,9 @@ class Notificacoes extends MY_Controller
         }
         if ($this->db->field_exists('email_conversa', 'notification_triggers')) {
             $data['email_conversa'] = $this->input->post('email_conversa') ? 1 : 0;
+        }
+        if ($this->db->field_exists('projetos_id', 'notification_triggers')) {
+            $data['projetos_id'] = $this->listaPost('projetos_id');
         }
 
         $this->notification_triggers_model->update($id, $data);
@@ -285,8 +324,8 @@ class Notificacoes extends MY_Controller
             return null;
         }
 
-        // IDs de clientes: só números positivos, únicos.
-        if ($campo === 'whatsapp_clientes') {
+        // IDs de clientes/projetos: só números positivos, únicos.
+        if ($campo === 'whatsapp_clientes' || $campo === 'projetos_id') {
             $ids = [];
             foreach ($valores as $v) {
                 $id = (int) $v;
@@ -345,6 +384,29 @@ class Notificacoes extends MY_Controller
         $this->db->order_by('nomeCliente', 'ASC');
 
         return $this->db->get('clientes')->result();
+    }
+
+    /**
+     * Carrega dados dos projetos salvos no filtro do gatilho (para a UI de edição).
+     *
+     * @return object[]
+     */
+    private function projetosDoGatilho($gatilho)
+    {
+        if (! $gatilho || empty($gatilho->projetos_id) || ! $this->db->table_exists('obras')) {
+            return [];
+        }
+
+        $ids = Notification_triggers_model::clientesIds($gatilho->projetos_id);
+        if (empty($ids)) {
+            return [];
+        }
+
+        $this->db->select('idObra, nome, codigo');
+        $this->db->where_in('idObra', $ids);
+        $this->db->order_by('nome', 'ASC');
+
+        return $this->db->get('obras')->result();
     }
 
     private function templatesDisponiveis()

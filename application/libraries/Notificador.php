@@ -124,8 +124,9 @@ class Notificador
      * @param string|null $numeroCliente      número do cliente (envia ao cliente se o gatilho pedir)
      * @param string      $templatePadrao     slug do modelo padrão quando o gatilho não define um
      * @param string      $fallback           texto usado quando o modelo não existe/está vazio
+     * @param int|null    $obraId             id do projeto (para o filtro projetos_id); null = sem filtro
      */
-    public function whatsappLinkEvento($evento, array $subs, $clienteId = 0, $numeroCliente = null, $templatePadrao = '', $fallback = '')
+    public function whatsappLinkEvento($evento, array $subs, $clienteId = 0, $numeroCliente = null, $templatePadrao = '', $fallback = '', $obraId = null)
     {
         try {
             $this->ci->load->library('evolution_api');
@@ -149,6 +150,9 @@ class Notificador
             $enviados = [];
             foreach ($triggers as $t) {
                 if (! Notification_triggers_model::aplicaAoCliente($t, $clienteId)) {
+                    continue;
+                }
+                if ($obraId !== null && ! Notification_triggers_model::aplicaAoObra($t, $obraId)) {
                     continue;
                 }
 
@@ -235,7 +239,8 @@ class Notificador
                 $clienteId,
                 $numeroCliente,
                 'rdo',
-                "📋 RDO Nº {NUMERO_RDO} — {PROJETO}\nResponsável: {RESPONSAVEL}\nData: {DATA}\n\n*O que foi feito:*\n{ATIVIDADES}\n\nDetalhes e fotos:\n{LINK}"
+                "📋 RDO Nº {NUMERO_RDO} — {PROJETO}\nResponsável: {RESPONSAVEL}\nData: {DATA}\n\n*O que foi feito:*\n{ATIVIDADES}\n\nDetalhes e fotos:\n{LINK}",
+                (int) $rdo->obra_id
             );
         } catch (\Exception $e) {
             log_info('Falha na notificação WhatsApp do RDO #' . $rdoId . ': ' . $e->getMessage());
@@ -301,6 +306,9 @@ class Notificador
 
             foreach ($triggers as $t) {
                 if (! Notification_triggers_model::aplicaAoCliente($t, (int) $obra->clientes_id)) {
+                    continue;
+                }
+                if (! Notification_triggers_model::aplicaAoObra($t, (int) $obra->idObra)) {
                     continue;
                 }
                 $destinatarios = $this->destinatariosEmailObra($t, $obra);
@@ -374,6 +382,9 @@ class Notificador
             $enviouAlgum = false;
             foreach ($triggers as $t) {
                 if (! Notification_triggers_model::aplicaAoCliente($t, (int) $obra->clientes_id)) {
+                    continue;
+                }
+                if (! Notification_triggers_model::aplicaAoObra($t, (int) $obra->idObra)) {
                     continue;
                 }
                 $destinatarios = $this->destinatariosEmailObra($t, $obra);
