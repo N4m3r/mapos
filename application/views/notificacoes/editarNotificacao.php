@@ -13,6 +13,7 @@ $selBlocos = Notification_triggers_model::toList($gatilho->blocos);
 $selAnexos = Notification_triggers_model::toList($gatilho->anexos);
 
 $ehOs = ($gatilho->grupo === 'Ordem de Serviço');
+$ehProjeto = ($gatilho->grupo === 'Projetos');
 
 $check = function ($valor, $lista) {
     return in_array($valor, $lista, true) ? 'checked' : '';
@@ -148,6 +149,29 @@ $check = function ($valor, $lista) {
                     </div>
                 </fieldset>
             </div>
+
+            <?php if ($ehProjeto) { $emailDestRaw = implode("\n", Notification_triggers_model::toList(isset($gatilho->email_destinatarios) ? $gatilho->email_destinatarios : null)); ?>
+                <div class="control-group" style="margin-top:10px">
+                    <fieldset style="border:1px solid #e2e6f0; border-radius:8px; padding:12px 14px;">
+                        <legend style="font-size:14px; font-weight:700; color:#1e3a8a; width:auto; padding:0 6px;">E-mails de acompanhamento do projeto (responsáveis)</legend>
+                        <p style="color:#6b7191; font-size:12px; margin:0 0 8px">
+                            Além do cliente (se marcado em "Para quem"), envia por e-mail para os endereços fixos abaixo —
+                            um por linha, ou separados por vírgula.
+                        </p>
+                        <textarea name="email_destinatarios_raw" class="span12" rows="3" placeholder="responsavel1@empresa.com&#10;responsavel2@empresa.com"><?= html_escape($emailDestRaw) ?></textarea>
+
+                        <label style="display:flex; align-items:center; gap:8px; margin-top:12px;">
+                            <input type="checkbox" name="email_conversa" value="1" <?= (isset($gatilho->email_conversa) && (int) $gatilho->email_conversa === 1) ? 'checked' : '' ?>>
+                            Manter os e-mails deste projeto como uma única conversa (thread) enquanto ele estiver em andamento
+                        </label>
+                        <span class="help-block" style="font-size:11px; margin:4px 0 0">
+                            Com isso ativo: os e-mails de RDO do mesmo projeto respondem a conversa anterior (o cliente de e-mail
+                            agrupa tudo numa só thread) e, ao marcar o projeto como <strong>Concluída</strong> ou <strong>Entregue</strong>
+                            em Projetos &gt; Editar, um último e-mail avisando que o projeto foi finalizado é enviado nessa mesma conversa.
+                        </span>
+                    </fieldset>
+                </div>
+            <?php } ?>
 
             <?php if ($ehOs) { ?>
                 <div class="control-group" style="margin-top:10px">

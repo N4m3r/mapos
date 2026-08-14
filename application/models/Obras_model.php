@@ -59,7 +59,7 @@ class Obras_model extends CI_Model
         if (! $this->db->table_exists('obras')) {
             return null;
         }
-        $this->db->select('obras.*, clientes.nomeCliente, clientes.celular, usuarios.nome as responsavel');
+        $this->db->select('obras.*, clientes.nomeCliente, clientes.celular, clientes.email, usuarios.nome as responsavel');
         $this->db->from('obras');
         $this->db->join('clientes', 'clientes.idClientes = obras.clientes_id', 'left');
         $this->db->join('usuarios', 'usuarios.idUsuarios = obras.responsavel_id', 'left');

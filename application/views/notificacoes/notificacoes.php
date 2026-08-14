@@ -93,6 +93,10 @@ $rotuloCanais = Notification_triggers_model::canaisDisponiveis();
                             <a href="<?= site_url('notificacoes/editar/' . $r->id) ?>" class="btn btn-primary btn-mini">
                                 <i class="bx bx-edit"></i> Editar
                             </a>
+                            <button type="button" class="btn btn-inverse btn-mini btn-clonar-gatilho"
+                                    data-id="<?= (int) $r->id ?>" data-nome="<?= html_escape($r->nome) ?>" title="Clonar gatilho">
+                                <i class="bx bx-copy"></i>
+                            </button>
                             <a href="<?= site_url('notificacoes/excluir/' . $r->id) ?>" class="btn btn-danger btn-mini"
                                onclick="return confirm('Excluir o gatilho \'<?= html_escape($r->nome) ?>\'?');">
                                 <i class="bx bx-trash"></i>
@@ -104,3 +108,26 @@ $rotuloCanais = Notification_triggers_model::canaisDisponiveis();
         </table>
     </div>
 </div>
+
+<script>
+    $(function () {
+        $('.btn-clonar-gatilho').on('click', function () {
+            var id = $(this).data('id');
+            var nomeAtual = String($(this).data('nome') || '');
+            var novoNome = prompt('Nome do novo gatilho (clonado de "' + nomeAtual + '"):', nomeAtual + ' (cópia)');
+            if (novoNome === null) {
+                return;
+            }
+            novoNome = novoNome.trim();
+            if (novoNome === '') {
+                return;
+            }
+
+            var $form = $('<form>', { method: 'post', action: '<?= site_url('notificacoes/clonar/') ?>' + id });
+            $form.append($('<input>', { type: 'hidden', name: '<?= $tokenName ?>', value: '<?= $tokenHash ?>' }));
+            $form.append($('<input>', { type: 'hidden', name: 'nome', value: novoNome }));
+            $form.appendTo('body').trigger('submit');
+        });
+    });
+</script>
+

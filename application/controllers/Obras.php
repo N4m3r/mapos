@@ -107,8 +107,21 @@ class Obras extends MY_Controller
         }
 
         if ($this->input->post()) {
-            $this->obras_model->edit($id, $this->montarDados(false));
+            $dados = $this->montarDados(false);
+            $this->obras_model->edit($id, $dados);
             log_info('Editou o projeto. ID: ' . $id);
+
+            // Fecha a conversa de e-mail do RDO (se houver uma em andamento) quando
+            // o projeto é marcado como concluído/entregue. Best-effort.
+            if (in_array($dados['status'], ['concluida', 'entregue'], true)) {
+                try {
+                    $this->load->library('notificador');
+                    $this->notificador->emailProjetoFinalizado($id);
+                } catch (\Throwable $e) {
+                    log_info('Falha ao disparar e-mail de finalização do projeto ' . $id . ': ' . $e->getMessage());
+                }
+            }
+
             $this->session->set_flashdata('success', 'Projeto atualizado com sucesso.');
             redirect('obras/visualizar/' . $id);
         }
@@ -240,12 +253,13 @@ class Obras extends MY_Controller
 
         log_info('Registro rápido de execução na obra ' . $obra_id);
 
-        // Envia o RDO ao(s) grupo(s)/cliente do gatilho "rdo_registrado". Best-effort.
+        // Envia o RDO ao(s) grupo(s)/cliente/e-mail do gatilho "rdo_registrado". Best-effort.
         try {
             $this->load->library('notificador');
             $this->notificador->whatsappRdo($rdoId);
+            $this->notificador->emailRdo($rdoId);
         } catch (\Throwable $e) {
-            log_info('Falha ao disparar RDO por WhatsApp (RDO #' . $rdoId . '): ' . $e->getMessage());
+            log_info('Falha ao disparar notificação de RDO (RDO #' . $rdoId . '): ' . $e->getMessage());
         }
 
         $this->session->set_flashdata('success', 'Execução registrada. Obrigado!');
@@ -425,12 +439,13 @@ class Obras extends MY_Controller
 
         log_info('Registrou RDO na obra ' . $obra_id);
 
-        // Envia o RDO ao(s) grupo(s)/cliente do gatilho "rdo_registrado". Best-effort.
+        // Envia o RDO ao(s) grupo(s)/cliente/e-mail do gatilho "rdo_registrado". Best-effort.
         try {
             $this->load->library('notificador');
             $this->notificador->whatsappRdo($rdoId);
+            $this->notificador->emailRdo($rdoId);
         } catch (\Throwable $e) {
-            log_info('Falha ao disparar RDO por WhatsApp (RDO #' . $rdoId . '): ' . $e->getMessage());
+            log_info('Falha ao disparar notificação de RDO (RDO #' . $rdoId . '): ' . $e->getMessage());
         }
 
         $this->session->set_flashdata('success', 'RDO registrado.');

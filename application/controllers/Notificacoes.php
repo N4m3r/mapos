@@ -118,6 +118,12 @@ class Notificacoes extends MY_Controller
         if ($this->db->field_exists('whatsapp_clientes', 'notification_triggers')) {
             $data['whatsapp_clientes'] = $this->listaPost('whatsapp_clientes');
         }
+        if ($this->db->field_exists('email_destinatarios', 'notification_triggers')) {
+            $data['email_destinatarios'] = $this->emailListaPost('email_destinatarios_raw');
+        }
+        if ($this->db->field_exists('email_conversa', 'notification_triggers')) {
+            $data['email_conversa'] = $this->input->post('email_conversa') ? 1 : 0;
+        }
 
         $this->notification_triggers_model->update($id, $data);
 
@@ -197,6 +203,46 @@ class Notificacoes extends MY_Controller
         redirect(site_url('notificacoes/novo'));
     }
 
+    /**
+     * Clona um gatilho existente (todos os campos) com um novo nome, desativado
+     * por padrão — o usuário ajusta o que for preciso e ativa. Serve tanto pra
+     * criar variações do gatilho de WhatsApp quanto, no caso do RDO, pra
+     * reaproveitar a lista de e-mails responsáveis num gatilho separado.
+     */
+    public function clonar($id = null)
+    {
+        if (! $id || ! is_numeric($id)) {
+            $this->session->set_flashdata('error', 'Gatilho não encontrado.');
+            redirect(site_url('notificacoes'));
+        }
+
+        $gatilho = $this->notification_triggers_model->getById($id);
+        if (! $gatilho) {
+            $this->session->set_flashdata('error', 'Gatilho não encontrado.');
+            redirect(site_url('notificacoes'));
+        }
+
+        $nome = trim((string) $this->input->post('nome'));
+        if ($nome === '') {
+            $nome = $gatilho->nome . ' (cópia)';
+        }
+
+        $data = (array) $gatilho;
+        unset($data['id'], $data['data_criacao'], $data['data_atualizacao']);
+        $data['nome'] = $nome;
+        $data['ativo'] = 0;
+
+        $novoId = $this->notification_triggers_model->create($data);
+        if ($novoId) {
+            log_info('Clonou o gatilho de notificação #' . $id . ' (' . $gatilho->evento . ') como "' . $nome . '"');
+            $this->session->set_flashdata('success', 'Gatilho clonado com sucesso! Ajuste o que for preciso e ative.');
+            redirect(site_url('notificacoes/editar/' . $novoId));
+        }
+
+        $this->session->set_flashdata('error', 'Não foi possível clonar o gatilho.');
+        redirect(site_url('notificacoes'));
+    }
+
     public function excluir($id = null)
     {
         if ($id && is_numeric($id)) {
@@ -253,6 +299,29 @@ class Notificacoes extends MY_Controller
         }
 
         return implode(',', array_map('strval', $valores));
+    }
+
+    /**
+     * Normaliza a textarea de e-mails "responsáveis" (um por linha, ou separados
+     * por vírgula/ponto-e-vírgula) numa string CSV só com e-mails válidos.
+     */
+    private function emailListaPost($campo)
+    {
+        $bruto = (string) $this->input->post($campo);
+        if (trim($bruto) === '') {
+            return null;
+        }
+
+        $partes = preg_split('/[,;\r\n]+/', $bruto);
+        $emails = [];
+        foreach ($partes as $p) {
+            $p = trim($p);
+            if ($p !== '' && filter_var($p, FILTER_VALIDATE_EMAIL) && ! in_array($p, $emails, true)) {
+                $emails[] = $p;
+            }
+        }
+
+        return empty($emails) ? null : implode(',', $emails);
     }
 
     /**

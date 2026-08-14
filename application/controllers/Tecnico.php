@@ -260,12 +260,13 @@ class Tecnico extends MY_Controller
 
         log_info('Técnico registrou execução no projeto ' . $obra_id);
 
-        // Envia o RDO ao(s) grupo(s)/cliente do gatilho "rdo_registrado". Best-effort.
+        // Envia o RDO ao(s) grupo(s)/cliente/e-mail do gatilho "rdo_registrado". Best-effort.
         try {
             $this->load->library('notificador');
             $this->notificador->whatsappRdo($rdoId);
+            $this->notificador->emailRdo($rdoId);
         } catch (\Throwable $e) {
-            log_info('Falha ao disparar RDO por WhatsApp (RDO #' . $rdoId . '): ' . $e->getMessage());
+            log_info('Falha ao disparar notificação de RDO (RDO #' . $rdoId . '): ' . $e->getMessage());
         }
 
         $this->session->set_flashdata('success', 'Execução registrada!');
