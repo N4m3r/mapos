@@ -189,9 +189,9 @@ $check = function ($valor, $lista) {
                         </p>
                         <textarea name="email_destinatarios_raw" class="span12" rows="3" placeholder="responsavel1@empresa.com&#10;responsavel2@empresa.com"><?= html_escape($emailDestRaw) ?></textarea>
 
-                        <label style="display:flex; align-items:center; gap:8px; margin-top:12px;">
-                            <input type="checkbox" name="email_conversa" value="1" <?= (isset($gatilho->email_conversa) && (int) $gatilho->email_conversa === 1) ? 'checked' : '' ?>>
-                            Manter os e-mails deste projeto como uma única conversa (thread) enquanto ele estiver em andamento
+                        <label style="display:flex; align-items:flex-start; gap:8px; margin-top:12px; width:auto; float:none; cursor:pointer;">
+                            <input type="checkbox" name="email_conversa" value="1" style="margin-top:3px; flex:none;" <?= (isset($gatilho->email_conversa) && (int) $gatilho->email_conversa === 1) ? 'checked' : '' ?>>
+                            <span>Manter os e-mails deste projeto como uma única conversa (thread) enquanto ele estiver em andamento</span>
                         </label>
                         <span class="help-block" style="font-size:11px; margin:4px 0 0">
                             Com isso ativo: os e-mails de RDO do mesmo projeto respondem a conversa anterior (o cliente de e-mail
