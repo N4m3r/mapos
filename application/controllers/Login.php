@@ -36,6 +36,14 @@ class Login extends CI_Controller
         } else {
             $email = $this->input->post('email');
             $password = $this->input->post('senha');
+
+            // Forca bruta: bloqueio temporario apos varias tentativas erradas
+            $this->load->library('limite_login');
+            if ($espera = $this->limite_login->bloqueado('painel', $email)) {
+                echo json_encode(['result' => false, 'message' => $this->limite_login->mensagem($espera), 'MAPOS_TOKEN' => $this->security->get_csrf_hash()]);
+                exit();
+            }
+
             $this->load->model('Mapos_model');
             $user = $this->Mapos_model->check_credentials($email);
 
@@ -49,6 +57,7 @@ class Login extends CI_Controller
 
                 // Verificar credenciais do usuário
                 if (password_verify($password, $user->senha)) {
+                    $this->limite_login->sucesso('painel', $email);
                     $session_admin_data = ['nome_admin' => $user->nome, 'email_admin' => $user->email, 'url_image_user_admin' => $user->url_image_user, 'id_admin' => $user->idUsuarios, 'permissao' => $user->permissoes_id, 'logado' => true];
                     $this->session->set_userdata($session_admin_data);
                     log_info('Efetuou login no sistema');
@@ -70,11 +79,14 @@ class Login extends CI_Controller
                     $json = ['result' => true, 'redirect' => site_url($destino)];
                     echo json_encode($json);
                 } else {
+                    $this->limite_login->falhou('painel', $email);
                     $json = ['result' => false, 'message' => 'Os dados de acesso estão incorretos.', 'MAPOS_TOKEN' => $this->security->get_csrf_hash()];
                     echo json_encode($json);
                 }
             } else {
-                $json = ['result' => false, 'message' => 'Usuário não encontrado, verifique se suas credenciais estão corretass.', 'MAPOS_TOKEN' => $this->security->get_csrf_hash()];
+                // Mesma mensagem da senha errada: nao revela quais e-mails estao cadastrados
+                $this->limite_login->falhou('painel', $email);
+                $json = ['result' => false, 'message' => 'Os dados de acesso estão incorretos.', 'MAPOS_TOKEN' => $this->security->get_csrf_hash()];
                 echo json_encode($json);
             }
         }

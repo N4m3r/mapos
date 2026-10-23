@@ -29,23 +29,28 @@ class ClientLoginController extends REST_Controller
         $email = $this->input->post('email', true);
         $password = $this->input->post('password', true);
 
-        $cliente = $this->check_credentials($email);
-
-        if (!$cliente) {
+        // Forca bruta: bloqueio temporario apos varias tentativas erradas
+        $this->load->library('limite_login');
+        if ($espera = $this->limite_login->bloqueado('api_cliente', $email)) {
             $this->response([
-                'result' => false,
-                 'message' => 'Usuário não encontrado.'
-                ], REST_Controller::HTTP_UNAUTHORIZED);
+                'status' => false,
+                'message' => $this->limite_login->mensagem($espera)
+                ], 429);
             return;
         }
 
-        if (!password_verify($password, $cliente->senha)) {
+        $cliente = $this->check_credentials($email);
+
+        // Mesma mensagem para e-mail inexistente e senha errada: nao revela quem e cliente
+        if (!$cliente || !password_verify($password, $cliente->senha)) {
+            $this->limite_login->falhou('api_cliente', $email);
             $this->response([
                 'status' => false,
                 'message' => 'Os dados de acesso estão incorretos.'
                 ], REST_Controller::HTTP_UNAUTHORIZED);
             return;
         }
+        $this->limite_login->sucesso('api_cliente', $email);
 
         $tokenData = [
             'uid' => $cliente->idClientes,
