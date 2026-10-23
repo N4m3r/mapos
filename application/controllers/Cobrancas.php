@@ -353,6 +353,13 @@ class Cobrancas extends MY_Controller
                 ->set_output(json_encode(['message' => 'Cobrança inválida.']));
         }
 
+        if (! $this->cobrancas_model->getById($id)) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(404)
+                ->set_output(json_encode(['message' => 'Cobrança não encontrada.']));
+        }
+
         try {
             $this->cobrancas_model->atualizarStatus($id);
             $cobranca = $this->cobrancas_model->getById($id);

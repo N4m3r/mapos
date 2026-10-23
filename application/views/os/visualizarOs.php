@@ -12,7 +12,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
 <script src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/rascunho-form.js') ?: '1' ?>"></script>
 <script src="<?php echo base_url(); ?>assets/js/checkin.js?v=7"></script>
 <script src="<?php echo base_url(); ?>assets/js/checkin-formularios.js?v=1"></script>
-<script src="<?php echo base_url(); ?>assets/js/csrf.js?v=3"></script>
+<script src="<?php echo base_url(); ?>assets/js/csrf.js?v=<?= @filemtime(FCPATH . 'assets/js/csrf.js') ?: '4' ?>"></script>
 <script>
     // Configuração do CheckinManager
     window.checkinConfig = {

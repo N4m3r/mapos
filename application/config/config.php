@@ -459,14 +459,9 @@ $config['csrf_exclude_uris'] = [
     'checkin/uploadMultiplo',
     'webhook/cora',
     'emailtemplates/preview',
-    // Endpoints AJAX (JSON) do Cora — protegidos por login + permissão.
-    // Isentos de CSRF para evitar 403 quando o cookie CSRF é httpOnly.
-    'cobrancas/testarCora',
-    'cobrancas/diagnosticarCora',
-    'cobrancas/registrarWebhookCora',
-    'cobrancas/simularPagamentoCora',
-    'cobrancas/gerarPorNota',
-    'cobrancas/verificarPagamento',
+    // As acoes de cobranca (Cora, gerar/verificar/simular pagamento) voltaram a
+    // exigir CSRF: o csrf.js envia o token em todo $.ajax. Mantenha
+    // APP_COOKIE_HTTPONLY=false para o csrf.js conseguir ler o cookie do token.
 ];
 
 /*

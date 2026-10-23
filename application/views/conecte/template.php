@@ -20,7 +20,7 @@
     <link rel="shortcut icon" href="<?php echo base_url(); ?>assets/img/favicon.png">
     <link href='<?= base_url('assets/boxicons/css/boxicons.min.css') ?>' rel='stylesheet'>
     <script type="text/javascript" src="<?= base_url(); ?>assets/js/funcoesGlobal.js"></script>
-    <script type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js"></script>
+    <script type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js?v=<?= @filemtime(FCPATH . 'assets/js/csrf.js') ?: '4' ?>"></script>
 </head>
 
 <body>
