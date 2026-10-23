@@ -134,3 +134,19 @@ if (! function_exists('getAmount')) {
         return floatval(str_replace(',', '.', $removedThousandSeparator));
     }
 }
+
+if (! function_exists('formatar_garantia')) {
+    /**
+     * Garantia da OS e texto livre: "90" vira "90 dias"; "30 dias" ou "1 ano" ficam
+     * como estao (antes saia "30 dias dias"); vazio devolve $vazio.
+     */
+    function formatar_garantia($garantia, $vazio = '')
+    {
+        $garantia = trim((string) $garantia);
+        if ($garantia === '') {
+            return $vazio;
+        }
+
+        return ctype_digit($garantia) ? $garantia . ' dias' : $garantia;
+    }
+}

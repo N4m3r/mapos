@@ -1014,7 +1014,7 @@ class OsController extends REST_Controller
                 strtotime($os->dataFinal)),
             date('d/m/Y',
                 strtotime($os->dataInicial)),
-            $os->garantia . ' dias',
+            formatar_garantia($os->garantia),
         ];
 
         $textoBase = $this->getConfig('notifica_whats');

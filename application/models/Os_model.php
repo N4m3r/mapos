@@ -539,7 +539,7 @@ class Os_model extends CI_Model
             strip_tags($os->laudoTecnico),
             date('d/m/Y', strtotime($os->dataFinal)),
             date('d/m/Y', strtotime($os->dataInicial)),
-            $os->garantia . ' dias',
+            formatar_garantia($os->garantia),
         ];
 
         return $this->montarTextoWhats($textoBase, $troca);
