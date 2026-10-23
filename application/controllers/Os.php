@@ -287,48 +287,7 @@ class Os extends MY_Controller
             $data = array_merge($data, $this->montarCamposContratoEquipe($os));
 
             if ($this->os_model->edit('os', $data, 'idOs', $this->input->post('idOs')) == true) {
-                $this->load->model('mapos_model');
-                $this->load->model('usuarios_model');
-
-                $idOs = $this->input->post('idOs');
-
-                $os = $this->os_model->getById($idOs);
-                $emitente = $this->mapos_model->getEmitente();
-                $tecnico = $this->usuarios_model->getById($os->usuarios_id);
-
-                // Verificar configuração de notificação
-                if ($this->data['configuration']['os_notification'] != 'nenhum' && $this->data['configuration']['email_automatico'] == 1) {
-                    $remetentes = [];
-                    switch ($this->data['configuration']['os_notification']) {
-                        case 'todos':
-                            array_push($remetentes, $os->email);
-                            array_push($remetentes, $tecnico->email);
-                            array_push($remetentes, $emitente->email);
-                            break;
-                        case 'cliente':
-                            array_push($remetentes, $os->email);
-                            break;
-                        case 'tecnico':
-                            array_push($remetentes, $tecnico->email);
-                            break;
-                        case 'emitente':
-                            array_push($remetentes, $emitente->email);
-                            break;
-                        default:
-                            array_push($remetentes, $os->email);
-                            break;
-                    }
-                    $this->enviarOsPorEmail($idOs, $remetentes, 'Ordem de Serviço - Editada', 'os_editada');
-                }
-
-                // Notificação automática por WhatsApp (Evolution API). Falha aqui
-                // NUNCA deve impedir a edição da OS — só registra no log e segue.
-                // Ao finalizar, dispara também o evento os_finalizada.
-                $eventosWpp = ['os_editada'];
-                if (strtolower($os->status) === 'finalizado') {
-                    $eventosWpp[] = 'os_finalizada';
-                }
-                $this->notificarWhatsAppAutomatico($os, $emitente, $eventosWpp);
+                $this->notificarEdicaoOs($this->input->post('idOs'));
 
                 $this->session->set_flashdata('success', 'Os editada com sucesso!');
                 log_info('Alterou uma OS. ID: ' . $this->input->post('idOs'));
@@ -339,7 +298,6 @@ class Os extends MY_Controller
         }
 
         $this->data['result'] = $this->os_model->getById($this->uri->segment(3));
-
         $this->data['produtos'] = $this->os_model->getProdutos($this->uri->segment(3));
         $this->data['servicos'] = $this->os_model->getServicos($this->uri->segment(3));
         $this->data['anexos'] = $this->os_model->getAnexos($this->uri->segment(3));
@@ -1482,6 +1440,57 @@ class Os extends MY_Controller
         echo json_encode($json);
     }
 
+    /**
+     * Notificacoes de OS editada: e-mail (conforme configuracao) e WhatsApp
+     * (gatilhos os_editada / os_finalizada). Usado pela edicao da OS e pela
+     * troca rapida de status (listagem e Central de Atendimento).
+     */
+    private function notificarEdicaoOs($idOs)
+    {
+        $this->load->model('mapos_model');
+        $this->load->model('usuarios_model');
+
+        $idOs = (int) $idOs;
+
+        $os = $this->os_model->getById($idOs);
+        $emitente = $this->mapos_model->getEmitente();
+        $tecnico = $this->usuarios_model->getById($os->usuarios_id);
+
+        // Verificar configuração de notificação
+        if ($this->data['configuration']['os_notification'] != 'nenhum' && $this->data['configuration']['email_automatico'] == 1) {
+            $remetentes = [];
+            switch ($this->data['configuration']['os_notification']) {
+                case 'todos':
+                    array_push($remetentes, $os->email);
+                    array_push($remetentes, $tecnico->email);
+                    array_push($remetentes, $emitente->email);
+                    break;
+                case 'cliente':
+                    array_push($remetentes, $os->email);
+                    break;
+                case 'tecnico':
+                    array_push($remetentes, $tecnico->email);
+                    break;
+                case 'emitente':
+                    array_push($remetentes, $emitente->email);
+                    break;
+                default:
+                    array_push($remetentes, $os->email);
+                    break;
+            }
+            $this->enviarOsPorEmail($idOs, $remetentes, 'Ordem de Serviço - Editada', 'os_editada');
+        }
+
+        // Notificação automática por WhatsApp (Evolution API). Falha aqui
+        // NUNCA deve impedir a edição da OS — só registra no log e segue.
+        // Ao finalizar, dispara também o evento os_finalizada.
+        $eventosWpp = ['os_editada'];
+        if (strtolower($os->status) === 'finalizado') {
+            $eventosWpp[] = 'os_finalizada';
+        }
+        $this->notificarWhatsAppAutomatico($os, $emitente, $eventosWpp);
+    }
+
     /** Delegacao: logica em libraries/Os_email.php */
     private function enviarOsPorEmail($idOs, $remetentes, $assunto, $evento = null)
     {
@@ -1673,9 +1682,10 @@ class Os extends MY_Controller
     }
 
     /**
-     * Ação AJAX: altera o status do chamado direto pela Central de Atendimento.
-     * Restrita aos statuses de fluxo (statusChamadoPermitidos), evitando os
-     * terminais que têm efeitos colaterais (estoque/faturamento).
+     * Ação AJAX: altera o status do chamado direto pela Central de Atendimento
+     * e pela listagem de OS. Restrita aos statuses de fluxo (statusChamadoPermitidos),
+     * evitando os terminais que têm efeitos colaterais (estoque/faturamento).
+     * Marca o cronômetro de SLA e dispara as notificações de OS editada.
      */
     public function alterarStatusAction()
     {
@@ -1714,8 +1724,13 @@ class Os extends MY_Controller
             return;
         }
 
-        if ($this->os_model->edit('os', ['status' => $status], 'idOs', $os_id)) {
-            log_info('Alterou status da OS #' . $os_id . ' para "' . $status . '" pela Central de Atendimento.');
+        // Mesmo comportamento da edicao da OS: cronometro de SLA e notificacoes
+        $this->load->library('os_contrato');
+        $dados = array_merge(['status' => $status], $this->os_contrato->camposCronometroSla($os, $status));
+
+        if ($this->os_model->edit('os', $dados, 'idOs', $os_id)) {
+            log_info('Alterou status da OS #' . $os_id . ' para "' . $status . '" pela troca rapida de status.');
+            $this->notificarEdicaoOs($os_id);
             echo json_encode(['success' => true, 'message' => 'Status da OS #' . $os_id . ' atualizado para ' . $status . '.', 'status' => $status]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Erro ao atualizar o status.']);

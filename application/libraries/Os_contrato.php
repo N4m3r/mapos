@@ -63,17 +63,7 @@ class Os_contrato
             }
 
             // Cronômetro de cumprimento pelo status.
-            $novoStatus = trim((string) $this->ci->input->post('status'));
-            if ($this->ci->db->field_exists('sla_resposta_em', 'os')
-                && empty($osAtual->sla_resposta_em)
-                && in_array($novoStatus, ['Em Andamento', 'Finalizado', 'Faturado'], true)) {
-                $extra['sla_resposta_em'] = date('Y-m-d H:i:s');
-            }
-            if ($this->ci->db->field_exists('sla_solucao_em', 'os')
-                && empty($osAtual->sla_solucao_em)
-                && in_array($novoStatus, ['Finalizado', 'Faturado'], true)) {
-                $extra['sla_solucao_em'] = date('Y-m-d H:i:s');
-            }
+            $extra = array_merge($extra, $this->camposCronometroSla($osAtual, $this->ci->input->post('status')));
         }
 
         // --- Equipe (externa/terceira) + custo -----------------------------
@@ -84,6 +74,29 @@ class Os_contrato
         // não tem permissão financeira — não podemos zerar o valor existente).
         if ($this->ci->db->field_exists('custo_equipe', 'os') && $this->ci->input->post('custo_equipe') !== null) {
             $extra['custo_equipe'] = $this->parseMoeda($this->ci->input->post('custo_equipe'));
+        }
+
+        return $extra;
+    }
+
+    /**
+     * Cronômetro de cumprimento do SLA pelo novo status: marca "respondido" ao
+     * entrar em atendimento e "solucionado" ao finalizar/faturar (só na primeira vez).
+     * Usado pela edição da OS e pela troca rápida de status.
+     */
+    public function camposCronometroSla($osAtual, $novoStatus)
+    {
+        $extra = [];
+        $novoStatus = trim((string) $novoStatus);
+        if ($this->ci->db->field_exists('sla_resposta_em', 'os')
+            && empty($osAtual->sla_resposta_em)
+            && in_array($novoStatus, ['Em Andamento', 'Finalizado', 'Faturado'], true)) {
+            $extra['sla_resposta_em'] = date('Y-m-d H:i:s');
+        }
+        if ($this->ci->db->field_exists('sla_solucao_em', 'os')
+            && empty($osAtual->sla_solucao_em)
+            && in_array($novoStatus, ['Finalizado', 'Faturado'], true)) {
+            $extra['sla_solucao_em'] = date('Y-m-d H:i:s');
         }
 
         return $extra;
