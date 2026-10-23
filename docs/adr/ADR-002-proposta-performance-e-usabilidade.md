@@ -176,3 +176,4 @@ sistema (nao havia banco nem servidor disponiveis; validacao por `php -l`,
 
 ## Links
 - ADR-001: Mitigacao PHP2Shell (mesma infraestrutura Docker/`php.ini`)
+- ADR-003: amends ADR-002 (implementa os itens 8, 10, 14, 16, 17, 18 e 20 que ficaram de fora aqui)
