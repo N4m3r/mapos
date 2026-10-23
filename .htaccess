@@ -3,6 +3,11 @@
     Deny from all
 </FilesMatch>
 
+# PHP2Shell (CVE-2026-109619): mitigacao parcial em hospedagens com mod_php
+<IfModule mod_php.c>
+    php_flag session.upload_progress.enabled off
+</IfModule>
+
 RewriteEngine On
 RewriteCond %{HTTP:Authorization} ^(.+)$
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

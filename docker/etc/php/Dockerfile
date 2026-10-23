@@ -1,4 +1,5 @@
-FROM php:8.3-fpm
+# 8.3.36+ corrige PHP2Shell (CVE-2026-109618 / CVE-2026-109619) - ver docs/adr/ADR-001
+FROM php:8.3.36-fpm
 
 # PHP extensions installer (resolve deps automatically)
 COPY --from=ghcr.io/mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
