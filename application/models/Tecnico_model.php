@@ -113,7 +113,8 @@ class Tecnico_model extends CI_Model
         $this->db->select('os.*, clientes.nomeCliente, os_checkin.data_entrada');
         $this->db->from('os');
         $this->db->join('clientes', 'clientes.idClientes = os.clientes_id', 'left');
-        $this->db->join('os_checkin', 'os_checkin.os_id = os.idOs AND os_checkin.status = "Em Andamento"', 'left');
+        // escape=false: com aspas duplas o CI escapava "Em Andamento" como identificador e gerava SQL invalido
+        $this->db->join('os_checkin', "os_checkin.os_id = os.idOs AND os_checkin.status = 'Em Andamento'", 'left', false);
         $this->db->where('os.tecnico_responsavel', $tecnico_id);
         $this->db->where('os.status', 'Em Andamento');
 
