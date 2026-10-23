@@ -267,6 +267,51 @@ class Mapos_model extends CI_Model
         return $query !== false ? $query->row() : false;
     }
 
+    /**
+     * Mesmo resultado de getEstatisticasFinanceiroMes, getEstatisticasFinanceiroDia e
+     * getEstatisticasFinanceiroMesInadimplencia, mas numa unica leitura de lancamentos
+     * (as tres filtram o mesmo ano). Retorna ['mes' => row, 'dia' => row, 'inadimplencia' => row]
+     * com os mesmos nomes de coluna das funcoes originais, ou false em erro.
+     */
+    public function getEstatisticasFinanceiroAno($year)
+    {
+        $numbersOnly = preg_replace('/[^0-9]/', '', $year);
+        if (! $numbersOnly) {
+            $numbersOnly = date('Y');
+        }
+        $ano = intval($numbersOnly);
+
+        $receitaLiquida = "valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))";
+        $meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+        $campos = [];
+        foreach ($meses as $i => $mes) {
+            $m = $i + 1;
+            $campos[] = "SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = {$m}) AND baixado = 1 AND tipo = 'receita' THEN {$receitaLiquida} END) AS M_VALOR_{$mes}_REC";
+            $campos[] = "SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = {$m}) AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS M_VALOR_{$mes}_DES";
+            $campos[] = "SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = {$m}) AND baixado = 0 AND tipo = 'receita' THEN valor END) AS I_VALOR_{$mes}_REC";
+            $campos[] = "SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = {$m}) AND baixado = 0 AND tipo = 'despesa' THEN valor END) AS I_VALOR_{$mes}_DES";
+        }
+        $hoje = '(EXTRACT(DAY FROM data_pagamento) = ' . date('d') . ') AND EXTRACT(MONTH FROM data_pagamento) = ' . date('m');
+        $campos[] = "SUM(CASE WHEN {$hoje} AND baixado = 1 AND tipo = 'receita' THEN {$receitaLiquida} END) AS D_VALOR_" . date('m') . '_REC';
+        $campos[] = "SUM(CASE WHEN {$hoje} AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS D_VALOR_" . date('m') . '_DES';
+
+        $sql = 'SELECT ' . implode(",\n", $campos) . ' FROM lancamentos WHERE data_pagamento BETWEEN ? AND ?';
+        $query = $this->db->query($sql, [$ano . '-01-01', $ano . '-12-31']);
+        if ($query === false) {
+            return false;
+        }
+
+        // Separa pelo prefixo para devolver os objetos no formato das funcoes originais
+        $grupos = ['M_' => 'mes', 'D_' => 'dia', 'I_' => 'inadimplencia'];
+        $resultado = ['mes' => new stdClass(), 'dia' => new stdClass(), 'inadimplencia' => new stdClass()];
+        foreach ($query->row_array() as $coluna => $valor) {
+            $grupo = $grupos[substr($coluna, 0, 2)];
+            $resultado[$grupo]->{substr($coluna, 2)} = $valor;
+        }
+
+        return $resultado;
+    }
+
     public function getEstatisticasFinanceiroMes($year)
     {
         $numbersOnly = preg_replace('/[^0-9]/', '', $year);

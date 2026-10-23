@@ -32,9 +32,10 @@ class Mapos extends MY_Controller {
         $this->data['ordens_finalizadas'] = $this->mapos_model->getOsFinalizadas();
         $this->data['produtos'] = $this->mapos_model->getProdutosMinimo();
         $this->data['estatisticas_financeiro'] = $this->mapos_model->getEstatisticasFinanceiro();
-        $this->data['financeiro_mes_dia'] = $this->mapos_model->getEstatisticasFinanceiroDia($this->input->get('year'));
-        $this->data['financeiro_mes'] = $this->mapos_model->getEstatisticasFinanceiroMes($this->input->get('year'));
-        $this->data['financeiro_mesinadipl'] = $this->mapos_model->getEstatisticasFinanceiroMesInadimplencia($this->input->get('year'));
+        $financeiroAno = $this->mapos_model->getEstatisticasFinanceiroAno($this->input->get('year'));
+        $this->data['financeiro_mes_dia'] = $financeiroAno ? $financeiroAno['dia'] : false;
+        $this->data['financeiro_mes'] = $financeiroAno ? $financeiroAno['mes'] : false;
+        $this->data['financeiro_mesinadipl'] = $financeiroAno ? $financeiroAno['inadimplencia'] : false;
         $this->data['menuPainel'] = 'Painel';
         $this->data['view'] = 'mapos/painel';
 
