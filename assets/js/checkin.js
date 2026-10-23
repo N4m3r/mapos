@@ -219,6 +219,8 @@ const CheckinManager = {
 
         // Limpa os campos do formulário
         $('#checkin-observacao').val('');
+        // Rascunho: devolve o que o tecnico ja tinha digitado (ex.: conexao caiu)
+        if (window.Rascunho) Rascunho.campo('#checkin-observacao', 'checkin_obs_' + this.config.osId);
         $('#checkin-latitude, #checkin-longitude').val('');
         $('#checkin-geo-status').text('');
 
@@ -237,6 +239,7 @@ const CheckinManager = {
 
         // Limpa os campos do formulário (exceto nome/documento que vêm da OS)
         $('#checkout-observacao').val('');
+        if (window.Rascunho) Rascunho.campo('#checkout-observacao', 'checkout_obs_' + this.config.osId);
         $('#checkout-latitude, #checkout-longitude').val('');
         $('#checkout-geo-status').text('');
 
@@ -311,6 +314,7 @@ const CheckinManager = {
                 btn.html(textoOriginal).prop('disabled', false);
                 if (response.success) {
                     $('#modal-checkin').modal('hide');
+                    if (window.Rascunho) Rascunho.apagar('checkin_obs_' + osId);
                     self.config.checkinId = response.checkin_id;
                     self.estado.emAtendimento = true;
                     self.atualizarUI();
@@ -431,6 +435,7 @@ const CheckinManager = {
                 btn.html(textoOriginal).prop('disabled', false);
                 if (response.success) {
                     $('#modal-checkout').modal('hide');
+                    if (window.Rascunho) Rascunho.apagar('checkout_obs_' + osId);
                     self.config.checkinId = null;
                     self.estado.emAtendimento = false;
                     self.atualizarUI();

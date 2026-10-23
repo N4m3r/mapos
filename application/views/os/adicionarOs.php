@@ -185,5 +185,11 @@
             lang: 'pt_br',
             semantic: { 'strikethrough': 's', }
         });
+
+        // Rascunho automatico (depois do validate, para respeitar envio barrado)
+        if (window.Rascunho) {
+            Rascunho.formulario('#formOs', 'os_nova_<?= (int) $this->session->userdata('id_admin') ?>', { editores: '.editor' });
+        }
     });
 </script>
+<script src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/rascunho-form.js') ?: '1' ?>"></script>

@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="<?php echo base_url() ?>assets/trumbowyg/ui/trumbowyg.css">
 <script type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/trumbowyg.js"></script>
 <script type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/langs/pt_br.js"></script>
+<script src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/rascunho-form.js') ?: '1' ?>"></script>
 
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/custom.css" />
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/assinatura.css" />
@@ -1629,6 +1630,11 @@
             lang: 'pt_br',
             semantic: { 'strikethrough': 's', }
         });
+
+        // Rascunho automatico dos dados da OS (produtos/servicos ja salvam na hora)
+        if (window.Rascunho) {
+            Rascunho.formulario('#formOs', 'os_editar_<?= (int) $result->idOs ?>_<?= (int) $this->session->userdata('id_admin') ?>', { editores: '.editor' });
+        }
 
         // ============================================
         // INTEGRAÇÃO DO SISTEMA DE CHECK-IN

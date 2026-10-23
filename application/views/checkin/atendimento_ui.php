@@ -171,7 +171,8 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
 <script src="<?= base_url('assets/js/assinatura-canvas.js?v=3') ?>"></script>
 <script src="<?= base_url('assets/js/assinatura-fullscreen.js?v=1') ?>"></script>
 <script src="<?= base_url('assets/js/checkin-fotos.js?v=3') ?>"></script>
-<script src="<?= base_url('assets/js/checkin.js?v=6') ?>"></script>
+<script src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/rascunho-form.js') ?: '1' ?>"></script>
+<script src="<?= base_url('assets/js/checkin.js?v=7') ?>"></script>
 <script src="<?= base_url('assets/js/checkin-formularios.js?v=1') ?>"></script>
 <script src="<?= base_url('assets/js/csrf.js?v=3') ?>"></script>
 <script src="<?= base_url('assets/js/tecnico-localizacao.js?v=1') ?>"></script>
