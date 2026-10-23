@@ -387,89 +387,12 @@ class Os extends MY_Controller
         return $this->layout();
     }
 
-    /**
-     * Monta os campos de Contrato/SLA e Equipe para gravar na OS, com base no
-     * POST do formulário e no estado atual da OS ($osAtual).
-     *
-     * - Recalcula os prazos de SLA (resposta/solução) quando o contrato ou a
-     *   prioridade mudam, ou quando ainda não havia prazo definido.
-     * - Cronometra o cumprimento: marca "respondido" ao entrar em atendimento
-     *   e "solucionado" ao finalizar/faturar.
-     * - Só devolve colunas que existem no banco (resiliente a migration não
-     *   aplicada), para não quebrar o UPDATE.
-     */
+    /** Campos de contrato/SLA/equipe da OS. Delegacao: logica em libraries/Os_contrato.php */
     private function montarCamposContratoEquipe($osAtual)
     {
-        $extra = [];
+        $this->load->library('os_contrato');
 
-        // --- Contrato + prioridade + SLA -----------------------------------
-        if ($this->db->field_exists('contrato_id', 'os')) {
-            $contrato_id = (int) $this->input->post('contrato_id') ?: null;
-            $prioridade = trim((string) $this->input->post('prioridade')) ?: null;
-            $extra['contrato_id'] = $contrato_id;
-            $extra['prioridade'] = $prioridade;
-
-            if ($this->db->field_exists('sla_solucao_prazo', 'os')) {
-                $mudou = ((int) ($osAtual->contrato_id ?? 0) !== (int) $contrato_id)
-                    || (($osAtual->prioridade ?? null) !== $prioridade);
-
-                if ($contrato_id && $prioridade && $this->db->table_exists('contrato_sla')) {
-                    if ($mudou || empty($osAtual->sla_solucao_prazo)) {
-                        $this->load->model('contratos_model');
-                        $sla = $this->contratos_model->slaPara($contrato_id, $prioridade);
-                        $base = time();
-                        $extra['sla_resposta_prazo'] = ($sla && $sla->resposta_horas > 0)
-                            ? date('Y-m-d H:i:s', $base + ((int) $sla->resposta_horas * 3600)) : null;
-                        $extra['sla_solucao_prazo'] = ($sla && $sla->solucao_horas > 0)
-                            ? date('Y-m-d H:i:s', $base + ((int) $sla->solucao_horas * 3600)) : null;
-                    }
-                } else {
-                    // Sem contrato/prioridade → zera os prazos.
-                    $extra['sla_resposta_prazo'] = null;
-                    $extra['sla_solucao_prazo'] = null;
-                }
-            }
-
-            // Cronômetro de cumprimento pelo status.
-            $novoStatus = trim((string) $this->input->post('status'));
-            if ($this->db->field_exists('sla_resposta_em', 'os')
-                && empty($osAtual->sla_resposta_em)
-                && in_array($novoStatus, ['Em Andamento', 'Finalizado', 'Faturado'], true)) {
-                $extra['sla_resposta_em'] = date('Y-m-d H:i:s');
-            }
-            if ($this->db->field_exists('sla_solucao_em', 'os')
-                && empty($osAtual->sla_solucao_em)
-                && in_array($novoStatus, ['Finalizado', 'Faturado'], true)) {
-                $extra['sla_solucao_em'] = date('Y-m-d H:i:s');
-            }
-        }
-
-        // --- Equipe (externa/terceira) + custo -----------------------------
-        if ($this->db->field_exists('equipe_id', 'os')) {
-            $extra['equipe_id'] = (int) $this->input->post('equipe_id') ?: null;
-        }
-        // Só toca no custo se o campo veio no POST (o input é oculto para quem
-        // não tem permissão financeira — não podemos zerar o valor existente).
-        if ($this->db->field_exists('custo_equipe', 'os') && $this->input->post('custo_equipe') !== null) {
-            $extra['custo_equipe'] = $this->parseMoeda($this->input->post('custo_equipe'));
-        }
-
-        return $extra;
-    }
-
-    /** Converte um valor monetário digitado (pt-BR ou simples) em float. */
-    private function parseMoeda($raw)
-    {
-        $raw = trim((string) $raw);
-        if ($raw === '') {
-            return 0.0;
-        }
-        // "1.500,00" (pt-BR): ponto é milhar, vírgula é decimal.
-        if (strpos($raw, ',') !== false) {
-            $raw = str_replace('.', '', $raw);
-            $raw = str_replace(',', '.', $raw);
-        }
-        return (float) $raw;
+        return $this->os_contrato->camposContratoEquipe($osAtual);
     }
 
     public function visualizar()
@@ -1559,113 +1482,12 @@ class Os extends MY_Controller
         echo json_encode($json);
     }
 
+    /** Delegacao: logica em libraries/Os_email.php */
     private function enviarOsPorEmail($idOs, $remetentes, $assunto, $evento = null)
     {
-        $dados = [];
+        $this->load->library('os_email');
 
-        $this->load->model('mapos_model');
-        $dados['result'] = $this->os_model->getById($idOs);
-        if (! isset($dados['result']->email)) {
-            return false;
-        }
-
-        $dados['produtos'] = $this->os_model->getProdutos($idOs);
-        $dados['servicos'] = $this->os_model->getServicos($idOs);
-        $dados['emitente'] = $this->mapos_model->getEmitente();
-        $emitente = $dados['emitente'];
-        if (! isset($emitente->email)) {
-            return false;
-        }
-
-        // Gatilho de notificação (se informado): controla ativo, canal de e-mail,
-        // destinatários, blocos e modelo. Sem gatilho, mantém o comportamento anterior.
-        $blocos = null;
-        $slug = 'os';
-        if ($evento) {
-            $this->load->model('notification_triggers_model');
-            $trigger = $this->notification_triggers_model->getByEvento($evento);
-            if ($trigger) {
-                $canais = Notification_triggers_model::toList($trigger->canais);
-                if ((int) $trigger->ativo !== 1 || ! in_array('email', $canais, true)) {
-                    return false; // gatilho desativado ou sem canal de e-mail
-                }
-                $slug = $trigger->template_slug ?: 'os';
-                $blocosList = Notification_triggers_model::toList($trigger->blocos);
-                $blocos = empty($blocosList) ? null : $blocosList;
-                $remetentes = $this->destinatariosOs($trigger, $dados['result'], $emitente);
-            }
-        }
-
-        $html = $this->load->view('os/emails/os', $dados, true);
-
-        // Modelo configurável de e-mail (fallback para a view padrão acima).
-        $this->load->library('emailtemplate');
-        $render = $this->emailtemplate->render($slug, [
-            'emitente' => $emitente,
-            'os' => $dados['result'],
-            'cliente' => $dados['result'],
-            'produtos' => $dados['produtos'],
-            'servicos' => $dados['servicos'],
-            'blocos' => $blocos,
-        ]);
-        if ($render !== null && ! $render['ativo']) {
-            // Envio de e-mail de OS desativado em Configurações > Modelos de E-mail.
-            return false;
-        }
-        if ($render !== null) {
-            $html = $render['corpo'];
-            $assunto = $render['assunto'];
-        }
-
-        $this->load->model('email_model');
-
-        $remetentes = array_unique($remetentes);
-        foreach ($remetentes as $remetente) {
-            if ($remetente) {
-                $headers = ['From' => $emitente->email, 'Subject' => $assunto, 'Return-Path' => ''];
-                $email = [
-                    'to' => $remetente,
-                    'message' => $html,
-                    'status' => 'pending',
-                    'date' => date('Y-m-d H:i:s'),
-                    'headers' => serialize($headers),
-                ];
-                $this->email_model->add('email_queue', $email);
-            } else {
-                log_info('Email não adicionado a Lista de envio de e-mails. Verifique se o remetente esta cadastrado. OS ID: ' . $idOs);
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Monta os e-mails de destino de uma OS conforme os destinatários marcados
-     * no gatilho (cliente, e-mail secundário, técnico, emitente).
-     */
-    private function destinatariosOs($trigger, $os, $emitente)
-    {
-        $dest = Notification_triggers_model::toList($trigger->destinatarios);
-        $emails = [];
-
-        if (in_array('cliente', $dest, true) && ! empty($os->email)) {
-            $emails[] = $os->email;
-        }
-        if (in_array('cliente_secundario', $dest, true) && ! empty($os->email_secundario)) {
-            $emails[] = $os->email_secundario;
-        }
-        if (in_array('emitente', $dest, true) && ! empty($emitente->email)) {
-            $emails[] = $emitente->email;
-        }
-        if (in_array('tecnico', $dest, true) && ! empty($os->usuarios_id)) {
-            $this->load->model('usuarios_model');
-            $tecnico = $this->usuarios_model->getById($os->usuarios_id);
-            if ($tecnico && ! empty($tecnico->email)) {
-                $emails[] = $tecnico->email;
-            }
-        }
-
-        return $emails;
+        return $this->os_email->enviar($idOs, $remetentes, $assunto, $evento);
     }
 
     /**
