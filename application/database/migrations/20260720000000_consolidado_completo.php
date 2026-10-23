@@ -761,11 +761,7 @@ class Migration_consolidado_completo extends CI_Migration
                 'null' => false,
                 'default' => 'Em Andamento',
             ],
-            'data_cadastro' => [
-                'type' => 'TIMESTAMP',
-                'null' => false,
-                'default' => 'CURRENT_TIMESTAMP',
-            ],
+            "`data_cadastro` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP", // literal: com 'default' o CI poe aspas e da erro 1067
             'data_atualizacao' => [
                 'type' => 'DATETIME',
                 'null' => true,
@@ -824,11 +820,7 @@ class Migration_consolidado_completo extends CI_Migration
                 'constraint' => 45,
                 'null' => true,
             ],
-            'data_cadastro' => [
-                'type' => 'TIMESTAMP',
-                'null' => false,
-                'default' => 'CURRENT_TIMESTAMP',
-            ],
+            "`data_cadastro` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP", // literal: com 'default' o CI poe aspas e da erro 1067
         ]);
         $this->dbforge->add_key('idAssinatura', true);
         $this->dbforge->create_table('os_assinaturas', true);
@@ -893,11 +885,7 @@ class Migration_consolidado_completo extends CI_Migration
                 'constraint' => 10,
                 'null' => true,
             ],
-            'data_upload' => [
-                'type' => 'TIMESTAMP',
-                'null' => false,
-                'default' => 'CURRENT_TIMESTAMP',
-            ],
+            "`data_upload` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP", // literal: com 'default' o CI poe aspas e da erro 1067
         ]);
         $this->dbforge->add_key('idFoto', true);
         $this->dbforge->create_table('os_fotos_atendimento', true);
@@ -994,11 +982,7 @@ class Migration_consolidado_completo extends CI_Migration
                     'null' => false,
                     'comment' => 'ID do usuario que fez a atribuicao',
                 ],
-                'data_atribuicao' => [
-                    'type' => 'TIMESTAMP',
-                    'null' => false,
-                    'default' => 'CURRENT_TIMESTAMP',
-                ],
+                "`data_atribuicao` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP", // literal: com 'default' o CI poe aspas e da erro 1067
                 'data_remocao' => [
                     'type' => 'DATETIME',
                     'null' => true,
