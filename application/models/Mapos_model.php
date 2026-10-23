@@ -50,32 +50,67 @@ class Mapos_model extends CI_Model
     public function pesquisar($termo)
     {
         $data = [];
+        $termo = trim((string) $termo);
+        // So os digitos: acha "(11) 98888-7777" buscando 11988887777, e CPF/CNPJ sem pontuacao
+        $digitos = preg_replace('/[^0-9]/', '', $termo);
+        $comeca = $this->db->escape($this->db->escape_like_str($termo) . '%');
+
         // buscando clientes
+        $this->db->group_start();
         $this->db->like('nomeCliente', $termo);
         $this->db->or_like('telefone', $termo);
         $this->db->or_like('celular', $termo);
         $this->db->or_like('documento', $termo);
+        if (strlen($digitos) >= 3) {
+            $padrao = $this->db->escape('%' . $digitos . '%');
+            foreach (['telefone', 'celular', 'documento'] as $campo) {
+                $this->db->or_where($this->somenteDigitosSql($campo) . ' LIKE ' . $padrao, null, false);
+            }
+        }
+        $this->db->group_end();
+        $this->db->order_by("nomeCliente LIKE {$comeca}", 'DESC', false);
+        $this->db->order_by('nomeCliente', 'ASC');
         $this->db->limit(15);
         $data['clientes'] = $this->db->get('clientes')->result();
 
-        // buscando os
+        // buscando os (numero exato primeiro)
         $this->db->like('idOs', $termo);
         $this->db->or_like('descricaoProduto', $termo);
+        if (ctype_digit($termo)) {
+            $this->db->order_by('idOs = ' . (int) $termo, 'DESC', false);
+        }
+        $this->db->order_by('idOs', 'DESC');
         $this->db->limit(15);
         $data['os'] = $this->db->get('os')->result();
 
-        // buscando produtos
+        // buscando produtos (codigo de barras exato, depois descricao que comeca com o termo)
         $this->db->like('codDeBarra', $termo);
         $this->db->or_like('descricao', $termo);
+        $this->db->order_by('codDeBarra = ' . $this->db->escape($termo), 'DESC', false);
+        $this->db->order_by("descricao LIKE {$comeca}", 'DESC', false);
+        $this->db->order_by('descricao', 'ASC');
         $this->db->limit(50);
         $data['produtos'] = $this->db->get('produtos')->result();
 
         //buscando serviços
         $this->db->like('nome', $termo);
+        $this->db->order_by("nome LIKE {$comeca}", 'DESC', false);
+        $this->db->order_by('nome', 'ASC');
         $this->db->limit(15);
         $data['servicos'] = $this->db->get('servicos')->result();
 
         return $data;
+    }
+
+    /** Expressao SQL que remove a pontuacao comum de telefone/CPF/CNPJ de uma coluna. */
+    private function somenteDigitosSql($coluna)
+    {
+        $sql = '`' . $coluna . '`';
+        foreach (['(', ')', '-', '.', '/', ' ', '+'] as $c) {
+            $sql = "REPLACE({$sql}, '{$c}', '')";
+        }
+
+        return $sql;
     }
 
     public function add($table, $data)
