@@ -425,7 +425,9 @@ $config['sess_regenerate_destroy'] = isset($_ENV['APP_SESS_REGENERATE_DESTROY'])
 $config['cookie_prefix'] = $_ENV['APP_COOKIE_PREFIX'] ?? '';
 $config['cookie_domain'] = $_ENV['APP_COOKIE_DOMAIN'] ?? '';
 $config['cookie_path'] = $_ENV['APP_COOKIE_PATH'] ?? '/';
-$config['cookie_secure'] = isset($_ENV['APP_COOKIE_SECURE']) ? filter_var($_ENV['APP_COOKIE_SECURE'], FILTER_VALIDATE_BOOLEAN) : false;
+// Secure: ligado pelo .env ou automaticamente quando o acesso e HTTPS (inclusive atras
+// de proxy com X-Forwarded-Proto). Assim o cookie de sessao nunca trafega sem criptografia.
+$config['cookie_secure'] = (isset($_ENV['APP_COOKIE_SECURE']) && filter_var($_ENV['APP_COOKIE_SECURE'], FILTER_VALIDATE_BOOLEAN)) || is_https();
 $config['cookie_httponly'] = isset($_ENV['APP_COOKIE_HTTPONLY']) ? filter_var($_ENV['APP_COOKIE_HTTPONLY'], FILTER_VALIDATE_BOOLEAN) : false;
 
 /*
