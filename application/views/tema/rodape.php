@@ -8,6 +8,7 @@
 <!--end-Footer-part-->
 <script src="<?= base_url() ?>assets/js/bootstrap.min.js"></script>
 <script src="<?= base_url() ?>assets/js/matrix.js"></script>
+<script src="<?= base_url('assets/js/paleta-comandos.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/paleta-comandos.js') ?: '1' ?>" data-url-pesquisa="<?= site_url('mapos/pesquisar') ?>"></script>
 </body>
 <script type="text/javascript">
     $(document).ready(function() {

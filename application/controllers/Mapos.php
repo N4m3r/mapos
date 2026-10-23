@@ -30,10 +30,7 @@ class Mapos extends MY_Controller {
         $this->data['ordens_abertas'] = $this->mapos_model->getOsAbertas();
         $this->data['ordens_aprovadas'] = $this->mapos_model->getOsAprovadas();
         $this->data['ordens_finalizadas'] = $this->mapos_model->getOsFinalizadas();
-        $this->data['ordens_aguardando'] = $this->mapos_model->getOsAguardandoPecas();
-        $this->data['ordens_andamento'] = $this->mapos_model->getOsAndamento();
         $this->data['produtos'] = $this->mapos_model->getProdutosMinimo();
-        $this->data['os'] = $this->mapos_model->getOsEstatisticas();
         $this->data['estatisticas_financeiro'] = $this->mapos_model->getEstatisticasFinanceiro();
         $this->data['financeiro_mes_dia'] = $this->mapos_model->getEstatisticasFinanceiroDia($this->input->get('year'));
         $this->data['financeiro_mes'] = $this->mapos_model->getEstatisticasFinanceiroMes($this->input->get('year'));

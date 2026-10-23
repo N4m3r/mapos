@@ -25,7 +25,7 @@ $voltar_url   = isset($voltar_url) ? $voltar_url : null;
     <title><?= isset($titulo) ? $titulo : 'Área do Técnico' ?></title>
     <link rel="shortcut icon" type="image/png" href="<?= base_url('assets/img/favicon.png') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/bootstrap.min.css') ?>">
-    <link href="https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css" rel="stylesheet">
+    <link href="<?= base_url('assets/boxicons/css/boxicons.min.css') ?>" rel="stylesheet">
     <link rel="stylesheet" href="<?= base_url('assets/css/tecnico.css') ?>?v=3">
 </head>
 <body class="tec-body">

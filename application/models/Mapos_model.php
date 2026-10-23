@@ -262,11 +262,9 @@ class Mapos_model extends CI_Model
                        SUM(CASE WHEN baixado = 1 AND tipo = 'despesa' THEN valor END) as total_despesa,
                        SUM(CASE WHEN baixado = 0 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) as total_receita_pendente,
                        SUM(CASE WHEN baixado = 0 AND tipo = 'despesa' THEN valor END) as total_despesa_pendente FROM lancamentos";
-        if ($this->db->query($sql) !== false) {
-            return $this->db->query($sql)->row();
-        }
+        $query = $this->db->query($sql);
 
-        return false;
+        return $query !== false ? $query->row() : false;
     }
 
     public function getEstatisticasFinanceiroMes($year)
@@ -304,13 +302,13 @@ class Mapos_model extends CI_Model
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 12) AND baixado = 1 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) AS VALOR_DEZ_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 12) AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS VALOR_DEZ_DES
             FROM lancamentos
-            WHERE EXTRACT(YEAR FROM data_pagamento) = ?
+            WHERE data_pagamento BETWEEN ? AND ?
         ";
-        if ($this->db->query($sql, [intval($numbersOnly)]) !== false) {
-            return $this->db->query($sql, [intval($numbersOnly)])->row();
-        }
+        // Intervalo do ano (em vez de EXTRACT(YEAR ...)) permite usar o indice de data_pagamento
+        $ano = intval($numbersOnly);
+        $query = $this->db->query($sql, [$ano . '-01-01', $ano . '-12-31']);
 
-        return false;
+        return $query !== false ? $query->row() : false;
     }
 
     public function getEstatisticasFinanceiroDia($year)
@@ -324,13 +322,13 @@ class Mapos_model extends CI_Model
                 SUM(CASE WHEN (EXTRACT(DAY FROM data_pagamento) = ' . date('d') . ') AND EXTRACT(MONTH FROM data_pagamento) = ' . date('m') . " AND baixado = 1 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) AS VALOR_" . date('m') . '_REC,
                 SUM(CASE WHEN (EXTRACT(DAY FROM data_pagamento) = ' . date('d') . ') AND EXTRACT(MONTH FROM data_pagamento) = ' . date('m') . " AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS VALOR_" . date('m') . '_DES
             FROM lancamentos
-            WHERE EXTRACT(YEAR FROM data_pagamento) = ?
+            WHERE data_pagamento BETWEEN ? AND ?
         ';
-        if ($this->db->query($sql, [intval($numbersOnly)]) !== false) {
-            return $this->db->query($sql, [intval($numbersOnly)])->row();
-        }
+        // Intervalo do ano (em vez de EXTRACT(YEAR ...)) permite usar o indice de data_pagamento
+        $ano = intval($numbersOnly);
+        $query = $this->db->query($sql, [$ano . '-01-01', $ano . '-12-31']);
 
-        return false;
+        return $query !== false ? $query->row() : false;
     }
 
     public function getEstatisticasFinanceiroMesInadimplencia($year)
@@ -368,13 +366,13 @@ class Mapos_model extends CI_Model
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 12) AND baixado = 0 AND tipo = 'receita' THEN valor END) AS VALOR_DEZ_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 12) AND baixado = 0 AND tipo = 'despesa' THEN valor END) AS VALOR_DEZ_DES
             FROM lancamentos
-            WHERE EXTRACT(YEAR FROM data_pagamento) = ?
+            WHERE data_pagamento BETWEEN ? AND ?
         ";
-        if ($this->db->query($sql, [intval($numbersOnly)]) !== false) {
-            return $this->db->query($sql, [intval($numbersOnly)])->row();
-        }
+        // Intervalo do ano (em vez de EXTRACT(YEAR ...)) permite usar o indice de data_pagamento
+        $ano = intval($numbersOnly);
+        $query = $this->db->query($sql, [$ano . '-01-01', $ano . '-12-31']);
 
-        return false;
+        return $query !== false ? $query->row() : false;
     }
 
     public function getEmitente()
