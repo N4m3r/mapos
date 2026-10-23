@@ -81,6 +81,8 @@ class Os extends MY_Controller
 
         $this->data['texto_de_notificacao'] = $this->data['configuration']['notifica_whats'];
         $this->data['emitente'] = $this->mapos_model->getEmitente();
+        // Status que a acao rapida da listagem pode aplicar (mesma regra do alterarStatusAction)
+        $this->data['statusRapidos'] = $this->statusChamadoPermitidos();
         $this->data['view'] = 'os/os';
 
         return $this->layout();
