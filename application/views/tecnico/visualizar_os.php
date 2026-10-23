@@ -87,7 +87,11 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
         </span></div>
         <div class="info-row"><span class="info-label">Status</span><span class="info-value"><span class="badge-status <?= in_array($os->status, ['Finalizado','Faturado']) ? 'finalizado' : ($os->status == 'Em Andamento' ? 'andamento' : 'pendente') ?>"><?= $os->status ?></span></span></div>
         <div class="info-row"><span class="info-label">Data</span><span class="info-value"><?= date('d/m/Y', strtotime($os->dataInicial)) ?></span></div>
-        <div class="info-row"><span class="info-label">Garantia</span><span class="info-value"><?= $os->garantia ?: 'N/A' ?> dias</span></div>
+        <div class="info-row"><span class="info-label">Garantia</span><span class="info-value"><?php
+            // garantia e texto livre: "90" vira "90 dias"; "30 dias" fica como esta; vazio vira N/A
+            $garantia = trim((string) $os->garantia);
+            echo $garantia === '' ? 'N/A' : html_escape(ctype_digit($garantia) ? $garantia . ' dias' : $garantia);
+        ?></span></div>
     </div>
 
     <!-- Dados do Cliente -->

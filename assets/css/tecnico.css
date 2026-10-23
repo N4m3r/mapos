@@ -32,7 +32,15 @@ body.tec-body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   /* espaco para a bottom-nav fixa, incluindo a area segura (home indicator) */
   padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  /* o bootstrap.min.css do projeto define body{height:0}; sem isto o padding acima
+     nao gera espaco e o fim da pagina fica escondido atras das barras fixas */
+  height: auto;
+  min-height: 100vh;
   -webkit-tap-highlight-color: transparent;
+}
+/* Tela com barra de acao fixa (Enviar foto / Finalizar) acima da bottom-nav */
+body.tec-body:has(.action-bar) {
+  padding-bottom: calc(190px + env(safe-area-inset-bottom, 0px));
 }
 
 /* ---------- App header ---------- */
@@ -243,13 +251,18 @@ body.tec-body {
 }
 .chip.active { background: linear-gradient(135deg, var(--tec-grad-1), var(--tec-grad-2)); color: #fff; border-color: transparent; }
 
+/* input.tec-search: precisa ganhar do input[type="text"] do Bootstrap 2 (altura 20px).
+   Fonte de 16px evita o zoom automatico do iPhone ao tocar no campo. */
+input.tec-search,
 .tec-search {
   width: 100%;
   height: 46px;
   border: 1.5px solid var(--tec-line);
   border-radius: 12px;
   padding: 0 14px;
-  font-size: 15px;
+  font-size: 16px;
+  line-height: normal;
+  box-shadow: none;
   background: #fff;
   margin-bottom: 6px;
 }
