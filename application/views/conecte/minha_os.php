@@ -75,9 +75,9 @@
                                                             <li>
                                                                 <span>
                                                                     <h5>Cliente</h5>
-                                                                    <span><?php echo $result->nomeCliente ?></span><br />
-                                                                    <span><?php echo $result->rua ?>, <?php echo $result->numero ?>, <?php echo $result->bairro ?></span><br />
-                                                                    <span><?php echo $result->cidade ?> - <?php echo $result->estado ?></span>
+                                                                    <span><?php echo html_escape($result->nomeCliente); ?></span><br />
+                                                                    <span><?php echo html_escape($result->rua); ?>, <?php echo html_escape($result->numero); ?>, <?php echo html_escape($result->bairro); ?></span><br />
+                                                                    <span><?php echo html_escape($result->cidade); ?> - <?php echo html_escape($result->estado); ?></span>
                                                             </li>
                                                         </ul>
                                                     </td>
@@ -87,9 +87,9 @@
                                                                 <span>
                                                                     <h5>Responsável</h5>
                                                                 </span>
-                                                                <span><?php echo $result->nome ?></span> <br />
-                                                                <span>Telefone: <?php echo $result->telefone ?></span><br />
-                                                                <span>Email: <?php echo $result->email ?></span>
+                                                                <span><?php echo html_escape($result->nome); ?></span> <br />
+                                                                <span>Telefone: <?php echo html_escape($result->telefone); ?></span><br />
+                                                                <span>Email: <?php echo html_escape($result->email); ?></span>
                                                             </li>
                                                         </ul>
                                                     </td>

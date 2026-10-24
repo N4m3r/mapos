@@ -366,7 +366,7 @@
                         <?php if ($emitente->url_logo) { ?>
                             <img src="<?php echo $emitente->url_logo; ?>" alt="Logo" style="max-height: 60px; margin-bottom: 10px;">
                         <?php } ?>
-                        <div class="company-name"><?php echo $emitente->nome; ?></div>
+                        <div class="company-name"><?php echo html_escape($emitente->nome); ?></div>
                         <div class="company-details">
                             <?php if ($emitente->cnpj) echo 'CNPJ: ' . $emitente->cnpj . '<br>'; ?>
                             <?php if ($emitente->rua) {
@@ -433,7 +433,7 @@
                 <div class="info-grid">
                     <div class="info-item" style="flex: 2;">
                         <div class="info-label">Nome</div>
-                        <div class="info-value"><?php echo $cliente->nomeCliente; ?></div>
+                        <div class="info-value"><?php echo html_escape($cliente->nomeCliente); ?></div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Documento</div>
@@ -503,18 +503,18 @@
                             <?php foreach ($checkins as $index => $checkin) { ?>
                                 <tr>
                                     <td><?php echo $index + 1; ?></td>
-                                    <td><?php echo $checkin->nome_tecnico; ?></td>
+                                    <td><?php echo html_escape($checkin->nome_tecnico); ?></td>
                                     <td>
                                         <?php echo date('d/m/Y H:i', strtotime($checkin->data_entrada)); ?>
                                         <?php if ($checkin->latitude_entrada && $checkin->longitude_entrada) { ?>
-                                            <br><small>Loc: <?php echo $checkin->latitude_entrada . ', ' . $checkin->longitude_entrada; ?></small>
+                                            <br><small>Loc: <?php echo html_escape($checkin->latitude_entrada . ', ' . $checkin->longitude_entrada); ?></small>
                                         <?php } ?>
                                     </td>
                                     <td>
                                         <?php if ($checkin->data_saida) { ?>
                                             <?php echo date('d/m/Y H:i', strtotime($checkin->data_saida)); ?>
                                             <?php if ($checkin->latitude_saida && $checkin->longitude_saida) { ?>
-                                                <br><small>Loc: <?php echo $checkin->latitude_saida . ', ' . $checkin->longitude_saida; ?></small>
+                                                <br><small>Loc: <?php echo html_escape($checkin->latitude_saida . ', ' . $checkin->longitude_saida); ?></small>
                                             <?php } ?>
                                         <?php } else { ?>
                                             -
@@ -635,9 +635,9 @@
                                     </div>
                                     <?php if (!empty($assinatura->nome_assinante)) { ?>
                                         <div class="signature-name">
-                                            <?php echo $assinatura->nome_assinante; ?>
+                                            <?php echo html_escape($assinatura->nome_assinante); ?>
                                             <?php if (!empty($assinatura->documento_assinante)) { ?>
-                                                <br><small><?php echo $assinatura->documento_assinante; ?></small>
+                                                <br><small><?php echo html_escape($assinatura->documento_assinante); ?></small>
                                             <?php } ?>
                                         </div>
                                     <?php } ?>
@@ -671,7 +671,7 @@
                                     <div class="photo-item">
                                         <img src="<?php echo $imgUrl; ?>" alt="Foto de entrada">
                                         <?php if ($foto->descricao) { ?>
-                                            <div class="photo-description"><?php echo $foto->descricao; ?></div>
+                                            <div class="photo-description"><?php echo html_escape($foto->descricao); ?></div>
                                         <?php } ?>
                                     </div>
                                 <?php } ?>
@@ -693,7 +693,7 @@
                                     <div class="photo-item">
                                         <img src="<?php echo $imgUrl; ?>" alt="Foto durante atendimento">
                                         <?php if ($foto->descricao) { ?>
-                                            <div class="photo-description"><?php echo $foto->descricao; ?></div>
+                                            <div class="photo-description"><?php echo html_escape($foto->descricao); ?></div>
                                         <?php } ?>
                                     </div>
                                 <?php } ?>
@@ -715,7 +715,7 @@
                                     <div class="photo-item">
                                         <img src="<?php echo $imgUrl; ?>" alt="Foto de saída">
                                         <?php if ($foto->descricao) { ?>
-                                            <div class="photo-description"><?php echo $foto->descricao; ?></div>
+                                            <div class="photo-description"><?php echo html_escape($foto->descricao); ?></div>
                                         <?php } ?>
                                     </div>
                                 <?php } ?>

@@ -14,35 +14,35 @@
                         <tr>
                             <td style="text-align: right; width: 30%"><strong>Cliente</strong></td>
                             <td>
-                                <?php echo $result->nomeCliente; ?>
+                                <?php echo html_escape($result->nomeCliente); ?>
                             </td>
                         </tr>
 
                         <tr>
                             <td style="text-align: right; width: 30%"><strong>Cliente (Documento)</strong></td>
                             <td>
-                                <?php echo $result->documento; ?>
+                                <?php echo html_escape($result->documento); ?>
                             </td>
                         </tr>
 
                         <tr>
                             <td style="text-align: right; width: 30%"><strong>Cliente (Telefone)</strong></td>
                             <td>
-                                <?php echo $result->telefone; ?>
+                                <?php echo html_escape($result->telefone); ?>
                             </td>
                         </tr>
 
                         <tr>
                             <td style="text-align: right; width: 30%"><strong>Cliente (Celular)</strong></td>
                             <td>
-                                <?php echo $result->celular; ?>
+                                <?php echo html_escape($result->celular); ?>
                             </td>
                         </tr>
 
                         <tr>
                             <td style="text-align: right; width: 30%"><strong>Cliente (Email)</strong></td>
                             <td>
-                                <?php echo $result->email; ?>
+                                <?php echo html_escape($result->email); ?>
                             </td>
                         </tr>
 

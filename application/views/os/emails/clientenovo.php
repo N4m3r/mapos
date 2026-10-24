@@ -130,19 +130,19 @@
                     <table>
                         <tr>
                             <td>
-                                Cliente: <?= $cliente->nomeCliente ?><br>
-                                <?= $cliente->rua ?>, <?= $cliente->numero ?>, <?= $cliente->bairro ?><br>
-                                <?= $cliente->cidade ?> - <?= $cliente->estado ?> <br>
-                                <?= $cliente->email ?> <br>
-                                <?= $cliente->celular ?>
+                                Cliente: <?= html_escape($cliente->nomeCliente) ?><br>
+                                <?= html_escape($cliente->rua) ?>, <?= html_escape($cliente->numero) ?>, <?= html_escape($cliente->bairro) ?><br>
+                                <?= html_escape($cliente->cidade) ?> - <?= html_escape($cliente->estado) ?> <br>
+                                <?= html_escape($cliente->email) ?> <br>
+                                <?= html_escape($cliente->celular) ?>
                             </td>
 
                             <td style="text-align: right">
-                                <?= $emitente->nome; ?> <br>
-                                <?= $emitente->rua ?>, <?= $emitente->numero ?>, <?= $emitente->bairro ?><br>
-                                <?= $emitente->cidade ?> - <?= $emitente->uf ?> <br> 
-                                CEP: <?= $emitente->cep ?> <br>
-                                <?= $emitente->telefone ?> <br>
+                                <?= html_escape($emitente->nome) ?> <br>
+                                <?= html_escape($emitente->rua) ?>, <?= html_escape($emitente->numero) ?>, <?= html_escape($emitente->bairro) ?><br>
+                                <?= html_escape($emitente->cidade) ?> - <?= html_escape($emitente->uf) ?> <br> 
+                                CEP: <?= html_escape($emitente->cep) ?> <br>
+                                <?= html_escape($emitente->telefone) ?> <br>
 
                             </td>
                         </tr>
@@ -153,8 +153,8 @@
             <tr class="details">
             
                 <td colspan="4" style="text-align: left">
-                    Caro(a) <b><?= $cliente->nomeCliente ?></b>, 
-                    bem-vindo à <?= $emitente->nome; ?>! <br>
+                    Caro(a) <b><?= html_escape($cliente->nomeCliente) ?></b>, 
+                    bem-vindo à <?= html_escape($emitente->nome) ?>! <br>
 
                 </td>
 
@@ -162,7 +162,7 @@
             <tr class="details">
                 <td colspan="4" style="text-align: left">
                     Por favor leia as instruções abaixo para enviar seu aparelho para o nosso time técnico: <br><br>
-                    1 - Entre em contato pelo nosso WhatsApp <?= $emitente->telefone ?> e nos informe que vai nos enviar seu aparelho; <br>
+                    1 - Entre em contato pelo nosso WhatsApp <?= html_escape($emitente->telefone) ?> e nos informe que vai nos enviar seu aparelho; <br>
                     2 - Entre no nosso sistema e crie sua própria Ordem de Serviço, descrevendo o defeito ou serviço a realizar no aparelho, fazendo suas observações; <br>
                     3 - Para criar uma nova Ordem de Serviço, entre no nosso sistema com seu email (usuário) e CPF (senha). Uma vez no sistema, clique em "Ordens de Serviço" e "+Adicionar OS"; <br>
                     4 - Depois da Ordem de Serviço criada, você receberá um e-mail de confirmação e poderá enviar seu aparelho para o endereço que está no cabeçalho deste e-mail. <br>
@@ -171,7 +171,7 @@
             <tr class="details">
                 <td colspan="4" style="text-align: left">
                     Um abraço! <br>
-                    Equipe <?= $emitente->nome; ?>
+                    Equipe <?= html_escape($emitente->nome) ?>
                 </td>
             </tr>
             

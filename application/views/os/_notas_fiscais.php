@@ -61,7 +61,7 @@ $configNfeBoleto = $this->nfe_model->getConfig();
                     ?>
                     <tr>
                         <td><i class="bx <?php echo $tipoIcon; ?>"></i> <?php echo $tipoLabel; ?><?php echo $nota->ambiente == 2 ? ' <span class="badge" style="background:#AEB404">Homolog.</span>' : ''; ?></td>
-                        <td><?php echo $nota->numero; ?> / <?php echo $nota->serie; ?></td>
+                        <td><?php echo html_escape($nota->numero); ?> / <?php echo html_escape($nota->serie); ?></td>
                         <td>R$ <?php echo number_format($nota->valor_total, 2, ',', '.'); ?></td>
                         <td><?php echo $nota->data_emissao ? date('d/m/Y H:i', strtotime($nota->data_emissao)) : '-'; ?></td>
                         <td><span class="badge" style="background-color:<?php echo $corStatus; ?>;border-color:<?php echo $corStatus; ?>"><?php echo ucfirst($nota->status); ?></span></td>
@@ -134,7 +134,7 @@ $configNfeBoleto = $this->nfe_model->getConfig();
                                 $classeRetransmitir = $nota->tipo === 'nfe' ? 'btn-transmitir-nfe' : 'btn-transmitir-nfse';
                                 $modalRetransmitir = $nota->tipo === 'nfe' ? '#modal-nfe' : '#modal-nfse';
                                 ?>
-                                <a href="<?php echo $modalRetransmitir; ?>" role="button" data-toggle="modal" class="btn-nwe3 <?php echo $classeRetransmitir; ?>" data-os="<?php echo $nota->os_id; ?>" title="Corrigir e retransmitir (mantém o nº <?php echo $nota->numero; ?>)"><i class="bx bx-refresh bx-xs"></i></a>
+                                <a href="<?php echo $modalRetransmitir; ?>" role="button" data-toggle="modal" class="btn-nwe3 <?php echo $classeRetransmitir; ?>" data-os="<?php echo $nota->os_id; ?>" title="Corrigir e retransmitir (mantém o nº <?php echo html_escape($nota->numero); ?>)"><i class="bx bx-refresh bx-xs"></i></a>
                             <?php } ?>
                         </td>
                     </tr>

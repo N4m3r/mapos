@@ -41,13 +41,13 @@
                         <?php echo form_hidden('idProdutos', $result->idProdutos) ?>
                         <label for="codDeBarra" class="control-label">Código de Barra<span class=""></span></label>
                         <div class="controls">
-                            <input id="codDeBarra" type="text" name="codDeBarra" value="<?php echo $result->codDeBarra; ?>" />
+                            <input id="codDeBarra" type="text" name="codDeBarra" value="<?php echo html_escape($result->codDeBarra); ?>" />
                         </div>
                     </div>
                     <div class="control-group">
                         <label for="descricao" class="control-label">Descrição<span class="required">*</span></label>
                         <div class="controls">
-                            <input id="descricao" type="text" name="descricao" value="<?php echo $result->descricao; ?>" />
+                            <input id="descricao" type="text" name="descricao" value="<?php echo html_escape($result->descricao); ?>" />
                         </div>
                     </div>
                     <div class="control-group">
@@ -219,7 +219,7 @@
         $.getJSON('<?php echo base_url() ?>assets/json/tabela_medidas.json', function(data) {
             for (i in data.medidas) {
                 $('#unidade').append(new Option(data.medidas[i].descricao, data.medidas[i].sigla));
-                $("#unidade option[value=" + '<?php echo $result->unidade; ?>' + "]").prop("selected", true);
+                $("#unidade option[value=" + '<?php echo html_escape($result->unidade); ?>' + "]").prop("selected", true);
             }
         });
         $('#formProduto').validate({

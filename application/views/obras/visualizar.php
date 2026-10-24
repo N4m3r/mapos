@@ -136,13 +136,13 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
         <div class="span6" style="margin-left:0"><div class="widget-box"><div class="widget-title"><h5>Recebimentos</h5></div><div class="widget-content nopadding">
             <table class="table table-bordered"><thead><tr><th>#</th><th>Data</th><th>Origem</th><th>Doc.</th></tr></thead><tbody>
                 <?php if (! $recebimentos) echo '<tr><td colspan="4">—</td></tr>'; ?>
-                <?php foreach ($recebimentos as $r): ?><tr><td><?= $r->numero ?></td><td><?= $data_br($r->data) ?></td><td><?= html_escape($r->origem) ?></td><td><?= html_escape($r->documento) ?></td></tr><?php endforeach; ?>
+                <?php foreach ($recebimentos as $r): ?><tr><td><?= html_escape($r->numero) ?></td><td><?= $data_br($r->data) ?></td><td><?= html_escape($r->origem) ?></td><td><?= html_escape($r->documento) ?></td></tr><?php endforeach; ?>
             </tbody></table>
         </div></div></div>
         <div class="span6"><div class="widget-box"><div class="widget-title"><h5>Entregas à equipe</h5></div><div class="widget-content nopadding">
             <table class="table table-bordered"><thead><tr><th>#</th><th>Data</th><th>Equipe</th><th>Recebedor</th></tr></thead><tbody>
                 <?php if (! $entregas) echo '<tr><td colspan="4">—</td></tr>'; ?>
-                <?php foreach ($entregas as $e): ?><tr><td><?= $e->numero ?></td><td><?= $data_br($e->data) ?></td><td><?= html_escape($e->equipe ?: '—') ?></td><td><?= html_escape($e->recebedor_nome) ?></td></tr><?php endforeach; ?>
+                <?php foreach ($entregas as $e): ?><tr><td><?= html_escape($e->numero) ?></td><td><?= $data_br($e->data) ?></td><td><?= html_escape($e->equipe ?: '—') ?></td><td><?= html_escape($e->recebedor_nome) ?></td></tr><?php endforeach; ?>
             </tbody></table>
         </div></div></div>
     </div>
@@ -159,7 +159,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                     <?php if (! $rdos) echo '<tr><td colspan="8">Nenhum RDO registrado.</td></tr>'; ?>
                     <?php foreach ($rdos as $r): ?>
                         <tr>
-                            <td><?= $r->numero ?></td>
+                            <td><?= html_escape($r->numero) ?></td>
                             <td><?= $data_br($r->data) ?></td>
                             <td><?= html_escape(mb_strimwidth((string) $r->atividades, 0, 80, '…')) ?: '—' ?></td>
                             <td><?= html_escape(($r->clima_manha ?: '-') . '/' . ($r->clima_tarde ?: '-') . '/' . ($r->clima_noite ?: '-')) ?></td>
@@ -188,7 +188,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                     <?php if (! $medicoes) echo '<tr><td colspan="6">Nenhuma medição.</td></tr>'; ?>
                     <?php foreach ($medicoes as $m): ?>
                         <tr>
-                            <td><?= $m->numero ?></td>
+                            <td><?= html_escape($m->numero) ?></td>
                             <td><?= $data_br($m->periodo_inicio) ?> a <?= $data_br($m->periodo_fim) ?></td>
                             <td><?= $fmt($m->percentual_acumulado) ?>%</td>
                             <td>R$ <?= $fmt($m->valor_medido) ?></td>

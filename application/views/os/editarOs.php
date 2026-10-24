@@ -78,7 +78,7 @@
                     $notaFiscal = isset($notaFiscal) ? $notaFiscal : null;
                     if ($notaFiscal && $notaFiscal->status === 'autorizada') { ?>
                         <a title="Imprimir DANFSe" target="_blank" class="button btn btn-mini btn-inverse" href="<?php echo site_url('nfe/danfe/' . $notaFiscal->idNota); ?>">
-                            <span class="button__icon"><i class="bx bx-receipt"></i></span> <span class="button__text">NFS-e nº <?php echo $notaFiscal->numero; ?></span>
+                            <span class="button__icon"><i class="bx bx-receipt"></i></span> <span class="button__text">NFS-e nº <?php echo html_escape($notaFiscal->numero); ?></span>
                         </a>
                     <?php } elseif (in_array($result->status, ['Finalizado', 'Faturado', 'Aprovado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) { ?>
                         <a title="Transmitir NFS-e (serviços)" href="#modal-nfse" role="button" data-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-mini btn-success btn-transmitir-nfse">
@@ -90,7 +90,7 @@
                     $notaFiscalNfe = isset($notaFiscalNfe) ? $notaFiscalNfe : null;
                     if ($notaFiscalNfe && $notaFiscalNfe->status === 'autorizada') { ?>
                         <a title="Imprimir DANFE" target="_blank" class="button btn btn-mini btn-inverse" href="<?php echo site_url('nfe/danfe/' . $notaFiscalNfe->idNota); ?>">
-                            <span class="button__icon"><i class="bx bx-box"></i></span> <span class="button__text">NF-e nº <?php echo $notaFiscalNfe->numero; ?></span>
+                            <span class="button__icon"><i class="bx bx-box"></i></span> <span class="button__text">NF-e nº <?php echo html_escape($notaFiscalNfe->numero); ?></span>
                         </a>
                     <?php } elseif (in_array($result->status, ['Finalizado', 'Faturado', 'Aprovado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) { ?>
                         <a title="Transmitir NF-e (produtos)" href="#modal-nfe" role="button" data-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-mini btn-primary btn-transmitir-nfe">
@@ -122,13 +122,13 @@
                                         <h3>N° OS: <?php echo $result->idOs; ?></h3>
                                         <div class="span6" style="margin-left: 0">
                                             <label for="cliente">Cliente<span class="required">*</span></label>
-                                            <input id="cliente" class="span12" type="text" name="cliente" value="<?php echo $result->nomeCliente ?>" />
+                                            <input id="cliente" class="span12" type="text" name="cliente" value="<?php echo html_escape($result->nomeCliente); ?>" />
                                             <input id="clientes_id" class="span12" type="hidden" name="clientes_id" value="<?php echo $result->clientes_id ?>" />
                                             <input id="valor" type="hidden" name="valor" value="" />
                                         </div>
                                         <div class="span6">
                                             <label for="tecnico">Técnico / Responsável<span class="required">*</span></label>
-                                            <input id="tecnico" class="span12" type="text" name="tecnico" value="<?php echo $result->nome ?>" />
+                                            <input id="tecnico" class="span12" type="text" name="tecnico" value="<?php echo html_escape($result->nome); ?>" />
                                             <input id="usuarios_id" class="span12" type="hidden" name="usuarios_id" value="<?php echo $result->usuarios_id ?>" />
                                         </div>
                                     </div>
@@ -161,7 +161,7 @@
                                             <input id="garantia" type="number" placeholder="Status s/g inserir nº/0" min="0" max="9999" class="span12" name="garantia" value="<?php echo $result->garantia ?>" />
                                             <?php echo form_error('garantia'); ?>
                                             <label for="termoGarantia">Termo Garantia</label>
-                                            <input id="termoGarantia" class="span12" type="text" name="termoGarantia" value="<?php echo $result->refGarantia ?>" />
+                                            <input id="termoGarantia" class="span12" type="text" name="termoGarantia" value="<?php echo html_escape($result->refGarantia); ?>" />
                                             <input id="garantias_id" class="span12" type="hidden" name="garantias_id" value="<?php echo $result->garantias_id ?>" />
                                         </div>
                                     </div>
@@ -811,7 +811,7 @@
                 <div class="span12" style="margin-left: 0">
                     <label for="cliente">Cliente*</label>
                     <input class="span12" id="cliente" type="text" name="cliente"
-                        value="<?php echo $result->nomeCliente ?>" />
+                        value="<?php echo html_escape($result->nomeCliente); ?>" />
                     <input type="hidden" name="clientes_id" id="clientes_id" value="<?php echo $result->clientes_id ?>">
                     <input type="hidden" name="os_id" id="os_id" value="<?php echo $result->idOs; ?>">
                     <input type="hidden" name="tipoDesconto" id="tipoDesconto"
@@ -1864,7 +1864,7 @@
             }
 
             // Obtém o nome do cliente do campo ou usa o nome da OS (já vinculado)
-            var nomeCliente = $('#modal-assinatura-cliente-nome').val() || $('#assinatura-cliente-nome-hidden').val() || '<?php echo addslashes($result->nomeCliente); ?>' || 'Cliente';
+            var nomeCliente = $('#modal-assinatura-cliente-nome').val() || $('#assinatura-cliente-nome-hidden').val() || <?php echo json_encode((string) ($result->nomeCliente)); ?> || 'Cliente';
 
             // Prepara dados
             var dados = {
@@ -2079,8 +2079,8 @@
 
             // Pré-preenche o nome do cliente se for o modal de assinatura do cliente
             if (modalId === 'modal-assinatura-cliente') {
-                var nomeCliente = '<?php echo addslashes($result->nomeCliente); ?>';
-                var documentoCliente = '<?php echo addslashes($result->documento ?? $result->cpf ?? ''); ?>';
+                var nomeCliente = <?php echo json_encode((string) ($result->nomeCliente)); ?>;
+                var documentoCliente = <?php echo json_encode((string) ($result->documento ?? $result->cpf ?? '')); ?>;
 
                 // Se o campo estiver vazio, preenche com o nome da OS
                 var campoNome = $('#' + modalId + ' .modal-assinatura-nome');

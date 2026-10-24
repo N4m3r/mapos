@@ -549,7 +549,7 @@
                                 </td>
 
                                 <td class="cli1">
-                                    <?= $o->nomeCliente ?>
+                                    <?= html_escape($o->nomeCliente) ?>
                                 </td>
 
                                 <td><?php if ($o->dataFinal != null) {
@@ -638,7 +638,7 @@
                                 </td>
 
                                 <td class="cli1">
-                                    <?= $o->nomeCliente ?>
+                                    <?= html_escape($o->nomeCliente) ?>
                                 </td>
 
                                 <td><?php if ($o->dataFinal != null) {
@@ -728,7 +728,7 @@
                                 </td>
 
                                 <td class="cli1">
-                                    <?= $o->nomeCliente ?>
+                                    <?= html_escape($o->nomeCliente) ?>
                                 </td>
 
                                 <td><?php if ($o->dataFinal != null) {
@@ -817,7 +817,7 @@
                                 </td>
 
                                 <td class="cli1">
-                                    <?= $o->nomeCliente ?>
+                                    <?= html_escape($o->nomeCliente) ?>
                                 </td>
 
                                 <td><?php if ($o->dataFinal != null) {
@@ -905,7 +905,7 @@
                                     <?= $o->idOs ?>
                                 </td>
                                 <td class="cli1">
-                                    <?= $o->nomeCliente ?>
+                                    <?= html_escape($o->nomeCliente) ?>
                                 </td>
 
                                 <td><?php if ($o->dataFinal != null) {
@@ -993,7 +993,7 @@
                                 </td>
 
                                 <td class="cli1">
-                                    <?= $v->nomeCliente ?>
+                                    <?= html_escape($v->nomeCliente) ?>
                                 </td>
                                 <td>
                                     <?= date('d/m/Y', strtotime($v->dataVenda)) ?>
@@ -1050,7 +1050,7 @@
                                     <?php endif; ?>
                                 </td>
                                 <td class="text-truncate"><?php echo $lancamento->cliente_fornecedor; ?></td>
-                                <td class="text-truncate"><?php echo $lancamento->descricao; ?></td>
+                                <td class="text-truncate"><?php echo html_escape($lancamento->descricao); ?></td>
                                 <td><?php echo date_format(date_create($lancamento->data_vencimento), 'd/m/Y'); ?></td>
                                 <td>R$ <?php echo number_format($lancamento->valor_desconto, 2, ',', '.'); ?></td>
                             </tr>
@@ -1090,7 +1090,7 @@
                                         <?= $p->idProdutos ?>
                                     </td>
                                     <td class="cli1">
-                                        <?= $p->descricao ?>
+                                        <?= html_escape($p->descricao) ?>
                                     </td>
                                     <td>R$
                                         <?= $p->precoVenda ?>

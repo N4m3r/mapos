@@ -89,7 +89,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                     $notaFiscal = isset($notaFiscal) ? $notaFiscal : null;
                     if ($notaFiscal && $notaFiscal->status === 'autorizada') { ?>
                         <a title="Imprimir DANFSe" target="_blank" class="button btn btn-mini btn-inverse" href="<?php echo site_url('nfe/danfe/' . $notaFiscal->idNota); ?>">
-                            <span class="button__icon"><i class="bx bx-receipt"></i></span> <span class="button__text">NFS-e nº <?php echo $notaFiscal->numero; ?></span>
+                            <span class="button__icon"><i class="bx bx-receipt"></i></span> <span class="button__text">NFS-e nº <?php echo html_escape($notaFiscal->numero); ?></span>
                         </a>
                     <?php } elseif (in_array($result->status, ['Finalizado', 'Faturado', 'Aprovado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) { ?>
                         <a title="Transmitir NFS-e (serviços)" href="#modal-nfse" role="button" data-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-mini btn-success btn-transmitir-nfse">
@@ -101,7 +101,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                     $notaFiscalNfe = isset($notaFiscalNfe) ? $notaFiscalNfe : null;
                     if ($notaFiscalNfe && $notaFiscalNfe->status === 'autorizada') { ?>
                         <a title="Imprimir DANFE" target="_blank" class="button btn btn-mini btn-inverse" href="<?php echo site_url('nfe/danfe/' . $notaFiscalNfe->idNota); ?>">
-                            <span class="button__icon"><i class="bx bx-box"></i></span> <span class="button__text">NF-e nº <?php echo $notaFiscalNfe->numero; ?></span>
+                            <span class="button__icon"><i class="bx bx-box"></i></span> <span class="button__text">NF-e nº <?php echo html_escape($notaFiscalNfe->numero); ?></span>
                         </a>
                     <?php } elseif (in_array($result->status, ['Finalizado', 'Faturado', 'Aprovado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) { ?>
                         <a title="Transmitir NF-e (produtos)" href="#modal-nfe" role="button" data-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-mini btn-primary btn-transmitir-nfe">
@@ -276,12 +276,12 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                     <td style="width: 60%; padding-left: 0">
                                         <span>
                                             <h5><b>CLIENTE</b></h5>
-                                            <span><i class='bx bxs-business'></i> <b><?php echo $result->nomeCliente ?></b></span><br />
+                                            <span><i class='bx bxs-business'></i> <b><?php echo html_escape($result->nomeCliente); ?></b></span><br />
                                             <?php if (!empty($result->celular_cliente) || !empty($result->telefone_cliente) || !empty($result->contato_cliente)): ?>
                                                 <span><i class='bx bxs-phone'></i>
                                                     <?= !empty($result->contato_cliente) ? $result->contato_cliente . ' ' : "" ?>
                                                     <?php if ($result->celular_cliente == $result->telefone_cliente) { ?>
-                                                        <?= $result->celular_cliente ?>
+                                                        <?= html_escape($result->celular_cliente) ?>
                                                     <?php } else { ?>
                                                         <?= !empty($result->telefone_cliente) ? $result->telefone_cliente : "" ?>
                                                         <?= !empty($result->celular_cliente) && !empty($result->telefone_cliente) ? ' / ' : "" ?>
@@ -294,15 +294,15 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                             $endereco = implode(', ', $retorno_end);
                                             echo '<i class="fas fa-map-marker-alt"></i> ';
                                             if (!empty($endereco)) {
-                                                echo $endereco;
+                                                echo html_escape($endereco);
                                             }
                                             if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) {
-                                                echo "<span> {$result->cep}, {$result->cidade}/{$result->estado}</span><br>";
+                                                echo '<span> ' . html_escape("{$result->cep}, {$result->cidade}/{$result->estado}") . '</span><br>';
                                             }
                                             ?>
                                             <?php if (!empty($result->email)): ?>
                                                 <span><i class="fas fa-envelope"></i>
-                                                    <?php echo $result->email ?></span><br>
+                                                    <?php echo html_escape($result->email); ?></span><br>
                                             <?php endif; ?>
                                         </span>
                                     </td>
@@ -313,11 +313,11 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                                     <h5><b>RESPONSÁVEL</b></h5>
                                                 </span>
                                                 <span><b><i class="fas fa-user"></i>
-                                                        <?php echo $result->nome ?></b></span><br />
+                                                        <?php echo html_escape($result->nome); ?></b></span><br />
                                                 <span><i class="fas fa-phone"></i>
-                                                    <?php echo $result->telefone_usuario ?></span><br />
+                                                    <?php echo html_escape($result->telefone_usuario); ?></span><br />
                                                 <span><i class="fas fa-envelope"></i>
-                                                    <?php echo $result->email_usuario ?></span>
+                                                    <?php echo html_escape($result->email_usuario); ?></span>
                                             </li>
                                         </ul>
                                     </td>
@@ -349,7 +349,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
 
                                         <td>
                                             <?php if ($result->garantia) { ?>
-                                                <b>GARANTIA: </b><br><?php echo $result->garantia . ' dia(s)'; ?>
+                                                <b>GARANTIA: </b><br><?php echo html_escape($result->garantia . ' dia(s)'); ?>
                                             <?php } ?>
                                         </td>
 
@@ -435,7 +435,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                         <div class="timeline-item" style="border-left: 2px solid #2d335b; padding-left: 15px; margin-bottom: 15px; position: relative;">
                                             <div style="position: absolute; left: -6px; top: 0; width: 10px; height: 10px; border-radius: 50%; background: #2d335b;"></div>
                                             <div class="timeline-content">
-                                                <p><strong>Técnico:</strong> <?php echo $checkin->nome_tecnico; ?></p>
+                                                <p><strong>Técnico:</strong> <?php echo html_escape($checkin->nome_tecnico); ?></p>
                                                 <p><strong>Entrada:</strong> <?php echo date('d/m/Y H:i', strtotime($checkin->data_entrada)); ?>
                                                     <?php if ($checkin->latitude_entrada && $checkin->longitude_entrada) { ?>
                                                         <a href="https://www.google.com/maps?q=<?php echo $checkin->latitude_entrada; ?>,<?php echo $checkin->longitude_entrada; ?>" target="_blank" class="btn btn-mini" title="Ver no mapa">
@@ -593,7 +593,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                                     <img src="<?php echo $foto->url; ?>" alt="Foto de entrada">
                                                 </a>
                                                 <?php if ($foto->descricao) { ?>
-                                                <p class="foto-descricao"><?php echo $foto->descricao; ?></p>
+                                                <p class="foto-descricao"><?php echo html_escape($foto->descricao); ?></p>
                                                 <?php } ?>
                                                 <div class="foto-acoes">
                                                     <a href="<?php echo site_url('checkin/downloadFoto/' . $foto->idFoto); ?>" class="btn btn-mini" title="Download">
@@ -621,7 +621,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                                     <img src="<?php echo $foto->url; ?>" alt="Foto durante atendimento">
                                                 </a>
                                                 <?php if ($foto->descricao) { ?>
-                                                <p class="foto-descricao"><?php echo $foto->descricao; ?></p>
+                                                <p class="foto-descricao"><?php echo html_escape($foto->descricao); ?></p>
                                                 <?php } ?>
                                                 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) { ?>
                                                 <div class="foto-acoes">
@@ -662,7 +662,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                                     <img src="<?php echo $foto->url; ?>" alt="Foto de saída">
                                                 </a>
                                                 <?php if ($foto->descricao) { ?>
-                                                <p class="foto-descricao"><?php echo $foto->descricao; ?></p>
+                                                <p class="foto-descricao"><?php echo html_escape($foto->descricao); ?></p>
                                                 <?php } ?>
                                                 <div class="foto-acoes">
                                                     <a href="<?php echo site_url('checkin/downloadFoto/' . $foto->idFoto); ?>" class="btn btn-mini" title="Download">
@@ -743,9 +743,9 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                                 </p>
                                                 <?php if ($assinatura->nome_assinante) { ?>
                                                 <p style="font-size: 11px; color: #666;">
-                                                    <?php echo $assinatura->nome_assinante; ?>
+                                                    <?php echo html_escape($assinatura->nome_assinante); ?>
                                                     <?php if ($assinatura->documento_assinante) { ?>
-                                                    <br><small><?php echo $assinatura->documento_assinante; ?></small>
+                                                    <br><small><?php echo html_escape($assinatura->documento_assinante); ?></small>
                                                     <?php } ?>
                                                 </p>
                                                 <?php } ?>
@@ -1833,7 +1833,7 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
             <!-- Resumo da OS -->
             <div class="mobile-os-info">
                 <h4><i class="bx bx-file"></i> OS #<?= sprintf('%04d', $result->idOs) ?></h4>
-                <p><strong>Cliente:</strong> <?= $result->nomeCliente ?></p>
+                <p><strong>Cliente:</strong> <?= html_escape($result->nomeCliente) ?></p>
                 <p><strong>Status:</strong> <?= $result->status ?></p>
             </div>
 
@@ -2300,8 +2300,8 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
             }
 
             // Pré-preenche o nome do cliente com os dados da OS
-            var nomeCliente = '<?php echo addslashes($result->nomeCliente); ?>';
-            var documentoCliente = '<?php echo addslashes($result->documento ?? $result->cpf ?? ''); ?>';
+            var nomeCliente = <?php echo json_encode((string) ($result->nomeCliente)); ?>;
+            var documentoCliente = <?php echo json_encode((string) ($result->documento ?? $result->cpf ?? '')); ?>;
 
             if (nomeCliente && $('#assinatura-cliente-saida-nome').length) {
                 $('#assinatura-cliente-saida-nome').val(nomeCliente).prop('readonly', true);
@@ -2524,7 +2524,7 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
 
         // Preenche informações da OS
         var osNumero = '<?php echo sprintf('%04d', $result->idOs); ?>';
-        var clienteNome = '<?php echo addslashes($result->nomeCliente); ?>';
+        var clienteNome = <?php echo json_encode((string) ($result->nomeCliente)); ?>;
 
         // Abre o modal mobile
         $('#modal-mobile-confirmacao').modal('show');

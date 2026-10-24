@@ -55,7 +55,7 @@ $this->load->view('tecnico/_topo', [
                         <span class="os-num">#OS <?= sprintf('%04d', $os->idOs) ?></span>
                         <span class="badge-status andamento">Em Andamento</span>
                     </div>
-                    <div class="os-cliente"><i class='bx bx-user'></i> <?= $os->nomeCliente ?></div>
+                    <div class="os-cliente"><i class='bx bx-user'></i> <?= html_escape($os->nomeCliente) ?></div>
                     <div class="os-desc"><?= character_limiter(strip_tags($os->descricaoProduto), 80) ?></div>
                     <div class="os-foot">
                         <span class="os-meta">
@@ -122,7 +122,7 @@ $this->load->view('tecnico/_topo', [
                         <span class="os-num">#OS <?= sprintf('%04d', $os->idOs) ?></span>
                         <span class="badge-status pendente"><?= $os->status ?></span>
                     </div>
-                    <div class="os-cliente"><i class='bx bx-user'></i> <?= $os->nomeCliente ?></div>
+                    <div class="os-cliente"><i class='bx bx-user'></i> <?= html_escape($os->nomeCliente) ?></div>
                     <div class="os-desc"><?= character_limiter(strip_tags($os->descricaoProduto), 80) ?></div>
                     <div class="os-foot">
                         <span class="os-meta">

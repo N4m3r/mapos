@@ -3,7 +3,7 @@
 <html lang="pt-br">
 
 <head>
-    <title>Map_Vendas_<?php echo $result->idVendas ?>_<?php echo $result->nomeCliente ?></title>
+    <title>Map_Vendas_<?php echo $result->idVendas ?>_<?php echo html_escape($result->nomeCliente); ?></title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/bootstrap.min.css" />
@@ -35,10 +35,10 @@
                                     <td style="width: 25%; text-align: center;"><img src="<?php echo $emitente->url_logo; ?>" style="max-height: 100px"></td>
                                     <tr>
                                         <td colspan="4" style="text-align: center;"> <span style="font-size: 20px;">
-                                                <b><?php echo $emitente->nome; ?></b></span> </br><span>
-                                                <?php echo 'CNPJ: ' . $emitente->cnpj; ?> </br>
-                                                <?php echo $emitente->rua . ', ' . $emitente->numero . ', ' . $emitente->bairro . ' - ' . $emitente->cidade . ' - ' . $emitente->uf; ?> </span> </br>
-                                            <span><?php echo 'Fone: ' . $emitente->telefone; ?></span>
+                                                <b><?php echo html_escape($emitente->nome); ?></b></span> </br><span>
+                                                <?php echo html_escape('CNPJ: ' . $emitente->cnpj); ?> </br>
+                                                <?php echo html_escape($emitente->rua . ', ' . $emitente->numero . ', ' . $emitente->bairro . ' - ' . $emitente->cidade . ' - ' . $emitente->uf); ?> </span> </br>
+                                            <span><?php echo html_escape('Fone: ' . $emitente->telefone); ?></span>
                                         </td>
                                     </tr>
                                     <tr>
@@ -65,14 +65,14 @@
                                                 <span>
                                                     <h5><b>CLIENTE</b></h5>
                                                     <span>
-                                                        <?php echo $result->nomeCliente ?></span><br />
+                                                        <?php echo html_escape($result->nomeCliente); ?></span><br />
                                                     <span>
-                                                        <?php echo $result->rua ?>,
-                                                        <?php echo $result->numero ?>,
-                                                        <?php echo $result->bairro ?></span><br />
+                                                        <?php echo html_escape($result->rua); ?>,
+                                                        <?php echo html_escape($result->numero); ?>,
+                                                        <?php echo html_escape($result->bairro); ?></span><br />
                                                     <span>
-                                                        <?php echo $result->cidade ?> -
-                                                        <?php echo $result->estado ?></span>
+                                                        <?php echo html_escape($result->cidade); ?> -
+                                                        <?php echo html_escape($result->estado); ?></span>
                                             </li>
                                         </ul>
                                     </td>

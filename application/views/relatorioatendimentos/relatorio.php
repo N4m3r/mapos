@@ -28,7 +28,7 @@
                                     <?php foreach ($results['tecnicos'] as $tecnico): ?>
                                         <option value="<?php echo $tecnico->idUsuarios; ?>"
                                             <?php echo ($results['usuario_id'] == $tecnico->idUsuarios) ? 'selected' : ''; ?>>
-                                            <?php echo $tecnico->nome; ?>
+                                            <?php echo html_escape($tecnico->nome); ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>

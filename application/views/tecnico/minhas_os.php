@@ -77,7 +77,7 @@ $waNumero = function ($fone) {
                         <span class="badge-status <?= $classe ?>"><?= $os->status ?></span>
                     </div>
                     <div class="os-cliente">
-                        <i class='bx bx-user'></i> <?= $os->nomeCliente ?>
+                        <i class='bx bx-user'></i> <?= html_escape($os->nomeCliente) ?>
                     </div>
                     <div class="os-desc"><?= character_limiter(strip_tags($os->descricaoProduto), 100) ?></div>
 

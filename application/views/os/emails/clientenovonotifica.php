@@ -128,7 +128,7 @@
             <tr class="details">
             
                 <td colspan="4" style="text-align: left">
-                    Caro <b><?= $usuario->nome ?></b>, <br>
+                    Caro <b><?= html_escape($usuario->nome) ?></b>, <br>
                     Um novo cliente se cadastrou no sistema. Seguem as informações sobre este cliente: <br>
                 </td>
 
@@ -153,22 +153,22 @@
                     Celular:
                 </td>
                 <td  style="text-align: left">
-                    <b> <?= $cliente->nomeCliente ?> </b><br>
-                    <?= $cliente->documento ?><br>
-                    <?= $cliente->rua ?>, <?= $cliente->numero ?> <br>
-                    <?= $cliente->complemento ?> <br>
-                    <?= $cliente->bairro ?><br>
-                    <?= $cliente->cidade ?>/<?= $cliente->estado ?> <br>
-                    <?= $cliente->cep ?> <br>
-                    <?= $cliente->email ?> <br>
-                    <?= $cliente->celular ?>
+                    <b> <?= html_escape($cliente->nomeCliente) ?> </b><br>
+                    <?= html_escape($cliente->documento) ?><br>
+                    <?= html_escape($cliente->rua) ?>, <?= html_escape($cliente->numero) ?> <br>
+                    <?= html_escape($cliente->complemento) ?> <br>
+                    <?= html_escape($cliente->bairro) ?><br>
+                    <?= html_escape($cliente->cidade) ?>/<?= html_escape($cliente->estado) ?> <br>
+                    <?= html_escape($cliente->cep) ?> <br>
+                    <?= html_escape($cliente->email) ?> <br>
+                    <?= html_escape($cliente->celular) ?>
                 </td>
             </tr>
 
             <tr class="details">
                 <td colspan="4" style="text-align: left">
                     Um abraço! <br>
-                    <?= $emitente->nome; ?>
+                    <?= html_escape($emitente->nome) ?>
                 </td>
             </tr>
             

@@ -50,9 +50,9 @@
                         <?php foreach ($results as $r): ?>
                             <tr>
                                 <td><?= $r->idUsuarios ?></td>
-                                <td><?= $r->nome ?></td>
-                                <td><?= $r->cpf ?></td>
-                                <td><?= $r->telefone ?></td>
+                                <td><?= html_escape($r->nome) ?></td>
+                                <td><?= html_escape($r->cpf) ?></td>
+                                <td><?= html_escape($r->telefone) ?></td>
                                 <td><?= $r->permissao ?></td>
                                 <?php
                                 $situacao = ($r->situacao == 1) ? 'Ativo' : 'Inativo';

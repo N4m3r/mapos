@@ -126,14 +126,14 @@
                     <table>
                         <tr>
                             <td>
-                                Cliente: <?= $cobranca->nomeCliente ?><br>
-                                <?= $cobranca->rua ?>, <?= $cobranca->numero ?>, <?= $cobranca->bairro ?><br>
-                                <?= $cobranca->cidade ?> - <?= $cobranca->estado ?> <br>
-                                <?= $cobranca->email ?> <br>
+                                Cliente: <?= html_escape($cobranca->nomeCliente) ?><br>
+                                <?= html_escape($cobranca->rua) ?>, <?= html_escape($cobranca->numero) ?>, <?= html_escape($cobranca->bairro) ?><br>
+                                <?= html_escape($cobranca->cidade) ?> - <?= html_escape($cobranca->estado) ?> <br>
+                                <?= html_escape($cobranca->email) ?> <br>
                             </td>
 
                             <td style="text-align: right">
-                                <?= $emitente->nome; ?> <br>
+                                <?= html_escape($emitente->nome) ?> <br>
                             </td>
                         </tr>
                     </table>

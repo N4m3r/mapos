@@ -39,10 +39,10 @@
                                     <?php foreach ($clientes as $c) : ?>
                                     <?php $dataCadastro = date('d/m/Y', strtotime($c->dataCadastro)) ?>
                                     <tr>
-                                        <td><?= $c->nomeCliente ?></td>
-                                        <td align="center"><?= $c->documento ?></td>
-                                        <td align="center"><?= $c->telefone ?></td>
-                                        <td align="center"><?= $c->email ?></td>
+                                        <td><?= html_escape($c->nomeCliente) ?></td>
+                                        <td align="center"><?= html_escape($c->documento) ?></td>
+                                        <td align="center"><?= html_escape($c->telefone) ?></td>
+                                        <td align="center"><?= html_escape($c->email) ?></td>
                                         <td align="center"><?= $dataCadastro ?></td>
                                     </tr>
                                     <?php endforeach ?>

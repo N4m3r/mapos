@@ -29,11 +29,11 @@
                                     <tr>
                                         <td style="width: 25%"><img src=" <?php echo $emitente->url_logo; ?> "></td>
                                         <td> <span style="font-size: 20px; ">
-                                                <?php echo $emitente->nome; ?></span> </br><span>
-                                                <?php echo $emitente->cnpj; ?> </br>
-                                                <?php echo $emitente->rua . ', nº:' . $emitente->numero . ', ' . $emitente->bairro . ' - ' . $emitente->cidade . ' - ' . $emitente->uf; ?> </span> </br> <span> E-mail:
-                                                <?php echo $emitente->email . ' - Fone: ' . $emitente->telefone; ?> </br>
-                                                Responsável: <?php echo $result->nome ?></span></td>
+                                                <?php echo html_escape($emitente->nome); ?></span> </br><span>
+                                                <?php echo html_escape($emitente->cnpj); ?> </br>
+                                                <?php echo html_escape($emitente->rua . ', nº:' . $emitente->numero . ', ' . $emitente->bairro . ' - ' . $emitente->cidade . ' - ' . $emitente->uf); ?> </span> </br> <span> E-mail:
+                                                <?php echo html_escape($emitente->email . ' - Fone: ' . $emitente->telefone); ?> </br>
+                                                Responsável: <?php echo html_escape($result->nome); ?></span></td>
                                         <td style="width: 18%; text-align: center">#Venda: <span>
                                                 <?php echo $result->idVendas ?></span></br> </br> <span>Emissão:
                                                 <?php echo date('d/m/Y'); ?></span></td>
@@ -53,21 +53,21 @@
                                                 <span>
                                                     <h5>Cliente</h5>
                                                     <span>
-                                                        <?php echo $result->nomeCliente ?>
+                                                        <?php echo html_escape($result->nomeCliente); ?>
                                                     </span><br />
                                                     <span>
-                                                        <?php echo $result->rua ?>, <?php echo $result->numero ?>, <?php echo $result->bairro ?>
+                                                        <?php echo html_escape($result->rua); ?>, <?php echo html_escape($result->numero); ?>, <?php echo html_escape($result->bairro); ?>
                                                     </span><br/>
                                                     <span>
-                                                        <?php echo $result->cidade ?> - <?php echo $result->estado ?> - CEP: <?php echo $result->cep ?>
+                                                        <?php echo html_escape($result->cidade); ?> - <?php echo html_escape($result->estado); ?> - CEP: <?php echo html_escape($result->cep); ?>
                                                     </span><br/>
                                                     <span>
-                                                        Email: <?php echo $result->emailCliente ?>
+                                                        Email: <?php echo html_escape($result->emailCliente); ?>
                                                     </span></br>
                                                     <?php if ($result->contato) { ?>
-                                                        <span>Contato: <?php echo $result->contato ?> </span>
+                                                        <span>Contato: <?php echo html_escape($result->contato); ?> </span>
                                                     <?php } ?>
-                                                    <span>Celular: <?php echo $result->celular ?></span>
+                                                    <span>Celular: <?php echo html_escape($result->celular); ?></span>
 							                    </span>
                                             </li>
                                         </ul>
@@ -98,7 +98,7 @@
 
                                         <td>
                                             <?php if ($result->garantia) { ?>
-                                                <b>Garantia: </b><?php echo $result->garantia . ' dia(s)'; ?>
+                                                <b>Garantia: </b><?php echo html_escape($result->garantia . ' dia(s)'); ?>
                                             <?php } ?>
                                         </td>
 

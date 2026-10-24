@@ -149,11 +149,11 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                     <tr>
                                         <td style="width: 25%"><img src=" <?php echo $emitente->url_logo; ?> " style="max-height: 100px"></td>
                                         <td>
-                                            <span style="font-size: 20px;"><?php echo $emitente->nome; ?></span></br>
-                                            <?php if($emitente->cnpj != "00.000.000/0000-00") { ?><span class="icon"><i class="fas fa-fingerprint" style="margin:5px 1px"></i> <?php echo $emitente->cnpj; ?></span></br><?php } ?>
-                                            <span class="icon"><i class="fas fa-map-marker-alt" style="margin:4px 3px"></i> <?php echo $emitente->rua . ', ' . $emitente->numero . ', ' . $emitente->bairro . ' - ' . $emitente->cidade . ' - ' . $emitente->uf; ?></span></br>
-                                            <span class="icon"><i class="fas fa-comments" style="margin:5px 1px"></i> E-mail: <?php echo $emitente->email . ' - Fone: ' . $emitente->telefone; ?></span></br>
-                                            <span class="icon"><i class="fas fa-user-check"></i> Responsável: <?php echo $result->nome ?>
+                                            <span style="font-size: 20px;"><?php echo html_escape($emitente->nome); ?></span></br>
+                                            <?php if($emitente->cnpj != "00.000.000/0000-00") { ?><span class="icon"><i class="fas fa-fingerprint" style="margin:5px 1px"></i> <?php echo html_escape($emitente->cnpj); ?></span></br><?php } ?>
+                                            <span class="icon"><i class="fas fa-map-marker-alt" style="margin:4px 3px"></i> <?php echo html_escape($emitente->rua . ', ' . $emitente->numero . ', ' . $emitente->bairro . ' - ' . $emitente->cidade . ' - ' . $emitente->uf); ?></span></br>
+                                            <span class="icon"><i class="fas fa-comments" style="margin:5px 1px"></i> E-mail: <?php echo html_escape($emitente->email . ' - Fone: ' . $emitente->telefone); ?></span></br>
+                                            <span class="icon"><i class="fas fa-user-check"></i> Responsável: <?php echo html_escape($result->nome); ?>
                                         </td>
                                         <td style="width: 18%; text-align: center">
                                             <span><b>N° OS: </b><?php echo $result->idOs ?></span></br></br>
@@ -184,7 +184,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
 
                                             <td>
                                                 <?php if (!empty ($result->garantia)) { ?>
-                                                    <b>GARANTIA: </b><?php echo $result->garantia . ' dia(s)'; ?>
+                                                    <b>GARANTIA: </b><?php echo html_escape($result->garantia . ' dia(s)'); ?>
                                                 <?php } ?>
                                             </td>
 

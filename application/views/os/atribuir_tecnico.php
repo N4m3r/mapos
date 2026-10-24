@@ -178,7 +178,7 @@ $base = base_url() . 'index.php/os/atribuir';
                                         <td><?= $nr->os_id ?></td>
                                         <td>
                                             <?= htmlspecialchars($nr->nomeCliente ?? '') ?>
-                                            <?php if (!empty($nr->telefone)) { ?><br><small><?= $nr->telefone ?></small><?php } ?>
+                                            <?php if (!empty($nr->telefone)) { ?><br><small><?= html_escape($nr->telefone) ?></small><?php } ?>
                                         </td>
                                         <td>
                                             <?= htmlspecialchars($nr->motivo_texto ?? '—') ?>
@@ -240,7 +240,7 @@ $base = base_url() . 'index.php/os/atribuir';
                                     <?php } ?>
                                 </div>
                                 <div class="tec-card-cliente"><i class='bx bxs-user'></i> <?= htmlspecialchars($os->nomeCliente) ?>
-                                    <?php if (! empty($os->telefone)) { ?><small><?= $os->telefone ?></small><?php } ?>
+                                    <?php if (! empty($os->telefone)) { ?><small><?= html_escape($os->telefone) ?></small><?php } ?>
                                 </div>
                                 <div class="tec-card-desc"><?= character_limiter(strip_tags($os->descricaoProduto), 70) ?></div>
                                 <div class="tec-card-meta">
@@ -259,7 +259,7 @@ $base = base_url() . 'index.php/os/atribuir';
                                         <button class="button btn btn-mini btn-success btn-atribuir"
                                             data-os="<?= $os->idOs ?>"
                                             data-cliente="<?= htmlspecialchars($os->nomeCliente) ?>"
-                                            data-tecnico-atual="<?= $os->tecnico_responsavel ?>"
+                                            data-tecnico-atual="<?= html_escape($os->tecnico_responsavel) ?>"
                                             data-tecnico-nome="<?= htmlspecialchars($os->nome_tecnico ?? '') ?>"
                                             data-agendamento="<?= $agInput ?>">
                                             <span class="button__icon"><i class='bx <?= $os->tecnico_responsavel ? 'bx-calendar-edit' : 'bx-user-plus' ?>'></i></span>

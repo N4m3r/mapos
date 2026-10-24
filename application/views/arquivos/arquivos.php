@@ -64,11 +64,11 @@
                                         <span>-</span>
                                     <?php endif ?>
                                 </td>
-                                <td><?= $r->documento ?></td>
+                                <td><?= html_escape($r->documento) ?></td>
                                 <td><?= date('d/m/Y', strtotime($r->cadastro)) ?></td>
-                                <td><?= $r->descricao ?></td>
+                                <td><?= html_escape($r->descricao) ?></td>
                                 <td><?= $r->tamanho ?> KB</td>
-                                <td><?= $r->tipo ?></td>
+                                <td><?= html_escape($r->tipo) ?></td>
                                 <td><?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vArquivo')) : ?>
                                         <a href="<?= base_url() ?>index.php/arquivos/download/<?= $r->idDocumentos; ?>" class="btn-nwe" title="Baixar Arquivo"><i class="bx bx-download"></i>
                                         <?php endif ?>

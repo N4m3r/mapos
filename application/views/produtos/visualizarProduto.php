@@ -15,19 +15,19 @@
                         <tr>
                             <td style="text-align: center; width: 30%"><strong>Código de Barra</strong></td>
                             <td>
-                                <?php echo $result->codDeBarra ?>
+                                <?php echo html_escape($result->codDeBarra); ?>
                             </td>
                         </tr>
                         <tr>
                             <td style="text-align: right; width: 30%"><strong>Descrição</strong></td>
                             <td>
-                                <?php echo $result->descricao ?>
+                                <?php echo html_escape($result->descricao); ?>
                             </td>
                         </tr>
                         <tr>
                             <td style="text-align: right"><strong>Unidade</strong></td>
                             <td>
-                                <?php echo $result->unidade ?>
+                                <?php echo html_escape($result->unidade); ?>
                             </td>
                         </tr>
                         <tr>

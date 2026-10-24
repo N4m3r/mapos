@@ -93,7 +93,7 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
     <!-- Dados do Cliente -->
     <div class="info-card">
         <h3><i class='bx bx-user'></i> Cliente</h3>
-        <div class="info-row"><span class="info-label">Nome</span><span class="info-value"><?= $cliente->nomeCliente ?></span></div>
+        <div class="info-row"><span class="info-label">Nome</span><span class="info-value"><?= html_escape($cliente->nomeCliente) ?></span></div>
         <div class="info-row"><span class="info-label">Telefone</span><span class="info-value"><?= $fone ?: 'N/A' ?></span></div>
         <div class="info-row"><span class="info-label">Endereço</span><span class="info-value"><?= $enderecoStr !== '' ? html_escape($enderecoStr) : 'N/A' ?></span></div>
     </div>
