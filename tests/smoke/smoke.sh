@@ -23,6 +23,9 @@ agenda|html
 sla|html
 vendas|html
 vendas/adicionar|html
+pdv|html
+caixa|html
+nfe/configuracoes|html
 produtos|html
 produtos/movimentacoes|html
 inventarios|html

@@ -85,6 +85,15 @@ jobs:
           SENHA: admin123
         run: sh tests/smoke/smoke.sh
 
+      - name: PDV (abrir caixa, vender, recusas, sangria, fechar)
+        env:
+          BASE_URL: http://localhost:8099/index.php
+          EMAIL: admin@mapos.test
+          SENHA: admin123
+        run: |
+          mysql --protocol=TCP -h127.0.0.1 -uroot -proot mapos_ci -e "INSERT INTO produtos (idProdutos, descricao, unidade, precoCompra, precoVenda, estoque, estoqueMinimo) VALUES (1, 'Produto smoke', 'UN', 5, 25, 100, 0)"
+          sh tests/smoke/pdv.sh
+
       - name: Backup automatico (linha de comando)
         run: |
           php index.php backup/executar

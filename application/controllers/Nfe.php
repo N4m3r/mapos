@@ -130,6 +130,14 @@ class Nfe extends MY_Controller
                         $data['ctribmun_padrao'] = $munPad !== '' ? $munPad : '100';
                     }
 
+                    // NFC-e (PDV): série, numeração e CSC — só depois da migration do PDV.
+                    if ($this->db->field_exists('serie_nfce', 'configuracoes_nfe')) {
+                        $data['serie_nfce'] = max(1, (int) $this->input->post('serie_nfce'));
+                        $data['proximo_numero_nfce'] = max(1, (int) $this->input->post('proximo_numero_nfce'));
+                        $data['csc_id'] = trim((string) $this->input->post('csc_id')) ?: null;
+                        $data['csc'] = trim((string) $this->input->post('csc')) ?: null;
+                    }
+
                     // Reforma Tributária (IBS/CBS) — checkbox mestre + parâmetros.
                     // Guardado por field_exists p/ não quebrar antes da migration.
                     if ($this->db->field_exists('reforma_ativa', 'configuracoes_nfe')) {
@@ -304,6 +312,50 @@ class Nfe extends MY_Controller
     }
 
     /**
+     * Transmite a NFC-e (modelo 65) de uma venda (normalmente do PDV). Chamada via AJAX, retorna JSON.
+     * Usa as formas de pagamento e o troco registrados no caixa e o CPF/CNPJ informado na venda.
+     */
+    public function emitirNfce($idVenda = null)
+    {
+        if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) {
+            return $this->jsonResponse(false, 'Você não tem permissão para emitir notas fiscais.');
+        }
+        if (!$idVenda || !is_numeric($idVenda)) {
+            return $this->jsonResponse(false, 'Venda inválida.');
+        }
+        $config = $this->nfe_model->getConfig();
+        if (! $config || empty($config->csc) || empty($config->csc_id)) {
+            return $this->jsonResponse(false, 'Cadastre o CSC e o ID do CSC da NFC-e em Notas Fiscais > Configurações (são fornecidos pela SEFAZ do estado).');
+        }
+
+        $this->load->model('vendas_model');
+        $venda = $this->vendas_model->getById($idVenda);
+        if (!$venda) {
+            return $this->jsonResponse(false, 'Venda não encontrada.');
+        }
+        foreach (['nfce', 'nfe'] as $tipo) {
+            $existente = $this->nfe_model->getNotaAtiva($tipo, 'vendas_id', $idVenda);
+            if ($existente) {
+                return $this->jsonResponse(false, 'Esta venda já possui a ' . strtoupper($tipo) . " nº {$existente->numero} ({$existente->status}).");
+            }
+        }
+
+        $this->load->model('caixa_model');
+        $pagamentos = $this->db->table_exists('caixa_movimentos') ? $this->caixa_model->pagamentosDaVenda($idVenda) : ['pagamentos' => [], 'troco' => 0];
+        $cpf = preg_match('/CPF na nota:\s*(\d{11,14})/', (string) ($venda->observacoes ?? ''), $m) ? $m[1] : '';
+
+        return $this->processarNfe(
+            $venda,
+            $this->vendas_model->getProdutos($idVenda),
+            ['vendas_id' => $idVenda],
+            (float) ($venda->valorTotal ?? 0) - (float) ($venda->desconto ?? 0),
+            "venda {$idVenda}",
+            ['pagamentos' => $pagamentos['pagamentos'], 'troco' => $pagamentos['troco'], 'cpf' => $cpf],
+            65
+        );
+    }
+
+    /**
      * Transmite a NF-e (modelo 55) dos PRODUTOS de uma OS. Chamada via AJAX, retorna JSON.
      * (Os serviços da OS são faturados separadamente via NFS-e.)
      */
@@ -353,8 +405,11 @@ class Nfe extends MY_Controller
      * $origem  = objeto com dados do cliente/documento (getById de venda ou OS)
      * $vinculo = ['vendas_id' => X] ou ['os_id' => Y]
      */
-    private function processarNfe($origem, array $itens, array $vinculo, float $valorTotal, string $rotuloLog, array $opcoes = [])
+    private function processarNfe($origem, array $itens, array $vinculo, float $valorTotal, string $rotuloLog, array $opcoes = [], int $modelo = 55)
     {
+        $nfce = $modelo === 65;
+        $tipoNota = $nfce ? 'nfce' : 'nfe';
+        $rotulo = $nfce ? 'NFC-e' : 'NF-e';
         $config = $this->nfe_model->getConfig();
         $emitente = $this->mapos_model->getEmitente();
         if (!$emitente) {
@@ -364,11 +419,15 @@ class Nfe extends MY_Controller
         $idNota = null;
         try {
             $service = new NfeService($config, $emitente);
+            if ($nfce) {
+                $service = $service->comoNfce();
+            }
+            $serie = $nfce ? ($config->serie_nfce ?? 1) : $config->serie_nfe;
 
             // Reaproveita o número de uma nota rejeitada/erro da mesma origem
             // (retransmissão após correção), em vez de queimar um número novo.
             $campo = array_key_first($vinculo);
-            $reaproveitar = $this->nfe_model->getNotaReaproveitavel('nfe', $campo, $vinculo[$campo]);
+            $reaproveitar = $this->nfe_model->getNotaReaproveitavel($tipoNota, $campo, $vinculo[$campo]);
             if ($reaproveitar) {
                 $numero = (int) $reaproveitar->numero;
                 $idNota = $reaproveitar->idNota;
@@ -379,18 +438,18 @@ class Nfe extends MY_Controller
                     'protocolo' => null,
                     'xml_path' => null,
                     'xml' => null,
-                    'serie' => $config->serie_nfe,
+                    'serie' => $serie,
                     'valor_total' => $valorTotal,
                     'ambiente' => $config->ambiente,
                     'data_emissao' => date('Y-m-d H:i:s'),
                     'usuarios_id' => $this->session->userdata('id_admin'),
                 ]);
             } else {
-                $numero = $this->nfe_model->reservarNumero('proximo_numero_nfe');
+                $numero = $this->nfe_model->reservarNumero($nfce ? 'proximo_numero_nfce' : 'proximo_numero_nfe');
                 $idNota = $this->nfe_model->addNota(array_merge([
-                    'tipo' => 'nfe',
+                    'tipo' => $tipoNota,
                     'numero' => $numero,
-                    'serie' => $config->serie_nfe,
+                    'serie' => $serie,
                     'status' => 'pendente',
                     'ambiente' => $config->ambiente,
                     'valor_total' => $valorTotal,
@@ -408,12 +467,12 @@ class Nfe extends MY_Controller
                     'motivo' => "[{$resultado['cstat']}] {$resultado['motivo']}",
                 ]);
 
-                return $this->jsonResponse(false, "NF-e rejeitada pela SEFAZ: [{$resultado['cstat']}] {$resultado['motivo']}");
+                return $this->jsonResponse(false, "{$rotulo} rejeitada pela SEFAZ: [{$resultado['cstat']}] {$resultado['motivo']}");
             }
 
             $xmlConteudo = ! empty($resultado['xml']) ? $resultado['xml'] : null;
             $xmlPath = $xmlConteudo
-                ? CertificadoHelper::salvarXml("nfe_{$resultado['chave']}.xml", $xmlConteudo)
+                ? CertificadoHelper::salvarXml("{$tipoNota}_{$resultado['chave']}.xml", $xmlConteudo)
                 : null;
 
             $this->nfe_model->updateNota($idNota, [
@@ -426,9 +485,9 @@ class Nfe extends MY_Controller
                 'data_autorizacao' => date('Y-m-d H:i:s'),
             ]);
 
-            log_info("Emitiu NF-e nº {$numero} (chave {$resultado['chave']}) da {$rotuloLog}");
+            log_info("Emitiu {$rotulo} nº {$numero} (chave {$resultado['chave']}) da {$rotuloLog}");
 
-            return $this->jsonResponse(true, "NF-e nº {$numero} autorizada com sucesso!", [
+            return $this->jsonResponse(true, "{$rotulo} nº {$numero} autorizada com sucesso!", [
                 'idNota' => $idNota,
                 'chave' => $resultado['chave'],
                 'protocolo' => $resultado['protocolo'],
@@ -935,6 +994,19 @@ class Nfe extends MY_Controller
         }
 
         try {
+            if ($nota->tipo === 'nfce') {
+                $xml = $this->nfe_model->obterXmlConteudo($nota);
+                if ($xml === null) {
+                    throw new Exception('XML da NFC-e não encontrado (banco ou disco).');
+                }
+                $service = (new NfeService($this->nfe_model->getConfig(), $this->mapos_model->getEmitente()))->comoNfce();
+                $this->output
+                    ->set_content_type('application/pdf')
+                    ->set_header('Content-Disposition: inline; filename="nfce_' . $nota->numero . '.pdf"')
+                    ->set_output($service->danfe($xml));
+
+                return;
+            }
             if ($nota->tipo === 'nfe') {
                 $xmlNfe = $this->nfe_model->obterXmlConteudo($nota);
                 if ($xmlNfe === null) {

@@ -140,6 +140,39 @@
                         </div>
                     </div>
 
+                    <?php if (property_exists($configNfe, 'serie_nfce')) { ?>
+                        <h5>NFC-e (PDV - modelo 65)</h5>
+
+                        <div class="control-group">
+                            <label class="control-label" for="serie_nfce">Série</label>
+                            <div class="controls">
+                                <input type="number" id="serie_nfce" name="serie_nfce" min="1" max="999" value="<?= html_escape($configNfe->serie_nfce) ?>" style="width:60px" />
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="proximo_numero_nfce">Próximo número</label>
+                            <div class="controls">
+                                <input type="number" id="proximo_numero_nfce" name="proximo_numero_nfce" min="1" value="<?= html_escape($configNfe->proximo_numero_nfce) ?>" style="width:100px" />
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="csc_id">ID do CSC</label>
+                            <div class="controls">
+                                <input type="text" id="csc_id" name="csc_id" maxlength="10" value="<?= html_escape($configNfe->csc_id) ?>" style="width:100px" placeholder="000001" />
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="csc">CSC (token)</label>
+                            <div class="controls">
+                                <input type="text" id="csc" name="csc" maxlength="64" value="<?= html_escape($configNfe->csc) ?>" autocomplete="off" style="width:320px" />
+                                <span class="hint">Código de Segurança do Contribuinte, gerado no portal da SEFAZ do seu estado (um para homologação e outro para produção). Sem ele a NFC-e não é emitida.</span>
+                            </div>
+                        </div>
+                    <?php } ?>
+
                     <div class="control-group">
                         <label class="control-label" for="csosn_padrao">CSOSN padrão</label>
                         <div class="controls">
