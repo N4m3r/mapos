@@ -19,9 +19,13 @@ jobs:
           php-version: '8.3'
           extensions: gd, mbstring
 
+      # install usa as versoes travadas no composer.lock (as testadas e auditadas).
+      # O antigo "update --prefer-lowest" empacotava as versoes mais antigas permitidas,
+      # inclusive as com vulnerabilidades ja corrigidas no lock.
+      # As dev ficam: "php index.php tools migrate" carrega o Faker.
       - name: Install dependencies
         run: |
-          composer update --optimize-autoloader --prefer-lowest --prefer-stable
+          composer install --optimize-autoloader --no-interaction --no-progress
 
       - name: List Installed Dependencies
         run: composer show -D
