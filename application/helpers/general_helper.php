@@ -271,3 +271,24 @@ if (! function_exists('csp_nonce')) {
         return $nonce;
     }
 }
+
+if (! function_exists('jquery_tags')) {
+    /**
+     * Tags <script> do jQuery: 3.7.1 + Migrate (padrao) ou 1.12.4 com APP_JQUERY3=false no .env.
+     * Uma regra so para painel, area do tecnico, colaborador, area do cliente e paginas publicas.
+     */
+    function jquery_tags()
+    {
+        $base = base_url('assets/js/');
+        $nonce = csp_nonce();
+        $arquivos = filter_var($_ENV['APP_JQUERY3'] ?? true, FILTER_VALIDATE_BOOLEAN)
+            ? ['jquery-3.7.1.min.js', 'jquery-migrate-3.4.1.min.js']
+            : ['jquery-1.12.4.min.js'];
+        $tags = '';
+        foreach ($arquivos as $arquivo) {
+            $tags .= '<script nonce="' . $nonce . '" src="' . $base . $arquivo . '"></script>' . "\n";
+        }
+
+        return $tags;
+    }
+}

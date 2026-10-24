@@ -445,7 +445,7 @@ $emitente = isset($emitente) ? $emitente : null;
         </div>
     </div>
 
-    <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/jquery-1.12.4.min.js"></script>
+    <?= jquery_tags() ?>
     <script nonce="<?= csp_nonce() ?>">
         $(function() {
             var $form = $('#formDecisao');

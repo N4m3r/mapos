@@ -25,4 +25,4 @@ $pode_bater_ponto = isset($pode_bater_ponto) ? $pode_bater_ponto : true;
         <i class='bx bx-log-out-circle'></i><span>Sair</span>
     </a>
 </nav>
-<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/jquery-1.12.4.min.js') ?>"></script>
+<?= jquery_tags() ?>

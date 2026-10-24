@@ -38,13 +38,8 @@
   <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,800' rel='stylesheet' type='text/css'>
   <link href='https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;500;700&display=swap' rel='stylesheet' type='text/css'>
   <link href='<?= base_url('assets/boxicons/css/boxicons.min.css') ?>' rel='stylesheet'>
-  <?php if (filter_var($_ENV['APP_JQUERY3'] ?? true, FILTER_VALIDATE_BOOLEAN)): ?>
-  <!-- jQuery 3 (padrao). Para voltar ao 1.12: APP_JQUERY3=false no .env. O Migrate mantem APIs antigas e avisa no console o que precisa ser atualizado. -->
-  <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/jquery-3.7.1.min.js"></script>
-  <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/jquery-migrate-3.4.1.min.js"></script>
-  <?php else: ?>
-  <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/jquery-1.12.4.min.js"></script>
-  <?php endif; ?>
+  <!-- jQuery 3.7 + Migrate (padrao); APP_JQUERY3=false no .env volta ao 1.12 -->
+  <?= jquery_tags() ?>
   <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/shortcut.js"></script>
   <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/funcoesGlobal.js"></script>
   <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/datatables.min.js"></script>

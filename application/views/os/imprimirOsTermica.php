@@ -574,6 +574,7 @@ $totalProdutos = 0; ?>
     });
 </script>
 </body>
+    <?= jquery_tags() ?>
     <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/bootstrap.min.js"></script>
     <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/matrix.js"></script>
 

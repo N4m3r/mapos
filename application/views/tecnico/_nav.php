@@ -32,5 +32,5 @@ $pode_ver_sistema = isset($pode_ver_sistema) ? $pode_ver_sistema : false;
         <span>Sair</span>
     </a>
 </nav>
-<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/jquery-1.12.4.min.js') ?>"></script>
+<?= jquery_tags() ?>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/bootstrap.min.js') ?>"></script>

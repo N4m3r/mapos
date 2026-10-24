@@ -16,7 +16,7 @@
     <link href="<?php echo base_url(); ?>assets/font-awesome/css/font-awesome.css" rel="stylesheet" />
     <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/fullcalendar.css" />
     <link href="<?php echo base_url(); ?>assets/css/bootstrap-responsive.min.css" rel="stylesheet">
-    <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url(); ?>assets/js/jquery-1.10.2.min.js"></script>
+    <?= jquery_tags() ?>
     <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/funcoesGlobal.js"></script>
     <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
 </head>

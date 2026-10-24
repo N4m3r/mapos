@@ -15,7 +15,7 @@
     <link href="<?php echo base_url(); ?>assets/font-awesome/css/font-awesome.css" rel="stylesheet" />
     <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/fullcalendar.css" />
     <link href="<?php echo base_url(); ?>assets/css/bootstrap-responsive.min.css" rel="stylesheet">
-    <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url(); ?>assets/js/jquery-1.12.4.min.js"></script>
+    <?= jquery_tags() ?>
     <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/sweetalert.min.js"></script>
     <link rel="shortcut icon" href="<?php echo base_url(); ?>assets/img/favicon.png">
     <link href='<?= base_url('assets/boxicons/css/boxicons.min.css') ?>' rel='stylesheet'>

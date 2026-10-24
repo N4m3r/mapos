@@ -278,7 +278,7 @@ $totalFotos = count($fotos_etapa['entrada']) + count($fotos_etapa['durante']) + 
         </div>
     </div>
 
-    <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/jquery-1.12.4.min.js"></script>
+    <?= jquery_tags() ?>
     <?php if ($situacao === 'pendente') { ?>
         <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/assinatura-canvas.js"></script>
         <script nonce="<?= csp_nonce() ?>">

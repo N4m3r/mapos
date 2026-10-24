@@ -464,8 +464,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
             mywindow.document.write("<link rel='stylesheet' href='<?php echo base_url(); ?>assets/css/matrix-style.css' />");
             mywindow.document.write("<link rel='stylesheet' href='<?php echo base_url(); ?>assets/css/matrix-media.css' />");
 
-            mywindow.document.write("    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
-</head><body >");
+            mywindow.document.write("</head><body >");
             mywindow.document.write(data);
             mywindow.document.write("</body></html>");
 
