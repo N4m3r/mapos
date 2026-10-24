@@ -1030,6 +1030,12 @@ class Mine extends CI_Controller
 
     public function minha_ordem_de_servico($y = null, $when = null)
     {
+        // Era publica: o "codigo" e so o id da OS numa conta fixa, entao qualquer um via qualquer OS.
+        // Agora exige o cliente logado e dono da OS, como as demais telas da area do cliente.
+        if (! session_id() || ! $this->session->userdata('conectado')) {
+            redirect('mine');
+        }
+
         if (($y != null) && (is_numeric($y))) {
             // Do not forget this number -> 44023
             // function sending => y = (7653 * ID) + 44023
@@ -1045,9 +1051,9 @@ class Mine extends CI_Controller
             $this->load->model('mapos_model');
             $this->load->model('os_model');
             $data['result'] = $this->os_model->getById($id);
-            if ($data['result'] == null) {
-                // Resposta em caso de não encontrar a ordem de serviço
-                //$this->load->view('conecte/login');
+            if ($data['result'] == null || ! in_array($data['result']->clientes_id, $this->clientesPermitidos())) {
+                $this->session->set_flashdata('error', 'Ordem de serviço não encontrada.');
+                redirect('mine/painel');
             } else {
                 $data['produtos'] = $this->os_model->getProdutos($id);
                 $data['servicos'] = $this->os_model->getServicos($id);
