@@ -4,50 +4,66 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e05af81e56cc9b687511b399b2890e12",
+    "content-hash": "c15a7346d24279d4834fb2c7af2974ab",
     "packages": [
         {
             "name": "chillerlan/php-qrcode",
-            "version": "3.4.1",
+            "version": "5.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/chillerlan/php-qrcode.git",
-                "reference": "468603b687a5fe75c1ff33857a45f1726c7b95a9"
+                "reference": "7b66282572fc14075c0507d74d9837dab25b38d6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/chillerlan/php-qrcode/zipball/468603b687a5fe75c1ff33857a45f1726c7b95a9",
-                "reference": "468603b687a5fe75c1ff33857a45f1726c7b95a9",
+                "url": "https://api.github.com/repos/chillerlan/php-qrcode/zipball/7b66282572fc14075c0507d74d9837dab25b38d6",
+                "reference": "7b66282572fc14075c0507d74d9837dab25b38d6",
                 "shasum": ""
             },
             "require": {
-                "chillerlan/php-settings-container": "^1.2.2",
+                "chillerlan/php-settings-container": "^2.1.6 || ^3.2.1",
                 "ext-mbstring": "*",
-                "php": "^7.2 || ^8.0"
+                "php": "^7.4 || ^8.0"
             },
             "require-dev": {
-                "phan/phan": "^3.2.2",
-                "phpunit/phpunit": "^8.5",
-                "setasign/fpdf": "^1.8.2"
+                "chillerlan/php-authenticator": "^4.3.1 || ^5.2.1",
+                "ext-fileinfo": "*",
+                "phan/phan": "^5.5.2",
+                "phpcompatibility/php-compatibility": "10.x-dev",
+                "phpmd/phpmd": "^2.15",
+                "phpunit/phpunit": "^9.6",
+                "setasign/fpdf": "^1.8.2",
+                "slevomat/coding-standard": "^8.23.0",
+                "squizlabs/php_codesniffer": "^4.0.0"
             },
             "suggest": {
                 "chillerlan/php-authenticator": "Yet another Google authenticator! Also creates URIs for mobile apps.",
-                "setasign/fpdf": "Required to use the QR FPDF output."
+                "setasign/fpdf": "Required to use the QR FPDF output.",
+                "simple-icons/simple-icons": "SVG icons that you can use to embed as logos in the QR Code"
             },
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "chillerlan\\QRCode\\": "src/"
+                    "chillerlan\\QRCode\\": "src"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "MIT"
+                "MIT",
+                "Apache-2.0"
             ],
             "authors": [
                 {
                     "name": "Kazuhiko Arase",
-                    "homepage": "https://github.com/kazuhikoarase"
+                    "homepage": "https://github.com/kazuhikoarase/qrcode-generator"
+                },
+                {
+                    "name": "ZXing Authors",
+                    "homepage": "https://github.com/zxing/zxing"
+                },
+                {
+                    "name": "Ashot Khanamiryan",
+                    "homepage": "https://github.com/khanamiryan/php-qrcode-detector-decoder"
                 },
                 {
                     "name": "Smiley",
@@ -59,56 +75,61 @@
                     "homepage": "https://github.com/chillerlan/php-qrcode/graphs/contributors"
                 }
             ],
-            "description": "A QR code generator. PHP 7.2+",
+            "description": "A QR Code generator and reader with a user-friendly API. PHP 7.4+",
             "homepage": "https://github.com/chillerlan/php-qrcode",
             "keywords": [
                 "phpqrcode",
                 "qr",
                 "qr code",
+                "qr-reader",
                 "qrcode",
-                "qrcode-generator"
+                "qrcode-generator",
+                "qrcode-reader"
             ],
             "support": {
+                "docs": "https://php-qrcode.readthedocs.io",
                 "issues": "https://github.com/chillerlan/php-qrcode/issues",
-                "source": "https://github.com/chillerlan/php-qrcode/tree/3.4.1"
+                "source": "https://github.com/chillerlan/php-qrcode"
             },
             "funding": [
                 {
-                    "url": "https://www.paypal.com/donate?hosted_button_id=WLYUNAT9ZTJZ4",
-                    "type": "custom"
-                },
-                {
                     "url": "https://ko-fi.com/codemasher",
-                    "type": "ko_fi"
+                    "type": "Ko-Fi"
                 }
             ],
-            "time": "2021-09-03T17:54:45+00:00"
+            "time": "2025-11-23T23:51:44+00:00"
         },
         {
             "name": "chillerlan/php-settings-container",
-            "version": "1.2.3",
+            "version": "3.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/chillerlan/php-settings-container.git",
-                "reference": "92636df53ad1bc903521d29993de0631e07ca931"
+                "reference": "a0a487cbf5344f721eb504bf0f59bada40c381b7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/chillerlan/php-settings-container/zipball/92636df53ad1bc903521d29993de0631e07ca931",
-                "reference": "92636df53ad1bc903521d29993de0631e07ca931",
+                "url": "https://api.github.com/repos/chillerlan/php-settings-container/zipball/a0a487cbf5344f721eb504bf0f59bada40c381b7",
+                "reference": "a0a487cbf5344f721eb504bf0f59bada40c381b7",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
-                "php": "^7.2 || ^8.0"
+                "php": "^8.1"
             },
             "require-dev": {
-                "phpunit/phpunit": "^8.5"
+                "phan/phan": "^5.5.2",
+                "phpmd/phpmd": "^2.15",
+                "phpstan/phpstan": "^2.1.31",
+                "phpstan/phpstan-deprecation-rules": "^2.0.3",
+                "phpunit/phpunit": "^10.5",
+                "slevomat/coding-standard": "^8.22",
+                "squizlabs/php_codesniffer": "^4.0"
             },
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "chillerlan\\Settings\\": "src/"
+                    "chillerlan\\Settings\\": "src"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -122,13 +143,14 @@
                     "homepage": "https://github.com/codemasher"
                 }
             ],
-            "description": "A container class for immutable settings objects. Not a DI container. PHP 7.2+",
+            "description": "A container class for immutable settings objects. Not a DI container.",
             "homepage": "https://github.com/chillerlan/php-settings-container",
             "keywords": [
-                "PHP7",
                 "Settings",
+                "configuration",
                 "container",
-                "helper"
+                "helper",
+                "property hook"
             ],
             "support": {
                 "issues": "https://github.com/chillerlan/php-settings-container/issues",
@@ -144,7 +166,7 @@
                     "type": "ko_fi"
                 }
             ],
-            "time": "2023-12-12T13:50:01+00:00"
+            "time": "2026-03-20T21:10:52+00:00"
         },
         {
             "name": "codeigniter/framework",
@@ -1945,30 +1967,28 @@
         },
         {
             "name": "piggly/php-pix",
-            "version": "2.0.2",
+            "version": "3.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/piggly-dev/php-pix.git",
-                "reference": "72567d091f660324bdc562420cc02340fb1c70d4"
+                "reference": "7f3012c404161ba27576276ad15ffd77cf0ecb56"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/piggly-dev/php-pix/zipball/72567d091f660324bdc562420cc02340fb1c70d4",
-                "reference": "72567d091f660324bdc562420cc02340fb1c70d4",
+                "url": "https://api.github.com/repos/piggly-dev/php-pix/zipball/7f3012c404161ba27576276ad15ffd77cf0ecb56",
+                "reference": "7f3012c404161ba27576276ad15ffd77cf0ecb56",
                 "shasum": ""
             },
             "require": {
-                "chillerlan/php-qrcode": "^3.3",
+                "chillerlan/php-qrcode": "^5.0",
                 "ext-gd": "*",
-                "php": "^7.2 || ^8.0"
+                "ext-mbstring": "*",
+                "php": "^8.0"
             },
             "require-dev": {
-                "fakerphp/faker": "^1.14",
-                "php": "^7.3 || ^8.0",
-                "phpunit/phpunit": "^9.5"
-            },
-            "suggest": {
-                "piggly/php-api-client": "Recomentado para criar requisições HTTP seguras e dinâmicas para as API Pix junto com os Payloads padrões."
+                "fakerphp/faker": "^1.23",
+                "php": "^8.0",
+                "phpunit/phpunit": "^11.1"
             },
             "type": "library",
             "autoload": {
@@ -2000,9 +2020,9 @@
             ],
             "support": {
                 "issues": "https://github.com/piggly-dev/php-pix/issues",
-                "source": "https://github.com/piggly-dev/php-pix/tree/2.0.2"
+                "source": "https://github.com/piggly-dev/php-pix/tree/3.0.0"
             },
-            "time": "2022-06-21T13:57:30+00:00"
+            "time": "2024-05-19T15:12:39+00:00"
         },
         {
             "name": "psr/http-client",
