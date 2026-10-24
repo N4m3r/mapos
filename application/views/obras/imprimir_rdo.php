@@ -34,9 +34,10 @@ $condicoes = ['praticavel' => 'Praticável', 'parcial' => 'Parcialmente praticá
         .btn-print { position: fixed; top: 12px; right: 12px; padding: 8px 16px; background: #2b7; color: #fff; border: 0; border-radius: 4px; cursor: pointer; font-size: 14px; }
         @media print { .btn-print { display: none; } body { margin: 0; } }
     </style>
+    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
 </head>
 <body>
-    <button class="btn-print" onclick="window.print()">🖨 Imprimir</button>
+    <button class="btn-print" data-acao="imprimir">🖨 Imprimir</button>
 
     <div class="rdo-head">
         <div class="emit">
@@ -102,6 +103,6 @@ $condicoes = ['praticavel' => 'Praticável', 'parcial' => 'Parcialmente praticá
 
     <div class="rodape">Emitido em <?= date('d/m/Y H:i') ?></div>
 
-    <script>window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 400); });</script>
+    <script nonce="<?= csp_nonce() ?>">window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 400); });</script>
 </body>
 </html>

@@ -70,7 +70,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     $(function () {
         $('.btn-excluir-formulario').on('click', function (e) {
             if (!confirm('Excluir este formulário? As respostas já coletadas não são apagadas, mas o formulário deixará de aparecer no atendimento.')) {

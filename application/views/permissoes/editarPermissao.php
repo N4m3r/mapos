@@ -1305,8 +1305,8 @@ if (! is_array($permissoes)) {
 </div>
 
 
-<script type="text/javascript" src="<?php echo base_url()?>assets/js/validate.js"></script>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url()?>assets/js/validate.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function(){
         $("#marcarTodos").change(function () {
             $("input:checkbox").prop('checked', $(this).prop("checked"));

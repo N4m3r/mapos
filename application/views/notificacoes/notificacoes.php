@@ -98,7 +98,7 @@ $rotuloCanais = Notification_triggers_model::canaisDisponiveis();
                                 <i class="bx bx-copy"></i>
                             </button>
                             <a href="<?= site_url('notificacoes/excluir/' . $r->id) ?>" class="btn btn-danger btn-mini"
-                               onclick="return confirm('Excluir o gatilho \'<?= html_escape($r->nome) ?>\'?');">
+                               data-confirmar="Excluir o gatilho '<?= html_escape($r->nome) ?>'?">
                                 <i class="bx bx-trash"></i>
                             </a>
                         </td>
@@ -109,7 +109,7 @@ $rotuloCanais = Notification_triggers_model::canaisDisponiveis();
     </div>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     $(function () {
         $('.btn-clonar-gatilho').on('click', function () {
             var id = $(this).data('id');

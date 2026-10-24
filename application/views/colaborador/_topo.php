@@ -23,6 +23,7 @@ $voltar_url   = isset($voltar_url) ? $voltar_url : null;
     <link href="<?= base_url('assets/boxicons/css/boxicons.min.css') ?>" rel="stylesheet">
     <link rel="stylesheet" href="<?= base_url('assets/css/tecnico.css') ?>?v=4">
     <link rel="stylesheet" href="<?= base_url('assets/css/rh.css') ?>?v=<?= asset_versao('assets/css/rh.css', '3') ?>">
+    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
 </head>
 <body class="tec-body">
     <header class="tec-header">

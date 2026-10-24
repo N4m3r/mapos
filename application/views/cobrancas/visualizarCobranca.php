@@ -165,7 +165,7 @@
 
 <?php
 if (! empty($whatsappApiAtivo)) { ?>
-    <script type="text/javascript">
+    <script nonce="<?= csp_nonce() ?>" type="text/javascript">
         $(function() {
             $('#enviarCobrancaWhatsApp').on('click', function(e) {
                 e.preventDefault();

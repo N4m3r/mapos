@@ -86,7 +86,7 @@ $tokenHash = $this->security->get_csrf_hash();
     <input type="hidden" name="corpo" id="previewCorpo" value="">
 </form>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     (function() {
         var ultimoCampo = document.getElementById('corpo');
         document.querySelectorAll('.campo-tags').forEach(function(el) {

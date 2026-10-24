@@ -51,7 +51,7 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
                 <div class="upload-area">
                     <input type="file" id="fotos-entrada-input" class="checkin-foto-input" data-etapa="entrada" accept="image/*" style="display:none;">
                     <button type="button" class="btn btn-info btn-capturar-foto" data-etapa="entrada"><i class="bx bx-camera"></i> Tirar Foto</button>
-                    <button type="button" class="btn" onclick="document.getElementById('fotos-entrada-input').click()"><i class="bx bx-upload"></i> Escolher da Galeria</button>
+                    <button type="button" class="btn" data-acao="clicar" data-alvo="#fotos-entrada-input"><i class="bx bx-upload"></i> Escolher da Galeria</button>
                     <p class="text-muted" style="margin:10px 0 0;">Máximo 5MB por foto (JPG, PNG)</p>
                 </div>
                 <div id="preview-fotos-entrada" class="preview-fotos-container"></div>
@@ -108,7 +108,7 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
                 <div class="upload-area">
                     <input type="file" id="fotos-saida-input" class="checkin-foto-input" data-etapa="saida" accept="image/*" style="display:none;">
                     <button type="button" class="btn btn-info btn-capturar-foto" data-etapa="saida"><i class="bx bx-camera"></i> Tirar Foto</button>
-                    <button type="button" class="btn" onclick="document.getElementById('fotos-saida-input').click()"><i class="bx bx-upload"></i> Escolher da Galeria</button>
+                    <button type="button" class="btn" data-acao="clicar" data-alvo="#fotos-saida-input"><i class="bx bx-upload"></i> Escolher da Galeria</button>
                     <p class="text-muted" style="margin:10px 0 0;">Máximo 5MB por foto (JPG, PNG)</p>
                 </div>
                 <div id="preview-fotos-saida" class="preview-fotos-container"></div>
@@ -147,7 +147,7 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
         <div class="checkin-section">
             <div class="upload-area">
                 <input type="file" id="fs-input" accept="image/*" capture="environment" style="display:none;">
-                <button type="button" class="btn btn-info" onclick="document.getElementById('fs-input').click()"><i class="bx bx-camera"></i> Tirar / Escolher Foto</button>
+                <button type="button" class="btn btn-info" data-acao="clicar" data-alvo="#fs-input"><i class="bx bx-camera"></i> Tirar / Escolher Foto</button>
                 <p class="text-muted" style="margin:10px 0 0;">Uma foto por vez (JPG, PNG). Máx. 10MB.</p>
             </div>
             <div id="fs-preview" style="text-align:center; margin-top:10px; display:none;"></div>
@@ -168,15 +168,15 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
 </div>
 
 <!-- Bibliotecas do fluxo de atendimento (mesmas da tela administrativa) -->
-<script src="<?= base_url('assets/js/assinatura-canvas.js?v=3') ?>"></script>
-<script src="<?= base_url('assets/js/assinatura-fullscreen.js?v=1') ?>"></script>
-<script src="<?= base_url('assets/js/checkin-fotos.js?v=3') ?>"></script>
-<script src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= asset_versao('assets/js/rascunho-form.js') ?>"></script>
-<script src="<?= base_url('assets/js/checkin.js?v=7') ?>"></script>
-<script src="<?= base_url('assets/js/checkin-formularios.js?v=1') ?>"></script>
-<script src="<?= base_url('assets/js/csrf.js') ?>?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
-<script src="<?= base_url('assets/js/tecnico-localizacao.js?v=1') ?>"></script>
-<script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/assinatura-canvas.js?v=3') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/assinatura-fullscreen.js?v=1') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/checkin-fotos.js?v=3') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= asset_versao('assets/js/rascunho-form.js') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/checkin.js?v=7') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/checkin-formularios.js?v=1') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/csrf.js') ?>?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/tecnico-localizacao.js?v=1') ?>"></script>
+<script nonce="<?= csp_nonce() ?>">
     window.checkinConfig = { baseUrl: '<?= base_url() ?>', osId: <?= $os_id ?>, debug: false };
 
     (function () {

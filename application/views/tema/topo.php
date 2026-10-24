@@ -40,17 +40,17 @@
   <link href='<?= base_url('assets/boxicons/css/boxicons.min.css') ?>' rel='stylesheet'>
   <?php if (filter_var($_ENV['APP_JQUERY3'] ?? true, FILTER_VALIDATE_BOOLEAN)): ?>
   <!-- jQuery 3 (padrao). Para voltar ao 1.12: APP_JQUERY3=false no .env. O Migrate mantem APIs antigas e avisa no console o que precisa ser atualizado. -->
-  <script type="text/javascript" src="<?= base_url(); ?>assets/js/jquery-3.7.1.min.js"></script>
-  <script type="text/javascript" src="<?= base_url(); ?>assets/js/jquery-migrate-3.4.1.min.js"></script>
+  <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/jquery-3.7.1.min.js"></script>
+  <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/jquery-migrate-3.4.1.min.js"></script>
   <?php else: ?>
-  <script type="text/javascript" src="<?= base_url(); ?>assets/js/jquery-1.12.4.min.js"></script>
+  <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/jquery-1.12.4.min.js"></script>
   <?php endif; ?>
-  <script type="text/javascript" src="<?= base_url(); ?>assets/js/shortcut.js"></script>
-  <script type="text/javascript" src="<?= base_url(); ?>assets/js/funcoesGlobal.js"></script>
-  <script type="text/javascript" src="<?= base_url(); ?>assets/js/datatables.min.js"></script>
-  <script type="text/javascript" src="<?= base_url(); ?>assets/js/sweetalert.min.js"></script>
-  <script type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
-  <script type="text/javascript">
+  <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/shortcut.js"></script>
+  <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/funcoesGlobal.js"></script>
+  <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/datatables.min.js"></script>
+  <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/sweetalert.min.js"></script>
+  <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
+  <script nonce="<?= csp_nonce() ?>" type="text/javascript">
     shortcut.add("escape", function() {
       location.href = '<?= base_url(); ?>';
     });
@@ -80,6 +80,7 @@
     shortcut.add("F12", function() {});
     window.BaseUrl = "<?= base_url() ?>";
   </script>
+    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
 </head>
 
 <body data-theme="<?= html_escape($configuration['app_theme'] ?: 'white') ?>">

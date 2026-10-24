@@ -1,6 +1,6 @@
 <div class="new122">
     <link rel="stylesheet" href="<?= base_url(); ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
-    <script type="text/javascript" src="<?= base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
+    <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
 
     <div class="span12" style="margin-left: 0">
     <div class="widget-title" style="margin: -20px 0 0">
@@ -111,7 +111,7 @@
     </div>
 </div>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         $(document).on('click', 'a', function(event) {
             var arquivo = $(this).attr('arquivo');

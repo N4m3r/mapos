@@ -183,9 +183,9 @@
         </div>
     </form>
 </div>
-<script src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
 <!-- Modal Etiquetas e Estoque-->
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function () {
         $(document).on('click', 'a', function (event) {
             var produto = $(this).attr('produto');

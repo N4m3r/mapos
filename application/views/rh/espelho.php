@@ -23,7 +23,7 @@ $corBat = [
     </div>
 
     <div class="span12" style="margin-left:0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
-        <form method="get" onsubmit="return false" style="display:flex;gap:6px;align-items:center">
+        <form method="get" data-bloquear-envio style="display:flex;gap:6px;align-items:center">
             <input type="month" id="competencia" value="<?= $competencia ?>">
             <span style="color:#888">competência</span>
         </form>
@@ -33,7 +33,7 @@ $corBat = [
                 <a href="<?= site_url("rh/recalcular/{$colaborador->id}/{$competencia}") ?>" class="button btn btn-mini btn-primary" title="Recalcula horas e banco de horas"><span class="button__text2">Recalcular</span></a>
                 <?php if ($podeFin): ?>
                     <a href="<?= site_url("rh/recalcular/{$colaborador->id}/{$competencia}?extras=1") ?>" class="button btn btn-mini btn-success"
-                       onclick="return confirm('Gerar horas extras como lançamentos PENDENTES de aprovação?')"><span class="button__text2">Gerar extras (pendente)</span></a>
+                       data-confirmar="Gerar horas extras como lançamentos PENDENTES de aprovação?"><span class="button__text2">Gerar extras (pendente)</span></a>
                 <?php endif; ?>
             <?php endif; ?>
             <a href="<?= site_url("rh/espelhoPdf/{$colaborador->id}/{$competencia}") ?>" target="_blank" class="button btn btn-mini btn-inverse"><span class="button__text2">PDF</span></a>
@@ -146,7 +146,7 @@ $corBat = [
     </div></div>
     <a href="<?= site_url('rh/colaboradores') ?>" class="button btn btn-warning"><span class="button__text2">Voltar</span></a>
 </div>
-<script>
+<script nonce="<?= csp_nonce() ?>">
 document.getElementById('competencia').addEventListener('change', function(){
     window.location = '<?= site_url('rh/espelho/'.$colaborador->id) ?>/' + this.value;
 });

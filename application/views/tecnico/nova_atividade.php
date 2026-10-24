@@ -129,8 +129,8 @@ $this->load->view('tecnico/_topo', [
 
 <?php $this->load->view('tecnico/_nav', ['nav_ativo' => '', 'pode_ver_sistema' => isset($pode_ver_sistema) ? $pode_ver_sistema : false]); ?>
 
-<script src="<?= base_url('assets/js/csrf.js') ?>?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
-<script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/csrf.js') ?>?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
+<script nonce="<?= csp_nonce() ?>">
 (function () {
     var BASE = '<?= site_url('tecnico') ?>/';
 

@@ -321,7 +321,7 @@
     </div>
 </div>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         // Mostra/oculta os parâmetros de IBS/CBS conforme o checkbox mestre.
         $('#reforma_ativa').on('change', function() {

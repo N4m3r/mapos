@@ -96,7 +96,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
 (function () {
     var URL_BASE = '<?= site_url() ?>/';
     var FORMAS = <?= json_encode($formas) ?>;

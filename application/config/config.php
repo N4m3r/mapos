@@ -451,6 +451,7 @@ $config['csrf_expire'] = $_ENV['APP_CSRF_EXPIRE'] ?? 7200;
 $config['csrf_regenerate'] = isset($_ENV['APP_CSRF_REGENERATE']) ? filter_var($_ENV['APP_CSRF_REGENERATE'], FILTER_VALIDATE_BOOLEAN) : true;
 $config['csrf_exclude_uris'] = [
     'api.*+',
+    'csp/relatorio',
     'checkin/status',
     'checkin/iniciar',
     'checkin/finalizar',

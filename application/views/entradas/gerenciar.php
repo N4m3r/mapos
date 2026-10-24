@@ -27,13 +27,13 @@ $fmt = fn ($v) => number_format((float) $v, 2, ',', '.');
                 <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-bottom:14px">
                     <form action="<?= site_url('entradas') ?>" method="get" style="margin:0">
                         <label style="font-size:12px;color:#666;display:block">Competência (AAAA-MM)</label>
-                        <input type="month" name="competencia" value="<?= html_escape($competencia) ?>" onchange="this.form.submit()" />
+                        <input type="month" name="competencia" value="<?= html_escape($competencia) ?>" data-ao-mudar="enviar" />
                         <?php if ($competencia) { ?><a href="<?= site_url('entradas') ?>" class="hint" style="margin-left:6px">limpar</a><?php } ?>
                     </form>
-                    <button type="button" class="button btn btn-success" onclick="toggleBox('boxImportar')">
+                    <button type="button" class="button btn btn-success" data-chamar="toggleBox" data-args='["boxImportar"]'>
                         <span class="button__icon"><i class="bx bx-upload"></i></span><span class="button__text2">Importar XML</span>
                     </button>
-                    <button type="button" class="button btn btn-primary" onclick="toggleBox('boxManual')">
+                    <button type="button" class="button btn btn-primary" data-chamar="toggleBox" data-args='["boxManual"]'>
                         <span class="button__icon"><i class="bx bx-plus"></i></span><span class="button__text2">Lançar manual</span>
                     </button>
                     <a href="<?= site_url('entradas/apuracao' . ($competencia ? '?competencia=' . urlencode($competencia) : '')) ?>" class="button btn btn-warning">
@@ -127,7 +127,7 @@ $fmt = fn ($v) => number_format((float) $v, 2, ',', '.');
                                         </a>
                                     </td>
                                     <td style="text-align:center">
-                                        <a href="<?= site_url('entradas/excluir/' . $e->idEntrada) ?>" onclick="return confirm('Excluir esta entrada?')" title="Excluir"><i class="bx bx-trash" style="color:#c33"></i></a>
+                                        <a href="<?= site_url('entradas/excluir/' . $e->idEntrada) ?>" data-confirmar="Excluir esta entrada?" title="Excluir"><i class="bx bx-trash" style="color:#c33"></i></a>
                                     </td>
                                 </tr>
                             <?php } ?>
@@ -140,7 +140,7 @@ $fmt = fn ($v) => number_format((float) $v, 2, ',', '.');
     </div>
 </div>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     function toggleBox(id) {
         var el = document.getElementById(id);
         el.style.display = (el.style.display === 'none' || !el.style.display) ? 'block' : 'none';

@@ -1,6 +1,6 @@
-<script src="<?php echo base_url() ?>assets/js/jquery.mask.min.js"></script>
-<script src="<?php echo base_url() ?>assets/js/sweetalert2.all.min.js"></script>
-<script src="<?php echo base_url() ?>assets/js/funcoes.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/jquery.mask.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/sweetalert2.all.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/funcoes.js"></script>
 
 <div class="row-fluid" style="margin-top:0">
     <div class="span12">
@@ -135,8 +135,8 @@
 
 
 
-<script src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         let container = document.querySelector('div');
         let input = document.querySelector('#senha');

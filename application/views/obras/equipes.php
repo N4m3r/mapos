@@ -6,7 +6,7 @@
 <div class="new122" style="margin-top:0">
     <div class="widget-title" style="margin:-6px 0 8px"><span class="icon"><i class="fas fa-users"></i></span><h5>Equipes de Projeto</h5></div>
     <?php if ($perm('cObraEquipe')): ?>
-        <a href="#modal-equipe" data-toggle="modal" class="button btn btn-mini btn-success" style="max-width:160px" onclick="novaEquipe()"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova Equipe</span></a>
+        <a href="#modal-equipe" data-toggle="modal" class="button btn btn-mini btn-success" style="max-width:160px" data-chamar="novaEquipe"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova Equipe</span></a>
     <?php endif; ?>
 
     <div class="widget-box"><div class="widget-content nopadding">
@@ -25,8 +25,8 @@
                         <td>
                             <a href="<?= site_url('obraequipe/membros/' . $q->idEquipe) ?>" class="btn-nwe" title="Membros e alocação"><i class="bx bx-group bx-xs"></i></a>
                             <?php if ($perm('cObraEquipe')): ?>
-                                <a href="#" class="btn-nwe3" title="Editar" onclick='editarEquipe(<?= json_encode($q, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP) ?>);return false;'><i class="bx bx-edit bx-xs"></i></a>
-                                <a href="#" class="btn-nwe4" title="Excluir" onclick="excluirEquipe(<?= $q->idEquipe ?>);return false;"><i class="bx bx-trash-alt bx-xs"></i></a>
+                                <a href="#" class="btn-nwe3" title="Editar" data-chamar="editarEquipe" data-args="<?= html_escape(json_encode([$q])) ?>" data-cancelar><i class="bx bx-edit bx-xs"></i></a>
+                                <a href="#" class="btn-nwe4" title="Excluir" data-chamar="excluirEquipe" data-args="[<?= (int) $q->idEquipe ?>]" data-cancelar><i class="bx bx-trash-alt bx-xs"></i></a>
                             <?php endif; ?>
                         </td>
                     </tr>
@@ -71,7 +71,7 @@
 <form id="formExcluirEquipe" action="<?= site_url('obraequipe/excluir') ?>" method="post" style="display:none"><input type="hidden" name="idEquipe" id="del_equipe"></form>
 <?php endif; ?>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     function novaEquipe() {
         $('#eq_id').val(''); $('#eq_nome').val(''); $('#eq_enc').val(''); $('#eq_ativo').prop('checked', true);
         $('#eq_tipo').val('interna'); $('#eq_custo').val(''); $('#eq_doc').val(''); $('#eq_contato').val(''); $('#eq_tel').val('');

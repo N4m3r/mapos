@@ -9,7 +9,7 @@ $podeAprovar = $this->permission->checkPermission($this->session->userdata('perm
     </div>
     <div class="span12" style="margin-left:0">
         <form method="get" action="<?= site_url('rh/ocorrencias') ?>">
-            <select name="status" onchange="this.form.submit()">
+            <select name="status" data-ao-mudar="enviar">
                 <option value="">Todas</option>
                 <option value="pendente" <?= $status==='pendente'?'selected':'' ?>>Pendentes</option>
                 <option value="aprovado" <?= $status==='aprovado'?'selected':'' ?>>Aprovadas</option>
@@ -32,7 +32,7 @@ $podeAprovar = $this->permission->checkPermission($this->session->userdata('perm
                     <td><?= ! empty($o->anexo_base64) ? '<a href="'.site_url('rh/anexo/ocorrencia/'.$o->id).'" target="_blank">ver</a>' : '-' ?></td>
                     <td><span class="rh-badge <?= $o->status ?>"><?= ucfirst($o->status) ?></span></td>
                     <td><?php if ($o->status==='pendente' && $podeAprovar): ?>
-                        <a href="#modal-analise" role="button" data-toggle="modal" class="btn btn-mini" onclick='analisar(<?= $o->id ?>)'>Analisar</a>
+                        <a href="#modal-analise" role="button" data-toggle="modal" class="btn btn-mini" data-chamar="analisar" data-args="[<?= (int) $o->id ?>]">Analisar</a>
                     <?php else: echo $o->resposta ? htmlspecialchars($o->resposta) : '-'; endif; ?></td>
                 </tr>
             <?php endforeach; endif; ?>
@@ -52,10 +52,10 @@ $podeAprovar = $this->permission->checkPermission($this->session->userdata('perm
             <input type="hidden" name="status" id="an-status">
         </div>
         <div class="modal-footer" style="display:flex;justify-content:center;gap:8px">
-            <button class="button btn btn-danger" onclick="$('#an-status').val('recusado')"><span class="button__text2">Recusar</span></button>
-            <button class="button btn btn-success" onclick="$('#an-status').val('aprovado')"><span class="button__text2">Aprovar</span></button>
+            <button class="button btn btn-danger" data-definir="#an-status" data-valor="recusado"><span class="button__text2">Recusar</span></button>
+            <button class="button btn btn-success" data-definir="#an-status" data-valor="aprovado"><span class="button__text2">Aprovar</span></button>
         </div>
     </form>
 </div>
-<script>function analisar(id){ $('#an-id').val(id); }</script>
+<script nonce="<?= csp_nonce() ?>">function analisar(id){ $('#an-id').val(id); }</script>
 <?php endif; ?>

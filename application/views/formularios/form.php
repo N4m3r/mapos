@@ -80,7 +80,7 @@ $comOpcoes = $tiposComOpcoes ?? ['select', 'radio', 'checkbox'];
     </div>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     (function () {
         'use strict';
         var comOpcoes = <?= json_encode(array_values($comOpcoes)) ?>;

@@ -345,14 +345,15 @@
             color: #2d335b;
         }
     </style>
+    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
 </head>
 <body>
     <!-- Botões de ação -->
     <div class="actions no-print">
-        <button type="button" class="btn btn-primary" onclick="window.print()">
+        <button type="button" class="btn btn-primary" data-acao="imprimir">
             <i class="bx bx-printer"></i> Imprimir
         </button>
-        <button type="button" class="btn btn-secondary" onclick="window.close()">
+        <button type="button" class="btn btn-secondary" data-acao="fechar">
             <i class="bx bx-x"></i> Fechar
         </button>
     </div>
@@ -738,7 +739,7 @@
         </div>
     </div>
 
-    <script>
+    <script nonce="<?= csp_nonce() ?>">
         // Auto-print após 1 segundo (opcional)
         // setTimeout(function() { window.print(); }, 1000);
     </script>

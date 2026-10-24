@@ -13,13 +13,13 @@ $temArquivo = $holerite && ! empty($holerite->arquivo_base64);
     <div style="margin-bottom:10px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center">
         <div>
             <label style="display:inline">Competência: </label>
-            <input type="month" value="<?= $competencia ?>" onchange="window.location='<?= site_url('rh/holerite/'.$colaborador->id) ?>/'+this.value">
+            <input type="month" value="<?= $competencia ?>" data-ao-mudar-ir="<?= site_url('rh/holerite/'.$colaborador->id) ?>/">
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
             <a href="<?= site_url("rh/holeritePdf/{$colaborador->id}/{$competencia}") ?>" target="_blank" class="button btn btn-mini btn-inverse">
                 <span class="button__icon"><i class='bx bx-printer'></i></span><span class="button__text2"> Pré-visualizar PDF</span></a>
             <a href="<?= site_url("rh/holeritePdf/{$colaborador->id}/{$competencia}?liberar=1") ?>" class="button btn btn-mini btn-success"
-               onclick="return confirm('Gerar o holerite e liberar para o colaborador ver na área dele?')">
+               data-confirmar="Gerar o holerite e liberar para o colaborador ver na área dele?">
                 <span class="button__icon"><i class='bx bx-send'></i></span><span class="button__text2"> Gerar e liberar p/ colaborador</span></a>
         </div>
     </div>
@@ -104,7 +104,7 @@ $temArquivo = $holerite && ! empty($holerite->arquivo_base64);
                         <div style="margin-top:10px;display:flex;gap:8px">
                             <button class="button btn btn-success"><span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2"> Salvar</span></button>
                             <?php if ($holerite): ?>
-                                <button formaction="<?= site_url('rh/excluirHolerite') ?>" class="button btn btn-danger" onclick="return confirm('Remover o holerite desta competência?')"><span class="button__text2">Remover</span></button>
+                                <button formaction="<?= site_url('rh/excluirHolerite') ?>" class="button btn btn-danger" data-confirmar="Remover o holerite desta competência?"><span class="button__text2">Remover</span></button>
                             <?php endif; ?>
                         </div>
                     </form>

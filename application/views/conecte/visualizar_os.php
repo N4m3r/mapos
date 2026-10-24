@@ -94,7 +94,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                     <div style="margin-top:10px">
                                         <div style="font-size:12px; color:#6b7191; margin-bottom:3px">PIX copia e cola</div>
                                         <div style="display:flex; gap:6px; align-items:center">
-                                            <input type="text" readonly value="<?= html_escape($b->pix) ?>" class="span10" style="font-size:11px; margin:0" onclick="this.select()">
+                                            <input type="text" readonly value="<?= html_escape($b->pix) ?>" class="span10" style="font-size:11px; margin:0" data-acao="selecionar">
                                             <button type="button" class="btn btn-mini copiar-doc" data-valor="<?= html_escape($b->pix) ?>"><i class="bx bx-copy"></i> Copiar</button>
                                         </div>
                                     </div>
@@ -103,7 +103,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                     <div style="margin-top:8px">
                                         <div style="font-size:12px; color:#6b7191; margin-bottom:3px">Linha digitável</div>
                                         <div style="display:flex; gap:6px; align-items:center">
-                                            <input type="text" readonly value="<?= html_escape($b->barcode) ?>" class="span10" style="font-size:11px; margin:0" onclick="this.select()">
+                                            <input type="text" readonly value="<?= html_escape($b->barcode) ?>" class="span10" style="font-size:11px; margin:0" data-acao="selecionar">
                                             <button type="button" class="btn btn-mini copiar-doc" data-valor="<?= html_escape($b->barcode) ?>"><i class="bx bx-copy"></i> Copiar</button>
                                         </div>
                                     </div>
@@ -374,7 +374,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
     ]); ?>
 <?php } ?>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         $(document).on('click', '.doc-tab-link', function(e) {
             e.preventDefault();
@@ -422,7 +422,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
         <a href="" id-imagem="" class="btn btn-inverse" id="download">Download</a>
     </div>
 </div>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         $(document).on('click', '.anexo', function(event) {
             event.preventDefault();
@@ -436,7 +436,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
 </script>
 <!-- Fim Modal visualizar anexo -->
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         $("#imprimir").click(function() {
             PrintElem('#printOs');
@@ -464,7 +464,8 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
             mywindow.document.write("<link rel='stylesheet' href='<?php echo base_url(); ?>assets/css/matrix-style.css' />");
             mywindow.document.write("<link rel='stylesheet' href='<?php echo base_url(); ?>assets/css/matrix-media.css' />");
 
-            mywindow.document.write("</head><body >");
+            mywindow.document.write("    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
+</head><body >");
             mywindow.document.write(data);
             mywindow.document.write("</body></html>");
 

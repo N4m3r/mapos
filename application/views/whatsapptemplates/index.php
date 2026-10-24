@@ -45,7 +45,7 @@
                             </a>
                             <?php if (! in_array($t->slug, Whatsapp_templates_model::slugsCore(), true)) { ?>
                                 <a href="<?= site_url('whatsapptemplates/excluir/' . $t->slug) ?>" class="btn btn-danger btn-mini"
-                                   onclick="return confirm('Excluir o modelo \'<?= html_escape($t->nome) ?>\'?');">
+                                   data-confirmar="Excluir o modelo '<?= html_escape($t->nome) ?>'?">
                                     <i class="bx bx-trash"></i>
                                 </a>
                             <?php } ?>

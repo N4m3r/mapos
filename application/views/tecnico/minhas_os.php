@@ -120,7 +120,7 @@ $waNumero = function ($fone) {
 
 <?php $this->load->view('tecnico/_nav', ['nav_ativo' => 'os', 'pode_ver_sistema' => isset($pode_ver_sistema) ? $pode_ver_sistema : false]); ?>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
 (function () {
     var input = document.getElementById('buscaOs');
     if (!input) return;

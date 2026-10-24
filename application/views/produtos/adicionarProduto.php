@@ -136,9 +136,9 @@
     </div>
 </div>
 
-<script src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
-<script src="<?php echo base_url(); ?>assets/js/maskmoney.js"></script>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/maskmoney.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     function calcLucro(precoCompra, Lucro) {
         var lucroTipo = $('#selectLucro').val();
         var precoVenda;

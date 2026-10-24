@@ -51,7 +51,7 @@
                                     <a href="<?= site_url('mapos/reenviarEmail/' . (int) $e->id) ?>"
                                        class="btn btn-mini btn-inverse"
                                        title="Reenviar este e-mail com os mesmos anexos"
-                                       onclick="return confirm('Reenviar este e-mail para <?= html_escape($e->destino) ?> com os mesmos anexos?');">
+                                       data-confirmar="Reenviar este e-mail para <?= html_escape($e->destino) ?> com os mesmos anexos?">
                                         <i class="bx bx-mail-send"></i> Reenviar
                                     </a>
                                 <?php } else { ?>

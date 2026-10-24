@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/table-custom.css" />
-<script type="text/javascript" src="<?php echo base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
-<script src="<?php echo base_url() ?>assets/js/sweetalert2.all.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/sweetalert2.all.min.js"></script>
 <style>
   select {
     width: 70px;
@@ -268,7 +268,7 @@
     echo $this->load->view('os/_modal_emissao_nfe', ['configNfe' => (isset($configNfe) ? $configNfe : null)], true);
 } ?>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         // ---- Acao rapida: mudar status pela listagem (mesmo endpoint da Central de Atendimento) ----
         var statusRapidos = <?= json_encode(isset($statusRapidos) ? $statusRapidos : []) ?>;

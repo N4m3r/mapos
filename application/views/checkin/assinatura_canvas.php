@@ -70,7 +70,7 @@ $container_preview_id = $id . '-preview';
     <?php endif; ?>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
 (function() {
     // Inicializa o canvas de assinatura
     var canvasId = '<?php echo $canvas_id; ?>';

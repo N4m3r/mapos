@@ -201,7 +201,7 @@ $configNfeBoleto = $this->nfe_model->getConfig();
         </button>
     </div>
 </div>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
 (function () {
     var urlGerar = "<?php echo site_url('cobrancas/gerarPorNota'); ?>";
     var urlVerificar = "<?php echo site_url('cobrancas/verificarPagamento'); ?>";

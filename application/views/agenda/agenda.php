@@ -1,5 +1,5 @@
-<script src="<?= base_url() ?>assets/js/fullcalendar.min.js"></script>
-<script src="<?= base_url() ?>assets/js/fullcalendar/locales/pt-br.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/fullcalendar.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/fullcalendar/locales/pt-br.js"></script>
 <link href="<?= base_url() ?>assets/css/fullcalendar.min.css" rel="stylesheet" />
 <style>
     #agendaEquipe { background:#fff; padding:10px; border-radius:8px; }
@@ -56,7 +56,7 @@
 </div>
 <div id="agendaAviso"></div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
 document.addEventListener('DOMContentLoaded', function () {
     var aviso = function (texto, ok) {
         var el = document.getElementById('agendaAviso');

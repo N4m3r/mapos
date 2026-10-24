@@ -63,7 +63,7 @@
         </div>
     </form>
 </div>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         $(document).on('click', 'a', function(event) {
             var email = $(this).attr('email');

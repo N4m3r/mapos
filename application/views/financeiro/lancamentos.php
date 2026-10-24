@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
-<script type="text/javascript" src="<?php echo base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
-<script src="<?php echo base_url() ?>assets/js/sweetalert2.all.min.js"></script>
-<script src="<?php echo base_url() ?>assets/js/dayjs.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/sweetalert2.all.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/dayjs.min.js"></script>
 
 <?php $situacao = $this->input->get('situacao');
 $periodo = $this->input->get('periodo');
@@ -295,7 +295,7 @@ echo number_format($soma_descontos_pagos, 2, ',', '.')?></strong></td>
         <div class="span4">  
 	        <label for="descontos">Desconto</label>
 	        <input class="span6 money" id="descontos" type="text" name="descontos" value="" placeholder="em R$" style="float: left;" />
-            <input class="btn btn-inverse" onclick="mostrarValores();" type="button" name="valor_desconto" value="Aplicar" placeholder="R$" style="margin-left:3px; width: 70px;" />
+            <input class="btn btn-inverse" data-chamar="mostrarValores" type="button" name="valor_desconto" value="Aplicar" placeholder="R$" style="margin-left:3px; width: 70px;" />
 	      </div>
 		            
           <div class="span3">  
@@ -411,7 +411,7 @@ echo number_format($soma_descontos_pagos, 2, ',', '.')?></strong></td>
           <div class="span4" style="margin-left: 2">  
 	        <label for="descontos_parc">Desconto</label>
 	        <input class="span6 money" id="descontos_parc" type="text" name="descontos_parc" value="" placeholder="em R$" style="float: left;" />
-            <input class="btn btn-inverse" onclick="mostrarValoresParc();" type="button" name="desconto_parc" value="Aplicar" placeholder="R$" style="width: 70px; margin-left:3px;" />
+            <input class="btn btn-inverse" data-chamar="mostrarValoresParc" type="button" name="desconto_parc" value="Aplicar" placeholder="R$" style="width: 70px; margin-left:3px;" />
 	      </div>
 		         
           <div class="span3" style="margin-left: 0">  
@@ -603,7 +603,7 @@ echo number_format($soma_descontos_pagos, 2, ',', '.')?></strong></td>
         <div class="span4">  
 	        <label for="descontos">Desconto</label>
 	        <input class="span6 money" id="descontos_editar" type="text" name="descontos_editar" value="" placeholder="em R$" style="float: left;" />
-            <input class="btn btn-inverse" onclick="mostrarValoresEditar();" type="button" name="valor_desconto_editar" value="Aplicar" placeholder="R$" style="width: 70px; margin-left:3px;" />
+            <input class="btn btn-inverse" data-chamar="mostrarValoresEditar" type="button" name="valor_desconto_editar" value="Aplicar" placeholder="R$" style="width: 70px; margin-left:3px;" />
 	      </div>
 
             <div class="span2">  
@@ -685,9 +685,9 @@ echo number_format($soma_descontos_pagos, 2, ',', '.')?></strong></td>
     </div>
 </div>
 
-<script src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
-<script src="<?php echo base_url(); ?>assets/js/maskmoney.js"></script>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/maskmoney.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
 
     function mostrarValor() {
 		if (document.getElementById('valor').value == "" || document.getElementById('desconto').value == ""){

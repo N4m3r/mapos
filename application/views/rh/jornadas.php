@@ -5,7 +5,7 @@
         <span class="icon"><i class="fas fa-clock"></i></span><h5>Jornadas / Escalas</h5>
     </div>
     <div class="span12" style="margin-left:0">
-        <a href="#modal-jornada" role="button" data-toggle="modal" class="button btn btn-mini btn-success" onclick="novaJornada()">
+        <a href="#modal-jornada" role="button" data-toggle="modal" class="button btn btn-mini btn-success" data-chamar="novaJornada">
             <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2"> Jornada</span>
         </a>
     </div>
@@ -25,7 +25,7 @@
                     <td><?= $j->hora_entrada ? substr($j->hora_entrada,0,5).' - '.substr($j->hora_saida,0,5) : '-' ?></td>
                     <td><?= (int) $j->tolerancia_min ?> min</td>
                     <td>
-                        <a href="#modal-jornada" role="button" data-toggle="modal" class="btn-nwe3" onclick='editarJornada(<?= json_encode($j) ?>)'><i class="bx bx-edit bx-xs"></i></a>
+                        <a href="#modal-jornada" role="button" data-toggle="modal" class="btn-nwe3" data-chamar="editarJornada" data-args="<?= html_escape(json_encode([$j])) ?>"><i class="bx bx-edit bx-xs"></i></a>
                         <a href="#modal-excluir-j" role="button" data-toggle="modal" reg="<?= $j->id ?>" class="btn-nwe4"><i class="bx bx-trash-alt bx-xs"></i></a>
                     </td>
                 </tr>
@@ -71,7 +71,7 @@
         <div class="modal-footer"><button class="button btn btn-danger"><span class="button__text2">Excluir</span></button></div>
     </form>
 </div>
-<script>
+<script nonce="<?= csp_nonce() ?>">
 function novaJornada(){ $('#j-titulo').text('Nova jornada'); $('#j-id').val(''); $('#j-nome').val(''); $('#j-carga').val(480); $('#j-intervalo').val(60); $('#j-tol').val(10); $('#j-entrada').val(''); $('#j-saida').val(''); $('#j-situacao').val('1'); $('#j-dias input').each(function(){ this.checked = ['1','2','3','4','5'].indexOf(this.value)>=0; }); }
 function editarJornada(j){ $('#j-titulo').text('Editar jornada'); $('#j-id').val(j.id); $('#j-nome').val(j.nome); $('#j-carga').val(j.carga_diaria_min); $('#j-intervalo').val(j.intervalo_min); $('#j-tol').val(j.tolerancia_min); $('#j-entrada').val((j.hora_entrada||'').substring(0,5)); $('#j-saida').val((j.hora_saida||'').substring(0,5)); $('#j-situacao').val(j.situacao); var dias=(j.dias_semana||'').split(','); $('#j-dias input').each(function(){ this.checked = dias.indexOf(this.value)>=0; }); }
 $(document).on('click','a[reg]',function(){ $('#j-del-id').val($(this).attr('reg')); });

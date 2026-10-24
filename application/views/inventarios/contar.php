@@ -67,7 +67,7 @@ $aberto = $inventario->status === 'aberto';
                 <div style="padding:0 14px 14px; display:flex; gap:10px; flex-wrap:wrap">
                     <button type="submit" class="button btn btn-primary"><span class="button__icon"><i class="bx bx-save"></i></span><span class="button__text2">Salvar contagem</span></button>
                     <button type="submit" name="finalizar" value="1" class="button btn btn-success"
-                            onclick="return confirm('Finalizar o inventário? O estoque dos produtos contados será ajustado para o valor contado.');">
+                            data-confirmar="Finalizar o inventário? O estoque dos produtos contados será ajustado para o valor contado.">
                         <span class="button__icon"><i class="bx bx-check-double"></i></span><span class="button__text2">Finalizar e ajustar estoque</span></button>
                 </div>
             <?php } ?>
@@ -75,14 +75,14 @@ $aberto = $inventario->status === 'aberto';
 
         <?php if ($podeEditar) { ?>
             <form action="<?= site_url('inventarios/cancelar/' . (int) $inventario->id) ?>" method="post" style="padding:0 14px 14px"
-                  onsubmit="return confirm('Cancelar este inventário? Nenhum estoque será alterado.');">
+                  data-confirmar="Cancelar este inventário? Nenhum estoque será alterado.">
                 <button type="submit" class="btn btn-mini btn-danger">Cancelar inventário</button>
             </form>
         <?php } ?>
     </div>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     (function () {
         var filtro = document.getElementById('filtroInventario');
         var soDiferencas = document.getElementById('soDiferencas');

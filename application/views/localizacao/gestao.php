@@ -201,8 +201,8 @@
     </div>
 </div>
 
-<script src="<?= base_url('assets/plugins/leaflet/leaflet.js') ?>"></script>
-<script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/plugins/leaflet/leaflet.js') ?>"></script>
+<script nonce="<?= csp_nonce() ?>">
 (function () {
     'use strict';
 
@@ -288,7 +288,7 @@
                 html += '<a class="btn btn-mini" href="' + BASE +
                         'index.php/os/visualizar/' + t.os_id + '" target="_blank">Abrir OS</a>';
             }
-            html += '<a class="btn btn-mini" href="#" onclick="return locVerPercursoHoje(' + t.usuarios_id + ');">Percurso de hoje</a>';
+            html += '<a class="btn btn-mini" href="#" data-chamar="locVerPercursoHoje" data-args="[' + parseInt(t.usuarios_id, 10) + ']">Percurso de hoje</a>';
             html += '</div>';
             return html;
         }

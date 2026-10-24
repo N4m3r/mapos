@@ -16,9 +16,9 @@
     <link href="<?php echo base_url(); ?>assets/font-awesome/css/font-awesome.css" rel="stylesheet" />
     <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/fullcalendar.css" />
     <link href="<?php echo base_url(); ?>assets/css/bootstrap-responsive.min.css" rel="stylesheet">
-    <script type="text/javascript" src="<?php echo base_url(); ?>assets/js/jquery-1.10.2.min.js"></script>
-    <script type="text/javascript" src="<?= base_url(); ?>assets/js/funcoesGlobal.js"></script>
-    <script type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
+    <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url(); ?>assets/js/jquery-1.10.2.min.js"></script>
+    <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/funcoesGlobal.js"></script>
+    <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
 </head>
 
 <body>
@@ -199,7 +199,7 @@
                     </div>
                 </div>
 
-                <script type="text/javascript">
+                <script nonce="<?= csp_nonce() ?>" type="text/javascript">
                     $(document).ready(function() {
                         $("#imprimir").click(function() {
                             PrintElem('#printOs');
@@ -242,7 +242,7 @@
     <!-- javascript
 ================================================== -->
 
-    <script src="<?php echo base_url(); ?>assets/js/bootstrap.min.js"></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/bootstrap.min.js"></script>
 
 
 </body>

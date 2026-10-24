@@ -80,7 +80,7 @@ $f = isset($filtros) ? $filtros : ['pesquisa' => '', 'status' => ''];
     </form>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     $(function () {
         $(document).on('click', '.btn-excluir', function () {
             $('#idContrato').val($(this).data('id'));

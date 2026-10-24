@@ -90,7 +90,7 @@
     </form>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     $(function () {
         $(document).on('click', 'a[obra]', function () { $('#idObra').val($(this).attr('obra')); });
     });

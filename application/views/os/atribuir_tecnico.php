@@ -398,7 +398,7 @@ $base = base_url() . 'index.php/os/atribuir';
     </div>
 </div>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         var BASE = '<?= base_url() ?>index.php/os/';
 

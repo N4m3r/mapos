@@ -113,7 +113,7 @@ $tokenHash = $this->security->get_csrf_hash();
         <?php $agendados = isset($agendados) ? $agendados : []; ?>
         <div style="margin-bottom:12px">
             <a href="<?= site_url('automacao/processarAgendados') ?>" class="btn btn-primary btn-mini"
-                onclick="return confirm('Emitir agora todos os itens já vencidos (data igual ou anterior a hoje)?');">
+                data-confirmar="Emitir agora todos os itens já vencidos (data igual ou anterior a hoje)?">
                 <i class="bx bx-play"></i> Processar vencidos agora
             </a>
             <span class="help-inline" style="margin-left:8px">A fila também é processada sozinha (a cada ~2 min) quando chega o dia.</span>
@@ -149,7 +149,7 @@ $tokenHash = $this->security->get_csrf_hash();
                             </td>
                             <td>
                                 <a href="<?= site_url('automacao/cancelarAgendado/' . (int) $a->id) ?>" class="btn btn-danger btn-mini"
-                                    onclick="return confirm('Cancelar este faturamento agendado? A nota não será emitida.');">
+                                    data-confirmar="Cancelar este faturamento agendado? A nota não será emitida.">
                                     <i class="bx bx-x"></i> Cancelar
                                 </a>
                             </td>

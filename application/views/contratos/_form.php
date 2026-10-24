@@ -105,7 +105,7 @@ $slas = isset($slas) ? $slas : [];
     </div>
 </div>
 <link rel="stylesheet" href="<?= base_url() ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
-<script src="<?= base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
-<script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
+<script nonce="<?= csp_nonce() ?>">
     $(function () { $('.datepicker').datepicker({ dateFormat: 'dd/mm/yy' }); });
 </script>

@@ -182,7 +182,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
 $(document).ready(function() {
     // Configurações globais
     const baseUrl = '<?php echo base_url(); ?>';

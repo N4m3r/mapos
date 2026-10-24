@@ -55,7 +55,7 @@ $money = function ($v) {
                             <span class="button__text">Gerar</span>
                         </button>
                         <?php if ($resultados !== null): ?>
-                            <button class="button btn btn-primary" type="button" onclick="window.print()">
+                            <button class="button btn btn-primary" type="button" data-acao="imprimir">
                                 <span class="button__icon"><i class="bx bx-printer"></i></span>
                                 <span class="button__text">Imprimir</span>
                             </button>
@@ -169,8 +169,8 @@ $money = function ($v) {
 <?php endif; ?>
 
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
-<script type="text/javascript" src="<?php echo base_url(); ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url(); ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function () {
         $("#cliente").autocomplete({
             source: "<?php echo base_url(); ?>index.php/os/autoCompleteCliente",

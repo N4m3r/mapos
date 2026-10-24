@@ -650,7 +650,7 @@
         </div>
     </form>
 </div>
-<script>
+<script nonce="<?= csp_nonce() ?>">
     $('#update-database').click(function() {
         window.location = "<?= site_url('mapos/atualizarBanco') ?>"
     });

@@ -1,6 +1,6 @@
-<script src="<?php echo base_url() ?>assets/js/jquery.mask.min.js"></script>
-<script src="<?php echo base_url() ?>assets/js/sweetalert2.all.min.js"></script>
-<script src="<?php echo base_url() ?>assets/js/funcoes.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/jquery.mask.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/sweetalert2.all.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/funcoes.js"></script>
 <style>
     #imgSenha {
         width: 18px;
@@ -293,7 +293,7 @@
                         </div>
                     </div>
 
-                    <script>
+                    <script nonce="<?= csp_nonce() ?>">
                         (function () {
                             var busca = document.getElementById('buscaCnpjVinculo');
                             var lista = document.getElementById('listaCnpjVinculo');
@@ -343,8 +343,8 @@
         </div>
     </div>
 </div>
-<script src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         let container = document.querySelector('div');
         let input = document.querySelector('#senha');

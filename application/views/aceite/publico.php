@@ -278,10 +278,10 @@ $totalFotos = count($fotos_etapa['entrada']) + count($fotos_etapa['durante']) + 
         </div>
     </div>
 
-    <script src="<?= base_url() ?>assets/js/jquery-1.12.4.min.js"></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/jquery-1.12.4.min.js"></script>
     <?php if ($situacao === 'pendente') { ?>
-        <script src="<?= base_url() ?>assets/js/assinatura-canvas.js"></script>
-        <script>
+        <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/assinatura-canvas.js"></script>
+        <script nonce="<?= csp_nonce() ?>">
             $(function() {
                 var $form = $('#formAceite');
                 var assinatura = new AssinaturaCanvas('canvasAssinatura', { altura: 180 });

@@ -58,7 +58,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     $(function() {
         $('.btn-reprovar').on('click', function(e) {
             if (!confirm('Confirma a REPROVAÇÃO desta OS?')) {

@@ -255,3 +255,19 @@ if (! function_exists('formatar_chave_pix')) {
         return $chave;
     }
 }
+
+if (! function_exists('csp_nonce')) {
+    /**
+     * Nonce da Content-Security-Policy desta requisicao (hooks/csp.php).
+     * Todo <script> das views leva nonce="<?= csp_nonce() ?>"; script injetado (XSS) nao tem e e bloqueado.
+     */
+    function csp_nonce()
+    {
+        static $nonce = null;
+        if ($nonce === null) {
+            $nonce = rtrim(strtr(base64_encode(random_bytes(18)), '+/', '-_'), '=');
+        }
+
+        return $nonce;
+    }
+}

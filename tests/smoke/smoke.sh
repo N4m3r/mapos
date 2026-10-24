@@ -80,6 +80,18 @@ for linha in $ROTAS; do
     fi
 done
 
+# CSP: cabecalho presente e scripts da pagina com o mesmo nonce do cabecalho
+cab=$(curl -s -D - -o "$TMP/pagina" -b "$J" "$BASE_URL/mapos" | grep -i '^content-security-policy')
+nonce=$(printf '%s' "$cab" | sed -n "s/.*'nonce-\([A-Za-z0-9_-]*\)'.*/\1/p")
+sem=$(grep -oiE '<script[^>]*>' "$TMP/pagina" | grep -vcF "nonce=\"$nonce\"")
+if [ -z "$nonce" ] && [ "${APP_CSP:-relatorio}" != "desligado" ]; then
+    echo "FALHA CSP: cabecalho sem nonce"; falhas=$((falhas + 1))
+elif [ -n "$nonce" ] && [ "$sem" -gt 0 ]; then
+    echo "FALHA CSP: $sem <script> sem o nonce da pagina"; falhas=$((falhas + 1))
+else
+    echo "OK    CSP (nonce nos scripts)"
+fi
+
 rm -rf "$TMP"
 if [ "$falhas" -gt 0 ]; then
     echo "$falhas tela(s) com problema"

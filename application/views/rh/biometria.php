@@ -27,9 +27,9 @@
     </div></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
-<script src="<?= base_url('assets/js/rh-facial.js') ?>"></script>
-<script>
+<script nonce="<?= csp_nonce() ?>" src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/rh-facial.js') ?>"></script>
+<script nonce="<?= csp_nonce() ?>">
 (function(){
     var MODELS = '<?= base_url('assets/models/face') ?>';
     var MODELS_CDN = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';

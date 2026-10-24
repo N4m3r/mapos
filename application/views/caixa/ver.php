@@ -46,7 +46,7 @@ $resumo = $caixa->resumo_fechamento ? json_decode($caixa->resumo_fechamento, tru
                     </form>
 
                     <h5 style="margin-top:18px">Fechar caixa</h5>
-                    <form action="<?= site_url('caixa/fechar') ?>" method="post" onsubmit="return confirm('Fechar o caixa? Depois disso não é possível vender com ele.');">
+                    <form action="<?= site_url('caixa/fechar') ?>" method="post" data-confirmar="Fechar o caixa? Depois disso não é possível vender com ele.">
                         <input type="hidden" name="caixa_id" value="<?= (int) $caixa->id ?>">
                         <label>Dinheiro contado na gaveta (R$)</label>
                         <input type="text" name="contado_dinheiro" inputmode="decimal" required style="width:140px; text-align:right">

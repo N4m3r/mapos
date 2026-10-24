@@ -168,7 +168,7 @@ $pronto = $ativo && $clientId && $certPath && $chavePath;
     </div>
 </div>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
 $(document).on('click', '#btn-testar-cora', function () {
     var $btn = $(this);
     var $res = $('#resultado-teste-cora');

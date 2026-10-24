@@ -197,7 +197,7 @@
                     <input type="password" name="senha" required autocomplete="current-password">
                     <br><button class="button btn btn-info" type="submit"><span class="button__icon"><i class="bx bx-key"></i></span><span class="button__text2">Novos códigos</span></button>
                 </form>
-                <form action="<?= site_url('mapos/doisFatoresDesativar') ?>" method="post" style="display:inline-block" onsubmit="return confirm('Desativar a verificação em duas etapas?');">
+                <form action="<?= site_url('mapos/doisFatoresDesativar') ?>" method="post" style="display:inline-block" data-confirmar="Desativar a verificação em duas etapas?">
                     <label>Senha atual</label>
                     <input type="password" name="senha" required autocomplete="current-password">
                     <br><button class="button btn btn-danger" type="submit"><span class="button__icon"><i class="bx bx-shield-x"></i></span><span class="button__text2">Desativar</span></button>
@@ -230,8 +230,8 @@
 </div>
 
 
-<script src="<?= base_url() ?>assets/js/jquery.validate.js"></script>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/jquery.validate.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
 
         $("#formImageUser").validate({

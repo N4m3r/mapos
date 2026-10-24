@@ -1,6 +1,6 @@
-<script src="<?php echo base_url() ?>assets/js/jquery.mask.min.js"></script>
-<script src="<?php echo base_url() ?>assets/js/funcoes.js"></script>
-<script src="<?php echo base_url() ?>assets/js/sweetalert2.all.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/jquery.mask.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/funcoes.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/sweetalert2.all.min.js"></script>
 
 <style>
     .modal-body {
@@ -304,8 +304,8 @@
     </div>
 <?php } ?>
 
-<script type="text/javascript" src="<?= base_url() ?>assets/js/jquery.validate.js"></script>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url() ?>assets/js/jquery.validate.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function () {
         $("#formLogo").validate({
             rules: {

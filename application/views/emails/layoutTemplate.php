@@ -67,7 +67,7 @@ $tokenHash = $this->security->get_csrf_hash();
     <input type="hidden" name="email_css" id="previewCss" value="">
 </form>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     (function() {
         document.getElementById('btnPreview').addEventListener('click', function() {
             document.getElementById('previewLayout').value = document.getElementById('email_layout').value;

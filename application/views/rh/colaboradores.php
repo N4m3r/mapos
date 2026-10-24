@@ -67,6 +67,6 @@
         </div>
     </form>
 </div>
-<script>
+<script nonce="<?= csp_nonce() ?>">
 $(document).on('click', 'a[reg]', function(){ $('#reg-id').val($(this).attr('reg')); });
 </script>

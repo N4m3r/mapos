@@ -75,4 +75,4 @@
         </div>
     </div>
 </div>
-<script src="<?= base_url() ?>assets/js/obra-scanner.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/obra-scanner.js"></script>

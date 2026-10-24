@@ -64,7 +64,7 @@ $compLabel = date('m/Y', strtotime($competencia . '-01'));
         Relatório gerencial. Proventos = salário base + lançamentos aprovados; não inclui encargos fiscais (INSS/IRRF/FGTS), que ficam com a contabilidade.
     </p>
 </div>
-<script>
+<script nonce="<?= csp_nonce() ?>">
 document.getElementById('competencia').addEventListener('change', function(){
     window.location = '<?= site_url('rh/folha') ?>/' + this.value;
 });

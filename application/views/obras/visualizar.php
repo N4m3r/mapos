@@ -70,7 +70,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
     <div class="obra-pane" id="tab-cronograma" style="display:none">
         <div class="widget-box"><div class="widget-content nopadding">
             <?php if ($perm('eObraCronograma')): ?>
-                <div style="padding:8px"><a href="#modal-etapa" data-toggle="modal" class="button btn btn-mini btn-success" onclick="novaEtapa()"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova etapa</span></a></div>
+                <div style="padding:8px"><a href="#modal-etapa" data-toggle="modal" class="button btn btn-mini btn-success" data-chamar="novaEtapa"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova etapa</span></a></div>
             <?php endif; ?>
             <table class="table table-bordered">
                 <thead><tr><th>EAP</th><th>Etapa</th><th>Peso %</th><th>Valor prev.</th><th>Início</th><th>Fim</th><th>%</th><?php if ($perm('eObraCronograma')): ?><th>Ações</th><?php endif; ?></tr></thead>
@@ -90,8 +90,8 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                             </td>
                             <?php if ($perm('eObraCronograma')): ?>
                                 <td>
-                                    <a href="#" class="btn-nwe3" title="Editar" onclick='editarEtapa(<?= json_encode($e, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP) ?>);return false;'><i class="bx bx-edit bx-xs"></i></a>
-                                    <a href="#" class="btn-nwe4" title="Excluir" onclick="excluirEtapa(<?= $e->idEtapa ?>);return false;"><i class="bx bx-trash-alt bx-xs"></i></a>
+                                    <a href="#" class="btn-nwe3" title="Editar" data-chamar="editarEtapa" data-args="<?= html_escape(json_encode([$e])) ?>" data-cancelar><i class="bx bx-edit bx-xs"></i></a>
+                                    <a href="#" class="btn-nwe4" title="Excluir" data-chamar="excluirEtapa" data-args="[<?= (int) $e->idEtapa ?>]" data-cancelar><i class="bx bx-trash-alt bx-xs"></i></a>
                                 </td>
                             <?php endif; ?>
                         </tr>
@@ -198,7 +198,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                                     <form action="<?= site_url('obras/aprovarMedicao') ?>" method="post" style="display:inline">
                                         <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
                                         <input type="hidden" name="idMedicao" value="<?= $m->idMedicao ?>">
-                                        <button class="button btn btn-mini btn-success" onclick="return confirm('Aprovar medição?')"><span class="button__text2">Aprovar</span></button>
+                                        <button class="button btn btn-mini btn-success" data-confirmar="Aprovar medição?"><span class="button__text2">Aprovar</span></button>
                                     </form>
                                 <?php else: ?>—<?php endif; ?>
                             </td>
@@ -239,7 +239,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                                 <td><?= html_escape($u->nome ?: '—') ?></td>
                                 <td><?= html_escape($u->email ?: '—') ?></td>
                                 <?php if ($perm('eObras')): ?>
-                                    <td><a href="#" class="btn-nwe4" title="Remover acesso" onclick="desvincularUsuario(<?= (int) $u->idObraUsuario ?>);return false;"><i class="bx bx-user-x bx-xs"></i></a></td>
+                                    <td><a href="#" class="btn-nwe4" title="Remover acesso" data-chamar="desvincularUsuario" data-args="[<?= (int) $u->idObraUsuario ?>]" data-cancelar><i class="bx bx-user-x bx-xs"></i></a></td>
                                 <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
@@ -271,7 +271,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                 <form action="<?= site_url('obras/consolidarPonto') ?>" method="post" style="display:flex;gap:6px;align-items:flex-end;margin:0">
                     <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
                     <div><label>Gerar efetivo do dia (ponto facial/GPS)</label><input type="text" class="datepicker" name="data" value="<?= date('d/m/Y') ?>" style="width:130px"></div>
-                    <button class="button btn btn-mini btn-primary" onclick="return confirm('Consolidar as batidas de ponto vinculadas a esta obra nesse dia?')"><span class="button__icon"><i class='bx bx-sync'></i></span><span class="button__text2">Consolidar ponto</span></button>
+                    <button class="button btn btn-mini btn-primary" data-confirmar="Consolidar as batidas de ponto vinculadas a esta obra nesse dia?"><span class="button__icon"><i class='bx bx-sync'></i></span><span class="button__text2">Consolidar ponto</span></button>
                 </form>
                 <span class="scanner-status">As batidas de ponto que o colaborador vincular a esta obra viram efetivo aqui (horas/diária e custo de mão de obra).</span>
             </div></div>
@@ -293,7 +293,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                                 <td><span class="label"><?= $ap->origem === 'ponto_facial' ? 'Ponto' : 'Manual' ?></span></td>
                                 <?php if ($verValor): ?><td>R$ <?= $fmt($ap->valor) ?></td><?php endif; ?>
                                 <?php if ($perm('cObraRdo')): ?>
-                                    <td><a href="#" class="btn-nwe4" title="Remover" onclick="excluirApont(<?= $ap->idApontamento ?>);return false;"><i class="bx bx-trash-alt bx-xs"></i></a></td>
+                                    <td><a href="#" class="btn-nwe4" title="Remover" data-chamar="excluirApont" data-args="[<?= (int) $ap->idApontamento ?>]" data-cancelar><i class="bx bx-trash-alt bx-xs"></i></a></td>
                                 <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
@@ -344,7 +344,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                                 <a href="<?= site_url('os/visualizar/' . $o->idOs) ?>" class="btn-nwe" title="Abrir OS"><i class="bx bx-show bx-xs"></i></a>
                                 <a href="<?= site_url('tecnico/visualizar/' . $o->idOs) ?>" class="button btn btn-mini btn-primary" style="margin:0 4px" title="Executar em campo"><span class="button__icon"><i class='bx bx-play-circle'></i></span><span class="button__text2">Executar</span></a>
                                 <?php if ($perm('eObras')): ?>
-                                    <a href="#" class="btn-nwe4" title="Desvincular" onclick="desvincularOs(<?= (int) $o->idVinculo ?>);return false;"><i class="bx bx-unlink bx-xs"></i></a>
+                                    <a href="#" class="btn-nwe4" title="Desvincular" data-chamar="desvincularOs" data-args="[<?= (int) $o->idVinculo ?>]" data-cancelar><i class="bx bx-unlink bx-xs"></i></a>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -420,7 +420,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
 <form id="formDesvincularUsuario" action="<?= site_url('obras/desvincularUsuario') ?>" method="post" style="display:none">
     <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>"><input type="hidden" name="idObraUsuario" id="del_usuario">
 </form>
-<script>
+<script nonce="<?= csp_nonce() ?>">
     function desvincularOs(id){ if(confirm('Desvincular esta OS do projeto? A OS não é excluída.')){ document.getElementById('del_vinculo').value=id; document.getElementById('formDesvincularOs').submit(); } }
     function desvincularUsuario(id){ if(confirm('Remover o acesso deste usuário ao projeto?')){ document.getElementById('del_usuario').value=id; document.getElementById('formDesvincularUsuario').submit(); } }
 </script>
@@ -450,7 +450,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
 <form id="formExcluirApont" action="<?= site_url('obras/excluirApontamento') ?>" method="post" style="display:none">
     <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>"><input type="hidden" name="idApontamento" id="del_apont">
 </form>
-<script>
+<script nonce="<?= csp_nonce() ?>">
     function excluirApont(id){ if(confirm('Remover apontamento?')){ document.getElementById('del_apont').value=id; document.getElementById('formExcluirApont').submit(); } }
 </script>
 <?php endif; ?>
@@ -521,8 +521,8 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
 </div>
 
 <link rel="stylesheet" href="<?= base_url() ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
-<script src="<?= base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
-<script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
+<script nonce="<?= csp_nonce() ?>">
     $(function () {
         $('.datepicker').datepicker({ dateFormat: 'dd/mm/yy' });
 

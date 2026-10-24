@@ -177,6 +177,7 @@
       .login-form { padding: 30px 22px 26px; }
     }
   </style>
+    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
 </head>
 
 <body>
@@ -201,7 +202,7 @@
 
     <main class="login-form">
       <div class="brand">
-        <img src="<?= base_url() ?>assets/img/logo-mapos.png" onerror="this.onerror=null;this.src='<?= base_url() ?>assets/img/logo-two.png';" alt="Map-OS">
+        <img src="<?= base_url() ?>assets/img/logo-mapos.png" data-fallback="<?= base_url() ?>assets/img/logo-two.png" alt="Map-OS">
         <span class="versao">Versão: <?= $this->config->item('app_version'); ?></span>
       </div>
 
@@ -245,7 +246,7 @@
     </main>
   </div>
 
-  <script>
+  <script nonce="<?= csp_nonce() ?>">
     // Aparelho compartilhado: telas da Area do Tecnico guardadas offline nao ficam para o proximo usuario
     if ('caches' in window) {
       caches.keys().then(function (nomes) {
@@ -253,9 +254,10 @@
       }).catch(function () {});
     }
   </script>
-  <script src="<?= base_url() ?>assets/js/jquery-1.12.4.min.js"></script>
-  <script src="<?= base_url() ?>assets/js/validate.js"></script>
-  <script type="text/javascript">
+  <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/jquery-3.7.1.min.js"></script>
+  <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/jquery-migrate-3.4.1.min.js"></script>
+  <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/validate.js"></script>
+  <script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
       $('#email').focus();
 

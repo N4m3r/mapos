@@ -117,9 +117,9 @@ $labelsTipo = [
 $this->load->view('colaborador/_nav', ['nav_ativo' => 'ponto', 'pode_bater_ponto' => true]);
 ?>
 
-<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
-<script src="<?= base_url('assets/js/rh-facial.js') ?>"></script>
-<script>
+<script nonce="<?= csp_nonce() ?>" src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/rh-facial.js') ?>"></script>
+<script nonce="<?= csp_nonce() ?>">
 (function () {
     var CFG = {
         geofenceObrigatorio: <?= (int) $cfg['geofence_obrigatorio'] ?>,
@@ -340,6 +340,6 @@ $this->load->view('colaborador/_nav', ['nav_ativo' => 'ponto', 'pode_bater_ponto
     }
 })();
 </script>
-<script src="<?= base_url('assets/js/sweetalert2.all.min.js') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/sweetalert2.all.min.js') ?>"></script>
 </body>
 </html>

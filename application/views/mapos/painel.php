@@ -1,10 +1,10 @@
-<!--[if lt IE 9]><script language="javascript" type="text/javascript" src="<?php echo base_url(); ?>js/dist/excanvas.min.js"></script><![endif]-->
+<!--[if lt IE 9]><script nonce="<?= csp_nonce() ?>" language="javascript" type="text/javascript" src="<?php echo base_url(); ?>js/dist/excanvas.min.js"></script><![endif]-->
 
-<script language="javascript" type="text/javascript" src="<?= base_url(); ?>assets/js/dist/jquery.jqplot.min.js"></script>
-<script type="text/javascript" src="<?= base_url(); ?>assets/js/dist/plugins/jqplot.pieRenderer.min.js"></script>
-<script type="text/javascript" src="<?= base_url(); ?>assets/js/dist/plugins/jqplot.donutRenderer.min.js"></script>
-<script src='<?= base_url(); ?>assets/js/fullcalendar.min.js'></script>
-<script src='<?= base_url(); ?>assets/js/fullcalendar/locales/pt-br.js'></script>
+<script nonce="<?= csp_nonce() ?>" language="javascript" type="text/javascript" src="<?= base_url(); ?>assets/js/dist/jquery.jqplot.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/dist/plugins/jqplot.pieRenderer.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/dist/plugins/jqplot.donutRenderer.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src='<?= base_url(); ?>assets/js/fullcalendar.min.js'></script>
+<script nonce="<?= csp_nonce() ?>" src='<?= base_url(); ?>assets/js/fullcalendar/locales/pt-br.js'></script>
 
 <link href='<?= base_url(); ?>assets/css/fullcalendar.min.css' rel='stylesheet' />
 <link rel="stylesheet" type="text/css" href="<?= base_url(); ?>assets/js/dist/jquery.jqplot.min.css" />
@@ -15,7 +15,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
 
 <!-- New Bem-vindos -->
 <div id="content-bemv">
@@ -274,7 +274,7 @@
             </div>
         <?php endif ?>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     if (window.outerWidth > 2000) {
         Chart.defaults.font.size = 15;
     };
@@ -1211,9 +1211,9 @@
     </form>
 </div>
 
-<script src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
 <!-- Modal Estoque-->
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         $(document).on('click', 'a', function(event) {
             var produto = $(this).attr('produto');

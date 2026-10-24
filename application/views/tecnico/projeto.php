@@ -215,9 +215,9 @@ foreach ($os_servicos as $ms) {
 </div>
 
 <?php $this->load->view('tecnico/_nav', ['nav_ativo' => 'projetos', 'pode_ver_sistema' => isset($pode_ver_sistema) ? $pode_ver_sistema : false]); ?>
-<script src="<?= base_url('assets/js/assinatura-canvas.js') ?>"></script>
-<script src="<?= base_url('assets/js/csrf.js') ?>?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
-<script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/assinatura-canvas.js') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/csrf.js') ?>?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
+<script nonce="<?= csp_nonce() ?>">
     // Assinatura do cliente (opcional) — revelada pelo checkbox.
     (function () {
         var chk = document.getElementById('reg-quer-assinatura');

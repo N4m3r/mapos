@@ -180,7 +180,7 @@ $retencao = match ((string) ($d['tpRet'] ?? '')) {
         </div>
     </div>
 
-    <script>
+    <script nonce="<?= csp_nonce() ?>">
         window.onload = function () { window.print(); };
     </script>
 </body>

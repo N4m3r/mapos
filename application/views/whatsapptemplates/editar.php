@@ -57,7 +57,7 @@ $tags = array_filter(array_map('trim', explode(',', (string) $tpl->tags)));
     </div>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     $(function () {
         $('.tag-btn').on('click', function () {
             var tag = String($(this).data('tag'));

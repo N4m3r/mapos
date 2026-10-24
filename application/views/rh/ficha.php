@@ -76,7 +76,7 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
 
     <form method="get" style="margin-bottom:10px">
         <label style="display:inline">Competência: </label>
-        <input type="month" name="competencia" value="<?= $competencia ?>" onchange="this.form.submit()">
+        <input type="month" name="competencia" value="<?= $competencia ?>" data-ao-mudar="enviar">
     </form>
 
     <div class="row-fluid">

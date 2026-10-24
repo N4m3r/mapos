@@ -17,7 +17,7 @@ $saldo = $debTotal - $credTotal; // >0 a recolher; <0 crédito a transportar
                 <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:14px">
                     <form action="<?= site_url('entradas/apuracao') ?>" method="get" style="margin:0">
                         <label style="font-size:12px;color:#666;display:block">Competência</label>
-                        <input type="month" name="competencia" value="<?= html_escape($competencia) ?>" onchange="this.form.submit()" />
+                        <input type="month" name="competencia" value="<?= html_escape($competencia) ?>" data-ao-mudar="enviar" />
                     </form>
                     <a href="<?= site_url('entradas?competencia=' . urlencode($competencia)) ?>" class="button btn btn-warning">
                         <span class="button__icon"><i class="bx bx-arrow-back"></i></span><span class="button__text2">Voltar às entradas</span>

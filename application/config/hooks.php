@@ -30,6 +30,13 @@ $hook['pre_system'][] = [
     'params' => [],
 ];
 
+// Content-Security-Policy com nonce (APP_CSP no .env)
+$hook['post_controller_constructor'][] = [
+    'class' => '',
+    'function' => 'enviar_csp',
+    'filename' => 'csp.php',
+    'filepath' => 'hooks',
+];
 // Disparo automático da fila de e-mails (a cada ~2 min, sem cron externo).
 $hook['post_system'][] = [
     'class' => '',

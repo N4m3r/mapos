@@ -10,8 +10,8 @@
     <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/bootstrap-responsive.min.css" />
     <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/matrix-style.css" />
     <link href="<?php echo base_url(); ?>assets/font-awesome/css/font-awesome.css" rel="stylesheet" />
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700,800' rel='stylesheet' type='text/css'>
-    <script type="text/javascript" src="<?php echo base_url(); ?>assets/js/jquery-1.10.2.min.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,800' rel='stylesheet' type='text/css'>
+    <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url(); ?>assets/js/jquery-1.10.2.min.js"></script>
     <style>
         .table {
             width: 72mm;
@@ -156,9 +156,9 @@
             </div>
         </div>
     </div>
-    <script src="<?php echo base_url(); ?>assets/js/bootstrap.min.js"></script>
-    <script src="<?php echo base_url(); ?>assets/js/matrix.js"></script>
-    <script>
+    <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/bootstrap.min.js"></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/matrix.js"></script>
+    <script nonce="<?= csp_nonce() ?>">
         // Aguarda o carregamento completo de todas as imagens antes de imprimir
         document.addEventListener('DOMContentLoaded', function() {
             var imagens = document.querySelectorAll('img');

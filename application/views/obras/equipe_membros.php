@@ -1,6 +1,6 @@
 <link rel="stylesheet" href="<?= base_url() ?>assets/css/obras.css">
 <link rel="stylesheet" href="<?= base_url() ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
-<script src="<?= base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
 <?php
 $perm = function ($p) { return $this->permission->checkPermission($this->session->userdata('permissao'), $p); };
 $data_br = function ($x) { return (! empty($x) && $x !== '0000-00-00') ? date('d/m/Y', strtotime($x)) : '—'; };
@@ -31,7 +31,7 @@ $podeGerir = $perm('cObraEquipe');
                                 <td><?= html_escape($m->funcao) ?></td>
                                 <td>R$ <?= number_format((float) $m->valor_diaria, 2, ',', '.') ?></td>
                                 <?php if ($podeGerir): ?>
-                                    <td><a href="#" class="btn-nwe4" title="Remover" onclick="removerMembro(<?= $m->idMembro ?>);return false;"><i class="bx bx-trash-alt bx-xs"></i></a></td>
+                                    <td><a href="#" class="btn-nwe4" title="Remover" data-chamar="removerMembro" data-args="[<?= (int) $m->idMembro ?>]" data-cancelar><i class="bx bx-trash-alt bx-xs"></i></a></td>
                                 <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
@@ -71,7 +71,7 @@ $podeGerir = $perm('cObraEquipe');
                                 <td><?= $data_br($a->data_inicio) ?></td>
                                 <td><?= $data_br($a->data_fim) ?></td>
                                 <?php if ($podeGerir): ?>
-                                    <td><a href="#" class="btn-nwe4" title="Remover" onclick="desalocar(<?= $a->idAlocacao ?>);return false;"><i class="bx bx-trash-alt bx-xs"></i></a></td>
+                                    <td><a href="#" class="btn-nwe4" title="Remover" data-chamar="desalocar" data-args="[<?= (int) $a->idAlocacao ?>]" data-cancelar><i class="bx bx-trash-alt bx-xs"></i></a></td>
                                 <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
@@ -101,7 +101,7 @@ $podeGerir = $perm('cObraEquipe');
 <form id="formDesalocar" action="<?= site_url('obraequipe/desalocar') ?>" method="post" style="display:none"><input type="hidden" name="equipe_id" value="<?= $equipe->idEquipe ?>"><input type="hidden" name="idAlocacao" id="rem_aloc"></form>
 <?php endif; ?>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     $(function () { $('.datepicker').datepicker({ dateFormat: 'dd/mm/yy' }); });
     function removerMembro(id) { if (confirm('Remover membro?')) { $('#rem_membro').val(id); $('#formRemMembro').submit(); } }
     function desalocar(id) { if (confirm('Remover alocação?')) { $('#rem_aloc').val(id); $('#formDesalocar').submit(); } }

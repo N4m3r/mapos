@@ -19,7 +19,7 @@ $tipos = ['hora_extra'=>'Hora extra','adicional'=>'Adicional','comissao'=>'Comis
             </select>
             <button class="button btn btn-mini btn-warning"><span class="button__text2">Filtrar</span></button>
         </form>
-        <a href="#modal-lanc" role="button" data-toggle="modal" class="button btn btn-mini btn-success" onclick="novoLanc()">
+        <a href="#modal-lanc" role="button" data-toggle="modal" class="button btn btn-mini btn-success" data-chamar="novoLanc">
             <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2"> Lançamento</span>
         </a>
     </div>
@@ -43,7 +43,7 @@ $tipos = ['hora_extra'=>'Hora extra','adicional'=>'Adicional','comissao'=>'Comis
                             <button class="btn btn-mini btn-success">Aprovar</button>
                         </form><?php endif; ?></td>
                     <td>
-                        <a href="#modal-lanc" role="button" data-toggle="modal" class="btn-nwe3" onclick='editarLanc(<?= json_encode($l) ?>)'><i class="bx bx-edit bx-xs"></i></a>
+                        <a href="#modal-lanc" role="button" data-toggle="modal" class="btn-nwe3" data-chamar="editarLanc" data-args="<?= html_escape(json_encode([$l])) ?>"><i class="bx bx-edit bx-xs"></i></a>
                         <a href="#modal-excluir-l" role="button" data-toggle="modal" reg="<?= $l->id ?>" class="btn-nwe4"><i class="bx bx-trash-alt bx-xs"></i></a>
                     </td>
                 </tr>
@@ -87,7 +87,7 @@ $tipos = ['hora_extra'=>'Hora extra','adicional'=>'Adicional','comissao'=>'Comis
         <div class="modal-footer"><button class="button btn btn-danger"><span class="button__text2">Excluir</span></button></div>
     </form>
 </div>
-<script>
+<script nonce="<?= csp_nonce() ?>">
 function novoLanc(){ $('#l-titulo').text('Novo lançamento'); $('#l-id').val(''); $('#l-desc').val(''); $('#l-qtd').val(''); $('#l-valor').val(''); $('#l-aprov').prop('checked',false); }
 function editarLanc(l){ $('#l-titulo').text('Editar'); $('#l-id').val(l.id); $('#l-colab').val(l.colaborador_id); $('#l-comp').val(l.competencia); $('#l-tipo').val(l.tipo); $('#l-desc').val(l.descricao); $('#l-qtd').val(l.quantidade); $('#l-valor').val(l.valor); $('#l-aprov').prop('checked', l.aprovado==1); }
 $(document).on('click','a[reg]',function(){ $('#l-del-id').val($(this).attr('reg')); });

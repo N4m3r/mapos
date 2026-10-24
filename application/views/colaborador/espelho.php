@@ -20,7 +20,7 @@ $corBat = [
 ];
 ?>
 <div class="ponto-wrap">
-    <form method="get" action="<?= site_url('colaborador/espelho') ?>" style="margin-bottom:12px" onsubmit="return irCompetencia(event)">
+    <form method="get" action="<?= site_url('colaborador/espelho') ?>" style="margin-bottom:12px" data-ao-enviar="irCompetencia" data-args='["@event"]'>
         <input type="month" id="competencia" value="<?= $competencia ?>" class="span12" style="width:100%">
     </form>
 
@@ -91,7 +91,7 @@ $corBat = [
     </table>
     </div>
 </div>
-<script>
+<script nonce="<?= csp_nonce() ?>">
 function irCompetencia(e){ e.preventDefault();
     var c = document.getElementById('competencia').value;
     if (c) window.location = '<?= site_url('colaborador/espelho') ?>/' + c;

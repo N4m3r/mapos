@@ -4,7 +4,7 @@
         <span class="icon"><i class="fas fa-building"></i></span><h5>Unidades (geofence)</h5>
     </div>
     <div class="span12" style="margin-left:0">
-        <a href="#modal-unidade" role="button" data-toggle="modal" class="button btn btn-mini btn-success" onclick="novaUnidade()">
+        <a href="#modal-unidade" role="button" data-toggle="modal" class="button btn btn-mini btn-success" data-chamar="novaUnidade">
             <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2"> Unidade</span>
         </a>
     </div>
@@ -26,7 +26,7 @@
                     <td><?= $u->situacao ? 'Ativa' : 'Inativa' ?></td>
                     <td>
                         <a href="#modal-unidade" role="button" data-toggle="modal" class="btn-nwe3" title="Editar"
-                           onclick='editarUnidade(<?= json_encode($u) ?>)'><i class="bx bx-edit bx-xs"></i></a>
+                           data-chamar="editarUnidade" data-args="<?= html_escape(json_encode([$u])) ?>"><i class="bx bx-edit bx-xs"></i></a>
                         <a href="#modal-excluir-u" role="button" data-toggle="modal" reg="<?= $u->id ?>" class="btn-nwe4" title="Excluir"><i class="bx bx-trash-alt bx-xs"></i></a>
                     </td>
                 </tr>
@@ -51,7 +51,7 @@
                     <label>Endereço</label>
                     <div style="display:flex;gap:6px">
                         <input type="text" name="endereco" id="u-endereco" class="span12" style="flex:1" placeholder="Rua, número, cidade...">
-                        <button type="button" class="btn" onclick="buscarEndereco()" title="Buscar no mapa"><i class='bx bx-search'></i></button>
+                        <button type="button" class="btn" data-chamar="buscarEndereco" title="Buscar no mapa"><i class='bx bx-search'></i></button>
                     </div>
                     <div style="display:flex;gap:8px">
                         <div style="flex:1"><label>Latitude</label><input type="text" name="latitude" id="u-lat" class="span12"></div>
@@ -59,7 +59,7 @@
                     </div>
                     <label>Raio do geofence (metros)</label>
                     <input type="number" name="raio_metros" id="u-raio" class="span12" value="150" min="20" step="10">
-                    <button type="button" class="btn btn-mini" onclick="minhaLoc()" style="margin-top:6px"><i class='bx bx-current-location'></i> Usar minha localização</button>
+                    <button type="button" class="btn btn-mini" data-chamar="minhaLoc" style="margin-top:6px"><i class='bx bx-current-location'></i> Usar minha localização</button>
                     <div style="margin-top:8px"><label>Situação</label>
                         <select name="situacao" id="u-situacao" class="span12"><option value="1">Ativa</option><option value="0">Inativa</option></select>
                     </div>
@@ -82,9 +82,9 @@
     </form>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+<script nonce="<?= csp_nonce() ?>" src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script>
+<script nonce="<?= csp_nonce() ?>">
 var uMap, uMarker, uCircle;
 
 function novaUnidade(){
