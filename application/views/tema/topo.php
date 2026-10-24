@@ -130,7 +130,7 @@
             <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'cFormularioAtendimento')) { ?>
               <li><a href="<?= site_url('formularios') ?>">Formulários de Atendimento</a></li>
             <?php } ?>
-            <li><a href="<?= site_url('mapos/backup') ?>">Backup</a></li>
+            <li><a href="<?= site_url('mapos/backups') ?>">Backup</a></li>
           </ul>
         </li>
       </ul>

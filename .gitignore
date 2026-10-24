@@ -42,3 +42,6 @@ application/arquivos_fiscais/xml/
 
 # PHPUnit
 /.phpunit.cache/
+
+# Backups automaticos do banco
+/application/backups/

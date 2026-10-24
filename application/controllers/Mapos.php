@@ -99,40 +99,51 @@ class Mapos extends MY_Controller {
             redirect(base_url());
         }
 
-        $this->load->dbutil();
-
-        // Monta a lista apenas com tabelas que realmente podem ser lidas. Sem
-        // isso, se um SELECT * falhar (tabela ilegível/view quebrada), o
-        // utilitário de backup do CI chama num_rows() em `false` e dá erro fatal.
-        $dbDebugOriginal = $this->db->db_debug;
-        $this->db->db_debug = false;
-        $tabelas = [];
-        foreach ($this->db->list_tables() as $tabela) {
-            $teste = $this->db->query('SELECT 1 FROM ' . $this->db->protect_identifiers($tabela) . ' LIMIT 1');
-            if ($teste !== false) {
-                $tabelas[] = $tabela;
-            } else {
-                log_message('error', 'Backup: ignorando tabela ilegível: ' . $tabela);
-            }
-        }
-        $this->db->db_debug = $dbDebugOriginal;
-
-        $prefs = [
-            'tables' => $tabelas,
-            'format' => 'zip',
-            'foreign_key_checks' => false,
-            'filename' => 'backup' . date('d-m-Y') . '.sql',
-        ];
-
-        $backup = $this->dbutil->backup($prefs);
-
-        $this->load->helper('file');
-        write_file(base_url() . 'backup/backup.zip', $backup);
+        $this->load->library('backup_banco');
+        $backup = $this->backup_banco->gerarZip();
 
         log_info('Efetuou backup do banco de dados.');
 
         $this->load->helper('download');
-        force_download('backup' . date('d-m-Y H:m:s') . '.zip', $backup);
+        force_download('backup' . date('d-m-Y H-i-s') . '.zip', $backup);
+    }
+
+    /**
+     * Lista dos backups automaticos (gerados por "php index.php backup/executar").
+     */
+    public function backups()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'cBackup')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para ver os backups.');
+            redirect(base_url());
+        }
+
+        $this->load->library('backup_banco');
+        $this->data['menuConfiguracoes'] = 'Backup';
+        $this->data['backups'] = $this->backup_banco->listar();
+        $this->data['pasta'] = $this->backup_banco->pasta();
+        $this->data['retencao'] = $this->backup_banco->retencaoDias();
+        $this->data['view'] = 'mapos/backups';
+
+        return $this->layout();
+    }
+
+    public function baixarBackup($nome = null)
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'cBackup')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para baixar backups.');
+            redirect(base_url());
+        }
+
+        $this->load->library('backup_banco');
+        $arquivo = $this->backup_banco->caminho(rawurldecode((string) $nome));
+        if ($arquivo === null) {
+            show_404();
+        }
+
+        log_info('Baixou o backup automático ' . basename($arquivo));
+        $this->load->helper('download');
+        force_download($arquivo, null);
     }
 
     public function emitente()

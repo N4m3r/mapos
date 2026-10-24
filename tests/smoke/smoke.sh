@@ -34,6 +34,7 @@ permissoes|html
 mapos/emitente|html
 mapos/configurar|html
 mapos/minhaConta|html
+mapos/backups|html
 relatorios/clientes|html
 relatorios/os|html
 relatorios/clientesRapid|pdf

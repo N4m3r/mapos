@@ -85,6 +85,11 @@ jobs:
           SENHA: admin123
         run: sh tests/smoke/smoke.sh
 
+      - name: Backup automatico (linha de comando)
+        run: |
+          php index.php backup/executar
+          unzip -p "$(ls -t application/backups/backup_*.zip | head -1)" | grep -q "CREATE TABLE"
+
       - name: Log do servidor e da aplicacao (em caso de falha)
         if: failure()
         run: |
