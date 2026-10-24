@@ -1083,7 +1083,7 @@ class Relatorios extends MY_Controller
         $this->load->helper('download');
         $this->load->helper('file');
 
-        $format = $this->input->get('format') ?: 'docx';
+        $format = $this->input->get('format') === 'pdf' ? 'pdf' : 'docx';
 
         $templatePath = realpath(FCPATH . 'assets/relatorios/RELATORIO_MENSAL_DAS_RECEITAS_BRUTAS_MEI.docx');
         if (! $templatePath) {
@@ -1138,7 +1138,7 @@ class Relatorios extends MY_Controller
         $this->load->helper('download');
         $this->load->helper('file');
 
-        $format = $this->input->get('format') ?: 'docx';
+        $format = $this->input->get('format') === 'pdf' ? 'pdf' : 'docx';
         $dataInicial = $this->input->get('dataInicial');
         $dataFinal = $this->input->get('dataFinal');
 

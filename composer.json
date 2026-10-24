@@ -10,7 +10,7 @@
         "filp/whoops": "^2.17.0",
         "mk-j/php_xlsxwriter": "^0.38.0",
         "mpdf/qrcode": "^1.2.1",
-        "phpoffice/phpword": "^0.18.3",
+        "phpoffice/phpword": "^1.4",
         "piggly/php-pix": "^2.0.2",
         "vlucas/phpdotenv": "^5.6.1",
         "codephix/asaas-sdk": "^2.0.10",
