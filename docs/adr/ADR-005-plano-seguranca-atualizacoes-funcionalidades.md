@@ -1,6 +1,6 @@
 # ADR-005: Plano de seguranca, atualizacoes e funcionalidades (varredura de 23/10/2026)
 
-- **Status**: accepted (grupo 1 e parte do grupo 2 implementados - ver "Implementacao")
+- **Status**: accepted (grupos 1, 2 e 3 implementados - ver "Implementacao")
 - **Date**: 2026-10-23
 - **Deciders**: N4m3r
 - **Tags**: seguranca, dependencias, qualidade, roadmap
@@ -71,7 +71,37 @@ Grupo 2 (24/10/2026):
 | Q1 | 4f27cc2 | GitHub Actions: lint, composer audit, PHPUnit (14 testes) e smoke test com MySQL 8.4 (login + 24 telas) |
 | - | ceb9c17 | release.yml usava `composer update --prefer-lowest` e empacotava versoes antigas/vulneraveis; agora `composer install` |
 
-Pendente: Q2 (controllers grandes, supressoes `@`, scripts inline) e grupo 3.
+| Q2 | 56aaca0, 2e45f62, b5287bc, 2063151 | 72 supressoes `@` resolvidas (11 mantidas com motivo); validacao de CPF/CNPJ/chave PIX e helpers de obras/contratos sem duplicacao; metodos public de controller que viravam URL (validarCPF, layout) |
+
+Scripts inline (148 blocos em 125 telas) ficaram de fora: tirar exige testes de navegador
+cobrindo as telas; e pre-requisito para uma CSP rigida.
+
+Grupo 3 (24/10/2026):
+
+| # | Commit | Resumo |
+|---|--------|--------|
+| F1 | 642f6bf | Historico de movimentacao de estoque (estoque_movimentacoes) e inventario com contagem e ajuste |
+| F2 | 0821b5d, d02e90c | Backup automatico (`php index.php backup/executar`), retencao, tela Configuracoes > Backup; dump com SET NAMES |
+| F3 | 3f501b4 | Verificacao em duas etapas (TOTP + codigos de recuperacao), inclusive na API; sessao regenerada no login |
+| F4 | 05f0079 | Area do tecnico como PWA: service worker, telas offline e fila offline (IndexedDB) de fotos, inicio e fim do atendimento com hora do aparelho |
+| F5 | b8e5586 | PDV, controle de caixa (sangria, suprimento, fechamento) e NFC-e modelo 65 (QR Code, DANFCE; validada no schema, transmissao nao testada) |
+| F6 | c6dc310 | Painel de SLA, agenda da equipe (FullCalendar, arrastar para reagendar) e lembretes automaticos ao cliente (desligados por padrao) |
+
+Correcoes de seguranca e bugs encontrados durante o trabalho:
+
+| Commit | Problema |
+|--------|----------|
+| df54503 | Apache servia arquivos de application/ e docker/ direto (o application/.htaccess anulava a regra) |
+| 2e02655 | Acoes de itens da OS (produtos, servicos, desconto, anexos) sem checagem de permissao |
+| 6290e53 | mine/minha_ordem_de_servico mostrava qualquer OS sem login (id disfarcado por conta fixa) |
+| 642f6bf | Exclusao de item de OS/venda devolvia ao estoque produto/quantidade vindos do navegador; item de venda faturada apagavel por outra venda |
+| 67e2c95 | Nenhum grupo conseguia criar obra/contrato (permissao herdada de "cOs", que nao existe) |
+| 06cbf7b | Erro fatal ao enviar cobranca do Mercado Pago por e-mail |
+| f117859 | Usuario gravado vazio em atribuicao de tecnico, mensalidade de contrato e OS nao realizada |
+
+Pendente de implantacao: rodar as migrations em producao; agendar backup e lembretes;
+cadastrar CSC/ID do CSC e testar a NFC-e em homologacao; boleto de teste no sandbox do
+Mercado Pago.
 
 ## Consequences
 
