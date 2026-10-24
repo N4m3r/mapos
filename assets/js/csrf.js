@@ -28,7 +28,12 @@ $(document).ready(function () {
         credentials: "include",
         beforeSend: function (jqXHR, settings) {
             var csrfToken = getCookie(csrfCookieName);
-            if (settings.data && typeof settings.data === 'object') {
+            if (typeof FormData !== 'undefined' && settings.data instanceof FormData) {
+                // Upload (multipart): o token precisa ir como campo do proprio formulario
+                if (!settings.data.has(csrfTokenName)) {
+                    settings.data.append(csrfTokenName, csrfToken);
+                }
+            } else if (settings.data && typeof settings.data === 'object') {
                 settings.data[csrfTokenName] = csrfToken;
             } else if (settings.data) {
                 settings.data += '&' + $.param({
@@ -41,6 +46,9 @@ $(document).ready(function () {
                 settings.data = $.param({
                     [csrfTokenName]: csrfToken
                 });
+                // Com data vazio (ex.: "data: {}") o jQuery ja decidiu nao enviar
+                // Content-Type; sem ele o PHP nao le o token e o CSRF responde 403.
+                jqXHR.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
             }
 
             return true;

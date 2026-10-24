@@ -6,7 +6,7 @@
 <html lang="pt-br">
 
 <head>
-    <title><?= $this->config->item('app_name') ?> - <?= $result->idOs ?> - <?= $result->nomeCliente ?></title>
+    <title><?= $this->config->item('app_name') ?> - <?= $result->idOs ?> - <?= html_escape($result->nomeCliente) ?></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="<?= base_url() ?>assets/css/bootstrap5.3.2.min.css" />
     <link rel="stylesheet" href="<?= base_url() ?>assets/font-awesome/css/font-awesome.css" />
@@ -25,19 +25,19 @@
                         <img src="<?= $emitente->url_logo ?>" class="img-fluid" style="width:140px;">
                     </div>
                     <div class="emitente">
-                        <span style="font-size: 16px;"><b><?= $emitente->nome ?></b></span></br>
+                        <span style="font-size: 16px;"><b><?= html_escape($emitente->nome) ?></b></span></br>
                         <?php if($emitente->cnpj != "00.000.000/0000-00") : ?>
-                            <span class="align-middle">CNPJ: <?= $emitente->cnpj ?></span></br>
+                            <span class="align-middle">CNPJ: <?= html_escape($emitente->cnpj) ?></span></br>
                         <?php endif; ?>
                         <span class="align-middle">
-                            <?= $emitente->rua.', '.$emitente->numero.', '.$emitente->bairro ?><br>
-                            <?= $emitente->cidade.' - '.$emitente->uf.' - '.$emitente->cep ?>
+                            <?= html_escape($emitente->rua.', '.$emitente->numero.', '.$emitente->bairro) ?><br>
+                            <?= html_escape($emitente->cidade.' - '.$emitente->uf.' - '.$emitente->cep) ?>
                         </span>
                     </div>
                     <div class="contatoEmitente">
-                        <span style="font-weight: bold;">Tel: <?= $emitente->telefone ?></span></br>
-                        <span style="font-weight: bold;"><?= $emitente->email ?></span></br>
-                        <span style="word-break: break-word;">Responsável: <b><?= $result->nome ?></b></span>
+                        <span style="font-weight: bold;">Tel: <?= html_escape($emitente->telefone) ?></span></br>
+                        <span style="font-weight: bold;"><?= html_escape($emitente->email) ?></span></br>
+                        <span style="word-break: break-word;">Responsável: <b><?= html_escape($result->nome) ?></b></span>
                     </div>
                 <?php endif; ?>
             </header>
@@ -70,7 +70,7 @@
                                     <td class="text-center"><?= date('d/m/Y', strtotime($result->dataInicial)) ?></td>
                                     <td class="text-center"><?= $result->dataFinal ? date('d/m/Y', strtotime($result->dataFinal)) : '' ?></td>
                                     <?php if ($result->garantia) : ?>
-                                        <td class="text-center"><?= $result->garantia . ' dia(s)' ?></td>
+                                        <td class="text-center"><?= html_escape($result->garantia . ' dia(s)') ?></td>
                                     <?php endif; ?>
                                     <?php if (in_array($result->status, ['Finalizado', 'Faturado'])) : ?>
                                         <td class="text-center"><?= dateInterval($result->dataFinal, $result->garantia) ?></td>
@@ -84,15 +84,15 @@
                 <div class="subtitle">DADOS DO CLIENTE</div>
                 <div class="dados">
                     <div>
-                        <span><b><?= $result->nomeCliente ?></b></span><br />
-                        <span>CPF/CNPJ: <?= $result->documento ?></span><br />
-                        <span><?= $result->contato_cliente.' '.$result->telefone ?><?= $result->telefone && $result->celular ? ' / '.$result->celular : $result->celular ?></span><br />
-                        <span><?= $result->email ?></span><br />
+                        <span><b><?= html_escape($result->nomeCliente) ?></b></span><br />
+                        <span>CPF/CNPJ: <?= html_escape($result->documento) ?></span><br />
+                        <span><?= html_escape($result->contato_cliente.' '.$result->telefone) ?><?= $result->telefone && $result->celular ? ' / '.$result->celular : $result->celular ?></span><br />
+                        <span><?= html_escape($result->email) ?></span><br />
                     </div>
                     <div style="text-align: right;">
-                        <span><?= $result->rua.', '.$result->numero.', '.$result->bairro ?></span><br />
-                        <span><?= $result->complemento.' - '.$result->cidade.' - '.$result->estado ?></span><br />
-                        <span>CEP: <?= $result->cep ?></span><br />
+                        <span><?= html_escape($result->rua.', '.$result->numero.', '.$result->bairro) ?></span><br />
+                        <span><?= html_escape($result->complemento.' - '.$result->cidade.' - '.$result->estado) ?></span><br />
+                        <span>CEP: <?= html_escape($result->cep) ?></span><br />
                     </div>
                 </div>
 
@@ -333,19 +333,19 @@
                             <img src="<?= $emitente->url_logo ?>" class="img-fluid" style="width:140px;">
                         </div>
                         <div class="emitente">
-                            <span style="font-size: 16px;"><b><?= $emitente->nome ?></b></span></br>
+                            <span style="font-size: 16px;"><b><?= html_escape($emitente->nome) ?></b></span></br>
                             <?php if($emitente->cnpj != "00.000.000/0000-00") : ?>
-                                <span class="align-middle">CNPJ: <?= $emitente->cnpj ?></span></br>
+                                <span class="align-middle">CNPJ: <?= html_escape($emitente->cnpj) ?></span></br>
                             <?php endif; ?>
                             <span class="align-middle">
-                                <?= $emitente->rua.', '.$emitente->numero.', '.$emitente->bairro ?><br>
-                                <?= $emitente->cidade.' - '.$emitente->uf.' - '.$emitente->cep ?>
+                                <?= html_escape($emitente->rua.', '.$emitente->numero.', '.$emitente->bairro) ?><br>
+                                <?= html_escape($emitente->cidade.' - '.$emitente->uf.' - '.$emitente->cep) ?>
                             </span>
                         </div>
                         <div class="contatoEmitente">
-                            <span style="font-weight: bold;">Tel: <?= $emitente->telefone ?></span></br>
-                            <span style="font-weight: bold;"><?= $emitente->email ?></span></br>
-                            <span style="word-break: break-word;">Responsável: <b><?= $result->nome ?></b></span>
+                            <span style="font-weight: bold;">Tel: <?= html_escape($emitente->telefone) ?></span></br>
+                            <span style="font-weight: bold;"><?= html_escape($emitente->email) ?></span></br>
+                            <span style="word-break: break-word;">Responsável: <b><?= html_escape($result->nome) ?></b></span>
                         </div>
                     <?php endif; ?>
                 </header>
@@ -380,7 +380,7 @@
                                         <td class="text-center"><?= date('d/m/Y', strtotime($result->dataInicial)) ?></td>
                                         <td class="text-center"><?= $result->dataFinal ? date('d/m/Y', strtotime($result->dataFinal)) : '' ?></td>
                                         <?php if ($result->garantia) : ?>
-                                            <td class="text-center"><?= $result->garantia . ' dia(s)' ?></td>
+                                            <td class="text-center"><?= html_escape($result->garantia . ' dia(s)') ?></td>
                                         <?php endif; ?>
                                         <?php if (in_array($result->status, ['Finalizado', 'Faturado'])) : ?>
                                             <td class="text-center"><?= dateInterval($result->dataFinal, $result->garantia) ?></td>
@@ -394,15 +394,15 @@
                     <div class="subtitle">DADOS DO CLIENTE</div>
                     <div class="dados">
                         <div>
-                            <span><b><?= $result->nomeCliente ?></b></span><br />
-                            <span>CPF/CNPJ: <?= $result->documento ?></span><br />
-                            <span><?= $result->contato_cliente.' '.$result->telefone ?><?= $result->telefone && $result->celular ? ' / '.$result->celular : $result->celular ?></span><br />
-                            <span><?= $result->email ?></span><br />
+                            <span><b><?= html_escape($result->nomeCliente) ?></b></span><br />
+                            <span>CPF/CNPJ: <?= html_escape($result->documento) ?></span><br />
+                            <span><?= html_escape($result->contato_cliente.' '.$result->telefone) ?><?= $result->telefone && $result->celular ? ' / '.$result->celular : $result->celular ?></span><br />
+                            <span><?= html_escape($result->email) ?></span><br />
                         </div>
                         <div style="text-align: right;">
-                            <span><?= $result->rua.', '.$result->numero.', '.$result->bairro ?></span><br />
-                            <span><?= $result->complemento.' - '.$result->cidade.' - '.$result->estado ?></span><br />
-                            <span>CEP: <?= $result->cep ?></span><br />
+                            <span><?= html_escape($result->rua.', '.$result->numero.', '.$result->bairro) ?></span><br />
+                            <span><?= html_escape($result->complemento.' - '.$result->cidade.' - '.$result->estado) ?></span><br />
+                            <span>CEP: <?= html_escape($result->cep) ?></span><br />
                         </div>
                     </div>
 
@@ -631,19 +631,19 @@
                             <img src="<?= $emitente->url_logo ?>" class="img-fluid" style="width:140px;">
                         </div>
                         <div style="padding-left: 10px; padding-right: 10px; margin-top: 3px;">
-                            <span style="font-size: 16px;"><b><?= $emitente->nome ?></b></span></br>
+                            <span style="font-size: 16px;"><b><?= html_escape($emitente->nome) ?></b></span></br>
                             <?php if ($emitente->cnpj != "00.000.000/0000-00") : ?>
-                                <span class="align-middle">CNPJ: <?= $emitente->cnpj ?></span></br>
+                                <span class="align-middle">CNPJ: <?= html_escape($emitente->cnpj) ?></span></br>
                             <?php endif; ?>
                             <span class="align-middle">
-                                <?= $emitente->rua.', '.$emitente->numero.', '.$emitente->bairro ?><br>
-                                <?= $emitente->cidade.' - '.$emitente->uf.' - '.$emitente->cep ?>
+                                <?= html_escape($emitente->rua.', '.$emitente->numero.', '.$emitente->bairro) ?><br>
+                                <?= html_escape($emitente->cidade.' - '.$emitente->uf.' - '.$emitente->cep) ?>
                             </span>
                         </div>
                         <div style="text-align: right; max-width: 230px; margin-top: 10px;">
-                            <span style="font-weight: bold;">Tel: <?= $emitente->telefone ?></span></br>
-                            <span style="font-weight: bold;"><?= $emitente->email ?></span></br>
-                            <span style="word-break: break-word;">Responsável: <b><?= $result->nome ?></b></span>
+                            <span style="font-weight: bold;">Tel: <?= html_escape($emitente->telefone) ?></span></br>
+                            <span style="font-weight: bold;"><?= html_escape($emitente->email) ?></span></br>
+                            <span style="word-break: break-word;">Responsável: <b><?= html_escape($result->nome) ?></b></span>
                         </div>
                     <?php endif; ?>
                 </header>

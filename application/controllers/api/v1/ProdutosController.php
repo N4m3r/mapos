@@ -96,6 +96,9 @@ class ProdutosController extends REST_Controller
         ];
 
         if ($this->produtos_model->add('produtos', $data)) {
+            if ((float) $data['estoque'] != 0) {
+                $this->produtos_model->registrarMovimentacao($this->db->insert_id(), (float) $data['estoque'], 0, (float) $data['estoque'], ['tipo' => 'cadastro', 'observacao' => 'Estoque inicial (API)']);
+            }
             $this->response([
                 'status' => true,
                 'message' => 'Produto adicionado com sucesso!',
@@ -148,13 +151,16 @@ class ProdutosController extends REST_Controller
             'unidade' => $this->put('unidade', true),
             'precoCompra' => $precoCompra,
             'precoVenda' => $precoVenda,
-            'estoque' => $this->put('estoque', true),
             'estoqueMinimo' => $this->put('estoqueMinimo', true) ?: 0,
             'saida' => $this->put('saida', true) ?: 0,
             'entrada' => $this->put('entrada', true) ?: 0
         ];
 
         if ($this->produtos_model->edit('produtos', $data, 'idProdutos', $id)) {
+            // Estoque enviado fica registrado no historico; sem o campo, o estoque nao muda
+            if ($this->put('estoque', true) !== null && $this->put('estoque', true) !== '') {
+                $this->produtos_model->ajustarEstoque($id, (float) $this->put('estoque', true), ['tipo' => 'api', 'observacao' => 'Alterado pela API']);
+            }
             $this->response([
                 'status' => true,
                 'message' => 'Produto editado com sucesso!',

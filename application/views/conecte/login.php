@@ -17,7 +17,7 @@
     <link rel="shortcut icon" href="<?php echo base_url(); ?>assets/img/favicon.png">
     <script src="<?php echo base_url() ?>assets/js/jquery.mask.min.js"></script>
     <script src="<?php echo base_url() ?>assets/js/funcoes.js"></script>
-    <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
+    <link href='<?= base_url('assets/boxicons/css/boxicons.min.css') ?>' rel='stylesheet'>
     <!-- Script webeddy.com.br -->
     <script>
         function formatar(mascara, documento) {
@@ -31,7 +31,7 @@
         }
     </script>
     <script type="text/javascript" src="<?= base_url(); ?>assets/js/funcoesGlobal.js"></script>
-    <script type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js"></script>
+    <script type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
 </head>
 
 <?php

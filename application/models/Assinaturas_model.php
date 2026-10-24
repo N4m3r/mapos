@@ -206,7 +206,7 @@ class Assinaturas_model extends CI_Model
         $assinatura = $this->getById($id);
 
         if ($assinatura && isset($assinatura->assinatura) && file_exists($assinatura->assinatura)) {
-            @unlink($assinatura->assinatura);
+            unlink($assinatura->assinatura);
         }
 
         $this->db->where('idAssinatura', $id);
@@ -233,7 +233,7 @@ class Assinaturas_model extends CI_Model
         if (is_array($assinaturas)) {
             foreach ($assinaturas as $assinatura) {
                 if (isset($assinatura->assinatura) && file_exists($assinatura->assinatura)) {
-                    @unlink($assinatura->assinatura);
+                    unlink($assinatura->assinatura);
                 }
             }
         }

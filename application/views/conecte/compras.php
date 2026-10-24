@@ -1,4 +1,7 @@
 <?php
+$filtros = isset($filtros) ? $filtros : ['cliente_id' => null, 'data_inicio' => null, 'data_fim' => null];
+$temFiltro = ! empty($filtros['cliente_id']) || ! empty($filtros['data_inicio']) || ! empty($filtros['data_fim']);
+$this->load->view('conecte/filtros_portal', ['acaoFiltro' => 'mine/compras']);
 
 if (!$results) { ?>
     <div class="widget-box">
@@ -26,7 +29,7 @@ if (!$results) { ?>
                 <tbody>
 
                     <tr>
-                        <td colspan="6">Nenhuma compra cadastrada</td>
+                        <td colspan="6"><?php echo $temFiltro ? 'Nenhuma compra encontrada para o filtro selecionado' : 'Nenhuma compra cadastrada'; ?></td>
                     </tr>
                 </tbody>
             </table>

@@ -22,11 +22,16 @@ $voltar_url   = isset($voltar_url) ? $voltar_url : null;
     <meta name="apple-mobile-web-app-title" content="Área do Técnico">
     <meta name="csrf-token-name" content="<?= config_item('csrf_token_name') ?>">
     <meta name="csrf-cookie-name" content="<?= config_item('csrf_cookie_name') ?>">
+    <meta name="usuario-id" content="<?= (int) $this->session->userdata('id_admin') ?>">
+    <link rel="manifest" href="<?= base_url('assets/pwa/manifest.json') ?>">
+    <link rel="apple-touch-icon" href="<?= base_url('assets/pwa/icone-192.png') ?>">
+    <script src="<?= base_url('assets/js/fila-offline.js') ?>?v=<?= asset_versao('assets/js/fila-offline.js') ?>" defer></script>
+    <script src="<?= base_url('assets/js/pwa-tecnico.js') ?>?v=<?= asset_versao('assets/js/pwa-tecnico.js') ?>"></script>
     <title><?= isset($titulo) ? $titulo : 'Área do Técnico' ?></title>
     <link rel="shortcut icon" type="image/png" href="<?= base_url('assets/img/favicon.png') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/bootstrap.min.css') ?>">
-    <link href="https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="<?= base_url('assets/css/tecnico.css') ?>?v=2">
+    <link href="<?= base_url('assets/boxicons/css/boxicons.min.css') ?>" rel="stylesheet">
+    <link rel="stylesheet" href="<?= base_url('assets/css/tecnico.css') ?>?v=4">
 </head>
 <body class="tec-body">
     <header class="tec-header">

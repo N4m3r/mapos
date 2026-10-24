@@ -308,10 +308,17 @@ class Cobrancas extends MY_Controller
                 ->set_output(json_encode(['message' => 'Nota fiscal inválida.']));
         }
 
+        $opcoes = [
+            'parcelas' => (int) $this->input->post('parcelas') ?: 1,
+            'vencimento' => trim((string) $this->input->post('vencimento')),
+            'intervalo_tipo' => $this->input->post('intervalo_tipo') === 'dias' ? 'dias' : 'mensal',
+            'intervalo_dias' => (int) $this->input->post('intervalo_dias') ?: 30,
+        ];
+
         $this->load->library('Gateways/Cora', null, 'PaymentGateway');
 
         try {
-            $cobranca = $this->PaymentGateway->gerarBoletoParaNota($notaId);
+            $cobranca = $this->PaymentGateway->gerarBoletoParaNota($notaId, $opcoes);
 
             return $this->output
                 ->set_content_type('application/json')
@@ -344,6 +351,13 @@ class Cobrancas extends MY_Controller
                 ->set_content_type('application/json')
                 ->set_status_header(400)
                 ->set_output(json_encode(['message' => 'Cobrança inválida.']));
+        }
+
+        if (! $this->cobrancas_model->getById($id)) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(404)
+                ->set_output(json_encode(['message' => 'Cobrança não encontrada.']));
         }
 
         try {

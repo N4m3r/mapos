@@ -28,6 +28,9 @@ ci_sessions/
 
 uploads
 application/.env
+application/.env.*
+application/cache/*.lock
+graphify-out/
 assets/userImage
 
 # Dados de runtime (não versionar)
@@ -36,3 +39,9 @@ assets/anexos/
 # (mantém a pasta e o .htaccess de proteção rastreados)
 application/arquivos_fiscais/certificado/
 application/arquivos_fiscais/xml/
+
+# PHPUnit
+/.phpunit.cache/
+
+# Backups automaticos do banco
+/application/backups/

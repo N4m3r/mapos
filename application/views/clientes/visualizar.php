@@ -25,13 +25,13 @@
                                 <tr>
                                     <td style="text-align: right; width: 30%"><strong>Nome</strong></td>
                                     <td>
-                                        <?php echo $result->nomeCliente ?>
+                                        <?php echo html_escape($result->nomeCliente); ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: right"><strong>Documento</strong></td>
                                     <td>
-                                        <?php echo $result->documento ?>
+                                        <?php echo html_escape($result->documento); ?>
                                     </td>
                                 </tr>
                                 <tr>
@@ -67,25 +67,25 @@
                                 <tr>
                                     <td style="text-align: right; width: 30%"><strong>Contato:</strong></td>
                                     <td>
-                                        <?php echo $result->contato ?>
+                                        <?php echo html_escape($result->contato); ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: right; width: 30%"><strong>Telefone</strong></td>
                                     <td>
-                                        <?php echo $result->telefone ?>
+                                        <?php echo html_escape($result->telefone); ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: right"><strong>Celular</strong></td>
                                     <td>
-                                        <?php echo $result->celular ?>
+                                        <?php echo html_escape($result->celular); ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: right"><strong>Email</strong></td>
                                     <td>
-                                        <?php echo $result->email ?>
+                                        <?php echo html_escape($result->email); ?>
                                     </td>
                                 </tr>
                                 </tbody>
@@ -109,38 +109,38 @@
                                 <tr>
                                     <td style="text-align: right; width: 30%;"><strong>Rua</strong></td>
                                     <td>
-                                        <?php echo $result->rua ?>
+                                        <?php echo html_escape($result->rua); ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: right"><strong>Número</strong></td>
                                     <td>
-                                        <?php echo $result->numero ?>
+                                        <?php echo html_escape($result->numero); ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: right"><strong>Complemento</strong></td>
                                     <td>
-                                        <?php echo $result->complemento ?>
+                                        <?php echo html_escape($result->complemento); ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: right"><strong>Bairro</strong></td>
                                     <td>
-                                        <?php echo $result->bairro ?>
+                                        <?php echo html_escape($result->bairro); ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: right"><strong>Cidade</strong></td>
                                     <td>
-                                        <?php echo $result->cidade ?> -
-                                        <?php echo $result->estado ?>
+                                        <?php echo html_escape($result->cidade); ?> -
+                                        <?php echo html_escape($result->estado); ?>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style="text-align: right"><strong>CEP</strong></td>
                                     <td>
-                                        <?php echo $result->cep ?>
+                                        <?php echo html_escape($result->cep); ?>
                                     </td>
                                 </tr>
                                 </tbody>

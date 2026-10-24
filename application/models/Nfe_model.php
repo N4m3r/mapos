@@ -32,7 +32,7 @@ class Nfe_model extends CI_Model
      */
     public function reservarNumero($campo)
     {
-        if (!in_array($campo, ['proximo_numero_nfe', 'proximo_numero_dps'])) {
+        if (!in_array($campo, ['proximo_numero_nfe', 'proximo_numero_nfce', 'proximo_numero_dps'])) {
             return false;
         }
         $this->db->query("UPDATE configuracoes_nfe SET {$campo} = LAST_INSERT_ID({$campo}) + 1 WHERE id = 1");
@@ -100,7 +100,7 @@ class Nfe_model extends CI_Model
             return $nota->xml;
         }
         if (! empty($nota->xml_path) && is_file($nota->xml_path)) {
-            $conteudo = @file_get_contents($nota->xml_path);
+            $conteudo = file_get_contents($nota->xml_path);
 
             return ($conteudo !== false && $conteudo !== '') ? $conteudo : null;
         }

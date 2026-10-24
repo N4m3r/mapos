@@ -309,6 +309,16 @@ var CheckinFotos = {
     /**
      * Upload de foto via base64
      */
+    // Sem internet: guarda na fila offline (fila-offline.js) e responde como sucesso para a tela seguir
+    guardarOffline: function(url, campos, descricao, callbacks) {
+        FilaOffline.guardar(url, campos, descricao).then(function() {
+            if (callbacks.success) {
+                callbacks.success({ success: true, offline: true, message: 'Sem internet: foto guardada no aparelho; será enviada quando a conexão voltar.' });
+            }
+            if (callbacks.complete) callbacks.complete();
+        });
+    },
+
     uploadFoto: function(dados, callbacks) {
         var self = this;
         var data = {
@@ -336,9 +346,16 @@ var CheckinFotos = {
                 if (callbacks.success) callbacks.success(response);
             },
             error: function(xhr, status, error) {
+                if (window.FilaOffline && FilaOffline.semConexao(xhr)) {
+                    var campos = $.extend({}, data);
+                    delete campos[csrf.name];
+                    self.guardarOffline(self.config.baseUrl + 'index.php/checkin/adicionarFoto', campos, 'Foto da OS ' + dados.os_id, callbacks);
+                    return;
+                }
                 if (callbacks.error) callbacks.error(xhr, status, error);
             },
-            complete: function() {
+            complete: function(xhr) {
+                if (window.FilaOffline && FilaOffline.semConexao(xhr)) return; // guardarOffline chama o complete
                 if (callbacks.complete) callbacks.complete();
             }
         });
@@ -356,6 +373,18 @@ var CheckinFotos = {
         formData.append('descricao', dados.descricao || '');
         formData.append('arquivo', dados.arquivo);
 
+        var camposOffline = {
+            os_id: dados.os_id, checkin_id: dados.checkin_id || '', etapa: dados.etapa || 'durante',
+            descricao: dados.descricao || '', arquivo: dados.arquivo
+        };
+        var semRede = function(xhr) {
+            if (window.FilaOffline && FilaOffline.semConexao(xhr)) {
+                self.guardarOffline(self.config.baseUrl + 'index.php/checkin/uploadArquivo', camposOffline, 'Foto da OS ' + dados.os_id, callbacks);
+                return true;
+            }
+            return false;
+        };
+
         // Adiciona CSRF token
         formData = self.addCsrfToFormData(formData);
 
@@ -372,6 +401,7 @@ var CheckinFotos = {
                         if (callbacks.complete) callbacks.complete();
                     },
                     error: function(xhr, status, error) {
+                        if (semRede(xhr)) return;
                         if (callbacks.error) callbacks.error(xhr, status, error);
                         if (callbacks.complete) callbacks.complete();
                     }
@@ -393,9 +423,11 @@ var CheckinFotos = {
                     if (callbacks.success) callbacks.success(response);
                 },
                 error: function(xhr, status, error) {
+                    if (semRede(xhr)) return;
                     if (callbacks.error) callbacks.error(xhr, status, error);
                 },
-                complete: function() {
+                complete: function(xhr) {
+                    if (window.FilaOffline && FilaOffline.semConexao(xhr)) return;
                     if (callbacks.complete) callbacks.complete();
                 }
             });

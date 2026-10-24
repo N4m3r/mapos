@@ -15,19 +15,19 @@
                         <tr>
                             <td style="text-align: center; width: 30%"><strong>Código de Barra</strong></td>
                             <td>
-                                <?php echo $result->codDeBarra ?>
+                                <?php echo html_escape($result->codDeBarra); ?>
                             </td>
                         </tr>
                         <tr>
                             <td style="text-align: right; width: 30%"><strong>Descrição</strong></td>
                             <td>
-                                <?php echo $result->descricao ?>
+                                <?php echo html_escape($result->descricao); ?>
                             </td>
                         </tr>
                         <tr>
                             <td style="text-align: right"><strong>Unidade</strong></td>
                             <td>
-                                <?php echo $result->unidade ?>
+                                <?php echo html_escape($result->unidade); ?>
                             </td>
                         </tr>
                         <tr>
@@ -58,5 +58,16 @@
                 </table>
             </div>
         </div>
+    </div>
+</div>
+
+<div class="widget-box">
+    <div class="widget-title" style="margin: -20px 0 0">
+        <span class="icon"><i class="bx bx-transfer"></i></span>
+        <h5>Últimas movimentações de estoque</h5>
+    </div>
+    <div class="widget-content nopadding">
+        <?php $this->load->view('produtos/_movimentacoes_tabela', ['movimentacoes' => $movimentacoes]); ?>
+        <div style="padding:0 10px 10px"><a href="<?= site_url('produtos/movimentacoes?produto=' . (int) $result->idProdutos) ?>">Ver histórico completo</a></div>
     </div>
 </div>

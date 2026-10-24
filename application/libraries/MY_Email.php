@@ -55,6 +55,27 @@ class MY_Email extends CI_Email
     }
 
     /**
+     * Permite fixar o Message-ID de um envio (âncora de conversa/thread). O
+     * chamador coloca o valor desejado no header temporário 'X-Mapos-Message-Id'
+     * (persistido na fila junto dos demais headers); aqui só interceptamos a
+     * geração padrão do CI, que sempre sobrescreveria o Message-ID.
+     */
+    protected function _get_message_id()
+    {
+        if (! empty($this->_headers['X-Mapos-Message-Id'])) {
+            return $this->_headers['X-Mapos-Message-Id'];
+        }
+
+        return parent::_get_message_id();
+    }
+
+    protected function _build_headers()
+    {
+        parent::_build_headers();
+        unset($this->_headers['X-Mapos-Message-Id']);
+    }
+
+    /**
      * Get
      *
      * Get queue emails.
@@ -177,7 +198,9 @@ class MY_Email extends CI_Email
 
             // Remove os arquivos temporários baixados para os anexos.
             foreach ($tempFiles as $tf) {
-                @unlink($tf);
+                if (is_file($tf)) {
+                    unlink($tf);
+                }
             }
 
             $this->CI->db->where('id', $email->id);
@@ -320,7 +343,9 @@ class MY_Email extends CI_Email
                 return null;
             }
             if (file_put_contents($dest, $conteudo) === false) {
-                @unlink($dest);
+                if (is_file($dest)) {
+                    unlink($dest);
+                }
 
                 return null;
             }
@@ -362,6 +387,7 @@ class MY_Email extends CI_Email
         }
 
         $ctx = stream_context_create(['http' => ['timeout' => 30]]);
+        // @: falha de rede (timeout, 404) vira null e o anexo e ignorado
         $data = @file_get_contents($url, false, $ctx);
 
         return $data === false ? null : $data;

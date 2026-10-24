@@ -130,18 +130,18 @@ $totalProdutos = 0; ?>
                     <table>
                         <tr>
                             <td>
-                                Cliente: <?= $result->nomeCliente ?><br>
-                                <?= $result->rua ?>, <?= $result->numero ?>, <?= $result->bairro ?><br>
-                                <?= $result->cidade ?> - <?= $result->estado ?> <br>
-                                <?= $result->email ?> <br>
-                                <?= $result->celular_cliente ?>
+                                Cliente: <?= html_escape($result->nomeCliente) ?><br>
+                                <?= html_escape($result->rua) ?>, <?= html_escape($result->numero) ?>, <?= html_escape($result->bairro) ?><br>
+                                <?= html_escape($result->cidade) ?> - <?= html_escape($result->estado) ?> <br>
+                                <?= html_escape($result->email) ?> <br>
+                                <?= html_escape($result->celular_cliente) ?>
                             </td>
 
                             <td style="text-align: right">
-                                <?= $emitente->nome; ?> <br>
-                                <?= $emitente->rua ?>, <?= $emitente->numero ?>, <?= $emitente->bairro ?><br>
-                                <?= $emitente->cidade ?> - <?= $emitente->uf ?> CEP: <?= $emitente->cep ?> <br>
-                                Responsável: <?= $result->nome ?>
+                                <?= html_escape($emitente->nome) ?> <br>
+                                <?= html_escape($emitente->rua) ?>, <?= html_escape($emitente->numero) ?>, <?= html_escape($emitente->bairro) ?><br>
+                                <?= html_escape($emitente->cidade) ?> - <?= html_escape($emitente->uf) ?> CEP: <?= html_escape($emitente->cep) ?> <br>
+                                Responsável: <?= html_escape($result->nome) ?>
                             </td>
                         </tr>
                     </table>

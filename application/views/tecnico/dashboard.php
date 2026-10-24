@@ -11,6 +11,12 @@ $this->load->view('tecnico/_topo', [
 
 <div class="tec-container">
 
+    <?php if (!empty($pode_criar_atividade)): ?>
+        <a href="<?= site_url('tecnico/nova_atividade') ?>" class="btn-tec primary block lg" style="margin-bottom:18px;">
+            <i class='bx bx-plus-circle'></i> Nova Atividade não programada
+        </a>
+    <?php endif; ?>
+
     <!-- Estatisticas -->
     <div class="tec-stats">
         <div class="tec-stat">
@@ -49,7 +55,7 @@ $this->load->view('tecnico/_topo', [
                         <span class="os-num">#OS <?= sprintf('%04d', $os->idOs) ?></span>
                         <span class="badge-status andamento">Em Andamento</span>
                     </div>
-                    <div class="os-cliente"><i class='bx bx-user'></i> <?= $os->nomeCliente ?></div>
+                    <div class="os-cliente"><i class='bx bx-user'></i> <?= html_escape($os->nomeCliente) ?></div>
                     <div class="os-desc"><?= character_limiter(strip_tags($os->descricaoProduto), 80) ?></div>
                     <div class="os-foot">
                         <span class="os-meta">
@@ -67,6 +73,41 @@ $this->load->view('tecnico/_topo', [
         </div>
     <?php endif; ?>
 
+    <!-- Serviços não realizados (aguardando reagendar/refazer) -->
+    <?php if (!empty($nao_realizadas_pendentes)): ?>
+        <h2 class="tec-section-title">
+            <i class='bx bx-x-circle'></i> Não realizados
+            <span class="count" style="background:var(--tec-danger); color:#fff;"><?= (int) $nao_realizadas_pendentes ?></span>
+        </h2>
+
+        <?php foreach ($nao_realizadas as $nr): ?>
+            <a href="<?= site_url('tecnico/visualizar/' . $nr->idOs) ?>" style="text-decoration:none; color:inherit; display:block;">
+                <div class="os-card nao-realizado">
+                    <div class="os-head">
+                        <span class="os-num">#OS <?= sprintf('%04d', $nr->idOs) ?></span>
+                        <span class="badge-status nao-realizado">Não Realizado</span>
+                    </div>
+                    <div class="os-cliente"><i class='bx bx-user'></i> <?= html_escape($nr->nomeCliente ?: 'Cliente') ?></div>
+                    <?php if (!empty($nr->motivo_texto)): ?>
+                        <div class="os-desc"><strong>Motivo:</strong> <?= html_escape($nr->motivo_texto) ?></div>
+                    <?php endif; ?>
+                    <div class="os-foot">
+                        <span class="os-meta">
+                            <span><i class='bx bx-time'></i> <?= !empty($nr->data_registro) ? date('d/m/Y H:i', strtotime($nr->data_registro)) : '--' ?></span>
+                        </span>
+                        <span class="btn-tec danger">Resolver <i class='bx bx-right-arrow-alt'></i></span>
+                    </div>
+                </div>
+            </a>
+        <?php endforeach; ?>
+
+        <?php if ($nao_realizadas_pendentes > count($nao_realizadas)): ?>
+            <a href="<?= site_url('tecnico/nao_realizadas') ?>" class="btn-tec ghost block" style="margin-top:4px;">
+                Ver todos os não realizados (<?= (int) $nao_realizadas_pendentes ?>)
+            </a>
+        <?php endif; ?>
+    <?php endif; ?>
+
     <!-- OS Pendentes -->
     <h2 class="tec-section-title">
         <i class='bx bx-time'></i> Pendentes
@@ -81,7 +122,7 @@ $this->load->view('tecnico/_topo', [
                         <span class="os-num">#OS <?= sprintf('%04d', $os->idOs) ?></span>
                         <span class="badge-status pendente"><?= $os->status ?></span>
                     </div>
-                    <div class="os-cliente"><i class='bx bx-user'></i> <?= $os->nomeCliente ?></div>
+                    <div class="os-cliente"><i class='bx bx-user'></i> <?= html_escape($os->nomeCliente) ?></div>
                     <div class="os-desc"><?= character_limiter(strip_tags($os->descricaoProduto), 80) ?></div>
                     <div class="os-foot">
                         <span class="os-meta">

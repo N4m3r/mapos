@@ -20,6 +20,10 @@
                 <div class="span3">
                     <a href="<?php echo base_url(); ?>index.php/os/adicionar" class="button btn btn-mini btn-success" style="max-width: 160px">
                         <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Ordem de Serviço</span></a>
+                    <a href="<?= site_url('agenda') ?>" class="button btn btn-mini btn-info" style="max-width: 160px" title="Agenda da equipe">
+                        <span class="button__icon"><i class='bx bx-calendar'></i></span><span class="button__text2">Agenda</span></a>
+                    <a href="<?= site_url('sla') ?>" class="button btn btn-mini btn-warning" style="max-width: 160px" title="Painel de SLA">
+                        <span class="button__icon"><i class='bx bx-timer'></i></span><span class="button__text2">SLA</span></a>
                 </div>
             <?php
             } ?>
@@ -165,7 +169,16 @@
                                     echo '<td>R$ ' . number_format(floatval($r->valor_desconto), 2, ',', '.') . '</td>';
                                     echo '<td class="ph4">R$ ' . number_format($r->faturado ? floatval($r->valor_desconto) : 0.00, 2, ',', '.') . '</td>';
                                 }
-                                echo '<td><span class="badge" style="background-color: ' . $cor . '; border-color: ' . $cor . '">' . $r->status . '</span> </td>';
+                                // Acao rapida: clicar no status abre a troca (so status de fluxo; os que
+                                // mexem em estoque/faturamento continuam so pela tela da OS)
+                                $statusRapido = isset($statusRapidos)
+                                    && $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')
+                                    && ! in_array($r->status, ['Finalizado', 'Faturado', 'Cancelado', 'Não Realizado'], true);
+                                if ($statusRapido) {
+                                    echo '<td><span class="badge os-status-rapido" role="button" tabindex="0" data-os="' . $r->idOs . '" data-atual="' . html_escape($r->status) . '" title="Clique para mudar o status" style="cursor: pointer; background-color: ' . $cor . '; border-color: ' . $cor . '">' . $r->status . ' <i class="bx bx-chevron-down"></i></span> </td>';
+                                } else {
+                                    echo '<td><span class="badge" style="background-color: ' . $cor . '; border-color: ' . $cor . '">' . $r->status . '</span> </td>';
+                                }
                                 echo '<td>';
 
                                 $editavel = $this->os_model->isEditable($r->idOs);
@@ -174,9 +187,19 @@
                                     echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/os/visualizar/' . $r->idOs . '" class="btn-nwe" title="Ver mais detalhes"><i class="bx bx-show"></i></a>';
                                     echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/os/imprimir/' . $r->idOs . '" target="_blank" class="btn-nwe6" title="Imprimir A4"><i class="bx bx-printer bx-xs"></i></a>';
                                     echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/os/imprimirTermica/' . $r->idOs . '" target="_blank" class="btn-nwe6" title="Imprimir Não Fiscal"><i class="bx bx-printer bx-xs"></i></a>';
+
+                                    // WhatsApp com o mesmo texto do botao da tela da OS
+                                    $zapnumber = preg_replace('/[^0-9]/', '', (string) $r->celular_cliente);
+                                    if (strlen($zapnumber) >= 10 && ! empty($texto_de_notificacao)) {
+                                        $troca = [$r->nomeCliente, $r->idOs, $r->status, 'R$ ' . ($r->desconto != 0 && $r->valor_desconto != 0 ? number_format($r->valor_desconto, 2, ',', '.') : number_format($r->totalProdutos + $r->totalServicos, 2, ',', '.')), strip_tags((string) $r->descricaoProduto), ($emitente ? $emitente->nome : ''), ($emitente ? $emitente->telefone : ''), strip_tags((string) $r->observacoes), strip_tags((string) $r->defeito), strip_tags((string) $r->laudoTecnico), $r->dataFinal ? date('d/m/Y', strtotime($r->dataFinal)) : '', date('d/m/Y', strtotime($r->dataInicial)), formatar_garantia($r->garantia)];
+                                        echo '<a style="margin-right: 1%" href="https://api.whatsapp.com/send?phone=55' . $zapnumber . '&text=' . $this->os_model->criarTextoWhats($texto_de_notificacao, $troca) . '" target="_blank" rel="noopener" class="btn-nwe" title="Enviar por WhatsApp"><i class="bx bxl-whatsapp"></i></a>';
+                                    }
                                 }
                                 if ($editavel) {
                                     echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/os/editar/' . $r->idOs . '" class="btn-nwe3" title="Editar OS"><i class="bx bx-edit"></i></a>';
+                                }
+                                if ($this->permission->checkPermission($this->session->userdata('permissao'), 'aOs')) {
+                                    echo '<a style="margin-right: 1%" href="#modal-duplicar" role="button" data-toggle="modal" data-os-origem="' . $r->idOs . '" class="btn-nwe3 btn-duplicar-os" title="Copiar OS para outro cliente/CNPJ"><i class="bx bx-copy"></i></a>';
                                 }
                                 if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dOs') && $editavel) {
                                     echo '<a href="#modal-excluir" role="button" data-toggle="modal" os="' . $r->idOs . '" class="btn-nwe4" title="Excluir OS"><i class="bx bx-trash-alt"></i></a>  ';
@@ -215,6 +238,29 @@
         </form>
     </div>
 
+    <!-- Modal Duplicar OS para outro cliente/CNPJ -->
+    <div id="modal-duplicar" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <form id="form-duplicar" action="<?php echo base_url() ?>index.php/os/duplicar" method="post">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h5>Copiar OS para outro cliente/CNPJ</h5>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="dup-idOs" name="idOs" value="" />
+                <input type="hidden" id="dup-clientes_id" name="clientes_id" value="" />
+                <p>A OS <strong>#<span id="dup-num"></span></strong> será copiada (cabeçalho, produtos e serviços) para o cliente selecionado. A nova OS nasce como <strong>Orçamento</strong> não faturado. Assinaturas, cobranças e notas fiscais não são copiadas.</p>
+                <label for="dup-cliente">Cliente / CNPJ de destino</label>
+                <input type="text" id="dup-cliente" class="span12" autocomplete="off" placeholder="Digite o nome do cliente de destino" />
+                <span id="dup-erro" style="color:#f24c6f; display:none">Selecione um cliente da lista.</span>
+            </div>
+            <div class="modal-footer" style="display:flex;justify-content: center">
+                <button type="button" class="button btn btn-warning" data-dismiss="modal" aria-hidden="true">
+                    <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
+                <button type="submit" class="button btn btn-success"><span class="button__icon"><i class='bx bx-copy'></i></span> <span class="button__text2">Copiar OS</span></button>
+            </div>
+        </form>
+    </div>
+
 </div>
 
 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) {
@@ -224,6 +270,54 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
+        // ---- Acao rapida: mudar status pela listagem (mesmo endpoint da Central de Atendimento) ----
+        var statusRapidos = <?= json_encode(isset($statusRapidos) ? $statusRapidos : []) ?>;
+        $(document).on('click keydown', '.os-status-rapido', function(e) {
+            if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') {
+                return;
+            }
+            e.preventDefault();
+            var $badge = $(this);
+            var osId = $badge.data('os');
+            var atual = $badge.data('atual');
+            var opcoes = {};
+            $.each(statusRapidos, function(i, s) {
+                opcoes[s] = s;
+            });
+
+            Swal.fire({
+                title: 'Status da OS #' + osId,
+                input: 'select',
+                inputOptions: opcoes,
+                inputValue: atual,
+                showCancelButton: true,
+                confirmButtonText: 'Salvar',
+                cancelButtonText: 'Cancelar',
+                footer: 'Para finalizar, faturar ou cancelar, use a tela da OS.'
+            }).then(function(res) {
+                if (!res.isConfirmed || !res.value || res.value === atual) {
+                    return;
+                }
+                $.ajax({
+                    url: '<?= site_url('os/alterarStatusAction') ?>',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: { os_id: osId, status: res.value },
+                    success: function(r) {
+                        if (r && r.success) {
+                            // Recarrega para atualizar cor, filtros e paginacao
+                            window.location.reload();
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'Não foi possível alterar', text: (r && r.message) || 'Erro ao alterar status.' });
+                        }
+                    },
+                    error: function() {
+                        Swal.fire({ icon: 'error', title: 'Falha de comunicação', text: 'Tente novamente.' });
+                    }
+                });
+            });
+        });
+
         $(document).on('click', 'a', function(event) {
             var os = $(this).attr('os');
             $('#idOs').val(os);
@@ -254,6 +348,39 @@
         });
         $(".datepicker").datepicker({
             dateFormat: 'dd/mm/yy'
+        });
+
+        // Duplicar OS: preenche o modal com a OS de origem
+        $(document).on('click', '.btn-duplicar-os', function() {
+            var os = $(this).attr('data-os-origem');
+            $('#dup-idOs').val(os);
+            $('#dup-num').text(os);
+            $('#dup-cliente').val('');
+            $('#dup-clientes_id').val('');
+            $('#dup-erro').hide();
+        });
+
+        // Autocomplete de cliente destino (reusa endpoint da tela de adicionar)
+        $('#dup-cliente').autocomplete({
+            source: "<?php echo base_url(); ?>index.php/os/autoCompleteCliente",
+            minLength: 1,
+            select: function(event, ui) {
+                $('#dup-clientes_id').val(ui.item.id);
+                $('#dup-erro').hide();
+            }
+        });
+
+        // Se o usuário digitar sem escolher da lista, invalida a seleção anterior
+        $('#dup-cliente').on('input', function() {
+            $('#dup-clientes_id').val('');
+        });
+
+        // Exige um cliente escolhido antes de enviar
+        $('#form-duplicar').on('submit', function(e) {
+            if (!$('#dup-clientes_id').val()) {
+                e.preventDefault();
+                $('#dup-erro').show();
+            }
         });
     });
 </script>

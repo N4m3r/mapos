@@ -34,15 +34,33 @@ $emp = $emitente ?? null;
     <?php if (! empty($jornada)): ?>&nbsp; <strong>Jornada:</strong> <?= htmlspecialchars($jornada->nome) ?><?php endif; ?>
 </div>
 
+<?php
+$lblBat = ['entrada'=>'E','saida'=>'S','inicio_intervalo'=>'II','fim_intervalo'=>'FI'];
+?>
 <table style="margin-top:8px">
-    <thead><tr><th>Dia</th><th>Sem.</th><th>Batidas</th><th>Trab.</th><th>Extra</th><th>Falta</th><th>Saldo</th></tr></thead>
+    <thead><tr><th>Dia</th><th>Sem.</th><th>Batidas (tipo/hora/local)</th><th>Trab.</th><th>Extra</th><th>Falta</th><th>Saldo</th></tr></thead>
     <tbody>
     <?php foreach ($linhas as $l):
         $cls = ! $l['eh_util'] ? 'folga' : ($l['calc']['falta'] > 0 ? 'falta' : ''); ?>
         <tr class="<?= $cls ?>">
             <td><?= (int) substr($l['data'],8,2) ?></td>
             <td><?= $diasSemana[$l['dia_semana']] ?></td>
-            <td><?php if (empty($l['batidas'])) echo '—'; else foreach ($l['batidas'] as $b) echo date('H:i', strtotime($b->data_hora)).' '; ?></td>
+            <td style="text-align:left;font-size:9px"><?php
+                if (empty($l['batidas'])) {
+                    echo '—';
+                } else {
+                    $parts = [];
+                    foreach ($l['batidas'] as $b) {
+                        $t = $lblBat[$b->tipo] ?? $b->tipo;
+                        $p = $t . ' ' . date('H:i', strtotime($b->data_hora));
+                        if (! empty($b->latitude) && ! empty($b->longitude)) {
+                            $p .= ' [' . round((float)$b->latitude, 4) . ',' . round((float)$b->longitude, 4) . ']';
+                        }
+                        $parts[] = $p;
+                    }
+                    echo htmlspecialchars(implode(' · ', $parts));
+                }
+            ?></td>
             <td><?= $fmt($l['calc']['trabalhado']) ?></td>
             <td><?= $fmt($l['calc']['extra50'] + $l['calc']['extra100']) ?></td>
             <td><?= $fmt($l['calc']['falta']) ?></td>
@@ -51,6 +69,7 @@ $emp = $emitente ?? null;
     <?php endforeach; ?>
     </tbody>
 </table>
+<div style="font-size:9px;color:#666;margin-top:4px">Legenda: E=Entrada · II=Início intervalo · FI=Fim intervalo · S=Saída · [lat,lng]=local GPS</div>
 
 <table class="tot">
     <tr>

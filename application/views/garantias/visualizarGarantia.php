@@ -28,10 +28,10 @@
                                 } else { ?> <tr>
                                         <td style="width: 25%"><img src=" <?php echo $emitente->url_logo; ?> "></td>
                                         <td> <span style="font-size: 20px; ">
-                                                <?php echo $emitente->nome; ?></span> </br><span>
-                                                <?php echo $emitente->cnpj; ?> </br>
-                                                <?php echo $emitente->rua . ', nº:' . $emitente->numero . ', ' . $emitente->bairro . ' - ' . $emitente->cidade . ' - ' . $emitente->uf; ?> </span> </br> <span> E-mail:
-                                                <?php echo $emitente->email . ' - Fone: ' . $emitente->telefone; ?></span></td>
+                                                <?php echo html_escape($emitente->nome); ?></span> </br><span>
+                                                <?php echo html_escape($emitente->cnpj); ?> </br>
+                                                <?php echo html_escape($emitente->rua . ', nº:' . $emitente->numero . ', ' . $emitente->bairro . ' - ' . $emitente->cidade . ' - ' . $emitente->uf); ?> </span> </br> <span> E-mail:
+                                                <?php echo html_escape($emitente->email . ' - Fone: ' . $emitente->telefone); ?></span></td>
                                         <td style="width: 18%; text-align: center">#Garantia: <span>
                                                 <?php echo $result->idGarantias ?></span></br> </br> <span>Emissão:
                                                 <?php echo date('d/m/Y'); ?></span>
@@ -51,11 +51,11 @@
                                                     <h5>Responsável</h5>
                                                 </span>
                                                 <span>
-                                                    <?php echo $result->nome ?></span> <br />
+                                                    <?php echo html_escape($result->nome); ?></span> <br />
                                                 <span>Telefone:
-                                                    <?php echo $result->telefone ?></span><br />
+                                                    <?php echo html_escape($result->telefone); ?></span><br />
                                                 <span>Email:
-                                                    <?php echo $result->email ?></span>
+                                                    <?php echo html_escape($result->email); ?></span>
                                             </li>
                                         </ul>
                                     </td>
@@ -76,7 +76,7 @@
                                                 <span>
                                                     <h5>Ref. Termo</h5>
                                                 </span>
-                                                <span><?php echo $result->refGarantia ?> </span>
+                                                <span><?php echo html_escape($result->refGarantia); ?> </span>
                                             </li>
                                         </ul>
                                     </td>

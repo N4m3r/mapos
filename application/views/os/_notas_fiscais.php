@@ -1,9 +1,16 @@
 <?php
 // Partial: tabela de notas fiscais emitidas para uma OS, com o boleto/PIX (Cora)
 // vinculado a cada nota.
-// Espera: $notas (linhas de notas_fiscais) e $boletos (mapa nota_id => cobranca).
+// Espera: $notas (linhas de notas_fiscais) e $boletosLista (nota_id => [cobranças]).
 $notas = isset($notas) ? $notas : [];
-$boletos = isset($boletos) ? $boletos : [];
+// $boletosLista: mapa nota_id => [cobranças] (todas as parcelas). Compat: aceita
+// também $boletos (mapa nota_id => cobrança única) de chamadas antigas.
+$boletosLista = isset($boletosLista) && is_array($boletosLista) ? $boletosLista : [];
+if (empty($boletosLista) && isset($boletos) && is_array($boletos)) {
+    foreach ($boletos as $notaId => $b) {
+        $boletosLista[$notaId] = [$b];
+    }
+}
 $coraStage = isset($coraStage) ? $coraStage : false;
 $podeCancelar = $this->permission->checkPermission($this->session->userdata('permissao'), 'dNfe');
 $podeEmitir = $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe');
@@ -12,6 +19,10 @@ $podeVerBoleto = $this->permission->checkPermission($this->session->userdata('pe
 $this->load->config('payment_gateways');
 $this->load->helper('general');
 $gwConfig = $this->config->item('payment_gateways');
+// Config fiscal — usada para mostrar, no botão/modal do boleto, o desconto de
+// ISS retido e o valor líquido efetivamente cobrado (mesma regra do gateway Cora).
+$this->load->model('nfe_model');
+$configNfeBoleto = $this->nfe_model->getConfig();
 ?>
 <div class="table-responsive">
     <table class="table table-bordered">
@@ -44,11 +55,13 @@ $gwConfig = $this->config->item('payment_gateways');
                     };
                     $tipoLabel = $nota->tipo === 'nfe' ? 'NF-e (produtos)' : 'NFS-e (serviços)';
                     $tipoIcon = $nota->tipo === 'nfe' ? 'bx-box' : 'bx-receipt';
-                    $boleto = $boletos[$nota->idNota] ?? null;
+                    $boletosDaNota = $boletosLista[$nota->idNota] ?? [];
+                    // Parcelas ativas (ignora canceladas) para saber se já há boleto.
+                    $boletosAtivos = array_filter($boletosDaNota, fn ($b) => ! in_array($b->status, ['CANCELLED', 'cancelada'], true));
                     ?>
                     <tr>
                         <td><i class="bx <?php echo $tipoIcon; ?>"></i> <?php echo $tipoLabel; ?><?php echo $nota->ambiente == 2 ? ' <span class="badge" style="background:#AEB404">Homolog.</span>' : ''; ?></td>
-                        <td><?php echo $nota->numero; ?> / <?php echo $nota->serie; ?></td>
+                        <td><?php echo html_escape($nota->numero); ?> / <?php echo html_escape($nota->serie); ?></td>
                         <td>R$ <?php echo number_format($nota->valor_total, 2, ',', '.'); ?></td>
                         <td><?php echo $nota->data_emissao ? date('d/m/Y H:i', strtotime($nota->data_emissao)) : '-'; ?></td>
                         <td><span class="badge" style="background-color:<?php echo $corStatus; ?>;border-color:<?php echo $corStatus; ?>"><?php echo ucfirst($nota->status); ?></span></td>
@@ -57,38 +70,50 @@ $gwConfig = $this->config->item('payment_gateways');
                             <?php echo $nota->motivo ? '<br><span style="color:#888">' . html_escape(mb_substr($nota->motivo, 0, 140)) . '</span>' : ''; ?>
                         </td>
                         <td style="font-size:11px;min-width:150px" id="boleto-nota-<?php echo $nota->idNota; ?>">
-                            <?php if ($boleto) {
-                                $statusBoleto = $boleto->status;
-                                try {
-                                    $statusLabel = getCobrancaTransactionStatus($gwConfig, $boleto->payment_gateway, $statusBoleto);
-                                } catch (\Throwable $e) {
-                                    $statusLabel = $statusBoleto;
-                                }
-                                $pago = in_array($statusBoleto, ['PAID', 'RECEIVED', 'CONFIRMED']);
-                                $problema = in_array($statusBoleto, ['LATE', 'CANCELLED', 'OVERDUE']);
-                                $corBoleto = $pago ? '#4d9c79' : ($problema ? '#CD0000' : '#AEB404');
-                                ?>
-                                <span class="badge badge-status-boleto" style="background-color:<?php echo $corBoleto; ?>;border-color:<?php echo $corBoleto; ?>"><?php echo html_escape($statusLabel); ?></span>
-                                <br>R$ <?php echo number_format($boleto->total / 100, 2, ',', '.'); ?>
-                                <?php if ($boleto->valor_iss_retido > 0) { ?>
-                                    <br><span style="color:#888" title="ISS retido abatido">ISS ret.: R$ <?php echo number_format($boleto->valor_iss_retido, 2, ',', '.'); ?></span>
-                                <?php } ?>
-                                <div style="margin-top:4px;white-space:nowrap">
-                                    <?php if (! empty($boleto->pdf)) { ?>
-                                        <a href="<?php echo html_escape($boleto->pdf); ?>" target="_blank" class="btn-nwe6" title="Baixar boleto (PDF)"><i class="bx bx-barcode bx-xs"></i></a>
-                                    <?php } ?>
-                                    <?php if (! empty($boleto->pix)) { ?>
-                                        <a href="#" class="btn-nwe6 btn-copiar-pix" data-pix="<?php echo html_escape($boleto->pix); ?>" title="Copiar código PIX (copia e cola)"><i class="bx bx-qr bx-xs"></i></a>
-                                    <?php } ?>
-                                    <?php if (! $pago && $podeVerBoleto) { ?>
-                                        <a href="#" class="btn-nwe6 btn-verificar-boleto" data-id="<?php echo $boleto->idCobranca; ?>" data-nota="<?php echo $nota->idNota; ?>" title="Verificar pagamento"><i class="bx bx-refresh bx-xs"></i></a>
-                                    <?php } ?>
-                                    <?php if (! $pago && $coraStage && $podeVerBoleto) { ?>
-                                        <a href="#" class="btn-nwe4 btn-simular-pgto" data-id="<?php echo $boleto->idCobranca; ?>" data-nota="<?php echo $nota->idNota; ?>" title="Simular pagamento (só em homologação/Stage)"><i class="bx bx-test-tube bx-xs"></i> teste</a>
-                                    <?php } ?>
-                                </div>
-                            <?php } elseif ($nota->status === 'autorizada' && $podeGerarBoleto) { ?>
-                                <button type="button" class="btn btn-mini btn-info btn-gerar-boleto" data-nota="<?php echo $nota->idNota; ?>" title="Gerar boleto híbrido (boleto + PIX) na Cora">
+                            <?php if (! empty($boletosAtivos)) {
+                                $totalParcelas = count($boletosAtivos);
+                                $indiceParcela = 0;
+                                foreach ($boletosAtivos as $boleto) {
+                                    $indiceParcela++;
+                                    $statusBoleto = $boleto->status;
+                                    try {
+                                        $statusLabel = getCobrancaTransactionStatus($gwConfig, $boleto->payment_gateway, $statusBoleto);
+                                    } catch (\Throwable $e) {
+                                        $statusLabel = $statusBoleto;
+                                    }
+                                    $pago = in_array($statusBoleto, ['PAID', 'RECEIVED', 'CONFIRMED']);
+                                    $problema = in_array($statusBoleto, ['LATE', 'CANCELLED', 'OVERDUE']);
+                                    $corBoleto = $pago ? '#4d9c79' : ($problema ? '#CD0000' : '#AEB404');
+                                    ?>
+                                    <div style="padding:3px 0<?php echo $indiceParcela < $totalParcelas ? ';border-bottom:1px dashed #e0e0e0' : ''; ?>">
+                                        <?php if ($totalParcelas > 1) { ?><strong title="Parcela"><?php echo $indiceParcela . '/' . $totalParcelas; ?></strong> <?php } ?>
+                                        <span class="badge badge-status-boleto" data-id="<?php echo $boleto->idCobranca; ?>" style="background-color:<?php echo $corBoleto; ?>;border-color:<?php echo $corBoleto; ?>"><?php echo html_escape($statusLabel); ?></span>
+                                        R$ <?php echo number_format($boleto->total / 100, 2, ',', '.'); ?>
+                                        <?php if (! empty($boleto->expire_at)) { ?>
+                                            <span style="color:#888">venc. <?php echo date('d/m/Y', strtotime($boleto->expire_at)); ?></span>
+                                        <?php } ?>
+                                        <?php if ($boleto->valor_iss_retido > 0) { ?>
+                                            <span style="color:#888" title="ISS retido abatido">(ISS ret.: R$ <?php echo number_format($boleto->valor_iss_retido, 2, ',', '.'); ?>)</span>
+                                        <?php } ?>
+                                        <span style="white-space:nowrap">
+                                            <?php if (! empty($boleto->pdf)) { ?>
+                                                <a href="<?php echo html_escape($boleto->pdf); ?>" target="_blank" class="btn-nwe6" title="Baixar boleto (PDF)"><i class="bx bx-barcode bx-xs"></i></a>
+                                            <?php } ?>
+                                            <?php if (! empty($boleto->pix)) { ?>
+                                                <a href="#" class="btn-nwe6 btn-copiar-pix" data-pix="<?php echo html_escape($boleto->pix); ?>" title="Copiar código PIX (copia e cola)"><i class="bx bx-qr bx-xs"></i></a>
+                                            <?php } ?>
+                                            <?php if (! $pago && $podeVerBoleto) { ?>
+                                                <a href="#" class="btn-nwe6 btn-verificar-boleto" data-id="<?php echo $boleto->idCobranca; ?>" data-nota="<?php echo $nota->idNota; ?>" title="Verificar pagamento"><i class="bx bx-refresh bx-xs"></i></a>
+                                            <?php } ?>
+                                            <?php if (! $pago && $coraStage && $podeVerBoleto) { ?>
+                                                <a href="#" class="btn-nwe4 btn-simular-pgto" data-id="<?php echo $boleto->idCobranca; ?>" data-nota="<?php echo $nota->idNota; ?>" title="Simular pagamento (só em homologação/Stage)"><i class="bx bx-test-tube bx-xs"></i> teste</a>
+                                            <?php } ?>
+                                        </span>
+                                    </div>
+                                <?php }
+                            } elseif ($nota->status === 'autorizada' && $podeGerarBoleto) {
+                                $valBoleto = boletoValoresNota($nota, $configNfeBoleto); ?>
+                                <button type="button" class="btn btn-mini btn-info btn-gerar-boleto" data-nota="<?php echo $nota->idNota; ?>" data-valor="<?php echo number_format($valBoleto['bruto'], 2, '.', ''); ?>" data-iss="<?php echo number_format($valBoleto['iss'], 2, '.', ''); ?>" data-liquido="<?php echo number_format($valBoleto['liquido'], 2, '.', ''); ?>" title="Gerar boleto híbrido (boleto + PIX) na Cora, à vista ou parcelado">
                                     <i class="bx bx-dollar bx-xs"></i> Gerar Boleto/PIX
                                 </button>
                             <?php } else { ?>
@@ -109,7 +134,7 @@ $gwConfig = $this->config->item('payment_gateways');
                                 $classeRetransmitir = $nota->tipo === 'nfe' ? 'btn-transmitir-nfe' : 'btn-transmitir-nfse';
                                 $modalRetransmitir = $nota->tipo === 'nfe' ? '#modal-nfe' : '#modal-nfse';
                                 ?>
-                                <a href="<?php echo $modalRetransmitir; ?>" role="button" data-toggle="modal" class="btn-nwe3 <?php echo $classeRetransmitir; ?>" data-os="<?php echo $nota->os_id; ?>" title="Corrigir e retransmitir (mantém o nº <?php echo $nota->numero; ?>)"><i class="bx bx-refresh bx-xs"></i></a>
+                                <a href="<?php echo $modalRetransmitir; ?>" role="button" data-toggle="modal" class="btn-nwe3 <?php echo $classeRetransmitir; ?>" data-os="<?php echo $nota->os_id; ?>" title="Corrigir e retransmitir (mantém o nº <?php echo html_escape($nota->numero); ?>)"><i class="bx bx-refresh bx-xs"></i></a>
                             <?php } ?>
                         </td>
                     </tr>
@@ -127,31 +152,181 @@ $gwConfig = $this->config->item('payment_gateways');
 <?php } ?>
 
 <?php if (! defined('MAPOS_BOLETO_NOTA_JS')) { define('MAPOS_BOLETO_NOTA_JS', true); ?>
+<div id="modal-gerar-boleto" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h5>Gerar Boleto/PIX (Cora)</h5>
+    </div>
+    <div class="modal-body">
+        <input type="hidden" id="boletoNotaId" value="" />
+        <p style="margin-bottom:4px">Valor da nota fiscal: <strong id="boletoValorNota">—</strong></p>
+        <div id="boletoIssBox" style="display:none;margin-bottom:8px;padding:6px 8px;border:1px solid #f0e0b0;border-radius:4px;background:#fffbe6;font-size:12px">
+            <div>ISS retido pelo tomador (descontado): <strong id="boletoIssValor" style="color:#c0392b">—</strong></div>
+            <div>Valor líquido cobrado no boleto: <strong id="boletoLiquido">—</strong></div>
+        </div>
+        <div class="control-group">
+            <label for="boletoParcelas"><strong>Parcelas</strong></label>
+            <select id="boletoParcelas" class="span12">
+                <?php for ($p = 1; $p <= 12; $p++) { ?>
+                    <option value="<?php echo $p; ?>"><?php echo $p; ?>x<?php echo $p === 1 ? ' (à vista)' : ''; ?></option>
+                <?php } ?>
+            </select>
+            <span style="color:#999;font-size:11px">Cada parcela é um boleto próprio, vencendo a partir da data do 1º vencimento (intervalo configurável abaixo). Mínimo de R$ 5,00 por parcela.</span>
+        </div>
+        <div class="control-group">
+            <label for="boletoVencimento"><strong>1º vencimento</strong></label>
+            <input type="date" id="boletoVencimento" class="span12" />
+            <span style="color:#999;font-size:11px">Deixe em branco para usar o prazo padrão configurado na Cora.</span>
+        </div>
+        <div class="control-group" id="boletoIntervaloBox" style="display:none">
+            <label for="boletoIntervaloTipo"><strong>Vencimento da 2ª parcela em diante</strong></label>
+            <select id="boletoIntervaloTipo" class="span12">
+                <option value="mensal">A cada mês (mesmo dia)</option>
+                <option value="dias">A cada N dias</option>
+            </select>
+            <div id="boletoIntervaloDiasBox" style="display:none;margin-top:6px">
+                <label for="boletoIntervaloDias">Dias entre as parcelas</label>
+                <input type="number" id="boletoIntervaloDias" class="span12" min="1" max="365" value="30" />
+            </div>
+            <span style="color:#999;font-size:11px">Define o espaçamento a partir da 2ª parcela: por mês (mesmo dia) ou por um prazo em dias a contar do 1º vencimento.</span>
+        </div>
+        <div id="boletoResumoParcela" style="color:#555;font-size:12px;margin-top:4px"></div>
+    </div>
+    <div class="modal-footer" style="display:flex;justify-content:center">
+        <button type="button" class="button btn btn-warning" data-dismiss="modal">
+            <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span>
+        </button>
+        <button type="button" id="boletoConfirmarGerar" class="button btn btn-success">
+            <span class="button__icon"><i class="bx bx-dollar"></i></span><span class="button__text2">Gerar</span>
+        </button>
+    </div>
+</div>
 <script type="text/javascript">
 (function () {
     var urlGerar = "<?php echo site_url('cobrancas/gerarPorNota'); ?>";
     var urlVerificar = "<?php echo site_url('cobrancas/verificarPagamento'); ?>";
     var urlSimular = "<?php echo site_url('cobrancas/simularPagamentoCora'); ?>";
 
-    // Gerar boleto/PIX (Cora) a partir de uma nota fiscal
+    function boletoMoney(v) {
+        return 'R$ ' + (parseFloat(v) || 0).toFixed(2).replace('.', ',');
+    }
+
+    // Descreve o intervalo escolhido para a 2ª parcela em diante.
+    function boletoIntervaloTexto() {
+        if ($('#boletoIntervaloTipo').val() === 'dias') {
+            var d = parseInt($('#boletoIntervaloDias').val(), 10) || 30;
+            return 'a cada ' + d + ' dia(s)';
+        }
+        return 'mensal (mesmo dia)';
+    }
+
+    // Atualiza o resumo do parcelamento (valor por parcela e intervalo) no modal.
+    // Baseia-se no valor LÍQUIDO (já sem o ISS retido), que é o efetivamente cobrado.
+    function boletoAtualizarResumo() {
+        var valor = parseFloat($('#boletoNotaId').data('liquido'));
+        if (isNaN(valor)) { valor = parseFloat($('#boletoNotaId').data('valor')) || 0; }
+        var parcelas = parseInt($('#boletoParcelas').val(), 10) || 1;
+        // O intervalo só faz sentido a partir de 2 parcelas.
+        $('#boletoIntervaloBox').toggle(parcelas > 1);
+        if (parcelas <= 1) {
+            $('#boletoResumoParcela').html('Boleto único de <strong>' + boletoMoney(valor) + '</strong>.');
+            return;
+        }
+        var porParcela = Math.floor((valor * 100) / parcelas) / 100;
+        $('#boletoResumoParcela').html(parcelas + ' boletos de aprox. <strong>' + boletoMoney(porParcela) + '</strong>, vencimento ' + boletoIntervaloTexto() + ' (a 1ª ajusta as diferenças de centavos).');
+    }
+
+    // Abre o modal de geração (à vista ou parcelado) para a nota clicada.
     $(document).on('click', '.btn-gerar-boleto', function (e) {
         e.preventDefault();
         var $btn = $(this);
-        var notaId = $btn.data('nota');
-        $btn.prop('disabled', true).html("<i class='bx bx-loader bx-spin'></i> Gerando...");
+        var valorBruto = parseFloat($btn.data('valor')) || 0;
+        var iss = parseFloat($btn.data('iss')) || 0;
+        var liquido = parseFloat($btn.data('liquido'));
+        if (isNaN(liquido)) { liquido = Math.round((valorBruto - iss) * 100) / 100; }
+        $('#boletoNotaId').val($btn.data('nota')).data('valor', valorBruto).data('liquido', liquido);
+        $('#boletoValorNota').text(boletoMoney(valorBruto));
+        // Mostra o desconto do ISS retido e o valor líquido só quando houver retenção.
+        if (iss > 0) {
+            $('#boletoIssValor').text('− ' + boletoMoney(iss));
+            $('#boletoLiquido').text(boletoMoney(liquido));
+            $('#boletoIssBox').show();
+        } else {
+            $('#boletoIssBox').hide();
+        }
+        $('#boletoParcelas').val('1');
+        $('#boletoVencimento').val('');
+        $('#boletoIntervaloTipo').val('mensal');
+        $('#boletoIntervaloDias').val('30');
+        $('#boletoIntervaloDiasBox').hide();
+        $('#boletoConfirmarGerar').prop('disabled', false).html("<span class='button__icon'><i class='bx bx-dollar'></i></span><span class='button__text2'>Gerar</span>");
+        boletoAtualizarResumo();
+        $('#modal-gerar-boleto').modal('show');
+    });
+
+    $('#boletoParcelas').on('change', boletoAtualizarResumo);
+    $('#boletoIntervaloTipo').on('change', function () {
+        $('#boletoIntervaloDiasBox').toggle($(this).val() === 'dias');
+        boletoAtualizarResumo();
+    });
+    $('#boletoIntervaloDias').on('input', boletoAtualizarResumo);
+
+    // Confirma a geração do(s) boleto(s) conforme parcelas/vencimento escolhidos.
+    function boletoResetBotao($btn) {
+        $btn.prop('disabled', false).html("<span class='button__icon'><i class='bx bx-dollar'></i></span><span class='button__text2'>Gerar</span>");
+    }
+    // Mostra alerta via swal quando disponível; senão cai no alert() nativo.
+    function boletoAlerta(tipo, titulo, texto, aoFechar) {
+        if (typeof swal === 'function') {
+            swal({ type: tipo, title: titulo, text: texto }, aoFechar);
+        } else {
+            alert(titulo + '\n\n' + texto);
+            if (typeof aoFechar === 'function') { aoFechar(); }
+        }
+    }
+    // Delegado (resiliente a mudanças de DOM do modal) e à prova de swal ausente.
+    $(document).on('click', '#boletoConfirmarGerar', function () {
+        var $btn = $(this);
+        var notaId = $('#boletoNotaId').val();
+        console.log('[boleto] Gerar clicado. nota=', notaId, 'url=', urlGerar);
+        $btn.prop('disabled', true).html("<span class='button__icon'><i class='bx bx-loader bx-spin'></i></span><span class='button__text2'>Gerando...</span>");
         $.ajax({
             type: 'POST',
             url: urlGerar,
             dataType: 'json',
-            data: { nota_id: notaId },
-            success: function () {
-                swal({ type: 'success', title: 'Boleto gerado!', text: 'Boleto híbrido (boleto + PIX) criado com sucesso.' },
+            timeout: 90000,
+            data: {
+                nota_id: notaId,
+                parcelas: $('#boletoParcelas').val(),
+                vencimento: $('#boletoVencimento').val(),
+                intervalo_tipo: $('#boletoIntervaloTipo').val(),
+                intervalo_dias: $('#boletoIntervaloDias').val()
+            },
+            success: function (resp) {
+                console.log('[boleto] success', resp);
+                // Segurança: alguns erros podem vir com HTTP 200 + {message}.
+                if (resp && resp.message && !resp.charge_id && !resp.idCobranca) {
+                    boletoResetBotao($btn);
+                    boletoAlerta('error', 'Atenção', resp.message);
+                    return;
+                }
+                $('#modal-gerar-boleto').modal('hide');
+                boletoAlerta('success', 'Boleto gerado!', 'Boleto híbrido (boleto + PIX) criado com sucesso.',
                     function () { location.reload(); });
             },
-            error: function (xhr) {
-                var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Erro ao gerar boleto.';
-                swal({ type: 'error', title: 'Atenção', text: msg });
-                $btn.prop('disabled', false).html("<i class='bx bx-dollar bx-xs'></i> Gerar Boleto/PIX");
+            error: function (xhr, textStatus) {
+                console.log('[boleto] error', xhr.status, textStatus, xhr.responseText);
+                boletoResetBotao($btn);
+                var msg;
+                if (textStatus === 'timeout') {
+                    msg = 'A geração demorou demais (timeout). O boleto PODE ter sido criado na Cora — atualize a página e verifique na aba Notas Fiscais antes de gerar de novo.';
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                } else {
+                    var corpo = (xhr.responseText || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                    msg = 'Erro ao gerar boleto (HTTP ' + xhr.status + ').' + (corpo ? ' Detalhe: ' + corpo.substring(0, 300) : '');
+                }
+                boletoAlerta('error', 'Atenção', msg);
             }
         });
     });
@@ -161,7 +336,7 @@ $gwConfig = $this->config->item('payment_gateways');
         e.preventDefault();
         var $link = $(this);
         var id = $link.data('id');
-        var $badge = $('#boleto-nota-' + $link.data('nota')).find('.badge-status-boleto');
+        var $badge = $('#boleto-nota-' + $link.data('nota')).find('.badge-status-boleto[data-id="' + id + '"]');
         var htmlOriginal = $link.html();
         $link.html("<i class='bx bx-loader bx-spin bx-xs'></i>");
         $.ajax({

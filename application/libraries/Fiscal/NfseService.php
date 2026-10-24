@@ -67,6 +67,81 @@ class NfseService
     }
 
     /**
+     * Reforma Tributária na NFS-e — DETECÇÃO DE SUPORTE.
+     *
+     * A biblioteca hadder/nfse-nacional 1.0.22 ainda NÃO gera o grupo IBS/CBS na
+     * DPS (o bloco está comentado no Dps.php) e os schemas embarcados vão só até
+     * DPS_v1.01, que não têm o grupo. Enquanto isso não muda, anexar os campos
+     * geraria rejeição por schema no SEFIN Nacional.
+     *
+     * Esta função detecta, de forma segura, se a versão instalada já traz o
+     * layout: procura o termo "IBSCBS" em algum schema DPS embarcado. Só quando
+     * um schema com IBS/CBS existir é que os campos passam a ser anexados —
+     * até lá a emissão sai idêntica à de hoje. Assim, ao atualizar o hadder para
+     * uma versão com a reforma, a NFS-e passa a levar IBS/CBS automaticamente.
+     */
+    private function nfseSuportaIbsCbs(): bool
+    {
+        $dir = APPPATH . 'vendor/hadder/nfse-nacional/storage/schemes';
+        foreach (glob($dir . '/DPS_*.xsd') ?: [] as $xsd) {
+            $conteudo = file_get_contents($xsd);
+            if ($conteudo !== false && stripos($conteudo, 'IBSCBS') !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Reforma Tributária na NFS-e — MONTAGEM DO GRUPO IBS/CBS (provisório).
+     *
+     * Preenche em $std->infDPS->valores->trib->ibscbs os valores de IBS/CBS a
+     * partir das alíquotas configuráveis (as mesmas da NF-e: reforma_ibs_uf,
+     * reforma_ibs_mun, reforma_cbs), espelhando a estrutura do grupo da NF-e.
+     *
+     * IMPORTANTE: os nomes exatos dos nós da DPS de IBS/CBS devem ser conferidos
+     * contra a versão do hadder que liberar o layout (NT 004 do padrão nacional).
+     * Como o método só é chamado quando nfseSuportaIbsCbs() é verdadeiro (schema
+     * com IBS/CBS presente), hoje ele NÃO executa — fica de scaffold pronto.
+     */
+    private function anexarIbsCbsDps(stdClass $std, float $total): void
+    {
+        $pIBSUF = (float) ($this->config->reforma_ibs_uf ?? 0);
+        $pIBSMun = (float) ($this->config->reforma_ibs_mun ?? 0);
+        $pCBS = (float) ($this->config->reforma_cbs ?? 0);
+        $vIBSUF = round($total * $pIBSUF / 100, 2);
+        $vIBSMun = round($total * $pIBSMun / 100, 2);
+        $vCBS = round($total * $pCBS / 100, 2);
+
+        $ibscbs = new stdClass();
+        $ibscbs->CST = $this->config->reforma_cst ?? '000';
+        $ibscbs->cClassTrib = $this->config->reforma_cclasstrib ?? '000001';
+
+        $ibscbs->gIBSCBS = new stdClass();
+        $ibscbs->gIBSCBS->vBC = number_format($total, 2, '.', '');
+
+        $ibscbs->gIBSCBS->gIBS = new stdClass();
+        $ibscbs->gIBSCBS->gIBS->gIBSUF = new stdClass();
+        $ibscbs->gIBSCBS->gIBS->gIBSUF->pIBSUF = number_format($pIBSUF, 4, '.', '');
+        $ibscbs->gIBSCBS->gIBS->gIBSUF->vIBSUF = number_format($vIBSUF, 2, '.', '');
+        $ibscbs->gIBSCBS->gIBS->gIBSMun = new stdClass();
+        $ibscbs->gIBSCBS->gIBS->gIBSMun->pIBSMun = number_format($pIBSMun, 4, '.', '');
+        $ibscbs->gIBSCBS->gIBS->gIBSMun->vIBSMun = number_format($vIBSMun, 2, '.', '');
+        $ibscbs->gIBSCBS->gIBS->vIBS = number_format($vIBSUF + $vIBSMun, 2, '.', '');
+
+        $ibscbs->gIBSCBS->gCBS = new stdClass();
+        $ibscbs->gIBSCBS->gCBS->pCBS = number_format($pCBS, 4, '.', '');
+        $ibscbs->gIBSCBS->gCBS->vCBS = number_format($vCBS, 2, '.', '');
+
+        // Anexa ao grupo de tributos da DPS (estrutura a confirmar na release).
+        if (!isset($std->infDPS->valores->trib)) {
+            $std->infDPS->valores->trib = new stdClass();
+        }
+        $std->infDPS->valores->trib->ibscbs = $ibscbs;
+    }
+
+    /**
      * Normaliza um texto livre para ir num campo da DPS (ex.: xDescServ).
      * Remove marcação HTML, decodifica entidades, tira caracteres de controle e
      * colapsa espaços/quebras. Evita conteúdo que possa ser reserializado de
@@ -82,6 +157,86 @@ class NfseService
         $t = preg_replace('/\s+/u', ' ', (string) $t);
 
         return trim((string) $t);
+    }
+
+    /**
+     * Escapa caracteres reservados de XML (& < > " ') para um campo da DPS.
+     * A biblioteca monta o XML com DOMDocument::createElement($tag, $valor), que
+     * interpreta o valor como marcação — um "&" cru (ex.: razão social
+     * "F&F Distribuidora...") vira início de entidade e dispara
+     * "unterminated entity reference". Pré-escapar produz o valor correto, pois o
+     * createElement decodifica a entidade de volta no caractere original.
+     */
+    private function escaparXml(string $texto): string
+    {
+        return htmlspecialchars($texto, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+    }
+
+    /**
+     * Prepara um campo de texto curto (nome, endereço) para a DPS: limpa,
+     * trunca no limite do schema e então escapa para XML. Trunca antes de
+     * escapar para não cortar no meio de uma entidade (ex.: "&amp;").
+     */
+    private function limparCampo(string $texto, int $max): string
+    {
+        return $this->escaparXml(mb_substr($this->limparTexto($texto), 0, $max));
+    }
+
+    /**
+     * Resolve o código IBGE do município (cMun, 7 dígitos) a partir do CEP,
+     * consultando o ViaCEP. Necessário porque o cadastro de cliente guarda só o
+     * NOME da cidade — e o Padrão Nacional exige que o cMun do endereço do
+     * tomador corresponda ao CEP (senão rejeita com E0240). Best-effort, com
+     * cache em memória e em disco; devolve o cMun ou null se não resolver.
+     */
+    private function ibgePorCep(string $cep): ?string
+    {
+        $cep = preg_replace('/\D/', '', $cep);
+        if (strlen($cep) !== 8) {
+            return null;
+        }
+
+        static $memo = [];
+        if (array_key_exists($cep, $memo)) {
+            return $memo[$cep];
+        }
+
+        // Cache em disco — evita repetir a consulta entre emissões.
+        $cacheFile = APPPATH . 'cache/cep_ibge_' . $cep . '.json';
+        if (is_file($cacheFile)) {
+            $c = json_decode((string) file_get_contents($cacheFile), true);
+            $ibge = is_array($c) && !empty($c['ibge']) ? (string) $c['ibge'] : null;
+
+            return $memo[$cep] = ($ibge !== null && strlen($ibge) === 7 ? $ibge : null);
+        }
+
+        $ibge = null;
+        try {
+            $ch = curl_init('https://viacep.com.br/ws/' . $cep . '/json/');
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 6,
+                CURLOPT_CONNECTTIMEOUT => 4,
+            ]);
+            $resp = curl_exec($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            if (is_string($resp) && $code >= 200 && $code < 300) {
+                $d = json_decode($resp, true);
+                if (is_array($d) && empty($d['erro']) && !empty($d['ibge']) && strlen((string) $d['ibge']) === 7) {
+                    $ibge = (string) $d['ibge'];
+                    file_put_contents($cacheFile, json_encode([
+                        'ibge' => $ibge,
+                        'localidade' => $d['localidade'] ?? '',
+                        'uf' => $d['uf'] ?? '',
+                    ]));
+                }
+            }
+        } catch (\Throwable $e) {
+            // best-effort: silencioso, cai no fallback do chamador
+        }
+
+        return $memo[$cep] = $ibge;
     }
 
     /**
@@ -199,7 +354,7 @@ class NfseService
             $std->infDPS->subst->chSubstda = preg_replace('/\D/', '', (string) $subst['chSubstda']);
             $std->infDPS->subst->cMotivo = str_pad((string) $subst['cMotivo'], 2, '0', STR_PAD_LEFT);
             if (!empty($subst['xMotivo'])) {
-                $std->infDPS->subst->xMotivo = mb_substr((string) $subst['xMotivo'], 0, 255);
+                $std->infDPS->subst->xMotivo = $this->limparCampo((string) $subst['xMotivo'], 255);
             }
         }
 
@@ -222,6 +377,12 @@ class NfseService
         }
         $std->infDPS->prest->regTrib->regEspTrib = (int) $this->config->reg_esp_trib;
 
+        // Retenção do ISSQN — usada aqui (endereço obrigatório quando retido) e
+        // adiante no grupo de valores.
+        $tpRet = isset($opcoes['tp_ret_issqn']) && $opcoes['tp_ret_issqn'] !== ''
+            ? (int) $opcoes['tp_ret_issqn']
+            : (int) $this->config->tp_ret_issqn;
+
         // tomador
         $std->infDPS->toma = new stdClass();
         if (strlen($documento) === 14) {
@@ -229,23 +390,29 @@ class NfseService
         } else {
             $std->infDPS->toma->CPF = $documento;
         }
-        $std->infDPS->toma->xNome = mb_substr($os->nomeCliente, 0, 150);
+        $std->infDPS->toma->xNome = $this->limparCampo((string) $os->nomeCliente, 150);
 
-        // Endereço do tomador — obrigatório quando o ISS é retido (E0237) e
-        // recomendado sempre. O cadastro de cliente não guarda o código IBGE,
-        // então assume-se o município do emitente (caso comum: tomador local).
+        // Endereço do tomador — obrigatório quando o ISS é retido (E0237). O cMun
+        // DEVE corresponder ao CEP do tomador, senão a SEFIN rejeita com E0240.
+        // Como o cadastro guarda só o NOME da cidade, resolvemos o código IBGE
+        // pelo CEP (ViaCEP). Sem um cMun confiável: se o ISS não é retido o
+        // endereço é opcional e é mais seguro omiti-lo do que arriscar o E0240;
+        // se é retido, cai no município do emitente como último recurso.
         $tomaRua = trim((string) ($os->rua ?? ''));
         $tomaCep = preg_replace('/\D/', '', (string) ($os->cep ?? ''));
         if ($tomaRua !== '' && strlen($tomaCep) === 8) {
-            $std->infDPS->toma->end = new stdClass();
-            $std->infDPS->toma->end->xLgr = mb_substr($tomaRua, 0, 255);
-            $std->infDPS->toma->end->nro = mb_substr(trim((string) ($os->numero ?? '')) ?: 'S/N', 0, 60);
-            if (!empty($os->bairro)) {
-                $std->infDPS->toma->end->xBairro = mb_substr((string) $os->bairro, 0, 60);
+            $cMunToma = $this->ibgePorCep($tomaCep);
+            if ($cMunToma !== null || $tpRet === 2) {
+                $std->infDPS->toma->end = new stdClass();
+                $std->infDPS->toma->end->xLgr = $this->limparCampo($tomaRua, 255);
+                $std->infDPS->toma->end->nro = $this->limparCampo(trim((string) ($os->numero ?? '')) ?: 'S/N', 60);
+                if (!empty($os->bairro)) {
+                    $std->infDPS->toma->end->xBairro = $this->limparCampo((string) $os->bairro, 60);
+                }
+                $std->infDPS->toma->end->endNac = new stdClass();
+                $std->infDPS->toma->end->endNac->cMun = $cMunToma ?? (string) $this->config->codigo_municipio;
+                $std->infDPS->toma->end->endNac->CEP = $tomaCep;
             }
-            $std->infDPS->toma->end->endNac = new stdClass();
-            $std->infDPS->toma->end->endNac->cMun = (string) $this->config->codigo_municipio;
-            $std->infDPS->toma->end->endNac->CEP = $tomaCep;
         }
 
         // serviço
@@ -287,12 +454,9 @@ class NfseService
         if ($descServico === '') {
             $descServico = 'OS nr. ' . $os->idOs;
         }
-        $std->infDPS->serv->cServ->xDescServ = mb_substr($descServico, 0, 2000);
+        $std->infDPS->serv->cServ->xDescServ = $this->escaparXml(mb_substr($descServico, 0, 2000));
 
-        // valores
-        $tpRet = isset($opcoes['tp_ret_issqn']) && $opcoes['tp_ret_issqn'] !== ''
-            ? (int) $opcoes['tp_ret_issqn']
-            : (int) $this->config->tp_ret_issqn;
+        // valores ($tpRet já resolvido acima, no bloco do tomador)
         $aliquota = isset($opcoes['aliquota_iss']) && $opcoes['aliquota_iss'] !== ''
             ? (float) str_replace(',', '.', (string) $opcoes['aliquota_iss'])
             : (float) $this->config->aliquota_iss;
@@ -317,6 +481,14 @@ class NfseService
             $std->infDPS->valores->trib->totTrib->pTotTribSN = number_format($aliquota > 0 ? $aliquota : 0, 2, '.', '');
         } else {
             $std->infDPS->valores->trib->totTrib->indTotTrib = 0;
+        }
+
+        // Reforma Tributária: anexa o grupo IBS/CBS à DPS SOMENTE quando o
+        // checkbox estiver ligado E a lib/schema do hadder já suportarem o layout
+        // (senão a DPS seria rejeitada por schema). Hoje nfseSuportaIbsCbs() é
+        // falso → nada muda; ao atualizar o hadder, passa a valer automaticamente.
+        if (!empty($this->config->reforma_ativa) && $this->nfseSuportaIbsCbs()) {
+            $this->anexarIbsCbsDps($std, $total);
         }
 
         $dps = new Dps($std);
@@ -376,7 +548,7 @@ class NfseService
         $std->infPedReg->e101101 = new stdClass();
         $std->infPedReg->e101101->xDesc = 'Cancelamento de NFS-e';
         $std->infPedReg->e101101->cMotivo = 1; // erro na emissão
-        $std->infPedReg->e101101->xMotivo = mb_substr($motivo, 0, 255);
+        $std->infPedReg->e101101->xMotivo = $this->limparCampo($motivo, 255);
 
         $resposta = $this->tools->cancelaNfse($std);
 
@@ -420,6 +592,7 @@ class NfseService
             return $b64;
         }
         // Veio comprimido (gzip)?
+        // @: gzdecode avisa quando o retorno nao esta compactado; nesse caso usa o texto como veio
         $gz = @gzdecode($retorno);
         if ($gz !== false && strncmp($gz, '%PDF', 4) === 0) {
             return $gz;

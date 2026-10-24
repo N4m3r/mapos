@@ -18,7 +18,7 @@
     <link href="<?php echo base_url(); ?>assets/css/bootstrap-responsive.min.css" rel="stylesheet">
     <script type="text/javascript" src="<?php echo base_url(); ?>assets/js/jquery-1.10.2.min.js"></script>
     <script type="text/javascript" src="<?= base_url(); ?>assets/js/funcoesGlobal.js"></script>
-    <script type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js"></script>
+    <script type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
 </head>
 
 <body>
@@ -55,10 +55,10 @@
                                                     </tr>
                                                 <?php } else { ?>
                                                     <tr>
-                                                        <td style="width: 25%"><img src=" <?php echo $emitente[0]->url_logo; ?> "></td>
-                                                        <td><span style="font-size: 20px; "> <?php echo $emitente[0]->nome; ?></span> </br>
-                                                            <span><?php echo $emitente[0]->cnpj; ?> </br> <?php echo $emitente[0]->rua . ', nº:' . $emitente[0]->numero . ', ' . $emitente[0]->bairro . ' - ' . $emitente[0]->cidade . ' - ' . $emitente[0]->uf; ?> </span> </br>
-                                                            <span> E-mail: <?php echo $emitente[0]->email . ' - Fone: ' . $emitente[0]->telefone; ?></span>
+                                                        <td style="width: 25%"><img src=" <?php echo $emitente->url_logo; ?> "></td>
+                                                        <td><span style="font-size: 20px; "> <?php echo $emitente->nome; ?></span> </br>
+                                                            <span><?php echo $emitente->cnpj; ?> </br> <?php echo $emitente->rua . ', nº:' . $emitente->numero . ', ' . $emitente->bairro . ' - ' . $emitente->cidade . ' - ' . $emitente->uf; ?> </span> </br>
+                                                            <span> E-mail: <?php echo $emitente->email . ' - Fone: ' . $emitente->telefone; ?></span>
                                                         </td>
                                                         <td style="width: 18%; text-align: center"><span>Emissão: <?php echo date('d/m/Y') ?></span></td>
                                                     </tr>
@@ -75,9 +75,9 @@
                                                             <li>
                                                                 <span>
                                                                     <h5>Cliente</h5>
-                                                                    <span><?php echo $result->nomeCliente ?></span><br />
-                                                                    <span><?php echo $result->rua ?>, <?php echo $result->numero ?>, <?php echo $result->bairro ?></span><br />
-                                                                    <span><?php echo $result->cidade ?> - <?php echo $result->estado ?></span>
+                                                                    <span><?php echo html_escape($result->nomeCliente); ?></span><br />
+                                                                    <span><?php echo html_escape($result->rua); ?>, <?php echo html_escape($result->numero); ?>, <?php echo html_escape($result->bairro); ?></span><br />
+                                                                    <span><?php echo html_escape($result->cidade); ?> - <?php echo html_escape($result->estado); ?></span>
                                                             </li>
                                                         </ul>
                                                     </td>
@@ -87,9 +87,9 @@
                                                                 <span>
                                                                     <h5>Responsável</h5>
                                                                 </span>
-                                                                <span><?php echo $result->nome ?></span> <br />
-                                                                <span>Telefone: <?php echo $result->telefone ?></span><br />
-                                                                <span>Email: <?php echo $result->email ?></span>
+                                                                <span><?php echo html_escape($result->nome); ?></span> <br />
+                                                                <span>Telefone: <?php echo html_escape($result->telefone); ?></span><br />
+                                                                <span>Email: <?php echo html_escape($result->email); ?></span>
                                                             </li>
                                                         </ul>
                                                     </td>

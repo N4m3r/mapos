@@ -19,6 +19,9 @@
                 <a href="#modal-etiquetas" role="button" data-toggle="modal" class="button btn btn-mini btn-warning" style="max-width: 160px">
                     <span class="button__icon"><i class='bx bx-barcode-reader' ></i></span><span class="button__text2">Gerar Etiquetas</span>
                 </a>
+                <a href="<?= site_url('produtos/movimentacoes') ?>" class="button btn btn-mini btn-info" style="max-width: 160px">
+                    <span class="button__icon"><i class='bx bx-transfer'></i></span><span class="button__text2">Movimentações</span>
+                </a>
             </div>
         <?php endif; ?>
         <form class="span9" method="get" action="<?= base_url() ?>index.php/produtos" style="display: flex; justify-content: flex-end;">

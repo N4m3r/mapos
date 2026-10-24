@@ -97,3 +97,17 @@ se mesmo assim informando os dados certos de login nao der certo e ficar dando m
 11- Para conferir se executou a fila, vá em seu Map-os 'Configurações' e em 'Emails' e veja o 'Status', se tiver com o status 'Falhou' possivelmente o problema é na sua configuração smtp, para saber se executou ou não basta nao estar em 'Pendente', lembrando que o email em Emitente em configurações precisa estar o mesmo no smtp (Para problemas com configuração de smtp procure por Issues abertas ou fechadas exemplo 'envio de email smtp')
 
 Por fim, você pode criar outra tarefa para o comando 'index.php email/retry', que serve para reenviar e-mails com erros ou não enviados, basta seguir os mesmos passos, somente alterando conforme o passo 7 a opção 'Adicione argumentos'
+
+## Backup automático do banco de dados
+
+Crie mais uma tarefa, do mesmo jeito, com o argumento `index.php backup/executar` e um disparador **Diariamente** (por exemplo às 3h).
+Cada execução grava um `.zip` em `application\backups` (ou na pasta definida em `BACKUP_DIR` no `.env`) e apaga os automáticos com mais de `BACKUP_RETENCAO_DIAS` dias (padrão 7; o mais recente fica sempre).
+Para conferir, vá em 'Configurações' > 'Backup': a tela lista os backups e avisa se o último tiver mais de 2 dias.
+Recomendado: copie essa pasta para outro disco ou para a nuvem; backup no mesmo computador não protege contra perda do disco.
+
+## Lembretes automáticos ao cliente
+
+Crie mais uma tarefa diária (por exemplo às 9h) com o argumento `index.php lembretes/executar`.
+Ela avisa o cliente na véspera da visita agendada, quando o orçamento está sem resposta há alguns dias e quando o equipamento está pronto para retirada (e-mail e, se configurado, WhatsApp).
+Vem desligada: no `.env`, coloque `LEMBRETES_ATIVO=true` e ajuste `LEMBRETE_ORCAMENTO_DIAS` / `LEMBRETE_RETIRADA_DIAS` (0 desliga o tipo).
+Para conferir antes de ligar, rode no terminal `php index.php lembretes/executar simular`: mostra os lembretes que seriam enviados, sem enviar.

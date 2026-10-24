@@ -20,6 +20,14 @@
                     <tbody id="nfseItens"></tbody>
                     <tfoot><tr><th colspan="3" style="text-align:right">Total</th><th id="nfseTotal"></th></tr></tfoot>
                 </table>
+                <div id="nfseProdutosBox" style="display:none;margin:6px 0;padding:8px;border:1px solid #e0e0e0;border-radius:4px;background:#fafafa">
+                    <label class="checkbox" style="margin:0;font-weight:bold">
+                        <input type="checkbox" id="nfseIncluirProdutos" /> Incluir os produtos da OS nesta NFS-e (nota de serviço única com o valor total da OS)
+                    </label>
+                    <span style="color:#999;font-size:11px;display:block;margin-top:2px">
+                        Ao marcar, os produtos (<span id="nfseProdutosTotal"></span>) entram no valor e na descrição da nota de serviço. Não emita NF-e de produtos separada para a mesma OS, para não duplicar.
+                    </span>
+                </div>
                 <div id="nfseAvisos"></div>
                 <div style="text-align:center;margin:8px 0">
                     <button type="button" id="nfseVerPrevia" class="button btn btn-mini btn-inverse">
@@ -95,9 +103,27 @@
 <script type="text/javascript">
     $(document).ready(function() {
         var nfseEmitida = false;
+        var nfseDados = { itens: [], produtos: [], total: 0, totalProdutos: 0 };
 
         function nfseMoney(v) {
             return 'R$ ' + (parseFloat(v) || 0).toFixed(2).replace('.', ',');
+        }
+
+        // Renderiza os itens (serviços + produtos, se marcado) e o total.
+        function nfseRenderItens() {
+            var incluir = $('#nfseIncluirProdutos').is(':checked');
+            var linhas = '';
+            $.each(nfseDados.itens, function(i, it) {
+                linhas += '<tr><td>' + it.descricao + '</td><td>' + it.quantidade + '</td><td>' + nfseMoney(it.preco) + '</td><td>' + nfseMoney(it.subtotal) + '</td></tr>';
+            });
+            if (incluir) {
+                $.each(nfseDados.produtos, function(i, it) {
+                    linhas += '<tr style="background:#f4f8ff"><td><i class="bx bx-box"></i> ' + it.descricao + '</td><td>' + it.quantidade + '</td><td>' + nfseMoney(it.preco) + '</td><td>' + nfseMoney(it.subtotal) + '</td></tr>';
+                });
+            }
+            $('#nfseItens').html(linhas || '<tr><td colspan="4">Sem itens.</td></tr>');
+            var total = parseFloat(nfseDados.total) + (incluir ? parseFloat(nfseDados.totalProdutos) : 0);
+            $('#nfseTotal').text(nfseMoney(total));
         }
 
         function nfseMostrarPasso(n) {
@@ -132,12 +158,21 @@
                     return;
                 }
                 $('#nfseCliente').text(data.cliente.nome + ' (' + data.cliente.documento + ')');
-                var linhas = '';
-                $.each(data.itens, function(i, it) {
-                    linhas += '<tr><td>' + it.descricao + '</td><td>' + it.quantidade + '</td><td>' + nfseMoney(it.preco) + '</td><td>' + nfseMoney(it.subtotal) + '</td></tr>';
-                });
-                $('#nfseItens').html(linhas || '<tr><td colspan="4">Sem serviços.</td></tr>');
-                $('#nfseTotal').text(nfseMoney(data.total));
+                nfseDados = {
+                    itens: data.itens || [],
+                    produtos: data.produtos || [],
+                    total: data.total || 0,
+                    totalProdutos: data.totalProdutos || 0
+                };
+                // Oferece incluir produtos apenas quando a OS tiver produtos.
+                $('#nfseIncluirProdutos').prop('checked', false);
+                if (nfseDados.produtos.length > 0) {
+                    $('#nfseProdutosTotal').text(nfseMoney(nfseDados.totalProdutos));
+                    $('#nfseProdutosBox').show();
+                } else {
+                    $('#nfseProdutosBox').hide();
+                }
+                nfseRenderItens();
                 if (data.ambiente === 2) {
                     data.avisos.unshift('Ambiente de HOMOLOGAÇÃO — sem valor fiscal.');
                 }
@@ -161,6 +196,8 @@
             window.open('<?php echo site_url('nfe/modeloPreview'); ?>/' + $('#nfseIdOs').val() + '/nfse', '_blank');
         });
 
+        $('#nfseIncluirProdutos').on('change', nfseRenderItens);
+
         $('#nfseBtnAvancar').on('click', function() { nfseMostrarPasso(2); });
         $('#nfseBtnVoltar').on('click', function() { nfseMostrarPasso(1); });
 
@@ -176,7 +213,8 @@
                 aliquota_iss: $('#nfseAliquota').val(),
                 tp_ret_issqn: $('#nfseTpRet').val(),
                 desc_servico: $('#nfseDesc').val(),
-                info_complementar: $('#nfseInfoCpl').val()
+                info_complementar: $('#nfseInfoCpl').val(),
+                incluir_produtos: $('#nfseIncluirProdutos').is(':checked') ? 1 : 0
             }, function(data) {
                 if (data.success) {
                     nfseEmitida = true;

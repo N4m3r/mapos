@@ -39,6 +39,19 @@ const CheckinManager = {
         return dados;
     },
 
+    // Campos de um FormData/objeto para a fila offline (sem o token CSRF, que e renovado no envio)
+    camposParaFila: function(dados) {
+        var csrf = this.getCsrfToken();
+        var campos = {};
+        if (typeof FormData !== 'undefined' && dados instanceof FormData) {
+            dados.forEach(function(valor, chave) { campos[chave] = valor; });
+        } else {
+            $.extend(campos, dados);
+        }
+        delete campos[csrf.name];
+        return campos;
+    },
+
     init: function(opcoes) {
         this.config = $.extend({}, this.config, opcoes);
         this.bindEventos();
@@ -117,6 +130,55 @@ const CheckinManager = {
             const assinaturaId = $(this).data('assinatura-id');
             self.removerAssinatura(assinaturaId);
         });
+
+        // Captura automatica de localizacao ao abrir os modais (sem botao)
+        $(document).on('shown.bs.modal', '#modal-checkin', function() {
+            self.capturarLocalizacao('checkin');
+        });
+        $(document).on('shown.bs.modal', '#modal-checkout', function() {
+            self.capturarLocalizacao('checkout');
+        });
+    },
+
+    // Exibe uma notificacao usando swal quando disponivel (fallback: alert)
+    notificar: function(titulo, mensagem, tipo) {
+        if (typeof swal !== 'undefined') {
+            swal(titulo || '', mensagem || '', tipo || 'info');
+        } else {
+            alert((titulo ? titulo + ': ' : '') + (mensagem || ''));
+        }
+    },
+
+    /**
+     * Captura a geolocalizacao em segundo plano assim que o modal abre,
+     * preenchendo os campos ocultos e mostrando um status discreto.
+     * prefixo = 'checkin' | 'checkout'
+     */
+    capturarLocalizacao: function(prefixo) {
+        var status = $('#' + prefixo + '-geo-status');
+        var latEl = $('#' + prefixo + '-latitude');
+        var lngEl = $('#' + prefixo + '-longitude');
+
+        if (!('geolocation' in navigator)) {
+            status.html('<i class="bx bx-error-circle"></i> GPS indisponivel neste dispositivo').css('color', '#c0392b');
+            return;
+        }
+
+        latEl.val('');
+        lngEl.val('');
+        status.html('<i class="bx bx-loader bx-spin"></i> Obtendo localizacao...').css('color', '#8a939c');
+
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            latEl.val(pos.coords.latitude);
+            lngEl.val(pos.coords.longitude);
+            var prec = pos.coords.accuracy ? ' (±' + Math.round(pos.coords.accuracy) + ' m)' : '';
+            status.html('<i class="bx bx-map"></i> Localizacao capturada' + prec).css('color', '#2e7d32');
+        }, function(err) {
+            var msg = (err && err.code === 1)
+                ? 'Permissao de localizacao negada'
+                : 'Nao foi possivel obter a localizacao';
+            status.html('<i class="bx bx-error-circle"></i> ' + msg).css('color', '#c0392b');
+        }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
     },
 
     carregarStatus: function() {
@@ -154,10 +216,14 @@ const CheckinManager = {
     atualizarUI: function() {
         if (this.estado.emAtendimento) {
             $('#btn-iniciar-atendimento').addClass('hidden');
+            $('#btn-nao-realizado-bar').addClass('hidden');
             $('#btn-finalizar-atendimento').removeClass('hidden');
+            $('#btn-foto-servico').removeClass('hidden');
         } else {
             $('#btn-iniciar-atendimento').removeClass('hidden');
+            $('#btn-nao-realizado-bar').removeClass('hidden');
             $('#btn-finalizar-atendimento').addClass('hidden');
+            $('#btn-foto-servico').addClass('hidden');
         }
     },
 
@@ -166,6 +232,8 @@ const CheckinManager = {
 
         // Limpa os campos do formulário
         $('#checkin-observacao').val('');
+        // Rascunho: devolve o que o tecnico ja tinha digitado (ex.: conexao caiu)
+        if (window.Rascunho) Rascunho.campo('#checkin-observacao', 'checkin_obs_' + this.config.osId);
         $('#checkin-latitude, #checkin-longitude').val('');
         $('#checkin-geo-status').text('');
 
@@ -184,6 +252,7 @@ const CheckinManager = {
 
         // Limpa os campos do formulário (exceto nome/documento que vêm da OS)
         $('#checkout-observacao').val('');
+        if (window.Rascunho) Rascunho.campo('#checkout-observacao', 'checkout_obs_' + this.config.osId);
         $('#checkout-latitude, #checkout-longitude').val('');
         $('#checkout-geo-status').text('');
 
@@ -220,11 +289,14 @@ const CheckinManager = {
             return;
         }
 
-        // Coleta dados da assinatura
-        let assinaturaImg = '';
-        if (!assinatura.estaVazio()) {
-            assinaturaImg = assinatura.obterImagem();
+        // Assinatura do técnico é obrigatória para iniciar o atendimento
+        if (assinatura.estaVazio()) {
+            self.notificar('Atenção', 'Faça a assinatura do técnico para iniciar o atendimento.', 'warning');
+            return;
         }
+
+        // Coleta dados da assinatura
+        const assinaturaImg = assinatura.obterImagem();
 
         // Usar FormData para enviar dados sem codificação URL
         let dados = new FormData();
@@ -255,16 +327,27 @@ const CheckinManager = {
                 btn.html(textoOriginal).prop('disabled', false);
                 if (response.success) {
                     $('#modal-checkin').modal('hide');
+                    if (window.Rascunho) Rascunho.apagar('checkin_obs_' + osId);
                     self.config.checkinId = response.checkin_id;
                     self.estado.emAtendimento = true;
                     self.atualizarUI();
-                    alert('Atendimento iniciado com sucesso!');
+                    self.notificar('Sucesso!', 'Atendimento iniciado com sucesso!', 'success');
                 } else {
-                    alert(response.message || 'Erro ao iniciar atendimento');
+                    self.notificar('Erro', response.message || 'Erro ao iniciar atendimento', 'error');
                 }
             },
             error: function(xhr, status, error) {
                 btn.html(textoOriginal).prop('disabled', false);
+                if (window.FilaOffline && FilaOffline.semConexao(xhr)) {
+                    FilaOffline.guardar(self.config.baseUrl + 'index.php/checkin/iniciar', self.camposParaFila(dados), 'Início do atendimento da OS ' + osId).then(function() {
+                        $('#modal-checkin').modal('hide');
+                        if (window.Rascunho) Rascunho.apagar('checkin_obs_' + osId);
+                        self.estado.emAtendimento = true;
+                        self.atualizarUI();
+                        self.notificar('Sem internet', 'Início do atendimento guardado no aparelho. Será enviado quando a conexão voltar.', 'warning');
+                    });
+                    return;
+                }
                 console.error('Erro:', xhr.responseText);
                 var msg = 'Erro ao iniciar atendimento.';
                 if (xhr.responseText && xhr.responseText.indexOf('<') !== 0) {
@@ -277,7 +360,7 @@ const CheckinManager = {
                 } else if (xhr.status === 403) {
                     msg = 'Erro de permissão ou token CSRF inválido. Recarregue a página.';
                 }
-                alert(msg);
+                self.notificar('Erro', msg, 'error');
             }
         });
     },
@@ -308,12 +391,12 @@ const CheckinManager = {
 
         // Verifica se as assinaturas foram preenchidas
         if (assinaturaTecnico.estaVazio()) {
-            alert('Por favor, faça a assinatura do técnico');
+            self.notificar('Atenção', 'Por favor, faça a assinatura do técnico.', 'warning');
             return;
         }
 
         if (assinaturaCliente.estaVazio()) {
-            alert('Por favor, faça a assinatura do cliente');
+            self.notificar('Atenção', 'Por favor, faça a assinatura do cliente.', 'warning');
             return;
         }
 
@@ -375,16 +458,28 @@ const CheckinManager = {
                 btn.html(textoOriginal).prop('disabled', false);
                 if (response.success) {
                     $('#modal-checkout').modal('hide');
+                    if (window.Rascunho) Rascunho.apagar('checkout_obs_' + osId);
                     self.config.checkinId = null;
                     self.estado.emAtendimento = false;
                     self.atualizarUI();
-                    alert('Atendimento finalizado com sucesso!');
+                    self.notificar('Sucesso!', 'Atendimento finalizado com sucesso!', 'success');
                 } else {
-                    alert(response.message || 'Erro ao finalizar atendimento');
+                    self.notificar('Erro', response.message || 'Erro ao finalizar atendimento', 'error');
                 }
             },
             error: function(xhr, status, error) {
                 btn.html(textoOriginal).prop('disabled', false);
+                if (window.FilaOffline && FilaOffline.semConexao(xhr)) {
+                    FilaOffline.guardar(self.config.baseUrl + 'index.php/checkin/finalizar', self.camposParaFila(dados), 'Finalização do atendimento da OS ' + osId).then(function() {
+                        $('#modal-checkout').modal('hide');
+                        if (window.Rascunho) Rascunho.apagar('checkout_obs_' + osId);
+                        self.config.checkinId = null;
+                        self.estado.emAtendimento = false;
+                        self.atualizarUI();
+                        self.notificar('Sem internet', 'Finalização e assinaturas guardadas no aparelho. Serão enviadas quando a conexão voltar.', 'warning');
+                    });
+                    return;
+                }
                 console.error('Erro:', xhr.responseText);
                 var msg = 'Erro ao finalizar atendimento.';
                 if (xhr.responseText && xhr.responseText.indexOf('<') !== 0) {
@@ -397,7 +492,7 @@ const CheckinManager = {
                 } else if (xhr.status === 403) {
                     msg = 'Erro de permissão ou token CSRF inválido. Recarregue a página.';
                 }
-                alert(msg);
+                self.notificar('Erro', msg, 'error');
             }
         });
     },
@@ -555,6 +650,13 @@ const CheckinManager = {
                 // Libera o flag de processamento
                 self._processandoUpload = false;
 
+                if (window.FilaOffline && FilaOffline.semConexao(xhr)) {
+                    FilaOffline.guardar(self.config.baseUrl + 'index.php/checkin/adicionarFoto', self.camposParaFila(dados), 'Foto da OS ' + self.config.osId).then(function() {
+                        $('#preview-fotos-entrada, #preview-fotos-saida').empty();
+                        alert('Sem internet: a foto ficou guardada no aparelho e será enviada quando a conexão voltar.');
+                    });
+                    return;
+                }
                 console.error('Erro ao enviar foto:', error);
                 alert('Erro ao enviar foto. Verifique sua conexão.');
                 // Limpa o preview mesmo em caso de erro

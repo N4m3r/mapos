@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="<?php echo base_url() ?>assets/trumbowyg/ui/trumbowyg.css">
 <script type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/trumbowyg.js"></script>
 <script type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/langs/pt_br.js"></script>
+<script src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= asset_versao('assets/js/rascunho-form.js') ?>"></script>
 
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/custom.css" />
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/assinatura.css" />
@@ -55,7 +56,7 @@
                             }
                         }
                         $zapnumber = preg_replace("/[^0-9]/", "", $result->celular_cliente);
-                        $troca = [$result->nomeCliente, $result->idOs, $result->status, 'R$ ' . ($result->desconto != 0 && $result->valor_desconto != 0 ? number_format($result->valor_desconto, 2, ',', '.') : number_format($totalProdutos + $totalServico, 2, ',', '.')), strip_tags($result->descricaoProduto), ($emitente ? $emitente->nome : ''), ($emitente ? $emitente->telefone : ''), strip_tags($result->observacoes), strip_tags($result->defeito), strip_tags($result->laudoTecnico), date('d/m/Y', strtotime($result->dataFinal)), date('d/m/Y', strtotime($result->dataInicial)), $result->garantia . ' dias'];
+                        $troca = [$result->nomeCliente, $result->idOs, $result->status, 'R$ ' . ($result->desconto != 0 && $result->valor_desconto != 0 ? number_format($result->valor_desconto, 2, ',', '.') : number_format($totalProdutos + $totalServico, 2, ',', '.')), strip_tags($result->descricaoProduto), ($emitente ? $emitente->nome : ''), ($emitente ? $emitente->telefone : ''), strip_tags($result->observacoes), strip_tags($result->defeito), strip_tags($result->laudoTecnico), date('d/m/Y', strtotime($result->dataFinal)), date('d/m/Y', strtotime($result->dataInicial)), formatar_garantia($result->garantia)];
                         $texto_de_notificacao = $this->os_model->criarTextoWhats($texto_de_notificacao, $troca);
                         if (!empty($zapnumber)) {
                             if ($whatsappApiAtivo) {
@@ -77,7 +78,7 @@
                     $notaFiscal = isset($notaFiscal) ? $notaFiscal : null;
                     if ($notaFiscal && $notaFiscal->status === 'autorizada') { ?>
                         <a title="Imprimir DANFSe" target="_blank" class="button btn btn-mini btn-inverse" href="<?php echo site_url('nfe/danfe/' . $notaFiscal->idNota); ?>">
-                            <span class="button__icon"><i class="bx bx-receipt"></i></span> <span class="button__text">NFS-e nº <?php echo $notaFiscal->numero; ?></span>
+                            <span class="button__icon"><i class="bx bx-receipt"></i></span> <span class="button__text">NFS-e nº <?php echo html_escape($notaFiscal->numero); ?></span>
                         </a>
                     <?php } elseif (in_array($result->status, ['Finalizado', 'Faturado', 'Aprovado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) { ?>
                         <a title="Transmitir NFS-e (serviços)" href="#modal-nfse" role="button" data-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-mini btn-success btn-transmitir-nfse">
@@ -89,7 +90,7 @@
                     $notaFiscalNfe = isset($notaFiscalNfe) ? $notaFiscalNfe : null;
                     if ($notaFiscalNfe && $notaFiscalNfe->status === 'autorizada') { ?>
                         <a title="Imprimir DANFE" target="_blank" class="button btn btn-mini btn-inverse" href="<?php echo site_url('nfe/danfe/' . $notaFiscalNfe->idNota); ?>">
-                            <span class="button__icon"><i class="bx bx-box"></i></span> <span class="button__text">NF-e nº <?php echo $notaFiscalNfe->numero; ?></span>
+                            <span class="button__icon"><i class="bx bx-box"></i></span> <span class="button__text">NF-e nº <?php echo html_escape($notaFiscalNfe->numero); ?></span>
                         </a>
                     <?php } elseif (in_array($result->status, ['Finalizado', 'Faturado', 'Aprovado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) { ?>
                         <a title="Transmitir NF-e (produtos)" href="#modal-nfe" role="button" data-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-mini btn-primary btn-transmitir-nfe">
@@ -121,13 +122,13 @@
                                         <h3>N° OS: <?php echo $result->idOs; ?></h3>
                                         <div class="span6" style="margin-left: 0">
                                             <label for="cliente">Cliente<span class="required">*</span></label>
-                                            <input id="cliente" class="span12" type="text" name="cliente" value="<?php echo $result->nomeCliente ?>" />
+                                            <input id="cliente" class="span12" type="text" name="cliente" value="<?php echo html_escape($result->nomeCliente); ?>" />
                                             <input id="clientes_id" class="span12" type="hidden" name="clientes_id" value="<?php echo $result->clientes_id ?>" />
                                             <input id="valor" type="hidden" name="valor" value="" />
                                         </div>
                                         <div class="span6">
                                             <label for="tecnico">Técnico / Responsável<span class="required">*</span></label>
-                                            <input id="tecnico" class="span12" type="text" name="tecnico" value="<?php echo $result->nome ?>" />
+                                            <input id="tecnico" class="span12" type="text" name="tecnico" value="<?php echo html_escape($result->nome); ?>" />
                                             <input id="usuarios_id" class="span12" type="hidden" name="usuarios_id" value="<?php echo $result->usuarios_id ?>" />
                                         </div>
                                     </div>
@@ -141,6 +142,7 @@
                                                 <option <?php if ($result->status == 'Aprovado') { echo 'selected'; } ?> value="Aprovado">Aprovado</option>
                                                 <option <?php if ($result->status == 'Aguardando Peças') { echo 'selected'; } ?> value="Aguardando Peças">Aguardando Peças</option>
                                                 <option <?php if ($result->status == 'Em Andamento') { echo 'selected'; } ?> value="Em Andamento">Em Andamento</option>
+                                                <option <?php if ($result->status == 'Não Realizado') { echo 'selected'; } ?> value="Não Realizado">Não Realizado</option>
                                                 <option <?php if ($result->status == 'Finalizado') { echo 'selected'; } ?> value="Finalizado">Finalizado</option>
                                                 <option <?php if ($result->status == 'Faturado') { echo 'selected'; } ?> value="Faturado">Faturado</option>
                                                 <option <?php if ($result->status == 'Cancelado') { echo 'selected'; } ?> value="Cancelado">Cancelado</option>                                                          
@@ -159,10 +161,89 @@
                                             <input id="garantia" type="number" placeholder="Status s/g inserir nº/0" min="0" max="9999" class="span12" name="garantia" value="<?php echo $result->garantia ?>" />
                                             <?php echo form_error('garantia'); ?>
                                             <label for="termoGarantia">Termo Garantia</label>
-                                            <input id="termoGarantia" class="span12" type="text" name="termoGarantia" value="<?php echo $result->refGarantia ?>" />
+                                            <input id="termoGarantia" class="span12" type="text" name="termoGarantia" value="<?php echo html_escape($result->refGarantia); ?>" />
                                             <input id="garantias_id" class="span12" type="hidden" name="garantias_id" value="<?php echo $result->garantias_id ?>" />
                                         </div>
                                     </div>
+
+                                    <?php
+                                    // Contrato/SLA e Equipe — só aparecem quando os módulos estão instalados.
+                                    $temContrato = ! empty($contratosSelect) || isset($result->contrato_id);
+                                    $temEquipe = ! empty($equipesSelect) || isset($result->equipe_id);
+                                    $slaPrioridades = isset($prioridadesSla) ? $prioridadesSla : ['Crítica', 'Alta', 'Normal', 'Baixa'];
+                                    $verCusto = $this->permission->checkPermission($this->session->userdata('permissao'), 'vLancamento');
+                                    ?>
+                                    <?php if ($temContrato || $temEquipe): ?>
+                                    <div class="span12" style="padding: 1%; margin-left: 0; border-top:1px dashed #e0e0e0; margin-top:6px">
+                                        <?php if ($temContrato): ?>
+                                            <div class="span4">
+                                                <label for="contrato_id"><i class='bx bx-file-blank'></i> Contrato de manutenção</label>
+                                                <select class="span12" name="contrato_id" id="contrato_id">
+                                                    <option value="">— Sem contrato —</option>
+                                                    <?php foreach ($contratosSelect as $ct): ?>
+                                                        <option value="<?= $ct->idContrato ?>" <?= (isset($result->contrato_id) && $result->contrato_id == $ct->idContrato) ? 'selected' : '' ?>>
+                                                            <?= html_escape(($ct->codigo ? $ct->codigo . ' — ' : '') . $ct->descricao) ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
+                                            <div class="span3">
+                                                <label for="prioridade">Prioridade (SLA)</label>
+                                                <select class="span12" name="prioridade" id="prioridade">
+                                                    <option value="">— Não definida —</option>
+                                                    <?php foreach ($slaPrioridades as $p): ?>
+                                                        <option value="<?= html_escape($p) ?>" <?= (isset($result->prioridade) && $result->prioridade === $p) ? 'selected' : '' ?>><?= html_escape($p) ?></option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
+                                            <?php
+                                            $prazoSol = $result->sla_solucao_prazo ?? null;
+                                            $solEm = $result->sla_solucao_em ?? null;
+                                            if (! empty($prazoSol)):
+                                                $statusAberto = ! in_array($result->status, ['Finalizado', 'Faturado', 'Cancelado'], true);
+                                                if (! empty($solEm)) {
+                                                    $ok = strtotime($solEm) <= strtotime($prazoSol);
+                                                    $badge = $ok ? '<span class="label label-success">Solucionado no prazo</span>' : '<span class="label label-important">Solucionado fora do prazo</span>';
+                                                } elseif ($statusAberto && strtotime($prazoSol) < time()) {
+                                                    $badge = '<span class="label label-important">SLA estourado</span>';
+                                                } else {
+                                                    $badge = '<span class="label label-warning">Dentro do prazo</span>';
+                                                }
+                                            ?>
+                                                <div class="span5">
+                                                    <label>Status do SLA</label>
+                                                    <div style="padding-top:6px">
+                                                        <?= $badge ?>
+                                                        <small style="display:block;color:#888">Prazo de solução: <?= date('d/m/Y H:i', strtotime($prazoSol)) ?></small>
+                                                    </div>
+                                                </div>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php if ($temEquipe): ?>
+                                    <div class="span12" style="padding: 1%; margin-left: 0">
+                                        <div class="span5">
+                                            <label for="equipe_id"><i class='bx bx-group'></i> Equipe designada</label>
+                                            <select class="span12" name="equipe_id" id="equipe_id">
+                                                <option value="">— Nenhuma —</option>
+                                                <?php foreach ($equipesSelect as $eq): ?>
+                                                    <option value="<?= $eq->idEquipe ?>" <?= (isset($result->equipe_id) && $result->equipe_id == $eq->idEquipe) ? 'selected' : '' ?>>
+                                                        <?= html_escape($eq->nome) ?><?= (isset($eq->tipo) && $eq->tipo === 'terceirizada') ? ' (terceirizada)' : '' ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <?php if ($verCusto): ?>
+                                            <div class="span3">
+                                                <label for="custo_equipe">Custo da equipe (R$)</label>
+                                                <input type="text" class="span12" id="custo_equipe" name="custo_equipe" placeholder="0,00" value="<?= isset($result->custo_equipe) ? number_format((float) $result->custo_equipe, 2, ',', '') : '' ?>">
+                                                <small style="color:#888">Valor pago à equipe/terceiro por esta OS.</small>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php endif; ?>
+                                    <?php endif; ?>
+
                                     <div class="span6" style="padding: 1%; margin-left: 0">
                                         <label for="descricaoProduto"><h4>Descrição Produto/Serviço</h4></label>
                                         <textarea class="span12 editor" name="descricaoProduto" id="descricaoProduto" cols="30" rows="5"><?php echo $result->descricaoProduto ?></textarea>
@@ -730,7 +811,7 @@
                 <div class="span12" style="margin-left: 0">
                     <label for="cliente">Cliente*</label>
                     <input class="span12" id="cliente" type="text" name="cliente"
-                        value="<?php echo $result->nomeCliente ?>" />
+                        value="<?php echo html_escape($result->nomeCliente); ?>" />
                     <input type="hidden" name="clientes_id" id="clientes_id" value="<?php echo $result->clientes_id ?>">
                     <input type="hidden" name="os_id" id="os_id" value="<?php echo $result->idOs; ?>">
                     <input type="hidden" name="tipoDesconto" id="tipoDesconto"
@@ -1550,6 +1631,11 @@
             semantic: { 'strikethrough': 's', }
         });
 
+        // Rascunho automatico dos dados da OS (produtos/servicos ja salvam na hora)
+        if (window.Rascunho) {
+            Rascunho.formulario('#formOs', 'os_editar_<?= (int) $result->idOs ?>_<?= (int) $this->session->userdata('id_admin') ?>', { editores: '.editor' });
+        }
+
         // ============================================
         // INTEGRAÇÃO DO SISTEMA DE CHECK-IN
         // ============================================
@@ -1778,7 +1864,7 @@
             }
 
             // Obtém o nome do cliente do campo ou usa o nome da OS (já vinculado)
-            var nomeCliente = $('#modal-assinatura-cliente-nome').val() || $('#assinatura-cliente-nome-hidden').val() || '<?php echo addslashes($result->nomeCliente); ?>' || 'Cliente';
+            var nomeCliente = $('#modal-assinatura-cliente-nome').val() || $('#assinatura-cliente-nome-hidden').val() || <?php echo json_encode((string) ($result->nomeCliente)); ?> || 'Cliente';
 
             // Prepara dados
             var dados = {
@@ -1993,8 +2079,8 @@
 
             // Pré-preenche o nome do cliente se for o modal de assinatura do cliente
             if (modalId === 'modal-assinatura-cliente') {
-                var nomeCliente = '<?php echo addslashes($result->nomeCliente); ?>';
-                var documentoCliente = '<?php echo addslashes($result->documento ?? $result->cpf ?? ''); ?>';
+                var nomeCliente = <?php echo json_encode((string) ($result->nomeCliente)); ?>;
+                var documentoCliente = <?php echo json_encode((string) ($result->documento ?? $result->cpf ?? '')); ?>;
 
                 // Se o campo estiver vazio, preenche com o nome da OS
                 var campoNome = $('#' + modalId + ' .modal-assinatura-nome');

@@ -1,4 +1,4 @@
-<link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
+<link href='<?= base_url('assets/boxicons/css/boxicons.min.css') ?>' rel='stylesheet'>
 
 <?php $qtdPendentes = isset($pendentesAprovacao) ? count($pendentesAprovacao) : 0; ?>
 <?php if ($qtdPendentes > 0) { ?>

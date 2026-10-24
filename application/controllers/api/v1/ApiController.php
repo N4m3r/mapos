@@ -97,7 +97,7 @@ class ApiController extends REST_Controller
                     'cliente' => '<b>Cliente:</b> ' . $os->nomeCliente,
                     'dataInicial' => '<b>Data Inicial:</b> ' . date('d/m/Y', strtotime($os->dataInicial)),
                     'dataFinal' => '<b>Data Final:</b> ' . date('d/m/Y', strtotime($os->dataFinal)),
-                    'garantia' => '<b>Garantia:</b> ' . $os->garantia . ' dias',
+                    'garantia' => '<b>Garantia:</b> ' . formatar_garantia($os->garantia),
                     'status' => '<b>Status da OS:</b> ' . $os->status,
                     'description' => '<b>Descrição/Produto:</b> ' . strip_tags(html_entity_decode($os->descricaoProduto)),
                     'defeito' => '<b>Defeito:</b> ' . strip_tags(html_entity_decode($os->defeito)),

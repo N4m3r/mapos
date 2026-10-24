@@ -140,6 +140,39 @@
                         </div>
                     </div>
 
+                    <?php if (property_exists($configNfe, 'serie_nfce')) { ?>
+                        <h5>NFC-e (PDV - modelo 65)</h5>
+
+                        <div class="control-group">
+                            <label class="control-label" for="serie_nfce">Série</label>
+                            <div class="controls">
+                                <input type="number" id="serie_nfce" name="serie_nfce" min="1" max="999" value="<?= html_escape($configNfe->serie_nfce) ?>" style="width:60px" />
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="proximo_numero_nfce">Próximo número</label>
+                            <div class="controls">
+                                <input type="number" id="proximo_numero_nfce" name="proximo_numero_nfce" min="1" value="<?= html_escape($configNfe->proximo_numero_nfce) ?>" style="width:100px" />
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="csc_id">ID do CSC</label>
+                            <div class="controls">
+                                <input type="text" id="csc_id" name="csc_id" maxlength="10" value="<?= html_escape($configNfe->csc_id) ?>" style="width:100px" placeholder="000001" />
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="csc">CSC (token)</label>
+                            <div class="controls">
+                                <input type="text" id="csc" name="csc" maxlength="64" value="<?= html_escape($configNfe->csc) ?>" autocomplete="off" style="width:320px" />
+                                <span class="hint">Código de Segurança do Contribuinte, gerado no portal da SEFAZ do seu estado (um para homologação e outro para produção). Sem ele a NFC-e não é emitida.</span>
+                            </div>
+                        </div>
+                    <?php } ?>
+
                     <div class="control-group">
                         <label class="control-label" for="csosn_padrao">CSOSN padrão</label>
                         <div class="controls">
@@ -156,6 +189,61 @@
                         <div class="controls">
                             <input type="text" id="cfop_padrao" name="cfop_padrao" maxlength="4" value="<?= html_escape($configNfe->cfop_padrao) ?>" required style="width:60px" />
                             <span class="hint">5102 = venda de mercadoria adquirida de terceiros, dentro do estado. Produtos podem ter CFOP próprio no cadastro.</span>
+                        </div>
+                    </div>
+
+                    <h5 style="margin-top:20px">Reforma Tributária — IBS/CBS (NF-e)</h5>
+
+                    <div class="control-group">
+                        <label class="control-label" for="reforma_ativa">Emitir grupo IBS/CBS</label>
+                        <div class="controls">
+                            <label class="checkbox" style="display:inline-flex;align-items:center;gap:8px">
+                                <input type="checkbox" id="reforma_ativa" name="reforma_ativa" value="1" <?= !empty($configNfe->reforma_ativa) ? 'checked' : '' ?> />
+                                Ativar os campos de IBS/CBS na NF-e (layout PL_010 da reforma)
+                            </label>
+                            <span class="hint"><strong>Desligado</strong>, a NF-e sai como hoje. <strong>Ligado</strong>, cada item passa a levar o grupo IBS/CBS. Comece em <strong>Homologação</strong>. Valores conforme o contador (regime por dentro × híbrido e Zona Franca de Manaus). <em>A NFS-e já fica preparada: passa a levar IBS/CBS automaticamente quando a biblioteca do padrão nacional liberar o layout.</em></span>
+                        </div>
+                    </div>
+
+                    <div id="reforma_campos" style="<?= !empty($configNfe->reforma_ativa) ? '' : 'display:none' ?>">
+                        <div class="control-group">
+                            <label class="control-label" for="reforma_cbs">Alíquota CBS (%)</label>
+                            <div class="controls">
+                                <input type="text" id="reforma_cbs" name="reforma_cbs" value="<?= html_escape(isset($configNfe->reforma_cbs) ? $configNfe->reforma_cbs : '0.9000') ?>" style="width:90px" />
+                                <span class="hint">Ano-teste 2026: 0,9%. Federal (substitui PIS/COFINS).</span>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="reforma_ibs_uf">Alíquota IBS - UF (%)</label>
+                            <div class="controls">
+                                <input type="text" id="reforma_ibs_uf" name="reforma_ibs_uf" value="<?= html_escape(isset($configNfe->reforma_ibs_uf) ? $configNfe->reforma_ibs_uf : '0.1000') ?>" style="width:90px" />
+                                <span class="hint">Parte estadual do IBS. Ano-teste 2026: 0,1% (total IBS).</span>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="reforma_ibs_mun">Alíquota IBS - Município (%)</label>
+                            <div class="controls">
+                                <input type="text" id="reforma_ibs_mun" name="reforma_ibs_mun" value="<?= html_escape(isset($configNfe->reforma_ibs_mun) ? $configNfe->reforma_ibs_mun : '0.0000') ?>" style="width:90px" />
+                                <span class="hint">Parte municipal do IBS. Em geral 0 no ano-teste.</span>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="reforma_cst">CST do IBS/CBS</label>
+                            <div class="controls">
+                                <input type="text" id="reforma_cst" name="reforma_cst" maxlength="3" value="<?= html_escape(isset($configNfe->reforma_cst) && $configNfe->reforma_cst !== '' ? $configNfe->reforma_cst : '000') ?>" style="width:70px" />
+                                <span class="hint">3 dígitos. 000 = tributação integral (padrão). Confirme com o contador.</span>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="reforma_cclasstrib">cClassTrib</label>
+                            <div class="controls">
+                                <input type="text" id="reforma_cclasstrib" name="reforma_cclasstrib" maxlength="6" value="<?= html_escape(isset($configNfe->reforma_cclasstrib) && $configNfe->reforma_cclasstrib !== '' ? $configNfe->reforma_cclasstrib : '000001') ?>" style="width:90px" />
+                                <span class="hint">6 dígitos. Código de Classificação Tributária do IBS/CBS. 000001 = tributação integral.</span>
+                            </div>
                         </div>
                     </div>
 
@@ -235,6 +323,11 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
+        // Mostra/oculta os parâmetros de IBS/CBS conforme o checkbox mestre.
+        $('#reforma_ativa').on('change', function() {
+            $('#reforma_campos').toggle(this.checked);
+        });
+
         $('#btnSalvarCert').on('click', function() {
             var btn = $(this);
             var fd = new FormData();

@@ -29,6 +29,8 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
             <?php if ($pode_financeiro): ?>
                 <a href="<?= site_url('rh/holerite/'.$colaborador->id.'/'.$competencia) ?>" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2"> Holerite</span></a>
             <?php endif; ?>
+            <a href="<?= site_url('rh/fichaCadastralPdf/'.$colaborador->id) ?>" target="_blank" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-file'></i></span><span class="button__text2"> Ficha p/ cliente</span></a>
+            <a href="<?= site_url('rh/crachaPdf/'.$colaborador->id) ?>" target="_blank" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-id-card'></i></span><span class="button__text2"> Crachá</span></a>
             <?php if ($pode_editar): ?>
                 <a href="<?= site_url('rh/biometria/'.$colaborador->id) ?>" class="button btn btn-mini <?= $tem_biometria ? 'btn-success':'btn-warning' ?>"><span class="button__icon"><i class='bx bx-face'></i></span><span class="button__text2"> Facial <?= $tem_biometria?'✓':'' ?></span></a>
                 <a href="<?= site_url('rh/editarColaborador/'.$colaborador->id) ?>" class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-edit'></i></span><span class="button__text2"> Editar</span></a>
@@ -36,16 +38,40 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
         </div>
     </div></div>
 
-    <!-- KPIs da competência -->
+    <?php if (empty($ponto_inicio)): ?>
+        <div class="alert alert-info" style="margin:0 0 10px">
+            Controle de ponto <strong>não habilitado</strong> (sem data de início) — não gera faltas nem saldo negativo.
+            <?php if (! empty($pode_editar)): ?>
+                <a href="<?= site_url('rh/editarColaborador/'.$colaborador->id) ?>">Definir início do controle</a>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- KPIs separados: semana · banco · extras -->
+    <?php $sem = $totais_semana ?? []; ?>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <div class="widget-box" style="flex:1;min-width:180px;margin:0"><div class="widget-content" style="padding:12px">
+            <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.03em">Semana atual</div>
+            <div style="font-size:18px;font-weight:700;margin:4px 0"><?= $fmt($sem['minutos_trabalhados'] ?? 0) ?> <span style="font-size:12px;font-weight:400;color:#9ca3af">trabalhadas</span></div>
+            <div style="font-size:12px;color:#6b7280">
+                Deve: <strong style="color:#dc2626"><?= $fmt($sem['minutos_faltas'] ?? 0) ?></strong>
+                · Saldo sem.: <strong style="color:<?= ($sem['saldo_banco_min']??0)<0?'#dc2626':'#16a34a' ?>"><?= $fmt($sem['saldo_banco_min'] ?? 0) ?></strong>
+            </div>
+        </div></div>
+        <div class="widget-box" style="flex:1;min-width:180px;margin:0"><div class="widget-content" style="padding:12px">
+            <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.03em">Banco de horas (mês)</div>
+            <div style="font-size:22px;font-weight:700;margin:4px 0;color:<?= ($horas['saldo_banco_min']??0)<0?'#dc2626':'#16a34a' ?>"><?= $fmt($horas['saldo_banco_min'] ?? 0) ?></div>
+            <div style="font-size:12px;color:#6b7280">Faltas no mês: <strong style="color:#dc2626"><?= $fmt($horas['minutos_faltas'] ?? 0) ?></strong>
+                <?php if (empty($desconto_auto)): ?> · <span style="color:#9ca3af">sem desconto R$</span><?php endif; ?>
+            </div>
+        </div></div>
+        <div class="widget-box" style="flex:1;min-width:180px;margin:0"><div class="widget-content" style="padding:12px">
+            <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.03em">Extras (mês)</div>
+            <div style="font-size:18px;font-weight:700;margin:4px 0"><?= $fmt(($horas['minutos_extras_50'] ?? 0)+($horas['minutos_extras_100'] ?? 0)) ?></div>
+            <div style="font-size:12px;color:#6b7280">50%: <?= $fmt($horas['minutos_extras_50'] ?? 0) ?> · 100%: <?= $fmt($horas['minutos_extras_100'] ?? 0) ?></div>
+        </div></div>
         <div class="widget-box" style="flex:1;min-width:130px;margin:0"><div class="widget-content" style="text-align:center;padding:12px">
-            <div style="font-size:12px;color:#6b7280">Trabalhadas</div><div style="font-size:20px;font-weight:700"><?= $fmt($horas['minutos_trabalhados'] ?? 0) ?></div></div></div>
-        <div class="widget-box" style="flex:1;min-width:130px;margin:0"><div class="widget-content" style="text-align:center;padding:12px">
-            <div style="font-size:12px;color:#6b7280">Extra 50/100%</div><div style="font-size:20px;font-weight:700"><?= $fmt(($horas['minutos_extras_50'] ?? 0)+($horas['minutos_extras_100'] ?? 0)) ?></div></div></div>
-        <div class="widget-box" style="flex:1;min-width:130px;margin:0"><div class="widget-content" style="text-align:center;padding:12px">
-            <div style="font-size:12px;color:#6b7280">Faltas</div><div style="font-size:20px;font-weight:700;color:#dc2626"><?= $fmt($horas['minutos_faltas'] ?? 0) ?></div></div></div>
-        <div class="widget-box" style="flex:1;min-width:130px;margin:0"><div class="widget-content" style="text-align:center;padding:12px">
-            <div style="font-size:12px;color:#6b7280">Saldo banco</div><div style="font-size:20px;font-weight:700;color:<?= ($horas['saldo_banco_min']??0)<0?'#dc2626':'#16a34a' ?>"><?= $fmt($horas['saldo_banco_min'] ?? 0) ?></div></div></div>
+            <div style="font-size:12px;color:#6b7280">Trabalhadas (mês)</div><div style="font-size:20px;font-weight:700"><?= $fmt($horas['minutos_trabalhados'] ?? 0) ?></div></div></div>
     </div>
 
     <form method="get" style="margin-bottom:10px">
@@ -62,7 +88,16 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
                     <table style="width:100%;font-size:13px">
                         <tr><td style="color:#6b7280;padding:3px 0">Contrato</td><td><?= htmlspecialchars($colaborador->tipo_contrato) ?></td></tr>
                         <tr><td style="color:#6b7280">Admissão</td><td><?= $colaborador->admissao ? date('d/m/Y', strtotime($colaborador->admissao)) : '-' ?></td></tr>
+                        <?php if (! empty($colaborador->demissao)): ?>
+                        <tr><td style="color:#6b7280">Demissão</td><td style="color:#dc2626"><?= date('d/m/Y', strtotime($colaborador->demissao)) ?>
+                            <?= ! empty($colaborador->tipo_desligamento) ? ' · '.htmlspecialchars($colaborador->tipo_desligamento) : '' ?></td></tr>
+                        <?php endif; ?>
                         <tr><td style="color:#6b7280">CPF</td><td><?= htmlspecialchars($colaborador->cpf ?: '-') ?></td></tr>
+                        <tr><td style="color:#6b7280">CTPS</td><td><?php
+                            $ctps = trim(($colaborador->ctps_numero ?? '') . ' / ' . ($colaborador->ctps_serie ?? '') . ' ' . ($colaborador->ctps_uf ?? ''));
+                            echo htmlspecialchars(trim($ctps, ' /') ?: '-');
+                        ?></td></tr>
+                        <tr><td style="color:#6b7280">PIS/PASEP</td><td><?= htmlspecialchars($colaborador->pis_pasep ?? '-') ?></td></tr>
                         <tr><td style="color:#6b7280">Celular</td><td><?= htmlspecialchars($colaborador->celular ?: '-') ?></td></tr>
                         <tr><td style="color:#6b7280">E-mail</td><td><?= htmlspecialchars($colaborador->email ?: '-') ?></td></tr>
                         <?php if ($pode_financeiro): ?>

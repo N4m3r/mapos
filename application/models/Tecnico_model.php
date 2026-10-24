@@ -27,6 +27,8 @@ class Tecnico_model extends CI_Model
                 $this->db->where('os.status', 'Em Andamento');
             } elseif ($status === 'finalizado') {
                 $this->db->where_in('os.status', ['Finalizado', 'Faturado']);
+            } elseif ($status === 'nao_realizado') {
+                $this->db->where('os.status', 'Não Realizado');
             }
         }
 
@@ -111,7 +113,8 @@ class Tecnico_model extends CI_Model
         $this->db->select('os.*, clientes.nomeCliente, os_checkin.data_entrada');
         $this->db->from('os');
         $this->db->join('clientes', 'clientes.idClientes = os.clientes_id', 'left');
-        $this->db->join('os_checkin', 'os_checkin.os_id = os.idOs AND os_checkin.status = "Em Andamento"', 'left');
+        // escape=false: com aspas duplas o CI escapava "Em Andamento" como identificador e gerava SQL invalido
+        $this->db->join('os_checkin', "os_checkin.os_id = os.idOs AND os_checkin.status = 'Em Andamento'", 'left', false);
         $this->db->where('os.tecnico_responsavel', $tecnico_id);
         $this->db->where('os.status', 'Em Andamento');
 
@@ -373,6 +376,110 @@ class Tecnico_model extends CI_Model
         $this->db->where_not_in('status', ['Finalizado', 'Cancelado', 'Faturado']);
         $result = $this->db->count_all_results('os');
         return ($result !== false) ? $result : 0;
+    }
+
+    /* ============================================================= *
+     *  Atividade não programada (aberta pelo técnico em campo)
+     * ============================================================= */
+
+    /**
+     * Autocomplete de clientes para a Área do Técnico.
+     * Retorna apenas dados de identificação (sem qualquer valor financeiro).
+     */
+    public function buscarClientes($q, $limite = 20)
+    {
+        $this->db->select('idClientes, nomeCliente, telefone, celular, documento');
+        $this->db->group_start();
+        $this->db->like('nomeCliente', $q);
+        $this->db->or_like('telefone', $q);
+        $this->db->or_like('celular', $q);
+        $this->db->or_like('documento', $q);
+        $this->db->group_end();
+        $this->db->order_by('nomeCliente', 'ASC');
+        $this->db->limit($limite);
+
+        $query = $this->db->get('clientes');
+
+        return $query ? $query->result() : [];
+    }
+
+    /**
+     * Autocomplete de serviços SEM expor o preço (requisito: o técnico
+     * seleciona sem ver valores). O preço é resolvido no servidor na hora
+     * de salvar via getPrecoServico().
+     */
+    public function buscarServicos($q, $limite = 25)
+    {
+        $this->db->select('idServicos, nome, descricao');
+        $this->db->like('nome', $q);
+        $this->db->or_like('descricao', $q);
+        $this->db->order_by('nome', 'ASC');
+        $this->db->limit($limite);
+
+        $query = $this->db->get('servicos');
+
+        return $query ? $query->result() : [];
+    }
+
+    /**
+     * Autocomplete de produtos SEM expor o preço; mostra estoque para o
+     * técnico ter noção de disponibilidade, mas nunca o valor.
+     */
+    public function buscarProdutos($q, $limite = 25)
+    {
+        $this->db->select('idProdutos, descricao, codDeBarra, unidade, estoque');
+        $this->db->like('descricao', $q);
+        $this->db->or_like('codDeBarra', $q);
+        $this->db->order_by('descricao', 'ASC');
+        $this->db->limit($limite);
+
+        $query = $this->db->get('produtos');
+
+        return $query ? $query->result() : [];
+    }
+
+    /**
+     * Preço de tabela de um serviço (resolvido no servidor).
+     */
+    public function getPrecoServico($idServico)
+    {
+        $this->db->select('preco');
+        $this->db->where('idServicos', $idServico);
+        $row = $this->db->get('servicos')->row();
+
+        return $row ? (float) $row->preco : 0.0;
+    }
+
+    /**
+     * Preço de venda e estoque de um produto (resolvido no servidor).
+     */
+    public function getProduto($idProduto)
+    {
+        $this->db->select('idProdutos, descricao, precoVenda, estoque');
+        $this->db->where('idProdutos', $idProduto);
+
+        return $this->db->get('produtos')->row();
+    }
+
+    /**
+     * Cria uma OS marcada como "não programada", já vinculada ao técnico.
+     *
+     * @return int|false id da OS criada
+     */
+    public function criarAtividade($data)
+    {
+        // Resiliente: se a migration da coluna ainda não foi aplicada, não
+        // deixa o INSERT quebrar por coluna inexistente.
+        if (array_key_exists('nao_programada', $data) && ! $this->db->field_exists('nao_programada', 'os')) {
+            unset($data['nao_programada']);
+        }
+
+        $this->db->insert('os', $data);
+        if ($this->db->affected_rows() >= 1) {
+            return $this->db->insert_id();
+        }
+
+        return false;
     }
 
     /**

@@ -30,14 +30,12 @@ class Mapos extends MY_Controller {
         $this->data['ordens_abertas'] = $this->mapos_model->getOsAbertas();
         $this->data['ordens_aprovadas'] = $this->mapos_model->getOsAprovadas();
         $this->data['ordens_finalizadas'] = $this->mapos_model->getOsFinalizadas();
-        $this->data['ordens_aguardando'] = $this->mapos_model->getOsAguardandoPecas();
-        $this->data['ordens_andamento'] = $this->mapos_model->getOsAndamento();
         $this->data['produtos'] = $this->mapos_model->getProdutosMinimo();
-        $this->data['os'] = $this->mapos_model->getOsEstatisticas();
         $this->data['estatisticas_financeiro'] = $this->mapos_model->getEstatisticasFinanceiro();
-        $this->data['financeiro_mes_dia'] = $this->mapos_model->getEstatisticasFinanceiroDia($this->input->get('year'));
-        $this->data['financeiro_mes'] = $this->mapos_model->getEstatisticasFinanceiroMes($this->input->get('year'));
-        $this->data['financeiro_mesinadipl'] = $this->mapos_model->getEstatisticasFinanceiroMesInadimplencia($this->input->get('year'));
+        $financeiroAno = $this->mapos_model->getEstatisticasFinanceiroAno($this->input->get('year'));
+        $this->data['financeiro_mes_dia'] = $financeiroAno ? $financeiroAno['dia'] : false;
+        $this->data['financeiro_mes'] = $financeiroAno ? $financeiroAno['mes'] : false;
+        $this->data['financeiro_mesinadipl'] = $financeiroAno ? $financeiroAno['inadimplencia'] : false;
         $this->data['menuPainel'] = 'Painel';
         $this->data['view'] = 'mapos/painel';
 
@@ -47,6 +45,8 @@ class Mapos extends MY_Controller {
     public function minhaConta()
     {
         $this->data['usuario'] = $this->mapos_model->getById($this->session->userdata('id_admin'));
+        $this->load->library('dois_fatores');
+        $this->data['codigosRestantes'] = Dois_fatores::codigosRestantes($this->data['usuario']->totp_recuperacao ?? null);
         $this->data['view'] = 'mapos/minhaConta';
 
         return $this->layout();
@@ -80,6 +80,91 @@ class Mapos extends MY_Controller {
         redirect(site_url('mapos/minhaConta'));
     }
 
+    /* ============ Verificacao em duas etapas (ADR-005, F3) ============ */
+
+    /**
+     * Mostra o QR code para cadastrar no aplicativo; o segredo so e gravado depois de confirmado.
+     */
+    public function doisFatores()
+    {
+        $usuario = $this->mapos_model->getById($this->session->userdata('id_admin'));
+        if (! empty($usuario->totp_ativo)) {
+            redirect('mapos/minhaConta');
+        }
+
+        $this->load->library('dois_fatores');
+        $segredo = $this->session->userdata('totp_configurando');
+        if (! $segredo || $this->input->get('novo')) {
+            $segredo = Dois_fatores::gerarSegredo();
+            $this->session->set_userdata('totp_configurando', $segredo);
+        }
+
+        $emissor = (string) ($this->config->item('app_name') ?: 'Map-OS');
+        $this->data['segredo'] = trim(chunk_split($segredo, 4, ' '));
+        $this->data['qrCode'] = Dois_fatores::qrCode(Dois_fatores::uri($segredo, $usuario->email, $emissor));
+        $this->data['view'] = 'mapos/dois_fatores';
+
+        return $this->layout();
+    }
+
+    public function doisFatoresConfirmar()
+    {
+        $segredo = $this->session->userdata('totp_configurando');
+        if (! $segredo) {
+            redirect('mapos/doisFatores');
+        }
+
+        $this->load->library('dois_fatores');
+        $passo = Dois_fatores::passoDoCodigo($segredo, $this->input->post('codigo'));
+        if ($passo === null) {
+            $this->session->set_flashdata('error', 'Código inválido. Confira se o relógio do celular está certo e digite o código atual.');
+            redirect('mapos/doisFatores');
+        }
+
+        $idUsuario = $this->session->userdata('id_admin');
+        $codigos = $this->dois_fatores->ativar($idUsuario, $segredo, $passo);
+        $this->session->unset_userdata('totp_configurando');
+        log_info('Ativou a verificação em duas etapas');
+
+        $this->data['codigos'] = $codigos;
+        $this->data['view'] = 'mapos/dois_fatores_codigos';
+
+        return $this->layout();
+    }
+
+    public function doisFatoresNovosCodigos()
+    {
+        $usuario = $this->usuarioComSenhaConferida();
+        $this->load->library('dois_fatores');
+        $this->data['codigos'] = $this->dois_fatores->novosCodigosRecuperacao($usuario->idUsuarios);
+        log_info('Gerou novos códigos de recuperação da verificação em duas etapas');
+        $this->data['view'] = 'mapos/dois_fatores_codigos';
+
+        return $this->layout();
+    }
+
+    public function doisFatoresDesativar()
+    {
+        $usuario = $this->usuarioComSenhaConferida();
+        $this->load->library('dois_fatores');
+        $this->dois_fatores->desativar($usuario->idUsuarios);
+        log_info('Desativou a verificação em duas etapas');
+        $this->session->set_flashdata('success', 'Verificação em duas etapas desativada.');
+        redirect('mapos/minhaConta');
+    }
+
+    /** Usuario logado, se a senha atual enviada no POST conferir; senao volta para Minha Conta. */
+    private function usuarioComSenhaConferida()
+    {
+        $usuario = $this->db->where('idUsuarios', (int) $this->session->userdata('id_admin'))->get('usuarios')->row();
+        if (! $usuario || empty($usuario->totp_ativo) || ! password_verify((string) $this->input->post('senha'), $usuario->senha)) {
+            $this->session->set_flashdata('error', 'Senha atual incorreta.');
+            redirect('mapos/minhaConta');
+        }
+
+        return $usuario;
+    }
+
     public function pesquisar()
     {
         $termo = $this->input->get('termo');
@@ -101,40 +186,51 @@ class Mapos extends MY_Controller {
             redirect(base_url());
         }
 
-        $this->load->dbutil();
-
-        // Monta a lista apenas com tabelas que realmente podem ser lidas. Sem
-        // isso, se um SELECT * falhar (tabela ilegível/view quebrada), o
-        // utilitário de backup do CI chama num_rows() em `false` e dá erro fatal.
-        $dbDebugOriginal = $this->db->db_debug;
-        $this->db->db_debug = false;
-        $tabelas = [];
-        foreach ($this->db->list_tables() as $tabela) {
-            $teste = $this->db->query('SELECT 1 FROM ' . $this->db->protect_identifiers($tabela) . ' LIMIT 1');
-            if ($teste !== false) {
-                $tabelas[] = $tabela;
-            } else {
-                log_message('error', 'Backup: ignorando tabela ilegível: ' . $tabela);
-            }
-        }
-        $this->db->db_debug = $dbDebugOriginal;
-
-        $prefs = [
-            'tables' => $tabelas,
-            'format' => 'zip',
-            'foreign_key_checks' => false,
-            'filename' => 'backup' . date('d-m-Y') . '.sql',
-        ];
-
-        $backup = $this->dbutil->backup($prefs);
-
-        $this->load->helper('file');
-        write_file(base_url() . 'backup/backup.zip', $backup);
+        $this->load->library('backup_banco');
+        $backup = $this->backup_banco->gerarZip();
 
         log_info('Efetuou backup do banco de dados.');
 
         $this->load->helper('download');
-        force_download('backup' . date('d-m-Y H:m:s') . '.zip', $backup);
+        force_download('backup' . date('d-m-Y H-i-s') . '.zip', $backup);
+    }
+
+    /**
+     * Lista dos backups automaticos (gerados por "php index.php backup/executar").
+     */
+    public function backups()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'cBackup')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para ver os backups.');
+            redirect(base_url());
+        }
+
+        $this->load->library('backup_banco');
+        $this->data['menuConfiguracoes'] = 'Backup';
+        $this->data['backups'] = $this->backup_banco->listar();
+        $this->data['pasta'] = $this->backup_banco->pasta();
+        $this->data['retencao'] = $this->backup_banco->retencaoDias();
+        $this->data['view'] = 'mapos/backups';
+
+        return $this->layout();
+    }
+
+    public function baixarBackup($nome = null)
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'cBackup')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para baixar backups.');
+            redirect(base_url());
+        }
+
+        $this->load->library('backup_banco');
+        $arquivo = $this->backup_banco->caminho(rawurldecode((string) $nome));
+        if ($arquivo === null) {
+            show_404();
+        }
+
+        log_info('Baixou o backup automático ' . basename($arquivo));
+        $this->load->helper('download');
+        force_download($arquivo, null);
     }
 
     public function emitente()
@@ -410,7 +506,7 @@ class Mapos extends MY_Controller {
 
         // PDF de exemplo em arquivo temporário.
         $tmp = tempnam(sys_get_temp_dir(), 'mapteste_');
-        @file_put_contents($tmp, $this->gerarPdfTeste());
+        file_put_contents($tmp, $this->gerarPdfTeste());
 
         $this->load->library('email');
         $this->email->clear(true);
@@ -430,7 +526,9 @@ class Mapos extends MY_Controller {
         $ok = $this->email->send(true); // true = envia imediatamente (não enfileira)
         $debug = $ok ? '' : $this->email->print_debugger(['headers', 'subject']);
         $this->email->registrarEnvioLog($dest, 'Teste de envio (NF + Boleto)', 'teste', $ok ? 'enviado' : 'falha', $ok ? null : $debug);
-        @unlink($tmp);
+        if (is_file($tmp)) {
+            unlink($tmp);
+        }
 
         if ($ok) {
             log_info('Enviou e-mail de teste com anexo para ' . $dest);
@@ -671,6 +769,10 @@ class Mapos extends MY_Controller {
                 'pix_key' => $this->input->post('pix_key'),
                 'os_status_list' => json_encode($this->input->post('os_status_list')),
                 'control_2vias' => $this->input->post('control_2vias'),
+                // Geofence do atendimento em campo (fechamento da OS).
+                'os_geofence_modo' => in_array($this->input->post('os_geofence_modo'), ['off', 'soft', 'hard'], true)
+                    ? $this->input->post('os_geofence_modo') : 'off',
+                'os_geofence_raio_metros' => (int) $this->input->post('os_geofence_raio_metros') ?: 200,
             ];
             if ($this->mapos_model->saveConfiguracao($data) == true) {
                 $this->session->set_flashdata('success', 'Configurações do sistema atualizadas com sucesso!');
@@ -789,7 +891,7 @@ class Mapos extends MY_Controller {
                     'cliente' => '<b>Cliente:</b> ' . $os->nomeCliente,
                     'dataInicial' => '<b>Data Inicial:</b> ' . date('d/m/Y', strtotime($os->dataInicial)),
                     'dataFinal' => '<b>Data Final:</b> ' . date('d/m/Y', strtotime($os->dataFinal)),
-                    'garantia' => '<b>Garantia:</b> ' . $os->garantia . ' dias',
+                    'garantia' => '<b>Garantia:</b> ' . formatar_garantia($os->garantia),
                     'status' => '<b>Status da OS:</b> ' . $os->status,
                     'description' => '<b>Descrição/Produto:</b> ' . strip_tags(html_entity_decode($os->descricaoProduto)),
                     'defeito' => '<b>Defeito:</b> ' . strip_tags(html_entity_decode($os->defeito)),

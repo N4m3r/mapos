@@ -5,11 +5,12 @@ $tokenHash = $this->security->get_csrf_hash();
 <div class="widget-box">
     <div class="widget-title" style="margin: -20px 0 0">
         <span class="icon"><i class="fas fa-robot"></i></span>
-        <h5>Automação na aprovação da OS</h5>
+        <h5>Automação no aceite da OS</h5>
     </div>
     <div class="widget-content">
         <div class="alert" style="background:#fff8e1; border:1px solid #ffe0a3; color:#8a6d3b; border-radius:8px;">
-            <strong>Atenção:</strong> quando ligada, ao cliente <strong>aprovar</strong> a OS pelo link público, o sistema
+            <strong>Atenção:</strong> quando ligada, ao cliente <strong>aceitar a resolução do serviço realizado</strong>
+            pelo link público de aceite, o sistema
             <strong>emite a NFS-e</strong> dos serviços e <strong>gera o boleto</strong> automaticamente. Emissão fiscal é
             uma ação real — teste primeiro em ambiente de <strong>homologação</strong> e habilite só para os clientes desejados
             (checkbox na ficha do cliente).
@@ -21,7 +22,7 @@ $tokenHash = $this->security->get_csrf_hash();
             <div class="control-group">
                 <label class="control-label" style="display:flex; align-items:center; gap:8px;">
                     <input type="checkbox" name="automacao_aprovacao_ativa" value="1" <?= (string) $automacao_aprovacao_ativa === '1' ? 'checked' : '' ?>>
-                    Ativar automação (NFS-e + boleto) na aprovação da OS
+                    Ativar automação (NFS-e + boleto) no aceite da OS
                 </label>
                 <span class="help-block">Master global. Mesmo ligada, só roda para clientes com a automação habilitada na ficha.</span>
             </div>
@@ -81,7 +82,7 @@ $tokenHash = $this->security->get_csrf_hash();
 
             <h5 style="color:#1e3a8a; margin-top:18px">Faturamento agendado</h5>
             <p style="color:#6b7191; font-size:12px; margin-top:0">
-                Para clientes marcados com <strong>“Faturamento agendado”</strong> na ficha, a aprovação no meio do mês
+                Para clientes marcados com <strong>“Faturamento agendado”</strong> na ficha, o aceite no meio do mês
                 <strong>não</strong> emite na hora: a NFS-e e o boleto ficam em espera e são emitidos no dia abaixo.
             </p>
             <div class="control-group">

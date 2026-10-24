@@ -109,9 +109,17 @@ class Rh_ponto_model extends CI_Model
      */
     /**
      * Sugere o próximo tipo de batida a partir da ÚLTIMA batida do dia
-     * (máquina de estados sequencial), não da presença dos tipos. Assim o
-     * ciclo se repete sem limite e o colaborador pode fazer vários turnos no
-     * mesmo dia: entrada → inicio_intervalo → fim_intervalo → saida → entrada …
+     * (máquina de estados sequencial), não da presença dos tipos.
+     *
+     * O ciclo suporta o técnico de campo que atende VÁRIOS clientes no mesmo
+     * turno: cada deslocamento entre clientes é um par intervalo →
+     * fim_intervalo, e o intervalo se repete sem limite:
+     *
+     *   entrada → inicio_intervalo → fim_intervalo → inicio_intervalo → … → (saída)
+     *
+     * A "saída" (fim do turno) NÃO é sugerida automaticamente — o colaborador
+     * a escolhe pelo botão dedicado ao encerrar o dia. Após a saída, o ciclo
+     * reinicia em "entrada" (novo turno).
      */
     public function proximoTipo($colaborador_id, $data = null)
     {
@@ -126,7 +134,9 @@ class Rh_ponto_model extends CI_Model
             case 'inicio_intervalo':
                 return 'fim_intervalo';
             case 'fim_intervalo':
-                return 'saida';
+                // Volta ao intervalo: pronto para o deslocamento ao próximo
+                // cliente. Encerrar o turno é ação manual (botão "Saída").
+                return 'inicio_intervalo';
             case 'saida':
             default:
                 return 'entrada';
@@ -181,6 +191,26 @@ class Rh_ponto_model extends CI_Model
         $this->db->order_by('data_hora', 'DESC');
         $this->db->limit($limite);
         $query = $this->db->get('rh_ponto_registros');
+        return $query ? $query->result() : [];
+    }
+
+    /**
+     * Batidas de ponto vinculadas a uma OS (atendimento em campo), em ordem
+     * cronológica. Usadas no painel da OS para cruzar presença × atendimento.
+     */
+    public function getByOs($os_id)
+    {
+        if (! $this->suportado() || ! $this->db->field_exists('os_id', 'rh_ponto_registros')) {
+            return [];
+        }
+        $this->db->select('r.*, c.nome AS nome_colaborador');
+        $this->db->from('rh_ponto_registros r');
+        $this->db->join('rh_colaboradores c', 'c.id = r.colaborador_id', 'left');
+        $this->db->where('r.os_id', (int) $os_id);
+        $this->db->where('r.status !=', 'rejeitado');
+        $this->db->order_by('r.data_hora', 'ASC');
+        $query = $this->db->get();
+
         return $query ? $query->result() : [];
     }
 

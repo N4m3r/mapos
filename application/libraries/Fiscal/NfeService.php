@@ -4,6 +4,7 @@ namespace Libraries\Fiscal;
 
 use Exception;
 use NFePHP\Common\Certificate;
+use NFePHP\DA\NFe\Danfce;
 use NFePHP\DA\NFe\Danfe;
 use NFePHP\NFe\Common\Standardize;
 use NFePHP\NFe\Complements;
@@ -12,8 +13,8 @@ use NFePHP\NFe\Tools;
 use stdClass;
 
 /**
- * Emissão de NF-e (modelo 55) para empresas do Simples Nacional (CRT=1),
- * a partir das Vendas do Mapos, usando nfephp-org/sped-nfe.
+ * Emissão de NF-e (modelo 55) e NFC-e (modelo 65, via comoNfce()) para empresas
+ * do Simples Nacional (CRT=1), a partir das Vendas do Mapos, usando nfephp-org/sped-nfe.
  */
 class NfeService
 {
@@ -21,6 +22,10 @@ class NfeService
     private object $emitente;    // linha da tabela emitente
     private ?Certificate $certificado = null;
     private ?Tools $tools = null; // carregado sob demanda (assinar/transmitir)
+    private int $modelo = 55;
+
+    /** Formas de pagamento do PDV -> tPag da NF-e/NFC-e. */
+    public const TPAG = ['dinheiro' => '01', 'credito' => '03', 'debito' => '04', 'pix' => '17', 'outros' => '99'];
 
     private const CODIGOS_UF = [
         'AC' => 12, 'AL' => 27, 'AP' => 16, 'AM' => 13, 'BA' => 29, 'CE' => 23,
@@ -36,6 +41,21 @@ class NfeService
         $this->emitente = $emitente;
     }
 
+    /** Mesmo servico emitindo NFC-e (modelo 65): consumidor final no balcao, QR Code e DANFCE. */
+    public function comoNfce(): self
+    {
+        $nfce = clone $this;
+        $nfce->modelo = 65;
+        $nfce->tools = null;
+
+        return $nfce;
+    }
+
+    private function ehNfce(): bool
+    {
+        return $this->modelo === 65;
+    }
+
     /**
      * Inicializa (uma vez) o Tools da NFePHP com o certificado.
      * Só é necessário para assinar/transmitir — a montagem do XML (rascunho) não usa.
@@ -45,7 +65,7 @@ class NfeService
         if ($this->tools === null) {
             $this->certificado = CertificadoHelper::carregar($this->config->certificado_path, $this->config->senha_certificado);
 
-            $toolsConfig = json_encode([
+            $configTools = [
                 'atualizacao' => date('Y-m-d H:i:s'),
                 'tpAmb' => (int) $this->config->ambiente,
                 'razaosocial' => $this->emitente->nome,
@@ -53,10 +73,15 @@ class NfeService
                 'siglaUF' => $this->siglaUf(),
                 'schemes' => 'PL_009_V4',
                 'versao' => '4.00',
-            ]);
+            ];
+            if ($this->ehNfce()) {
+                // CSC/ID do token: cadastrados na SEFAZ da UF, usados no hash do QR Code
+                $configTools['CSC'] = trim((string) ($this->config->csc ?? ''));
+                $configTools['CSCid'] = trim((string) ($this->config->csc_id ?? ''));
+            }
 
-            $this->tools = new Tools($toolsConfig, $this->certificado);
-            $this->tools->model('55');
+            $this->tools = new NfceTools(json_encode($configTools), $this->certificado);
+            $this->tools->model((string) $this->modelo);
         }
 
         return $this->tools;
@@ -73,8 +98,13 @@ class NfeService
         if (empty($itens)) {
             throw new Exception('A venda não possui produtos para emissão da NF-e.');
         }
+        $nfce = $this->ehNfce();
 
-        $make = new Make();
+        // Reforma Tributária (Fase 2): quando ligada, o Make é montado no layout
+        // PL_010 (schema > 9), que habilita o grupo IBS/CBS por item e o
+        // totalizador. Desligada, mantém o PL_009 (comportamento atual, sem risco).
+        $reforma = !empty($this->config->reforma_ativa);
+        $make = $reforma ? new Make('PL_010') : new Make();
 
         $std = new stdClass();
         $std->versao = '4.00';
@@ -82,21 +112,21 @@ class NfeService
 
         $ufEmit = $this->siglaUf();
         $ufDest = strtoupper(trim($venda->estado ?? ''));
-        $interestadual = ($ufDest !== '' && $ufDest !== $ufEmit);
+        $interestadual = ! $nfce && ($ufDest !== '' && $ufDest !== $ufEmit); // NFC-e e sempre operacao interna
 
         // ide
         $std = new stdClass();
         $std->cUF = self::CODIGOS_UF[$ufEmit];
         $std->cNF = str_pad((string) random_int(1, 99999999), 8, '0', STR_PAD_LEFT);
         $std->natOp = 'VENDA DE MERCADORIA';
-        $std->mod = 55;
-        $std->serie = (int) $this->config->serie_nfe;
+        $std->mod = $this->modelo;
+        $std->serie = (int) ($nfce ? ($this->config->serie_nfce ?? 1) : $this->config->serie_nfe);
         $std->nNF = $numero;
         $std->dhEmi = date('Y-m-d\TH:i:sP');
         $std->tpNF = 1;                                   // saída
         $std->idDest = $interestadual ? 2 : 1;
         $std->cMunFG = (int) $this->config->codigo_municipio;
-        $std->tpImp = 1;                                  // DANFE retrato
+        $std->tpImp = $nfce ? 4 : 1;                      // 4 = DANFCE, 1 = DANFE retrato
         $std->tpEmis = 1;                                 // emissão normal
         $std->cDV = 0;                                    // recalculado pela lib
         $std->tpAmb = (int) $this->config->ambiente;
@@ -127,27 +157,35 @@ class NfeService
         $std->xPais = 'BRASIL';
         $make->tagenderEmit($std);
 
-        // destinatário
-        $documento = $this->somenteNumeros($venda->documento);
-        if ($documento === '') {
+        // destinatário (na NFC-e e opcional: so vai se o consumidor informou CPF/CNPJ)
+        $documento = $nfce
+            ? $this->somenteNumeros($opcoes['cpf'] ?? '')
+            : $this->somenteNumeros($venda->documento);
+        if ($documento === '' && ! $nfce) {
             throw new Exception('O cliente da venda não possui CPF/CNPJ cadastrado.');
         }
-        $std = new stdClass();
-        // Em homologação a SEFAZ exige esta razão social fixa no destinatário
-        $std->xNome = ((int) $this->config->ambiente === 2)
-            ? 'NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL'
-            : $venda->nomeCliente;
-        if (strlen($documento) === 14) {
-            $std->CNPJ = $documento;
-            $std->indIEDest = !empty($venda->ie) ? 1 : 9;
-            if (!empty($venda->ie)) {
-                $std->IE = $this->somenteNumeros($venda->ie);
+        if ($documento !== '') {
+            $std = new stdClass();
+            // Em homologação a SEFAZ exige esta razão social fixa no destinatário
+            $std->xNome = ((int) $this->config->ambiente === 2)
+                ? 'NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL'
+                : $venda->nomeCliente;
+            if (strlen($documento) === 14) {
+                $std->CNPJ = $documento;
+                $std->indIEDest = !empty($venda->ie) ? 1 : 9;
+                if (!empty($venda->ie)) {
+                    $std->IE = $this->somenteNumeros($venda->ie);
+                }
+            } else {
+                $std->CPF = $documento;
+                $std->indIEDest = 9; // não contribuinte
             }
-        } else {
-            $std->CPF = $documento;
-            $std->indIEDest = 9; // não contribuinte
+            if ($nfce) {
+                $std->indIEDest = 9;
+                unset($std->IE);
+            }
+            $make->tagdest($std);
         }
-        $make->tagdest($std);
 
         // O cadastro de clientes não guarda o código IBGE do município; o endereço
         // do destinatário só é incluído quando o cliente é da mesma cidade do
@@ -155,7 +193,7 @@ class NfeService
         // opcional no schema da NF-e.
         $mesmaCidade = !empty($venda->cidade)
             && mb_strtoupper(trim($venda->cidade)) === mb_strtoupper(trim($this->emitente->cidade ?? ''));
-        if (!empty($venda->rua) && $mesmaCidade) {
+        if (! $nfce && !empty($venda->rua) && $mesmaCidade) {
             $std = new stdClass();
             $std->xLgr = $venda->rua;
             $std->nro = $venda->numero ?: 'S/N';
@@ -239,6 +277,32 @@ class NfeService
             $std->pCOFINS = 0.0000;
             $std->vCOFINS = 0.00;
             $make->tagCOFINS($std);
+
+            // Grupo IBS/CBS (reforma tributária) — só quando ativado nas
+            // configurações. Alíquotas/CST/cClassTrib são parametrizáveis; a
+            // base é o valor do item. O totalizador é montado pela lib.
+            if ($reforma) {
+                $pIBSUF = (float) ($this->config->reforma_ibs_uf ?? 0);
+                $pIBSMun = (float) ($this->config->reforma_ibs_mun ?? 0);
+                $pCBS = (float) ($this->config->reforma_cbs ?? 0);
+                $vIBSUF = round($subTotal * $pIBSUF / 100, 2);
+                $vIBSMun = round($subTotal * $pIBSMun / 100, 2);
+                $vCBS = round($subTotal * $pCBS / 100, 2);
+
+                $std = new stdClass();
+                $std->item = $nItem;
+                $std->CST = $this->config->reforma_cst ?: '000';
+                $std->cClassTrib = $this->config->reforma_cclasstrib ?: '000001';
+                $std->vBC = number_format($subTotal, 2, '.', '');
+                $std->gIBSUF_pIBSUF = $pIBSUF;
+                $std->gIBSUF_vIBSUF = number_format($vIBSUF, 2, '.', '');
+                $std->gIBSMun_pIBSMun = $pIBSMun;
+                $std->gIBSMun_vIBSMun = number_format($vIBSMun, 2, '.', '');
+                $std->vIBS = number_format($vIBSUF + $vIBSMun, 2, '.', '');
+                $std->gCBS_pCBS = $pCBS;
+                $std->gCBS_vCBS = number_format($vCBS, 2, '.', '');
+                $make->tagIBSCBS($std);
+            }
         }
 
         // desconto aplicado sobre o total (rateado pela lib no ICMSTot)
@@ -274,10 +338,33 @@ class NfeService
         $std = new stdClass();
         $make->tagpag($std);
 
-        $std = new stdClass();
-        $std->tPag = '01'; // dinheiro/à vista (Simples: sem detalhamento de cobrança)
-        $std->vPag = number_format($totalProdutos - $desconto, 2, '.', '');
-        $make->tagdetPag($std);
+        $pagamentos = $opcoes['pagamentos'] ?? [];
+        if ($nfce && $pagamentos) {
+            // Formas reais do PDV; o troco vai em vTroco
+            foreach ($pagamentos as $p) {
+                $std = new stdClass();
+                $std->tPag = self::TPAG[$p['forma']] ?? '99';
+                if ($std->tPag === '99') {
+                    $std->xPag = 'Outros';
+                }
+                $std->vPag = number_format((float) $p['valor'], 2, '.', '');
+                if (in_array($std->tPag, ['03', '04', '17'], true)) {
+                    $std->tpIntegra = 2; // pagamento nao integrado ao sistema (maquininha/PIX a parte)
+                }
+                $make->tagdetPag($std);
+            }
+            $troco = (float) ($opcoes['troco'] ?? 0);
+            if ($troco > 0) {
+                $std = new stdClass();
+                $std->vTroco = number_format($troco, 2, '.', '');
+                $make->tagpag($std);
+            }
+        } else {
+            $std = new stdClass();
+            $std->tPag = '01'; // dinheiro/à vista (Simples: sem detalhamento de cobrança)
+            $std->vPag = number_format($totalProdutos - $desconto, 2, '.', '');
+            $make->tagdetPag($std);
+        }
 
         // informações adicionais exigidas do Simples Nacional.
         // A origem pode ser uma Venda (idVendas) ou uma Ordem de Serviço (idOs).
@@ -338,6 +425,9 @@ class NfeService
         // servidores que bloqueiam SHA1 em openssl_sign. Gera assinatura padrão.
         $material = CertificadoHelper::lerChaveECert($this->config->certificado_path, $this->config->senha_certificado);
         $xmlAssinado = Signer::sign($xml, 'infNFe', $material['pkey'], $material['cert']);
+        if ($this->ehNfce()) {
+            $xmlAssinado = $this->tools()->inserirQRCode($xmlAssinado);
+        }
 
         // envio síncrono
         $resposta = $this->tools()->sefazEnviaLote([$xmlAssinado], (string) time(), 1);
@@ -442,7 +532,7 @@ class NfeService
      */
     public function danfe(string $xmlProtocolado, ?string $logoPath = null): string
     {
-        $danfe = new Danfe($xmlProtocolado);
+        $danfe = $this->ehNfce() ? new Danfce($xmlProtocolado) : new Danfe($xmlProtocolado);
         if ($logoPath !== null && file_exists($logoPath)) {
             $logo = 'data://text/plain;base64,' . base64_encode(file_get_contents($logoPath));
             return $danfe->render($logo);

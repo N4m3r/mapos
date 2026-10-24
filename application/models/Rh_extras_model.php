@@ -83,6 +83,24 @@ class Rh_extras_model extends CI_Model
     }
 
     /**
+     * Busca lançamento automático de um tipo na competência (ex.: falta, hora_extra).
+     */
+    public function getLancamentoAutomatico($colaborador_id, $competencia, $tipo)
+    {
+        if (! $this->suportado()) {
+            return null;
+        }
+        $this->db->where('colaborador_id', $colaborador_id);
+        $this->db->where('competencia', $competencia);
+        $this->db->where('tipo', $tipo);
+        $this->db->where('origem', 'automatico');
+        $this->db->order_by('id', 'DESC');
+        $this->db->limit(1);
+        $query = $this->db->get('rh_lancamentos');
+        return $query ? $query->row() : null;
+    }
+
+    /**
      * Resumo de proventos/descontos de uma competência (para o holerite/demonstrativo).
      * Considera apenas lançamentos aprovados.
      */
@@ -283,6 +301,34 @@ class Rh_extras_model extends CI_Model
         ]);
     }
 
+    /**
+     * Dias (Y-m-d) cobertos por ausência aprovada no período (atestado, férias, etc.).
+     * Esses dias não geram desconto de falta.
+     *
+     * @return array<string,string> mapa data => tipo da ausência
+     */
+    public function diasAusenciaAprovada($colaborador_id, $inicio, $fim)
+    {
+        $dias = [];
+        if (! $this->db->table_exists('rh_ausencias')) {
+            return $dias;
+        }
+        $this->db->where('colaborador_id', $colaborador_id);
+        $this->db->where('status', 'aprovado');
+        $this->db->where('data_inicio <=', $fim);
+        $this->db->where('data_fim >=', $inicio);
+        $query = $this->db->get('rh_ausencias');
+        $rows = $query ? $query->result() : [];
+        foreach ($rows as $a) {
+            $ini = max(strtotime($a->data_inicio), strtotime($inicio));
+            $end = min(strtotime($a->data_fim), strtotime($fim));
+            for ($ts = $ini; $ts <= $end; $ts += 86400) {
+                $dias[date('Y-m-d', $ts)] = $a->tipo ?: 'abono';
+            }
+        }
+        return $dias;
+    }
+
     // =====================================================================
     // Holerites (PDF oficial por colaborador/competência)
     // =====================================================================
@@ -328,7 +374,7 @@ class Rh_extras_model extends CI_Model
                         ->delete('rh_holerites');
     }
 
-    /** Pendências de aprovação (ocorrências + ausências) para o dashboard. */
+    /** Pendências de aprovação (ocorrências + ausências + HE) para o dashboard. */
     public function contarPendencias()
     {
         $total = 0;
@@ -337,6 +383,10 @@ class Rh_extras_model extends CI_Model
         }
         if ($this->db->table_exists('rh_ausencias')) {
             $total += $this->db->where('status', 'pendente')->count_all_results('rh_ausencias');
+        }
+        // Horas extras / lançamentos aguardando aprovação
+        if ($this->db->table_exists('rh_lancamentos')) {
+            $total += $this->db->where('aprovado', 0)->where('tipo', 'hora_extra')->count_all_results('rh_lancamentos');
         }
         return $total;
     }

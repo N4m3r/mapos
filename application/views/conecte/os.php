@@ -10,6 +10,11 @@ if (!$this->session->userdata('cadastra_os')) { ?>
 <?php
 }
 
+$filtros = isset($filtros) ? $filtros : ['cliente_id' => null, 'data_inicio' => null, 'data_fim' => null];
+$temFiltro = ! empty($filtros['cliente_id']) || ! empty($filtros['data_inicio']) || ! empty($filtros['data_fim']);
+$this->load->view('conecte/filtros_portal', ['acaoFiltro' => 'mine/os']);
+?>
+<?php
 if (!$results) {
     ?>
     <div class="span12" style="margin-left: 0">
@@ -40,7 +45,7 @@ if (!$results) {
                     <tbody>
 
                         <tr>
-                            <td colspan="6">Nenhuma OS Cadastrada</td>
+                            <td colspan="6"><?php echo $temFiltro ? 'Nenhuma OS encontrada para o filtro selecionado' : 'Nenhuma OS Cadastrada'; ?></td>
                         </tr>
                     </tbody>
                 </table>

@@ -103,6 +103,99 @@ class Os_model extends CI_Model
         return $this->db->get()->row();
     }
 
+    /**
+     * Monta a linha do tempo ("onde estamos") da OS a partir do estado REAL:
+     * status, agendamento, check-in/out, aceite do cliente, nota fiscal e
+     * pagamento. Cada etapa vem com estado (concluida | atual | pendente) e a
+     * data em que aconteceu (quando houver).
+     *
+     * A regra de "atual" é em cascata: uma etapa anterior é considerada
+     * concluída se QUALQUER etapa posterior já aconteceu (ex.: se já houve
+     * check-in, "Agendada" conta como cumprida mesmo sem data marcada).
+     *
+     * Reutilizada no administrativo (visualizar OS) e no portal do cliente.
+     */
+    public function getTimeline($os_id)
+    {
+        $os_id = (int) $os_id;
+        $os = $this->db->get_where('os', ['idOs' => $os_id])->row();
+        if (! $os) {
+            return null;
+        }
+
+        // Check-in/out (primeira entrada, última saída).
+        $entrada = $saida = null;
+        if ($this->db->table_exists('os_checkin')) {
+            $r = $this->db->select('MIN(data_entrada) AS ent, MAX(data_saida) AS sai', false)
+                ->where('os_id', $os_id)->get('os_checkin')->row();
+            $entrada = $r->ent ?? null;
+            $saida = $r->sai ?? null;
+        }
+
+        // Nota fiscal autorizada (faturamento).
+        $notaAut = false;
+        $dataNota = null;
+        if ($this->db->table_exists('notas_fiscais')) {
+            $n = $this->db->select('data_autorizacao, data_emissao')
+                ->where('os_id', $os_id)->where('status', 'autorizada')
+                ->order_by('idNota', 'DESC')->limit(1)
+                ->get('notas_fiscais')->row();
+            if ($n) {
+                $notaAut = true;
+                $dataNota = $n->data_autorizacao ?: $n->data_emissao;
+            }
+        }
+
+        // Pagamento (boleto/cobrança quitada).
+        $paga = false;
+        if ($this->db->table_exists('cobrancas')) {
+            $paga = $this->db->where('os_id', $os_id)->where('status', 'PAID')
+                ->count_all_results('cobrancas') > 0;
+        }
+
+        $agend = (isset($os->data_agendamento) && $os->data_agendamento) ? $os->data_agendamento : null;
+        $aceito = (isset($os->aceite_status) && $os->aceite_status === 'aceito');
+        $concluida = ($saida || in_array($os->status, ['Finalizado', 'Faturado'], true));
+
+        $stages = [
+            ['chave' => 'aberta', 'label' => 'Aberta', 'icone' => 'bx-folder-open', 'done' => true, 'data' => $os->dataInicial ?? null],
+            ['chave' => 'agendada', 'label' => 'Agendada', 'icone' => 'bx-calendar-event', 'done' => (bool) $agend, 'data' => $agend],
+            ['chave' => 'em_atendimento', 'label' => 'Em atendimento', 'icone' => 'bx-wrench', 'done' => (bool) $entrada, 'data' => $entrada],
+            ['chave' => 'concluida', 'label' => 'Atendimento concluído', 'icone' => 'bx-check-circle', 'done' => (bool) $concluida, 'data' => $saida],
+            ['chave' => 'aceite', 'label' => 'Aceite do cliente', 'icone' => 'bx-user-check', 'done' => $aceito, 'data' => $aceito ? ($os->aceite_data ?? null) : null],
+            ['chave' => 'faturada', 'label' => 'Faturada', 'icone' => 'bx-receipt', 'done' => $notaAut, 'data' => $dataNota],
+            ['chave' => 'paga', 'label' => 'Paga', 'icone' => 'bx-dollar-circle', 'done' => $paga, 'data' => null],
+        ];
+
+        // Cascata: etapa é dada como concluída se qualquer posterior aconteceu.
+        $total = count($stages);
+        $atualDefinido = false;
+        for ($i = 0; $i < $total; $i++) {
+            $doneCascata = $stages[$i]['done'];
+            for ($j = $i + 1; $j < $total; $j++) {
+                if ($stages[$j]['done']) {
+                    $doneCascata = true;
+                    break;
+                }
+            }
+            if ($doneCascata) {
+                $stages[$i]['estado'] = 'concluida';
+            } elseif (! $atualDefinido) {
+                $stages[$i]['estado'] = 'atual';
+                $atualDefinido = true;
+            } else {
+                $stages[$i]['estado'] = 'pendente';
+            }
+        }
+
+        return [
+            'stages' => $stages,
+            'status' => $os->status,
+            'cancelado' => ($os->status === 'Cancelado'),
+            'nao_realizado' => ($os->status === 'Não Realizado'),
+        ];
+    }
+
     public function getByIdCobrancas($id)
     {
         $this->db->select('os.*, clientes.*, clientes.celular as celular_cliente, garantias.refGarantia, garantias.textoGarantia, usuarios.telefone as telefone_usuario, usuarios.email as email_usuario, usuarios.nome,cobrancas.os_id,cobrancas.idCobranca,cobrancas.status');
@@ -145,6 +238,76 @@ class Os_model extends CI_Model
         $this->db->where('os_id', $id);
 
         return $this->db->get()->result();
+    }
+
+    /**
+     * Duplica uma OS existente para outro cliente/CNPJ.
+     *
+     * Copia o cabeçalho (defeito, laudo, garantia, técnico, descrições) e todos
+     * os itens (produtos_os e servicos_os), trocando o cliente vinculado. A cópia
+     * nasce como rascunho ("Orçamento"), não faturada, com datas de hoje. NÃO
+     * copia estoque (a baixa já ocorreu na OS original), nem assinaturas,
+     * cobranças ou notas fiscais — que são específicas da OS de origem.
+     *
+     * @param int $idOrigem   OS a copiar
+     * @param int $clientesId Cliente/CNPJ de destino
+     * @return int|false      ID da nova OS, ou false em caso de falha
+     */
+    public function duplicarOs($idOrigem, $clientesId)
+    {
+        // Lê a linha de os direto (getById faz join com clientes.* e pode colidir
+        // colunas); aqui só queremos os campos da própria OS.
+        $origem = $this->db->where('idOs', $idOrigem)->get('os')->row();
+        if (! $origem) {
+            return false;
+        }
+
+        $this->db->trans_start();
+
+        $data = [
+            'dataInicial'      => date('Y-m-d'),
+            'dataFinal'        => date('Y-m-d'),
+            'clientes_id'      => $clientesId,
+            'usuarios_id'      => $origem->usuarios_id,
+            'garantia'         => $origem->garantia,
+            'garantias_id'     => $origem->garantias_id,
+            'descricaoProduto' => $origem->descricaoProduto,
+            'defeito'          => $origem->defeito,
+            'observacoes'      => $origem->observacoes,
+            'laudoTecnico'     => $origem->laudoTecnico,
+            'status'           => 'Orçamento',
+            'faturado'         => 0,
+        ];
+        $this->db->insert('os', $data);
+        $novoId = $this->db->insert_id();
+
+        foreach ($this->db->where('os_id', $idOrigem)->get('produtos_os')->result() as $p) {
+            $this->db->insert('produtos_os', [
+                'produtos_id' => $p->produtos_id,
+                'quantidade'  => $p->quantidade,
+                'preco'       => $p->preco,
+                'subTotal'    => $p->subTotal,
+                'os_id'       => $novoId,
+            ]);
+        }
+
+        foreach ($this->db->where('os_id', $idOrigem)->get('servicos_os')->result() as $s) {
+            $this->db->insert('servicos_os', [
+                'servicos_id' => $s->servicos_id,
+                'quantidade'  => $s->quantidade,
+                'preco'       => $s->preco,
+                'subTotal'    => $s->subTotal,
+                'os_id'       => $novoId,
+            ]);
+        }
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === false) {
+            return false;
+        }
+
+        return $novoId;
     }
 
     public function add($table, $data, $returnId = false)
@@ -376,7 +539,7 @@ class Os_model extends CI_Model
             strip_tags($os->laudoTecnico),
             date('d/m/Y', strtotime($os->dataFinal)),
             date('d/m/Y', strtotime($os->dataInicial)),
-            $os->garantia . ' dias',
+            formatar_garantia($os->garantia),
         ];
 
         return $this->montarTextoWhats($textoBase, $troca);
@@ -465,17 +628,72 @@ class Os_model extends CI_Model
         return $pix->getQRCode();
     }
 
+    /* ============================================================= *
+     *  Central de Atendimento — listagem unificada com filtros
+     *  (situação/aba + busca + período). Reaproveitada na contagem.
+     * ============================================================= */
+
     /**
-     * Obter OS sem técnico atribuído (para atribuição)
+     * Aplica ao query builder as condições da Central de Atendimento:
+     *   - situação (aba): todos, sem_tecnico, em_atendimento, finalizados
+     *   - busca: cliente, nº da OS ou descrição
+     *   - período: intervalo de dataInicial
+     * Define o FROM e o JOIN com clientes (necessário para a busca por nome).
      */
-    public function getOsSemTecnico($limite = 20, $offset = 0)
+    private function aplicarFiltrosCentral($aba, $filtros = [])
     {
-        $this->db->select('os.*, clientes.nomeCliente, clientes.telefone, usuarios.nome as nome_tecnico');
         $this->db->from('os');
         $this->db->join('clientes', 'clientes.idClientes = os.clientes_id', 'left');
+
+        switch ($aba) {
+            case 'sem_tecnico':
+                $this->db->where('os.tecnico_responsavel IS NULL');
+                $this->db->where_not_in('os.status', ['Finalizado', 'Cancelado', 'Faturado']);
+                break;
+            case 'em_atendimento':
+            case 'com_tecnico':
+                $this->db->where('os.tecnico_responsavel IS NOT NULL');
+                $this->db->where_not_in('os.status', ['Finalizado', 'Cancelado', 'Faturado']);
+                break;
+            case 'finalizados':
+                $this->db->where_in('os.status', ['Finalizado', 'Faturado']);
+                break;
+            default: // todos
+                $this->db->where_not_in('os.status', ['Finalizado', 'Cancelado', 'Faturado']);
+                break;
+        }
+
+        // Busca por cliente, nº da OS ou descrição
+        $busca = isset($filtros['busca']) ? trim((string) $filtros['busca']) : '';
+        if ($busca !== '') {
+            $this->db->group_start();
+            $this->db->like('clientes.nomeCliente', $busca);
+            $this->db->or_like('os.descricaoProduto', $busca);
+            if (ctype_digit($busca)) {
+                $this->db->or_where('os.idOs', (int) $busca);
+            }
+            $this->db->group_end();
+        }
+
+        // Período (data inicial da OS)
+        $de  = isset($filtros['data_de'])  ? trim((string) $filtros['data_de'])  : '';
+        $ate = isset($filtros['data_ate']) ? trim((string) $filtros['data_ate']) : '';
+        if ($de !== '' && strtotime($de)) {
+            $this->db->where('DATE(os.dataInicial) >=', date('Y-m-d', strtotime($de)));
+        }
+        if ($ate !== '' && strtotime($ate)) {
+            $this->db->where('DATE(os.dataInicial) <=', date('Y-m-d', strtotime($ate)));
+        }
+    }
+
+    /**
+     * Lista de OS da Central de Atendimento aplicando aba + busca + período.
+     */
+    public function getOsCentral($aba, $filtros = [], $limite = 20, $offset = 0)
+    {
+        $this->db->select('os.*, clientes.nomeCliente, clientes.telefone, usuarios.nome as nome_tecnico');
+        $this->aplicarFiltrosCentral($aba, $filtros);
         $this->db->join('usuarios', 'usuarios.idUsuarios = os.tecnico_responsavel', 'left');
-        $this->db->where('os.tecnico_responsavel IS NULL');
-        $this->db->where_not_in('os.status', ['Finalizado', 'Cancelado', 'Faturado']);
         $this->db->order_by('os.dataInicial', 'DESC');
         $this->db->limit($limite, $offset);
 
@@ -484,37 +702,28 @@ class Os_model extends CI_Model
     }
 
     /**
-     * Obter OS com técnico atribuído
+     * Contagem correspondente a getOsCentral (para a paginação).
      */
-    public function getOsComTecnico($limite = 20, $offset = 0)
+    public function countOsCentral($aba, $filtros = [])
     {
-        $this->db->select('os.*, clientes.nomeCliente, clientes.telefone, usuarios.nome as nome_tecnico');
-        $this->db->from('os');
-        $this->db->join('clientes', 'clientes.idClientes = os.clientes_id', 'left');
-        $this->db->join('usuarios', 'usuarios.idUsuarios = os.tecnico_responsavel', 'left');
-        $this->db->where('os.tecnico_responsavel IS NOT NULL');
-        $this->db->where_not_in('os.status', ['Finalizado', 'Cancelado', 'Faturado']);
-        $this->db->order_by('os.dataInicial', 'DESC');
-        $this->db->limit($limite, $offset);
-
-        $query = $this->db->get();
-        return ($query && $query->num_rows() > 0) ? $query->result() : [];
+        $this->aplicarFiltrosCentral($aba, $filtros);
+        $result = $this->db->count_all_results();
+        return ($result !== false) ? $result : 0;
     }
 
     /**
-     * Obter OS pendentes para atribuição (todas exceto finalizadas)
+     * Conta OS por status (aceita string única ou array de status).
+     * Usado nos indicadores (KPIs) da Central de Atendimento.
      */
-    public function getOsPendentesAtribuicao($limite = 20, $offset = 0)
+    public function contarPorStatus($status)
     {
-        $this->db->select('os.*, clientes.nomeCliente, clientes.telefone, usuarios.nome as nome_tecnico');
-        $this->db->from('os');
-        $this->db->join('clientes', 'clientes.idClientes = os.clientes_id', 'left');
-        $this->db->join('usuarios', 'usuarios.idUsuarios = os.tecnico_responsavel', 'left');
-        $this->db->where_not_in('os.status', ['Finalizado', 'Cancelado', 'Faturado']);
-        $this->db->order_by('os.dataInicial', 'DESC');
-        $this->db->limit($limite, $offset);
+        if (is_array($status)) {
+            $this->db->where_in('status', $status);
+        } else {
+            $this->db->where('status', $status);
+        }
+        $r = $this->db->count_all_results('os');
 
-        $query = $this->db->get();
-        return ($query && $query->num_rows() > 0) ? $query->result() : [];
+        return ($r !== false) ? $r : 0;
     }
 }

@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="<?= base_url(); ?>assets/css/matrix-style.css" />
   <link rel="stylesheet" href="<?= base_url(); ?>assets/css/matrix-media.css" />
   <?php if ($this->uri->segment(1) === 'rh'): ?>
-  <link rel="stylesheet" href="<?= base_url('assets/css/rh.css') ?>?v=<?= @filemtime(FCPATH . 'assets/css/rh.css') ?: '3' ?>" />
+  <link rel="stylesheet" href="<?= base_url('assets/css/rh.css') ?>?v=<?= asset_versao('assets/css/rh.css', '3') ?>" />
   <?php endif; ?>
   <link href="<?= base_url(); ?>assets/font-awesome/css/font-awesome.css" rel="stylesheet" />
   <link rel="stylesheet" href="<?= base_url(); ?>assets/css/fullcalendar.css" />
@@ -37,13 +37,19 @@
   <?php } ?>
   <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,800' rel='stylesheet' type='text/css'>
   <link href='https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;500;700&display=swap' rel='stylesheet' type='text/css'>
-  <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
+  <link href='<?= base_url('assets/boxicons/css/boxicons.min.css') ?>' rel='stylesheet'>
+  <?php if (filter_var($_ENV['APP_JQUERY3'] ?? true, FILTER_VALIDATE_BOOLEAN)): ?>
+  <!-- jQuery 3 (padrao). Para voltar ao 1.12: APP_JQUERY3=false no .env. O Migrate mantem APIs antigas e avisa no console o que precisa ser atualizado. -->
+  <script type="text/javascript" src="<?= base_url(); ?>assets/js/jquery-3.7.1.min.js"></script>
+  <script type="text/javascript" src="<?= base_url(); ?>assets/js/jquery-migrate-3.4.1.min.js"></script>
+  <?php else: ?>
   <script type="text/javascript" src="<?= base_url(); ?>assets/js/jquery-1.12.4.min.js"></script>
+  <?php endif; ?>
   <script type="text/javascript" src="<?= base_url(); ?>assets/js/shortcut.js"></script>
   <script type="text/javascript" src="<?= base_url(); ?>assets/js/funcoesGlobal.js"></script>
   <script type="text/javascript" src="<?= base_url(); ?>assets/js/datatables.min.js"></script>
   <script type="text/javascript" src="<?= base_url(); ?>assets/js/sweetalert.min.js"></script>
-  <script type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js"></script>
+  <script type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
   <script type="text/javascript">
     shortcut.add("escape", function() {
       location.href = '<?= base_url(); ?>';
@@ -76,7 +82,7 @@
   </script>
 </head>
 
-<body>
+<body data-theme="<?= html_escape($configuration['app_theme'] ?: 'white') ?>">
   <!--top-Header-menu-->
   <div class="navebarn">
     <div id="user-nav" class="navbar navbar-inverse">
@@ -97,6 +103,7 @@
             <li><a href="<?= site_url('relatorios/produtos') ?>">Produtos</a></li>
             <li><a href="<?= site_url('relatorios/servicos') ?>">Serviços</a></li>
             <li><a href="<?= site_url('relatorios/os') ?>">Ordens de Serviço</a></li>
+            <li><a href="<?= site_url('relatorios/cicloFaturamento') ?>">Ciclo / Faturamento das OS</a></li>
             <li><a href="<?= site_url('relatorios/vendas') ?>">Vendas</a></li>
             <li><a href="<?= site_url('relatorios/financeiro') ?>">Financeiro</a></li>
             <li><a href="<?= site_url('relatorios/sku') ?>">SKU</a></li>
@@ -120,7 +127,10 @@
             <li><a href="<?= site_url('whatsapptemplates') ?>">Modelos de WhatsApp</a></li>
             <li><a href="<?= site_url('notificacoes') ?>">Notificações / Gatilhos</a></li>
             <li><a href="<?= site_url('automacao') ?>">Automação (aprovação)</a></li>
-            <li><a href="<?= site_url('mapos/backup') ?>">Backup</a></li>
+            <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'cFormularioAtendimento')) { ?>
+              <li><a href="<?= site_url('formularios') ?>">Formulários de Atendimento</a></li>
+            <?php } ?>
+            <li><a href="<?= site_url('mapos/backups') ?>">Backup</a></li>
           </ul>
         </li>
       </ul>

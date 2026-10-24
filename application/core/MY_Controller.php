@@ -77,7 +77,37 @@ class MY_Controller extends CI_Controller
         return $hasTecnicoPerm;
     }
 
-    public function layout()
+    /**
+     * Sem a permissao, volta para o inicio com a mensagem de erro.
+     */
+    protected function precisa($perm, $msg)
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), $perm)) {
+            $this->session->set_flashdata('error', $msg);
+            redirect(base_url());
+        }
+    }
+
+    /**
+     * Data do formulario para o banco: aceita dd/mm/aaaa ou aaaa-mm-dd; vazio vira null.
+     */
+    protected function dataOuNull($valor)
+    {
+        $valor = trim((string) $valor);
+        if ($valor === '') {
+            return null;
+        }
+        if (strpos($valor, '/') !== false) {
+            $p = explode('/', $valor);
+            if (count($p) === 3) {
+                return $p[2] . '-' . $p[1] . '-' . $p[0];
+            }
+        }
+
+        return $valor;
+    }
+
+    protected function layout()
     {
         // load views
         $this->load->view('tema/topo', $this->data);

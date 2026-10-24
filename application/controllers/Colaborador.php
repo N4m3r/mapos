@@ -25,19 +25,36 @@ class Colaborador extends MY_Controller
             redirect('login');
         }
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'vAreaColaborador')) {
+            // Sem a permissão o painel principal (Mapos) não reencaminha para cá,
+            // então redirecionar para base_url() é seguro (não gera loop).
             $this->session->set_flashdata('error', 'Você não tem permissão para acessar a Área do Colaborador.');
             redirect(base_url());
         }
+        // A partir daqui o usuário TEM vAreaColaborador. Como o Mapos reencaminha
+        // esse perfil de volta para /colaborador, qualquer redirect(base_url())
+        // aqui geraria um loop (ERR_TOO_MANY_REDIRECTS). Por isso mostramos um
+        // aviso inline em vez de redirecionar.
         if (! $this->rh_colaboradores_model->suportado()) {
-            $this->session->set_flashdata('error', 'O módulo de RH ainda não foi ativado. Procure o RH.');
-            redirect(base_url());
+            $this->bloquear('O módulo de RH ainda não foi ativado. Procure o RH.');
         }
 
         $this->colaborador = $this->rh_colaboradores_model->getByUsuario($this->session->userdata('id_admin'));
         if (! $this->colaborador) {
-            $this->session->set_flashdata('error', 'Seu usuário não está vinculado a um cadastro de colaborador. Procure o RH.');
-            redirect(base_url());
+            $this->bloquear('Seu usuário não está vinculado a um cadastro de colaborador ativo. Procure o RH para concluir o vínculo.');
         }
+    }
+
+    /** Exibe um aviso e encerra a requisição, evitando o loop de redirecionamento. */
+    private function bloquear($mensagem)
+    {
+        // Captura como string (3º arg = true) e imprime com echo: como damos exit()
+        // no construtor, o CI_Output::_display() nunca rodaria para enviar o buffer
+        // padrão de saída — o que resultaria em tela branca.
+        echo $this->load->view('colaborador/bloqueado', [
+            'titulo' => 'Área do Colaborador',
+            'mensagem' => $mensagem,
+        ], true);
+        exit;
     }
 
     private function baseData($titulo)
@@ -57,7 +74,11 @@ class Colaborador extends MY_Controller
         $data = $this->baseData('Minha Área');
         $data['batidas_hoje'] = $this->rh_ponto_model->getDoDia($this->colaborador->id);
         $data['proximo_tipo'] = $this->rh_ponto_model->proximoTipo($this->colaborador->id);
+        // Consolida mês (respeita ponto_inicio e flag de desconto)
+        $data['totais_mes'] = $this->rh_calculo->calcularCompetencia($this->colaborador->id, $competencia);
         $data['horas'] = $this->rh_extras_model->getHoras($this->colaborador->id, $competencia);
+        $data['totais_semana'] = $this->rh_calculo->totaisSemana($this->colaborador->id);
+        $data['ponto_inicio'] = $this->rh_calculo->dataInicioControle($this->colaborador);
         $data['pendentes'] = count($this->rh_extras_model->listarOcorrencias([
             'colaborador_id' => $this->colaborador->id, 'status' => 'pendente',
         ]));
@@ -84,6 +105,8 @@ class Colaborador extends MY_Controller
         $carga = $jornada ? (int) $jornada->carga_diaria_min : 480;
         $tol = $jornada ? (int) $jornada->tolerancia_min : 0;
         $dias = $jornada ? array_map('trim', explode(',', $jornada->dias_semana)) : ['1', '2', '3', '4', '5'];
+        $diasAbonados = $this->rh_extras_model->diasAusenciaAprovada($this->colaborador->id, $inicio, $fim);
+        $hoje = date('Y-m-d');
 
         $linhas = [];
         $totalDias = (int) date('t', strtotime($inicio));
@@ -92,10 +115,24 @@ class Colaborador extends MY_Controller
             $dw = (int) date('w', strtotime($dia));
             $ehUtil = in_array((string) $dw, $dias, true);
             $bat = $porDia[$dia] ?? [];
+            $abonado = isset($diasAbonados[$dia]);
+            $cobraFalta = $this->rh_calculo->diaCobraFalta($this->colaborador, $dia);
+            $calc = $this->rh_calculo->calcularDia($bat, $carga, $tol, $ehUtil, $cobraFalta && ! $abonado);
+            if (empty($bat) && $ehUtil && $dia < $hoje && $cobraFalta && ! $abonado) {
+                $calc['previsto'] = $carga;
+                $calc['falta'] = $carga;
+                $calc['saldo'] = -$carga;
+            } elseif (empty($bat)) {
+                $calc['previsto'] = 0;
+                $calc['falta'] = 0;
+                $calc['saldo'] = 0;
+            }
             $linhas[] = [
                 'data' => $dia, 'dia_semana' => $dw, 'eh_util' => $ehUtil,
+                'abonado' => $abonado,
+                'cobra_falta' => $cobraFalta,
                 'batidas' => $bat,
-                'calc' => $this->rh_calculo->calcularDia($bat, $carga, $tol, $ehUtil),
+                'calc' => $calc,
             ];
         }
 
@@ -103,6 +140,8 @@ class Colaborador extends MY_Controller
         $data['competencia'] = $competencia;
         $data['linhas'] = $linhas;
         $data['totais'] = $this->rh_calculo->calcularCompetencia($this->colaborador->id, $competencia);
+        $data['totais_semana'] = $this->rh_calculo->totaisSemana($this->colaborador->id);
+        $data['ponto_inicio'] = $this->rh_calculo->dataInicioControle($this->colaborador);
         $data['calc'] = $this->rh_calculo;
         $this->load->view('colaborador/espelho', $data);
     }
@@ -117,7 +156,44 @@ class Colaborador extends MY_Controller
         $data['ocorrencias'] = $this->rh_extras_model->listarOcorrencias([
             'colaborador_id' => $this->colaborador->id,
         ]);
+        $ref = $this->input->get('ref');
+        $data['ref_data'] = $ref ?: '';
+        $data['batidas_ref'] = $ref
+            ? $this->rh_ponto_model->getDoDia($this->colaborador->id, $ref)
+            : [];
         $this->load->view('colaborador/ocorrencias', $data);
+    }
+
+    /**
+     * API JSON: batidas do próprio colaborador em uma data (para seleção na ocorrência).
+     */
+    public function batidasDoDia()
+    {
+        $data = $this->input->get('data') ?: date('Y-m-d');
+        if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $data)) {
+            $this->output->set_content_type('application/json')->set_output(json_encode([]));
+            return;
+        }
+        $batidas = $this->rh_ponto_model->getDoDia($this->colaborador->id, $data);
+        $labels = [
+            'entrada' => 'Entrada',
+            'saida' => 'Saída',
+            'inicio_intervalo' => 'Início do intervalo',
+            'fim_intervalo' => 'Fim do intervalo',
+        ];
+        $out = [];
+        foreach ($batidas as $b) {
+            $out[] = [
+                'id' => (int) $b->id,
+                'tipo' => $b->tipo,
+                'label' => $labels[$b->tipo] ?? $b->tipo,
+                'hora' => date('H:i', strtotime($b->data_hora)),
+                'data_hora' => $b->data_hora,
+                'latitude' => $b->latitude,
+                'longitude' => $b->longitude,
+            ];
+        }
+        $this->output->set_content_type('application/json')->set_output(json_encode($out));
     }
 
     public function solicitarOcorrencia()
@@ -128,24 +204,46 @@ class Colaborador extends MY_Controller
             redirect(site_url('colaborador/ocorrencias'));
         }
         $anexo = $this->arquivoParaBase64('anexo');
+        $registroId = $this->input->post('registro_id') ?: null;
+        // Se escolheu uma batida registrada, valida se é do próprio colaborador
+        if ($registroId) {
+            $bat = $this->rh_ponto_model->getById($registroId);
+            if (! $bat || (int) $bat->colaborador_id !== (int) $this->colaborador->id) {
+                $registroId = null;
+            }
+        }
         $dados = [
             'colaborador_id' => $this->colaborador->id,
             'tipo' => $tipo,
             'data_referencia' => $this->input->post('data_referencia') ?: null,
-            'registro_id' => $this->input->post('registro_id') ?: null,
+            'registro_id' => $registroId,
             'descricao' => $this->input->post('descricao'),
             'anexo_base64' => $anexo['base64'],
             'anexo_mime' => $anexo['mime'],
             'anexo_nome' => $anexo['nome'],
             'status' => 'pendente',
         ];
+        // O que justificar: entrada / intervalo / saída (com ou sem batida registrada)
+        $justificar = $this->input->post('justificar_tipo');
+        if (in_array($justificar, ['entrada', 'saida', 'inicio_intervalo', 'fim_intervalo'], true)
+            && $this->db->field_exists('correcao_tipo', 'rh_ocorrencias')) {
+            $dados['correcao_tipo'] = $justificar;
+        }
+        // Se vinculou batida registrada, herda o tipo dela
+        if ($registroId && empty($dados['correcao_tipo'])) {
+            $bat = $this->rh_ponto_model->getById($registroId);
+            if ($bat && $this->db->field_exists('correcao_tipo', 'rh_ocorrencias')) {
+                $dados['correcao_tipo'] = $bat->tipo;
+            }
+        }
         // Correção de ponto: batida desejada (aplicada automaticamente na aprovação).
-        // Só grava se a migration 20260712000005 tiver rodado.
         if ($tipo === 'correcao_ponto' && $this->db->field_exists('correcao_tipo', 'rh_ocorrencias')) {
-            $ct = $this->input->post('correcao_tipo');
+            $ct = $this->input->post('correcao_tipo') ?: ($dados['correcao_tipo'] ?? null);
             $cdh = $this->input->post('correcao_data_hora');
-            if (in_array($ct, ['entrada', 'saida', 'inicio_intervalo', 'fim_intervalo'], true) && $cdh) {
+            if (in_array($ct, ['entrada', 'saida', 'inicio_intervalo', 'fim_intervalo'], true)) {
                 $dados['correcao_tipo'] = $ct;
+            }
+            if ($cdh) {
                 $dados['correcao_data_hora'] = date('Y-m-d H:i:s', strtotime($cdh));
                 if (empty($dados['data_referencia'])) {
                     $dados['data_referencia'] = date('Y-m-d', strtotime($cdh));
@@ -212,19 +310,44 @@ class Colaborador extends MY_Controller
     public function holerite($competencia = null)
     {
         $competencia = $competencia ?: date('Y-m');
+        $this->load->library('rh_calculo');
+        $this->load->library('rh_clt');
         $data = $this->baseData('Holerite / Demonstrativo');
         $data['competencia'] = $competencia;
-        $data['resumo'] = $this->rh_extras_model->resumoCompetencia($this->colaborador->id, $competencia);
-        $data['holerite'] = $this->rh_extras_model->getHolerite($this->colaborador->id, $competencia);
+        $resumo = $this->rh_extras_model->resumoCompetencia($this->colaborador->id, $competencia);
+        $salario = (float) ($this->colaborador->salario_base ?? 0);
+        $proventos = $salario + (float) $resumo['proventos'];
+        $legais = $this->rh_clt->descontosLegais($this->colaborador, $proventos);
+        $resumo['itens'] = array_merge(
+            $salario > 0 ? [(object) ['tipo' => 'salario', 'natureza' => 'provento', 'descricao' => 'Salário base', 'valor' => $salario]] : [],
+            $resumo['itens'],
+            $legais['itens']
+        );
+        $resumo['proventos'] = $proventos;
+        $resumo['descontos'] = (float) $resumo['descontos'] + $legais['total_descontos'];
+        $resumo['liquido'] = $resumo['proventos'] - $resumo['descontos'];
+        $resumo['fgts'] = $legais['fgts'];
+        $data['resumo'] = $resumo;
+        $holerite = $this->rh_extras_model->getHolerite($this->colaborador->id, $competencia);
+        // Só exibe o arquivo se estiver liberado (ou se a coluna ainda não existir — compatibilidade)
+        if ($holerite && $this->db->field_exists('liberado_colaborador', 'rh_holerites')
+            && empty($holerite->liberado_colaborador)) {
+            $holerite = null;
+        }
+        $data['holerite'] = $holerite;
         $this->load->view('colaborador/holerite', $data);
     }
 
-    /** Baixa o PDF oficial do holerite DO PRÓPRIO colaborador. */
+    /** Baixa o PDF oficial do holerite DO PRÓPRIO colaborador (somente se liberado). */
     public function baixarHolerite($competencia = null)
     {
         $competencia = $competencia ?: date('Y-m');
         $h = $this->rh_extras_model->getHolerite($this->colaborador->id, $competencia);
         if (! $h || empty($h->arquivo_base64)) {
+            show_404();
+            return;
+        }
+        if ($this->db->field_exists('liberado_colaborador', 'rh_holerites') && empty($h->liberado_colaborador)) {
             show_404();
             return;
         }

@@ -17,6 +17,10 @@ $pode_ver_sistema = isset($pode_ver_sistema) ? $pode_ver_sistema : false;
         <i class='bx bx-list-ul'></i>
         <span>Minhas OS</span>
     </a>
+    <a href="<?= site_url('tecnico/projetos') ?>" class="<?= $nav_ativo === 'projetos' ? 'active' : '' ?>">
+        <i class='bx bx-network-chart'></i>
+        <span>Projetos</span>
+    </a>
     <?php if ($pode_ver_sistema): ?>
     <a href="<?= base_url() ?>">
         <i class='bx bx-home'></i>

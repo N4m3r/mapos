@@ -17,6 +17,116 @@ class Checkin extends MY_Controller
         $this->load->helper('date');
     }
 
+    // ------------------------------------------------------------------
+    // Geofence do atendimento (amarra o check-in/out ao local da OS)
+    // ------------------------------------------------------------------
+
+    /** Config global do geofence de atendimento: [modo, raio_metros]. */
+    private function geoConfigOs()
+    {
+        $modo = $this->data['configuration']['os_geofence_modo'] ?? 'off';
+        if (! in_array($modo, ['off', 'soft', 'hard'], true)) {
+            $modo = 'off';
+        }
+        $raio = (int) ($this->data['configuration']['os_geofence_raio_metros'] ?? 200);
+        if ($raio <= 0) {
+            $raio = 200;
+        }
+
+        return [$modo, $raio];
+    }
+
+    /** Coordenadas cadastradas da OS (consulta direta, sem ambiguidade de JOIN). */
+    private function getOsCoords($os_id)
+    {
+        if (! $this->db->field_exists('latitude', 'os') || ! $this->db->field_exists('longitude', 'os')) {
+            return null;
+        }
+        $row = $this->db->select('latitude, longitude')->get_where('os', ['idOs' => (int) $os_id])->row();
+        if (! $row) {
+            return null;
+        }
+        $temCoords = ($row->latitude !== null && $row->latitude !== '' && $row->longitude !== null && $row->longitude !== '');
+
+        return $temCoords ? $row : null;
+    }
+
+    /** Distância (metros) entre duas coordenadas — fórmula de Haversine. */
+    private function geoDistanciaMetros($lat1, $lon1, $lat2, $lon2)
+    {
+        $raioTerra = 6371000; // metros
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+        $a = sin($dLat / 2) ** 2
+            + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLon / 2) ** 2;
+
+        return $raioTerra * 2 * atan2(sqrt($a), sqrt(1 - $a));
+    }
+
+    /**
+     * Geofence na CHEGADA (check-in): fixa o local da OS na 1ª batida com GPS
+     * e devolve as colunas de distância/dentro para gravar no check-in. Nunca
+     * bloqueia — a chegada é o início do atendimento.
+     */
+    private function avaliarGeofenceEntrada($os_id, $lat, $lng)
+    {
+        // Sem a coluna (migration não aplicada) não grava nada.
+        if (! $this->db->field_exists('dentro_geofence_entrada', 'os_checkin')) {
+            return [];
+        }
+        $out = ['distancia_entrada_metros' => null, 'dentro_geofence_entrada' => null];
+        if (! $lat || ! $lng) {
+            return $out;
+        }
+
+        $coords = $this->getOsCoords($os_id);
+        if (! $coords) {
+            // "Aprende" o local da OS a partir da 1ª chegada com GPS.
+            if ($this->db->field_exists('latitude', 'os') && $this->db->field_exists('longitude', 'os')) {
+                $this->os_model->edit('os', ['latitude' => $lat, 'longitude' => $lng], 'idOs', $os_id);
+            }
+            $out['distancia_entrada_metros'] = 0;
+            $out['dentro_geofence_entrada'] = 1;
+
+            return $out;
+        }
+
+        [, $raio] = $this->geoConfigOs();
+        $dist = (int) round($this->geoDistanciaMetros((float) $lat, (float) $lng, (float) $coords->latitude, (float) $coords->longitude));
+        $out['distancia_entrada_metros'] = $dist;
+        $out['dentro_geofence_entrada'] = $dist <= $raio ? 1 : 0;
+
+        return $out;
+    }
+
+    /**
+     * Geofence na SAÍDA (check-out): avalia se o técnico está dentro da área
+     * do atendimento. Devolve o modo + distância/dentro para decidir bloqueio
+     * (hard) e para gravar no check-in.
+     */
+    private function avaliarGeofenceSaida($os_id, $lat, $lng)
+    {
+        [$modo, $raio] = $this->geoConfigOs();
+        $temGps = ($lat && $lng);
+        $coords = $this->getOsCoords($os_id);
+
+        $dist = null;
+        $dentro = null;
+        if ($temGps && $coords) {
+            $dist = (int) round($this->geoDistanciaMetros((float) $lat, (float) $lng, (float) $coords->latitude, (float) $coords->longitude));
+            $dentro = $dist <= $raio ? 1 : 0;
+        }
+
+        return [
+            'modo' => $modo,
+            'raio' => $raio,
+            'temGps' => $temGps,
+            'temCoords' => $coords ? true : false,
+            'distancia' => $dist,
+            'dentro' => $dentro,
+        ];
+    }
+
     /**
      * Obtém status do check-in de uma OS (JSON)
      */
@@ -119,6 +229,7 @@ class Checkin extends MY_Controller
 
         // Dados do usuário logado
         $usuario_id = $this->session->userdata('id_admin');
+        $momento = $this->momentoInformado();
 
         // Se é técnico (tem permissão específica mas não permissão geral de OS),
         // verificar se a OS está atribuída a ele
@@ -155,16 +266,21 @@ class Checkin extends MY_Controller
             }
         }
 
+        // Geofence: fixa o local da OS na chegada e mede a distância (não bloqueia).
+        $geoEntrada = $this->avaliarGeofenceEntrada($os_id, $latitude, $longitude);
+
         // Dados do check-in
         $data_checkin = [
             'os_id' => $os_id,
             'usuarios_id' => $usuario_id,
-            'data_entrada' => date('Y-m-d H:i:s'),
+            'data_entrada' => $momento,
             'latitude_entrada' => $latitude ?: null,
             'longitude_entrada' => $longitude ?: null,
             'observacao_entrada' => $observacao,
             'status' => 'Em Andamento'
         ];
+        // Só grava as colunas de geofence se a migration já rodou.
+        $data_checkin = array_merge($data_checkin, $geoEntrada);
         log_info('Checkin iniciar - Dados checkin: ' . print_r($data_checkin, true));
 
         // Insere check-in
@@ -181,19 +297,21 @@ class Checkin extends MY_Controller
             log_info('Checkin - Iniciando salvamento da imagem. Tamanho: ' . strlen($assinatura_tecnico));
             $imagem = $this->assinaturas_model->salvarImagem($assinatura_tecnico, $os_id, 'tecnico_entrada');
             log_info('Checkin - Imagem salva: ' . print_r($imagem, true));
-            if ($imagem) {
+            // Só insere aqui no modo "arquivo": no modo "banco" o model já gravou
+            // a linha (evita duplicar com um path 'BASE64:<id>' inválido).
+            if ($imagem && isset($imagem['modo']) && $imagem['modo'] === 'arquivo') {
                 $data_assinatura = [
                     'os_id' => $os_id,
                     'checkin_id' => $checkin_id,
                     'tipo' => 'tecnico_entrada',
                     'assinatura' => $imagem['path'],
                     'nome_assinante' => $this->session->userdata('nome'),
-                    'data_assinatura' => date('Y-m-d H:i:s'),
+                    'data_assinatura' => $momento,
                     'ip_address' => $this->input->ip_address()
                 ];
                 $result = $this->assinaturas_model->add($data_assinatura);
                 log_info('Checkin - Assinatura salva no BD: ' . ($result ? 'Sim' : 'Não'));
-            } else {
+            } elseif (!$imagem) {
                 log_info('Checkin - Erro ao salvar imagem da assinatura');
             }
         } else {
@@ -218,6 +336,7 @@ class Checkin extends MY_Controller
      */
     public function finalizar()
     {
+        $momento = $this->momentoInformado();
         if (!$this->input->is_ajax_request()) {
             redirect(base_url());
         }
@@ -287,15 +406,33 @@ class Checkin extends MY_Controller
             }
         }
 
+        // Geofence do fechamento: em "hard" só fecha dentro da área do atendimento.
+        $geoSaida = $this->avaliarGeofenceSaida($os_id, $latitude, $longitude);
+        if ($geoSaida['modo'] === 'hard') {
+            if (! $geoSaida['temGps']) {
+                echo json_encode(['success' => false, 'message' => 'Localização obrigatória para fechar a OS. Ative o GPS e permita o acesso à localização.']);
+                return;
+            }
+            if ($geoSaida['temCoords'] && $geoSaida['dentro'] === 0) {
+                echo json_encode(['success' => false, 'message' => 'Você está fora da área do atendimento (' . $geoSaida['distancia'] . 'm). Aproxime-se do local para fechar a OS.']);
+                return;
+            }
+        }
+
         // Dados do check-out
         $data_checkout = [
-            'data_saida' => date('Y-m-d H:i:s'),
+            'data_saida' => $momento,
             'latitude_saida' => $latitude ?: null,
             'longitude_saida' => $longitude ?: null,
             'observacao_saida' => $observacao,
             'status' => 'Finalizado',
             'data_atualizacao' => date('Y-m-d H:i:s')
         ];
+        // Registra a distância/dentro da saída (modo soft: prova para o gestor).
+        if ($this->db->field_exists('dentro_geofence_saida', 'os_checkin')) {
+            $data_checkout['distancia_saida_metros'] = $geoSaida['distancia'];
+            $data_checkout['dentro_geofence_saida'] = $geoSaida['dentro'];
+        }
 
         // Atualiza check-in
         $resultado = $this->checkin_model->finalizarAtendimento($checkin->idCheckin, $data_checkout);
@@ -305,19 +442,22 @@ class Checkin extends MY_Controller
             return;
         }
 
-        // Salva assinatura do técnico na saída
+        // Salva assinatura do técnico na saída.
+        // salvarImagem já grava a linha em os_assinaturas quando cai no modo
+        // "banco" (base64). Só inserimos aqui quando salvou em "arquivo", senão
+        // duplicaríamos a linha (a 2ª com um path 'BASE64:<id>' inválido/quebrado).
         if ($assinatura_tecnico) {
             $imagem = $this->assinaturas_model->salvarImagem($assinatura_tecnico, $os_id, 'tecnico_saida');
             log_info('Checkout - Imagem técnico salva: ' . print_r($imagem, true));
 
-            if ($imagem) {
+            if ($imagem && isset($imagem['modo']) && $imagem['modo'] === 'arquivo') {
                 $data_assinatura = [
                     'os_id' => $os_id,
                     'checkin_id' => $checkin->idCheckin,
                     'tipo' => 'tecnico_saida',
                     'assinatura' => $imagem['path'],
                     'nome_assinante' => $this->session->userdata('nome'),
-                    'data_assinatura' => date('Y-m-d H:i:s'),
+                    'data_assinatura' => $momento,
                     'ip_address' => $this->input->ip_address()
                 ];
                 $result = $this->assinaturas_model->add($data_assinatura);
@@ -325,12 +465,12 @@ class Checkin extends MY_Controller
             }
         }
 
-        // Salva assinatura do cliente
+        // Salva assinatura do cliente (mesma lógica: só insere no modo "arquivo").
         if ($assinatura_cliente) {
             $imagem = $this->assinaturas_model->salvarImagem($assinatura_cliente, $os_id, 'cliente_saida');
             log_info('Checkout - Imagem cliente salva: ' . print_r($imagem, true));
 
-            if ($imagem) {
+            if ($imagem && isset($imagem['modo']) && $imagem['modo'] === 'arquivo') {
                 $data_assinatura = [
                     'os_id' => $os_id,
                     'checkin_id' => $checkin->idCheckin,
@@ -338,7 +478,7 @@ class Checkin extends MY_Controller
                     'assinatura' => $imagem['path'],
                     'nome_assinante' => $nome_cliente,
                     'documento_assinante' => $documento_cliente,
-                    'data_assinatura' => date('Y-m-d H:i:s'),
+                    'data_assinatura' => $momento,
                     'ip_address' => $this->input->ip_address()
                 ];
                 $result = $this->assinaturas_model->add($data_assinatura);
@@ -382,10 +522,69 @@ class Checkin extends MY_Controller
         // Log
         log_info('Finalizou atendimento da OS. ID: ' . $os_id);
 
+        // Ao resolver o chamado, dispara o link de aceite (assinatura do cliente)
+        // para o(s) grupo(s)/cliente do gatilho "os_aceite". Best-effort.
+        $this->dispararAceiteWhatsapp($os_id);
+
         echo json_encode([
             'success' => true,
             'message' => 'Atendimento finalizado com sucesso'
         ]);
+    }
+
+    /**
+     * Gera (ou reaproveita) o link público de aceite da OS, encurta-o e dispara
+     * o evento "os_aceite" por WhatsApp aos destinos configurados no gatilho.
+     * Blindado: qualquer falha só vai para o log, nunca quebra o checkout.
+     */
+    private function dispararAceiteWhatsapp($os_id)
+    {
+        try {
+            $this->load->model('aceite_model');
+            if (! $this->aceite_model->suportado()) {
+                return;
+            }
+
+            $os = $this->os_model->getById($os_id);
+            if (! $os) {
+                return;
+            }
+
+            // Reaproveita o token pendente; senão, gera um novo (7 dias).
+            $token = (! empty($os->aceite_token) && $this->aceite_model->situacao($os) === 'pendente')
+                ? $os->aceite_token
+                : null;
+            if (! $token) {
+                $res = $this->aceite_model->gerarLink($os_id, 7);
+                if (! $res) {
+                    return;
+                }
+                $token = $res['token'];
+            }
+
+            $url = site_url('aceite/' . $token);
+            $this->load->library('encurtador');
+            $link = $this->encurtador->encurtar($url, 7);
+
+            $numeroCliente = $this->os_model->numeroNotificacao($os);
+            $clienteId = isset($os->clientes_id) ? (int) $os->clientes_id : 0;
+
+            $this->load->library('notificador');
+            $this->notificador->whatsappLinkEvento(
+                'os_aceite',
+                [
+                    '{CLIENTE_NOME}' => $os->nomeCliente ?? '',
+                    '{NUMERO_OS}' => $os_id,
+                    '{LINK}' => $link,
+                ],
+                $clienteId,
+                $numeroCliente,
+                'aceite',
+                "Olá {CLIENTE_NOME}! O serviço (OS #{NUMERO_OS}) foi concluído. Confirme o aceite e assine pelo link:\n{LINK}"
+            );
+        } catch (\Throwable $e) {
+            log_info('Falha ao disparar aceite por WhatsApp (OS #' . $os_id . '): ' . $e->getMessage());
+        }
     }
 
     /**
@@ -461,7 +660,8 @@ class Checkin extends MY_Controller
             'path' => $resultado['path'],
             'url' => $resultado['url'],
             'descricao' => $descricao,
-            'etapa' => 'durante',
+            'etapa' => in_array($this->input->post('etapa'), ['entrada', 'durante', 'saida'], true) ? $this->input->post('etapa') : 'durante',
+            'data_upload' => $this->momentoInformado(),
             'tamanho' => $resultado['tamanho'],
             'tipo_arquivo' => $resultado['tipo'],
             'imagem_base64' => $resultado['imagem_base64'],
@@ -485,6 +685,21 @@ class Checkin extends MY_Controller
     /**
      * Remove uma foto
      */
+    /**
+     * Horario em que a acao aconteceu no aparelho (campo "registrado_em"), usado quando o
+     * atendimento foi feito sem internet e enviado depois pela fila offline. So vale se estiver
+     * nas ultimas 72h e nao no futuro; senao, agora.
+     */
+    private function momentoInformado()
+    {
+        $ts = strtotime((string) $this->input->post('registrado_em'));
+        if ($ts && $ts >= time() - 72 * 3600 && $ts <= time() + 300) {
+            return date('Y-m-d H:i:s', min($ts, time()));
+        }
+
+        return date('Y-m-d H:i:s');
+    }
+
     public function removerFoto()
     {
         if (!$this->input->is_ajax_request()) {
@@ -995,10 +1210,13 @@ class Checkin extends MY_Controller
                 $mime_type = 'image/png';
             }
 
-            // Decodificar e exibir
-            $image_data = base64_decode($base64_data, true);
+            // Decodificar e exibir. Remove espacos/quebras que podem ter entrado
+            // no base64 (ex.: '+' virou espaco em algum ponto do transporte) e
+            // usa decode nao-estrito para nao falhar por um caractere solto.
+            $base64_data = preg_replace('/\s+/', '', $base64_data);
+            $image_data = base64_decode($base64_data);
 
-            if ($image_data === false) {
+            if ($image_data === false || $image_data === '') {
                 show_error('Erro ao decodificar imagem', 500);
                 return;
             }
@@ -1038,8 +1256,11 @@ class Checkin extends MY_Controller
             return;
         }
 
-        // Verifica permissão
-        if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
+        // Verifica permissão: libera para quem enxerga OS (vOs) ou para o
+        // perfil técnico (área do técnico), que acessa o relatório pelo app.
+        $permissao = $this->session->userdata('permissao');
+        if (!$this->permission->checkPermission($permissao, 'vOs') &&
+            !$this->permission->checkPermission($permissao, 'vTecnicoDashboard')) {
             $this->session->set_flashdata('error', 'Você não tem permissão para visualizar este relatório.');
             redirect(base_url());
         }
@@ -1087,6 +1308,14 @@ class Checkin extends MY_Controller
             $fotosPorEtapa[$foto->etapa][] = $foto;
         }
 
+        // Respostas dos formulários de atendimento personalizados (agrupadas por etapa)
+        $this->load->model('formularios_atendimento_model', 'formularios');
+        $respostasPorEtapa = [];
+        foreach ($this->formularios->getRespostasByOs($os_id) as $resposta) {
+            $etapaResp = $resposta->etapa ?: 'outros';
+            $respostasPorEtapa[$etapaResp][] = $resposta;
+        }
+
         // Prepara dados para a view
         $data = [
             'os' => $os,
@@ -1095,6 +1324,7 @@ class Checkin extends MY_Controller
             'checkins' => $checkins,
             'assinaturas' => $assinaturasPorTipo,
             'fotosPorEtapa' => $fotosPorEtapa,
+            'respostasPorEtapa' => $respostasPorEtapa,
             'titulo' => 'Relatório de Atendimento - OS #' . sprintf('%04d', $os_id)
         ];
 

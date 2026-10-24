@@ -113,6 +113,8 @@ class Notification_triggers_model extends CI_Model
             'os_editada' => ['nome' => 'OS editada / status alterado', 'grupo' => 'Ordem de Serviço'],
             'os_aprovada' => ['nome' => 'OS aprovada', 'grupo' => 'Ordem de Serviço'],
             'os_finalizada' => ['nome' => 'OS finalizada', 'grupo' => 'Ordem de Serviço'],
+            'os_aceite' => ['nome' => 'Aceite da OS (resolução do chamado)', 'grupo' => 'Ordem de Serviço'],
+            'rdo_registrado' => ['nome' => 'RDO de projeto registrado', 'grupo' => 'Projetos'],
             'cobranca_gerada' => ['nome' => 'Boleto / cobrança gerada', 'grupo' => 'Cobrança'],
             'cobranca_enviada' => ['nome' => 'Cobrança enviada (manual)', 'grupo' => 'Cobrança'],
             'pagamento_confirmado' => ['nome' => 'Pagamento confirmado', 'grupo' => 'Cobrança'],
@@ -203,5 +205,23 @@ class Notification_triggers_model extends CI_Model
         }
 
         return in_array((int) $clienteId, $ids, true);
+    }
+
+    /**
+     * Se o gatilho tem filtro de projetos, o projeto (obra) precisa estar na
+     * lista. Sem filtro (lista vazia), vale para todos os projetos.
+     */
+    public static function aplicaAoObra($trigger, $obraId)
+    {
+        if (! $trigger || ! isset($trigger->projetos_id) || $trigger->projetos_id === null || $trigger->projetos_id === '') {
+            return true;
+        }
+
+        $ids = self::clientesIds($trigger->projetos_id);
+        if (empty($ids)) {
+            return true;
+        }
+
+        return in_array((int) $obraId, $ids, true);
     }
 }

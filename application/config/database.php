@@ -23,5 +23,6 @@ $db['default'] = [
     'compress' => false,
     'stricton' => false,
     'failover' => [],
-    'save_queries' => true,
+    // Guardar todas as queries so serve para depuracao; em producao so consome memoria
+    'save_queries' => (ENVIRONMENT !== 'production'),
 ];

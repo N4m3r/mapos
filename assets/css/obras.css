@@ -1,0 +1,151 @@
+/* Módulo de Projetos (rede estruturada / CFTV IP) */
+.obra-progress { background:#e5e7eb; border-radius:6px; height:14px; overflow:hidden; width:100%; }
+.obra-progress.mini { height:8px; }
+.obra-progress-bar { background:linear-gradient(90deg,#2e7d32,#66bb6a); height:100%; }
+
+.obra-header { margin-bottom:10px; }
+.obra-header .label { margin-top:6px; display:inline-block; }
+
+.obra-tabs { margin:0 0 10px; border-bottom:2px solid #dcdcdc; padding-left:0; display:flex; flex-wrap:wrap; list-style:none; }
+.obra-tabs li { margin:0 2px -2px 0; }
+.obra-tabs li a { display:block; padding:8px 14px; color:#555; text-decoration:none; border:1px solid transparent; border-radius:6px 6px 0 0; }
+.obra-tabs li.active a { background:#fff; border-color:#dcdcdc; border-bottom-color:#fff; color:#2e7d32; font-weight:bold; }
+
+.obra-fotos-prev { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+.obra-fotos-prev img { width:70px; height:70px; object-fit:cover; border-radius:6px; border:1px solid #ccc; }
+
+/* Scanner de código de barras */
+.scanner-box { border:1px dashed #bbb; border-radius:8px; padding:10px; margin-bottom:10px; background:#fafafa; }
+.scanner-box video { width:100%; max-width:420px; border-radius:8px; background:#000; }
+.scanner-actions { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
+.scanner-status { font-size:12px; color:#666; }
+
+/* Assinatura */
+.assinatura-pad { border:1px solid #bbb; border-radius:8px; background:#fff; touch-action:none; width:100%; max-width:420px; height:150px; }
+
+/* Tabela de itens */
+.itens-material td input { margin:0; }
+.itens-material .col-qtd input { width:90px; }
+.itens-material .col-valor input { width:100px; }
+
+/* Sub-navegação da área de Projetos */
+.obra-mainnav { margin-bottom:12px; }
+.obra-mainnav li a i { margin-right:4px; vertical-align:middle; }
+
+/* KPIs do painel */
+.obra-kpis { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:10px; margin:10px 0 16px; }
+.obra-kpi { display:flex; align-items:center; gap:10px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:12px; }
+.obra-kpi .k-icon { width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:22px; flex:0 0 auto; }
+.obra-kpi .k-num { font-size:20px; font-weight:700; line-height:1.1; color:#111827; }
+.obra-kpi .k-lbl { font-size:12px; color:#6b7280; }
+
+/* Resumo de compras da empresa (aba Material) */
+.obra-compras { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.obra-compras .c-total { font-size:22px; font-weight:700; color:#2e7d32; }
+.obra-compras .c-lbl { font-size:12px; color:#6b7280; }
+
+/* ==========================================================================
+   Conformidade com temas escuros — quando o fundo é escuro, a letra fica clara.
+   O <body data-theme="..."> é definido em application/views/tema/topo.php.
+   Sem estas regras, as cores fixas acima (fundo #fff, texto #111827/#6b7280…)
+   ficam ilegíveis nos temas puredark / darkviolet / darkorange.
+   ========================================================================== */
+body[data-theme="puredark"] .obra-kpi,
+body[data-theme="darkviolet"] .obra-kpi,
+body[data-theme="darkorange"] .obra-kpi { background:var(--dark-2); border-color:rgba(255,255,255,.08); }
+
+body[data-theme="puredark"] .obra-kpi .k-num,
+body[data-theme="darkviolet"] .obra-kpi .k-num,
+body[data-theme="darkorange"] .obra-kpi .k-num { color:var(--branco); }
+
+body[data-theme="puredark"] .obra-kpi .k-lbl,
+body[data-theme="darkviolet"] .obra-kpi .k-lbl,
+body[data-theme="darkorange"] .obra-kpi .k-lbl,
+body[data-theme="puredark"] .obra-compras .c-lbl,
+body[data-theme="darkviolet"] .obra-compras .c-lbl,
+body[data-theme="darkorange"] .obra-compras .c-lbl,
+body[data-theme="puredark"] .scanner-status,
+body[data-theme="darkviolet"] .scanner-status,
+body[data-theme="darkorange"] .scanner-status { color:var(--dark-cinz); }
+
+body[data-theme="puredark"] .obra-compras .c-total,
+body[data-theme="darkviolet"] .obra-compras .c-total,
+body[data-theme="darkorange"] .obra-compras .c-total { color:#66bb6a; }
+
+/* Abas: aba ativa acompanha o fundo do tema em vez do branco fixo */
+body[data-theme="puredark"] .obra-tabs,
+body[data-theme="darkviolet"] .obra-tabs,
+body[data-theme="darkorange"] .obra-tabs { border-bottom-color:rgba(255,255,255,.12); }
+
+body[data-theme="puredark"] .obra-tabs li a,
+body[data-theme="darkviolet"] .obra-tabs li a,
+body[data-theme="darkorange"] .obra-tabs li a { color:var(--branco); }
+
+body[data-theme="puredark"] .obra-tabs li.active a,
+body[data-theme="darkviolet"] .obra-tabs li.active a,
+body[data-theme="darkorange"] .obra-tabs li.active a { background:var(--dark-2); border-color:rgba(255,255,255,.12); border-bottom-color:var(--dark-2); color:#66bb6a; }
+
+/* Scanner e barra de progresso em fundo escuro */
+body[data-theme="puredark"] .scanner-box,
+body[data-theme="darkviolet"] .scanner-box,
+body[data-theme="darkorange"] .scanner-box { background:var(--dark-0); border-color:rgba(255,255,255,.12); }
+
+body[data-theme="puredark"] .obra-progress,
+body[data-theme="darkviolet"] .obra-progress,
+body[data-theme="darkorange"] .obra-progress { background:rgba(255,255,255,.12); }
+
+/* ==========================================================================
+   Registro de material — stepper de quantidade (−/+) para toque rápido.
+   ========================================================================== */
+.qtd-stepper { display:inline-flex; align-items:center; }
+.qtd-stepper button { width:34px; height:34px; flex:0 0 auto; padding:0; border:1px solid #cfd4dc; background:#f3f4f6; color:#111827; font-size:18px; line-height:1; border-radius:6px; cursor:pointer; }
+.qtd-stepper button:active { background:#e5e7eb; }
+.qtd-stepper .qs-input { width:66px; text-align:center; margin:0 4px; }
+.col-rem .rem-txt { display:none; }
+
+/* ==========================================================================
+   Mobile: registro rápido de material (receber/entregar).
+   Câmera em destaque, itens viram cartões com rótulo e barra de ação fixa.
+   ========================================================================== */
+@media (max-width: 640px) {
+    #obra-material .scanner-actions { flex-direction:column; align-items:stretch; gap:8px; }
+    #obra-material .scanner-actions #cod-barras { max-width:none !important; width:100% !important; min-height:44px; font-size:16px; }
+    #obra-material .scanner-actions .button { width:100%; justify-content:center; min-height:46px; margin:0; }
+    #obra-material .scanner-actions #btn-scan { order:-1; } /* Ler código (câmera) primeiro */
+    #obra-material .scanner-status { display:block; }
+
+    /* Itens empilhados como cartões */
+    .itens-material thead { display:none; }
+    .itens-material, .itens-material tbody { display:block; width:100%; }
+    .itens-material tr { display:block; border:1px solid #e5e7eb; border-radius:10px; padding:6px 10px; margin-bottom:10px; background:#fff; }
+    .itens-material td { display:flex; align-items:center; gap:10px; border:none !important; padding:5px 0; }
+    .itens-material td::before { content:attr(data-label); flex:0 0 90px; font-size:12px; color:#6b7280; }
+    .itens-material td input:not(.qs-input) { width:100% !important; min-height:40px; font-size:16px; }
+    .itens-material td.col-qtd { justify-content:space-between; }
+    .itens-material td.col-qtd .qs-input { width:72px !important; min-height:40px; }
+    .itens-material td.col-qtd .qtd-stepper button { width:44px; height:44px; }
+    .itens-material td.col-rem { justify-content:flex-end; }
+    .itens-material td.col-rem::before { display:none; }
+    .itens-material .col-rem .rem-txt { display:inline; }
+    .itens-material .col-rem .btn-nwe4 { border:1px solid #f0c2c2; color:#c0392b; border-radius:8px; padding:8px 14px; }
+
+    /* Barra de ação fixa no rodapé */
+    .obra-actionbar { position:sticky; bottom:0; background:#fff; margin:10px -10px 0; padding:10px; border-top:1px solid #e5e7eb; display:flex !important; gap:8px; z-index:5; }
+    .obra-actionbar .button { flex:1; justify-content:center; min-height:48px; margin:0; }
+
+    .assinatura-pad { height:170px; }
+}
+
+/* Stepper e cartões em temas escuros */
+body[data-theme="puredark"] .qtd-stepper button,
+body[data-theme="darkviolet"] .qtd-stepper button,
+body[data-theme="darkorange"] .qtd-stepper button { background:var(--dark-0); border-color:rgba(255,255,255,.14); color:var(--branco); }
+
+@media (max-width: 640px) {
+    body[data-theme="puredark"] .itens-material tr,
+    body[data-theme="darkviolet"] .itens-material tr,
+    body[data-theme="darkorange"] .itens-material tr,
+    body[data-theme="puredark"] .obra-actionbar,
+    body[data-theme="darkviolet"] .obra-actionbar,
+    body[data-theme="darkorange"] .obra-actionbar { background:var(--dark-2); border-color:rgba(255,255,255,.12); }
+}

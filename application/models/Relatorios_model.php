@@ -319,6 +319,88 @@ class Relatorios_model extends CI_Model
         return $result->result();
     }
 
+    /**
+     * Relatório do ciclo/faturamento das OS: cada OS com as datas das etapas
+     * (abertura, atribuição, aprovação, aceite, emissão da NF e do boleto) e a
+     * situação financeira (faturado x em aberto), para separar o funil por
+     * período. Retorna também o valor da OS (produtos + serviços).
+     *
+     * @param string $periodo  'abertura' | 'aprovacao' | 'aceite' | 'nf'
+     *                          — qual data ancora o intervalo [dataInicial, dataFinal].
+     *                          Em 'aprovacao'/'aceite'/'nf' as OS sem essa data
+     *                          ficam de fora (não faz sentido no intervalo).
+     */
+    public function cicloOsCustom($dataInicial = null, $dataFinal = null, $periodo = 'abertura', $cliente = null)
+    {
+        // Coluna/expressão que ancora o filtro de período.
+        $colunasPeriodo = [
+            'abertura' => 'os.dataInicial',
+            'aprovacao' => 'os.aprovacao_data',
+            'aceite' => 'os.aceite_data',
+            'nf' => 'nf.data_nf',
+        ];
+        $colPeriodo = $colunasPeriodo[$periodo] ?? $colunasPeriodo['abertura'];
+
+        $whereData = '';
+        if ($dataInicial != null) {
+            $whereData .= ' AND ' . $colPeriodo . ' >= ' . $this->db->escape($dataInicial);
+        }
+        if ($dataFinal != null) {
+            // Inclui o dia inteiro para colunas datetime (append 23:59:59).
+            $whereData .= ' AND ' . $colPeriodo . ' <= ' . $this->db->escape($dataFinal . ' 23:59:59');
+        }
+
+        $whereCliente = '';
+        if ($cliente != null) {
+            $whereCliente = ' AND os.clientes_id = ' . $this->db->escape($cliente);
+        }
+
+        // Datas de atribuição já vivem em os.data_atribuicao (migration
+        // 20260718000001); em bases sem a coluna, cai para NULL sem quebrar.
+        $colAtribuicao = $this->db->field_exists('data_atribuicao', 'os') ? 'os.data_atribuicao' : 'NULL';
+
+        $query = "SELECT
+                    os.idOs,
+                    os.dataInicial,
+                    {$colAtribuicao}      AS data_atribuicao,
+                    os.aprovacao_data,
+                    os.aceite_data,
+                    os.status,
+                    os.faturado,
+                    clientes.nomeCliente,
+                    nf.data_nf,
+                    nf.qtd_nf,
+                    bo.data_boleto,
+                    bo.boleto_pago,
+                    COALESCE(tp.total_produto, 0) + COALESCE(ts.total_servico, 0) AS valor_os
+                  FROM os
+                  LEFT JOIN clientes ON clientes.idClientes = os.clientes_id
+                  LEFT JOIN (
+                        SELECT os_id, MAX(data_autorizacao) AS data_nf, COUNT(*) AS qtd_nf
+                          FROM notas_fiscais
+                         WHERE status = 'autorizada' AND os_id IS NOT NULL
+                         GROUP BY os_id
+                  ) nf ON nf.os_id = os.idOs
+                  LEFT JOIN (
+                        SELECT os_id,
+                               MIN(created_at) AS data_boleto,
+                               MAX(CASE WHEN status = 'PAID' THEN 1 ELSE 0 END) AS boleto_pago
+                          FROM cobrancas
+                         WHERE os_id IS NOT NULL AND (status IS NULL OR status <> 'CANCELLED')
+                         GROUP BY os_id
+                  ) bo ON bo.os_id = os.idOs
+                  LEFT JOIN (
+                        SELECT os_id, SUM(subTotal) AS total_produto FROM produtos_os GROUP BY os_id
+                  ) tp ON tp.os_id = os.idOs
+                  LEFT JOIN (
+                        SELECT os_id, SUM(subTotal) AS total_servico FROM servicos_os GROUP BY os_id
+                  ) ts ON ts.os_id = os.idOs
+                  WHERE os.idOs != 0 {$whereData} {$whereCliente}
+                  ORDER BY {$colPeriodo} DESC, os.idOs DESC";
+
+        return $this->db->query($query)->result();
+    }
+
     public function financeiroRapid($array = false)
     {
         $primeiroDiaMes = new \DateTime('first day of this month');

@@ -245,6 +245,14 @@
     </main>
   </div>
 
+  <script>
+    // Aparelho compartilhado: telas da Area do Tecnico guardadas offline nao ficam para o proximo usuario
+    if ('caches' in window) {
+      caches.keys().then(function (nomes) {
+        nomes.filter(function (n) { return n.indexOf('mapos-tecnico-paginas-') === 0; }).forEach(function (n) { caches.delete(n); });
+      }).catch(function () {});
+    }
+  </script>
   <script src="<?= base_url() ?>assets/js/jquery-1.12.4.min.js"></script>
   <script src="<?= base_url() ?>assets/js/validate.js"></script>
   <script type="text/javascript">

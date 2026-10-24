@@ -61,6 +61,19 @@ $labelsTipo = [
     </div>
     <?php endif; ?>
 
+    <?php if (! empty($minhas_obras)): ?>
+    <div style="margin-top:12px">
+        <label style="font-size:13px;color:#6b7280"><i class='bx bx-building-house'></i> Vincular a uma Obra (canteiro)</label>
+        <select id="obra-vinculo" class="span12" style="width:100%">
+            <option value="">— Não, ponto normal —</option>
+            <?php foreach ($minhas_obras as $ob): ?>
+                <option value="<?= $ob->idObra ?>"><?= htmlspecialchars($ob->nome) ?> (<?= htmlspecialchars(str_replace('_', ' ', $ob->status)) ?>)</option>
+            <?php endforeach; ?>
+        </select>
+        <small style="color:#9ca3af">Registra a presença no canteiro. Alimenta o efetivo/mão de obra da obra.</small>
+    </div>
+    <?php endif; ?>
+
     <div class="ponto-tipo">
         <div class="lbl">Próxima batida</div>
         <div class="val" id="proximo-tipo-label"><?= $labelsTipo[$proximo_tipo] ?? 'Entrada' ?></div>
@@ -69,6 +82,14 @@ $labelsTipo = [
     <button type="button" class="btn-bater" id="btn-bater" data-tipo="<?= $proximo_tipo ?>">
         <i class='bx bx-check-circle'></i> Registrar <?= $labelsTipo[$proximo_tipo] ?? 'Entrada' ?>
     </button>
+
+    <button type="button" class="btn-bater" id="btn-saida"
+        style="margin-top:8px;background:#fff;color:#dc2626;border:1px solid #dc2626">
+        <i class='bx bx-log-out'></i> Encerrar turno (Saída)
+    </button>
+    <small style="display:block;color:#9ca3af;margin-top:4px;text-align:center">
+        Use ao terminar o dia, na última OS atendida.
+    </small>
 
     <div class="ponto-timeline" id="timeline">
         <h4><i class='bx bx-time-five'></i> Batidas de hoje</h4>
@@ -200,7 +221,12 @@ $this->load->view('colaborador/_nav', ['nav_ativo' => 'ponto', 'pode_bater_ponto
 
     // ---- Vínculo com OS (atendimento em campo) ----
     var selOs = document.getElementById('os-vinculo');
+    var selObra = document.getElementById('obra-vinculo');
     function osSelecionada(){ return (selOs && selOs.value) ? selOs.value : ''; }
+    function obraSelecionada(){ return (selObra && selObra.value) ? selObra.value : ''; }
+    // OS e Obra são mutuamente exclusivos: escolher um limpa o outro.
+    if (selOs) selOs.addEventListener('change', function(){ if (selOs.value && selObra) selObra.value=''; });
+    if (selObra) selObra.addEventListener('change', function(){ if (selObra.value && selOs) selOs.value=''; });
     if (selOs) selOs.addEventListener('change', function () {
         var osOn = !!this.value;
         if (selU) selU.disabled = osOn;
@@ -232,20 +258,23 @@ $this->load->view('colaborador/_nav', ['nav_ativo' => 'ponto', 'pode_bater_ponto
 
     // ---- Bater ponto ----
     var btn = document.getElementById('btn-bater');
-    btn.addEventListener('click', async function () {
-        btn.disabled = true;
-        var tipo = btn.getAttribute('data-tipo');
+    var btnSaida = document.getElementById('btn-saida');
+
+    // Executa uma batida de um tipo. `tipo` explícito (ex.: 'saida' no botão de
+    // encerrar turno) tem prioridade sobre o próximo tipo sugerido.
+    async function executarBatida(tipo, btnRef) {
+        btnRef.disabled = true;
 
         atualizarGeo();
         await avaliarFace();
 
         if (CFG.faceObrigatorio && (faceScore === null || faceScore < CFG.faceScoreMinimo)) {
             alerta('Reconhecimento facial obrigatório e não confirmado. Ajuste a iluminação e tente novamente.', 'error');
-            btn.disabled = false; return;
+            btnRef.disabled = false; return;
         }
-        if (CFG.geofenceObrigatorio && !osSelecionada() && geo.ok === false) {
+        if (CFG.geofenceObrigatorio && !osSelecionada() && !obraSelecionada() && geo.ok === false) {
             alerta('Você está fora da área permitida. Aproxime-se do local.', 'error');
-            btn.disabled = false; return;
+            btnRef.disabled = false; return;
         }
 
         var selfie = capturarSelfie();
@@ -258,7 +287,9 @@ $this->load->view('colaborador/_nav', ['nav_ativo' => 'ponto', 'pode_bater_ponto
         if (geo.lat !== null) { fd.append('latitude', geo.lat); fd.append('longitude', geo.lng); }
         if (faceScore !== null) fd.append('face_score', faceScore.toFixed(4));
         var osId = osSelecionada();
+        var obraId = obraSelecionada();
         if (osId) { fd.append('os_id', osId); }
+        else if (obraId) { fd.append('obra_id', obraId); }
         else if (sel) { fd.append('unidade_id', sel.value); }
 
         try {
@@ -270,6 +301,7 @@ $this->load->view('colaborador/_nav', ['nav_ativo' => 'ponto', 'pode_bater_ponto
             if (j.success) {
                 adicionarBatida(tipo, j.hora, j.fora_area, j.os_id);
                 if (j.proximo_tipo) {
+                    // O botão principal sempre reflete a próxima batida sugerida.
                     btn.setAttribute('data-tipo', j.proximo_tipo);
                     btn.innerHTML = "<i class='bx bx-check-circle'></i> Registrar " + (LABELS[j.proximo_tipo]||'Entrada');
                     document.getElementById('proximo-tipo-label').textContent = LABELS[j.proximo_tipo]||'Entrada';
@@ -281,8 +313,11 @@ $this->load->view('colaborador/_nav', ['nav_ativo' => 'ponto', 'pode_bater_ponto
         } catch (e) {
             alerta('Falha de conexão ao registrar o ponto.', 'error');
         }
-        btn.disabled = false;
-    });
+        btnRef.disabled = false;
+    }
+
+    btn.addEventListener('click', function () { executarBatida(btn.getAttribute('data-tipo'), btn); });
+    if (btnSaida) btnSaida.addEventListener('click', function () { executarBatida('saida', btnSaida); });
 
     function adicionarBatida(tipo, hora, fora, osId) {
         var semBat = document.getElementById('sem-batidas');

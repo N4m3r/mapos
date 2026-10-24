@@ -1,5 +1,121 @@
 <?php $totalServico = 0;
 $totalProdutos = 0; ?>
+
+<?php
+// Documentos financeiros da OS: notas fiscais autorizadas e boletos.
+$notasFiscais = isset($notasFiscais) && is_array($notasFiscais) ? $notasFiscais : [];
+$boletosPorNota = isset($boletosPorNota) && is_array($boletosPorNota) ? $boletosPorNota : [];
+$notasAut = array_values(array_filter($notasFiscais, fn ($n) => isset($n->status) && $n->status === 'autorizada'));
+$boletos = [];
+foreach ($notasFiscais as $n) {
+    if (! empty($boletosPorNota[$n->idNota]) && ($boletosPorNota[$n->idNota]->status ?? '') !== 'CANCELLED') {
+        $boletos[] = $boletosPorNota[$n->idNota];
+    }
+}
+$mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido', 'CANCELLED' => 'Cancelado', 'IN_PROTEST' => 'Em protesto'];
+?>
+<?php if (! empty($timeline)) { ?>
+<div class="row-fluid" style="margin-top: 0">
+    <div class="span12">
+        <?php $this->load->view('os/_timeline', ['timeline' => $timeline]); ?>
+    </div>
+</div>
+<?php } ?>
+<div class="row-fluid" style="margin-top: 0">
+    <div class="span12">
+        <div class="widget-box">
+            <div class="widget-title" style="margin: -20px 0 0">
+                <span class="icon"><i class="fas fa-file-invoice-dollar"></i></span>
+                <h5>Nota Fiscal e Boleto</h5>
+            </div>
+            <div class="widget-content">
+                <ul class="nav nav-tabs" style="margin-bottom: 12px">
+                    <li class="active"><a href="#" class="doc-tab-link" data-target="docNota"><i class="fas fa-file-invoice"></i> Nota Fiscal <span class="badge"><?= count($notasAut) ?></span></a></li>
+                    <li><a href="#" class="doc-tab-link" data-target="docBoleto"><i class="fas fa-barcode"></i> Boleto <span class="badge"><?= count($boletos) ?></span></a></li>
+                </ul>
+
+                <!-- Aba Nota Fiscal -->
+                <div id="docNota" class="doc-pane">
+                    <?php if (empty($notasAut)) { ?>
+                        <p style="color:#888; margin:6px 0">Nenhuma nota fiscal autorizada para esta OS.</p>
+                    <?php } else { ?>
+                        <table class="table table-bordered table-condensed">
+                            <thead>
+                                <tr>
+                                    <th>Número</th>
+                                    <th>Tipo</th>
+                                    <th>Emissão</th>
+                                    <th style="text-align:right">Valor</th>
+                                    <th style="text-align:center; width:140px">Documento</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($notasAut as $n) {
+                                    $dataNota = $n->data_autorizacao ?: $n->data_emissao; ?>
+                                    <tr>
+                                        <td><?= html_escape($n->numero) ?><?= $n->serie ? '/' . html_escape($n->serie) : '' ?></td>
+                                        <td><?= $n->tipo === 'nfe' ? 'NF-e' : 'NFS-e' ?></td>
+                                        <td><?= $dataNota ? date('d/m/Y', strtotime($dataNota)) : '—' ?></td>
+                                        <td style="text-align:right">R$ <?= number_format((float) $n->valor_total, 2, ',', '.') ?></td>
+                                        <td style="text-align:center">
+                                            <a target="_blank" class="btn btn-mini btn-inverse" href="<?= site_url('mine/notaDanfe/' . (int) $n->idNota) ?>">
+                                                <i class="bx bx-printer"></i> Ver / Imprimir
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php } ?>
+                            </tbody>
+                        </table>
+                    <?php } ?>
+                </div>
+
+                <!-- Aba Boleto -->
+                <div id="docBoleto" class="doc-pane" style="display:none">
+                    <?php if (empty($boletos)) { ?>
+                        <p style="color:#888; margin:6px 0">Nenhum boleto disponível para esta OS.</p>
+                    <?php } else { ?>
+                        <?php foreach ($boletos as $b) {
+                            $linkBoleto = $b->link ?: ($b->payment_url ?? '') ?: ($b->pdf ?? '');
+                            $statusBoleto = $mapaStatusBoleto[$b->status] ?? $b->status;
+                            $venc = ! empty($b->expire_at) ? date('d/m/Y', strtotime($b->expire_at)) : '—'; ?>
+                            <div style="border:1px solid #e2e6ef; border-radius:8px; padding:12px 14px; margin-bottom:12px">
+                                <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; align-items:center">
+                                    <div>
+                                        <div style="font-size:18px; font-weight:bold; color:#1e3a8a">R$ <?= number_format(((float) $b->total) / 100, 2, ',', '.') ?></div>
+                                        <div style="color:#6b7191; font-size:12px">Vencimento: <?= $venc ?> &nbsp;·&nbsp; Status: <strong><?= html_escape($statusBoleto) ?></strong></div>
+                                    </div>
+                                    <?php if ($linkBoleto) { ?>
+                                        <a href="<?= html_escape($linkBoleto) ?>" target="_blank" class="btn btn-success">
+                                            <i class="bx bx-barcode"></i> Abrir / Pagar boleto
+                                        </a>
+                                    <?php } ?>
+                                </div>
+                                <?php if (! empty($b->pix)) { ?>
+                                    <div style="margin-top:10px">
+                                        <div style="font-size:12px; color:#6b7191; margin-bottom:3px">PIX copia e cola</div>
+                                        <div style="display:flex; gap:6px; align-items:center">
+                                            <input type="text" readonly value="<?= html_escape($b->pix) ?>" class="span10" style="font-size:11px; margin:0" onclick="this.select()">
+                                            <button type="button" class="btn btn-mini copiar-doc" data-valor="<?= html_escape($b->pix) ?>"><i class="bx bx-copy"></i> Copiar</button>
+                                        </div>
+                                    </div>
+                                <?php } ?>
+                                <?php if (! empty($b->barcode)) { ?>
+                                    <div style="margin-top:8px">
+                                        <div style="font-size:12px; color:#6b7191; margin-bottom:3px">Linha digitável</div>
+                                        <div style="display:flex; gap:6px; align-items:center">
+                                            <input type="text" readonly value="<?= html_escape($b->barcode) ?>" class="span10" style="font-size:11px; margin:0" onclick="this.select()">
+                                            <button type="button" class="btn btn-mini copiar-doc" data-valor="<?= html_escape($b->barcode) ?>"><i class="bx bx-copy"></i> Copiar</button>
+                                        </div>
+                                    </div>
+                                <?php } ?>
+                            </div>
+                        <?php } ?>
+                    <?php } ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row-fluid" style="margin-top: 0">
     <div class="span12">
         <div class="widget-box">
@@ -11,6 +127,12 @@ $totalProdutos = 0; ?>
                 <div class="buttons" style=" padding-left:5px;">
                     <a target="_blank" title="Imprimir Relatório" class="button btn btn-mini btn-inverse" href="<?php echo site_url() ?>/mine/imprimirOs/<?php echo $result->idOs; ?>">
                         <span class="button__icon"><i class="bx bx-printer"></i></span> <span class="button__text">Imprimir Relatório</span></a>
+                    <?php if (! empty($temAtendimento)) { ?>
+                        <a title="Ver atendimento do técnico" class="button btn btn-mini" style="background-color: #6c757d; border-color: #6c757d; color: white;" href="#atendimento-tecnico">
+                            <span class="button__icon"><i class="bx bx-user-check"></i></span> <span class="button__text">Atendimento do Técnico</span></a>
+                        <a target="_blank" title="Visualizar relatório / detalhe do atendimento" class="button btn btn-mini btn-success" href="<?php echo site_url('mine/relatorioAtendimento/' . $result->idOs); ?>">
+                            <span class="button__icon"><i class="bx bx-show"></i></span> <span class="button__text">Visualizar Atendimento</span></a>
+                    <?php } ?>
                 </div>
             </div>
             <div class="widget-content" id="printOs">
@@ -27,11 +149,11 @@ $totalProdutos = 0; ?>
                                     <tr>
                                         <td style="width: 25%"><img src=" <?php echo $emitente->url_logo; ?> " style="max-height: 100px"></td>
                                         <td>
-                                            <span style="font-size: 20px;"><?php echo $emitente->nome; ?></span></br>
-                                            <?php if($emitente->cnpj != "00.000.000/0000-00") { ?><span class="icon"><i class="fas fa-fingerprint" style="margin:5px 1px"></i> <?php echo $emitente->cnpj; ?></span></br><?php } ?>
-                                            <span class="icon"><i class="fas fa-map-marker-alt" style="margin:4px 3px"></i> <?php echo $emitente->rua . ', ' . $emitente->numero . ', ' . $emitente->bairro . ' - ' . $emitente->cidade . ' - ' . $emitente->uf; ?></span></br>
-                                            <span class="icon"><i class="fas fa-comments" style="margin:5px 1px"></i> E-mail: <?php echo $emitente->email . ' - Fone: ' . $emitente->telefone; ?></span></br>
-                                            <span class="icon"><i class="fas fa-user-check"></i> Responsável: <?php echo $result->nome ?>
+                                            <span style="font-size: 20px;"><?php echo html_escape($emitente->nome); ?></span></br>
+                                            <?php if($emitente->cnpj != "00.000.000/0000-00") { ?><span class="icon"><i class="fas fa-fingerprint" style="margin:5px 1px"></i> <?php echo html_escape($emitente->cnpj); ?></span></br><?php } ?>
+                                            <span class="icon"><i class="fas fa-map-marker-alt" style="margin:4px 3px"></i> <?php echo html_escape($emitente->rua . ', ' . $emitente->numero . ', ' . $emitente->bairro . ' - ' . $emitente->cidade . ' - ' . $emitente->uf); ?></span></br>
+                                            <span class="icon"><i class="fas fa-comments" style="margin:5px 1px"></i> E-mail: <?php echo html_escape($emitente->email . ' - Fone: ' . $emitente->telefone); ?></span></br>
+                                            <span class="icon"><i class="fas fa-user-check"></i> Responsável: <?php echo html_escape($result->nome); ?>
                                         </td>
                                         <td style="width: 18%; text-align: center">
                                             <span><b>N° OS: </b><?php echo $result->idOs ?></span></br></br>
@@ -62,7 +184,7 @@ $totalProdutos = 0; ?>
 
                                             <td>
                                                 <?php if (!empty ($result->garantia)) { ?>
-                                                    <b>GARANTIA: </b><?php echo $result->garantia . ' dia(s)'; ?>
+                                                    <b>GARANTIA: </b><?php echo html_escape($result->garantia . ' dia(s)'); ?>
                                                 <?php } ?>
                                             </td>
 
@@ -241,114 +363,16 @@ $totalProdutos = 0; ?>
     </div>
 </div>
 
-<?php
-// Documentos financeiros da OS: notas fiscais autorizadas e boletos.
-$notasFiscais = isset($notasFiscais) && is_array($notasFiscais) ? $notasFiscais : [];
-$boletosPorNota = isset($boletosPorNota) && is_array($boletosPorNota) ? $boletosPorNota : [];
-$notasAut = array_values(array_filter($notasFiscais, fn ($n) => isset($n->status) && $n->status === 'autorizada'));
-$boletos = [];
-foreach ($notasFiscais as $n) {
-    if (! empty($boletosPorNota[$n->idNota]) && ($boletosPorNota[$n->idNota]->status ?? '') !== 'CANCELLED') {
-        $boletos[] = $boletosPorNota[$n->idNota];
-    }
-}
-$mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido', 'CANCELLED' => 'Cancelado', 'IN_PROTEST' => 'Em protesto'];
-?>
-<div class="row-fluid" style="margin-top: 0">
-    <div class="span12">
-        <div class="widget-box">
-            <div class="widget-title" style="margin: -20px 0 0">
-                <span class="icon"><i class="fas fa-file-invoice-dollar"></i></span>
-                <h5>Nota Fiscal e Boleto</h5>
-            </div>
-            <div class="widget-content">
-                <ul class="nav nav-tabs" style="margin-bottom: 12px">
-                    <li class="active"><a href="#" class="doc-tab-link" data-target="docNota"><i class="fas fa-file-invoice"></i> Nota Fiscal <span class="badge"><?= count($notasAut) ?></span></a></li>
-                    <li><a href="#" class="doc-tab-link" data-target="docBoleto"><i class="fas fa-barcode"></i> Boleto <span class="badge"><?= count($boletos) ?></span></a></li>
-                </ul>
-
-                <!-- Aba Nota Fiscal -->
-                <div id="docNota" class="doc-pane">
-                    <?php if (empty($notasAut)) { ?>
-                        <p style="color:#888; margin:6px 0">Nenhuma nota fiscal autorizada para esta OS.</p>
-                    <?php } else { ?>
-                        <table class="table table-bordered table-condensed">
-                            <thead>
-                                <tr>
-                                    <th>Número</th>
-                                    <th>Tipo</th>
-                                    <th>Emissão</th>
-                                    <th style="text-align:right">Valor</th>
-                                    <th style="text-align:center; width:140px">Documento</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($notasAut as $n) {
-                                    $dataNota = $n->data_autorizacao ?: $n->data_emissao; ?>
-                                    <tr>
-                                        <td><?= html_escape($n->numero) ?><?= $n->serie ? '/' . html_escape($n->serie) : '' ?></td>
-                                        <td><?= $n->tipo === 'nfe' ? 'NF-e' : 'NFS-e' ?></td>
-                                        <td><?= $dataNota ? date('d/m/Y', strtotime($dataNota)) : '—' ?></td>
-                                        <td style="text-align:right">R$ <?= number_format((float) $n->valor_total, 2, ',', '.') ?></td>
-                                        <td style="text-align:center">
-                                            <a target="_blank" class="btn btn-mini btn-inverse" href="<?= site_url('mine/notaDanfe/' . (int) $n->idNota) ?>">
-                                                <i class="bx bx-printer"></i> Ver / Imprimir
-                                            </a>
-                                        </td>
-                                    </tr>
-                                <?php } ?>
-                            </tbody>
-                        </table>
-                    <?php } ?>
-                </div>
-
-                <!-- Aba Boleto -->
-                <div id="docBoleto" class="doc-pane" style="display:none">
-                    <?php if (empty($boletos)) { ?>
-                        <p style="color:#888; margin:6px 0">Nenhum boleto disponível para esta OS.</p>
-                    <?php } else { ?>
-                        <?php foreach ($boletos as $b) {
-                            $linkBoleto = $b->link ?: ($b->payment_url ?? '') ?: ($b->pdf ?? '');
-                            $statusBoleto = $mapaStatusBoleto[$b->status] ?? $b->status;
-                            $venc = ! empty($b->expire_at) ? date('d/m/Y', strtotime($b->expire_at)) : '—'; ?>
-                            <div style="border:1px solid #e2e6ef; border-radius:8px; padding:12px 14px; margin-bottom:12px">
-                                <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; align-items:center">
-                                    <div>
-                                        <div style="font-size:18px; font-weight:bold; color:#1e3a8a">R$ <?= number_format(((float) $b->total) / 100, 2, ',', '.') ?></div>
-                                        <div style="color:#6b7191; font-size:12px">Vencimento: <?= $venc ?> &nbsp;·&nbsp; Status: <strong><?= html_escape($statusBoleto) ?></strong></div>
-                                    </div>
-                                    <?php if ($linkBoleto) { ?>
-                                        <a href="<?= html_escape($linkBoleto) ?>" target="_blank" class="btn btn-success">
-                                            <i class="bx bx-barcode"></i> Abrir / Pagar boleto
-                                        </a>
-                                    <?php } ?>
-                                </div>
-                                <?php if (! empty($b->pix)) { ?>
-                                    <div style="margin-top:10px">
-                                        <div style="font-size:12px; color:#6b7191; margin-bottom:3px">PIX copia e cola</div>
-                                        <div style="display:flex; gap:6px; align-items:center">
-                                            <input type="text" readonly value="<?= html_escape($b->pix) ?>" class="span10" style="font-size:11px; margin:0" onclick="this.select()">
-                                            <button type="button" class="btn btn-mini copiar-doc" data-valor="<?= html_escape($b->pix) ?>"><i class="bx bx-copy"></i> Copiar</button>
-                                        </div>
-                                    </div>
-                                <?php } ?>
-                                <?php if (! empty($b->barcode)) { ?>
-                                    <div style="margin-top:8px">
-                                        <div style="font-size:12px; color:#6b7191; margin-bottom:3px">Linha digitável</div>
-                                        <div style="display:flex; gap:6px; align-items:center">
-                                            <input type="text" readonly value="<?= html_escape($b->barcode) ?>" class="span10" style="font-size:11px; margin:0" onclick="this.select()">
-                                            <button type="button" class="btn btn-mini copiar-doc" data-valor="<?= html_escape($b->barcode) ?>"><i class="bx bx-copy"></i> Copiar</button>
-                                        </div>
-                                    </div>
-                                <?php } ?>
-                            </div>
-                        <?php } ?>
-                    <?php } ?>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<?php if (! empty($temAtendimento)) { ?>
+    <div id="atendimento-tecnico"></div>
+    <?php $this->load->view('conecte/_atendimento_tecnico', [
+        'result' => $result,
+        'checkins' => isset($checkins) ? $checkins : [],
+        'assinaturas' => isset($assinaturas) ? $assinaturas : [],
+        'fotosPorEtapa' => isset($fotosPorEtapa) ? $fotosPorEtapa : [],
+        'respostasPorEtapa' => isset($respostasPorEtapa) ? $respostasPorEtapa : [],
+    ]); ?>
+<?php } ?>
 
 <script type="text/javascript">
     $(document).ready(function() {

@@ -80,7 +80,11 @@ class Permissoes extends MY_Controller
                 'eTecnicoCheckin' => $this->input->post('eTecnicoCheckin'),
                 'eTecnicoCheckout' => $this->input->post('eTecnicoCheckout'),
                 'eTecnicoFotos' => $this->input->post('eTecnicoFotos'),
+                'vTecnicoMapa' => $this->input->post('vTecnicoMapa'),
+                'aTecnicoAtividade' => $this->input->post('aTecnicoAtividade'),
                 'vTecnicoDashboard' => $this->input->post('vTecnicoDashboard'),
+                'eTecnicoNaoRealizado' => $this->input->post('eTecnicoNaoRealizado'),
+                'cMotivoNaoRealizado' => $this->input->post('cMotivoNaoRealizado'),
 
                 'aVenda' => $this->input->post('aVenda'),
                 'eVenda' => $this->input->post('eVenda'),
@@ -115,6 +119,7 @@ class Permissoes extends MY_Controller
                 'cEmail' => $this->input->post('cEmail'),
                 'cSistema' => $this->input->post('cSistema'),
                 'cAutomacao' => $this->input->post('cAutomacao'),
+                'cFormularioAtendimento' => $this->input->post('cFormularioAtendimento'),
 
                 'rCliente' => $this->input->post('rCliente'),
                 'rProduto' => $this->input->post('rProduto'),
@@ -127,6 +132,16 @@ class Permissoes extends MY_Controller
                 'eCobranca' => $this->input->post('eCobranca'),
                 'dCobranca' => $this->input->post('dCobranca'),
                 'vCobranca' => $this->input->post('vCobranca'),
+
+                // Permissões Fiscais (NF-e / NFS-e)
+                'cNfe' => $this->input->post('cNfe'),
+                'eNfe' => $this->input->post('eNfe'),
+                'vNfe' => $this->input->post('vNfe'),
+                'dNfe' => $this->input->post('dNfe'),
+
+                'vEntrada' => $this->input->post('vEntrada'),
+                'cEntrada' => $this->input->post('cEntrada'),
+                'dEntrada' => $this->input->post('dEntrada'),
 
                 // Permissões RH
                 'vRh' => $this->input->post('vRh'),
@@ -141,6 +156,33 @@ class Permissoes extends MY_Controller
                 'vDashboard' => $this->input->post('vDashboard'),
                 'vRelatorioCompleto' => $this->input->post('vRelatorioCompleto'),
                 'vExportarDados' => $this->input->post('vExportarDados'),
+
+                // Permissões Obras
+                'vObras' => $this->input->post('vObras'),
+                'cObras' => $this->input->post('cObras'),
+                'eObras' => $this->input->post('eObras'),
+                'dObras' => $this->input->post('dObras'),
+                'vObraCronograma' => $this->input->post('vObraCronograma'),
+                'eObraCronograma' => $this->input->post('eObraCronograma'),
+                'vObraRdo' => $this->input->post('vObraRdo'),
+                'cObraRdo' => $this->input->post('cObraRdo'),
+                'vObraMedicao' => $this->input->post('vObraMedicao'),
+                'cObraMedicao' => $this->input->post('cObraMedicao'),
+                'aObraMedicao' => $this->input->post('aObraMedicao'),
+                'vObraCusto' => $this->input->post('vObraCusto'),
+                'vObraMaterial' => $this->input->post('vObraMaterial'),
+                'cObraMaterial' => $this->input->post('cObraMaterial'),
+                'rObraMaterial' => $this->input->post('rObraMaterial'),
+                'sObraMaterial' => $this->input->post('sObraMaterial'),
+                'cObraEquipe' => $this->input->post('cObraEquipe'),
+                'vObraCampo' => $this->input->post('vObraCampo'),
+
+                // Permissões Contratos
+                'vContrato' => $this->input->post('vContrato'),
+                'cContrato' => $this->input->post('cContrato'),
+                'eContrato' => $this->input->post('eContrato'),
+                'dContrato' => $this->input->post('dContrato'),
+                'fContrato' => $this->input->post('fContrato'),
             ];
             $permissoes = serialize($permissoes);
 
@@ -202,7 +244,11 @@ class Permissoes extends MY_Controller
                 'eTecnicoCheckin' => $this->input->post('eTecnicoCheckin'),
                 'eTecnicoCheckout' => $this->input->post('eTecnicoCheckout'),
                 'eTecnicoFotos' => $this->input->post('eTecnicoFotos'),
+                'vTecnicoMapa' => $this->input->post('vTecnicoMapa'),
+                'aTecnicoAtividade' => $this->input->post('aTecnicoAtividade'),
                 'vTecnicoDashboard' => $this->input->post('vTecnicoDashboard'),
+                'eTecnicoNaoRealizado' => $this->input->post('eTecnicoNaoRealizado'),
+                'cMotivoNaoRealizado' => $this->input->post('cMotivoNaoRealizado'),
 
                 'aVenda' => $this->input->post('aVenda'),
                 'eVenda' => $this->input->post('eVenda'),
@@ -237,6 +283,7 @@ class Permissoes extends MY_Controller
                 'cEmail' => $this->input->post('cEmail'),
                 'cSistema' => $this->input->post('cSistema'),
                 'cAutomacao' => $this->input->post('cAutomacao'),
+                'cFormularioAtendimento' => $this->input->post('cFormularioAtendimento'),
 
                 'rCliente' => $this->input->post('rCliente'),
                 'rProduto' => $this->input->post('rProduto'),
@@ -249,6 +296,16 @@ class Permissoes extends MY_Controller
                 'eCobranca' => $this->input->post('eCobranca'),
                 'dCobranca' => $this->input->post('dCobranca'),
                 'vCobranca' => $this->input->post('vCobranca'),
+
+                // Permissões Fiscais (NF-e / NFS-e)
+                'cNfe' => $this->input->post('cNfe'),
+                'eNfe' => $this->input->post('eNfe'),
+                'vNfe' => $this->input->post('vNfe'),
+                'dNfe' => $this->input->post('dNfe'),
+
+                'vEntrada' => $this->input->post('vEntrada'),
+                'cEntrada' => $this->input->post('cEntrada'),
+                'dEntrada' => $this->input->post('dEntrada'),
 
                 // Permissões RH
                 'vRh' => $this->input->post('vRh'),
@@ -263,6 +320,26 @@ class Permissoes extends MY_Controller
                 'vDashboard' => $this->input->post('vDashboard'),
                 'vRelatorioCompleto' => $this->input->post('vRelatorioCompleto'),
                 'vExportarDados' => $this->input->post('vExportarDados'),
+
+                // Permissões Obras
+                'vObras' => $this->input->post('vObras'),
+                'cObras' => $this->input->post('cObras'),
+                'eObras' => $this->input->post('eObras'),
+                'dObras' => $this->input->post('dObras'),
+                'vObraCronograma' => $this->input->post('vObraCronograma'),
+                'eObraCronograma' => $this->input->post('eObraCronograma'),
+                'vObraRdo' => $this->input->post('vObraRdo'),
+                'cObraRdo' => $this->input->post('cObraRdo'),
+                'vObraMedicao' => $this->input->post('vObraMedicao'),
+                'cObraMedicao' => $this->input->post('cObraMedicao'),
+                'aObraMedicao' => $this->input->post('aObraMedicao'),
+                'vObraCusto' => $this->input->post('vObraCusto'),
+                'vObraMaterial' => $this->input->post('vObraMaterial'),
+                'cObraMaterial' => $this->input->post('cObraMaterial'),
+                'rObraMaterial' => $this->input->post('rObraMaterial'),
+                'sObraMaterial' => $this->input->post('sObraMaterial'),
+                'cObraEquipe' => $this->input->post('cObraEquipe'),
+                'vObraCampo' => $this->input->post('vObraCampo'),
 
             ];
             $permissoes = serialize($permissoes);

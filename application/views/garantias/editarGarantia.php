@@ -31,12 +31,12 @@
                         </div>
                         <div class="span5">
                             <label for="usuarios_id">Responsável</label>
-                            <input id="usuarios_id" class="span12" type="text" name="usuarios_id" value="<?php echo $result->nome ?>" disabled />
+                            <input id="usuarios_id" class="span12" type="text" name="usuarios_id" value="<?php echo html_escape($result->nome); ?>" disabled />
 
                         </div>
                         <div class="span5">
                             <label for="refGarantia">Ref. Garantia</label>
-                            <input id="refGarantia" class="span12" type="text" name="refGarantia" value="<?php echo $result->refGarantia ?>" />
+                            <input id="refGarantia" class="span12" type="text" name="refGarantia" value="<?php echo html_escape($result->refGarantia); ?>" />
                         </div>
                         <div class="span12" style="margin-left: 0">
                             <label for="textoGarantia">

@@ -5,6 +5,9 @@ $this->load->view('colaborador/_topo', [
     'header_sub' => $colaborador->nome,
 ]);
 $labels = ['entrada'=>'Entrada','saida'=>'Saída','inicio_intervalo'=>'Início intervalo','fim_intervalo'=>'Fim intervalo'];
+$mes = $totais_mes ?? [];
+$sem = $totais_semana ?? [];
+$extraTotal = (int) ($mes['minutos_extras_50'] ?? 0) + (int) ($mes['minutos_extras_100'] ?? 0);
 ?>
 <div class="ponto-wrap">
     <?php if ($var = $this->session->flashdata('success')): ?>
@@ -18,24 +21,48 @@ $labels = ['entrada'=>'Entrada','saida'=>'Saída','inicio_intervalo'=>'Início i
     </a>
     <?php endif; ?>
 
+    <?php if (empty($ponto_inicio)): ?>
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:13px;color:#1e40af">
+            O controle de faltas ainda não foi iniciado pelo RH. Seus dias sem batida <strong>não geram dívida</strong> no banco de horas.
+        </div>
+    <?php endif; ?>
+
+    <!-- Status separados: semanal · banco · extras -->
     <div class="rh-cards">
         <div class="rh-card">
-            <div class="k">Horas no mês</div>
-            <div class="v"><?= $calc->minParaHoras($horas->minutos_trabalhados ?? 0) ?></div>
-        </div>
-        <div class="rh-card">
-            <div class="k">Saldo banco</div>
-            <div class="v" style="color:<?= ($horas->saldo_banco_min ?? 0) < 0 ? '#ef4444' : '#10b981' ?>">
-                <?= $calc->minParaHoras($horas->saldo_banco_min ?? 0) ?>
+            <div class="k">Semana (seg–dom)</div>
+            <div class="v"><?= $calc->minParaHoras($sem['minutos_trabalhados'] ?? 0) ?></div>
+            <div style="font-size:11px;color:#6b7280;margin-top:4px">
+                <?php if (! empty($sem['inicio'])): ?>
+                    <?= date('d/m', strtotime($sem['inicio'])) ?>–<?= date('d/m', strtotime($sem['fim'])) ?>
+                    ·
+                <?php endif; ?>
+                Deve: <span style="color:#ef4444"><?= $calc->minParaHoras($sem['minutos_faltas'] ?? 0) ?></span>
             </div>
         </div>
         <div class="rh-card">
-            <div class="k">Extras (50%)</div>
-            <div class="v"><?= $calc->minParaHoras($horas->minutos_extras_50 ?? 0) ?></div>
+            <div class="k">Banco de horas (mês)</div>
+            <div class="v" style="color:<?= ($mes['saldo_banco_min'] ?? 0) < 0 ? '#ef4444' : '#10b981' ?>">
+                <?= $calc->minParaHoras($mes['saldo_banco_min'] ?? 0) ?>
+            </div>
+            <div style="font-size:11px;color:#6b7280;margin-top:4px">
+                Faltas: <?= $calc->minParaHoras($mes['minutos_faltas'] ?? 0) ?>
+            </div>
         </div>
         <div class="rh-card">
-            <div class="k">Solicitações pend.</div>
-            <div class="v"><?= (int) $pendentes ?></div>
+            <div class="k">Extras (mês)</div>
+            <div class="v"><?= $calc->minParaHoras($extraTotal) ?></div>
+            <div style="font-size:11px;color:#6b7280;margin-top:4px">
+                50% <?= $calc->minParaHoras($mes['minutos_extras_50'] ?? 0) ?>
+                · 100% <?= $calc->minParaHoras($mes['minutos_extras_100'] ?? 0) ?>
+            </div>
+        </div>
+        <div class="rh-card">
+            <div class="k">Horas no mês</div>
+            <div class="v"><?= $calc->minParaHoras($mes['minutos_trabalhados'] ?? ($horas->minutos_trabalhados ?? 0)) ?></div>
+            <div style="font-size:11px;color:#6b7280;margin-top:4px">
+                Solic. pendentes: <?= (int) $pendentes ?>
+            </div>
         </div>
     </div>
 

@@ -130,7 +130,7 @@
                     <table>
                         <tr>
                             <td>
-                                Cliente: <?= $cliente->nomeCliente ?><br>
+                                Cliente: <?= html_escape($cliente->nomeCliente) ?><br>
                             </td>
 
                             <td style="text-align: right">
@@ -145,7 +145,7 @@
             <tr class="details">
 
                 <td colspan="4" style="text-align: left">
-                    Caro(a) <b><?= $cliente->nomeCliente ?></b>,
+                    Caro(a) <b><?= html_escape($cliente->nomeCliente) ?></b>,
                     <br>
 
                 </td>

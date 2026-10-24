@@ -107,7 +107,7 @@ if (! is_array($permissoes)) {
                 <div class="widget-content">
                     <div class="span4">
                         <label>Nome da Permissão</label>
-                        <input name="nome" type="text" id="nome" class="span12" value="<?php echo $result->nome; ?>" />
+                        <input name="nome" type="text" id="nome" class="span12" value="<?php echo html_escape($result->nome); ?>" />
                         <input type="hidden" name="idPermissao" value="<?php echo $result->idPermissao; ?>">
                     </div>
                     <div class="span3">
@@ -469,6 +469,54 @@ if (! is_array($permissoes)) {
                                     </label>
                                 </td>
                             </tr>
+                            <tr>
+                                <td colspan="4">
+                                    <label>
+                                        <input <?php if (isset($permissoes['vTecnicoMapa'])) {
+                                            if ($permissoes['vTecnicoMapa'] == '1') {
+                                                echo 'checked';
+                                            }
+                                        }?> name="vTecnicoMapa" class="marcar" type="checkbox" value="1" />
+                                        <span class="lbl"> <strong>Ver Mapa dos Técnicos</strong> (localização em tempo real — tela de despacho)</span>
+                                    </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="4">
+                                    <label>
+                                        <input <?php if (isset($permissoes['aTecnicoAtividade'])) {
+                                            if ($permissoes['aTecnicoAtividade'] == '1') {
+                                                echo 'checked';
+                                            }
+                                        }?> name="aTecnicoAtividade" class="marcar" type="checkbox" value="1" />
+                                        <span class="lbl"> Abrir Atividade não programada (criar OS em campo, sem ver valores)</span>
+                                    </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="4">
+                                    <label>
+                                        <input <?php if (isset($permissoes['eTecnicoNaoRealizado'])) {
+                                            if ($permissoes['eTecnicoNaoRealizado'] == '1') {
+                                                echo 'checked';
+                                            }
+                                        }?> name="eTecnicoNaoRealizado" class="marcar" type="checkbox" value="1" />
+                                        <span class="lbl"> Marcar Serviço Não Realizado (registrar motivo e deixar a OS em espera para reagendar/refazer)</span>
+                                    </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="4">
+                                    <label>
+                                        <input <?php if (isset($permissoes['cMotivoNaoRealizado'])) {
+                                            if ($permissoes['cMotivoNaoRealizado'] == '1') {
+                                                echo 'checked';
+                                            }
+                                        }?> name="cMotivoNaoRealizado" class="marcar" type="checkbox" value="1" />
+                                        <span class="lbl"> Gerenciar Motivos de Não Realizado (adicionar/remover a lista de motivos)</span>
+                                    </label>
+                                </td>
+                            </tr>
                         </table>
                         </div>
                     </div>
@@ -521,6 +569,84 @@ if (! is_array($permissoes)) {
                                     <label><input <?php if (! empty($permissoes['baterPonto']) && $permissoes['baterPonto'] == '1') echo 'checked'; ?> name="baterPonto" class="marcar" type="checkbox" value="1" />
                                     <span class="lbl"> Registrar o próprio ponto</span></label>
                                 </td>
+                                <td></td>
+                            </tr>
+                        </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-group widget-box">
+                    <div class="accordion-heading">
+                        <div class="widget-title">
+                            <a data-parent="#collapse-group" href="#collapseGObras" data-toggle="collapse">
+                                <span><i class='bx bx-building-house icon-cli' ></i></span>
+                                <h5 style="padding-left: 28px">Projetos</h5>
+                                <span><i class='bx bx-chevron-right icon-clic'></i></span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="collapse accordion-body" id="collapseGObras">
+                        <div class="widget-content">
+                        <table class="table table-bordered">
+                            <tr>
+                                <td><label><input <?php if (! empty($permissoes['vObras']) && $permissoes['vObras'] == '1') echo 'checked'; ?> name="vObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Visualizar Projetos</strong></span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['cObras']) && $permissoes['cObras'] == '1') echo 'checked'; ?> name="cObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Cadastrar Projeto</span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['eObras']) && $permissoes['eObras'] == '1') echo 'checked'; ?> name="eObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Editar Projeto</span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['dObras']) && $permissoes['dObras'] == '1') echo 'checked'; ?> name="dObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Excluir Projeto</span></label></td>
+                            </tr>
+                            <tr>
+                                <td><label><input <?php if (! empty($permissoes['vObraCronograma']) && $permissoes['vObraCronograma'] == '1') echo 'checked'; ?> name="vObraCronograma" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Ver cronograma</span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['eObraCronograma']) && $permissoes['eObraCronograma'] == '1') echo 'checked'; ?> name="eObraCronograma" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Editar cronograma/etapas</span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['vObraRdo']) && $permissoes['vObraRdo'] == '1') echo 'checked'; ?> name="vObraRdo" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Ver RDO</span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['cObraRdo']) && $permissoes['cObraRdo'] == '1') echo 'checked'; ?> name="cObraRdo" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Registrar RDO</span></label></td>
+                            </tr>
+                            <tr>
+                                <td><label><input <?php if (! empty($permissoes['vObraMedicao']) && $permissoes['vObraMedicao'] == '1') echo 'checked'; ?> name="vObraMedicao" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Ver medições</span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['cObraMedicao']) && $permissoes['cObraMedicao'] == '1') echo 'checked'; ?> name="cObraMedicao" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Lançar medição</span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['aObraMedicao']) && $permissoes['aObraMedicao'] == '1') echo 'checked'; ?> name="aObraMedicao" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Aprovar medição</span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['vObraCusto']) && $permissoes['vObraCusto'] == '1') echo 'checked'; ?> name="vObraCusto" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Ver custos</span></label></td>
+                            </tr>
+                            <tr>
+                                <td><label><input <?php if (! empty($permissoes['vObraMaterial']) && $permissoes['vObraMaterial'] == '1') echo 'checked'; ?> name="vObraMaterial" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Almoxarifado do projeto</strong></span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['rObraMaterial']) && $permissoes['rObraMaterial'] == '1') echo 'checked'; ?> name="rObraMaterial" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Receber material (entrada)</span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['sObraMaterial']) && $permissoes['sObraMaterial'] == '1') echo 'checked'; ?> name="sObraMaterial" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Entregar material (saída)</span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['cObraMaterial']) && $permissoes['cObraMaterial'] == '1') echo 'checked'; ?> name="cObraMaterial" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Gerenciar material</span></label></td>
+                            </tr>
+                            <tr>
+                                <td><label><input <?php if (! empty($permissoes['cObraEquipe']) && $permissoes['cObraEquipe'] == '1') echo 'checked'; ?> name="cObraEquipe" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Gerenciar equipes</span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['vObraCampo']) && $permissoes['vObraCampo'] == '1') echo 'checked'; ?> name="vObraCampo" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Área de Campo (encarregado)</span></label></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-group widget-box">
+                    <div class="accordion-heading">
+                        <div class="widget-title">
+                            <a data-parent="#collapse-group" href="#collapseGContratos" data-toggle="collapse">
+                                <span><i class='bx bx-file-blank icon-cli' ></i></span>
+                                <h5 style="padding-left: 28px">Contratos</h5>
+                                <span><i class='bx bx-chevron-right icon-clic'></i></span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="collapse accordion-body" id="collapseGContratos">
+                        <div class="widget-content">
+                        <table class="table table-bordered">
+                            <tr>
+                                <td><label><input <?php if (! empty($permissoes['vContrato']) && $permissoes['vContrato'] == '1') echo 'checked'; ?> name="vContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Visualizar Contratos</strong></span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['cContrato']) && $permissoes['cContrato'] == '1') echo 'checked'; ?> name="cContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Cadastrar Contrato</span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['eContrato']) && $permissoes['eContrato'] == '1') echo 'checked'; ?> name="eContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Editar Contrato</span></label></td>
+                                <td><label><input <?php if (! empty($permissoes['dContrato']) && $permissoes['dContrato'] == '1') echo 'checked'; ?> name="dContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Excluir Contrato</span></label></td>
+                            </tr>
+                            <tr>
+                                <td><label><input <?php if (! empty($permissoes['fContrato']) && $permissoes['fContrato'] == '1') echo 'checked'; ?> name="fContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Faturar mensalidade</span></label></td>
+                                <td></td>
+                                <td></td>
                                 <td></td>
                             </tr>
                         </table>
@@ -646,6 +772,89 @@ if (! is_array($permissoes)) {
                                                 }
                                             }?> name="dCobranca" class="marcar" type="checkbox" value="1" />
                                             <span class="lbl"> Excluir Cobranças</span>
+                                        </label>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-group widget-box">
+                    <div class="accordion-heading">
+                        <div class="widget-title">
+                            <a data-parent="#collapse-group" href="#collapseGFiscal" data-toggle="collapse">
+                                <span><i class='bx bx-file icon-cli' ></i></span>
+                                <h5 style="padding-left: 28px">Fiscal (NF-e / NFS-e)</h5>
+                                <span><i class='bx bx-chevron-right icon-clic'></i></span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="collapse accordion-body" id="collapseGFiscal">
+                        <div class="widget-content">
+                        <table class="table table-bordered">
+                            <tr>
+                                <td colspan="4"></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label>
+                                            <input <?php if (isset($permissoes['vNfe'])) {
+                                                if ($permissoes['vNfe'] == '1') {
+                                                    echo 'checked';
+                                                }
+                                            }?> name="vNfe" class="marcar" type="checkbox" value="1" />
+                                            <span class="lbl"> Visualizar Notas Fiscais</span>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <label>
+                                            <input <?php if (isset($permissoes['eNfe'])) {
+                                                if ($permissoes['eNfe'] == '1') {
+                                                    echo 'checked';
+                                                }
+                                            }?> name="eNfe" class="marcar" type="checkbox" value="1" />
+                                            <span class="lbl"> Emitir Notas Fiscais</span>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <label>
+                                            <input <?php if (isset($permissoes['dNfe'])) {
+                                                if ($permissoes['dNfe'] == '1') {
+                                                    echo 'checked';
+                                                }
+                                            }?> name="dNfe" class="marcar" type="checkbox" value="1" />
+                                            <span class="lbl"> Cancelar Notas Fiscais</span>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <label>
+                                            <input <?php if (isset($permissoes['cNfe'])) {
+                                                if ($permissoes['cNfe'] == '1') {
+                                                    echo 'checked';
+                                                }
+                                            }?> name="cNfe" class="marcar" type="checkbox" value="1" />
+                                            <span class="lbl"> Configurar Módulo Fiscal</span>
+                                        </label>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <label>
+                                            <input <?php if (! empty($permissoes['vEntrada']) && $permissoes['vEntrada'] == '1') echo 'checked'; ?> name="vEntrada" class="marcar" type="checkbox" value="1" />
+                                            <span class="lbl"> Visualizar Entradas / Créditos</span>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <label>
+                                            <input <?php if (! empty($permissoes['cEntrada']) && $permissoes['cEntrada'] == '1') echo 'checked'; ?> name="cEntrada" class="marcar" type="checkbox" value="1" />
+                                            <span class="lbl"> Importar/Lançar Entradas</span>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <label>
+                                            <input <?php if (! empty($permissoes['dEntrada']) && $permissoes['dEntrada'] == '1') echo 'checked'; ?> name="dEntrada" class="marcar" type="checkbox" value="1" />
+                                            <span class="lbl"> Excluir Entradas</span>
                                         </label>
                                     </td>
                                 </tr>
@@ -1065,6 +1274,12 @@ if (! is_array($permissoes)) {
                                         <label>
                                             <input <?php echo (isset($permissoes['cAutomacao']) && $permissoes['cAutomacao'] == 1) ? 'checked' : ''; ?> name="cAutomacao" class="marcar" type="checkbox" value="1" />
                                             <span class="lbl"> Automação (aprovação → NFS-e/boleto)</span>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <label>
+                                            <input <?php echo (isset($permissoes['cFormularioAtendimento']) && $permissoes['cFormularioAtendimento'] == 1) ? 'checked' : ''; ?> name="cFormularioAtendimento" class="marcar" type="checkbox" value="1" />
+                                            <span class="lbl"> Formulários de Atendimento</span>
                                         </label>
                                     </td>
                                 </tr>

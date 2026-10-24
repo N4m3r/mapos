@@ -40,12 +40,12 @@ class Cobrancas_model extends CI_Model
 
     public function getByOs($id)
     {
-        return $this->db->query("SELECT DISTINCT `cobrancas`.*,`clientes`.*,`os`.* FROM `cobrancas`,`clientes`,`os` WHERE `charge_id` = $id AND `os`.`idOs` = `cobrancas`.`os_id`")->row();
+        return $this->db->query('SELECT DISTINCT `cobrancas`.*,`clientes`.*,`os`.* FROM `cobrancas`,`clientes`,`os` WHERE `charge_id` = ? AND `os`.`idOs` = `cobrancas`.`os_id`', [(int) $id])->row();
     }
 
     public function getByVendas($id)
     {
-        return $this->db->query("SELECT DISTINCT `cobrancas`.*,`clientes`.*,`vendas`.* FROM `cobrancas`,`clientes`,`vendas` WHERE `charge_id` = $id AND `vendas`.`idVendas` = `cobrancas`.`vendas_id`")->row();
+        return $this->db->query('SELECT DISTINCT `cobrancas`.*,`clientes`.*,`vendas`.* FROM `cobrancas`,`clientes`,`vendas` WHERE `charge_id` = ? AND `vendas`.`idVendas` = `cobrancas`.`vendas_id`', [(int) $id])->row();
     }
 
     /**
@@ -130,6 +130,28 @@ class Cobrancas_model extends CI_Model
         foreach ($rows as $row) {
             // A última cobrança (maior id) prevalece por nota.
             $mapa[$row->nota_id] = $row;
+        }
+
+        return $mapa;
+    }
+
+    /**
+     * Mapa nota_id => LISTA de cobranças (todas as parcelas), para a aba de
+     * notas da OS exibir cada boleto do parcelamento.
+     */
+    public function getListByNotaIds(array $ids)
+    {
+        $mapa = [];
+        if (empty($ids)) {
+            return $mapa;
+        }
+        $rows = $this->db
+            ->where_in('nota_id', $ids)
+            ->order_by('idCobranca', 'ASC')
+            ->get('cobrancas')
+            ->result();
+        foreach ($rows as $row) {
+            $mapa[$row->nota_id][] = $row;
         }
 
         return $mapa;

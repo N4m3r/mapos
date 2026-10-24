@@ -1,3 +1,8 @@
+<?php
+$filtros = isset($filtros) ? $filtros : ['cliente_id' => null, 'data_inicio' => null, 'data_fim' => null];
+$temFiltro = ! empty($filtros['cliente_id']) || ! empty($filtros['data_inicio']) || ! empty($filtros['data_fim']);
+$this->load->view('conecte/filtros_portal', ['acaoFiltro' => 'mine/cobrancas']);
+?>
 <div class="widget-box">
     <div class="widget-title" style="margin: -20px 0 0">
         <span class="icon">
@@ -22,7 +27,7 @@
 
                     if (!$results) {
                         echo '<tr>
-                                <td colspan="5">Nenhuma cobrança Cadastrada</td>
+                                <td colspan="6">' . ($temFiltro ? 'Nenhuma cobrança encontrada para o filtro selecionado' : 'Nenhuma cobrança Cadastrada') . '</td>
                             </tr>';
                     }
                     foreach ($results as $r) {

@@ -95,6 +95,39 @@
                     </li>
                 <?php } ?>
 
+                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vContrato')) { ?>
+                    <li class="<?php if (isset($menuContratos)) {
+                        echo 'active';
+                    }; ?>">
+                        <a class="tip-bottom" title="" href="<?= site_url('contratos') ?>"><i class='bx bx-file-blank iconX'></i>
+                            <span class="title">Contratos</span>
+                            <span class="title-tooltip">Contratos</span>
+                        </a>
+                    </li>
+                <?php } ?>
+
+                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vObras')) { ?>
+                    <li class="<?php if (isset($menuObras)) {
+                        echo 'active';
+                    }; ?>">
+                        <a class="tip-bottom" title="" href="<?= site_url('obras') ?>"><i class='bx bx-network-chart iconX'></i>
+                            <span class="title">Projetos</span>
+                            <span class="title-tooltip">Projetos</span>
+                        </a>
+                    </li>
+                <?php } ?>
+
+                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vTecnicoMapa')) { ?>
+                    <li class="<?php if (isset($menuLocalizacao)) {
+                        echo 'active';
+                    }; ?>">
+                        <a class="tip-bottom" title="" href="<?= site_url('localizacao/mapa') ?>"><i class='bx bx-map-alt iconX'></i>
+                            <span class="title">Gestão no Mapa</span>
+                            <span class="title-tooltip">Mapa</span>
+                        </a>
+                    </li>
+                <?php } ?>
+
                 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vTecnicoDashboard')) { ?>
                     <li class="<?php if (isset($menuTecnico)) {
                         echo 'active';
@@ -128,13 +161,24 @@
                     </li>
                 <?php } ?>
 
+                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vEntrada')) { ?>
+                    <li class="<?php if (isset($menuEntradas)) {
+                        echo 'active';
+                    }; ?>">
+                        <a class="tip-bottom" title="" href="<?= site_url('entradas') ?>"><i class='bx bx-import iconX'></i>
+                            <span class="title">Entradas</span>
+                            <span class="title-tooltip">Créditos IBS/CBS</span>
+                        </a>
+                    </li>
+                <?php } ?>
+
                 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) { ?>
                     <li class="<?php if (isset($menuAtribuir)) {
                         echo 'active';
                     }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('os/atribuir') ?>"><i class='bx bx-user-plus iconX'></i>
-                            <span class="title">Atribuir Técnico</span>
-                            <span class="title-tooltip">Atribuir Téc.</span>
+                        <a class="tip-bottom" title="" href="<?= site_url('os/atribuir') ?>"><i class='bx bx-headphone iconX'></i>
+                            <span class="title">Central de Atendimento</span>
+                            <span class="title-tooltip">Atendimento</span>
                         </a>
                     </li>
                 <?php } ?>

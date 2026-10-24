@@ -38,13 +38,13 @@
                                         </div>
                                         <div class="span3">
                                             <label for="cliente">Cliente<span class="required">*</span></label>
-                                            <input id="cliente" class="span12" type="text" name="cliente" value="<?php echo $result->nomeCliente ?>" />
+                                            <input id="cliente" class="span12" type="text" name="cliente" value="<?php echo html_escape($result->nomeCliente); ?>" />
                                             <input id="clientes_id" class="span12" type="hidden" name="clientes_id" value="<?php echo $result->clientes_id ?>" />
                                             <input id="valorTotal" type="hidden" name="valorTotal" value="" />
                                         </div>
                                         <div class="span3">
                                             <label for="tecnico">Vendedor<span class="required">*</span></label>
-                                            <input id="tecnico" class="span12" type="text" name="tecnico" value="<?php echo $result->nome ?>" />
+                                            <input id="tecnico" class="span12" type="text" name="tecnico" value="<?php echo html_escape($result->nome); ?>" />
                                             <input id="usuarios_id" class="span12" type="hidden" name="usuarios_id" value="<?php echo $result->usuarios_id ?>" />
                                         </div>
                                         <div class="span2">
@@ -240,7 +240,7 @@ foreach ($produtos as $p) {
             <div class="span12" style="margin-left: 0">
                 <div class="span12" style="margin-left: 0">
                     <label for="cliente">Cliente*</label>
-                    <input class="span12" id="cliente" type="text" name="cliente" value="<?php echo $result->nomeCliente ?>" />
+                    <input class="span12" id="cliente" type="text" name="cliente" value="<?php echo html_escape($result->nomeCliente); ?>" />
                     <input type="hidden" name="clientes_id" id="clientes_id" value="<?php echo $result->clientes_id ?>">
                     <input type="hidden" name="vendas_id" id="vendas_id" value="<?php echo $result->idVendas; ?>">
                 </div>

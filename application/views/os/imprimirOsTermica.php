@@ -4,7 +4,7 @@ $totalProdutos = 0; ?>
 <html lang="pt-br">
 
 <head>
-    <title>Map_OS_<?php echo $result->idOs ?>_<?php echo $result->nomeCliente ?></title>
+    <title>Map_OS_<?php echo $result->idOs ?>_<?php echo html_escape($result->nomeCliente); ?></title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/bootstrap.min.css" />
@@ -92,10 +92,10 @@ $totalProdutos = 0; ?>
                                     <td style="width: 25% ;text-align: center" ><img src="<?php echo $emitente->url_logo; ?>" style="max-height: 100px"></td>
                                     <tr>
                                         <td colspan="5" style="text-align: center; font-size: 11px;" >
-                                            <span style="font-size: 12px; text-transform: uppercase"><b><?php echo $emitente->nome; ?></b></br></span>
-                                            <?php if($emitente->cnpj != "00.000.000/0000-00") { ?><span class="icon"><i class="fas fa-fingerprint" style="margin:5px 1px"></i> <?php echo $emitente->cnpj; ?></span></br><?php } ?>
-                                            <span><?php echo $emitente->rua . ', ' . $emitente->numero . '</br>' . $emitente->bairro . ', ' . $emitente->cidade . ' - ' . $emitente->uf; ?></span></br>
-                                            <span><?php echo $emitente->email; ?> - <?php echo $emitente->telefone; ?></span>
+                                            <span style="font-size: 12px; text-transform: uppercase"><b><?php echo html_escape($emitente->nome); ?></b></br></span>
+                                            <?php if($emitente->cnpj != "00.000.000/0000-00") { ?><span class="icon"><i class="fas fa-fingerprint" style="margin:5px 1px"></i> <?php echo html_escape($emitente->cnpj); ?></span></br><?php } ?>
+                                            <span><?php echo html_escape($emitente->rua . ', ' . $emitente->numero) . '</br>' . html_escape($emitente->bairro . ', ' . $emitente->cidade . ' - ' . $emitente->uf); ?></span></br>
+                                            <span><?php echo html_escape($emitente->email); ?> - <?php echo html_escape($emitente->telefone); ?></span>
                                         </td>
                                     </tr>
                                 <?php } ?>
@@ -108,10 +108,10 @@ $totalProdutos = 0; ?>
                                         <ul>
                                             <li>
                                                 <span><b>CLIENTE</b></br></span>
-                                                <span><?php echo $result->nomeCliente ?></br></span>
+                                                <span><?php echo html_escape($result->nomeCliente); ?></br></span>
                                                 <?= !empty($result->contato_cliente) ? '<span>' . $result->contato_cliente . ' </span>' : '' ?>
                                                     <?php if ($result->celular_cliente == $result->telefone_cliente) { ?>
-                                                        <span><?= $result->celular_cliente ?></span></br>
+                                                        <span><?= html_escape($result->celular_cliente) ?></span></br>
                                                     <?php } else { ?>
                                                         <?= !empty($result->telefone_cliente) ? $result->telefone_cliente : "" ?>
                                                         <?= !empty($result->celular_cliente) && !empty($result->telefone_cliente) ? ' / ' : "" ?>
@@ -119,13 +119,13 @@ $totalProdutos = 0; ?>
                                                     <?php } ?>
                                                 </span>
                                                 <?php if (!empty($result->email)) : ?>
-                                                        <span><?php echo $result->email ?></span><br>
+                                                        <span><?php echo html_escape($result->email); ?></span><br>
                                                 <?php endif; ?>
                                                 <span><?php
                                                     $retorno_end = array_filter([$result->rua, $result->numero, $result->complemento, $result->bairro]);
                                                     $endereco = implode(', ', $retorno_end);
-                                                    if (!empty($endereco)) {echo $endereco . '<br>';}
-                                                    if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) { echo "<span>{$result->cidade} - {$result->estado}, {$result->cep}</span><br>";}
+                                                    if (!empty($endereco)) {echo html_escape($endereco) . '<br>';}
+                                                    if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) { echo '<span>' . html_escape("{$result->cidade} - {$result->estado}, {$result->cep}") . '</span><br>';}
                                                 ?></span>
                                             </li>
                                         </ul>
@@ -148,7 +148,7 @@ $totalProdutos = 0; ?>
                                     <tr>
                                         <td><b>Inicial: </b><?php echo date('d/m/Y', strtotime($result->dataInicial)); ?></td>
                                         <td><b>Final: </b><?php echo $result->dataFinal ? date('d/m/Y', strtotime($result->dataFinal)) : ''; ?></td>
-                                        <?php if ($result->garantia != null) { ?><td><b>Garantia:</b></br><?php echo $result->garantia . ' dia(s)'; ?><?php } ?></td>
+                                        <?php if ($result->garantia != null) { ?><td><b>Garantia:</b></br><?php echo html_escape($result->garantia . ' dia(s)'); ?><?php } ?></td>
                                     </tr>
                                 <?php } ?>
                                 
@@ -306,10 +306,10 @@ $totalProdutos = 0; ?>
                                         <td style="width: 25% ;text-align: center" ><img src="<?php echo $emitente->url_logo; ?>" style="max-height: 100px"></td>
                                     <tr>
                                         <td colspan="5" style="text-align: center; font-size: 11px;" >
-                                            <span style="font-size: 12px; text-transform: uppercase"><b><?php echo $emitente->nome; ?></b></br></span>
-                                            <?php if($emitente->cnpj != "00.000.000/0000-00") { ?><span class="icon"><i class="fas fa-fingerprint" style="margin:5px 1px"></i> <?php echo $emitente->cnpj; ?></span></br><?php } ?>
-                                            <span><?php echo $emitente->rua . ', ' . $emitente->numero . '</br>' . $emitente->bairro . ', ' . $emitente->cidade . ' - ' . $emitente->uf; ?></span></br>
-                                            <span><?php echo $emitente->email; ?> - <?php echo $emitente->telefone; ?></span>
+                                            <span style="font-size: 12px; text-transform: uppercase"><b><?php echo html_escape($emitente->nome); ?></b></br></span>
+                                            <?php if($emitente->cnpj != "00.000.000/0000-00") { ?><span class="icon"><i class="fas fa-fingerprint" style="margin:5px 1px"></i> <?php echo html_escape($emitente->cnpj); ?></span></br><?php } ?>
+                                            <span><?php echo html_escape($emitente->rua . ', ' . $emitente->numero) . '</br>' . html_escape($emitente->bairro . ', ' . $emitente->cidade . ' - ' . $emitente->uf); ?></span></br>
+                                            <span><?php echo html_escape($emitente->email); ?> - <?php echo html_escape($emitente->telefone); ?></span>
                                         </td>
                                     </tr>
                                 <?php } ?>
@@ -322,10 +322,10 @@ $totalProdutos = 0; ?>
                                         <ul>
                                             <li>
                                                 <span><b>CLIENTE</b></br></span>
-                                                <span><?php echo $result->nomeCliente ?></br></span>
+                                                <span><?php echo html_escape($result->nomeCliente); ?></br></span>
                                                 <?= !empty($result->contato_cliente) ? '<span>' . $result->contato_cliente . ' </span>' : '' ?>
                                                     <?php if ($result->celular_cliente == $result->telefone_cliente) { ?>
-                                                        <span><?= $result->celular_cliente ?></span></br>
+                                                        <span><?= html_escape($result->celular_cliente) ?></span></br>
                                                     <?php } else { ?>
                                                         <?= !empty($result->telefone_cliente) ? $result->telefone_cliente : "" ?>
                                                         <?= !empty($result->celular_cliente) && !empty($result->telefone_cliente) ? ' / ' : "" ?>
@@ -333,13 +333,13 @@ $totalProdutos = 0; ?>
                                                     <?php } ?>
                                                 </span>
                                                 <?php if (!empty($result->email)) : ?>
-                                                        <span><?php echo $result->email ?></span><br>
+                                                        <span><?php echo html_escape($result->email); ?></span><br>
                                                 <?php endif; ?>
                                                 <span><?php
                                                     $retorno_end = array_filter([$result->rua, $result->numero, $result->complemento, $result->bairro]);
                                                     $endereco = implode(', ', $retorno_end);
-                                                    if (!empty($endereco)) {echo $endereco . '<br>';}
-                                                    if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) { echo "<span>{$result->cidade} - {$result->estado}, {$result->cep}</span><br>";}
+                                                    if (!empty($endereco)) {echo html_escape($endereco) . '<br>';}
+                                                    if (!empty($result->cidade) || !empty($result->estado) || !empty($result->cep)) { echo '<span>' . html_escape("{$result->cidade} - {$result->estado}, {$result->cep}") . '</span><br>';}
                                                 ?></span>
                                             </li>
                                         </ul>
@@ -370,7 +370,7 @@ $totalProdutos = 0; ?>
                                                 </td>
                                                 <td>
                                                     <?php if ($result->garantia != null) { ?>
-                                                        <b>Garantia: </b><?php echo $result->garantia . ' dia(s)'; ?>
+                                                        <b>Garantia: </b><?php echo html_escape($result->garantia . ' dia(s)'); ?>
                                                     <?php } ?>
                                                 </td>
                                         <?php } ?>

@@ -50,32 +50,67 @@ class Mapos_model extends CI_Model
     public function pesquisar($termo)
     {
         $data = [];
+        $termo = trim((string) $termo);
+        // So os digitos: acha "(11) 98888-7777" buscando 11988887777, e CPF/CNPJ sem pontuacao
+        $digitos = preg_replace('/[^0-9]/', '', $termo);
+        $comeca = $this->db->escape($this->db->escape_like_str($termo) . '%');
+
         // buscando clientes
+        $this->db->group_start();
         $this->db->like('nomeCliente', $termo);
         $this->db->or_like('telefone', $termo);
         $this->db->or_like('celular', $termo);
         $this->db->or_like('documento', $termo);
+        if (strlen($digitos) >= 3) {
+            $padrao = $this->db->escape('%' . $digitos . '%');
+            foreach (['telefone', 'celular', 'documento'] as $campo) {
+                $this->db->or_where($this->somenteDigitosSql($campo) . ' LIKE ' . $padrao, null, false);
+            }
+        }
+        $this->db->group_end();
+        $this->db->order_by("nomeCliente LIKE {$comeca}", 'DESC', false);
+        $this->db->order_by('nomeCliente', 'ASC');
         $this->db->limit(15);
         $data['clientes'] = $this->db->get('clientes')->result();
 
-        // buscando os
+        // buscando os (numero exato primeiro)
         $this->db->like('idOs', $termo);
         $this->db->or_like('descricaoProduto', $termo);
+        if (ctype_digit($termo)) {
+            $this->db->order_by('idOs = ' . (int) $termo, 'DESC', false);
+        }
+        $this->db->order_by('idOs', 'DESC');
         $this->db->limit(15);
         $data['os'] = $this->db->get('os')->result();
 
-        // buscando produtos
+        // buscando produtos (codigo de barras exato, depois descricao que comeca com o termo)
         $this->db->like('codDeBarra', $termo);
         $this->db->or_like('descricao', $termo);
+        $this->db->order_by('codDeBarra = ' . $this->db->escape($termo), 'DESC', false);
+        $this->db->order_by("descricao LIKE {$comeca}", 'DESC', false);
+        $this->db->order_by('descricao', 'ASC');
         $this->db->limit(50);
         $data['produtos'] = $this->db->get('produtos')->result();
 
         //buscando serviços
         $this->db->like('nome', $termo);
+        $this->db->order_by("nome LIKE {$comeca}", 'DESC', false);
+        $this->db->order_by('nome', 'ASC');
         $this->db->limit(15);
         $data['servicos'] = $this->db->get('servicos')->result();
 
         return $data;
+    }
+
+    /** Expressao SQL que remove a pontuacao comum de telefone/CPF/CNPJ de uma coluna. */
+    private function somenteDigitosSql($coluna)
+    {
+        $sql = '`' . $coluna . '`';
+        foreach (['(', ')', '-', '.', '/', ' ', '+'] as $c) {
+            $sql = "REPLACE({$sql}, '{$c}', '')";
+        }
+
+        return $sql;
     }
 
     public function add($table, $data)
@@ -262,11 +297,54 @@ class Mapos_model extends CI_Model
                        SUM(CASE WHEN baixado = 1 AND tipo = 'despesa' THEN valor END) as total_despesa,
                        SUM(CASE WHEN baixado = 0 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) as total_receita_pendente,
                        SUM(CASE WHEN baixado = 0 AND tipo = 'despesa' THEN valor END) as total_despesa_pendente FROM lancamentos";
-        if ($this->db->query($sql) !== false) {
-            return $this->db->query($sql)->row();
+        $query = $this->db->query($sql);
+
+        return $query !== false ? $query->row() : false;
+    }
+
+    /**
+     * Mesmo resultado de getEstatisticasFinanceiroMes, getEstatisticasFinanceiroDia e
+     * getEstatisticasFinanceiroMesInadimplencia, mas numa unica leitura de lancamentos
+     * (as tres filtram o mesmo ano). Retorna ['mes' => row, 'dia' => row, 'inadimplencia' => row]
+     * com os mesmos nomes de coluna das funcoes originais, ou false em erro.
+     */
+    public function getEstatisticasFinanceiroAno($year)
+    {
+        $numbersOnly = preg_replace('/[^0-9]/', '', $year);
+        if (! $numbersOnly) {
+            $numbersOnly = date('Y');
+        }
+        $ano = intval($numbersOnly);
+
+        $receitaLiquida = "valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))";
+        $meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+        $campos = [];
+        foreach ($meses as $i => $mes) {
+            $m = $i + 1;
+            $campos[] = "SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = {$m}) AND baixado = 1 AND tipo = 'receita' THEN {$receitaLiquida} END) AS M_VALOR_{$mes}_REC";
+            $campos[] = "SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = {$m}) AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS M_VALOR_{$mes}_DES";
+            $campos[] = "SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = {$m}) AND baixado = 0 AND tipo = 'receita' THEN valor END) AS I_VALOR_{$mes}_REC";
+            $campos[] = "SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = {$m}) AND baixado = 0 AND tipo = 'despesa' THEN valor END) AS I_VALOR_{$mes}_DES";
+        }
+        $hoje = '(EXTRACT(DAY FROM data_pagamento) = ' . date('d') . ') AND EXTRACT(MONTH FROM data_pagamento) = ' . date('m');
+        $campos[] = "SUM(CASE WHEN {$hoje} AND baixado = 1 AND tipo = 'receita' THEN {$receitaLiquida} END) AS D_VALOR_" . date('m') . '_REC';
+        $campos[] = "SUM(CASE WHEN {$hoje} AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS D_VALOR_" . date('m') . '_DES';
+
+        $sql = 'SELECT ' . implode(",\n", $campos) . ' FROM lancamentos WHERE data_pagamento BETWEEN ? AND ?';
+        $query = $this->db->query($sql, [$ano . '-01-01', $ano . '-12-31']);
+        if ($query === false) {
+            return false;
         }
 
-        return false;
+        // Separa pelo prefixo para devolver os objetos no formato das funcoes originais
+        $grupos = ['M_' => 'mes', 'D_' => 'dia', 'I_' => 'inadimplencia'];
+        $resultado = ['mes' => new stdClass(), 'dia' => new stdClass(), 'inadimplencia' => new stdClass()];
+        foreach ($query->row_array() as $coluna => $valor) {
+            $grupo = $grupos[substr($coluna, 0, 2)];
+            $resultado[$grupo]->{substr($coluna, 2)} = $valor;
+        }
+
+        return $resultado;
     }
 
     public function getEstatisticasFinanceiroMes($year)
@@ -304,13 +382,13 @@ class Mapos_model extends CI_Model
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 12) AND baixado = 1 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) AS VALOR_DEZ_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 12) AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS VALOR_DEZ_DES
             FROM lancamentos
-            WHERE EXTRACT(YEAR FROM data_pagamento) = ?
+            WHERE data_pagamento BETWEEN ? AND ?
         ";
-        if ($this->db->query($sql, [intval($numbersOnly)]) !== false) {
-            return $this->db->query($sql, [intval($numbersOnly)])->row();
-        }
+        // Intervalo do ano (em vez de EXTRACT(YEAR ...)) permite usar o indice de data_pagamento
+        $ano = intval($numbersOnly);
+        $query = $this->db->query($sql, [$ano . '-01-01', $ano . '-12-31']);
 
-        return false;
+        return $query !== false ? $query->row() : false;
     }
 
     public function getEstatisticasFinanceiroDia($year)
@@ -324,13 +402,13 @@ class Mapos_model extends CI_Model
                 SUM(CASE WHEN (EXTRACT(DAY FROM data_pagamento) = ' . date('d') . ') AND EXTRACT(MONTH FROM data_pagamento) = ' . date('m') . " AND baixado = 1 AND tipo = 'receita' THEN valor - (IF(tipo_desconto = 'real', desconto, (desconto * valor) / 100))  END) AS VALOR_" . date('m') . '_REC,
                 SUM(CASE WHEN (EXTRACT(DAY FROM data_pagamento) = ' . date('d') . ') AND EXTRACT(MONTH FROM data_pagamento) = ' . date('m') . " AND baixado = 1 AND tipo = 'despesa' THEN valor END) AS VALOR_" . date('m') . '_DES
             FROM lancamentos
-            WHERE EXTRACT(YEAR FROM data_pagamento) = ?
+            WHERE data_pagamento BETWEEN ? AND ?
         ';
-        if ($this->db->query($sql, [intval($numbersOnly)]) !== false) {
-            return $this->db->query($sql, [intval($numbersOnly)])->row();
-        }
+        // Intervalo do ano (em vez de EXTRACT(YEAR ...)) permite usar o indice de data_pagamento
+        $ano = intval($numbersOnly);
+        $query = $this->db->query($sql, [$ano . '-01-01', $ano . '-12-31']);
 
-        return false;
+        return $query !== false ? $query->row() : false;
     }
 
     public function getEstatisticasFinanceiroMesInadimplencia($year)
@@ -368,13 +446,13 @@ class Mapos_model extends CI_Model
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 12) AND baixado = 0 AND tipo = 'receita' THEN valor END) AS VALOR_DEZ_REC,
                 SUM(CASE WHEN (EXTRACT(MONTH FROM data_pagamento) = 12) AND baixado = 0 AND tipo = 'despesa' THEN valor END) AS VALOR_DEZ_DES
             FROM lancamentos
-            WHERE EXTRACT(YEAR FROM data_pagamento) = ?
+            WHERE data_pagamento BETWEEN ? AND ?
         ";
-        if ($this->db->query($sql, [intval($numbersOnly)]) !== false) {
-            return $this->db->query($sql, [intval($numbersOnly)])->row();
-        }
+        // Intervalo do ano (em vez de EXTRACT(YEAR ...)) permite usar o indice de data_pagamento
+        $ano = intval($numbersOnly);
+        $query = $this->db->query($sql, [$ano . '-01-01', $ano . '-12-31']);
 
-        return false;
+        return $query !== false ? $query->row() : false;
     }
 
     public function getEmitente()

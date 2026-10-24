@@ -19,6 +19,14 @@
                         <span class="button__icon"><i class='bx bx-plus-circle'></i></span>
                         <span class="button__text2">Nova Venda</span>
                     </a>
+                    <a href="<?= site_url('pdv') ?>" class="button btn btn-mini btn-info" style="max-width: 160px" title="Frente de caixa">
+                        <span class="button__icon"><i class='bx bx-store'></i></span>
+                        <span class="button__text2">PDV</span>
+                    </a>
+                    <a href="<?= site_url('caixa') ?>" class="button btn btn-mini btn-warning" style="max-width: 160px" title="Caixas do PDV">
+                        <span class="button__icon"><i class='bx bx-wallet'></i></span>
+                        <span class="button__text2">Caixa</span>
+                    </a>
                 </div>
             <?php } ?>
             <div class="span3">

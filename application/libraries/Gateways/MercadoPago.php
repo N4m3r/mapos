@@ -2,12 +2,13 @@
 
 use Libraries\Gateways\BasePaymentGateway;
 use Libraries\Gateways\Contracts\PaymentGateway;
-use MercadoPago\Payment;
-use MercadoPago\SDK;
+use MercadoPago\Client\Payment\PaymentClient;
+use MercadoPago\Exceptions\MPApiException;
+use MercadoPago\MercadoPagoConfig;
 
 class MercadoPago extends BasePaymentGateway
 {
-    /** @var SDK */
+    /** @var PaymentClient */
     private $mercadoPagoApi;
 
     private $mercadoPagoConfig;
@@ -25,16 +26,39 @@ class MercadoPago extends BasePaymentGateway
         $mercadoPagoConfig = $this->ci->config->item('payment_gateways')['MercadoPago'];
         $this->mercadoPagoConfig = $mercadoPagoConfig;
 
-        $mercadoPagoApi = new SDK();
-        $mercadoPagoApi->setAccessToken($mercadoPagoConfig['credentials']['access_token']);
-        $mercadoPagoApi->setPublicKey($mercadoPagoConfig['credentials']['public_key']);
-        $mercadoPagoApi->setClientSecret($mercadoPagoConfig['credentials']['client_secret']);
-        $mercadoPagoApi->setClientId($mercadoPagoConfig['credentials']['client_id']);
-        $mercadoPagoApi->setIntegratorId($mercadoPagoConfig['credentials']['integrator_id']);
-        $mercadoPagoApi->setPlatformId($mercadoPagoConfig['credentials']['platform_id']);
-        $mercadoPagoApi->setCorporationId($mercadoPagoConfig['credentials']['corporation_id']);
+        // SDK v3: so o access token autentica; public key, client id e client secret
+        // nao sao usados pela API de pagamentos.
+        $credentials = $mercadoPagoConfig['credentials'];
+        MercadoPagoConfig::setAccessToken((string) $credentials['access_token']);
+        if (! empty($credentials['integrator_id'])) {
+            MercadoPagoConfig::setIntegratorId((string) $credentials['integrator_id']);
+        }
+        if (! empty($credentials['platform_id'])) {
+            MercadoPagoConfig::setPlatformId((string) $credentials['platform_id']);
+        }
+        if (! empty($credentials['corporation_id'])) {
+            MercadoPagoConfig::setCorporationId((string) $credentials['corporation_id']);
+        }
 
-        $this->mercadoPagoApi = $mercadoPagoApi;
+        $this->mercadoPagoApi = new PaymentClient();
+    }
+
+    /**
+     * Executa uma chamada do SDK convertendo erros da API em Exception com a mensagem do Mercado Pago.
+     */
+    private function chamarApi(callable $chamada)
+    {
+        try {
+            return $chamada($this->mercadoPagoApi);
+        } catch (MPApiException $e) {
+            $conteudo = $e->getApiResponse()->getContent();
+            $mensagem = $conteudo['message'] ?? $e->getMessage();
+            if (! empty($conteudo['cause'][0]['description'])) {
+                $mensagem .= ' - ' . $conteudo['cause'][0]['description'];
+            }
+
+            throw new \Exception('Mercado Pago: ' . $mensagem);
+        }
     }
 
     public function cancelar($id)
@@ -44,16 +68,7 @@ class MercadoPago extends BasePaymentGateway
             throw new \Exception('Cobrança não existe!');
         }
 
-        $payment = Payment::find_by_id($cobranca->charge_id);
-        if ($payment->Error()) {
-            throw new \Exception($payment->Error());
-        }
-
-        $payment->status = 'cancelled';
-        $payment->update();
-        if ($payment->Error()) {
-            throw new \Exception($payment->Error());
-        }
+        $this->chamarApi(fn (PaymentClient $api) => $api->cancel((int) $cobranca->charge_id));
 
         return $this->atualizarDados($id);
     }
@@ -74,13 +89,13 @@ class MercadoPago extends BasePaymentGateway
             'cobrancas/emails/cobranca',
             [
                 'cobranca' => $cobranca,
-                'emitente' => $emitente[0],
+                'emitente' => $emitente,
                 'paymentGatewaysConfig' => $this->ci->config->item('payment_gateways'),
             ],
             true
         );
 
-        $assunto = 'Cobrança - ' . $emitente[0]->nome;
+        $assunto = 'Cobrança - ' . $emitente->nome;
         if ($cobranca->os_id) {
             $assunto .= ' - OS #' . $cobranca->os_id;
         } else {
@@ -90,7 +105,7 @@ class MercadoPago extends BasePaymentGateway
         // Modelo configurável de e-mail (fallback para a view/assunto acima).
         $this->ci->load->library('emailtemplate');
         $render = $this->ci->emailtemplate->render('cobranca', [
-            'emitente' => $emitente[0],
+            'emitente' => $emitente,
             'cobranca' => $cobranca,
         ]);
         if ($render !== null && ! $render['ativo']) {
@@ -104,7 +119,7 @@ class MercadoPago extends BasePaymentGateway
         $remetentes = emails_cobranca($cobranca);
         foreach ($remetentes as $remetente) {
             $headers = [
-                'From' => $emitente[0]->email,
+                'From' => $emitente->email,
                 'Subject' => $assunto,
                 'Return-Path' => '',
             ];
@@ -126,20 +141,17 @@ class MercadoPago extends BasePaymentGateway
             throw new \Exception('Cobrança não existe!');
         }
 
-        $payment = Payment::find_by_id($cobranca->charge_id);
-        if ($payment->Error()) {
-            throw new \Exception($payment->Error());
-        }
+        $payment = $this->chamarApi(fn (PaymentClient $api) => $api->get((int) $cobranca->charge_id));
 
         // Cobrança foi paga ou foi confirmada de forma manual, então damos baixa
-        if ($payment->status === 'approved') {
+        if (($payment->status ?? null) === 'approved') {
             // TODO: dar baixa no lançamento caso exista
         }
 
         $databaseResult = $this->ci->cobrancas_model->edit(
             'cobrancas',
             [
-                'status' => $payment->status,
+                'status' => $payment->status ?? null,
             ],
             'idCobranca',
             $id
@@ -161,15 +173,7 @@ class MercadoPago extends BasePaymentGateway
             throw new \Exception('Cobrança não existe!');
         }
 
-        $payment = Payment::find_by_id($cobranca->charge_id);
-        if ($payment->Error()) {
-            throw new \Exception($payment->Error());
-        }
-
-        $payment->capture();
-        if ($payment->Error()) {
-            throw new \Exception($payment->Error());
-        }
+        $this->chamarApi(fn (PaymentClient $api) => $api->capture((int) $cobranca->charge_id, null));
 
         return $this->atualizarDados($id);
     }
@@ -236,42 +240,41 @@ class MercadoPago extends BasePaymentGateway
         $expirationDate = (new DateTime())->add(new DateInterval($this->mercadoPagoConfig['boleto_expiration']));
         $expirationDate = ($expirationDate->format(DateTime::RFC3339_EXTENDED));
 
-        $payment = new Payment();
-        $payment->transaction_amount = floatval($this->valorTotal($totalProdutos, $totalServicos, $totalDesconto, $tipoDesconto));
-        $payment->description = PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id";
-        $payment->payment_method_id = 'bolbradesco';
-        $payment->notification_url = 'http://mapos.com.br/';
-        $payment->date_of_expiration = $expirationDate;
-        $payment->payer = [
-            'email' => $entity->email,
-            'first_name' => $clientNameParts[0],
-            'last_name' => $clientNameParts[count($clientNameParts) - 1],
-            'identification' => [
-                'type' => strlen($documento) == 11 ? 'CPF' : 'CNPJ',
-                'number' => $documento,
-            ],
-            'address' => [
-                'zip_code' => preg_replace('/[^0-9]/', '', $entity->cep),
-                'street_name' => $entity->rua,
-                'street_number' => $entity->numero,
-                'neighborhood' => $entity->bairro,
-                'city' => $entity->cidade,
-                'federal_unit' => $entity->estado,
+        $request = [
+            'transaction_amount' => floatval($this->valorTotal($totalProdutos, $totalServicos, $totalDesconto, $tipoDesconto)),
+            'description' => $tipo === PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id",
+            'payment_method_id' => 'bolbradesco',
+            'date_of_expiration' => $expirationDate,
+            'payer' => [
+                'email' => $entity->email,
+                'first_name' => $clientNameParts[0],
+                'last_name' => $clientNameParts[count($clientNameParts) - 1],
+                'identification' => [
+                    'type' => strlen($documento) == 11 ? 'CPF' : 'CNPJ',
+                    'number' => $documento,
+                ],
+                'address' => [
+                    'zip_code' => preg_replace('/[^0-9]/', '', $entity->cep),
+                    'street_name' => $entity->rua,
+                    'street_number' => $entity->numero,
+                    'neighborhood' => $entity->bairro,
+                    'city' => $entity->cidade,
+                    'federal_unit' => $entity->estado,
+                ],
             ],
         ];
 
-        $payment->save();
-        if ($payment->Error()) {
-            throw new \Exception($payment->Error());
-        }
+        $payment = $this->chamarApi(fn (PaymentClient $api) => $api->create($request));
+        $detalhes = (object) ($payment->transaction_details ?? []);
+        $codigoBarras = isset($detalhes->barcode) ? ((object) $detalhes->barcode)->content ?? null : null;
 
         $data = [
-            'barcode' => $payment->barcode->content,
-            'link' => $payment->transaction_details->external_resource_url,
-            'pdf' => $payment->transaction_details->external_resource_url,
-            'expire_at' => $payment->date_of_expiration,
+            'barcode' => $codigoBarras ?? ($detalhes->digitable_line ?? null),
+            'link' => $detalhes->external_resource_url ?? null,
+            'pdf' => $detalhes->external_resource_url ?? null,
+            'expire_at' => $payment->date_of_expiration ?? null,
             'charge_id' => $payment->id,
-            'status' => $payment->status,
+            'status' => $payment->status ?? null,
             'total' => getMoneyAsCents($this->valorTotal($totalProdutos, $totalServicos, $totalDesconto, $tipoDesconto)),
             'clientes_id' => $entity->idClientes,
             'payment_method' => 'boleto',

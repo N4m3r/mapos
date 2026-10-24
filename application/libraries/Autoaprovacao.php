@@ -6,12 +6,13 @@ use Libraries\Fiscal\NfseService;
 defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
- * Automação de aprovação: quando o cliente aprova a OS, emite a NFS-e dos
- * serviços e gera o boleto Cora da nota — desde que a automação esteja ligada
- * globalmente e habilitada para aquele cliente.
+ * Automação de faturamento: quando o cliente ACEITA a resolução do serviço
+ * realizado (aceite pós-execução da OS), emite a NFS-e dos serviços e gera o
+ * boleto Cora da nota — desde que a automação esteja ligada globalmente e
+ * habilitada para aquele cliente.
  *
  * É best-effort e defensiva: qualquer falha é registrada no log e NUNCA
- * interrompe o fluxo de aprovação. A emissão fiscal só ocorre com a flag
+ * interrompe o fluxo de aceite. A emissão fiscal só ocorre com a flag
  * global `automacao_aprovacao_ativa` = 1.
  */
 class Autoaprovacao
@@ -24,8 +25,9 @@ class Autoaprovacao
     }
 
     /**
-     * Executa a automação para uma OS recém-aprovada. Retorna um array com o
-     * resultado (para log/telemetria) ou null quando não se aplica.
+     * Executa a automação para uma OS cujo aceite acabou de ser confirmado.
+     * Retorna um array com o resultado (para log/telemetria) ou null quando
+     * não se aplica.
      */
     public function executar($idOs)
     {
@@ -46,8 +48,8 @@ class Autoaprovacao
             if (! $os) {
                 return null;
             }
-            // Só para OS aprovada.
-            if (isset($os->aprovacao_status) && $os->aprovacao_status !== 'aprovado') {
+            // Só para OS com aceite confirmado (resolução da atividade aceita).
+            if (! isset($os->aceite_status) || $os->aceite_status !== 'aceito') {
                 return null;
             }
             // Elegibilidade: override da OS tem prioridade sobre a flag do cliente.
@@ -197,7 +199,7 @@ class Autoaprovacao
                 'data_autorizacao' => date('Y-m-d H:i:s'),
             ]);
 
-            log_info('Automação: NFS-e (DPS nº ' . $numero . ') emitida na aprovação da OS ' . $idOs);
+            log_info('Automação: NFS-e (DPS nº ' . $numero . ') emitida no aceite da OS ' . $idOs);
 
             return $idNota;
         } catch (\Throwable $e) {
@@ -303,11 +305,11 @@ class Autoaprovacao
     {
         try {
             $os = $this->CI->os_model->getById($item->os_id);
-            // OS sumiu ou não está mais aprovada → cancela o agendamento.
-            if (! $os || (isset($os->aprovacao_status) && $os->aprovacao_status !== 'aprovado')) {
+            // OS sumiu ou aceite não está mais confirmado → cancela o agendamento.
+            if (! $os || ! isset($os->aceite_status) || $os->aceite_status !== 'aceito') {
                 $this->CI->db->where('id', $item->id)->update('faturamentos_agendados', [
                     'status' => 'cancelado',
-                    'motivo' => 'OS inexistente ou não aprovada no dia da emissão.',
+                    'motivo' => 'OS inexistente ou aceite não confirmado no dia da emissão.',
                     'processed_at' => date('Y-m-d H:i:s'),
                 ]);
 

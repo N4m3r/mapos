@@ -81,6 +81,8 @@ class Os extends MY_Controller
 
         $this->data['texto_de_notificacao'] = $this->data['configuration']['notifica_whats'];
         $this->data['emitente'] = $this->mapos_model->getEmitente();
+        // Status que a acao rapida da listagem pode aplicar (mesma regra do alterarStatusAction)
+        $this->data['statusRapidos'] = $this->statusChamadoPermitidos();
         $this->data['view'] = 'os/os';
 
         return $this->layout();
@@ -189,6 +191,33 @@ class Os extends MY_Controller
         return $this->layout();
     }
 
+    public function duplicar()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'aOs')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para adicionar O.S.');
+            redirect(base_url());
+        }
+
+        $idOrigem = $this->input->post('idOs');
+        $clientesId = $this->input->post('clientes_id');
+
+        if (! is_numeric($idOrigem) || ! is_numeric($clientesId)) {
+            $this->session->set_flashdata('error', 'Selecione a OS de origem e o cliente/CNPJ de destino.');
+            redirect(site_url('os'));
+        }
+
+        $novoId = $this->os_model->duplicarOs($idOrigem, $clientesId);
+
+        if (is_numeric($novoId)) {
+            $this->session->set_flashdata('success', 'OS #' . $idOrigem . ' copiada com sucesso para o cliente selecionado. Revise os dados da nova OS.');
+            log_info('Duplicou a OS #' . $idOrigem . ' para nova OS #' . $novoId . ' (cliente ' . $clientesId . ').');
+            redirect(site_url('os/editar/') . $novoId);
+        }
+
+        $this->session->set_flashdata('error', 'Ocorreu um erro ao copiar a OS.');
+        redirect(site_url('os'));
+    }
+
     public function editar()
     {
         if (! $this->uri->segment(3) || ! is_numeric($this->uri->segment(3))) {
@@ -254,49 +283,11 @@ class Os extends MY_Controller
                 $this->debitarEstoque($this->input->post('idOs'));
             }
 
+            // Contrato/SLA e equipe (só grava se as colunas existirem).
+            $data = array_merge($data, $this->montarCamposContratoEquipe($os));
+
             if ($this->os_model->edit('os', $data, 'idOs', $this->input->post('idOs')) == true) {
-                $this->load->model('mapos_model');
-                $this->load->model('usuarios_model');
-
-                $idOs = $this->input->post('idOs');
-
-                $os = $this->os_model->getById($idOs);
-                $emitente = $this->mapos_model->getEmitente();
-                $tecnico = $this->usuarios_model->getById($os->usuarios_id);
-
-                // Verificar configuração de notificação
-                if ($this->data['configuration']['os_notification'] != 'nenhum' && $this->data['configuration']['email_automatico'] == 1) {
-                    $remetentes = [];
-                    switch ($this->data['configuration']['os_notification']) {
-                        case 'todos':
-                            array_push($remetentes, $os->email);
-                            array_push($remetentes, $tecnico->email);
-                            array_push($remetentes, $emitente->email);
-                            break;
-                        case 'cliente':
-                            array_push($remetentes, $os->email);
-                            break;
-                        case 'tecnico':
-                            array_push($remetentes, $tecnico->email);
-                            break;
-                        case 'emitente':
-                            array_push($remetentes, $emitente->email);
-                            break;
-                        default:
-                            array_push($remetentes, $os->email);
-                            break;
-                    }
-                    $this->enviarOsPorEmail($idOs, $remetentes, 'Ordem de Serviço - Editada', 'os_editada');
-                }
-
-                // Notificação automática por WhatsApp (Evolution API). Falha aqui
-                // NUNCA deve impedir a edição da OS — só registra no log e segue.
-                // Ao finalizar, dispara também o evento os_finalizada.
-                $eventosWpp = ['os_editada'];
-                if (strtolower($os->status) === 'finalizado') {
-                    $eventosWpp[] = 'os_finalizada';
-                }
-                $this->notificarWhatsAppAutomatico($os, $emitente, $eventosWpp);
+                $this->notificarEdicaoOs($this->input->post('idOs'));
 
                 $this->session->set_flashdata('success', 'Os editada com sucesso!');
                 log_info('Alterou uma OS. ID: ' . $this->input->post('idOs'));
@@ -307,11 +298,24 @@ class Os extends MY_Controller
         }
 
         $this->data['result'] = $this->os_model->getById($this->uri->segment(3));
-
         $this->data['produtos'] = $this->os_model->getProdutos($this->uri->segment(3));
         $this->data['servicos'] = $this->os_model->getServicos($this->uri->segment(3));
         $this->data['anexos'] = $this->os_model->getAnexos($this->uri->segment(3));
         $this->data['anotacoes'] = $this->os_model->getAnotacoes($this->uri->segment(3));
+
+        // Contratos e equipes para os seletores da OS (resiliente aos módulos).
+        $this->data['contratosSelect'] = [];
+        $this->data['equipesSelect'] = [];
+        $this->data['prioridadesSla'] = [];
+        if ($this->db->table_exists('contratos')) {
+            $this->load->model('contratos_model');
+            $this->data['contratosSelect'] = $this->contratos_model->getContratosSelect();
+            $this->data['prioridadesSla'] = array_keys(Contratos_model::prioridadesPadrao());
+        }
+        if ($this->db->table_exists('equipes')) {
+            $this->load->model('obra_equipe_model');
+            $this->data['equipesSelect'] = $this->obra_equipe_model->getEquipesSelect();
+        }
 
         if ($return = $this->os_model->valorTotalOS($this->uri->segment(3))) {
             $this->data['totalServico'] = $return['totalServico'];
@@ -339,6 +343,14 @@ class Os extends MY_Controller
         $this->data['view'] = 'os/editarOs';
 
         return $this->layout();
+    }
+
+    /** Campos de contrato/SLA/equipe da OS. Delegacao: logica em libraries/Os_contrato.php */
+    private function montarCamposContratoEquipe($osAtual)
+    {
+        $this->load->library('os_contrato');
+
+        return $this->os_contrato->camposContratoEquipe($osAtual);
     }
 
     public function visualizar()
@@ -399,9 +411,26 @@ class Os extends MY_Controller
         $os_id = $this->uri->segment(3);
         $this->data['checkins'] = $this->checkin_model->getAllByOs($os_id);
         $this->data['checkinAtivo'] = $this->checkin_model->getCheckinAtivo($os_id);
+
+        // Batidas de ponto (RH) vinculadas a esta OS — presença em campo.
+        $this->load->model('rh_ponto_model');
+        $this->data['batidasPonto'] = $this->rh_ponto_model->getByOs($os_id);
+
+        // Linha do tempo ("onde estamos") da OS.
+        $this->data['timeline'] = $this->os_model->getTimeline($os_id);
         $this->data['assinaturas'] = $this->assinaturas_model->getByOs($os_id);
         log_info('OS Visualizar - Assinaturas carregadas: ' . count($this->data['assinaturas']));
         $this->data['fotosAtendimento'] = $this->fotosatendimento_model->getByOs($os_id);
+
+        // Respostas dos formulários de atendimento personalizados (agrupadas por etapa)
+        $this->load->model('formularios_atendimento_model', 'formularios');
+        $respostasPorEtapa = [];
+        foreach ($this->formularios->getRespostasByOs($os_id) as $respostaFormulario) {
+            $etapaResp = $respostaFormulario->etapa ?: 'outros';
+            $respostasPorEtapa[$etapaResp][] = $respostaFormulario;
+        }
+        $this->data['respostasFormularios'] = $respostasPorEtapa;
+
         $this->data['qrCode'] = $this->os_model->getQrCode(
             $this->uri->segment(3),
             $this->data['configuration']['pix_key'],
@@ -416,7 +445,7 @@ class Os extends MY_Controller
             true
         );
         $this->data['view'] = 'os/visualizarOs';
-        $this->data['chaveFormatada'] = $this->formatarChave($this->data['configuration']['pix_key']);
+        $this->data['chaveFormatada'] = formatar_chave_pix($this->data['configuration']['pix_key']);
 
         if ($return = $this->os_model->valorTotalOS($this->uri->segment(3))) {
             $this->data['totalServico'] = $return['totalServico'];
@@ -441,69 +470,6 @@ class Os extends MY_Controller
         return $this->layout();
     }
 
-    public function validarCPF($cpf)
-    {
-        $cpf = preg_replace('/[^0-9]/', '', $cpf);
-        if (strlen($cpf) !== 11 || preg_match('/^(\d)\1+$/', $cpf)) {
-            return false;
-        }
-        $soma1 = 0;
-        for ($i = 0; $i < 9; $i++) {
-            $soma1 += $cpf[$i] * (10 - $i);
-        }
-        $resto1 = $soma1 % 11;
-        $dv1 = ($resto1 < 2) ? 0 : 11 - $resto1;
-        if ($dv1 != $cpf[9]) {
-            return false;
-        }
-        $soma2 = 0;
-        for ($i = 0; $i < 10; $i++) {
-            $soma2 += $cpf[$i] * (11 - $i);
-        }
-        $resto2 = $soma2 % 11;
-        $dv2 = ($resto2 < 2) ? 0 : 11 - $resto2;
-
-        return $dv2 == $cpf[10];
-    }
-
-    public function validarCNPJ($cnpj)
-    {
-        $cnpj = preg_replace('/[^0-9]/', '', $cnpj);
-        if (strlen($cnpj) !== 14 || preg_match('/^(\d)\1+$/', $cnpj)) {
-            return false;
-        }
-        $soma1 = 0;
-        for ($i = 0, $pos = 5; $i < 12; $i++, $pos--) {
-            $pos = ($pos < 2) ? 9 : $pos;
-            $soma1 += $cnpj[$i] * $pos;
-        }
-        $dv1 = ($soma1 % 11 < 2) ? 0 : 11 - ($soma1 % 11);
-        if ($dv1 != $cnpj[12]) {
-            return false;
-        }
-        $soma2 = 0;
-        for ($i = 0, $pos = 6; $i < 13; $i++, $pos--) {
-            $pos = ($pos < 2) ? 9 : $pos;
-            $soma2 += $cnpj[$i] * $pos;
-        }
-        $dv2 = ($soma2 % 11 < 2) ? 0 : 11 - ($soma2 % 11);
-
-        return $dv2 == $cnpj[13];
-    }
-
-    public function formatarChave($chave)
-    {
-        if ($this->validarCPF($chave)) {
-            return substr($chave, 0, 3) . '.' . substr($chave, 3, 3) . '.' . substr($chave, 6, 3) . '-' . substr($chave, 9);
-        } elseif ($this->validarCNPJ($chave)) {
-            return substr($chave, 0, 2) . '.' . substr($chave, 2, 3) . '.' . substr($chave, 5, 3) . '/' . substr($chave, 8, 4) . '-' . substr($chave, 12);
-        } elseif (strlen($chave) === 11) {
-            return '(' . substr($chave, 0, 2) . ') ' . substr($chave, 2, 5) . '-' . substr($chave, 7);
-        }
-
-        return $chave;
-    }
-
     /**
      * Mapa de boletos (cobranças) indexado por nota_id, para exibir o boleto
      * Cora vinculado a cada nota fiscal na aba de Notas Fiscais da OS.
@@ -516,7 +482,8 @@ class Os extends MY_Controller
         $ids = array_map(fn ($n) => $n->idNota, $notas);
         $this->load->model('cobrancas_model');
 
-        return $this->cobrancas_model->getByNotaIds($ids);
+        // Lista (todas as parcelas) por nota — a aba de notas exibe cada boleto.
+        return $this->cobrancas_model->getListByNotaIds($ids);
     }
 
     /**
@@ -567,7 +534,7 @@ class Os extends MY_Controller
                 $this->data['configuration']['pix_key'],
                 $this->data['emitente']
             );
-            $this->data['chaveFormatada'] = $this->formatarChave($this->data['configuration']['pix_key']);
+            $this->data['chaveFormatada'] = formatar_chave_pix($this->data['configuration']['pix_key']);
         }
         
         $this->data['imprimirAnexo'] = isset($_ENV['IMPRIMIR_ANEXOS']) ? (filter_var($_ENV['IMPRIMIR_ANEXOS'] ?? false, FILTER_VALIDATE_BOOLEAN)) : false;
@@ -600,7 +567,7 @@ class Os extends MY_Controller
             $this->data['configuration']['pix_key'],
             $this->data['emitente']
         );
-        $this->data['chaveFormatada'] = $this->formatarChave($this->data['configuration']['pix_key']);
+        $this->data['chaveFormatada'] = formatar_chave_pix($this->data['configuration']['pix_key']);
         $this->data['permissao_eOs'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')
             && ! $this->permission->checkPermission($this->session->userdata('permissao'), 'vTecnicoDashboard');
 
@@ -691,14 +658,26 @@ class Os extends MY_Controller
         redirect(site_url('os'));
     }
 
+    /**
+     * Acoes que alteram itens da OS (chamadas por AJAX na tela de edicao) exigem permissao de editar OS.
+     */
+    private function exigirEdicaoOs()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
+            $this->output->set_status_header(403)->set_content_type('application/json')
+                ->set_output(json_encode(['result' => false, 'mensagem' => 'Você não tem permissão para editar O.S.']))
+                ->_display();
+            exit;
+        }
+    }
+
     private function devolucaoEstoque($id)
     {
         if ($produtos = $this->os_model->getProdutos($id)) {
             $this->load->model('produtos_model');
             if ($this->data['configuration']['control_estoque']) {
                 foreach ($produtos as $p) {
-                    $this->produtos_model->updateEstoque($p->produtos_id, $p->quantidade, '+');
-                    log_info('ESTOQUE: Produto id ' . $p->produtos_id . ' voltou ao estoque. Quantidade: ' . $p->quantidade . '. Motivo: Cancelamento/Exclusão');
+                    $this->produtos_model->updateEstoque($p->produtos_id, $p->quantidade, '+', ['tipo' => 'os', 'referencia' => $id, 'observacao' => 'OS cancelada ou excluída']);
                 }
             }
         }
@@ -710,8 +689,7 @@ class Os extends MY_Controller
             $this->load->model('produtos_model');
             if ($this->data['configuration']['control_estoque']) {
                 foreach ($produtos as $p) {
-                    $this->produtos_model->updateEstoque($p->produtos_id, $p->quantidade, '-');
-                    log_info('ESTOQUE: Produto id ' . $p->produtos_id . ' baixa do estoque. Quantidade: ' . $p->quantidade . '. Motivo: Mudou status que já estava Cancelado para outro');
+                    $this->produtos_model->updateEstoque($p->produtos_id, $p->quantidade, '-', ['tipo' => 'os', 'referencia' => $id, 'observacao' => 'OS reaberta (saiu de Cancelado)']);
                 }
             }
         }
@@ -812,6 +790,8 @@ class Os extends MY_Controller
 
     public function adicionarProduto()
     {
+        $this->exigirEdicaoOs();
+
         $this->load->library('form_validation');
 
         if ($this->form_validation->run('adicionar_produto_os') === false) {
@@ -846,7 +826,7 @@ class Os extends MY_Controller
             $this->load->model('produtos_model');
 
             if ($this->data['configuration']['control_estoque']) {
-                $this->produtos_model->updateEstoque($produto, $quantidade, '-');
+                $this->produtos_model->updateEstoque($produto, $quantidade, '-', ['tipo' => 'os', 'referencia' => $id]);
             }
 
             $this->db->set('desconto', 0.00);
@@ -871,6 +851,8 @@ class Os extends MY_Controller
 
     public function excluirProduto()
     {
+        $this->exigirEdicaoOs();
+
         $id = $this->input->post('idProduto');
         $idOs = $this->input->post('idOs');
 
@@ -880,14 +862,19 @@ class Os extends MY_Controller
             redirect(base_url() . 'index.php/os/gerenciar/');
         }
 
-        if ($this->os_model->delete('produtos_os', 'idProdutos_os', $id) == true) {
-            $quantidade = $this->input->post('quantidade');
-            $produto = $this->input->post('produto');
+        // Produto e quantidade vem do item gravado (nao do navegador) e o item tem de ser desta OS
+        $item = $this->db->where('idProdutos_os', $id)->where('os_id', $idOs)->get('produtos_os')->row();
+        if (! $item) {
+            echo json_encode(['result' => false]);
 
+            return;
+        }
+
+        if ($this->os_model->delete('produtos_os', 'idProdutos_os', $id) == true) {
             $this->load->model('produtos_model');
 
             if ($this->data['configuration']['control_estoque']) {
-                $this->produtos_model->updateEstoque($produto, $quantidade, '+');
+                $this->produtos_model->updateEstoque($item->produtos_id, $item->quantidade, '+', ['tipo' => 'os', 'referencia' => $idOs, 'observacao' => 'Produto removido da OS']);
             }
 
             $this->db->set('desconto', 0.00);
@@ -906,6 +893,8 @@ class Os extends MY_Controller
 
     public function adicionarServico()
     {
+        $this->exigirEdicaoOs();
+
         $this->load->library('form_validation');
 
         if ($this->form_validation->run('adicionar_servico_os') === false) {
@@ -948,6 +937,8 @@ class Os extends MY_Controller
 
     public function excluirServico()
     {
+        $this->exigirEdicaoOs();
+
         $ID = $this->input->post('idServico');
         $idOs = $this->input->post('idOs');
 
@@ -1139,6 +1130,8 @@ class Os extends MY_Controller
 
     public function anexar()
     {
+        $this->exigirEdicaoOs();
+
         $this->load->library('upload');
         $this->load->library('image_lib');
 
@@ -1231,6 +1224,8 @@ class Os extends MY_Controller
 
     public function excluirAnexo($id = null)
     {
+        $this->exigirEdicaoOs();
+
         if ($id == null || ! is_numeric($id)) {
             echo json_encode(['result' => false, 'mensagem' => 'Erro ao tentar excluir anexo.']);
         } else {
@@ -1268,6 +1263,8 @@ class Os extends MY_Controller
 
     public function adicionarDesconto()
     {
+        $this->exigirEdicaoOs();
+
         if ($this->input->post('desconto') == '') {
             return $this->output
                 ->set_content_type('application/json')
@@ -1410,113 +1407,63 @@ class Os extends MY_Controller
         echo json_encode($json);
     }
 
-    private function enviarOsPorEmail($idOs, $remetentes, $assunto, $evento = null)
+    /**
+     * Notificacoes de OS editada: e-mail (conforme configuracao) e WhatsApp
+     * (gatilhos os_editada / os_finalizada). Usado pela edicao da OS e pela
+     * troca rapida de status (listagem e Central de Atendimento).
+     */
+    private function notificarEdicaoOs($idOs)
     {
-        $dados = [];
-
         $this->load->model('mapos_model');
-        $dados['result'] = $this->os_model->getById($idOs);
-        if (! isset($dados['result']->email)) {
-            return false;
-        }
+        $this->load->model('usuarios_model');
 
-        $dados['produtos'] = $this->os_model->getProdutos($idOs);
-        $dados['servicos'] = $this->os_model->getServicos($idOs);
-        $dados['emitente'] = $this->mapos_model->getEmitente();
-        $emitente = $dados['emitente'];
-        if (! isset($emitente->email)) {
-            return false;
-        }
+        $idOs = (int) $idOs;
 
-        // Gatilho de notificação (se informado): controla ativo, canal de e-mail,
-        // destinatários, blocos e modelo. Sem gatilho, mantém o comportamento anterior.
-        $blocos = null;
-        $slug = 'os';
-        if ($evento) {
-            $this->load->model('notification_triggers_model');
-            $trigger = $this->notification_triggers_model->getByEvento($evento);
-            if ($trigger) {
-                $canais = Notification_triggers_model::toList($trigger->canais);
-                if ((int) $trigger->ativo !== 1 || ! in_array('email', $canais, true)) {
-                    return false; // gatilho desativado ou sem canal de e-mail
-                }
-                $slug = $trigger->template_slug ?: 'os';
-                $blocosList = Notification_triggers_model::toList($trigger->blocos);
-                $blocos = empty($blocosList) ? null : $blocosList;
-                $remetentes = $this->destinatariosOs($trigger, $dados['result'], $emitente);
+        $os = $this->os_model->getById($idOs);
+        $emitente = $this->mapos_model->getEmitente();
+        $tecnico = $this->usuarios_model->getById($os->usuarios_id);
+
+        // Verificar configuração de notificação
+        if ($this->data['configuration']['os_notification'] != 'nenhum' && $this->data['configuration']['email_automatico'] == 1) {
+            $remetentes = [];
+            switch ($this->data['configuration']['os_notification']) {
+                case 'todos':
+                    array_push($remetentes, $os->email);
+                    array_push($remetentes, $tecnico->email);
+                    array_push($remetentes, $emitente->email);
+                    break;
+                case 'cliente':
+                    array_push($remetentes, $os->email);
+                    break;
+                case 'tecnico':
+                    array_push($remetentes, $tecnico->email);
+                    break;
+                case 'emitente':
+                    array_push($remetentes, $emitente->email);
+                    break;
+                default:
+                    array_push($remetentes, $os->email);
+                    break;
             }
+            $this->enviarOsPorEmail($idOs, $remetentes, 'Ordem de Serviço - Editada', 'os_editada');
         }
 
-        $html = $this->load->view('os/emails/os', $dados, true);
-
-        // Modelo configurável de e-mail (fallback para a view padrão acima).
-        $this->load->library('emailtemplate');
-        $render = $this->emailtemplate->render($slug, [
-            'emitente' => $emitente,
-            'os' => $dados['result'],
-            'cliente' => $dados['result'],
-            'produtos' => $dados['produtos'],
-            'servicos' => $dados['servicos'],
-            'blocos' => $blocos,
-        ]);
-        if ($render !== null && ! $render['ativo']) {
-            // Envio de e-mail de OS desativado em Configurações > Modelos de E-mail.
-            return false;
+        // Notificação automática por WhatsApp (Evolution API). Falha aqui
+        // NUNCA deve impedir a edição da OS — só registra no log e segue.
+        // Ao finalizar, dispara também o evento os_finalizada.
+        $eventosWpp = ['os_editada'];
+        if (strtolower($os->status) === 'finalizado') {
+            $eventosWpp[] = 'os_finalizada';
         }
-        if ($render !== null) {
-            $html = $render['corpo'];
-            $assunto = $render['assunto'];
-        }
-
-        $this->load->model('email_model');
-
-        $remetentes = array_unique($remetentes);
-        foreach ($remetentes as $remetente) {
-            if ($remetente) {
-                $headers = ['From' => $emitente->email, 'Subject' => $assunto, 'Return-Path' => ''];
-                $email = [
-                    'to' => $remetente,
-                    'message' => $html,
-                    'status' => 'pending',
-                    'date' => date('Y-m-d H:i:s'),
-                    'headers' => serialize($headers),
-                ];
-                $this->email_model->add('email_queue', $email);
-            } else {
-                log_info('Email não adicionado a Lista de envio de e-mails. Verifique se o remetente esta cadastrado. OS ID: ' . $idOs);
-            }
-        }
-
-        return true;
+        $this->notificarWhatsAppAutomatico($os, $emitente, $eventosWpp);
     }
 
-    /**
-     * Monta os e-mails de destino de uma OS conforme os destinatários marcados
-     * no gatilho (cliente, e-mail secundário, técnico, emitente).
-     */
-    private function destinatariosOs($trigger, $os, $emitente)
+    /** Delegacao: logica em libraries/Os_email.php */
+    private function enviarOsPorEmail($idOs, $remetentes, $assunto, $evento = null)
     {
-        $dest = Notification_triggers_model::toList($trigger->destinatarios);
-        $emails = [];
+        $this->load->library('os_email');
 
-        if (in_array('cliente', $dest, true) && ! empty($os->email)) {
-            $emails[] = $os->email;
-        }
-        if (in_array('cliente_secundario', $dest, true) && ! empty($os->email_secundario)) {
-            $emails[] = $os->email_secundario;
-        }
-        if (in_array('emitente', $dest, true) && ! empty($emitente->email)) {
-            $emails[] = $emitente->email;
-        }
-        if (in_array('tecnico', $dest, true) && ! empty($os->usuarios_id)) {
-            $this->load->model('usuarios_model');
-            $tecnico = $this->usuarios_model->getById($os->usuarios_id);
-            if ($tecnico && ! empty($tecnico->email)) {
-                $emails[] = $tecnico->email;
-            }
-        }
-
-        return $emails;
+        return $this->os_email->enviar($idOs, $remetentes, $assunto, $evento);
     }
 
     /**
@@ -1581,23 +1528,47 @@ class Os extends MY_Controller
     }
 
     /**
-     * ETAPA 4: Interface de atribuição de técnico às OS
-     * Tela para administradores gerenciarem a atribuição de técnicos
+     * Statuses que podem ser aplicados pela Central de Atendimento (mudança
+     * inline). Exclui os terminais (Finalizado/Faturado/Cancelado) e o
+     * "Não Realizado" porque têm efeitos colaterais (estoque, faturamento,
+     * ocorrência de não realizado) que devem passar pela OS ou pelo fluxo próprio.
+     */
+    private function statusChamadoPermitidos()
+    {
+        return ['Aberto', 'Em Andamento', 'Orçamento', 'Negociação', 'Aprovado', 'Aguardando Peças'];
+    }
+
+    /**
+     * CENTRAL DE ATENDIMENTO: gestão dos chamados (OS) + atribuição de técnicos.
+     * Layout híbrido: faixa de indicadores (KPIs) + abas por situação do
+     * atendimento (Todos / Sem Técnico / Em Atendimento / Não Realizadas).
+     * Acesso pela permissão eOs (Editar OS).
      */
     public function atribuir()
     {
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
-            $this->session->set_flashdata('error', 'Você não tem permissão para atribuir técnicos às OS.');
+            $this->session->set_flashdata('error', 'Você não tem permissão para acessar a Central de Atendimento.');
             redirect(base_url());
         }
 
         $this->load->model('tecnico_model');
+        $this->load->model('naorealizada_model');
         $this->load->library('pagination');
         $this->load->helper('text');
         $this->load->model('os_model');
 
-        // Filtro de exibição
-        $filtro = $this->input->get('filtro');
+        // Aba ativa (situação do atendimento). Mantém compatibilidade com o
+        // parâmetro antigo ?filtro= usado por links/bookmarks.
+        $aba = $this->input->get('aba') ?: $this->input->get('filtro') ?: 'todos';
+        if ($aba === 'com_tecnico') {
+            $aba = 'em_atendimento';
+        }
+
+        // Filtros de busca e período (aplicados às abas baseadas em OS).
+        $busca    = trim((string) $this->input->get('busca'));
+        $data_de  = trim((string) $this->input->get('data_de'));
+        $data_ate = trim((string) $this->input->get('data_ate'));
+        $filtros  = ['busca' => $busca, 'data_de' => $data_de, 'data_ate' => $data_ate];
 
         // Configuração da paginação
         $config['base_url'] = site_url('os/atribuir');
@@ -1627,21 +1598,38 @@ class Os extends MY_Controller
         // Offset baseado na query string
         $page = $this->input->get('page') ? (int)$this->input->get('page') : 0;
 
-        if ($filtro == 'sem_tecnico') {
-            // Buscar OS onde tecnico_responsavel é NULL
-            $ordens = $this->os_model->getOsSemTecnico($config['per_page'], $page);
-            $config['total_rows'] = $this->tecnico_model->countOsSemTecnico();
-        } elseif ($filtro == 'com_tecnico') {
-            // Buscar OS com técnico
-            $ordens = $this->os_model->getOsComTecnico($config['per_page'], $page);
-            $config['total_rows'] = $this->tecnico_model->countOsComTecnico();
+        if ($aba == 'nao_realizadas') {
+            // Tratada à parte (lista de ocorrências), sem paginação nesta versão.
+            $ordens = [];
+            $config['total_rows'] = 0;
         } else {
-            // Buscar todas as OS pendentes
-            $ordens = $this->os_model->getOsPendentesAtribuicao($config['per_page'], $page);
-            $config['total_rows'] = $this->tecnico_model->countOsParaAtribuicao();
+            // Abas baseadas em OS (todos, sem_tecnico, em_atendimento, finalizados)
+            // com filtros de busca e período aplicados de forma unificada.
+            if (! in_array($aba, ['todos', 'sem_tecnico', 'em_atendimento', 'finalizados'], true)) {
+                $aba = 'todos';
+            }
+            $ordens = $this->os_model->getOsCentral($aba, $filtros, $config['per_page'], $page);
+            $config['total_rows'] = $this->os_model->countOsCentral($aba, $filtros);
         }
 
         $this->data['ordens'] = $ordens ?: [];
+        $this->data['aba'] = $aba;
+        $this->data['busca'] = $busca;
+        $this->data['data_de'] = $data_de;
+        $this->data['data_ate'] = $data_ate;
+
+        // Ocorrências de "Não Realizado" pendentes (visão de gestão, todos os técnicos)
+        $this->data['naoRealizadas'] = $this->naorealizada_model->getPendentes(null, 100);
+
+        // Indicadores (KPIs) do topo
+        $this->data['kpis'] = [
+            'total'          => $this->tecnico_model->countOsParaAtribuicao(),
+            'sem_tecnico'    => $this->tecnico_model->countOsSemTecnico(),
+            'em_atendimento' => $this->tecnico_model->countOsComTecnico(),
+            'aguardando'     => $this->os_model->contarPorStatus(['Aguardando Peças', 'Aprovado', 'Orçamento', 'Negociação']),
+            'nao_realizadas' => $this->naorealizada_model->contarPendentes(),
+            'finalizados'    => $this->os_model->contarPorStatus(['Finalizado', 'Faturado']),
+        ];
 
         // Inicializar paginação
         $this->pagination->initialize($config);
@@ -1650,11 +1638,124 @@ class Os extends MY_Controller
         // Carregar lista de técnicos (apenas usuários de grupos com permissão de técnico)
         $this->data['tecnicos'] = $this->tecnico_model->getTecnicosPorPermissao();
 
+        // Statuses aplicáveis inline
+        $this->data['statusDisponiveis'] = $this->statusChamadoPermitidos();
+
         // Ativar menu
         $this->data['menuAtribuir'] = 'Atribuir';
         $this->data['view'] = 'os/atribuir_tecnico';
 
         return $this->layout();
+    }
+
+    /**
+     * Ação AJAX: altera o status do chamado direto pela Central de Atendimento
+     * e pela listagem de OS. Restrita aos statuses de fluxo (statusChamadoPermitidos),
+     * evitando os terminais que têm efeitos colaterais (estoque/faturamento).
+     * Marca o cronômetro de SLA e dispara as notificações de OS editada.
+     */
+    public function alterarStatusAction()
+    {
+        if (! $this->input->is_ajax_request()) {
+            echo json_encode(['success' => false, 'message' => 'Requisição inválida.']);
+            return;
+        }
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
+            echo json_encode(['success' => false, 'message' => 'Sem permissão para alterar o status.']);
+            return;
+        }
+
+        $os_id  = (int) $this->input->post('os_id');
+        $status = trim((string) $this->input->post('status'));
+
+        if (! $os_id || $status === '') {
+            echo json_encode(['success' => false, 'message' => 'Dados incompletos.']);
+            return;
+        }
+        if (! in_array($status, $this->statusChamadoPermitidos(), true)) {
+            echo json_encode(['success' => false, 'message' => 'Status não permitido por aqui. Use a OS para cancelar, finalizar ou faturar.']);
+            return;
+        }
+
+        $os = $this->os_model->getById($os_id);
+        if (! $os) {
+            echo json_encode(['success' => false, 'message' => 'OS não encontrada.']);
+            return;
+        }
+        if (in_array($os->status, ['Finalizado', 'Faturado', 'Cancelado'], true)) {
+            echo json_encode(['success' => false, 'message' => 'Esta OS está ' . $os->status . ' e não pode mudar de status por aqui.']);
+            return;
+        }
+        if ($os->status === 'Não Realizado') {
+            echo json_encode(['success' => false, 'message' => 'OS em espera. Use "Reagendar" ou "Reabrir" na aba Não Realizadas.']);
+            return;
+        }
+
+        // Mesmo comportamento da edicao da OS: cronometro de SLA e notificacoes
+        $this->load->library('os_contrato');
+        $dados = array_merge(['status' => $status], $this->os_contrato->camposCronometroSla($os, $status));
+
+        if ($this->os_model->edit('os', $dados, 'idOs', $os_id)) {
+            log_info('Alterou status da OS #' . $os_id . ' para "' . $status . '" pela troca rapida de status.');
+            $this->notificarEdicaoOs($os_id);
+            echo json_encode(['success' => true, 'message' => 'Status da OS #' . $os_id . ' atualizado para ' . $status . '.', 'status' => $status]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar o status.']);
+        }
+    }
+
+    /**
+     * Ação AJAX: resolve uma ocorrência de "Não Realizado" pela Central
+     * (perfil de gestão), reagendando para nova data ou reabrindo para refazer.
+     */
+    public function resolverNaoRealizadaAction()
+    {
+        if (! $this->input->is_ajax_request()) {
+            echo json_encode(['success' => false, 'message' => 'Requisição inválida.']);
+            return;
+        }
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
+            echo json_encode(['success' => false, 'message' => 'Sem permissão.']);
+            return;
+        }
+
+        $this->load->model('naorealizada_model');
+        $ocorrencia_id = (int) $this->input->post('ocorrencia_id');
+        $acao          = $this->input->post('acao');
+        $usuario       = $this->session->userdata('id_admin');
+
+        $oc = $this->naorealizada_model->getOcorrencia($ocorrencia_id);
+        if (! $oc) {
+            echo json_encode(['success' => false, 'message' => 'Ocorrência não encontrada.']);
+            return;
+        }
+
+        if ($acao === 'reagendar') {
+            $nova_data = trim((string) $this->input->post('nova_data'));
+            if ($nova_data === '' || ! strtotime($nova_data)) {
+                echo json_encode(['success' => false, 'message' => 'Informe uma data válida para o reagendamento.']);
+                return;
+            }
+            if (! $this->naorealizada_model->reagendar($ocorrencia_id, $nova_data, $usuario)) {
+                echo json_encode(['success' => false, 'message' => 'Não foi possível reagendar (talvez já resolvida).']);
+                return;
+            }
+            log_info('Reagendou OS não realizada pela Central. OS ID: ' . $oc->os_id);
+            echo json_encode(['success' => true, 'message' => 'OS #' . $oc->os_id . ' reagendada para ' . date('d/m/Y', strtotime($nova_data)) . '.']);
+            return;
+        }
+
+        if ($acao === 'reabrir') {
+            if (! $this->naorealizada_model->reabrir($ocorrencia_id, $usuario)) {
+                echo json_encode(['success' => false, 'message' => 'Não foi possível reabrir (talvez já resolvida).']);
+                return;
+            }
+            log_info('Reabriu OS não realizada pela Central. OS ID: ' . $oc->os_id);
+            echo json_encode(['success' => true, 'message' => 'OS #' . $oc->os_id . ' reaberta para refazer.']);
+            return;
+        }
+
+        echo json_encode(['success' => false, 'message' => 'Ação inválida.']);
     }
 
     /**
@@ -1670,6 +1771,7 @@ class Os extends MY_Controller
         $os_id = $this->input->post('os_id');
         $tecnico_id = $this->input->post('tecnico_id');
         $observacao = $this->input->post('observacao');
+        $agendamento = $this->input->post('data_agendamento');
 
         if (! $os_id || ! $tecnico_id) {
             $this->session->set_flashdata('error', 'Dados incompletos para atribuição.');
@@ -1683,9 +1785,12 @@ class Os extends MY_Controller
             redirect('os/atribuir');
         }
 
-        $atribuido_por = $this->session->userdata('idUsuarios');
+        $atribuido_por = $this->session->userdata('id_admin');
 
         if ($this->tecnico_model->atribuirTecnico($os_id, $tecnico_id, $atribuido_por, $observacao)) {
+            // Agendamento do atendimento (data + hora). O input datetime-local
+            // manda "Y-m-d\TH:i"; normaliza para DATETIME do banco.
+            $this->salvarAgendamentoOs($os_id, $agendamento);
             $this->notificarTecnicoAtribuicao($os_id, $tecnico_id);
             $this->session->set_flashdata('success', 'Técnico atribuído à OS #' . $os_id . ' com sucesso!');
             log_info('Atribuiu técnico ' . $tecnico_id . ' à OS #' . $os_id);
@@ -1694,6 +1799,25 @@ class Os extends MY_Controller
         }
 
         redirect('os/atribuir');
+    }
+
+    /**
+     * Grava a data/hora agendada do atendimento na OS. O input datetime-local
+     * envia "Y-m-d\TH:i"; normaliza para DATETIME. Valor vazio limpa o agendamento.
+     */
+    private function salvarAgendamentoOs($os_id, $agendamento)
+    {
+        if (! $this->db->field_exists('data_agendamento', 'os')) {
+            return; // migration ainda não aplicada
+        }
+        $valor = null;
+        if (! empty($agendamento)) {
+            $ts = strtotime(str_replace('T', ' ', $agendamento));
+            if ($ts) {
+                $valor = date('Y-m-d H:i:s', $ts);
+            }
+        }
+        $this->os_model->edit('os', ['data_agendamento' => $valor], 'idOs', $os_id);
     }
 
     /**
@@ -1714,9 +1838,13 @@ class Os extends MY_Controller
 
             $emitente = $this->mapos_model->getEmitente();
             $endereco = trim(($os->rua ?? '') . ' ' . ($os->numero ?? '') . ' ' . ($os->bairro ?? '') . ' ' . ($os->cidade ?? ''));
+            $agendaTxt = ! empty($os->data_agendamento)
+                ? "\nAgendado para: " . date('d/m/Y \à\s H:i', strtotime($os->data_agendamento))
+                : '';
             $msg = "Olá {$tecnico->nome}! Você recebeu a OS #{$os_id}."
                 . "\nCliente: " . ($os->nomeCliente ?? '')
                 . "\nEquipamento/Defeito: " . strip_tags((string) ($os->defeito ?? ''))
+                . $agendaTxt
                 . ($endereco !== '' ? "\nEndereço: {$endereco}" : '')
                 . ($emitente ? "\n\n{$emitente->nome}" : '');
 

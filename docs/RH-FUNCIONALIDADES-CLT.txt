@@ -1,0 +1,275 @@
+================================================================================
+  MAP-OS / RH — GUIA DAS FUNCIONALIDADES CLT (itens 1 a 10)
+  Atualizado: 15/07/2026
+================================================================================
+
+ONDE IMPRIMIR FICHA CADASTRAL E CRACHÁ
+-------------------------------------
+Caminho no sistema (área administrativa):
+
+  RH → Colaboradores → abrir o colaborador (Ficha)
+
+  Na ficha do colaborador, no topo, há os botões:
+    • "Ficha p/ cliente"  → gera PDF da ficha cadastral (para liberação em cliente)
+    • "Crachá"            → gera PDF do crachá
+
+  Também disponíveis ao editar o colaborador:
+    RH → Colaboradores → Editar
+    • "Ficha cadastral"
+    • "Crachá"
+
+  URLs diretas (substitua {ID} pelo id do colaborador):
+    /index.php/rh/fichaCadastralPdf/{ID}
+    /index.php/rh/crachaPdf/{ID}
+
+  Observação: o PDF abre em nova aba; use a impressão do navegador se quiser
+  papel físico.
+
+
+================================================================================
+1) HOLERITE DO PAGAMENTO E EXIBIÇÃO PARA O COLABORADOR
+================================================================================
+STATUS: IMPLEMENTADO
+
+Área do RH (gera / gerencia):
+  RH → Colaboradores → Ficha → botão "Holerite"
+  ou  RH → Lançamentos / Folha → holerite do colaborador
+  URL: /rh/holerite/{id}/{competencia}
+
+Área do COLABORADOR (vê o que foi liberado):
+  Login do colaborador → menu Holerite
+  URL: /colaborador/holerite/{competencia}
+
+O que o colaborador vê:
+  • PDF oficial, se o RH liberou
+  • Demonstrativo com proventos/descontos aprovados (inclui CLT e faltas)
+
+
+================================================================================
+2) BOTÃO AO GERAR HOLERITE — APARECER PARA O COLABORADOR
+================================================================================
+STATUS: IMPLEMENTADO
+
+Na tela do holerite (RH):
+  • "Pré-visualizar PDF"           → só gera/visualiza
+  • "Gerar e liberar p/ colaborador" → gera o PDF e marca liberado=1
+  • "Liberar para o colaborador"   → libera um arquivo já anexado
+  • "Ocultar do colaborador"       → revoga a liberação
+  • Checkbox "Liberar para o colaborador ao salvar" no formulário de anexo
+
+Fluxo recomendado:
+  1. Conferir lançamentos da competência
+  2. Clicar em "Gerar e liberar p/ colaborador"
+  3. Colaborador acessa Área do Colaborador → Holerite e baixa o PDF
+
+
+================================================================================
+3) CONFIGURAÇÃO DOS DESCONTOS CONFORME CLT
+================================================================================
+STATUS: IMPLEMENTADO (gerencial — não substitui contabilidade)
+
+Menu:
+  RH → Descontos CLT
+  URL: /rh/descontosClt
+  Permissão: eRh
+
+Itens configuráveis (previstos em lei / prática CLT):
+  • INSS — contribuição previdenciária (tabela progressiva editável em JSON)
+  • IRRF — imposto de renda retido (tabela + dedução por dependente)
+  • Vale-transporte — até 6% do salário (teto legal Dec. 95.247/87)
+  • FGTS — informativo (8% padrão; encargo do empregador, não desconta do líquido)
+  • Outras deduções configuráveis
+  • Desconto automático de FALTAS (gerado pelo espelho de ponto)
+
+Observação:
+  O sistema é um apoio de RH. O holerite oficial da contabilidade prevalece.
+  Rode a migration 20260714000001_rh_melhorias_clt se as colunas/configs
+  ainda não existirem no banco.
+
+
+================================================================================
+4) HORAS EXTRAS — SOMENTE COM APROVAÇÃO DO ADMINISTRATIVO
+================================================================================
+STATUS: IMPLEMENTADO
+
+Configuração:
+  RH → Descontos CLT
+  • "Horas extras requerem aprovação" (ligado por padrão)
+  • Percentuais 50% e 100% configuráveis
+
+Como gerar:
+  RH → Colaboradores → Espelho de ponto → "Gerar extras (pendente)"
+  ou recalcular com ?extras=1
+
+Comportamento:
+  • Lançamento nasce com aprovado=0 (PENDENTE)
+  • Só entra no holerite/folha depois que o administrativo aprova
+  • Aprovação: RH → Lançamentos → aprovar
+    (permissão aprovarRh ou vRhFinanceiro)
+
+Também é possível lançar HE manualmente em RH → Lançamentos
+(ainda sujeito à regra de aprovação quando configurado).
+
+
+================================================================================
+5) DESLIGAMENTO DE COLABORADOR
+================================================================================
+STATUS: IMPLEMENTADO
+
+Caminho:
+  RH → Colaboradores → Editar colaborador → botão vermelho "Desligar"
+
+Modal de desligamento pede:
+  • Data do desligamento
+  • Tipo (pedido, sem justa causa, justa causa, término de contrato,
+    acordo, aposentadoria, outro)
+  • Motivo / observações
+
+Efeito:
+  • situacao = Inativo
+  • grava demissão + tipo + quem desligou + data/hora
+  • Botão "Reativar" se precisar reverter
+
+
+================================================================================
+6) CADASTRO DA CARTEIRA DE TRABALHO (CTPS) DO COLABORADOR
+================================================================================
+STATUS: IMPLEMENTADO
+
+Caminho:
+  RH → Colaboradores → Novo / Editar
+  Seção "Carteira de trabalho (CTPS) / PIS"
+
+Campos:
+  • CTPS número
+  • Série
+  • UF
+  • Data de emissão
+  • PIS/PASEP
+
+Também aparece resumido na Ficha do colaborador (dados cadastrais).
+Requer migration: 20260714000001_rh_melhorias_clt
+
+
+================================================================================
+7) GERAÇÃO DE FICHA CADASTRAL PARA ENVIO A CLIENTE
+================================================================================
+STATUS: IMPLEMENTADO
+
+Objetivo: PDF para liberação de entrada em cliente/obra.
+
+Caminho:
+  RH → Colaboradores → Ficha do colaborador → botão "Ficha p/ cliente"
+  ou  Editar colaborador → "Ficha cadastral"
+
+URL: /rh/fichaCadastralPdf/{id}
+
+Conteúdo típico do PDF:
+  dados do colaborador, foto, cargo, documentos, unidade, emitente da empresa
+
+
+================================================================================
+8) GERAÇÃO DE CRACHÁ
+================================================================================
+STATUS: IMPLEMENTADO
+
+Caminho:
+  RH → Colaboradores → Ficha do colaborador → botão "Crachá"
+  ou  Editar colaborador → "Crachá"
+
+URL: /rh/crachaPdf/{id}
+
+Gera PDF compacto (foto, nome, cargo, empresa) para impressão.
+
+
+================================================================================
+9) BATIDAS NO ESPELHO — ENTRADA, INTERVALO, SAÍDA E LOCAL
+================================================================================
+STATUS: IMPLEMENTADO
+
+Caminho RH:
+  RH → Colaboradores → Ficha → "Espelho"
+  URL: /rh/espelho/{id}/{competencia}
+  PDF: /rh/espelhoPdf/{id}/{competencia}
+
+Caminho colaborador:
+  Área do colaborador → Meu espelho de ponto
+
+Cada batida mostra:
+  • Tipo: Entrada | Início int. | Fim int. | Saída  (com cores distintas)
+  • Horário
+  • Local (ícone de mapa / link Google Maps se houver GPS)
+  • OS vinculada (quando houver)
+  • Totais do dia: trabalhado, extra, falta, saldo
+
+Botão "Recalcular":
+  • Consolida horas da competência
+  • Gera/atualiza DESCONTO DE FALTA automático (se houver faltas)
+
+
+================================================================================
+10) OCORRÊNCIA — SELECIONAR O QUE JUSTIFICAR (ENTRADA / INTERVALO / SAÍDA)
+================================================================================
+STATUS: IMPLEMENTADO
+
+Caminho do COLABORADOR:
+  Área do colaborador → Justificar / Corrigir (ocorrências)
+  URL: /colaborador/ocorrencias
+
+No formulário:
+  1. Tipo (correção de ponto / justificativa de falta / abono)
+  2. Data de referência
+  3. "O que deseja justificar / corrigir?"
+       → Entrada | Início do intervalo | Fim do intervalo | Saída
+  4. "Batida registrada neste dia" (lista as batidas reais da data)
+       → ao escolher, preenche o tipo automaticamente
+  5. Se for correção de ponto: data/hora desejada
+  6. Descrição + anexo opcional (atestado etc.)
+
+Aprovação no RH:
+  RH → Ocorrências
+  Ao aprovar correção de ponto, a batida pode ser aplicada no espelho.
+
+
+================================================================================
+MAPA RÁPIDO DE MENUS (RH ADMINISTRATIVO)
+================================================================================
+  Painel          → visão geral
+  Colaboradores   → cadastro, ficha, espelho, holerite, CTPS, desligamento,
+                    ficha p/ cliente, crachá
+  Lançamentos     → proventos/descontos manuais e aprovação de HE
+  Folha           → consolidado da competência + PDF
+  Descontos CLT   → INSS, IRRF, VT, FGTS, % HE, aprovação HE
+  Ocorrências     → aprovar correções/justificativas do colaborador
+  Ausências       → férias/folga/atestado/licença
+  Unidades        → locais / geofence
+  Jornadas        → carga horária e dias da escala
+
+
+MAPA RÁPIDO (ÁREA DO COLABORADOR)
+================================================================================
+  Bater ponto
+  Meu espelho
+  Justificar / Corrigir (ocorrências)
+  Holerite (somente se liberado pelo RH)
+
+
+================================================================================
+CHECKLIST DE HOMOLOGAÇÃO RÁPIDA
+================================================================================
+[ ] Migration 20260714000001_rh_melhorias_clt rodada
+[ ] Colaborador com salário base ou valor hora
+[ ] Gerar "Ficha p/ cliente" e "Crachá" a partir da ficha
+[ ] Abrir espelho e ver tipos de batida + local no mapa
+[ ] Recalcular com faltas → ver lançamento automático tipo "falta"
+[ ] Gerar extras → fica PENDENTE → aprovar em Lançamentos
+[ ] Gerar e liberar holerite → colaborador enxerga PDF
+[ ] Configurar Descontos CLT (INSS/IRRF/VT)
+[ ] Cadastrar CTPS no editar colaborador
+[ ] Desligar colaborador e reativar se necessário
+[ ] Ocorrência: selecionar batida de entrada/intervalo/saída e enviar
+
+
+================================================================================
+FIM DO DOCUMENTO
+================================================================================

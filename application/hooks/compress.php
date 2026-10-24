@@ -6,35 +6,38 @@ if (! defined('BASEPATH')) {
 
 function compress()
 {
-    ini_set('pcre.recursion_limit', '16777');
     $CI = &get_instance();
     $buffer = $CI->output->get_output();
 
-    $re = '%# Collapse whitespace everywhere but in blacklisted elements.
-        (?>             # Match all whitespans other than single space.
-          [^\S ]\s*     # Either one [\t\r\n\f\v] and zero or more ws,
-        | \s{2,}        # or two or more consecutive-any-whitespace.
-        ) # Note: The remaining regex consumes no text at all...
-        (?=             # Ensure we are not in a blacklist tag.
-          [^<]*+        # Either zero or more non-"<" {normal*}
-          (?:           # Begin {(special normal*)*} construct
-            <           # or a < starting a non-blacklist tag.
-            (?!/?(?:textarea|pre|script)\b)
-            [^<]*+      # more non-"<" {normal*}
-          )*+           # Finish "unrolling-the-loop"
-          (?:           # Begin alternation group.
-            <           # Either a blacklist start tag.
-            (?>textarea|pre|script)\b
-          | \z          # or end of file.
-          )             # End alternation group.
-        )  # If we made it here, we are not in a blacklist tag.
-        %Six';
+    // <script>, <pre> e <textarea> ficam intactos. Antes isso era feito com uma regex
+    // de lookahead que se confundia quando o JavaScript tinha '<pre' ou '<textarea'
+    // dentro de uma string: juntava as linhas do script e os comentarios // passavam
+    // a engolir o codigo seguinte (ex.: tela de NF-e).
+    $protegidos = [];
+    $semBlocos = preg_replace_callback(
+        '#<(script|pre|textarea)\b[^>]*>.*?</\1\s*>#is',
+        function ($m) use (&$protegidos) {
+            $protegidos[] = $m[0];
 
-    $new_buffer = preg_replace($re, ' ', $buffer);
+            return "\x1AMAPOSKEEP" . (count($protegidos) - 1) . "\x1A";
+        },
+        $buffer
+    );
 
-    // We are going to check if processing has working
-    if ($new_buffer === null) {
+    // Mesmo resultado de antes fora dos blocos: qualquer espaco que nao seja um
+    // unico ' ' (quebra de linha, tab, varios espacos) vira um espaco.
+    $comprimido = $semBlocos === null ? null : preg_replace('/(?:[^\S ]\s*|\s{2,})/', ' ', $semBlocos);
+
+    if ($comprimido === null) {
+        // Falha de PCRE (pagina muito grande etc.): entrega o HTML original
         $new_buffer = $buffer;
+    } else {
+        $new_buffer = preg_replace_callback('/\x1AMAPOSKEEP(\d+)\x1A/', function ($m) use ($protegidos) {
+            return $protegidos[(int) $m[1]];
+        }, $comprimido);
+        if ($new_buffer === null) {
+            $new_buffer = $buffer;
+        }
     }
 
     $CI->output->set_output($new_buffer);

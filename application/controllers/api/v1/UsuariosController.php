@@ -257,6 +257,16 @@ class UsuariosController extends REST_Controller
         $this->load->model('Mapos_model');
         $email = $this->post('email', true);
         $password = $this->post('password', true);
+
+        // Forca bruta: bloqueio temporario apos varias tentativas erradas
+        $this->load->library('limite_login');
+        if ($espera = $this->limite_login->bloqueado('api', $email)) {
+            $this->response([
+                'status' => false,
+                'message' => $this->limite_login->mensagem($espera),
+            ], 429);
+        }
+
         $user = $this->Mapos_model->check_credentials($email);
 
         if ($user) {
@@ -270,6 +280,20 @@ class UsuariosController extends REST_Controller
 
             // Verificar credenciais do usuário
             if (password_verify($password, $user->senha)) {
+                // Verificacao em duas etapas: quem ativou envia tambem "codigo" (app ou recuperacao)
+                if (! empty($user->totp_ativo)) {
+                    $this->load->library('dois_fatores');
+                    if ($this->dois_fatores->verificar($user, (string) $this->post('codigo', true)) === null) {
+                        $this->limite_login->falhou('api', $email);
+                        $this->response([
+                            'status' => false,
+                            'message' => 'Informe o código da verificação em duas etapas no campo "codigo".',
+                            'dois_fatores' => true,
+                        ], REST_Controller::HTTP_UNAUTHORIZED);
+                    }
+                }
+
+                $this->limite_login->sucesso('api', $email);
                 $this->log_app('Efetuou login no sistema', $user->nome);
                 $permissoes = $this->getInstanceDatabase('permissoes', '*', 'idPermissao = ' . $user->permissoes_id, 1, true);
                 $permissoes = unserialize($permissoes['permissoes']);
@@ -292,12 +316,14 @@ class UsuariosController extends REST_Controller
                 ], REST_Controller::HTTP_OK);
             }
 
+            $this->limite_login->falhou('api', $email);
             $this->response([
                 'status' => false,
                 'message' => 'Os dados de acesso estão incorretos!',
             ], REST_Controller::HTTP_UNAUTHORIZED);
         }
 
+        $this->limite_login->falhou('api', $email);
         $this->response([
             'status' => false,
             'message' => 'Os dados de acesso estão incorretos!',

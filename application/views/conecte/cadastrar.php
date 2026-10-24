@@ -16,9 +16,9 @@
     <link rel="stylesheet" href="<?= base_url() ?>assets/font-awesome/css/font-awesome.css" />
     <link rel="stylesheet" href="<?= base_url() ?>assets/css/fullcalendar.css" />
     <link rel="stylesheet" href="<?= base_url() ?>assets/css/bootstrap-responsive.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css">
+    <link rel="stylesheet" href="<?= base_url('assets/boxicons/css/boxicons.min.css') ?>">
     <script type="text/javascript" src="<?= base_url(); ?>assets/js/funcoesGlobal.js"></script>
-    <script type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js"></script>
+    <script type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
 </head>
 
 <body>

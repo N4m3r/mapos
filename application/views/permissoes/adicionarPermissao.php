@@ -253,6 +253,38 @@
                                                 </label>
                                             </td>
                                         </tr>
+                                        <tr>
+                                            <td colspan="4">
+                                                <label>
+                                                    <input name="vTecnicoMapa" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> <strong>Ver Mapa dos Técnicos</strong> (localização em tempo real — tela de despacho)</span>
+                                                </label>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="4">
+                                                <label>
+                                                    <input name="aTecnicoAtividade" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Abrir Atividade não programada (criar OS em campo, sem ver valores)</span>
+                                                </label>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="4">
+                                                <label>
+                                                    <input name="eTecnicoNaoRealizado" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Marcar Serviço Não Realizado (registrar motivo e deixar a OS em espera para reagendar/refazer)</span>
+                                                </label>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="4">
+                                                <label>
+                                                    <input name="cMotivoNaoRealizado" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Gerenciar Motivos de Não Realizado (adicionar/remover a lista de motivos)</span>
+                                                </label>
+                                            </td>
+                                        </tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -284,6 +316,82 @@
                                     <tr>
                                         <td><label><input name="vAreaColaborador" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Acessar a Área do Colaborador</strong></span></label></td>
                                         <td><label><input name="baterPonto" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Registrar o próprio ponto</span></label></td>
+                                        <td></td>
+                                    </tr>
+                                </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-group widget-box">
+                            <div class="accordion-heading">
+                                <div class="widget-title">
+                                    <a data-parent="#collapse-group" href="#collapseGObras" data-toggle="collapse">
+                                      <span><i class='bx bx-building-house icon-cli'></i></span>
+                                      <h5 style="padding-left: 28px">Projetos</h5>
+                                      <span><i class='bx bx-chevron-right icon-clic'></i></span>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="collapse accordion-body" id="collapseGObras">
+                                <div class="widget-content">
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <td><label><input name="vObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Visualizar Projetos</strong></span></label></td>
+                                        <td><label><input name="cObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Cadastrar Projeto</span></label></td>
+                                        <td><label><input name="eObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Editar Projeto</span></label></td>
+                                        <td><label><input name="dObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Excluir Projeto</span></label></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label><input name="vObraCronograma" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Ver cronograma</span></label></td>
+                                        <td><label><input name="eObraCronograma" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Editar cronograma/etapas</span></label></td>
+                                        <td><label><input name="vObraRdo" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Ver Diário de Obra (RDO)</span></label></td>
+                                        <td><label><input name="cObraRdo" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Registrar RDO</span></label></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label><input name="vObraMedicao" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Ver medições</span></label></td>
+                                        <td><label><input name="cObraMedicao" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Lançar medição</span></label></td>
+                                        <td><label><input name="aObraMedicao" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Aprovar medição</span></label></td>
+                                        <td><label><input name="vObraCusto" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Ver custos</span></label></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label><input name="vObraMaterial" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Almoxarifado do projeto</strong></span></label></td>
+                                        <td><label><input name="rObraMaterial" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Receber material (entrada)</span></label></td>
+                                        <td><label><input name="sObraMaterial" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Entregar material (saída)</span></label></td>
+                                        <td><label><input name="cObraMaterial" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Gerenciar material</span></label></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label><input name="cObraEquipe" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Gerenciar equipes</span></label></td>
+                                        <td><label><input name="vObraCampo" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Área de Campo (encarregado)</span></label></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-group widget-box">
+                            <div class="accordion-heading">
+                                <div class="widget-title">
+                                    <a data-parent="#collapse-group" href="#collapseGContratos" data-toggle="collapse">
+                                      <span><i class='bx bx-file-blank icon-cli'></i></span>
+                                      <h5 style="padding-left: 28px">Contratos</h5>
+                                      <span><i class='bx bx-chevron-right icon-clic'></i></span>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="collapse accordion-body" id="collapseGContratos">
+                                <div class="widget-content">
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <td><label><input name="vContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Visualizar Contratos</strong></span></label></td>
+                                        <td><label><input name="cContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Cadastrar Contrato</span></label></td>
+                                        <td><label><input name="eContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Editar Contrato</span></label></td>
+                                        <td><label><input name="dContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Excluir Contrato</span></label></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label><input name="fContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Faturar mensalidade</span></label></td>
+                                        <td></td>
+                                        <td></td>
                                         <td></td>
                                     </tr>
                                 </table>
@@ -372,6 +480,71 @@
                                                     <span class="lbl"> Excluir Cobranças</span>
                                                 </label>
                                             </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-group widget-box">
+                            <div class="accordion-heading">
+                                <div class="widget-title">
+                                    <a data-parent="#collapse-group" href="#collapseGFiscal" data-toggle="collapse">
+                                      <span><i class='bx bx-file icon-cli'></i></span>
+                                      <h5 style="padding-left: 28px">Fiscal (NF-e / NFS-e)</h5>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="collapse accordion-body" id="collapseGFiscal">
+                                <div class="widget-content">
+                                    <table class="table table-bordered">
+                                        <tbody>
+                                        <tr>
+                                            <td>
+                                                <label>
+                                                    <input name="vNfe" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Visualizar Notas Fiscais</span>
+                                                </label>
+                                            </td>
+                                            <td>
+                                                <label>
+                                                    <input name="eNfe" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Emitir Notas Fiscais</span>
+                                                </label>
+                                            </td>
+                                            <td>
+                                                <label>
+                                                    <input name="dNfe" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Cancelar Notas Fiscais</span>
+                                                </label>
+                                            </td>
+                                            <td>
+                                                <label>
+                                                    <input name="cNfe" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Configurar Módulo Fiscal</span>
+                                                </label>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <label>
+                                                    <input name="vEntrada" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Visualizar Entradas / Créditos</span>
+                                                </label>
+                                            </td>
+                                            <td>
+                                                <label>
+                                                    <input name="cEntrada" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Importar/Lançar Entradas</span>
+                                                </label>
+                                            </td>
+                                            <td>
+                                                <label>
+                                                    <input name="dEntrada" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Excluir Entradas</span>
+                                                </label>
+                                            </td>
+                                            <td></td>
                                         </tr>
                                         </tbody>
                                     </table>
@@ -694,6 +867,12 @@
                                                 <label>
                                                     <input name="cAutomacao" class="marcar" type="checkbox" value="1" />
                                                     <span class="lbl"> Automação (aprovação → NFS-e/boleto)</span>
+                                                </label>
+                                            </td>
+                                            <td>
+                                                <label>
+                                                    <input name="cFormularioAtendimento" class="marcar" type="checkbox" value="1" />
+                                                    <span class="lbl"> Formulários de Atendimento</span>
                                                 </label>
                                             </td>
                                         </tr>

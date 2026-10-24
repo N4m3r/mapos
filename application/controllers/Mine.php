@@ -386,10 +386,12 @@ class Mine extends CI_Controller
         $this->load->library('pagination');
 
         $permitidos = $this->clientesPermitidos();
+        $filtros = $this->filtrosPortal($permitidos);
 
         $config['base_url'] = base_url() . 'index.php/mine/compras/';
-        $config['total_rows'] = $this->Conecte_model->count('vendas', $permitidos);
+        $config['total_rows'] = $this->Conecte_model->count('vendas', $permitidos, $filtros);
         $config['per_page'] = 10;
+        $config['reuse_query_string'] = true;
         $config['next_link'] = 'Próxima';
         $config['prev_link'] = 'Anterior';
         $config['full_tag_open'] = '<div class="pagination alternate"><ul>';
@@ -411,7 +413,10 @@ class Mine extends CI_Controller
 
         $this->pagination->initialize($config);
 
-        $data['results'] = $this->Conecte_model->getCompras('vendas', '*', '', $config['per_page'], $this->uri->segment(3), '', '', $permitidos);
+        $data['results'] = $this->Conecte_model->getCompras('vendas', '*', '', $config['per_page'], $this->uri->segment(3), '', '', $permitidos, $filtros);
+
+        $data['clientesFiltro'] = $this->Conecte_model->getClientesByIds($permitidos);
+        $data['filtros'] = $filtros;
 
         $data['output'] = 'conecte/compras';
         $this->load->view('conecte/template', $data);
@@ -427,12 +432,14 @@ class Mine extends CI_Controller
         $this->load->config('payment_gateways');
 
         $permitidos = $this->clientesPermitidos();
+        $filtros = $this->filtrosPortal($permitidos);
 
         $data['menuCobrancas'] = 'cobrancas';
 
         $config['base_url'] = base_url() . 'index.php/mine/cobrancas/';
-        $config['total_rows'] = $this->Conecte_model->count('cobrancas', $permitidos);
+        $config['total_rows'] = $this->Conecte_model->count('cobrancas', $permitidos, $filtros);
         $config['per_page'] = 10;
+        $config['reuse_query_string'] = true;
         $config['next_link'] = 'Próxima';
         $config['prev_link'] = 'Anterior';
         $config['full_tag_open'] = '<div class="pagination alternate"><ul>';
@@ -454,7 +461,9 @@ class Mine extends CI_Controller
 
         $this->pagination->initialize($config);
 
-        $data['results'] = $this->Conecte_model->getCobrancas('cobrancas', '*', '', $config['per_page'], $this->uri->segment(3), '', '', $permitidos);
+        $data['results'] = $this->Conecte_model->getCobrancas('cobrancas', '*', '', $config['per_page'], $this->uri->segment(3), '', '', $permitidos, $filtros);
+        $data['clientesFiltro'] = $this->Conecte_model->getClientesByIds($permitidos);
+        $data['filtros'] = $filtros;
         $data['output'] = 'conecte/cobrancas';
 
         $this->load->view('conecte/template', $data);
@@ -513,12 +522,16 @@ class Mine extends CI_Controller
 
         $permitidos = $this->clientesPermitidos();
 
+        // Filtros do portal: CNPJ/cliente vinculado e período (data inicial da OS).
+        $filtros = $this->filtrosPortal($permitidos);
+
         $data['menuOs'] = 'os';
         $this->load->library('pagination');
 
         $config['base_url'] = base_url() . 'index.php/mine/os/';
-        $config['total_rows'] = $this->Conecte_model->count('os', $permitidos);
+        $config['total_rows'] = $this->Conecte_model->count('os', $permitidos, $filtros);
         $config['per_page'] = 10;
+        $config['reuse_query_string'] = true;
         $config['next_link'] = 'Próxima';
         $config['prev_link'] = 'Anterior';
         $config['full_tag_open'] = '<div class="pagination alternate"><ul>';
@@ -540,10 +553,47 @@ class Mine extends CI_Controller
 
         $this->pagination->initialize($config);
 
-        $data['results'] = $this->Conecte_model->getOs('os', '*', '', $config['per_page'], $this->uri->segment(3), '', '', $permitidos);
+        $data['results'] = $this->Conecte_model->getOs('os', '*', '', $config['per_page'], $this->uri->segment(3), '', '', $permitidos, $filtros);
+
+        // CNPJs/clientes acessíveis para popular o filtro (dropdown aparece só
+        // quando o login enxerga mais de um cliente).
+        $data['clientesFiltro'] = $this->Conecte_model->getClientesByIds($permitidos);
+        $data['filtros'] = $filtros;
 
         $data['output'] = 'conecte/os';
         $this->load->view('conecte/template', $data);
+    }
+
+    /**
+     * Lê e valida os filtros do portal (CNPJ/cliente e período) a partir do
+     * query string. O cliente escolhido precisa estar entre os $permitidos.
+     *
+     * @param int[] $permitidos
+     */
+    private function filtrosPortal($permitidos)
+    {
+        $filtroCliente = $this->input->get('cliente_id');
+        $filtroCliente = (is_numeric($filtroCliente) && in_array((int) $filtroCliente, $permitidos))
+            ? (int) $filtroCliente : null;
+
+        return [
+            'cliente_id' => $filtroCliente,
+            'data_inicio' => $this->dataValida($this->input->get('data_inicio')) ? $this->input->get('data_inicio') : null,
+            'data_fim' => $this->dataValida($this->input->get('data_fim')) ? $this->input->get('data_fim') : null,
+        ];
+    }
+
+    /**
+     * Valida uma data no formato Y-m-d (usada nos filtros do portal).
+     */
+    private function dataValida($data)
+    {
+        if (empty($data)) {
+            return false;
+        }
+        $d = \DateTime::createFromFormat('Y-m-d', $data);
+
+        return $d && $d->format('Y-m-d') === $data;
     }
 
     /**
@@ -707,7 +757,7 @@ class Mine extends CI_Controller
             $data['pix_key'],
             $data['emitente']
         );
-        $data['chaveFormatada'] = $this->formatarChave($data['pix_key']);
+        $data['chaveFormatada'] = formatar_chave_pix($data['pix_key']);
 
         if (! in_array($data['result']->idClientes, $this->clientesPermitidos())) {
             $this->session->set_flashdata('error', 'Esta OS não pertence ao cliente logado.');
@@ -728,71 +778,146 @@ class Mine extends CI_Controller
             }
         }
 
+        // Linha do tempo ("onde estamos") desta OS para o cliente acompanhar.
+        $data['timeline'] = $this->os_model->getTimeline($osId);
+
+        // Dados do atendimento do técnico (check-ins, formulários, assinaturas e
+        // fotos) para exibir a aba "Atendimento do Técnico" dentro da OS.
+        $this->load->model('checkin_model');
+        $this->load->model('assinaturas_model');
+        $this->load->model('fotosatendimento_model');
+        $this->load->model('formularios_atendimento_model', 'formularios');
+
+        $data['checkins'] = $this->checkin_model->getAllByOs($osId);
+
+        $assinaturasPorTipo = [];
+        foreach ($this->assinaturas_model->getByOs($osId) as $assinatura) {
+            $assinaturasPorTipo[$assinatura->tipo] = $assinatura;
+        }
+        $data['assinaturas'] = $assinaturasPorTipo;
+
+        $fotosPorEtapa = ['entrada' => [], 'durante' => [], 'saida' => []];
+        foreach ($this->fotosatendimento_model->getByOs($osId) as $foto) {
+            $fotosPorEtapa[$foto->etapa][] = $foto;
+        }
+        $data['fotosPorEtapa'] = $fotosPorEtapa;
+
+        $respostasPorEtapa = [];
+        foreach ($this->formularios->getRespostasByOs($osId) as $resposta) {
+            $respostasPorEtapa[$resposta->etapa ?: 'outros'][] = $resposta;
+        }
+        $data['respostasPorEtapa'] = $respostasPorEtapa;
+
+        $data['temAtendimento'] = ! empty($data['checkins']) || ! empty($respostasPorEtapa)
+            || ! empty($assinaturasPorTipo)
+            || ! empty($fotosPorEtapa['entrada']) || ! empty($fotosPorEtapa['durante']) || ! empty($fotosPorEtapa['saida']);
+
         $data['output'] = 'conecte/visualizar_os';
         $this->load->view('conecte/template', $data);
     }
 
-    public function validarCPF($cpf)
+    /**
+     * Lista as OS do cliente que possuem registro de atendimento
+     * (check-in ou respostas de formulários) — aba "Relatório de Atendimento".
+     */
+    public function atendimentos()
     {
-        $cpf = preg_replace('/[^0-9]/', '', $cpf);
-        if (strlen($cpf) !== 11 || preg_match('/^(\d)\1+$/', $cpf)) {
-            return false;
+        if (! session_id() || ! $this->session->userdata('conectado')) {
+            redirect('mine');
         }
-        $soma1 = 0;
-        for ($i = 0; $i < 9; $i++) {
-            $soma1 += $cpf[$i] * (10 - $i);
-        }
-        $resto1 = $soma1 % 11;
-        $dv1 = ($resto1 < 2) ? 0 : 11 - $resto1;
-        if ($dv1 != $cpf[9]) {
-            return false;
-        }
-        $soma2 = 0;
-        for ($i = 0; $i < 10; $i++) {
-            $soma2 += $cpf[$i] * (11 - $i);
-        }
-        $resto2 = $soma2 % 11;
-        $dv2 = ($resto2 < 2) ? 0 : 11 - $resto2;
 
-        return $dv2 == $cpf[10];
+        $permitidos = $this->clientesPermitidos();
+        $data['menuAtendimentos'] = 'atendimentos';
+        $data['results'] = [];
+
+        if (! empty($permitidos)) {
+            // OS do cliente que têm check-in registrado.
+            $comCheckin = [];
+            if ($this->db->table_exists('os_checkin')) {
+                $rows = $this->db->select('DISTINCT(os_checkin.os_id) as os_id', false)
+                    ->from('os_checkin')
+                    ->join('os', 'os.idOs = os_checkin.os_id')
+                    ->where_in('os.clientes_id', $permitidos)
+                    ->get()->result();
+                foreach ($rows as $r) { $comCheckin[(int) $r->os_id] = true; }
+            }
+            // OS do cliente que têm respostas de formulários.
+            if ($this->db->table_exists('formularios_atendimento_respostas')) {
+                $rows = $this->db->select('DISTINCT(r.os_id) as os_id', false)
+                    ->from('formularios_atendimento_respostas r')
+                    ->join('os', 'os.idOs = r.os_id')
+                    ->where_in('os.clientes_id', $permitidos)
+                    ->get()->result();
+                foreach ($rows as $r) { $comCheckin[(int) $r->os_id] = true; }
+            }
+
+            if (! empty($comCheckin)) {
+                $data['results'] = $this->db->select('idOs, dataInicial, dataFinal, status, descricaoProduto')
+                    ->from('os')
+                    ->where_in('idOs', array_keys($comCheckin))
+                    ->order_by('idOs', 'desc')
+                    ->get()->result();
+            }
+        }
+
+        $data['output'] = 'conecte/atendimentos';
+        $this->load->view('conecte/template', $data);
     }
 
-    public function validarCNPJ($cnpj)
+    /**
+     * Relatório de atendimento de uma OS, no portal do cliente (com checagem
+     * de posse). Reaproveita a view do relatório usado na área administrativa.
+     */
+    public function relatorioAtendimento($id = null)
     {
-        $cnpj = preg_replace('/[^0-9]/', '', $cnpj);
-        if (strlen($cnpj) !== 14 || preg_match('/^(\d)\1+$/', $cnpj)) {
-            return false;
-        }
-        $soma1 = 0;
-        for ($i = 0, $pos = 5; $i < 12; $i++, $pos--) {
-            $pos = ($pos < 2) ? 9 : $pos;
-            $soma1 += $cnpj[$i] * $pos;
-        }
-        $dv1 = ($soma1 % 11 < 2) ? 0 : 11 - ($soma1 % 11);
-        if ($dv1 != $cnpj[12]) {
-            return false;
-        }
-        $soma2 = 0;
-        for ($i = 0, $pos = 6; $i < 13; $i++, $pos--) {
-            $pos = ($pos < 2) ? 9 : $pos;
-            $soma2 += $cnpj[$i] * $pos;
-        }
-        $dv2 = ($soma2 % 11 < 2) ? 0 : 11 - ($soma2 % 11);
-
-        return $dv2 == $cnpj[13];
-    }
-
-    public function formatarChave($chave)
-    {
-        if ($this->validarCPF($chave)) {
-            return substr($chave, 0, 3) . '.' . substr($chave, 3, 3) . '.' . substr($chave, 6, 3) . '-' . substr($chave, 9);
-        } elseif ($this->validarCNPJ($chave)) {
-            return substr($chave, 0, 2) . '.' . substr($chave, 2, 3) . '.' . substr($chave, 5, 3) . '/' . substr($chave, 8, 4) . '-' . substr($chave, 12);
-        } elseif (strlen($chave) === 11) {
-            return '(' . substr($chave, 0, 2) . ') ' . substr($chave, 2, 5) . '-' . substr($chave, 7);
+        if (! session_id() || ! $this->session->userdata('conectado')) {
+            redirect('mine');
         }
 
-        return $chave;
+        $id = $id ?: $this->uri->segment(3);
+        $this->load->model('os_model');
+        $this->load->model('mapos_model');
+        $this->load->model('clientes_model');
+        $this->load->model('checkin_model');
+        $this->load->model('assinaturas_model');
+        $this->load->model('fotosatendimento_model');
+        $this->load->model('formularios_atendimento_model', 'formularios');
+
+        $os = $this->os_model->getById($id);
+        if (! $os) {
+            show_error('OS não encontrada', 404);
+            return;
+        }
+        if (! in_array((int) $os->idClientes, $this->clientesPermitidos())) {
+            $this->session->set_flashdata('error', 'Esta OS não pertence ao cliente logado.');
+            redirect('mine/atendimentos');
+        }
+
+        $assinaturasPorTipo = [];
+        foreach ($this->assinaturas_model->getByOs($id) as $assinatura) {
+            $assinaturasPorTipo[$assinatura->tipo] = $assinatura;
+        }
+
+        $fotosPorEtapa = ['entrada' => [], 'durante' => [], 'saida' => []];
+        foreach ($this->fotosatendimento_model->getByOs($id) as $foto) {
+            $fotosPorEtapa[$foto->etapa][] = $foto;
+        }
+
+        $respostasPorEtapa = [];
+        foreach ($this->formularios->getRespostasByOs($id) as $resposta) {
+            $respostasPorEtapa[$resposta->etapa ?: 'outros'][] = $resposta;
+        }
+
+        $this->load->view('checkin/imprimirCheckin', [
+            'os' => $os,
+            'cliente' => $this->clientes_model->getById($os->clientes_id),
+            'emitente' => $this->mapos_model->getEmitente(),
+            'checkins' => $this->checkin_model->getAllByOs($id),
+            'assinaturas' => $assinaturasPorTipo,
+            'fotosPorEtapa' => $fotosPorEtapa,
+            'respostasPorEtapa' => $respostasPorEtapa,
+            'titulo' => 'Relatório de Atendimento - OS #' . sprintf('%04d', $id),
+        ]);
     }
 
     public function gerarPagamentoGerencianetBoleto()
@@ -827,7 +952,7 @@ class Mine extends CI_Controller
             $data['pix_key'],
             $data['emitente']
         );
-        $data['chaveFormatada'] = $this->formatarChave($data['pix_key']);
+        $data['chaveFormatada'] = formatar_chave_pix($data['pix_key']);
 
         if (! in_array($data['result']->idClientes, $this->clientesPermitidos())) {
             $this->session->set_flashdata('error', 'Esta OS não pertence ao cliente logado.');
@@ -860,7 +985,7 @@ class Mine extends CI_Controller
             $data['pix_key'],
             $data['emitente']
         );
-        $data['chaveFormatada'] = $this->formatarChave($data['pix_key']);
+        $data['chaveFormatada'] = formatar_chave_pix($data['pix_key']);
 
         if (! in_array($data['result']->clientes_id, $this->clientesPermitidos())) {
             $this->session->set_flashdata('error', 'Esta OS não pertence ao cliente logado.');
@@ -893,7 +1018,7 @@ class Mine extends CI_Controller
         $this->CI->load->database();
         $data['pix_key'] = $this->CI->db->get_where('configuracoes', ['config' => 'pix_key'])->row_object()->valor;
         $data['qrCode'] = $this->vendas_model->getQrCode($id, $data['pix_key'], $data['emitente']);
-        $data['chaveFormatada'] = $this->formatarChave($data['pix_key']);
+        $data['chaveFormatada'] = formatar_chave_pix($data['pix_key']);
 
         if (! in_array($data['result']->clientes_id, $this->clientesPermitidos())) {
             $this->session->set_flashdata('error', 'Esta venda não pertence ao cliente logado.');
@@ -905,6 +1030,12 @@ class Mine extends CI_Controller
 
     public function minha_ordem_de_servico($y = null, $when = null)
     {
+        // Era publica: o "codigo" e so o id da OS numa conta fixa, entao qualquer um via qualquer OS.
+        // Agora exige o cliente logado e dono da OS, como as demais telas da area do cliente.
+        if (! session_id() || ! $this->session->userdata('conectado')) {
+            redirect('mine');
+        }
+
         if (($y != null) && (is_numeric($y))) {
             // Do not forget this number -> 44023
             // function sending => y = (7653 * ID) + 44023
@@ -920,9 +1051,9 @@ class Mine extends CI_Controller
             $this->load->model('mapos_model');
             $this->load->model('os_model');
             $data['result'] = $this->os_model->getById($id);
-            if ($data['result'] == null) {
-                // Resposta em caso de não encontrar a ordem de serviço
-                //$this->load->view('conecte/login');
+            if ($data['result'] == null || ! in_array($data['result']->clientes_id, $this->clientesPermitidos())) {
+                $this->session->set_flashdata('error', 'Ordem de serviço não encontrada.');
+                redirect('mine/painel');
             } else {
                 $data['produtos'] = $this->os_model->getProdutos($id);
                 $data['servicos'] = $this->os_model->getServicos($id);
