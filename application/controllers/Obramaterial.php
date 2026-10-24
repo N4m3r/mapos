@@ -18,14 +18,6 @@ class Obramaterial extends MY_Controller
         $this->data['menuObras'] = 'Obras';
     }
 
-    private function precisa($perm, $msg)
-    {
-        if (! $this->permission->checkPermission($this->session->userdata('permissao'), $perm)) {
-            $this->session->set_flashdata('error', $msg);
-            redirect(base_url());
-        }
-    }
-
     private function getObraOu404($id)
     {
         $obra = $this->obras_model->getObra((int) $id);

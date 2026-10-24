@@ -16,14 +16,6 @@ class Obraequipe extends MY_Controller
         $this->data['menuObras'] = 'Obras';
     }
 
-    private function precisa($perm, $msg)
-    {
-        if (! $this->permission->checkPermission($this->session->userdata('permissao'), $perm)) {
-            $this->session->set_flashdata('error', $msg);
-            redirect(base_url());
-        }
-    }
-
     public function index()
     {
         $this->precisa('vObras', 'Você não tem permissão para visualizar Projetos.');
@@ -156,21 +148,6 @@ class Obraequipe extends MY_Controller
         $this->obra_equipe_model->desalocar((int) $this->input->post('idAlocacao'));
         $this->session->set_flashdata('success', 'Alocação removida.');
         redirect('obraequipe/membros/' . $equipe_id);
-    }
-
-    private function dataOuNull($valor)
-    {
-        $valor = trim((string) $valor);
-        if ($valor === '') {
-            return null;
-        }
-        if (strpos($valor, '/') !== false) {
-            $p = explode('/', $valor);
-            if (count($p) === 3) {
-                return $p[2] . '-' . $p[1] . '-' . $p[0];
-            }
-        }
-        return $valor;
     }
 
     /** Converte um valor monetário digitado (pt-BR ou simples) em float. */

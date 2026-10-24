@@ -23,14 +23,6 @@ class Contratos extends MY_Controller
         $this->data['menuContratos'] = 'Contratos';
     }
 
-    private function precisa($perm, $msg)
-    {
-        if (! $this->permission->checkPermission($this->session->userdata('permissao'), $perm)) {
-            $this->session->set_flashdata('error', $msg);
-            redirect(base_url());
-        }
-    }
-
     public function index()
     {
         $this->painel();
@@ -280,20 +272,5 @@ class Contratos extends MY_Controller
     {
         $this->data['clientes'] = $this->db->select('idClientes, nomeCliente')
             ->order_by('nomeCliente', 'ASC')->get('clientes')->result();
-    }
-
-    private function dataOuNull($valor)
-    {
-        $valor = trim((string) $valor);
-        if ($valor === '') {
-            return null;
-        }
-        if (strpos($valor, '/') !== false) {
-            $p = explode('/', $valor);
-            if (count($p) === 3) {
-                return $p[2] . '-' . $p[1] . '-' . $p[0];
-            }
-        }
-        return $valor;
     }
 }

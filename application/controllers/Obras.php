@@ -19,14 +19,6 @@ class Obras extends MY_Controller
         $this->data['menuObras'] = 'Obras';
     }
 
-    private function precisa($perm, $msg)
-    {
-        if (! $this->permission->checkPermission($this->session->userdata('permissao'), $perm)) {
-            $this->session->set_flashdata('error', $msg);
-            redirect(base_url());
-        }
-    }
-
     public function index()
     {
         $this->painel();
@@ -584,22 +576,6 @@ class Obras extends MY_Controller
             ->order_by('nomeCliente', 'ASC')->get('clientes')->result();
         $this->data['usuarios'] = $this->db->select('idUsuarios, nome')
             ->where('situacao', 1)->order_by('nome', 'ASC')->get('usuarios')->result();
-    }
-
-    private function dataOuNull($valor)
-    {
-        $valor = trim((string) $valor);
-        if ($valor === '') {
-            return null;
-        }
-        // aceita dd/mm/aaaa ou aaaa-mm-dd
-        if (strpos($valor, '/') !== false) {
-            $p = explode('/', $valor);
-            if (count($p) === 3) {
-                return $p[2] . '-' . $p[1] . '-' . $p[0];
-            }
-        }
-        return $valor;
     }
 
     private function base64ParaBlob($b64)
