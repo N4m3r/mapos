@@ -97,6 +97,21 @@ jobs:
           mysql --protocol=TCP -h127.0.0.1 -uroot -proot mapos_ci -e "INSERT INTO produtos (idProdutos, descricao, unidade, precoCompra, precoVenda, estoque, estoqueMinimo) VALUES (1, 'Produto smoke', 'UN', 5, 25, 100, 0)"
           sh tests/smoke/pdv.sh
 
+      - name: Node para os testes de navegador
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Testes de navegador (Chrome; CSP bloqueando, data-*, PDV)
+        env:
+          BASE_URL: http://localhost:8099/
+          EMAIL: admin@mapos.test
+          SENHA: admin123
+        run: |
+          cd tests/navegador
+          npm install --no-audit --no-fund
+          CHROME="$(command -v google-chrome || command -v chromium)" node telas.mjs
+
       - name: Backup automatico (linha de comando)
         run: |
           php index.php backup/executar
