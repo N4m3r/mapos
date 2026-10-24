@@ -107,7 +107,7 @@ class MY_Controller extends CI_Controller
         return $valor;
     }
 
-    public function layout()
+    protected function layout()
     {
         // load views
         $this->load->view('tema/topo', $this->data);
