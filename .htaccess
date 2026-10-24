@@ -38,5 +38,8 @@
 </IfModule>
 
 RewriteEngine On
+# Pastas internas nunca sao servidas direto (mesma regra do nginx do docker):
+# logs, backups, certificados e codigo ficam em application/.
+RewriteRule ^(application|system|vendor|docker)(/|$) - [F,L]
 RewriteCond %{HTTP:Authorization} ^(.+)$
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
