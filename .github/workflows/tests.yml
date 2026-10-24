@@ -112,6 +112,18 @@ jobs:
           npm install --no-audit --no-fund
           CHROME="$(command -v google-chrome || command -v chromium)" node telas.mjs
 
+      - name: Acompanhamento publico da OS + NPS (Chrome)
+        env:
+          BASE_URL: http://localhost:8099/
+          EMAIL: admin@mapos.test
+          SENHA: admin123
+        run: |
+          Q="mysql --protocol=TCP -h127.0.0.1 -uroot -proot -N mapos_ci"
+          $Q -e "INSERT INTO clientes (nomeCliente, documento, telefone, email, senha) VALUES ('Cliente smoke', '', '', '', ''); INSERT INTO os (dataInicial, dataFinal, status, clientes_id, usuarios_id, faturado, descricaoProduto) VALUES (CURDATE(), CURDATE(), 'Finalizado', LAST_INSERT_ID(), 1, 0, 'Teste')"
+          export OS_ID=$($Q -e "SELECT MAX(idOs) FROM os")
+          cd tests/navegador
+          CHROME="$(command -v google-chrome || command -v chromium)" node acompanhar.mjs
+
       - name: Backup automatico (linha de comando)
         run: |
           php index.php backup/executar

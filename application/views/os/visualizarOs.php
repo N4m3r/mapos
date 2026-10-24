@@ -216,6 +216,12 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                         </a>
                     <?php } ?>
 
+                    <?php if ($this->db->field_exists('acompanhar_token', 'os') && $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) { ?>
+                        <a title="Abrir o link público de acompanhamento (para enviar ao cliente)" href="<?= site_url('os/acompanhamento/' . $result->idOs) ?>" target="_blank" rel="noopener" class="button btn btn-mini btn-info">
+                            <span class="button__icon"><i class="bx bx-map-pin"></i></span> <span class="button__text">Acompanhamento</span>
+                        </a>
+                    <?php } ?>
+
                     <?php
                     // Botões de Check-in/Check-out do Atendimento
                     // Verifica permissão específica vBtnAtendimento OU permissão geral de editar OS (eOs)

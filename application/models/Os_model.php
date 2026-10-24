@@ -542,6 +542,12 @@ class Os_model extends CI_Model
             formatar_garantia($os->garantia),
         ];
 
+        // {LINK_ACOMPANHAR}: link público da OS (gera o token só quando a tag é usada)
+        if (strpos($textoBase, '{LINK_ACOMPANHAR}') !== false) {
+            $this->load->model('acompanhamento_model');
+            $textoBase = str_replace('{LINK_ACOMPANHAR}', $this->acompanhamento_model->link($idOs), $textoBase);
+        }
+
         return $this->montarTextoWhats($textoBase, $troca);
     }
 

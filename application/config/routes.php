@@ -62,6 +62,10 @@ $route['aceite/foto/(:any)/(:num)'] = 'aceite/foto/$1/$2';
 $route['aceite/assinatura/(:any)/(:num)'] = 'aceite/assinatura/$1/$2';
 $route['aceite/(:any)'] = 'aceite/index/$1';
 
+// Rota pública de acompanhamento da OS + avaliação NPS (ADR-007)
+$route['acompanhar/avaliar'] = 'acompanhar/avaliar';
+$route['acompanhar/(:any)'] = 'acompanhar/index/$1';
+
 // Encurtador de links interno (dominio/l/<slug>) e RDO público por token
 $route['l/(:any)'] = 'l/index/$1';
 $route['rdo/foto/(:any)/(:num)'] = 'rdo/foto/$1/$2';

@@ -21,7 +21,7 @@ const TELAS = [
     'arquivos', 'financeiro/lancamentos', 'cobrancas/cobrancas', 'contratos', 'obras', 'usuarios',
     'permissoes', 'mapos/emitente', 'mapos/configurar', 'mapos/minhaConta', 'mapos/backups',
     'mapos/emailsLog', 'relatorios/clientes', 'relatorios/os', 'agenda', 'sla', 'caixa', 'pdv',
-    'notificacoes', 'automacao', 'emailtemplates', 'whatsapptemplates', 'nfe/gerenciar', 'nfe/configuracoes',
+    'relatorios/nps', 'notificacoes', 'automacao', 'emailtemplates', 'whatsapptemplates', 'nfe/gerenciar', 'nfe/configuracoes',
     'os/atribuir', 'tecnico',
 ];
 

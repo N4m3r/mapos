@@ -379,6 +379,26 @@ class Relatorios extends MY_Controller
         pdf_create($html, 'relatorio_servicos' . date('d/m/y'), true);
     }
 
+    /** Satisfacao dos clientes (NPS) pelas avaliacoes do link de acompanhamento (ADR-007). */
+    public function nps()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'rOs')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para gerar relatórios de OS.');
+            redirect(base_url());
+        }
+        $valida = fn ($d) => (is_string($d) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $d)) ? $d : null;
+        $filtro = [
+            'dataInicial' => $valida($this->input->get('dataInicial')) ?: date('Y-m-01', strtotime('-2 months')),
+            'dataFinal' => $valida($this->input->get('dataFinal')) ?: date('Y-m-d'),
+        ];
+        $this->load->model('acompanhamento_model');
+        $this->data['filtro'] = $filtro;
+        $this->data['resumo'] = $this->acompanhamento_model->resumo($filtro['dataInicial'], $filtro['dataFinal']);
+        $this->data['view'] = 'relatorios/rel_nps';
+
+        return $this->layout();
+    }
+
     public function os()
     {
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'rOs')) {

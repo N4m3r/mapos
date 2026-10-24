@@ -353,6 +353,21 @@ class Os extends MY_Controller
         return $this->os_contrato->camposContratoEquipe($osAtual);
     }
 
+    /** Abre o link publico de acompanhamento da OS (ADR-007); gera o token na primeira vez. */
+    public function acompanhamento($id = null)
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para visualizar O.S.');
+            redirect(base_url());
+        }
+        $this->load->model('acompanhamento_model');
+        $token = $this->acompanhamento_model->tokenDaOs($id);
+        if (! $token) {
+            show_404();
+        }
+        redirect('acompanhar/' . $token);
+    }
+
     public function visualizar()
     {
         if (! $this->uri->segment(3) || ! is_numeric($this->uri->segment(3))) {

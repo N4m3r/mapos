@@ -323,6 +323,7 @@
                                     <option value="{DATA_FINAL}">Data Final</option>
                                     <option value="{DATA_INICIAL}">Data Inicial</option>
                                     <option value="{DATA_GARANTIA}">Data da Garantia</option>
+                                    <option value="{LINK_ACOMPANHAR}">Link de acompanhamento / avaliação</option>
                                 </select>
                             </div>
                             <span6 class="span10">
