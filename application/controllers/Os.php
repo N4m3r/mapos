@@ -658,6 +658,19 @@ class Os extends MY_Controller
         redirect(site_url('os'));
     }
 
+    /**
+     * Acoes que alteram itens da OS (chamadas por AJAX na tela de edicao) exigem permissao de editar OS.
+     */
+    private function exigirEdicaoOs()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
+            $this->output->set_status_header(403)->set_content_type('application/json')
+                ->set_output(json_encode(['result' => false, 'mensagem' => 'Você não tem permissão para editar O.S.']))
+                ->_display();
+            exit;
+        }
+    }
+
     private function devolucaoEstoque($id)
     {
         if ($produtos = $this->os_model->getProdutos($id)) {
@@ -779,6 +792,8 @@ class Os extends MY_Controller
 
     public function adicionarProduto()
     {
+        $this->exigirEdicaoOs();
+
         $this->load->library('form_validation');
 
         if ($this->form_validation->run('adicionar_produto_os') === false) {
@@ -838,6 +853,8 @@ class Os extends MY_Controller
 
     public function excluirProduto()
     {
+        $this->exigirEdicaoOs();
+
         $id = $this->input->post('idProduto');
         $idOs = $this->input->post('idOs');
 
@@ -873,6 +890,8 @@ class Os extends MY_Controller
 
     public function adicionarServico()
     {
+        $this->exigirEdicaoOs();
+
         $this->load->library('form_validation');
 
         if ($this->form_validation->run('adicionar_servico_os') === false) {
@@ -915,6 +934,8 @@ class Os extends MY_Controller
 
     public function excluirServico()
     {
+        $this->exigirEdicaoOs();
+
         $ID = $this->input->post('idServico');
         $idOs = $this->input->post('idOs');
 
@@ -1106,6 +1127,8 @@ class Os extends MY_Controller
 
     public function anexar()
     {
+        $this->exigirEdicaoOs();
+
         $this->load->library('upload');
         $this->load->library('image_lib');
 
@@ -1198,6 +1221,8 @@ class Os extends MY_Controller
 
     public function excluirAnexo($id = null)
     {
+        $this->exigirEdicaoOs();
+
         if ($id == null || ! is_numeric($id)) {
             echo json_encode(['result' => false, 'mensagem' => 'Erro ao tentar excluir anexo.']);
         } else {
@@ -1235,6 +1260,8 @@ class Os extends MY_Controller
 
     public function adicionarDesconto()
     {
+        $this->exigirEdicaoOs();
+
         if ($this->input->post('desconto') == '') {
             return $this->output
                 ->set_content_type('application/json')
