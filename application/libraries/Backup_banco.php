@@ -31,14 +31,21 @@ class Backup_banco
      */
     public function gerarZip()
     {
-        $prefs = [
+        $sql = $this->ci->dbutil->backup([
             'tables' => $this->tabelasLegiveis(),
-            'format' => 'zip',
+            'format' => 'txt',
             'foreign_key_checks' => false,
-            'filename' => 'backup' . date('d-m-Y') . '.sql',
-        ];
+        ]);
 
-        return $this->ci->dbutil->backup($prefs);
+        // Sem o SET NAMES, restaurar pelo cliente mysql (que costuma usar latin1) corrompe os acentos
+        $charset = $this->ci->db->char_set ?: 'utf8mb4';
+        $this->ci->load->library('zip');
+        $this->ci->zip->clear_data();
+        $this->ci->zip->add_data('backup' . date('d-m-Y') . '.sql', "SET NAMES {$charset};
+
+" . $sql);
+
+        return $this->ci->zip->get_zip();
     }
 
     /**
