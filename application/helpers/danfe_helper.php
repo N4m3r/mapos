@@ -64,7 +64,7 @@ if (! function_exists('danfe_xml_conteudo')) {
             return $nota->xml;
         }
         if (! empty($nota->xml_path) && is_file($nota->xml_path)) {
-            $conteudo = @file_get_contents($nota->xml_path);
+            $conteudo = file_get_contents($nota->xml_path);
 
             return ($conteudo !== false && $conteudo !== '') ? $conteudo : null;
         }

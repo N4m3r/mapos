@@ -17,7 +17,7 @@ function pdf_create($html, $filename, $stream = true, $landscape = false)
 {
     $tempDir = rtrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, FCPATH . 'assets/uploads/temp'), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
     if (! is_dir($tempDir)) {
-        @mkdir($tempDir, 0755, true);
+        mkdir($tempDir, 0755, true);
     }
 
     $tempFiles = [];
@@ -27,7 +27,7 @@ function pdf_create($html, $filename, $stream = true, $landscape = false)
     $htmlLen = strlen($html);
     $currentLimit = (int) ini_get('pcre.backtrack_limit');
     if ($currentLimit > 0 && $htmlLen >= $currentLimit) {
-        @ini_set('pcre.backtrack_limit', (string) ($htmlLen + 500000));
+        ini_set('pcre.backtrack_limit', (string) ($htmlLen + 500000));
     }
 
     try {
@@ -54,7 +54,7 @@ function pdf_create($html, $filename, $stream = true, $landscape = false)
     } finally {
         foreach ($tempFiles as $file) {
             if (is_string($file) && is_file($file)) {
-                @unlink($file);
+                unlink($file);
             }
         }
     }
@@ -215,7 +215,7 @@ function mpdf_data_uri_to_temp_file($dataUri, $tempDir, array &$tempFiles)
     }
 
     $path = $tempDir . 'mpdf_img_' . str_replace('.', '', uniqid('', true)) . '.' . $ext;
-    if (@file_put_contents($path, $bin) === false) {
+    if (file_put_contents($path, $bin) === false) {
         return null;
     }
 
@@ -232,6 +232,7 @@ function mpdf_data_uri_to_temp_file($dataUri, $tempDir, array &$tempFiles)
  */
 function mpdf_resize_image_binary($bin, $maxW = 360, $maxH = 480)
 {
+    // @: binario vindo de upload/banco; dado invalido so deve resultar em false
     $src = @imagecreatefromstring($bin);
     if ($src === false) {
         return null;

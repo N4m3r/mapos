@@ -100,7 +100,7 @@ class Nfe_model extends CI_Model
             return $nota->xml;
         }
         if (! empty($nota->xml_path) && is_file($nota->xml_path)) {
-            $conteudo = @file_get_contents($nota->xml_path);
+            $conteudo = file_get_contents($nota->xml_path);
 
             return ($conteudo !== false && $conteudo !== '') ? $conteudo : null;
         }

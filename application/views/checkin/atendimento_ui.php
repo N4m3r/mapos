@@ -171,10 +171,10 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
 <script src="<?= base_url('assets/js/assinatura-canvas.js?v=3') ?>"></script>
 <script src="<?= base_url('assets/js/assinatura-fullscreen.js?v=1') ?>"></script>
 <script src="<?= base_url('assets/js/checkin-fotos.js?v=3') ?>"></script>
-<script src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/rascunho-form.js') ?: '1' ?>"></script>
+<script src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= asset_versao('assets/js/rascunho-form.js') ?>"></script>
 <script src="<?= base_url('assets/js/checkin.js?v=7') ?>"></script>
 <script src="<?= base_url('assets/js/checkin-formularios.js?v=1') ?>"></script>
-<script src="<?= base_url('assets/js/csrf.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/csrf.js') ?: '4' ?>"></script>
+<script src="<?= base_url('assets/js/csrf.js') ?>?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
 <script src="<?= base_url('assets/js/tecnico-localizacao.js?v=1') ?>"></script>
 <script>
     window.checkinConfig = { baseUrl: '<?= base_url() ?>', osId: <?= $os_id ?>, debug: false };

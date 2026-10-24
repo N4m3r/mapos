@@ -215,11 +215,12 @@ class CertificadoHelper
 
         $destino = self::DIR_CERTIFICADO . 'certificado.' . $ext;
         // move_uploaded_file é o correto para upload HTTP; copy é fallback.
-        if (!@move_uploaded_file($tmpFile, $destino) && !@copy($tmpFile, $destino)) {
+        $salvo = is_uploaded_file($tmpFile) ? move_uploaded_file($tmpFile, $destino) : copy($tmpFile, $destino);
+        if (! $salvo) {
             throw new Exception('Falha ao salvar o certificado em ' . $destino
                 . '. Verifique a permissão de escrita da pasta application/arquivos_fiscais no servidor.');
         }
-        @chmod($destino, 0640);
+        chmod($destino, 0640);
 
         return $destino;
     }
@@ -229,6 +230,7 @@ class CertificadoHelper
      */
     private static function garantirDiretorio(string $dir): void
     {
+        // @: outra requisicao pode criar a pasta ao mesmo tempo; o is_dir final decide
         if (!is_dir($dir) && !@mkdir($dir, 0750, true) && !is_dir($dir)) {
             throw new Exception('Não foi possível criar a pasta "' . $dir . '". '
                 . 'Dê permissão de escrita ao servidor web em application/arquivos_fiscais.');
@@ -246,7 +248,7 @@ class CertificadoHelper
 
         $htaccess = $base . '.htaccess';
         if (!file_exists($htaccess)) {
-            @file_put_contents(
+            file_put_contents(
                 $htaccess,
                 "<IfModule mod_authz_core.c>\n    Require all denied\n</IfModule>\n"
                 . "<IfModule !mod_authz_core.c>\n    Order deny,allow\n    Deny from all\n</IfModule>\n"
@@ -254,7 +256,7 @@ class CertificadoHelper
         }
         $index = $base . 'index.html';
         if (!file_exists($index)) {
-            @file_put_contents($index, "<!DOCTYPE html><title>403 Forbidden</title><p>Acesso negado.</p>");
+            file_put_contents($index, "<!DOCTYPE html><title>403 Forbidden</title><p>Acesso negado.</p>");
         }
     }
 
@@ -283,7 +285,7 @@ class CertificadoHelper
         if (! move_uploaded_file($tmpFile, $destino)) {
             throw new Exception('Falha ao salvar o arquivo da Cora (' . $tipo . ')');
         }
-        @chmod($destino, 0640);
+        chmod($destino, 0640);
 
         return $destino;
     }

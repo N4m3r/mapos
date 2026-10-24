@@ -84,7 +84,7 @@ class NfseService
     {
         $dir = APPPATH . 'vendor/hadder/nfse-nacional/storage/schemes';
         foreach (glob($dir . '/DPS_*.xsd') ?: [] as $xsd) {
-            $conteudo = @file_get_contents($xsd);
+            $conteudo = file_get_contents($xsd);
             if ($conteudo !== false && stripos($conteudo, 'IBSCBS') !== false) {
                 return true;
             }
@@ -225,7 +225,7 @@ class NfseService
                 $d = json_decode($resp, true);
                 if (is_array($d) && empty($d['erro']) && !empty($d['ibge']) && strlen((string) $d['ibge']) === 7) {
                     $ibge = (string) $d['ibge'];
-                    @file_put_contents($cacheFile, json_encode([
+                    file_put_contents($cacheFile, json_encode([
                         'ibge' => $ibge,
                         'localidade' => $d['localidade'] ?? '',
                         'uf' => $d['uf'] ?? '',
@@ -592,6 +592,7 @@ class NfseService
             return $b64;
         }
         // Veio comprimido (gzip)?
+        // @: gzdecode avisa quando o retorno nao esta compactado; nesse caso usa o texto como veio
         $gz = @gzdecode($retorno);
         if ($gz !== false && strncmp($gz, '%PDF', 4) === 0) {
             return $gz;

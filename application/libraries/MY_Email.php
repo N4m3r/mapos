@@ -198,7 +198,9 @@ class MY_Email extends CI_Email
 
             // Remove os arquivos temporários baixados para os anexos.
             foreach ($tempFiles as $tf) {
-                @unlink($tf);
+                if (is_file($tf)) {
+                    unlink($tf);
+                }
             }
 
             $this->CI->db->where('id', $email->id);
@@ -341,7 +343,9 @@ class MY_Email extends CI_Email
                 return null;
             }
             if (file_put_contents($dest, $conteudo) === false) {
-                @unlink($dest);
+                if (is_file($dest)) {
+                    unlink($dest);
+                }
 
                 return null;
             }
@@ -383,6 +387,7 @@ class MY_Email extends CI_Email
         }
 
         $ctx = stream_context_create(['http' => ['timeout' => 30]]);
+        // @: falha de rede (timeout, 404) vira null e o anexo e ignorado
         $data = @file_get_contents($url, false, $ctx);
 
         return $data === false ? null : $data;

@@ -50,7 +50,7 @@ function dispatch_email_queue()
     }
 
     // Trava exclusiva não-bloqueante: só um processo por vez.
-    $handle = @fopen($lockFile, 'c');
+    $handle = fopen($lockFile, 'c');
     if ($handle === false) {
         return;
     }
@@ -77,9 +77,9 @@ function dispatch_email_queue()
 
     // Devolve a resposta ao usuário antes de processar a fila, quando possível.
     if (function_exists('fastcgi_finish_request')) {
-        @fastcgi_finish_request();
+        fastcgi_finish_request();
     }
-    @ignore_user_abort(true);
+    ignore_user_abort(true);
 
     try {
         $CI = &get_instance();

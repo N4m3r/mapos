@@ -381,6 +381,7 @@ class Localizacao extends MY_Controller
 
     private function removerAcentos($s)
     {
+        // @: iconv avisa em caractere sem equivalente; nesse caso fica o texto original
         $t = @iconv('UTF-8', 'ASCII//TRANSLIT', $s);
 
         return $t !== false ? $t : $s;

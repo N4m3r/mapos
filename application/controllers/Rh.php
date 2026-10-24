@@ -361,6 +361,7 @@ class Rh extends MY_Controller
         // Redimensiona/comprime para evitar HTML/PDF gigante (mPDF pcre.backtrack_limit)
         // e base64 multi-MB no banco.
         if (function_exists('imagecreatefromstring')) {
+            // @: imagem enviada pelo usuario; dado invalido so deve resultar em false
             $src = @imagecreatefromstring($conteudo);
             if ($src !== false) {
                 $w = imagesx($src);
@@ -1059,7 +1060,9 @@ class Rh extends MY_Controller
                     $dadosH['gerado_sistema'] = 1;
                 }
                 $this->rh_extras_model->salvarHolerite($colaborador_id, $competencia, $dadosH);
-                @unlink($path);
+                if (is_file($path)) {
+                    unlink($path);
+                }
                 log_info('RH: gerou e liberou holerite colab ' . $colaborador_id . ' ' . $competencia);
                 $this->session->set_flashdata('success', 'Holerite gerado e liberado para o colaborador.');
                 redirect(site_url("rh/holerite/$colaborador_id/$competencia"));

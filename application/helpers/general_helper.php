@@ -150,3 +150,34 @@ if (! function_exists('formatar_garantia')) {
         return ctype_digit($garantia) ? $garantia . ' dias' : $garantia;
     }
 }
+
+if (! function_exists('asset_versao')) {
+    /**
+     * Versao de um arquivo de assets para usar no ?v= (data de modificacao),
+     * para o navegador buscar de novo quando o arquivo mudar.
+     *
+     * @param string $caminho Caminho relativo a raiz do site (ex.: 'assets/js/csrf.js')
+     * @param string $padrao  Valor usado se o arquivo nao existir
+     */
+    function asset_versao($caminho, $padrao = '1')
+    {
+        $arquivo = FCPATH . $caminho;
+
+        return is_file($arquivo) ? (string) filemtime($arquivo) : $padrao;
+    }
+}
+
+if (! function_exists('arquivo_e_imagem')) {
+    /**
+     * Indica se o caminho aponta para um arquivo de imagem existente (pelo conteudo, nao pela extensao).
+     */
+    function arquivo_e_imagem($caminho)
+    {
+        if (empty($caminho) || ! is_file($caminho)) {
+            return false;
+        }
+        $mime = (new finfo(FILEINFO_MIME_TYPE))->file($caminho);
+
+        return is_string($mime) && strpos($mime, 'image/') === 0;
+    }
+}

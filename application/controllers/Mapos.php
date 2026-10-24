@@ -408,7 +408,7 @@ class Mapos extends MY_Controller {
 
         // PDF de exemplo em arquivo temporário.
         $tmp = tempnam(sys_get_temp_dir(), 'mapteste_');
-        @file_put_contents($tmp, $this->gerarPdfTeste());
+        file_put_contents($tmp, $this->gerarPdfTeste());
 
         $this->load->library('email');
         $this->email->clear(true);
@@ -428,7 +428,9 @@ class Mapos extends MY_Controller {
         $ok = $this->email->send(true); // true = envia imediatamente (não enfileira)
         $debug = $ok ? '' : $this->email->print_debugger(['headers', 'subject']);
         $this->email->registrarEnvioLog($dest, 'Teste de envio (NF + Boleto)', 'teste', $ok ? 'enviado' : 'falha', $ok ? null : $debug);
-        @unlink($tmp);
+        if (is_file($tmp)) {
+            unlink($tmp);
+        }
 
         if ($ok) {
             log_info('Enviou e-mail de teste com anexo para ' . $dest);

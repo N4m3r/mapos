@@ -126,8 +126,9 @@ class Cora extends BasePaymentGateway
         }
 
         if (is_file($cert) && is_file($key) && function_exists('openssl_x509_check_private_key')) {
+            // @: diagnostico; certificado invalido so deve resultar em 'NÃO'
             $c = @openssl_x509_read((string) file_get_contents($cert));
-            $k = @openssl_pkey_get_private((string) file_get_contents($key));
+            $k = openssl_pkey_get_private((string) file_get_contents($key));
             $info['par_certificado_chave_confere'] = ($c && $k && @openssl_x509_check_private_key($c, $k)) ? 'SIM' : 'NÃO';
         }
 
@@ -187,8 +188,8 @@ class Cora extends BasePaymentGateway
      */
     private function validarCertificados($certPath, $keyPath)
     {
-        $certPem = @file_get_contents($certPath);
-        $keyPem = @file_get_contents($keyPath);
+        $certPem = is_readable($certPath) ? file_get_contents($certPath) : false;
+        $keyPem = is_readable($keyPath) ? file_get_contents($keyPath) : false;
         if ($certPem === false || trim($certPem) === '') {
             throw new \Exception('Não foi possível ler o arquivo do certificado (.pem). Reenvie o arquivo.');
         }
@@ -218,7 +219,7 @@ class Cora extends BasePaymentGateway
         if ($cert === false) {
             throw new \Exception('O certificado (.pem) não pôde ser lido pelo OpenSSL. Confirme que é o arquivo gerado pela Cora, em formato PEM.');
         }
-        $priv = @openssl_pkey_get_private($keyPem);
+        $priv = openssl_pkey_get_private($keyPem);
         if ($priv === false) {
             throw new \Exception('A chave privada (.key) é inválida ou está protegida por senha. Envie a chave PEM sem senha, exatamente como a Cora gerou.');
         }
@@ -301,7 +302,7 @@ class Cora extends BasePaymentGateway
         }
 
         $expiresIn = (int) ($data['expires_in'] ?? 3600);
-        @file_put_contents($cacheFile, json_encode([
+        file_put_contents($cacheFile, json_encode([
             'access_token' => $data['access_token'],
             'expires_at' => time() + $expiresIn,
         ]));
