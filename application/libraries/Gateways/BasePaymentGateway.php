@@ -6,6 +6,9 @@ use Libraries\Gateways\Contracts\PaymentGateway;
 
 abstract class BasePaymentGateway implements PaymentGateway
 {
+    /** @var \CI_Controller Instancia do CodeIgniter (atribuida no construtor de cada gateway) */
+    protected $ci;
+
     public function gerarCobranca($id, $tipo, $metodoPagamento, $data = [])
     {
         switch ($metodoPagamento) {

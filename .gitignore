@@ -39,3 +39,6 @@ assets/anexos/
 # (mantém a pasta e o .htaccess de proteção rastreados)
 application/arquivos_fiscais/certificado/
 application/arquivos_fiscais/xml/
+
+# PHPUnit
+/.phpunit.cache/

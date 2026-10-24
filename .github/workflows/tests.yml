@@ -1,0 +1,92 @@
+name: "Testes"
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  unidade:
+    name: Sintaxe, auditoria e PHPUnit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: bcmath, curl, gd, mbstring, soap, zip, intl
+          coverage: none
+
+      - name: Instalar dependencias (composer.lock)
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Sintaxe de todos os arquivos PHP
+        run: find application assets install index.php -path application/vendor -prune -o -name '*.php' -print0 | xargs -0 -n1 -P4 php -l > /dev/null
+
+      - name: Vulnerabilidades conhecidas nas dependencias
+        run: composer audit --no-interaction
+
+      - name: PHPUnit
+        run: application/vendor/bin/phpunit
+
+  smoke:
+    name: Smoke test (login e telas principais)
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        # mesma versao do docker/docker-compose.yml
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: bcmath, curl, gd, mbstring, soap, zip, intl, mysqli
+          coverage: none
+
+      - name: Instalar dependencias (composer.lock)
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Instalar o Map-OS num banco vazio
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_USER: root
+          DB_PASS: root
+          DB_NAME: mapos_ci
+          BASE_URL: http://localhost:8099/
+        run: sh tests/smoke/instalar.sh
+
+      - name: Subir o servidor
+        # Varios workers: os relatorios em PDF buscam imagens no proprio servidor
+        run: |
+          PHP_CLI_SERVER_WORKERS=4 php -S 127.0.0.1:8099 > /tmp/php-server.log 2>&1 &
+          for i in $(seq 1 20); do curl -s -o /dev/null http://127.0.0.1:8099/robots.txt && break; sleep 1; done
+
+      - name: Smoke test
+        env:
+          BASE_URL: http://localhost:8099/index.php
+          EMAIL: admin@mapos.test
+          SENHA: admin123
+        run: sh tests/smoke/smoke.sh
+
+      - name: Log do servidor e da aplicacao (em caso de falha)
+        if: failure()
+        run: |
+          tail -n 100 /tmp/php-server.log || true
+          tail -n 100 application/logs/*.php 2>/dev/null || true
