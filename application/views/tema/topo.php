@@ -101,6 +101,12 @@
             <li><a href="<?= site_url('relatorios/os') ?>">Ordens de Serviço</a></li>
             <li><a href="<?= site_url('relatorios/cicloFaturamento') ?>">Ciclo / Faturamento das OS</a></li>
             <li><a href="<?= site_url('relatorios/nps') ?>">Satisfação (NPS)</a></li>
+            <li class="divider"></li>
+            <li><a href="<?= site_url('painelgerencial') ?>">Painel gerencial</a></li>
+            <li><a href="<?= site_url('margem') ?>">Custo e margem por OS</a></li>
+            <li><a href="<?= site_url('comprasugerida') ?>">Compra sugerida (estoque)</a></li>
+            <li><a href="<?= site_url('conciliacao') ?>">Conciliação bancária (OFX)</a></li>
+            <li class="divider"></li>
             <li><a href="<?= site_url('relatorios/vendas') ?>">Vendas</a></li>
             <li><a href="<?= site_url('relatorios/financeiro') ?>">Financeiro</a></li>
             <li><a href="<?= site_url('relatorios/sku') ?>">SKU</a></li>
