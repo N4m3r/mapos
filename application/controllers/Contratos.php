@@ -192,7 +192,7 @@ class Contratos extends MY_Controller
             'tipo' => 'receita',
             'cliente_fornecedor' => $contrato->nomeCliente ?: null,
             'clientes_id' => $contrato->clientes_id ?: null,
-            'usuarios_id' => (int) $this->session->userdata('idUsuarios'),
+            'usuarios_id' => (int) $this->session->userdata('id_admin'),
             'observacoes' => 'Gerado automaticamente pelo Contrato #' . $id . ' (' . $competencia . ').',
         ];
         $this->db->insert('lancamentos', $lanc);

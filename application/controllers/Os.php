@@ -1722,7 +1722,7 @@ class Os extends MY_Controller
         $this->load->model('naorealizada_model');
         $ocorrencia_id = (int) $this->input->post('ocorrencia_id');
         $acao          = $this->input->post('acao');
-        $usuario       = $this->session->userdata('idUsuarios');
+        $usuario       = $this->session->userdata('id_admin');
 
         $oc = $this->naorealizada_model->getOcorrencia($ocorrencia_id);
         if (! $oc) {
@@ -1785,7 +1785,7 @@ class Os extends MY_Controller
             redirect('os/atribuir');
         }
 
-        $atribuido_por = $this->session->userdata('idUsuarios');
+        $atribuido_por = $this->session->userdata('id_admin');
 
         if ($this->tecnico_model->atribuirTecnico($os_id, $tecnico_id, $atribuido_por, $observacao)) {
             // Agendamento do atendimento (data + hora). O input datetime-local
