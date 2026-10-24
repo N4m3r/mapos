@@ -20,6 +20,10 @@
                 <div class="span3">
                     <a href="<?php echo base_url(); ?>index.php/os/adicionar" class="button btn btn-mini btn-success" style="max-width: 160px">
                         <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Ordem de Serviço</span></a>
+                    <a href="<?= site_url('agenda') ?>" class="button btn btn-mini btn-info" style="max-width: 160px" title="Agenda da equipe">
+                        <span class="button__icon"><i class='bx bx-calendar'></i></span><span class="button__text2">Agenda</span></a>
+                    <a href="<?= site_url('sla') ?>" class="button btn btn-mini btn-warning" style="max-width: 160px" title="Painel de SLA">
+                        <span class="button__icon"><i class='bx bx-timer'></i></span><span class="button__text2">SLA</span></a>
                 </div>
             <?php
             } ?>

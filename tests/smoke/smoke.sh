@@ -19,6 +19,8 @@ clientes|html
 clientes/adicionar|html
 os|html
 os/adicionar|html
+agenda|html
+sla|html
 vendas|html
 vendas/adicionar|html
 produtos|html

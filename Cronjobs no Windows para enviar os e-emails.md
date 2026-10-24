@@ -104,3 +104,10 @@ Crie mais uma tarefa, do mesmo jeito, com o argumento `index.php backup/executar
 Cada execução grava um `.zip` em `application\backups` (ou na pasta definida em `BACKUP_DIR` no `.env`) e apaga os automáticos com mais de `BACKUP_RETENCAO_DIAS` dias (padrão 7; o mais recente fica sempre).
 Para conferir, vá em 'Configurações' > 'Backup': a tela lista os backups e avisa se o último tiver mais de 2 dias.
 Recomendado: copie essa pasta para outro disco ou para a nuvem; backup no mesmo computador não protege contra perda do disco.
+
+## Lembretes automáticos ao cliente
+
+Crie mais uma tarefa diária (por exemplo às 9h) com o argumento `index.php lembretes/executar`.
+Ela avisa o cliente na véspera da visita agendada, quando o orçamento está sem resposta há alguns dias e quando o equipamento está pronto para retirada (e-mail e, se configurado, WhatsApp).
+Vem desligada: no `.env`, coloque `LEMBRETES_ATIVO=true` e ajuste `LEMBRETE_ORCAMENTO_DIAS` / `LEMBRETE_RETIRADA_DIAS` (0 desliga o tipo).
+Para conferir antes de ligar, rode no terminal `php index.php lembretes/executar simular`: mostra os lembretes que seriam enviados, sem enviar.

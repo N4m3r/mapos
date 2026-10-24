@@ -90,6 +90,9 @@ jobs:
           php index.php backup/executar
           unzip -p "$(ls -t application/backups/backup_*.zip | head -1)" | grep -q "CREATE TABLE"
 
+      - name: Lembretes ao cliente (simulacao)
+        run: php index.php lembretes/executar simular
+
       - name: Log do servidor e da aplicacao (em caso de falha)
         if: failure()
         run: |
