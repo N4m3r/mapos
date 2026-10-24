@@ -174,6 +174,39 @@
     </div>
 </div>
 
+<div class="span6" style="margin-left: 0">
+    <div class="widget-box">
+        <div class="widget-title" style="margin: -20px 0 0">
+            <span class="icon"><i class="fas fa-shield-alt"></i></span>
+            <h5>Verificação em duas etapas</h5>
+        </div>
+        <div class="widget-content">
+            <?php if (empty($usuario->totp_ativo)) { ?>
+                <p><span class="badge">Desativada</span></p>
+                <p>Além da senha, o login passa a pedir um código do aplicativo autenticador do seu celular.
+                    Recomendado principalmente para administradores.</p>
+                <a href="<?= site_url('mapos/doisFatores') ?>" class="button btn btn-success"><span class="button__icon"><i class="bx bx-shield-quarter"></i></span><span class="button__text2">Ativar</span></a>
+            <?php } else { ?>
+                <p><span class="badge badge-success">Ativa</span>
+                    &nbsp; Códigos de recuperação restantes: <strong><?= (int) $codigosRestantes ?></strong></p>
+                <?php if ($codigosRestantes <= 3) { ?>
+                    <div class="alert">Restam poucos códigos de recuperação. Gere novos.</div>
+                <?php } ?>
+                <form action="<?= site_url('mapos/doisFatoresNovosCodigos') ?>" method="post" style="display:inline-block;margin-right:16px">
+                    <label>Senha atual</label>
+                    <input type="password" name="senha" required autocomplete="current-password">
+                    <br><button class="button btn btn-info" type="submit"><span class="button__icon"><i class="bx bx-key"></i></span><span class="button__text2">Novos códigos</span></button>
+                </form>
+                <form action="<?= site_url('mapos/doisFatoresDesativar') ?>" method="post" style="display:inline-block" onsubmit="return confirm('Desativar a verificação em duas etapas?');">
+                    <label>Senha atual</label>
+                    <input type="password" name="senha" required autocomplete="current-password">
+                    <br><button class="button btn btn-danger" type="submit"><span class="button__icon"><i class="bx bx-shield-x"></i></span><span class="button__text2">Desativar</span></button>
+                </form>
+            <?php } ?>
+        </div>
+    </div>
+</div>
+
 <div id="modalImageUser" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <form action="<?= site_url('mapos/uploadUserImage'); ?>" id="formImageUser" enctype="multipart/form-data" method="post" class="form-horizontal">
         <div class="modal-header">

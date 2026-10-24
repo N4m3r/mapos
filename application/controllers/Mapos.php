@@ -45,6 +45,8 @@ class Mapos extends MY_Controller {
     public function minhaConta()
     {
         $this->data['usuario'] = $this->mapos_model->getById($this->session->userdata('id_admin'));
+        $this->load->library('dois_fatores');
+        $this->data['codigosRestantes'] = Dois_fatores::codigosRestantes($this->data['usuario']->totp_recuperacao ?? null);
         $this->data['view'] = 'mapos/minhaConta';
 
         return $this->layout();
@@ -76,6 +78,91 @@ class Mapos extends MY_Controller {
 
         $this->session->set_flashdata('error', 'Ocorreu um erro ao tentar alterar a senha!');
         redirect(site_url('mapos/minhaConta'));
+    }
+
+    /* ============ Verificacao em duas etapas (ADR-005, F3) ============ */
+
+    /**
+     * Mostra o QR code para cadastrar no aplicativo; o segredo so e gravado depois de confirmado.
+     */
+    public function doisFatores()
+    {
+        $usuario = $this->mapos_model->getById($this->session->userdata('id_admin'));
+        if (! empty($usuario->totp_ativo)) {
+            redirect('mapos/minhaConta');
+        }
+
+        $this->load->library('dois_fatores');
+        $segredo = $this->session->userdata('totp_configurando');
+        if (! $segredo || $this->input->get('novo')) {
+            $segredo = Dois_fatores::gerarSegredo();
+            $this->session->set_userdata('totp_configurando', $segredo);
+        }
+
+        $emissor = (string) ($this->config->item('app_name') ?: 'Map-OS');
+        $this->data['segredo'] = trim(chunk_split($segredo, 4, ' '));
+        $this->data['qrCode'] = Dois_fatores::qrCode(Dois_fatores::uri($segredo, $usuario->email, $emissor));
+        $this->data['view'] = 'mapos/dois_fatores';
+
+        return $this->layout();
+    }
+
+    public function doisFatoresConfirmar()
+    {
+        $segredo = $this->session->userdata('totp_configurando');
+        if (! $segredo) {
+            redirect('mapos/doisFatores');
+        }
+
+        $this->load->library('dois_fatores');
+        $passo = Dois_fatores::passoDoCodigo($segredo, $this->input->post('codigo'));
+        if ($passo === null) {
+            $this->session->set_flashdata('error', 'Código inválido. Confira se o relógio do celular está certo e digite o código atual.');
+            redirect('mapos/doisFatores');
+        }
+
+        $idUsuario = $this->session->userdata('id_admin');
+        $codigos = $this->dois_fatores->ativar($idUsuario, $segredo, $passo);
+        $this->session->unset_userdata('totp_configurando');
+        log_info('Ativou a verificação em duas etapas');
+
+        $this->data['codigos'] = $codigos;
+        $this->data['view'] = 'mapos/dois_fatores_codigos';
+
+        return $this->layout();
+    }
+
+    public function doisFatoresNovosCodigos()
+    {
+        $usuario = $this->usuarioComSenhaConferida();
+        $this->load->library('dois_fatores');
+        $this->data['codigos'] = $this->dois_fatores->novosCodigosRecuperacao($usuario->idUsuarios);
+        log_info('Gerou novos códigos de recuperação da verificação em duas etapas');
+        $this->data['view'] = 'mapos/dois_fatores_codigos';
+
+        return $this->layout();
+    }
+
+    public function doisFatoresDesativar()
+    {
+        $usuario = $this->usuarioComSenhaConferida();
+        $this->load->library('dois_fatores');
+        $this->dois_fatores->desativar($usuario->idUsuarios);
+        log_info('Desativou a verificação em duas etapas');
+        $this->session->set_flashdata('success', 'Verificação em duas etapas desativada.');
+        redirect('mapos/minhaConta');
+    }
+
+    /** Usuario logado, se a senha atual enviada no POST conferir; senao volta para Minha Conta. */
+    private function usuarioComSenhaConferida()
+    {
+        $usuario = $this->db->where('idUsuarios', (int) $this->session->userdata('id_admin'))->get('usuarios')->row();
+        if (! $usuario || empty($usuario->totp_ativo) || ! password_verify((string) $this->input->post('senha'), $usuario->senha)) {
+            $this->session->set_flashdata('error', 'Senha atual incorreta.');
+            redirect('mapos/minhaConta');
+        }
+
+        return $usuario;
     }
 
     public function pesquisar()

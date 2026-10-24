@@ -159,6 +159,15 @@ class Usuarios extends MY_Controller
                 ];
             }
 
+            // Usuario que perdeu o celular e os codigos de recuperacao: o administrador desliga a verificacao
+            if ($this->input->post('desativar_dois_fatores')) {
+                $data['totp_segredo'] = null;
+                $data['totp_ativo'] = 0;
+                $data['totp_recuperacao'] = null;
+                $data['totp_ultimo_passo'] = null;
+                log_info('Desativou a verificação em duas etapas do usuário ID: ' . $this->input->post('idUsuarios'));
+            }
+
             if ($this->usuarios_model->edit('usuarios', $data, 'idUsuarios', $this->input->post('idUsuarios')) == true) {
                 $this->session->set_flashdata('success', 'Usuário editado com sucesso!');
                 log_info('Alterou um usuário. ID: ' . $this->input->post('idUsuarios'));

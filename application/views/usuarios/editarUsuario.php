@@ -134,6 +134,17 @@
                         </div>
                     </div>
 
+                    <?php if (! empty($result->totp_ativo)) { ?>
+                        <div class="control-group">
+                            <label class="control-label">Duas etapas</label>
+                            <div class="controls">
+                                <span class="badge badge-success">Ativa</span>
+                                <label style="margin-top:6px"><input type="checkbox" name="desativar_dois_fatores" value="1">
+                                    Desativar (use se o usuário perdeu o celular e os códigos de recuperação)</label>
+                            </div>
+                        </div>
+                    <?php } ?>
+
 
                     <div class="control-group">
                         <label class="control-label">Permissões<span class="required">*</span></label>

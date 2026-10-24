@@ -280,6 +280,19 @@ class UsuariosController extends REST_Controller
 
             // Verificar credenciais do usuário
             if (password_verify($password, $user->senha)) {
+                // Verificacao em duas etapas: quem ativou envia tambem "codigo" (app ou recuperacao)
+                if (! empty($user->totp_ativo)) {
+                    $this->load->library('dois_fatores');
+                    if ($this->dois_fatores->verificar($user, (string) $this->post('codigo', true)) === null) {
+                        $this->limite_login->falhou('api', $email);
+                        $this->response([
+                            'status' => false,
+                            'message' => 'Informe o código da verificação em duas etapas no campo "codigo".',
+                            'dois_fatores' => true,
+                        ], REST_Controller::HTTP_UNAUTHORIZED);
+                    }
+                }
+
                 $this->limite_login->sucesso('api', $email);
                 $this->log_app('Efetuou login no sistema', $user->nome);
                 $permissoes = $this->getInstanceDatabase('permissoes', '*', 'idPermissao = ' . $user->permissoes_id, 1, true);
