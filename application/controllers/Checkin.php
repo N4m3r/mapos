@@ -229,6 +229,7 @@ class Checkin extends MY_Controller
 
         // Dados do usuário logado
         $usuario_id = $this->session->userdata('id_admin');
+        $momento = $this->momentoInformado();
 
         // Se é técnico (tem permissão específica mas não permissão geral de OS),
         // verificar se a OS está atribuída a ele
@@ -272,7 +273,7 @@ class Checkin extends MY_Controller
         $data_checkin = [
             'os_id' => $os_id,
             'usuarios_id' => $usuario_id,
-            'data_entrada' => date('Y-m-d H:i:s'),
+            'data_entrada' => $momento,
             'latitude_entrada' => $latitude ?: null,
             'longitude_entrada' => $longitude ?: null,
             'observacao_entrada' => $observacao,
@@ -305,7 +306,7 @@ class Checkin extends MY_Controller
                     'tipo' => 'tecnico_entrada',
                     'assinatura' => $imagem['path'],
                     'nome_assinante' => $this->session->userdata('nome'),
-                    'data_assinatura' => date('Y-m-d H:i:s'),
+                    'data_assinatura' => $momento,
                     'ip_address' => $this->input->ip_address()
                 ];
                 $result = $this->assinaturas_model->add($data_assinatura);
@@ -335,6 +336,7 @@ class Checkin extends MY_Controller
      */
     public function finalizar()
     {
+        $momento = $this->momentoInformado();
         if (!$this->input->is_ajax_request()) {
             redirect(base_url());
         }
@@ -419,7 +421,7 @@ class Checkin extends MY_Controller
 
         // Dados do check-out
         $data_checkout = [
-            'data_saida' => date('Y-m-d H:i:s'),
+            'data_saida' => $momento,
             'latitude_saida' => $latitude ?: null,
             'longitude_saida' => $longitude ?: null,
             'observacao_saida' => $observacao,
@@ -455,7 +457,7 @@ class Checkin extends MY_Controller
                     'tipo' => 'tecnico_saida',
                     'assinatura' => $imagem['path'],
                     'nome_assinante' => $this->session->userdata('nome'),
-                    'data_assinatura' => date('Y-m-d H:i:s'),
+                    'data_assinatura' => $momento,
                     'ip_address' => $this->input->ip_address()
                 ];
                 $result = $this->assinaturas_model->add($data_assinatura);
@@ -476,7 +478,7 @@ class Checkin extends MY_Controller
                     'assinatura' => $imagem['path'],
                     'nome_assinante' => $nome_cliente,
                     'documento_assinante' => $documento_cliente,
-                    'data_assinatura' => date('Y-m-d H:i:s'),
+                    'data_assinatura' => $momento,
                     'ip_address' => $this->input->ip_address()
                 ];
                 $result = $this->assinaturas_model->add($data_assinatura);
@@ -658,7 +660,8 @@ class Checkin extends MY_Controller
             'path' => $resultado['path'],
             'url' => $resultado['url'],
             'descricao' => $descricao,
-            'etapa' => 'durante',
+            'etapa' => in_array($this->input->post('etapa'), ['entrada', 'durante', 'saida'], true) ? $this->input->post('etapa') : 'durante',
+            'data_upload' => $this->momentoInformado(),
             'tamanho' => $resultado['tamanho'],
             'tipo_arquivo' => $resultado['tipo'],
             'imagem_base64' => $resultado['imagem_base64'],
@@ -682,6 +685,21 @@ class Checkin extends MY_Controller
     /**
      * Remove uma foto
      */
+    /**
+     * Horario em que a acao aconteceu no aparelho (campo "registrado_em"), usado quando o
+     * atendimento foi feito sem internet e enviado depois pela fila offline. So vale se estiver
+     * nas ultimas 72h e nao no futuro; senao, agora.
+     */
+    private function momentoInformado()
+    {
+        $ts = strtotime((string) $this->input->post('registrado_em'));
+        if ($ts && $ts >= time() - 72 * 3600 && $ts <= time() + 300) {
+            return date('Y-m-d H:i:s', min($ts, time()));
+        }
+
+        return date('Y-m-d H:i:s');
+    }
+
     public function removerFoto()
     {
         if (!$this->input->is_ajax_request()) {

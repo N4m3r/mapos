@@ -39,6 +39,19 @@ const CheckinManager = {
         return dados;
     },
 
+    // Campos de um FormData/objeto para a fila offline (sem o token CSRF, que e renovado no envio)
+    camposParaFila: function(dados) {
+        var csrf = this.getCsrfToken();
+        var campos = {};
+        if (typeof FormData !== 'undefined' && dados instanceof FormData) {
+            dados.forEach(function(valor, chave) { campos[chave] = valor; });
+        } else {
+            $.extend(campos, dados);
+        }
+        delete campos[csrf.name];
+        return campos;
+    },
+
     init: function(opcoes) {
         this.config = $.extend({}, this.config, opcoes);
         this.bindEventos();
@@ -325,6 +338,16 @@ const CheckinManager = {
             },
             error: function(xhr, status, error) {
                 btn.html(textoOriginal).prop('disabled', false);
+                if (window.FilaOffline && FilaOffline.semConexao(xhr)) {
+                    FilaOffline.guardar(self.config.baseUrl + 'index.php/checkin/iniciar', self.camposParaFila(dados), 'Início do atendimento da OS ' + osId).then(function() {
+                        $('#modal-checkin').modal('hide');
+                        if (window.Rascunho) Rascunho.apagar('checkin_obs_' + osId);
+                        self.estado.emAtendimento = true;
+                        self.atualizarUI();
+                        self.notificar('Sem internet', 'Início do atendimento guardado no aparelho. Será enviado quando a conexão voltar.', 'warning');
+                    });
+                    return;
+                }
                 console.error('Erro:', xhr.responseText);
                 var msg = 'Erro ao iniciar atendimento.';
                 if (xhr.responseText && xhr.responseText.indexOf('<') !== 0) {
@@ -446,6 +469,17 @@ const CheckinManager = {
             },
             error: function(xhr, status, error) {
                 btn.html(textoOriginal).prop('disabled', false);
+                if (window.FilaOffline && FilaOffline.semConexao(xhr)) {
+                    FilaOffline.guardar(self.config.baseUrl + 'index.php/checkin/finalizar', self.camposParaFila(dados), 'Finalização do atendimento da OS ' + osId).then(function() {
+                        $('#modal-checkout').modal('hide');
+                        if (window.Rascunho) Rascunho.apagar('checkout_obs_' + osId);
+                        self.config.checkinId = null;
+                        self.estado.emAtendimento = false;
+                        self.atualizarUI();
+                        self.notificar('Sem internet', 'Finalização e assinaturas guardadas no aparelho. Serão enviadas quando a conexão voltar.', 'warning');
+                    });
+                    return;
+                }
                 console.error('Erro:', xhr.responseText);
                 var msg = 'Erro ao finalizar atendimento.';
                 if (xhr.responseText && xhr.responseText.indexOf('<') !== 0) {
@@ -616,6 +650,13 @@ const CheckinManager = {
                 // Libera o flag de processamento
                 self._processandoUpload = false;
 
+                if (window.FilaOffline && FilaOffline.semConexao(xhr)) {
+                    FilaOffline.guardar(self.config.baseUrl + 'index.php/checkin/adicionarFoto', self.camposParaFila(dados), 'Foto da OS ' + self.config.osId).then(function() {
+                        $('#preview-fotos-entrada, #preview-fotos-saida').empty();
+                        alert('Sem internet: a foto ficou guardada no aparelho e será enviada quando a conexão voltar.');
+                    });
+                    return;
+                }
                 console.error('Erro ao enviar foto:', error);
                 alert('Erro ao enviar foto. Verifique sua conexão.');
                 // Limpa o preview mesmo em caso de erro
