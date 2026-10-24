@@ -60,3 +60,14 @@
         </div>
     </div>
 </div>
+
+<div class="widget-box">
+    <div class="widget-title" style="margin: -20px 0 0">
+        <span class="icon"><i class="bx bx-transfer"></i></span>
+        <h5>Últimas movimentações de estoque</h5>
+    </div>
+    <div class="widget-content nopadding">
+        <?php $this->load->view('produtos/_movimentacoes_tabela', ['movimentacoes' => $movimentacoes]); ?>
+        <div style="padding:0 10px 10px"><a href="<?= site_url('produtos/movimentacoes?produto=' . (int) $result->idProdutos) ?>">Ver histórico completo</a></div>
+    </div>
+</div>

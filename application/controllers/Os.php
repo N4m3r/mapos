@@ -677,8 +677,7 @@ class Os extends MY_Controller
             $this->load->model('produtos_model');
             if ($this->data['configuration']['control_estoque']) {
                 foreach ($produtos as $p) {
-                    $this->produtos_model->updateEstoque($p->produtos_id, $p->quantidade, '+');
-                    log_info('ESTOQUE: Produto id ' . $p->produtos_id . ' voltou ao estoque. Quantidade: ' . $p->quantidade . '. Motivo: Cancelamento/Exclusão');
+                    $this->produtos_model->updateEstoque($p->produtos_id, $p->quantidade, '+', ['tipo' => 'os', 'referencia' => $id, 'observacao' => 'OS cancelada ou excluída']);
                 }
             }
         }
@@ -690,8 +689,7 @@ class Os extends MY_Controller
             $this->load->model('produtos_model');
             if ($this->data['configuration']['control_estoque']) {
                 foreach ($produtos as $p) {
-                    $this->produtos_model->updateEstoque($p->produtos_id, $p->quantidade, '-');
-                    log_info('ESTOQUE: Produto id ' . $p->produtos_id . ' baixa do estoque. Quantidade: ' . $p->quantidade . '. Motivo: Mudou status que já estava Cancelado para outro');
+                    $this->produtos_model->updateEstoque($p->produtos_id, $p->quantidade, '-', ['tipo' => 'os', 'referencia' => $id, 'observacao' => 'OS reaberta (saiu de Cancelado)']);
                 }
             }
         }
@@ -828,7 +826,7 @@ class Os extends MY_Controller
             $this->load->model('produtos_model');
 
             if ($this->data['configuration']['control_estoque']) {
-                $this->produtos_model->updateEstoque($produto, $quantidade, '-');
+                $this->produtos_model->updateEstoque($produto, $quantidade, '-', ['tipo' => 'os', 'referencia' => $id]);
             }
 
             $this->db->set('desconto', 0.00);
@@ -864,14 +862,19 @@ class Os extends MY_Controller
             redirect(base_url() . 'index.php/os/gerenciar/');
         }
 
-        if ($this->os_model->delete('produtos_os', 'idProdutos_os', $id) == true) {
-            $quantidade = $this->input->post('quantidade');
-            $produto = $this->input->post('produto');
+        // Produto e quantidade vem do item gravado (nao do navegador) e o item tem de ser desta OS
+        $item = $this->db->where('idProdutos_os', $id)->where('os_id', $idOs)->get('produtos_os')->row();
+        if (! $item) {
+            echo json_encode(['result' => false]);
 
+            return;
+        }
+
+        if ($this->os_model->delete('produtos_os', 'idProdutos_os', $id) == true) {
             $this->load->model('produtos_model');
 
             if ($this->data['configuration']['control_estoque']) {
-                $this->produtos_model->updateEstoque($produto, $quantidade, '+');
+                $this->produtos_model->updateEstoque($item->produtos_id, $item->quantidade, '+', ['tipo' => 'os', 'referencia' => $idOs, 'observacao' => 'Produto removido da OS']);
             }
 
             $this->db->set('desconto', 0.00);

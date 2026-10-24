@@ -468,7 +468,7 @@ class OsController extends REST_Controller
 
             $this->load->model('produtos_model');
 
-            $this->produtoEstoque($this->post('idProduto', true), $this->post('quantidade', true), '-');
+            $this->produtoEstoque($this->post('idProduto', true), $this->post('quantidade', true), '-', $id);
 
             $this->db->set('desconto', 0.00);
             $this->db->set('valor_desconto', 0.00);
@@ -520,7 +520,7 @@ class OsController extends REST_Controller
             $diferenca = $operacao == '+' ? $ddAntigo->quantidade - $this->put('quantidade', true) : $this->put('quantidade', true) - $ddAntigo->quantidade;
 
             if ($diferenca) {
-                $this->produtoEstoque($ddAntigo->produtos_id, $diferenca, $operacao);
+                $this->produtoEstoque($ddAntigo->produtos_id, $diferenca, $operacao, $id);
             }
 
             $this->log_app("Atualizou a quantidade do produto id <b>{$ddAntigo->produtos_id}</b> na OS id <b>{$id}</b> de <b>{$ddAntigo->quantidade}</b> para <b>{$this->put('quantidade', true)}</b>");
@@ -561,7 +561,7 @@ class OsController extends REST_Controller
         }
 
         if ($this->os_model->delete('produtos_os', 'idProdutos_os', $idProdutos_os)) {
-            $this->produtoEstoque($ddAntigo->produtos_id, $ddAntigo->quantidade, '+');
+            $this->produtoEstoque($ddAntigo->produtos_id, $ddAntigo->quantidade, '+', $id);
 
             $this->db->set('desconto', 0.00);
             $this->db->set('valor_desconto', 0.00);
@@ -917,12 +917,12 @@ class OsController extends REST_Controller
         return 0;
     }
 
-    private function produtoEstoque($produtosId, $quantidade, $operacao)
+    private function produtoEstoque($produtosId, $quantidade, $operacao, $idOs = null)
     {
         $this->load->model('produtos_model');
 
         if ($this->getConfig('control_estoque')) {
-            $this->produtos_model->updateEstoque($produtosId, $quantidade, $operacao);
+            $this->produtos_model->updateEstoque($produtosId, $quantidade, $operacao, ['tipo' => 'api', 'referencia' => $idOs]);
         }
     }
 
@@ -974,7 +974,7 @@ class OsController extends REST_Controller
             $this->load->model('produtos_model');
             if ($this->getConfig('control_estoque')) {
                 foreach ($produtos as $p) {
-                    $this->produtos_model->updateEstoque($p->produtos_id, $p->quantidade, '+');
+                    $this->produtos_model->updateEstoque($p->produtos_id, $p->quantidade, '+', ['tipo' => 'api', 'referencia' => $id, 'observacao' => 'OS cancelada ou excluída']);
                     log_info('ESTOQUE: Produto id ' . $p->produtos_id . ' voltou ao estoque. Quantidade: ' . $p->quantidade . '. Motivo: Cancelamento/Exclusão');
                 }
             }
@@ -987,7 +987,7 @@ class OsController extends REST_Controller
             $this->load->model('produtos_model');
             if ($this->getConfig('control_estoque')) {
                 foreach ($produtos as $p) {
-                    $this->produtos_model->updateEstoque($p->produtos_id, $p->quantidade, '-');
+                    $this->produtos_model->updateEstoque($p->produtos_id, $p->quantidade, '-', ['tipo' => 'api', 'referencia' => $id, 'observacao' => 'OS reaberta (saiu de Cancelado)']);
                     log_info('ESTOQUE: Produto id ' . $p->produtos_id . ' baixa do estoque. Quantidade: ' . $p->quantidade . '. Motivo: Mudou status que já estava Cancelado para outro');
                 }
             }

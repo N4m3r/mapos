@@ -409,7 +409,7 @@ class Vendas extends MY_Controller
                 $this->load->model('produtos_model');
 
                 if ($this->data['configuration']['control_estoque']) {
-                    $this->produtos_model->updateEstoque($produto, $quantidade, '-');
+                    $this->produtos_model->updateEstoque($produto, $quantidade, '-', ['tipo' => 'venda', 'referencia' => $idVenda]);
                 }
 
                 // Atualiza o desconto da venda
@@ -460,13 +460,21 @@ class Vendas extends MY_Controller
                 ->set_output(json_encode(['result' => false, 'messages' => '<br /><br /> <strong>Motivo:</strong> Venda já faturada']));
         }
 
+        // Produto e quantidade vem do item gravado (nao do navegador) e o item tem de ser desta venda
+        $item = $this->db->where('idItens', $idProduto)->where('vendas_id', $idVendas)->get('itens_de_vendas')->row();
+        if (! $item) {
+            echo json_encode(['result' => false, 'messages' => 'Item não encontrado nesta venda']);
+
+            return;
+        }
+
         $this->db->trans_start();
 
         $this->vendas_model->delete('itens_de_vendas', 'idItens', $idProduto);
 
         if ($this->data['configuration']['control_estoque']) {
             $this->load->model('produtos_model');
-            $this->produtos_model->updateEstoque($produto, $quantidade, '+');
+            $this->produtos_model->updateEstoque($item->produtos_id, $item->quantidade, '+', ['tipo' => 'venda', 'referencia' => $idVendas, 'observacao' => 'Produto removido da venda']);
         }
 
         $this->db->set('desconto', 0.00);

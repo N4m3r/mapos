@@ -232,7 +232,7 @@ class Tecnico extends MY_Controller
                     'usuario_id' => $uid,
                     'data' => $agora,
                 ]);
-                $this->produtos_model->updateEstoque($produtoId, $qtd, '-');
+                $this->produtos_model->updateEstoque($produtoId, $qtd, '-', ['tipo' => 'tecnico', 'referencia' => $idOs]);
             }
         }
 
@@ -1016,7 +1016,7 @@ class Tecnico extends MY_Controller
                 ]);
 
                 if ($controlaEstoque) {
-                    $this->produtos_model->updateEstoque($produtoId, $qtd, '-');
+                    $this->produtos_model->updateEstoque($produtoId, $qtd, '-', ['tipo' => 'tecnico', 'referencia' => $idOs]);
                 }
             }
         }

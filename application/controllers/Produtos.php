@@ -80,6 +80,9 @@ class Produtos extends MY_Controller
             ];
 
             if ($this->produtos_model->add('produtos', $data) == true) {
+                if ((float) $data['estoque'] != 0) {
+                    $this->produtos_model->registrarMovimentacao($this->db->insert_id(), (float) $data['estoque'], 0, (float) $data['estoque'], ['tipo' => 'cadastro', 'observacao' => 'Estoque inicial']);
+                }
                 $this->session->set_flashdata('success', 'Produto adicionado com sucesso!');
                 log_info('Adicionou um produto');
                 redirect(site_url('produtos/adicionar/'));
@@ -122,13 +125,16 @@ class Produtos extends MY_Controller
                 'cfop' => preg_replace('/\D/', '', (string) $this->input->post('cfop')),
                 'precoCompra' => $precoCompra,
                 'precoVenda' => $precoVenda,
-                'estoque' => $this->input->post('estoque'),
                 'estoqueMinimo' => $this->input->post('estoqueMinimo'),
                 'saida' => set_value('saida'),
                 'entrada' => set_value('entrada'),
             ];
 
             if ($this->produtos_model->edit('produtos', $data, 'idProdutos', $this->input->post('idProdutos')) == true) {
+                // Estoque alterado na edicao fica registrado no historico como ajuste manual
+                if (trim((string) $this->input->post('estoque')) !== '') {
+                    $this->produtos_model->ajustarEstoque($this->input->post('idProdutos'), (float) $this->input->post('estoque'), ['observacao' => 'Alterado na edição do produto']);
+                }
                 $this->session->set_flashdata('success', 'Produto editado com sucesso!');
                 log_info('Alterou um produto. ID: ' . $this->input->post('idProdutos'));
                 redirect(site_url('produtos/editar/') . $this->input->post('idProdutos'));
@@ -163,6 +169,7 @@ class Produtos extends MY_Controller
             redirect(site_url('produtos/editar/') . $this->input->post('idProdutos'));
         }
 
+        $this->data['movimentacoes'] = $this->produtos_model->getMovimentacoes(['produto' => $this->data['result']->idProdutos], 15);
         $this->data['view'] = 'produtos/visualizarProduto';
 
         return $this->layout();
@@ -191,6 +198,44 @@ class Produtos extends MY_Controller
         redirect(site_url('produtos/gerenciar/'));
     }
 
+    /**
+     * Historico de movimentacao de estoque (todos os produtos ou ?produto=ID).
+     */
+    public function movimentacoes()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'vProduto')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para visualizar produtos.');
+            redirect(base_url());
+        }
+
+        $data = function ($valor) {
+            return preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $valor) ? $valor : '';
+        };
+        $tipo = (string) $this->input->get('tipo');
+        $filtros = [
+            'tipo' => in_array($tipo, ['os', 'venda', 'tecnico', 'api', 'ajuste', 'cadastro', 'inventario'], true) ? $tipo : '',
+            'de' => $data($this->input->get('de')),
+            'ate' => $data($this->input->get('ate')),
+        ];
+        $produto = $this->input->get('produto') ? $this->produtos_model->getById((int) $this->input->get('produto')) : null;
+        $consulta = $filtros + ['produto' => $produto ? $produto->idProdutos : null];
+
+        $porPagina = 50;
+        $total = $this->produtos_model->contarMovimentacoes($consulta);
+        $paginas = max(1, (int) ceil($total / $porPagina));
+        $pagina = min($paginas, max(1, (int) $this->input->get('pagina')));
+
+        $this->data['filtros'] = $filtros;
+        $this->data['produto'] = $produto;
+        $this->data['total'] = $total;
+        $this->data['pagina'] = $pagina;
+        $this->data['paginas'] = $paginas;
+        $this->data['movimentacoes'] = $this->produtos_model->getMovimentacoes($consulta, $porPagina, ($pagina - 1) * $porPagina);
+        $this->data['view'] = 'produtos/movimentacoes';
+
+        return $this->layout();
+    }
+
     public function atualizar_estoque()
     {
         if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'eProduto')) {
@@ -198,17 +243,12 @@ class Produtos extends MY_Controller
             redirect(base_url());
         }
 
-        $idProduto = $this->input->post('id');
-        $novoEstoque = $this->input->post('estoque');
-        $estoqueAtual = $this->input->post('estoqueAtual');
+        $idProduto = (int) $this->input->post('id');
+        $entrada = (float) $this->input->post('estoque');
 
-        $estoque = $estoqueAtual + $novoEstoque;
-
-        $data = [
-            'estoque' => $estoque,
-        ];
-
-        if ($this->produtos_model->edit('produtos', $data, 'idProdutos', $idProduto) == true) {
+        // Soma no banco: o "estoque atual" vindo da tela podia estar desatualizado (ou ser alterado)
+        $operacao = $entrada >= 0 ? '+' : '-';
+        if ($this->produtos_model->updateEstoque($idProduto, abs($entrada), $operacao, ['tipo' => 'ajuste', 'observacao' => 'Entrada/saída manual de estoque'])) {
             $this->session->set_flashdata('success', 'Estoque de Produto atualizado com sucesso!');
             log_info('Atualizou estoque de um produto. ID: ' . $idProduto);
             redirect(site_url('produtos/visualizar/') . $idProduto);

@@ -22,6 +22,8 @@ os/adicionar|html
 vendas|html
 vendas/adicionar|html
 produtos|html
+produtos/movimentacoes|html
+inventarios|html
 servicos|html
 garantias|html
 arquivos|html
