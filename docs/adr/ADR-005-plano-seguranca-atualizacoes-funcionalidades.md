@@ -1,6 +1,6 @@
 # ADR-005: Plano de seguranca, atualizacoes e funcionalidades (varredura de 23/10/2026)
 
-- **Status**: accepted (grupo 1 implementado - ver "Implementacao")
+- **Status**: accepted (grupo 1 e parte do grupo 2 implementados - ver "Implementacao")
 - **Date**: 2026-10-23
 - **Deciders**: N4m3r
 - **Tags**: seguranca, dependencias, qualidade, roadmap
@@ -59,6 +59,19 @@ Grupo 1 concluido na branch `seguranca-23-10`:
 Observacao S4: o levantamento inicial contou 76 saidas; a varredura na
 implementacao encontrou mais (concatenacoes, `implode` de endereco e dados
 dentro de `<script>`), todas corrigidas.
+
+Grupo 2 (24/10/2026):
+
+| # | Commit | Resumo |
+|---|--------|--------|
+| U1 | 630d2c1 | efipay 1.19, mpdf 8.3.1, sped-nfe 5.2.9, asaas-sdk 2.0.12, whoops 2.18.7, phpdotenv 5.7 |
+| U2 | 0a4f78e | Mercado Pago SDK 3.16: gateway reescrito (PaymentClient); corrige descricao "OS #" em vendas e remove notification_url para mapos.com.br |
+| U3 | 8547b7a | PHPWord 1.4 sem mudanca de codigo; parametro `format` do relatorio MEI restrito a pdf/docx |
+| U4 | afed7b7 | php-pix 3.0 (QR via php-qrcode 5); "copia e cola" identico |
+| Q1 | 4f27cc2 | GitHub Actions: lint, composer audit, PHPUnit (14 testes) e smoke test com MySQL 8.4 (login + 24 telas) |
+| - | ceb9c17 | release.yml usava `composer update --prefer-lowest` e empacotava versoes antigas/vulneraveis; agora `composer install` |
+
+Pendente: Q2 (controllers grandes, supressoes `@`, scripts inline) e grupo 3.
 
 ## Consequences
 
