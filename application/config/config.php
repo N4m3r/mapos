@@ -451,15 +451,12 @@ $config['csrf_expire'] = $_ENV['APP_CSRF_EXPIRE'] ?? 7200;
 $config['csrf_regenerate'] = isset($_ENV['APP_CSRF_REGENERATE']) ? filter_var($_ENV['APP_CSRF_REGENERATE'], FILTER_VALIDATE_BOOLEAN) : true;
 $config['csrf_exclude_uris'] = [
     'api.*+',
+    // Relatorio de violacao da CSP: enviado pelo navegador, sem token
     'csp/relatorio',
-    'checkin/status',
-    'checkin/iniciar',
-    'checkin/finalizar',
-    'checkin/adicionarFoto',
-    'checkin/uploadArquivo',
-    'checkin/uploadMultiplo',
+    // Chamada externa da Cora; o webhook reconsulta a API antes de dar baixa
     'webhook/cora',
-    'emailtemplates/preview',
+    // Check-in, fotos e preview de e-mail voltaram a exigir CSRF (ADR-006): os scripts
+    // dessas telas (checkin.js, checkin-fotos.js, fila-offline.js, csrf.js) enviam o token.
     // As acoes de cobranca (Cora, gerar/verificar/simular pagamento) voltaram a
     // exigir CSRF: o csrf.js envia o token em todo $.ajax. Mantenha
     // APP_COOKIE_HTTPONLY=false para o csrf.js conseguir ler o cookie do token.
