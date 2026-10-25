@@ -4,40 +4,40 @@
   }
 </style>
 <div class="new122">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon">
-            <i class="fas fa-shopping-bag"></i>
-        </span>
-        <h5>Produtos</h5>
-    </div>
-    <div class="span12" style="margin-left: 0">
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="fas fa-shopping-bag"></i> Produtos</h1>
+            <p class="ui-subtitulo">Itens para venda e controle de estoque. Busque por nome ou código de barras.</p>
+        </div>
         <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'aProduto')) : ?>
-            <div class="span3 flexxn" style="display: flex;">
-                <a href="<?= base_url() ?>index.php/produtos/adicionar" class="button btn btn-mini btn-success" style="max-width: 160px">
+            <div class="ui-acoes">
+                <a href="<?= base_url() ?>index.php/produtos/adicionar" class="button btn btn-mini btn-success">
                     <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2"> Produtos</span>
                 </a>
-                <a href="#modal-etiquetas" role="button" data-toggle="modal" class="button btn btn-mini btn-warning" style="max-width: 160px">
+                <a href="#modal-etiquetas" role="button" data-toggle="modal" class="button btn btn-mini btn-warning">
                     <span class="button__icon"><i class='bx bx-barcode-reader' ></i></span><span class="button__text2">Gerar Etiquetas</span>
                 </a>
-                <a href="<?= site_url('produtos/movimentacoes') ?>" class="button btn btn-mini btn-info" style="max-width: 160px">
+                <a href="<?= site_url('produtos/movimentacoes') ?>" class="button btn btn-mini btn-info">
                     <span class="button__icon"><i class='bx bx-transfer'></i></span><span class="button__text2">Movimentações</span>
                 </a>
             </div>
         <?php endif; ?>
-        <form class="span9" method="get" action="<?= base_url() ?>index.php/produtos" style="display: flex; justify-content: flex-end;">
-            <div class="span3">
-                <input type="text" name="pesquisa" id="pesquisa" placeholder="Buscar por Nome ou Cod. barra..." class="span12" value="<?=$this->input->get('pesquisa')?>">
-            </div>
-            <div class="span1">
-                <button class="button btn btn-mini btn-warning" style="min-width: 30px">
-                    <span class="button__icon"><i class='bx bx-search-alt'></i></span></button>
-            </div>
-        </form>
     </div>
+
+    <form class="ui-filtros" method="get" action="<?= base_url() ?>index.php/produtos">
+        <div class="ui-campo">
+            <label for="pesquisa">Buscar</label>
+            <input type="text" name="pesquisa" id="pesquisa" placeholder="Nome ou código de barras" value="<?=$this->input->get('pesquisa')?>">
+        </div>
+        <div class="ui-campo ui-campo-acao">
+            <button class="button btn btn-mini btn-warning" title="Buscar" aria-label="Buscar">
+                <span class="button__icon"><i class='bx bx-search-alt'></i></span><span class="button__text2">Buscar</span></button>
+        </div>
+    </form>
 
     <div class="widget-box">
         <h5 style="padding: 3px 0"></h5>
-        <div class="widget-content nopadding tab-content">
+        <div class="widget-content nopadding tab-content ui-tabela-rolagem">
             <table id="tabela" class="table table-bordered ">
                 <thead>
                 <tr>
@@ -54,7 +54,7 @@
 
                 if (!$results) {
                     echo '<tr>
-                                    <td colspan="6">Nenhum Produto Cadastrado</td>
+                                    <td colspan="6"><div class="ui-vazio"><i class="bx bx-package"></i><strong>Nenhum produto cadastrado</strong>Use o botão "Produtos" para cadastrar o primeiro item.</div></td>
                                     </tr>';
                 }
                 foreach ($results as $r) {
@@ -66,16 +66,16 @@
                     echo '<td>' . number_format($r->precoVenda, 2, ',', '.') . '</td>';
                     echo '<td>';
                     if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vProduto')) {
-                        echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/produtos/visualizar/' . $r->idProdutos . '" class="btn-nwe" title="Visualizar Produto"><i class="bx bx-show bx-xs"></i></a>  ';
+                        echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/produtos/visualizar/' . $r->idProdutos . '" class="btn-nwe" title="Visualizar Produto" aria-label="Visualizar Produto"><i class="bx bx-show bx-xs"></i></a>  ';
                     }
                     if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eProduto')) {
-                        echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/produtos/editar/' . $r->idProdutos . '" class="btn-nwe3" title="Editar Produto"><i class="bx bx-edit bx-xs"></i></a>';
+                        echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/produtos/editar/' . $r->idProdutos . '" class="btn-nwe3" title="Editar Produto" aria-label="Editar Produto"><i class="bx bx-edit bx-xs"></i></a>';
                     }
                     if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dProduto')) {
-                        echo '<a style="margin-right: 1%" href="#modal-excluir" role="button" data-toggle="modal" produto="' . $r->idProdutos . '" class="btn-nwe4" title="Excluir Produto"><i class="bx bx-trash-alt bx-xs"></i></a>';
+                        echo '<a style="margin-right: 1%" href="#modal-excluir" role="button" data-toggle="modal" produto="' . $r->idProdutos . '" class="btn-nwe4" title="Excluir Produto" aria-label="Excluir Produto"><i class="bx bx-trash-alt bx-xs"></i></a>';
                     }
                     if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eProduto')) {
-                        echo '<a href="#atualizar-estoque" role="button" data-toggle="modal" produto="' . $r->idProdutos . '" estoque="' . $r->estoque . '" class="btn-nwe5" title="Atualizar Estoque"><i class="bx bx-plus-circle bx-xs"></i></a>';
+                        echo '<a href="#atualizar-estoque" role="button" data-toggle="modal" produto="' . $r->idProdutos . '" estoque="' . $r->estoque . '" class="btn-nwe5" title="Atualizar Estoque" aria-label="Atualizar Estoque"><i class="bx bx-plus-circle bx-xs"></i></a>';
                     }
                     echo '</td>';
                     echo '</tr>';

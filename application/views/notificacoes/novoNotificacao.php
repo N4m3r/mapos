@@ -7,11 +7,13 @@ $destinatarios = Notification_triggers_model::destinatariosDisponiveis();
 $blocos = Notification_triggers_model::blocosDisponiveis();
 $anexos = Notification_triggers_model::anexosDisponiveis();
 ?>
-<div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="fas fa-bolt"></i></span>
-        <h5>Novo gatilho de notificação</h5>
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-bolt-circle"></i> Novo gatilho de notificação</h1>
+        <p class="ui-subtitulo">Defina o evento, os canais e a mensagem que serão enviados automaticamente.</p>
     </div>
+</div>
+<div class="widget-box">
     <div class="widget-content">
         <p style="color:#6b7191; margin-top:0">
             Escolha um evento que o sistema sabe disparar e configure por onde e para quem notificar.
@@ -159,7 +161,7 @@ $anexos = Notification_triggers_model::anexosDisponiveis();
                 </div>
             <?php } ?>
 
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+            <div class="ui-rodape-form">
                 <button type="submit" class="button btn btn-success">
                     <span class="button__icon"><i class="bx bx-save"></i></span>
                     <span class="button__text2">Criar gatilho</span>

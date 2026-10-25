@@ -8,76 +8,72 @@ $t = $res['totais'];
 ?>
 <div class="row-fluid" style="margin-top: 0">
     <div class="span12">
-        <div class="widget-box">
-            <div class="widget-title">
-                <span class="icon"><i class="bx bx-line-chart"></i></span>
-                <h5>Custo real e margem por OS</h5>
+        <div class="ui-cabecalho">
+            <div>
+                <h1><i class="bx bx-line-chart"></i> Custo real e margem por OS</h1>
+                <p>Receita menos custo de peças e mão de obra das OS concluídas, por técnico e por cliente.</p>
             </div>
-            <div class="widget-content">
-                <form action="<?= site_url('margem') ?>" method="get" class="span12 well" style="margin-left:0">
-                    <div class="span3">
-                        <label>OS concluídas de:</label>
-                        <input type="date" name="dataInicial" class="span12" value="<?= html_escape($filtro['dataInicial']) ?>" />
-                    </div>
-                    <div class="span3">
-                        <label>até:</label>
-                        <input type="date" name="dataFinal" class="span12" value="<?= html_escape($filtro['dataFinal']) ?>" />
-                    </div>
-                    <div class="span3">
-                        <label>&nbsp;</label>
-                        <button class="btn btn-info"><i class="bx bx-search-alt"></i> Filtrar</button>
-                    </div>
-                </form>
+        </div>
 
-                <?php if ($podeConfigurar) : ?>
-                    <form action="<?= site_url('margem/salvarCustoHora') ?>" method="post" class="span12 well" style="margin-left:0">
-                        <input type="hidden" name="<?= $this->security->get_csrf_token_name() ?>" value="<?= $this->security->get_csrf_hash() ?>">
-                        <div class="span3">
-                            <label>Custo-hora do técnico (R$):</label>
-                            <input type="text" name="custo_hora_tecnico" class="span12" value="<?= html_escape(number_format($custoHora, 2, '.', '')) ?>" />
-                        </div>
-                        <div class="span3">
-                            <label>&nbsp;</label>
-                            <button class="btn btn-success"><i class="bx bx-save"></i> Salvar</button>
-                        </div>
-                    </form>
-                <?php else : ?>
-                    <p class="span12" style="margin-left:0">Custo-hora do técnico: <strong><?= html_escape($m($custoHora)) ?></strong></p>
-                <?php endif; ?>
+        <form action="<?= site_url('margem') ?>" method="get" class="ui-filtros">
+            <div class="ui-campo">
+                <label for="dataInicial">OS concluídas de</label>
+                <input type="date" id="dataInicial" name="dataInicial" value="<?= html_escape($filtro['dataInicial']) ?>" />
+            </div>
+            <div class="ui-campo">
+                <label for="dataFinal">Até</label>
+                <input type="date" id="dataFinal" name="dataFinal" value="<?= html_escape($filtro['dataFinal']) ?>" />
+            </div>
+            <div class="ui-campo ui-campo-acao">
+                <button class="btn btn-info"><i class="bx bx-search-alt"></i> Filtrar</button>
+            </div>
+        </form>
 
-                <?php if ($custoHora <= 0) : ?>
-                    <div class="alert alert-info span12" style="margin-left:0">Custo-hora não configurado: o custo de mão de obra está zerado.</div>
-                <?php endif; ?>
-                <?php if (! $res['tem_checkin']) : ?>
-                    <div class="alert span12" style="margin-left:0">Tabela de check-in inexistente: horas não contabilizadas.</div>
-                <?php endif; ?>
-                <?php if ($res['avisos']['os_pecas_sem_custo'] > 0) : ?>
-                    <div class="alert span12" style="margin-left:0"><?= (int) $res['avisos']['os_pecas_sem_custo'] ?> OS com peças sem preço de compra (custo subestimado).</div>
-                <?php endif; ?>
-                <?php if ($res['avisos']['os_sem_checkin'] > 0) : ?>
-                    <div class="alert span12" style="margin-left:0"><?= (int) $res['avisos']['os_sem_checkin'] ?> OS sem check-in concluído (mão de obra não contabilizada).</div>
-                <?php endif; ?>
+        <?php if ($podeConfigurar) : ?>
+            <form action="<?= site_url('margem/salvarCustoHora') ?>" method="post" class="ui-filtros">
+                <input type="hidden" name="<?= $this->security->get_csrf_token_name() ?>" value="<?= $this->security->get_csrf_hash() ?>">
+                <div class="ui-campo">
+                    <label for="custo_hora_tecnico">Custo-hora do técnico (R$)</label>
+                    <input type="text" id="custo_hora_tecnico" name="custo_hora_tecnico" value="<?= html_escape(number_format($custoHora, 2, '.', '')) ?>" />
+                </div>
+                <div class="ui-campo ui-campo-acao">
+                    <button class="btn btn-success"><i class="bx bx-save"></i> Salvar</button>
+                </div>
+            </form>
+        <?php else : ?>
+            <p>Custo-hora do técnico: <strong><?= html_escape($m($custoHora)) ?></strong></p>
+        <?php endif; ?>
 
-                <table class="table table-bordered">
-                    <thead><tr><th>OS</th><th>Receita</th><th>Custo peças</th><th>Horas</th><th>Custo MO</th><th>Margem</th><th>Margem %</th></tr></thead>
-                    <tbody><tr>
-                        <td><?= (int) $t['os'] ?></td>
-                        <td><?= html_escape($m($t['receita'])) ?></td>
-                        <td><?= html_escape($m($t['custo_pecas'])) ?></td>
-                        <td><?= html_escape($h($t['horas'])) ?></td>
-                        <td><?= html_escape($m($t['custo_mo'])) ?></td>
-                        <td><strong style="<?= $cor($t['margem']) ?>"><?= html_escape($m($t['margem'])) ?></strong></td>
-                        <td><strong><?= html_escape($p($t['margem_pct'])) ?></strong></td>
-                    </tr></tbody>
-                </table>
+        <?php if ($custoHora <= 0) : ?>
+            <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Custo-hora não configurado: o custo de mão de obra está zerado.</div></div>
+        <?php endif; ?>
+        <?php if (! $res['tem_checkin']) : ?>
+            <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Tabela de check-in inexistente: horas não contabilizadas.</div></div>
+        <?php endif; ?>
+        <?php if ($res['avisos']['os_pecas_sem_custo'] > 0) : ?>
+            <div class="ui-dica"><i class="bx bx-error"></i><div><?= (int) $res['avisos']['os_pecas_sem_custo'] ?> OS com peças sem preço de compra (custo subestimado).</div></div>
+        <?php endif; ?>
+        <?php if ($res['avisos']['os_sem_checkin'] > 0) : ?>
+            <div class="ui-dica"><i class="bx bx-error"></i><div><?= (int) $res['avisos']['os_sem_checkin'] ?> OS sem check-in concluído (mão de obra não contabilizada).</div></div>
+        <?php endif; ?>
 
-                <?php foreach ([['Por técnico', $res['tecnicos']], ['Por cliente', $res['clientes']]] as [$titulo, $grupo]) : ?>
-                    <h5><?= html_escape($titulo) ?></h5>
+        <div class="ui-kpis">
+            <div class="ui-kpi info"><div class="ui-kpi-rotulo">OS concluídas</div><div class="ui-kpi-valor"><?= (int) $t['os'] ?></div></div>
+            <div class="ui-kpi"><div class="ui-kpi-rotulo">Receita</div><div class="ui-kpi-valor"><?= html_escape($m($t['receita'])) ?></div></div>
+            <div class="ui-kpi"><div class="ui-kpi-rotulo">Custo de peças</div><div class="ui-kpi-valor"><?= html_escape($m($t['custo_pecas'])) ?></div></div>
+            <div class="ui-kpi"><div class="ui-kpi-rotulo">Mão de obra</div><div class="ui-kpi-valor"><?= html_escape($m($t['custo_mo'])) ?></div><div class="ui-kpi-extra"><?= html_escape($h($t['horas'])) ?></div></div>
+            <div class="ui-kpi <?= $t['margem'] < 0 ? 'perigo' : 'sucesso' ?>"><div class="ui-kpi-rotulo">Margem</div><div class="ui-kpi-valor"><?= html_escape($m($t['margem'])) ?></div><div class="ui-kpi-extra"><?= html_escape($p($t['margem_pct'])) ?></div></div>
+        </div>
+
+        <?php foreach ([['Por técnico', $res['tecnicos']], ['Por cliente', $res['clientes']]] as [$titulo, $grupo]) : ?>
+            <div class="widget-box">
+                <div class="widget-title"><h5><?= html_escape($titulo) ?></h5></div>
+                <div class="widget-content nopadding ui-tabela-rolagem">
                     <table class="table table-bordered">
                         <thead><tr><th>Nome</th><th>OS</th><th>Receita</th><th>Custo</th><th>Horas</th><th>Margem</th><th>Margem %</th></tr></thead>
                         <tbody>
                         <?php if (! $grupo) : ?>
-                            <tr><td colspan="7">Nenhuma OS concluída no período.</td></tr>
+                            <tr><td colspan="7"><div class="ui-vazio"><i class="bx bx-folder-open"></i><strong>Nenhuma OS concluída no período</strong></div></td></tr>
                         <?php endif; ?>
                         <?php foreach ($grupo as $g) : ?>
                             <tr>
@@ -92,18 +88,22 @@ $t = $res['totais'];
                         <?php endforeach; ?>
                         </tbody>
                     </table>
-                <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endforeach; ?>
 
-                <h5>Por OS</h5>
+        <div class="widget-box">
+            <div class="widget-title"><h5>Por OS</h5></div>
+            <div class="widget-content nopadding ui-tabela-rolagem">
                 <table class="table table-bordered">
-                    <thead><tr><th>OS</th><th>Conclusão</th><th>Cliente</th><th>Técnico</th><th>Receita</th><th>Peças</th><th>Horas</th><th>MO</th><th>Margem</th><th>%</th><th></th></tr></thead>
+                    <thead><tr><th>OS</th><th>Conclusão</th><th>Cliente</th><th>Técnico</th><th>Receita</th><th>Peças</th><th>Horas</th><th>MO</th><th>Margem</th><th>%</th><th>Avisos</th></tr></thead>
                     <tbody>
                     <?php if (! $res['os']) : ?>
-                        <tr><td colspan="11">Nenhuma OS concluída no período.</td></tr>
+                        <tr><td colspan="11"><div class="ui-vazio"><i class="bx bx-folder-open"></i><strong>Nenhuma OS concluída no período</strong>Ajuste as datas do filtro.</div></td></tr>
                     <?php endif; ?>
                     <?php foreach ($res['os'] as $o) : ?>
                         <tr>
-                            <td><a href="<?= site_url('os/visualizar/' . (int) $o['id']) ?>">#<?= (int) $o['id'] ?></a></td>
+                            <td><a href="<?= site_url('os/visualizar/' . (int) $o['id']) ?>" title="Abrir OS #<?= (int) $o['id'] ?>">#<?= (int) $o['id'] ?></a></td>
                             <td><?= $o['dataFinal'] ? html_escape(date('d/m/Y', strtotime($o['dataFinal']))) : '—' ?></td>
                             <td><?= html_escape($o['cliente'] ?: '—') ?></td>
                             <td><?= html_escape($o['tecnico'] ?: '—') ?></td>
@@ -114,8 +114,8 @@ $t = $res['totais'];
                             <td style="<?= $cor($o['margem']) ?>"><?= html_escape($m($o['margem'])) ?></td>
                             <td><?= html_escape($p($o['margem_pct'])) ?></td>
                             <td>
-                                <?php if ($o['pecas_sem_custo']) : ?><span class="label label-warning" title="Peça sem preço de compra">custo?</span><?php endif; ?>
-                                <?php if ($o['sem_checkin']) : ?><span class="label" title="Sem check-in concluído">sem horas</span><?php endif; ?>
+                                <?php if ($o['pecas_sem_custo']) : ?><span class="ui-selo alerta" title="Peça sem preço de compra">custo?</span><?php endif; ?>
+                                <?php if ($o['sem_checkin']) : ?><span class="ui-selo" title="Sem check-in concluído">sem horas</span><?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>

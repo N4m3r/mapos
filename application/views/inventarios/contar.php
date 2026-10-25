@@ -5,15 +5,17 @@ $numero = static function ($valor) {
 $aberto = $inventario->status === 'aberto';
 ?>
 <div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="bx bx-list-check"></i></span>
-        <h5>Inventário #<?= (int) $inventario->id ?> - <?= html_escape($inventario->descricao) ?></h5>
-    </div>
     <div class="widget-content nopadding">
+        <div class="ui-cabecalho" style="padding: 16px 16px 0; margin-bottom: 0">
+            <div>
+                <h1 class="ui-titulo"><i class="bx bx-list-check"></i> Inventário #<?= (int) $inventario->id ?> - <?= html_escape($inventario->descricao) ?></h1>
+                <p class="ui-subtitulo">Digite as quantidades contadas. Você pode salvar e continuar depois.</p>
+            </div>
+        </div>
         <div style="padding:12px 14px 0; display:flex; gap:12px; flex-wrap:wrap; align-items:center">
             <a href="<?= site_url('inventarios') ?>" class="btn btn-mini"><i class="bx bx-arrow-back"></i> Inventários</a>
             <span class="badge <?= $aberto ? 'badge-warning' : ($inventario->status === 'finalizado' ? 'badge-success' : '') ?>"><?= html_escape(ucfirst($inventario->status)) ?></span>
-            <input type="search" id="filtroInventario" placeholder="Filtrar por nome ou código..." style="margin:0; width:260px">
+            <input type="search" id="filtroInventario" placeholder="Filtrar por nome ou código..." aria-label="Filtrar por nome ou código" style="margin:0; width:260px">
             <label style="margin:0"><input type="checkbox" id="soDiferencas"> Só diferenças</label>
             <?php if ($aberto) { ?>
                 <span style="color:#777; font-size:12px">"Sistema" é o estoque na abertura; a diferença é calculada sobre o estoque atual ao finalizar.</span>

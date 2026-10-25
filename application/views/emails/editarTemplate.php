@@ -2,11 +2,16 @@
 $tokenName = $this->security->get_csrf_token_name();
 $tokenHash = $this->security->get_csrf_hash();
 ?>
-<div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="fas fa-envelope-open-text"></i></span>
-        <h5>Editar modelo: <?= html_escape($template->nome) ?></h5>
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-edit"></i> Editar modelo: <?= html_escape($template->nome) ?></h1>
+        <p class="ui-subtitulo">Ajuste assunto e corpo. As tags entre chaves são trocadas pelos dados reais no envio.</p>
     </div>
+    <div class="ui-acoes">
+        <a href="<?= site_url('emailtemplates') ?>" class="button btn btn-warning"><span class="button__icon"><i class="bx bx-arrow-back"></i></span><span class="button__text2">Voltar</span></a>
+    </div>
+</div>
+<div class="widget-box">
     <div class="widget-content">
         <div class="row-fluid">
             <!-- Editor -->

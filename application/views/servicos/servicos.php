@@ -4,33 +4,34 @@
   }
 </style>
 <div class="new122">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon">
-            <i class="fas fa-wrench"></i>
-        </span>
-        <h5>Serviços</h5>
-    </div>
-    <div class="span12" style="margin-left: 0">
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="fas fa-wrench"></i> Serviços</h1>
+            <p class="ui-subtitulo">Serviços oferecidos e seus preços. Busque por nome ou descrição.</p>
+        </div>
         <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'aServico')) : ?>
-            <div class="span3 flexxn" style="display: flex;">
-                <a href="<?= base_url() ?>index.php/servicos/adicionar" class="button btn btn-mini btn-success" style="max-width: 160px">
+            <div class="ui-acoes">
+                <a href="<?= base_url() ?>index.php/servicos/adicionar" class="button btn btn-mini btn-success">
                     <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2"> Serviços</span>
                 </a>
             </div>
         <?php endif; ?>
-        <form class="span9" method="get" action="<?= base_url() ?>index.php/servicos" style="display: flex; justify-content: flex-end;">
-            <div class="span3">
-                <input type="text" name="pesquisa" id="pesquisa" placeholder="Buscar por Nome ou Descrição..." class="span12" value="<?=$this->input->get('pesquisa')?>">
-            </div>
-            <div class="span1">
-                <button class="button btn btn-mini btn-warning" style="min-width: 30px">
-                    <span class="button__icon"><i class='bx bx-search-alt'></i></span></button>
-            </div>
-        </form>
     </div>
+
+    <form class="ui-filtros" method="get" action="<?= base_url() ?>index.php/servicos">
+        <div class="ui-campo">
+            <label for="pesquisa">Buscar</label>
+            <input type="text" name="pesquisa" id="pesquisa" placeholder="Nome ou descrição" value="<?=$this->input->get('pesquisa')?>">
+        </div>
+        <div class="ui-campo ui-campo-acao">
+            <button class="button btn btn-mini btn-warning" title="Buscar" aria-label="Buscar">
+                <span class="button__icon"><i class='bx bx-search-alt'></i></span><span class="button__text2">Buscar</span></button>
+        </div>
+    </form>
+
     <div class="widget-box">
         <h5 style="padding: 3px 0"></h5>
-        <div class="widget-content nopadding tab-content">
+        <div class="widget-content nopadding tab-content ui-tabela-rolagem">
             <table id="tabela" class="table table-bordered ">
                 <thead>
                     <tr>
@@ -45,7 +46,7 @@
                     <?php
                         if (!$results) {
                             echo '<tr>
-                                    <td colspan="5">Nenhum Serviço Cadastrado</td>
+                                    <td colspan="5"><div class="ui-vazio"><i class="bx bx-wrench"></i><strong>Nenhum serviço cadastrado</strong>Use o botão "Serviços" para cadastrar o primeiro.</div></td>
                                 </tr>';
                         }
                         foreach ($results as $r) {
@@ -56,10 +57,10 @@
                             echo '<td>' . $r->descricao . '</td>';
                             echo '<td>';
                             if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eServico')) {
-                                echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/servicos/editar/' . $r->idServicos . '" class="btn-nwe3" title="Editar Serviço"><i class="bx bx-edit bx-xs"></i></a>';
+                                echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/servicos/editar/' . $r->idServicos . '" class="btn-nwe3" title="Editar Serviço" aria-label="Editar Serviço"><i class="bx bx-edit bx-xs"></i></a>';
                             }
                             if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dServico')) {
-                                echo '<a href="#modal-excluir" role="button" data-toggle="modal" servico="' . $r->idServicos . '" class="btn-nwe4" title="Excluir Serviço"><i class="bx bx-trash-alt bx-xs"></i></a>  ';
+                                echo '<a href="#modal-excluir" role="button" data-toggle="modal" servico="' . $r->idServicos . '" class="btn-nwe4" title="Excluir Serviço" aria-label="Excluir Serviço"><i class="bx bx-trash-alt bx-xs"></i></a>  ';
                             }
                             echo '</td>';
                             echo '</tr>';

@@ -1,9 +1,11 @@
 <div class="row-fluid" style="margin-top: 0">
     <div class="span12">
         <div class="widget-box">
-            <div class="widget-title">
-                <span class="icon"><i class="bx bx-time"></i></span>
-                <h5>Relatório de Atendimentos</h5>
+            <div class="ui-cabecalho" style="padding:12px 16px 0">
+                <div>
+                    <h1 class="ui-titulo"><i class="bx bx-bar-chart-alt-2"></i> Relatório de Atendimentos</h1>
+                    <p class="ui-subtitulo">Totais, tempos e distribuição dos atendimentos no período escolhido.</p>
+                </div>
             </div>
 
             <div class="widget-content">
@@ -51,7 +53,7 @@
                                 <i class="bx bx-calendar-check"></i>
                             </div>
                             <div class="valor" id="card-total" style="font-size: 32px; font-weight: bold; margin-bottom: 5px;">0</div>
-                            <div class="label" style="font-size: 14px; opacity: 0.9;">Total de Atendimentos</div>
+                            <div class="ui-selo" style="font-size: 14px; opacity: 0.9;">Total de Atendimentos</div>
                         </div>
                     </div>
 
@@ -61,7 +63,7 @@
                                 <i class="bx bx-time"></i>
                             </div>
                             <div class="valor" id="card-tempo-medio" style="font-size: 32px; font-weight: bold; margin-bottom: 5px;">0h</div>
-                            <div class="label" style="font-size: 14px; opacity: 0.9;">Tempo Médio</div>
+                            <div class="ui-selo" style="font-size: 14px; opacity: 0.9;">Tempo Médio</div>
                         </div>
                     </div>
 
@@ -71,7 +73,7 @@
                                 <i class="bx bx-check-circle"></i>
                             </div>
                             <div class="valor" id="card-finalizados" style="font-size: 32px; font-weight: bold; margin-bottom: 5px;">0</div>
-                            <div class="label" style="font-size: 14px; opacity: 0.9;">Finalizados</div>
+                            <div class="ui-selo" style="font-size: 14px; opacity: 0.9;">Finalizados</div>
                         </div>
                     </div>
 
@@ -81,7 +83,7 @@
                                 <i class="bx bx-loader"></i>
                             </div>
                             <div class="valor" id="card-andamento" style="font-size: 32px; font-weight: bold; margin-bottom: 5px;">0</div>
-                            <div class="label" style="font-size: 14px; opacity: 0.9;">Em Andamento</div>
+                            <div class="ui-selo" style="font-size: 14px; opacity: 0.9;">Em Andamento</div>
                         </div>
                     </div>
                 </div>

@@ -32,6 +32,8 @@
     </script>
     <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/funcoesGlobal.js"></script>
     <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<?= base_url('assets/css/moderno.css') ?>?v=<?= asset_versao('assets/css/moderno.css', '1') ?>" />
 </head>
 
 <?php

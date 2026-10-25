@@ -11,6 +11,7 @@ $this->load->view('conecte/filtros_portal', ['acaoFiltro' => 'mine/cobrancas']);
         <h5>Cobranças</h5>
     </div>
     <div class="widget-content nopadding tab-content">
+        <div class="ui-tabela-rolagem">
         <table id="tabela" class="table table-bordered ">
             <thead>
                 <tr>
@@ -27,7 +28,7 @@ $this->load->view('conecte/filtros_portal', ['acaoFiltro' => 'mine/cobrancas']);
 
                     if (!$results) {
                         echo '<tr>
-                                <td colspan="6">' . ($temFiltro ? 'Nenhuma cobrança encontrada para o filtro selecionado' : 'Nenhuma cobrança Cadastrada') . '</td>
+                                <td colspan="6"><div class="ui-vazio"><i class="bx bx-receipt"></i><strong>' . ($temFiltro ? 'Nenhuma cobrança encontrada para o filtro selecionado' : 'Nenhuma cobrança cadastrada') . '</strong></div></td>
                             </tr>';
                     }
                     foreach ($results as $r) {
@@ -49,23 +50,23 @@ $this->load->view('conecte/filtros_portal', ['acaoFiltro' => 'mine/cobrancas']);
                             echo '<td><a href="' . base_url() . 'index.php/vendas/visualizar/' . $r->vendas_id . '">  Venda: #' . $r->vendas_id . '</a></td>';
                         }
 
-                        echo '<td>' . $cobrancaStatus . '</td>';
+                        echo '<td><span class="ui-selo info">' . $cobrancaStatus . '</span></td>';
                         echo '<td>R$ ' . number_format($r->total / 100, 2, ',', '.') . '</td>';
                         echo '<td>';
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vCobranca')) {
-                            echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/mine/atualizarcobranca/' . $r->idCobranca . '"  class="btn-nwe" title="Atualizar Cobrança"><i class="bx bx-refresh"></i></a>';
+                            echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/mine/atualizarcobranca/' . $r->idCobranca . '"  class="btn-nwe" title="Atualizar Cobrança"><i class="bx bx-refresh"></i> Atualizar</a>';
                         }
 
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eCobranca')) {
-                            echo '<a style="margin-right: 1%" href="' . $r->link . '"  target="_blank" class="btn-nwe" title="Visualizar boleto"><i class="bx bx-barcode" ></i></a>';
-                            echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/mine/enviarcobranca/' . $r->idCobranca . '" class="btn-nwe2" title="Reenviar por email"><i class="bx bx-mail-send" ></i></a>';
+                            echo '<a style="margin-right: 1%" href="' . $r->link . '"  target="_blank" class="btn-nwe" title="Visualizar boleto"><i class="bx bx-barcode" ></i> Boleto</a>';
+                            echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/mine/enviarcobranca/' . $r->idCobranca . '" class="btn-nwe2" title="Reenviar por email"><i class="bx bx-mail-send" ></i> Reenviar</a>';
                         }
-                        echo '<a style="margin-right: 1%" href="' . $r->link . '"  target="_blank" class="btn-nwe" title="Visualizar boleto"><i class="bx bx-barcode" ></i></a>';
+                        echo '<a style="margin-right: 1%" href="' . $r->link . '"  target="_blank" class="btn-nwe" title="Visualizar boleto"><i class="bx bx-barcode" ></i> Boleto</a>';
                         echo '</td>';
                         echo '</tr>';
                     } ?>
             </tbody>
-        </table>
+        </table></div>
     </div>
 </div>
 <?php echo $this->pagination->create_links(); ?>

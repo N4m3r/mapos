@@ -49,6 +49,8 @@ $data = fn ($d, $hora = false) => ($d && strpos($d, '0000') !== 0) ? date($hora 
         textarea { width: 100%; box-sizing: border-box; }
         .ac-rodape { text-align: center; color: #7b8088; font-size: 13px; margin-top: 14px; }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<?= base_url('assets/css/moderno.css') ?>?v=<?= asset_versao('assets/css/moderno.css', '1') ?>" />
 </head>
 
 <body>

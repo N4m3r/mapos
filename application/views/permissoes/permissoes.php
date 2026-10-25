@@ -4,19 +4,18 @@
   }
 </style>
 <div class="new122" style="margin-top: 0; min-height: 100vh">
-<div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon">
-            <i class="fas fa-lock"></i>
-        </span>
-        <h5>Permissões</h5>
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-lock-alt"></i> Permissões</h1>
+        <p class="ui-subtitulo">Perfis de acesso. Cada perfil define o que os usuários podem ver e fazer no sistema.</p>
     </div>
-
-  <a href="<?php echo base_url(); ?>index.php/permissoes/adicionar" class="button btn btn-success"style="max-width: 150px">
-  <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Adicionar</span></a>
+    <div class="ui-acoes">
+        <a href="<?php echo base_url(); ?>index.php/permissoes/adicionar" class="button btn btn-success"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Adicionar permissão</span></a>
+    </div>
+</div>
 
 <div class="widget-box">
-<h5 style="padding: 3px 0"></h5>
-    <div class="widget-content nopadding tab-content">
+    <div class="widget-content nopadding tab-content ui-tabela-rolagem">
         <table id="tabela" class="table table-bordered ">
             <thead>
                 <tr>
@@ -32,7 +31,7 @@
 
                     if (!$results) {
                         echo '<tr>
-                                <td colspan="5">Nenhuma Permissão foi cadastrada</td>
+                                <td colspan="5"><div class="ui-vazio"><i class="bx bx-lock-alt"></i><strong>Nenhuma permissão cadastrada</strong>Crie um perfil de acesso para começar.</div></td>
                                 </tr>';
                     }
                     foreach ($results as $r) {
@@ -45,10 +44,10 @@
                         echo '<td>' . $r->idPermissao . '</td>';
                         echo '<td>' . $r->nome . '</td>';
                         echo '<td>' . date('d/m/Y', strtotime($r->data)) . '</td>';
-                        echo '<td>' . $situacao . '</td>';
-                        echo '<td>
-                                <a href="' . base_url() . 'index.php/permissoes/editar/' . $r->idPermissao . '" class="btn-nwe3" title="Editar permissões"><i class="bx bx-edit"></i></a>
-                                <a href="#modal-excluir" role="button" data-toggle="modal" permissao="' . $r->idPermissao . '" class="btn-nwe4" title="Desativar Permissão"><i class="bx bx-notification-off" ></i></a>
+                        echo '<td><span class="ui-selo ' . ($r->situacao == 1 ? 'sucesso' : 'perigo') . '">' . $situacao . '</span></td>';
+                        echo '<td><div class="ui-acoes-linha">
+                                <a href="' . base_url() . 'index.php/permissoes/editar/' . $r->idPermissao . '" class="btn-nwe3" title="Editar permissões" aria-label="Editar permissões"><i class="bx bx-edit"></i></a>
+                                <a href="#modal-excluir" role="button" data-toggle="modal" permissao="' . $r->idPermissao . '" class="btn-nwe4" title="Desativar Permissão" aria-label="Desativar Permissão"><i class="bx bx-notification-off" ></i></a></div>
                               </td>';
                         echo '</tr>';
                     } ?>

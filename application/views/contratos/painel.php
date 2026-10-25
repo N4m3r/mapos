@@ -6,9 +6,11 @@ $tipos = ['mensal' => 'Mensal', 'trimestral' => 'Trimestral', 'semestral' => 'Se
 ?>
 
 <div class="new122" style="margin-top:0">
-    <div class="widget-title" style="margin:-6px 0 8px">
-        <span class="icon"><i class="fas fa-file-signature"></i></span>
-        <h5>Painel de Contratos</h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-tachometer"></i> Painel de Contratos</h1>
+            <p class="ui-subtitulo">Visão geral dos contratos ativos, receita recorrente e SLA em atraso.</p>
+        </div>
     </div>
 
     <?php $this->load->view('contratos/_nav'); ?>
@@ -23,10 +25,11 @@ $tipos = ['mensal' => 'Mensal', 'trimestral' => 'Trimestral', 'semestral' => 'Se
     <div class="widget-box">
         <div class="widget-title"><h5><i class='bx bx-file'></i> Contratos ativos</h5></div>
         <div class="widget-content nopadding">
+            <div class="ui-tabela-rolagem">
             <table class="table table-bordered">
                 <thead><tr><th>Código</th><th>Descrição</th><th>Cliente</th><th>Tipo</th><th>Valor</th><th>OS</th><th></th></tr></thead>
                 <tbody>
-                    <?php if (! $recentes) echo '<tr><td colspan="7">Nenhum contrato ativo. Cadastre o primeiro.</td></tr>'; ?>
+                    <?php if (! $recentes) echo '<tr><td colspan="7"><div class="ui-vazio"><i class="bx bx-file"></i><strong>Nenhum contrato ativo.</strong>Cadastre o primeiro contrato.</div></td></tr>'; ?>
                     <?php foreach ($recentes as $c): ?>
                         <tr>
                             <td><?= html_escape($c->codigo ?: '#' . $c->idContrato) ?></td>
@@ -35,11 +38,12 @@ $tipos = ['mensal' => 'Mensal', 'trimestral' => 'Trimestral', 'semestral' => 'Se
                             <td><?= $tipos[$c->tipo] ?? html_escape($c->tipo) ?></td>
                             <td>R$ <?= $fmt($c->valor) ?></td>
                             <td><?= (int) $c->total_os ?></td>
-                            <td><a href="<?= site_url('contratos/visualizar/' . $c->idContrato) ?>" class="btn-nwe" title="Abrir"><i class="bx bx-show bx-xs"></i></a></td>
+                            <td><a href="<?= site_url('contratos/visualizar/' . $c->idContrato) ?>" class="btn-nwe" title="Abrir contrato" aria-label="Abrir contrato"><i class="bx bx-show bx-xs"></i></a></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 </div>

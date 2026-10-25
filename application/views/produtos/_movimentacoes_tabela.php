@@ -14,7 +14,7 @@ $numero = static function ($valor) {
     return rtrim(rtrim(number_format((float) $valor, 3, ',', '.'), '0'), ',');
 };
 ?>
-<table class="table table-bordered table-condensed">
+<div class="ui-tabela-rolagem"><table class="table table-bordered table-condensed">
     <thead>
         <tr>
             <th style="width:130px">Data</th>
@@ -28,7 +28,7 @@ $numero = static function ($valor) {
     </thead>
     <tbody>
         <?php if (empty($movimentacoes)) { ?>
-            <tr><td colspan="<?= $mostrarProduto ? 7 : 6 ?>">Nenhuma movimentação registrada.</td></tr>
+            <tr><td colspan="<?= $mostrarProduto ? 7 : 6 ?>"><div class="ui-vazio"><i class="bx bx-transfer"></i><strong>Nenhuma movimentação registrada</strong>Entradas, saídas e ajustes de estoque aparecem aqui.</div></td></tr>
         <?php }
         foreach ($movimentacoes as $m) {
             $q = (float) $m->quantidade;
@@ -57,4 +57,4 @@ $numero = static function ($valor) {
             </tr>
         <?php } ?>
     </tbody>
-</table>
+</table></div>

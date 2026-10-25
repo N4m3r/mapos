@@ -9,14 +9,18 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
 <?php $this->load->view('obras/_nav'); ?>
 
 <div class="new122" style="margin-top:0">
-    <div class="widget-title" style="margin:-6px 0 8px">
-        <span class="icon"><i class="fas fa-network-wired"></i></span>
-        <h5>Painel de Projetos</h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-tachometer"></i> Painel de Projetos</h1>
+            <p class="ui-subtitulo">Resumo de execução, medições pendentes e diários de obra recentes.</p>
+        </div>
+        <?php if ($perm('cObras')): ?>
+            <div class="ui-acoes">
+                <a href="<?= site_url('obras/adicionar') ?>" class="button btn btn-mini btn-success">
+                    <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Novo Projeto</span></a>
+            </div>
+        <?php endif; ?>
     </div>
-    <?php if ($perm('cObras')): ?>
-        <a href="<?= site_url('obras/adicionar') ?>" class="button btn btn-mini btn-success" style="max-width:160px">
-            <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Novo Projeto</span></a>
-    <?php endif; ?>
 
     <!-- KPIs -->
     <div class="obra-kpis">
@@ -34,11 +38,11 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
         <!-- Obras em execução -->
         <div class="span7" style="margin-left:0">
             <div class="widget-box"><div class="widget-title"><h5><i class='bx bx-loader-circle'></i> Projetos em execução</h5></div>
-                <div class="widget-content nopadding">
+                <div class="widget-content nopadding ui-tabela-rolagem">
                     <table class="table table-bordered">
                         <thead><tr><th>Projeto</th><th>Cliente</th><th>Progresso</th><th></th></tr></thead>
                         <tbody>
-                            <?php if (! $obras_execucao) echo '<tr><td colspan="4">Nenhum projeto em execução.</td></tr>'; ?>
+                            <?php if (! $obras_execucao) echo '<tr><td colspan="4"><div class="ui-vazio"><i class="bx bx-loader-circle"></i><strong>Nenhum projeto em execução.</strong></div></td></tr>'; ?>
                             <?php foreach ($obras_execucao as $o): ?>
                                 <tr>
                                     <td><?= html_escape($o->nome) ?></td>
@@ -47,7 +51,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                                         <div class="obra-progress mini"><div class="obra-progress-bar" style="width:<?= (float) $o->percentual_concluido ?>%"></div></div>
                                         <small><?= $fmt($o->percentual_concluido, 1) ?>%</small>
                                     </td>
-                                    <td><a href="<?= site_url('obras/visualizar/' . $o->idObra) ?>" class="btn-nwe" title="Abrir"><i class="bx bx-show bx-xs"></i></a></td>
+                                    <td><a href="<?= site_url('obras/visualizar/' . $o->idObra) ?>" class="btn-nwe" title="Abrir" aria-label="Abrir projeto"><i class="bx bx-show bx-xs"></i></a></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -59,17 +63,17 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
         <!-- Medições a aprovar -->
         <div class="span5">
             <div class="widget-box"><div class="widget-title"><h5><i class='bx bx-receipt'></i> Medições aguardando aprovação</h5></div>
-                <div class="widget-content nopadding">
+                <div class="widget-content nopadding ui-tabela-rolagem">
                     <table class="table table-bordered">
                         <thead><tr><th>Projeto</th><th>Nº</th><th>Valor</th><th></th></tr></thead>
                         <tbody>
-                            <?php if (! $medicoes_abertas) echo '<tr><td colspan="4">Nenhuma medição pendente.</td></tr>'; ?>
+                            <?php if (! $medicoes_abertas) echo '<tr><td colspan="4"><div class="ui-vazio"><i class="bx bx-receipt"></i><strong>Nenhuma medição pendente.</strong></div></td></tr>'; ?>
                             <?php foreach ($medicoes_abertas as $m): ?>
                                 <tr>
                                     <td><?= html_escape($m->obra_nome) ?></td>
                                     <td><?= (int) $m->numero ?></td>
                                     <td>R$ <?= $fmt($m->valor_medido) ?></td>
-                                    <td><a href="<?= site_url('obras/visualizar/' . $m->obra_id) ?>#medicao" class="btn-nwe" title="Ver"><i class="bx bx-right-arrow-alt bx-xs"></i></a></td>
+                                    <td><a href="<?= site_url('obras/visualizar/' . $m->obra_id) ?>#medicao" class="btn-nwe" title="Ver medição" aria-label="Ver medição"><i class="bx bx-right-arrow-alt bx-xs"></i></a></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -81,11 +85,11 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
 
     <!-- RDOs recentes -->
     <div class="widget-box"><div class="widget-title"><h5><i class='bx bx-notepad'></i> Diários de Obra recentes</h5></div>
-        <div class="widget-content nopadding">
+        <div class="widget-content nopadding ui-tabela-rolagem">
             <table class="table table-bordered">
                 <thead><tr><th>Data</th><th>Projeto</th><th>Nº</th><th>Condição</th><th>Efetivo</th><th>Responsável</th></tr></thead>
                 <tbody>
-                    <?php if (! $rdos_recentes) echo '<tr><td colspan="6">Nenhum RDO registrado.</td></tr>'; ?>
+                    <?php if (! $rdos_recentes) echo '<tr><td colspan="6"><div class="ui-vazio"><i class="bx bx-notepad"></i><strong>Nenhum RDO registrado.</strong></div></td></tr>'; ?>
                     <?php foreach ($rdos_recentes as $r): ?>
                         <tr>
                             <td><?= $data_br($r->data) ?></td>

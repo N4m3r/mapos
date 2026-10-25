@@ -4,8 +4,11 @@ $tipos = ['hora_extra'=>'Hora extra','adicional'=>'Adicional','comissao'=>'Comis
 ?>
 <div class="new122">
     <?php $this->load->view('rh/_subnav', ['ativo' => 'lancamentos']); ?>
-    <div class="widget-title" style="margin:0 0 10px">
-        <span class="icon"><i class="fas fa-money-bill"></i></span><h5>Lançamentos / Extras</h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-money"></i> Lançamentos e extras</h1>
+            <p class="ui-subtitulo">Valores extras e descontos lançados por colaborador.</p>
+        </div>
     </div>
 
     <div class="span12" style="margin-left:0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
@@ -24,7 +27,7 @@ $tipos = ['hora_extra'=>'Hora extra','adicional'=>'Adicional','comissao'=>'Comis
         </a>
     </div>
 
-    <div class="widget-box"><div class="widget-content nopadding">
+    <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
         <table class="table table-bordered">
             <thead><tr><th>Colaborador</th><th>Tipo</th><th>Descrição</th><th>Qtd</th><th>Valor</th><th>Aprovado</th><th>Ações</th></tr></thead>
             <tbody>

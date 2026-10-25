@@ -13,34 +13,33 @@ $slaBadge = function ($os) {
     if (! empty($os->sla_solucao_em)) {
         $ok = empty($os->sla_solucao_prazo) || strtotime($os->sla_solucao_em) <= strtotime($os->sla_solucao_prazo);
         return $ok
-            ? '<span class="label label-success">No prazo</span>'
-            : '<span class="label label-important">Fora do prazo</span>';
+            ? '<span class="ui-selo sucesso">No prazo</span>'
+            : '<span class="ui-selo perigo">Fora do prazo</span>';
     }
     if (! empty($os->sla_solucao_prazo)) {
         if ($abertos && strtotime($os->sla_solucao_prazo) < time()) {
-            return '<span class="label label-important">Estourado</span>';
+            return '<span class="ui-selo perigo">Estourado</span>';
         }
-        return '<span class="label label-warning">Em andamento</span>';
+        return '<span class="ui-selo alerta">Em andamento</span>';
     }
-    return '<span class="label">—</span>';
+    return '<span class="ui-selo">—</span>';
 };
 ?>
 
 <div class="new122" style="margin-top:0">
-    <div class="widget-title" style="margin:-6px 0 8px">
-        <span class="icon"><i class="fas fa-file-signature"></i></span>
-        <h5>Contrato: <?= html_escape($contrato->descricao) ?></h5>
-    </div>
-
-    <?php $this->load->view('contratos/_nav', ['contrato_menu' => 'contratos']); ?>
-
-    <div class="btn-toolbar" style="margin:0 0 10px">
-        <div class="btn-group">
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-file"></i> Contrato: <?= html_escape($contrato->descricao) ?></h1>
+            <p class="ui-subtitulo">Dados do contrato, SLA, mensalidades geradas e OS vinculadas.</p>
+        </div>
+        <div class="ui-acoes">
             <?php if ($perm('eContrato')): ?>
                 <a href="<?= site_url('contratos/editar/' . $contrato->idContrato) ?>" class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-edit'></i></span><span class="button__text2">Editar</span></a>
             <?php endif; ?>
         </div>
     </div>
+
+    <?php $this->load->view('contratos/_nav', ['contrato_menu' => 'contratos']); ?>
 
     <div class="row-fluid">
         <!-- Dados do contrato -->
@@ -107,13 +106,13 @@ $slaBadge = function ($os) {
                     <table class="table table-bordered">
                         <thead><tr><th>Descrição</th><th>Vencimento</th><th>Valor</th><th>Situação</th></tr></thead>
                         <tbody>
-                            <?php if (! $faturas) echo '<tr><td colspan="4">Nenhuma mensalidade gerada ainda.</td></tr>'; ?>
+                            <?php if (! $faturas) echo '<tr><td colspan="4"><div class="ui-vazio"><i class="bx bx-dollar-circle"></i><strong>Nenhuma mensalidade gerada ainda.</strong></div></td></tr>'; ?>
                             <?php foreach ($faturas as $lc): ?>
                                 <tr>
                                     <td><?= html_escape($lc->descricao) ?></td>
                                     <td><?= $data_br($lc->data_vencimento) ?></td>
                                     <td>R$ <?= $fmt($lc->valor) ?></td>
-                                    <td><?= $lc->baixado ? '<span class="label label-success">Recebido</span>' : '<span class="label label-warning">Em aberto</span>' ?></td>
+                                    <td><?= $lc->baixado ? '<span class="ui-selo sucesso">Recebido</span>' : '<span class="ui-selo alerta">Em aberto</span>' ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -125,10 +124,11 @@ $slaBadge = function ($os) {
             <div class="widget-box">
                 <div class="widget-title"><h5><i class='bx bx-wrench'></i> Ordens de Serviço do contrato</h5></div>
                 <div class="widget-content nopadding">
+                    <div class="ui-tabela-rolagem">
                     <table class="table table-bordered">
                         <thead><tr><th>OS</th><th>Status</th><th>Prioridade</th><th>Prazo solução</th><th>SLA</th><th></th></tr></thead>
                         <tbody>
-                            <?php if (! $ordens) echo '<tr><td colspan="6">Nenhuma OS vinculada. Amarre uma OS a este contrato na tela de edição da OS.</td></tr>'; ?>
+                            <?php if (! $ordens) echo '<tr><td colspan="6"><div class="ui-vazio"><i class="bx bx-wrench"></i><strong>Nenhuma OS vinculada.</strong>Amarre uma OS a este contrato na tela de edição da OS.</div></td></tr>'; ?>
                             <?php foreach ($ordens as $os): ?>
                                 <tr>
                                     <td>#<?= (int) $os->idOs ?></td>
@@ -136,11 +136,12 @@ $slaBadge = function ($os) {
                                     <td><?= html_escape($os->prioridade ?: '—') ?></td>
                                     <td><?= $dt_br($os->sla_solucao_prazo) ?></td>
                                     <td><?= $slaBadge($os) ?></td>
-                                    <td><a href="<?= site_url('os/visualizar/' . $os->idOs) ?>" class="btn-nwe" title="Abrir OS"><i class="bx bx-show bx-xs"></i></a></td>
+                                    <td><a href="<?= site_url('os/visualizar/' . $os->idOs) ?>" class="btn-nwe" title="Abrir OS" aria-label="Abrir OS"><i class="bx bx-show bx-xs"></i></a></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </div>

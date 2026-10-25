@@ -1,16 +1,21 @@
-<div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="bx bx-data"></i></span>
-        <h5>Backups do banco de dados</h5>
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-data"></i> Backups do banco de dados</h1>
+        <p class="ui-subtitulo">Cópias de segurança do banco. Baixe um arquivo ou gere um backup agora.</p>
     </div>
+    <div class="ui-acoes">
+        <a href="<?= site_url('mapos/backup') ?>" class="button btn btn-inverse"><span class="button__icon"><i class="bx bx-download"></i></span><span class="button__text2">Fazer backup agora</span></a>
+    </div>
+</div>
+<div class="widget-box">
     <div class="widget-content nopadding">
-        <div style="padding:14px 16px 0; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
-            <div style="font-size:12px; color:#555; max-width:720px;">
+        <div class="ui-dica" style="margin:14px 16px 0">
+            <i class="bx bx-info-circle"></i>
+            <div>
                 Os backups automáticos são gerados pelo comando <code>php index.php backup/executar</code>, agendado uma vez por dia
                 (cron no Linux/docker ou Agendador de Tarefas no Windows). Ficam em <code><?= html_escape($pasta) ?></code>
                 por <?= (int) $retencao ?> dia(s); o mais recente é sempre mantido.
             </div>
-            <a href="<?= site_url('mapos/backup') ?>" class="btn btn-mini btn-inverse"><i class="bx bx-download"></i> Fazer backup agora</a>
         </div>
 
         <?php if (! empty($backups) && $backups[0]['data'] < time() - 2 * 86400) { ?>
@@ -19,7 +24,8 @@
             </div>
         <?php } ?>
 
-        <table class="table table-bordered" style="margin-top:10px">
+        <div class="ui-tabela-rolagem" style="margin-top:10px">
+        <table class="table table-bordered">
             <thead>
                 <tr>
                     <th style="width:160px">Data/Hora</th>
@@ -30,7 +36,7 @@
             </thead>
             <tbody>
                 <?php if (empty($backups)) { ?>
-                    <tr><td colspan="4">Nenhum backup automático ainda. Agende o comando acima.</td></tr>
+                    <tr><td colspan="4"><div class="ui-vazio"><i class="bx bx-data"></i><strong>Nenhum backup automático ainda</strong>Agende o comando indicado acima para gerar os primeiros arquivos.</div></td></tr>
                 <?php } else {
                     foreach ($backups as $b) { ?>
                         <tr>
@@ -38,12 +44,13 @@
                             <td><?= html_escape($b['nome']) ?></td>
                             <td style="text-align:right"><?= number_format($b['tamanho'] / 1024, 1, ',', '.') ?> KB</td>
                             <td style="text-align:center">
-                                <a href="<?= site_url('mapos/baixarBackup/' . rawurlencode($b['nome'])) ?>" class="btn btn-mini btn-info" title="Baixar"><i class="bx bx-download"></i></a>
+                                <a href="<?= site_url('mapos/baixarBackup/' . rawurlencode($b['nome'])) ?>" class="btn btn-mini btn-info" title="Baixar backup" aria-label="Baixar backup"><i class="bx bx-download"></i></a>
                             </td>
                         </tr>
                 <?php }
                 } ?>
             </tbody>
         </table>
+        </div>
     </div>
 </div>

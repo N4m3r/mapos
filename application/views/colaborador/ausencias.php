@@ -9,6 +9,7 @@ $csrf_n = $this->security->get_csrf_token_name();
 $csrf_h = $this->security->get_csrf_hash();
 ?>
 <div class="ponto-wrap">
+<div class="ui-dica"><i class="bx bx-info-circle"></i><div>Preencha o tipo e o período e envie. Acompanhe o andamento da solicitação na lista abaixo.</div></div>
     <?php if ($var = $this->session->flashdata('success')): ?><div class="tec-alert success"><?= $var ?></div><?php endif; ?>
     <?php if ($var = $this->session->flashdata('error')): ?><div class="tec-alert error"><?= $var ?></div><?php endif; ?>
 

@@ -1,8 +1,10 @@
 <div class="new122">
     <?php $this->load->view('rh/_subnav', ['ativo' => 'painel']); ?>
-    <div class="widget-title" style="margin: 0 0 10px">
-        <span class="icon"><i class="fas fa-users"></i></span>
-        <h5>RH — Painel</h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-tachometer"></i> RH — Painel</h1>
+            <p class="ui-subtitulo">Resumo de batidas, aniversariantes e pendências do RH.</p>
+        </div>
     </div>
 
     <div class="row-fluid">
@@ -36,7 +38,7 @@
         <div class="span8">
             <div class="widget-box">
                 <div class="widget-title"><span class="icon"><i class="fas fa-clock"></i></span><h5>Últimas batidas</h5></div>
-                <div class="widget-content nopadding">
+                <div class="widget-content nopadding ui-tabela-rolagem">
                     <table class="table table-bordered">
                         <thead><tr><th>Colaborador</th><th>Tipo</th><th>Data/Hora</th><th>Local</th></tr></thead>
                         <tbody>

@@ -82,7 +82,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                 <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; align-items:center">
                                     <div>
                                         <div style="font-size:18px; font-weight:bold; color:#1e3a8a">R$ <?= number_format(((float) $b->total) / 100, 2, ',', '.') ?></div>
-                                        <div style="color:#6b7191; font-size:12px">Vencimento: <?= $venc ?> &nbsp;·&nbsp; Status: <strong><?= html_escape($statusBoleto) ?></strong></div>
+                                        <div style="color:#6b7191; font-size:12px">Vencimento: <?= $venc ?> &nbsp;·&nbsp; Status: <span class="ui-selo info"><?= html_escape($statusBoleto) ?></span></div>
                                     </div>
                                     <?php if ($linkBoleto) { ?>
                                         <a href="<?= html_escape($linkBoleto) ?>" target="_blank" class="btn btn-success">
@@ -171,7 +171,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                     <?php if ($result->dataInicial != null) { ?>
                                         <tr>
                                             <td>
-                                                <b>STATUS OS: </b><?php echo $result->status ?>
+                                                <b>STATUS OS: </b><span class="ui-selo info"><?php echo $result->status ?></span>
                                             </td>
 
                                             <td>

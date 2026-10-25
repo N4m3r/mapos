@@ -1,20 +1,26 @@
-<div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="fas fa-comment-dots"></i></span>
-        <h5>Modelos de WhatsApp</h5>
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-comment-dots"></i> Modelos de WhatsApp</h1>
+        <p class="ui-subtitulo">Mensagens enviadas por WhatsApp em cada situação.</p>
     </div>
+    <div class="ui-acoes">
+        <a href="<?= site_url('whatsapptemplates/novo') ?>" class="button btn btn-success">
+            <span class="button__icon"><i class="bx bx-plus-circle"></i></span><span class="button__text2">Novo modelo</span>
+        </a>
+    </div>
+</div>
+<div class="widget-box">
     <div class="widget-content nopadding">
-        <div style="padding:14px 16px 0; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
-            <p style="color:#6b7191; margin:0;">
+        <div class="ui-dica" style="margin:14px 16px 0">
+            <i class="bx bx-info-circle"></i>
+            <div>
                 Edite as mensagens enviadas por WhatsApp em cada situação. Use as tags entre chaves
                 (ex.: <code>{CLIENTE_NOME}</code>) para inserir dados dinâmicos. Modelos personalizados
                 podem ser selecionados nos gatilhos.
-            </p>
-            <a href="<?= site_url('whatsapptemplates/novo') ?>" class="button btn btn-success btn-mini" style="white-space:nowrap">
-                <span class="button__icon"><i class="bx bx-plus-circle"></i></span><span class="button__text2">Novo modelo</span>
-            </a>
+            </div>
         </div>
-        <table class="table table-bordered" style="margin-top:10px">
+        <div class="ui-tabela-rolagem" style="margin-top:10px">
+        <table class="table table-bordered">
             <thead>
                 <tr>
                     <th>Modelo</th>
@@ -24,7 +30,7 @@
             </thead>
             <tbody>
                 <?php if (empty($templates)) { ?>
-                    <tr><td colspan="3">Nenhum modelo cadastrado. Rode <code>updates/update_whatsapp_templates.sql</code>.</td></tr>
+                    <tr><td colspan="3"><div class="ui-vazio"><i class="bx bx-comment-dots"></i><strong>Nenhum modelo cadastrado</strong>Rode <code>updates/update_whatsapp_templates.sql</code> para criar os modelos padrão.</div></td></tr>
                 <?php } ?>
                 <?php foreach ($templates as $t) { ?>
                     <tr>
@@ -34,9 +40,9 @@
                         </td>
                         <td style="text-align:center">
                             <?php if ((int) $t->ativo === 1) { ?>
-                                <span class="badge badge-success">Ativo</span>
+                                <span class="ui-selo sucesso">Ativo</span>
                             <?php } else { ?>
-                                <span class="badge badge-warning">Desativado</span>
+                                <span class="ui-selo alerta">Desativado</span>
                             <?php } ?>
                         </td>
                         <td style="text-align:center; white-space:nowrap">
@@ -45,7 +51,7 @@
                             </a>
                             <?php if (! in_array($t->slug, Whatsapp_templates_model::slugsCore(), true)) { ?>
                                 <a href="<?= site_url('whatsapptemplates/excluir/' . $t->slug) ?>" class="btn btn-danger btn-mini"
-                                   data-confirmar="Excluir o modelo '<?= html_escape($t->nome) ?>'?">
+                                   data-confirmar="Excluir o modelo '<?= html_escape($t->nome) ?>'?" title="Excluir modelo" aria-label="Excluir modelo">
                                     <i class="bx bx-trash"></i>
                                 </a>
                             <?php } ?>
@@ -54,5 +60,6 @@
                 <?php } ?>
             </tbody>
         </table>
+        </div>
     </div>
 </div>

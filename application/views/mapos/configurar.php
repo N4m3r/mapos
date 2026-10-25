@@ -1,12 +1,12 @@
 <div class="row-fluid" style="margin-top:0">
     <div class="span12">
-        <div class="widget-box">
-            <div class="widget-title" style="margin: -20px 0 0">
-                <span class="icon">
-                    <i class="fas fa-wrench"></i>
-                </span>
-                <h5>Configurações do Sistema</h5>
+        <div class="ui-cabecalho">
+            <div>
+                <h1 class="ui-titulo"><i class="bx bx-wrench"></i> Configurações do Sistema</h1>
+                <p class="ui-subtitulo">Escolha uma aba para ajustar cada parte do sistema. Qualquer botão Salvar grava todas as abas.</p>
             </div>
+        </div>
+        <div class="widget-box">
             <ul class="nav nav-tabs">
                 <li class="active"><a data-toggle="tab" href="#home">Gerais</a></li>
                 <li><a data-toggle="tab" href="#menu1">Financeiro</a></li>
@@ -22,6 +22,7 @@
                     <?php echo $custom_error; ?>
                     <!-- Menu Gerais -->
                     <div id="home" class="tab-pane fade in active">
+                        <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Dados gerais: nome do sistema, tema, quantidade de linhas nas listas e tabelas dinâmicas.</div></div>
                         <div class="control-group">
                             <label for="app_name" class="control-label">Nome do Sistema</label>
                             <div class="controls">
@@ -66,9 +67,9 @@
                                 <span class="help-inline">Ativar ou desativar a visualização em tabelas dinâmicas</span>
                             </div>
                         </div>
-                        <div class="form-actions">
-                            <div class="span8">
-                                <div class="span9">
+                        <div class="ui-rodape-form">
+                            <div style="display:contents">
+                                <div style="display:contents">
                                     <button type="submit" class="button btn btn-primary">
                                     <span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Salvar Alterações</span></button>
                                 </div>
@@ -77,6 +78,7 @@
                     </div>
                     <!-- Menu Financeiro -->
                     <div id="menu1" class="tab-pane fade">
+                        <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Regras financeiras (baixa retroativa, alterações de OS e vendas faturadas) e as chaves de cobrança: Pix, EFI, Mercado Pago e Asaas.</div></div>
                         <div class="control-group">
                             <label for="control_baixa" class="control-label">Controle de baixa retroativa</label>
                             <div class="controls">
@@ -245,9 +247,9 @@
                             </div>
                         </div>
 
-                        <div class="form-actions">
-                            <div class="span8">
-                                <div class="span9">
+                        <div class="ui-rodape-form">
+                            <div style="display:contents">
+                                <div style="display:contents">
                                   <button type="submit" class="button btn btn-primary">
                                   <span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Salvar Alterações</span></button>
                                 </div>
@@ -257,6 +259,7 @@
 
                     <!-- Menu Produtos -->
                     <div id="menu2" class="tab-pane fade">
+                        <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Controle de estoque dos produtos.</div></div>
                         <div class="control-group">
                             <label for="control_estoque" class="control-label">Controlar Estoque</label>
                             <div class="controls">
@@ -267,9 +270,9 @@
                                 <span class="help-inline">Ativar ou desativar o controle de estoque.</span>
                             </div>
                         </div>
-                        <div class="form-actions">
-                            <div class="span8">
-                                <div class="span9">
+                        <div class="ui-rodape-form">
+                            <div style="display:contents">
+                                <div style="display:contents">
                                   <button type="submit" class="button btn btn-primary">
                                   <span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Salvar Alterações</span></button>
                                 </div>
@@ -278,6 +281,7 @@
                     </div>
                     <!-- Menu Notificações -->
                     <div id="menu3" class="tab-pane fade">
+                        <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Avisos automáticos sobre as OS por e-mail e WhatsApp. Ative só os canais que você usa.</div></div>
                         <div class="control-group">
                             <label for="os_notification" class="control-label">Notificação de OS</label>
                             <div class="controls">
@@ -401,9 +405,9 @@
                             </div>
                         </div>
 
-                        <div class="form-actions">
-                            <div class="span8">
-                                <div class="span9">
+                        <div class="ui-rodape-form">
+                            <div style="display:contents">
+                                <div style="display:contents">
                                   <button type="submit" class="button btn btn-primary">
                                   <span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Salvar Alterações</span></button>
                                 </div>
@@ -412,9 +416,10 @@
                     </div>
                     <!-- Menu Atualização -->
                     <div id="menu4" class="tab-pane fade">
-                        <div class="form-actions">
-                            <div class="span8">
-                                <div class="span9" style="display:flex">
+                        <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Atualize o sistema ou o banco de dados. Faça um backup antes de qualquer atualização.</div></div>
+                        <div class="ui-rodape-form">
+                            <div style="display:contents">
+                                <div style="display:contents">
                                     <button href="#modal-confirmabanco" data-toggle="modal" type="button" class="button btn btn-warning">
                                       <span class="button__icon"><i class="bx bx-sync"></i></span><span class="button__text2">Banco de Dados</span></button>
                                     <button href="#modal-confirmaratualiza" data-toggle="modal" type="button" class="button btn btn-danger">
@@ -425,6 +430,7 @@
                     </div>
                     <!-- Menu OS -->
                     <div id="menu5" class="tab-pane fade">
+                        <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Impressão das OS, check-in/check-out com GPS e anexos.</div></div>
                         <div class="control-group">
                             <div class="span8" style="margin-left: 3em;">
                                 <label for="control_2vias" class="control-label">Controle de Impressão em 2 Vias</label>
@@ -479,9 +485,9 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="form-actions">
-                            <div class="span8">
-                                <div class="span9">
+                        <div class="ui-rodape-form">
+                            <div style="display:contents">
+                                <div style="display:contents">
                                   <button type="submit" class="button btn btn-primary">
                                   <span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Salvar Alterações</span></button>
                                 </div>
@@ -490,6 +496,7 @@
                     </div>
                     <!-- Menu API -->
                     <div id="menu6" class="tab-pane fade">
+                        <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Acesso externo à API do sistema, com tempo de sessão e token JWT.</div></div>
                         <div class="control-group">
                             <label for="apiEnabled" class="control-label">Ativar acesso à API</label>
                             <div class="controls">
@@ -529,9 +536,9 @@
                                 <span class="help-inline">Gerar um novo token JWT.</span>
                             </div>
                         </div>
-                        <div class="form-actions">
-                            <div class="span8">
-                                <div class="span9">
+                        <div class="ui-rodape-form">
+                            <div style="display:contents">
+                                <div style="display:contents">
                                   <button type="submit" class="button btn btn-primary">
                                   <span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Salvar Alterações</span></button>
                                 </div>
@@ -540,6 +547,7 @@
                     </div>
                     <!-- Menu E-mail -->
                     <div id="menu7" class="tab-pane fade">
+                        <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Servidor SMTP usado para enviar os e-mails do sistema. Salve antes de testar o envio.</div></div>
                         <div class="control-group">
                             <label for="EMAIL_PROTOCOL" class="control-label">Protocolo de E-mail</label>
                             <div class="controls">
@@ -598,9 +606,9 @@
                                 <span class="help-block">Envia na hora um e-mail com um PDF de exemplo anexado (simula NF-e/NFS-e + Boleto), usando as credenciais SMTP já salvas. Salve as alterações antes de testar.</span>
                             </div>
                         </div>
-                        <div class="form-actions">
-                            <div class="span8">
-                                <div class="span9">
+                        <div class="ui-rodape-form">
+                            <div style="display:contents">
+                                <div style="display:contents">
                                   <button type="submit" class="button btn btn-primary">
                                   <span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Salvar Alterações</span></button>
                                 </div>

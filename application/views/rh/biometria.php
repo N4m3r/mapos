@@ -1,7 +1,9 @@
 <div class="new122">
-    <div class="widget-title" style="margin:-20px 0 10px">
-        <span class="icon"><i class="fas fa-user-shield"></i></span>
-        <h5>Biometria facial — <?= htmlspecialchars($colaborador->nome) ?></h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-user-check"></i> Biometria facial</h1>
+            <p class="ui-subtitulo">Colaborador: <?= htmlspecialchars($colaborador->nome) ?>.</p>
+        </div>
     </div>
 
     <div class="widget-box"><div class="widget-content" style="padding:18px">

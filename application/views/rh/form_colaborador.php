@@ -7,9 +7,11 @@ $val = function ($campo, $default = '') use ($c) {
 $action = $edit ? site_url('rh/editarColaborador/' . $c->id) : site_url('rh/adicionarColaborador');
 ?>
 <div class="new122">
-    <div class="widget-title" style="margin:-20px 0 10px">
-        <span class="icon"><i class="fas fa-user"></i></span>
-        <h5><?= $edit ? 'Editar' : 'Novo' ?> Colaborador</h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-user"></i> <?= $edit ? 'Editar colaborador' : 'Novo colaborador' ?></h1>
+            <p class="ui-subtitulo">Dados cadastrais e vínculo do colaborador.</p>
+        </div>
     </div>
     <?= $custom_error ?? '' ?>
     <form method="post" action="<?= $action ?>" class="form-horizontal" enctype="multipart/form-data">

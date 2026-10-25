@@ -7,15 +7,15 @@
 
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/custom.css" />
 
+<div class="ui-cabecalho">
+    <div>
+        <h1><i class="fas fa-cash-register"></i> Nova Venda</h1>
+        <p>Escolha o cliente e o vendedor. Depois de continuar, você adiciona os produtos da venda.</p>
+    </div>
+</div>
 <div class="row-fluid" style="margin-top:0">
     <div class="span12">
         <div class="widget-box">
-            <div class="widget-title" style="margin: -20px 0 0">
-                <span class="icon">
-                    <i class="fas fa-cash-register"></i>
-                </span>
-                <h5>Iniciar venda</h5>
-            </div>
             <div class="widget-content nopadding tab-content">
                 <div class="span12" id="divProdutosServicos" style=" margin-left: 0">
                     <ul class="nav nav-tabs">

@@ -2,11 +2,13 @@
 $tokenName = $this->security->get_csrf_token_name();
 $tokenHash = $this->security->get_csrf_hash();
 ?>
-<div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="fas fa-robot"></i></span>
-        <h5>Automação no aceite da OS</h5>
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-bot"></i> Automação no aceite da OS</h1>
+        <p class="ui-subtitulo">Emissão de NFS-e e geração de boleto quando o cliente aceita a OS.</p>
     </div>
+</div>
+<div class="widget-box">
     <div class="widget-content">
         <div class="alert" style="background:#fff8e1; border:1px solid #ffe0a3; color:#8a6d3b; border-radius:8px;">
             <strong>Atenção:</strong> quando ligada, ao cliente <strong>aceitar a resolução do serviço realizado</strong>
@@ -94,7 +96,7 @@ $tokenHash = $this->security->get_csrf_hash();
                 </div>
             </div>
 
-            <div style="margin-top:12px">
+            <div class="ui-rodape-form">
                 <button type="submit" class="button btn btn-success">
                     <span class="button__icon"><i class="bx bx-save"></i></span>
                     <span class="button__text2">Salvar automação</span>
@@ -104,12 +106,9 @@ $tokenHash = $this->security->get_csrf_hash();
     </div>
 </div>
 
-<div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="fas fa-clock"></i></span>
-        <h5>Faturamentos em espera</h5>
-    </div>
+<div class="widget-box" style="margin-top:16px">
     <div class="widget-content">
+        <div class="ui-secao"><h4><i class="bx bx-time-five"></i> Faturamentos em espera</h4></div>
         <?php $agendados = isset($agendados) ? $agendados : []; ?>
         <div style="margin-bottom:12px">
             <a href="<?= site_url('automacao/processarAgendados') ?>" class="btn btn-primary btn-mini"
@@ -120,8 +119,9 @@ $tokenHash = $this->security->get_csrf_hash();
         </div>
 
         <?php if (empty($agendados)) { ?>
-            <p style="color:#6b7191">Nenhum faturamento em espera no momento.</p>
+            <div class="ui-vazio"><i class="bx bx-check-circle"></i><strong>Nenhum faturamento em espera</strong>Quando houver OS aceitas aguardando a data de emissão, elas aparecem aqui.</div>
         <?php } else { ?>
+            <div class="ui-tabela-rolagem">
             <table class="table table-striped table-bordered">
                 <thead>
                     <tr>
@@ -142,9 +142,9 @@ $tokenHash = $this->security->get_csrf_hash();
                             <td><?= $a->data_agendada ? date('d/m/Y', strtotime($a->data_agendada)) : '—' ?></td>
                             <td>
                                 <?php if ($a->status === 'erro') { ?>
-                                    <span class="label label-important" title="<?= html_escape($a->motivo ?? '') ?>">Erro (<?= (int) $a->tentativas ?>x)</span>
+                                    <span class="ui-selo perigo" title="<?= html_escape($a->motivo ?? '') ?>">Erro (<?= (int) $a->tentativas ?>x)</span>
                                 <?php } else { ?>
-                                    <span class="label label-warning">Aguardando</span>
+                                    <span class="ui-selo alerta">Aguardando</span>
                                 <?php } ?>
                             </td>
                             <td>
@@ -157,6 +157,7 @@ $tokenHash = $this->security->get_csrf_hash();
                     <?php } ?>
                 </tbody>
             </table>
+            </div>
         <?php } ?>
     </div>
 </div>

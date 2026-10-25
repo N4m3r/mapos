@@ -19,11 +19,13 @@ $check = function ($valor, $lista) {
     return in_array($valor, $lista, true) ? 'checked' : '';
 };
 ?>
-<div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="fas fa-bell"></i></span>
-        <h5>Gatilho: <?= html_escape($gatilho->nome) ?></h5>
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-bell"></i> Gatilho: <?= html_escape($gatilho->nome) ?></h1>
+        <p class="ui-subtitulo">Ajuste quando o aviso dispara, para quem vai e o texto da mensagem.</p>
     </div>
+</div>
+<div class="widget-box">
     <div class="widget-content">
         <p style="color:#6b7191; margin-top:0"><?= html_escape($gatilho->descricao) ?></p>
 
@@ -233,7 +235,7 @@ $check = function ($valor, $lista) {
                 </div>
             <?php } ?>
 
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+            <div class="ui-rodape-form">
                 <button type="submit" class="button btn btn-success">
                     <span class="button__icon"><i class="bx bx-save"></i></span>
                     <span class="button__text2">Salvar gatilho</span>

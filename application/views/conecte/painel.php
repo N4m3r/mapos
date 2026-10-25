@@ -160,8 +160,8 @@
                             echo '<td>' . $o->nome . '</td>';
                             echo '<td>' . date('d/m/Y', strtotime($o->dataInicial)) . '</td>';
                             echo '<td>' . date('d/m/Y', strtotime($o->dataFinal)) . '</td>';
-                            echo '<td><span class="badge" style="background-color: ' . $corGarantia . '; border-color: ' . $corGarantia . '">' . $vencGarantia . '</span> </td>';
-                            echo '<td><span class="badge" style="background-color: ' . $cor . '; border-color: ' . $cor . '">' . $o->status . '</span> </td>';
+                            echo '<td><span class="ui-selo ' . ($corGarantia === "#4d9c79" ? "sucesso" : ($corGarantia === "#f24c6f" ? "perigo" : "")) . '">' . $vencGarantia . '</span> </td>';
+                            echo '<td><span class="ui-selo ' . (["Aberto"=>"sucesso","Finalizado"=>"sucesso","Faturado"=>"sucesso","Aprovado"=>"sucesso","Em Andamento"=>"info","Orçamento"=>"info","Negociação"=>"info","Aguardando Peças"=>"alerta","Cancelado"=>"perigo"][$o->status] ?? "") . '">' . $o->status . '</span> </td>';
                             echo '<td style="text-align:right">';
                             echo '<a href="' . base_url() . 'index.php/mine/visualizarOs/' . $o->idOs . '" class="btn"> <i class="fas fa-eye" ></i></a> ';
                             echo '<a href="' . base_url('index.php/mine/imprimirOs/' . $o->idOs) . '" class="btn" target="_blank"> <i class="fas fa-print"></i></a>';
@@ -264,8 +264,8 @@
                     echo '<td>' . $c->nome . '</td>';
                     echo '<td>' . date('d/m/Y', strtotime($c->dataVenda)) . '</td>';
                     echo '<td>' . $faturado . '</td>';
-                    echo '<td><span class="badge" style="background-color: ' . $corGarantia . '; border-color: ' . $corGarantia . '">' . $vencGarantia . '</span> </td>';
-                    echo '<td><span class="badge" style="background-color: ' . $cor . '; border-color: ' . $cor . '">' . $c->status . '</span> </td>';
+                    echo '<td><span class="ui-selo ' . ($corGarantia === "#4d9c79" ? "sucesso" : ($corGarantia === "#f24c6f" ? "perigo" : "")) . '">' . $vencGarantia . '</span> </td>';
+                    echo '<td><span class="ui-selo ' . (["Aberto"=>"sucesso","Finalizado"=>"sucesso","Faturado"=>"sucesso","Aprovado"=>"sucesso","Em Andamento"=>"info","Orçamento"=>"info","Negociação"=>"info","Aguardando Peças"=>"alerta","Cancelado"=>"perigo"][$c->status] ?? "") . '">' . $c->status . '</span> </td>';
                     echo '<td style="text-align:right">';
                     echo '<a href="' . base_url() . 'index.php/mine/visualizarCompra/' . $c->idVendas . '" class="btn"> <i class="fas fa-eye" ></i> </a> ';
                     echo '<a href="' . base_url() . 'index.php/mine/imprimirCompra/' . $c->idVendas . '" class="btn"> <i class="fas fa-print" ></i> </a>';

@@ -9,13 +9,13 @@
 <div class="row-fluid" style="margin-top:0">
     <div class="span12">
         <div class="widget-box">
-            <div class="widget-title" style="margin: -20px 0 0">
-                <span class="icon">
-                    <i class="fas fa-book"></i>
-                </span>
-                <h5>Editar Termo de Garantia</h5>
-            </div>
-            <div class="widget-content">
+            <div class="widget-content" style="padding: 16px">
+                <div class="ui-cabecalho">
+                    <div>
+                        <h1 class="ui-titulo"><i class="fas fa-book"></i> Editar termo de garantia</h1>
+                        <p class="ui-subtitulo">Altere a referência ou o texto do termo.</p>
+                    </div>
+                </div>
 
                 <?php if ($custom_error) { ?>
                     <div class="span12 alert alert-danger" id="divInfo" style="padding: 1%;">Dados incompletos, verifique os campos com asterisco ou se selecionou corretamente cliente e responsável.</div>
@@ -23,22 +23,22 @@
 
                 <form action="<?php echo current_url(); ?>" method="post" id="formGarantia">
 
-                    <div class="span12">
-                        <div class="span2">
+                    <div class="ui-grade">
+                        <div>
                             <label for="dataGarantia">Data</label>
                             <?php echo form_hidden('idGarantias', $result->idGarantias) ?>
                             <input id="dataGarantia" class="span12 datepicker" type="text" name="dataGarantia" value="<?php echo date('d/m/Y', strtotime($result->dataGarantia)); ?>" disabled />
                         </div>
-                        <div class="span5">
+                        <div>
                             <label for="usuarios_id">Responsável</label>
                             <input id="usuarios_id" class="span12" type="text" name="usuarios_id" value="<?php echo html_escape($result->nome); ?>" disabled />
 
                         </div>
-                        <div class="span5">
+                        <div>
                             <label for="refGarantia">Ref. Garantia</label>
                             <input id="refGarantia" class="span12" type="text" name="refGarantia" value="<?php echo html_escape($result->refGarantia); ?>" />
                         </div>
-                        <div class="span12" style="margin-left: 0">
+                        <div style="grid-column: 1 / -1">
                             <label for="textoGarantia">
                                 <h4 class="text-center">Termo de Garantia</h4>
                             </label>
@@ -46,11 +46,9 @@
                         </div>
                     </div>
 
-                    <div class="span12" style="padding: 1%; margin-left: 0">
-                        <div class="span6 offset5" style="display:flex;justify-content: center">
-                            <button type="submit" class="button btn btn-primary"><span class="button__icon"><i class="bx bx-sync"></i></span><span class="button__text2">Atualizar</span></button>
-                            <a href="<?php echo base_url() ?>index.php/garantias" id="" class="button btn btn-mini btn-warning"><span class="button__icon"><i class="bx bx-undo"></i></span> <span class="button__text2">Voltar</span></a>
-                        </div>
+                    <div class="ui-rodape-form">
+                        <button type="submit" class="button btn btn-primary"><span class="button__icon"><i class="bx bx-sync"></i></span><span class="button__text2">Atualizar</span></button>
+                        <a href="<?php echo base_url() ?>index.php/garantias" id="" class="button btn btn-mini btn-warning"><span class="button__icon"><i class="bx bx-undo"></i></span> <span class="button__text2">Voltar</span></a>
                     </div>
                 </form>
                 .

@@ -4,7 +4,12 @@
 
 <div id="obra-material" data-buscar-url="<?= site_url('obramaterial/buscarProduto') ?>" data-modo="receber">
     <div class="widget-box">
-        <div class="widget-title"><span class="icon"><i class="fas fa-truck-loading"></i></span><h5>Receber material — <?= html_escape($obra->nome) ?></h5></div>
+        <div class="ui-cabecalho">
+            <div>
+                <h1 class="ui-titulo"><i class="bx bx-down-arrow-circle"></i> Receber material</h1>
+                <p class="ui-subtitulo">Projeto: <?= html_escape($obra->nome) ?>. Registre a entrada de material no almoxarifado da obra.</p>
+            </div>
+        </div>
         <div class="widget-content">
             <form action="<?= current_url() ?>" method="post">
 

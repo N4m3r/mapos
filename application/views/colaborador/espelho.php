@@ -20,6 +20,7 @@ $corBat = [
 ];
 ?>
 <div class="ponto-wrap">
+<div class="ui-dica"><i class="bx bx-info-circle"></i><div>Confira suas batidas do mês. Se algo estiver errado, peça ajuste em <strong>Solicitar</strong>.</div></div>
     <form method="get" action="<?= site_url('colaborador/espelho') ?>" style="margin-bottom:12px" data-ao-enviar="irCompetencia" data-args='["@event"]'>
         <input type="month" id="competencia" value="<?= $competencia ?>" class="span12" style="width:100%">
     </form>

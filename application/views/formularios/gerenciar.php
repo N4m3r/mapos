@@ -1,11 +1,11 @@
 <div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon">
-            <i class="fas fa-clipboard-list"></i>
-        </span>
-        <h5>Formulários de Atendimento</h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-clipboard"></i> Formulários de Atendimento</h1>
+            <p class="ui-subtitulo">Perguntas que o técnico responde ao iniciar, durante e finalizar um atendimento.</p>
+        </div>
     </div>
-    <div class="widget-content nopadding">
+    <div class="widget-content nopadding ui-tabela-rolagem">
         <p style="padding: 14px 16px 0; color:#6b7191; margin:0;">
             Monte formulários personalizados (texto, área de texto, seleção suspensa e mais) para o
             técnico preencher em cada etapa do atendimento: <strong>ao iniciar</strong>,

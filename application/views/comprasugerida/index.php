@@ -9,44 +9,54 @@ $qs = http_build_query(['janela' => $filtro['janela'], 'prazo' => $filtro['prazo
 
 <div class="row-fluid" style="margin-top: 0">
     <div class="span12">
-        <div class="widget-box">
-            <div class="widget-title">
-                <span class="icon"><i class="bx bx-cart"></i></span>
-                <h5>Compra sugerida</h5>
+        <div class="ui-cabecalho">
+            <div>
+                <h1><i class="bx bx-cart"></i> Compra sugerida</h1>
+                <p>Produtos que devem ser repostos, com base no consumo recente e no estoque mínimo.</p>
             </div>
-            <div class="widget-content">
-                <?php if (! $disponivel) : ?>
-                    <div class="alert alert-danger">A tabela de movimentação de estoque ainda não existe. Execute as migrações do sistema.</div>
-                <?php else : ?>
-                <form action="<?= site_url('comprasugerida') ?>" method="get" class="span12 well" style="margin-left:0">
-                    <div class="span2">
-                        <label>Janela de consumo (dias)</label>
-                        <input type="number" min="1" max="730" name="janela" class="span12" value="<?= (int) $filtro['janela'] ?>" />
-                    </div>
-                    <div class="span2">
-                        <label>Prazo de reposição (dias)</label>
-                        <input type="number" min="1" max="365" name="prazo" class="span12" value="<?= (int) $filtro['prazo'] ?>" />
-                    </div>
-                    <div class="span2">
-                        <label>Cobertura desejada (dias)</label>
-                        <input type="number" min="1" max="365" name="cobertura" class="span12" value="<?= (int) $filtro['cobertura'] ?>" />
-                    </div>
-                    <div class="span3">
-                        <label>&nbsp;</label>
-                        <label class="checkbox"><input type="checkbox" name="somente" value="1" <?= $filtro['somente'] ? 'checked' : '' ?> /> Só o que precisa comprar</label>
-                    </div>
-                    <div class="span3">
-                        <label>&nbsp;</label>
-                        <button class="button btn btn-inverse"><span class="button__icon"><i class="bx bx-filter-alt"></i></span><span class="button__text">Calcular</span></button>
-                        <a class="button btn btn-mini btn-success" href="<?= site_url('comprasugerida/csv?' . $qs) ?>"><span class="button__icon"><i class="bx bx-download"></i></span><span class="button__text">CSV</span></a>
-                    </div>
-                </form>
+            <?php if ($disponivel) : ?>
+            <div class="ui-acoes">
+                <a class="button btn btn-success" href="<?= site_url('comprasugerida/csv?' . $qs) ?>" title="Baixar a lista em CSV"><span class="button__icon"><i class="bx bx-download"></i></span><span class="button__text">Baixar CSV</span></a>
+            </div>
+            <?php endif; ?>
+        </div>
 
-                <p class="muted span12" style="margin-left:0">
-                    Ponto de pedido = consumo diário × prazo + estoque mínimo. Quantidade sugerida = consumo diário × (prazo + cobertura) + mínimo − estoque.
-                    Ajustes e inventários não contam como consumo.
-                </p>
+        <?php if (! $disponivel) : ?>
+            <div class="alert alert-danger">A tabela de movimentação de estoque ainda não existe. Execute as migrações do sistema.</div>
+        <?php else : ?>
+        <form action="<?= site_url('comprasugerida') ?>" method="get" class="ui-filtros">
+            <div class="ui-campo">
+                <label for="janela">Janela de consumo (dias)</label>
+                <input type="number" id="janela" min="1" max="730" name="janela" value="<?= (int) $filtro['janela'] ?>" />
+            </div>
+            <div class="ui-campo">
+                <label for="prazo">Prazo de reposição (dias)</label>
+                <input type="number" id="prazo" min="1" max="365" name="prazo" value="<?= (int) $filtro['prazo'] ?>" />
+            </div>
+            <div class="ui-campo">
+                <label for="cobertura">Cobertura desejada (dias)</label>
+                <input type="number" id="cobertura" min="1" max="365" name="cobertura" value="<?= (int) $filtro['cobertura'] ?>" />
+            </div>
+            <div class="ui-campo">
+                <label class="checkbox"><input type="checkbox" name="somente" value="1" <?= $filtro['somente'] ? 'checked' : '' ?> /> Só o que precisa comprar</label>
+            </div>
+            <div class="ui-campo ui-campo-acao">
+                <button class="button btn btn-inverse"><span class="button__icon"><i class="bx bx-filter-alt"></i></span><span class="button__text">Calcular</span></button>
+            </div>
+        </form>
 
+        <div class="ui-kpis">
+            <div class="ui-kpi info"><div class="ui-kpi-rotulo">Produtos listados</div><div class="ui-kpi-valor"><?= (int) count($itens) ?></div></div>
+            <div class="ui-kpi alerta"><div class="ui-kpi-rotulo">Total estimado</div><div class="ui-kpi-valor">R$ <?= html_escape(number_format($total, 2, ',', '.')) ?></div></div>
+        </div>
+
+        <div class="ui-dica">
+            <i class="bx bx-info-circle"></i>
+            <div>Ponto de pedido = consumo diário × prazo + estoque mínimo. Quantidade sugerida = consumo diário × (prazo + cobertura) + mínimo − estoque. Ajustes e inventários não contam como consumo. Linhas em vermelho estão abaixo do mínimo.</div>
+        </div>
+
+        <div class="widget-box">
+            <div class="widget-content nopadding ui-tabela-rolagem">
                 <table class="table table-bordered">
                     <thead>
                         <tr>
@@ -56,7 +66,7 @@ $qs = http_build_query(['janela' => $filtro['janela'], 'prazo' => $filtro['prazo
                     </thead>
                     <tbody>
                         <?php if (! $itens) : ?>
-                            <tr><td colspan="9">Nenhum produto a comprar com estes parâmetros.</td></tr>
+                            <tr><td colspan="9"><div class="ui-vazio"><i class="bx bx-package"></i><strong>Nenhum produto a comprar</strong>Não há reposição necessária com estes parâmetros.</div></td></tr>
                         <?php endif; ?>
                         <?php foreach ($itens as $i) : ?>
                             <tr<?= $i['abaixo'] ? ' style="background:#fdecea"' : '' ?>>
@@ -76,8 +86,8 @@ $qs = http_build_query(['janela' => $filtro['janela'], 'prazo' => $filtro['prazo
                         <tr><td colspan="8" style="text-align:right"><strong>Total estimado</strong></td><td><strong>R$ <?= html_escape(number_format($total, 2, ',', '.')) ?></strong></td></tr>
                     </tfoot>
                 </table>
-                <?php endif; ?>
             </div>
         </div>
+        <?php endif; ?>
     </div>
 </div>

@@ -113,7 +113,7 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
                 <div class="widget-title"><span class="icon"><i class="fas fa-clock"></i></span><h5>Últimas batidas</h5>
                     <?php if ($pode_editar): ?><a href="#modal-ponto" data-toggle="modal" role="button" class="btn btn-mini" style="float:right;margin:8px">+ Manual</a><?php endif; ?>
                 </div>
-                <div class="widget-content nopadding">
+                <div class="widget-content nopadding ui-tabela-rolagem">
                     <table class="table table-bordered" style="margin:0">
                         <?php if (empty($ultimas_batidas)): ?>
                             <tr><td>Nenhuma batida.</td></tr>
@@ -141,7 +141,7 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
                 <div class="widget-title"><span class="icon"><i class="fas fa-calendar-alt"></i></span><h5>Ausências</h5>
                     <?php if ($pode_editar): ?><a href="#modal-ausencia" data-toggle="modal" role="button" class="btn btn-mini" style="float:right;margin:8px">+ Registrar</a><?php endif; ?>
                 </div>
-                <div class="widget-content nopadding">
+                <div class="widget-content nopadding ui-tabela-rolagem">
                     <table class="table table-bordered" style="margin:0">
                         <?php if (empty($ausencias)): ?><tr><td>Nenhuma.</td></tr>
                         <?php else: foreach ($ausencias as $a): ?>
@@ -157,7 +157,7 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
                 <div class="widget-title"><span class="icon"><i class="fas fa-money-bill"></i></span><h5>Lançamentos (<?= date('m/Y', strtotime($competencia.'-01')) ?>)</h5>
                     <a href="<?= site_url('rh/lancamentos?competencia='.$competencia.'&colaborador_id='.$colaborador->id) ?>" class="btn btn-mini" style="float:right;margin:8px">Gerenciar</a>
                 </div>
-                <div class="widget-content nopadding">
+                <div class="widget-content nopadding ui-tabela-rolagem">
                     <table class="table table-bordered" style="margin:0">
                         <?php if (empty($lancamentos)): ?><tr><td>Nenhum.</td></tr>
                         <?php else: foreach ($lancamentos as $l): ?>
@@ -172,7 +172,7 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
 
             <div class="widget-box">
                 <div class="widget-title"><span class="icon"><i class="fas fa-exclamation-circle"></i></span><h5>Ocorrências</h5></div>
-                <div class="widget-content nopadding">
+                <div class="widget-content nopadding ui-tabela-rolagem">
                     <table class="table table-bordered" style="margin:0">
                         <?php if (empty($ocorrencias)): ?><tr><td>Nenhuma.</td></tr>
                         <?php else: foreach ($ocorrencias as $o): ?>

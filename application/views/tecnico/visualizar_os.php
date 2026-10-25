@@ -26,6 +26,7 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
 ?>
 
 <div class="tec-container">
+<div class="ui-dica"><i class="bx bx-info-circle"></i><div>Siga a ordem: <strong>check-in</strong> ao chegar, registre o atendimento e fotos, depois <strong>finalize</strong> e colete a assinatura.</div></div>
 
     <!-- Banner: OS aberta pelo projeto (somente leitura) -->
     <?php if (!empty($somente_leitura)): ?>

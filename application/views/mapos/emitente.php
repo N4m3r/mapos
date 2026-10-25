@@ -57,10 +57,13 @@
 <?php if (!isset($dados) || $dados == null) { ?>
     <div class="row-fluid" style="margin-top:0">
         <div class="span12">
-            <div class="widget-box">
-                <div class="widget-title">
-                    <h5>Dados do Emitente</h5>
+            <div class="ui-cabecalho">
+                <div>
+                    <h1 class="ui-titulo"><i class="bx bx-building"></i> Dados do Emitente</h1>
+                    <p class="ui-subtitulo">Empresa que aparece no cabeçalho dos documentos impressos (OS, orçamentos e recibos).</p>
                 </div>
+            </div>
+            <div class="widget-box">
                 <div class="widget-content ">
                     <div class="alert alert-danger">Nenhum dado foi cadastrado até o momento. Essas informações estarão disponíveis na tela de impressão de OS.</div>
                     <a href="#modalCadastrar" data-toggle="modal" role="button" class="button btn btn-success" style="max-width: 150px"> <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Cadastrar Dados</span></a>
@@ -160,13 +163,13 @@
     <?php } else { ?>
     <div class="row-fluid" style="margin-top:0">
         <div class="span12">
-            <div class="widget-box">
-                <div class="widget-title" style="margin: -20px 0 0">
-                    <span class="icon">
-                        <i class="fas fa-align-justify"></i>
-                    </span>
-                    <h5>Dados do Emitente</h5>
+            <div class="ui-cabecalho">
+                <div>
+                    <h1 class="ui-titulo"><i class="bx bx-building"></i> Dados do Emitente</h1>
+                    <p class="ui-subtitulo">Empresa que aparece no cabeçalho dos documentos impressos (OS, orçamentos e recibos).</p>
                 </div>
+            </div>
+            <div class="widget-box">
                 <div class="widget-content ">
                     <div class="alert alert-info">Os dados abaixo serão utilizados no cabeçalho das telas de impressão.</div>
                     <table class="table table-bordered">
@@ -185,7 +188,7 @@
                         </tbody>
                     </table>
 
-                    <div style="display:flex">
+                    <div class="ui-rodape-form" style="justify-content:flex-start">
                         <a href="#modalAlterar" data-toggle="modal" role="button" class="button btn btn-success"><span class="button__icon"><i class='bx bx-edit'></i></span><span class="button__text2">Atualizar Dados</span></a>
                         <a href="#modalLogo" data-toggle="modal" role="button" class="button btn btn-inverse"><span class="button__icon"><i class='bx bx-upload'></i></span> <span class="button__text2">Alterar Logo</span></a>
                     </div>

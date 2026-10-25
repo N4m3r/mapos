@@ -1,14 +1,17 @@
 <div class="new122">
     <?php $this->load->view('rh/_subnav', ['ativo' => 'unidades']); ?>
-    <div class="widget-title" style="margin:0 0 0">
-        <span class="icon"><i class="fas fa-building"></i></span><h5>Unidades (geofence)</h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-building"></i> Unidades (geofence)</h1>
+            <p class="ui-subtitulo">Locais permitidos para registro de ponto por GPS.</p>
+        </div>
     </div>
     <div class="span12" style="margin-left:0">
         <a href="#modal-unidade" role="button" data-toggle="modal" class="button btn btn-mini btn-success" data-chamar="novaUnidade">
             <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2"> Unidade</span>
         </a>
     </div>
-    <div class="widget-box"><div class="widget-content nopadding">
+    <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
         <table class="table table-bordered">
             <thead><tr><th>Nome</th><th>Endereço</th><th>Coordenadas</th><th>Raio</th><th>Situação</th><th>Ações</th></tr></thead>
             <tbody>
@@ -25,9 +28,9 @@
                     <td><?= (int) $u->raio_metros ?>m</td>
                     <td><?= $u->situacao ? 'Ativa' : 'Inativa' ?></td>
                     <td>
-                        <a href="#modal-unidade" role="button" data-toggle="modal" class="btn-nwe3" title="Editar"
+                        <a href="#modal-unidade" role="button" data-toggle="modal" class="btn-nwe3" title="Editar" aria-label="Editar"
                            data-chamar="editarUnidade" data-args="<?= html_escape(json_encode([$u])) ?>"><i class="bx bx-edit bx-xs"></i></a>
-                        <a href="#modal-excluir-u" role="button" data-toggle="modal" reg="<?= $u->id ?>" class="btn-nwe4" title="Excluir"><i class="bx bx-trash-alt bx-xs"></i></a>
+                        <a href="#modal-excluir-u" role="button" data-toggle="modal" reg="<?= $u->id ?>" class="btn-nwe4" title="Excluir" aria-label="Excluir"><i class="bx bx-trash-alt bx-xs"></i></a>
                     </td>
                 </tr>
             <?php endforeach; endif; ?>

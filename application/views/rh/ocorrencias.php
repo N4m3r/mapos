@@ -4,8 +4,11 @@ $podeAprovar = $this->permission->checkPermission($this->session->userdata('perm
 ?>
 <div class="new122">
     <?php $this->load->view('rh/_subnav', ['ativo' => 'ocorrencias']); ?>
-    <div class="widget-title" style="margin:0 0 10px">
-        <span class="icon"><i class="fas fa-exclamation-circle"></i></span><h5>Ocorrências (correções / justificativas)</h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-error-circle"></i> Ocorrências</h1>
+            <p class="ui-subtitulo">Correções e justificativas de ponto.</p>
+        </div>
     </div>
     <div class="span12" style="margin-left:0">
         <form method="get" action="<?= site_url('rh/ocorrencias') ?>">
@@ -17,7 +20,7 @@ $podeAprovar = $this->permission->checkPermission($this->session->userdata('perm
             </select>
         </form>
     </div>
-    <div class="widget-box"><div class="widget-content nopadding">
+    <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
         <table class="table table-bordered">
             <thead><tr><th>Colaborador</th><th>Tipo</th><th>Referência</th><th>Descrição</th><th>Anexo</th><th>Status</th><th>Ações</th></tr></thead>
             <tbody>

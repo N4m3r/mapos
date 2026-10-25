@@ -97,13 +97,13 @@ if (! is_array($permissoes)) {
 <div class="span12" style="margin-left: 0">
     <form action="<?php echo base_url();?>index.php/permissoes/editar" id="formPermissao" method="post">
         <div class="span12" style="margin-left: 0">
-            <div class="widget-box">
-                <div class="widget-title">
-               <span class="icon">
-               <i class="fas fa-lock"></i>
-               </span>
-                    <h5 style="padding:12px;padding-left:18px!important;margin:-10px 0 0!important;font-size:1.7em;">Editar Permissão</h5>
+            <div class="ui-cabecalho">
+                <div>
+                    <h1 class="ui-titulo"><i class="bx bx-lock-alt"></i> Editar Permissão</h1>
+                    <p class="ui-subtitulo">Altere o nome e as permissões marcadas. As alterações valem para os usuários deste perfil.</p>
                 </div>
+            </div>
+            <div class="widget-box">
                 <div class="widget-content">
                     <div class="span4">
                         <label>Nome da Permissão</label>
@@ -138,7 +138,7 @@ if (! is_array($permissoes)) {
                     <div class="widget-content" style="padding: 5px 0 !important">
         <div id="tab1" class="tab-pane active" style="min-height: 300px">
             <div class="accordion" id="collapse-group">
-                <div class="accordion-group widget-box">
+                <div class="accordion-group widget-box ui-secao">
                     <div class="accordion-heading">
                         <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGOne" data-toggle="collapse">
@@ -150,7 +150,7 @@ if (! is_array($permissoes)) {
                     </div>
                     <div class="collapse in accordion-body" id="collapseGOne">
                         <div class="widget-content">
-                        <table class="table table-bordered">
+                        <div class="ui-tabela-rolagem"><table class="table table-bordered">
                                 <tr>
                                     <td colspan="4"></td>
                                 </tr>
@@ -196,12 +196,12 @@ if (! is_array($permissoes)) {
                                         </label>
                                     </td>
                                 </tr>
-                        </table>
+                        </table></div>
                     </div>
                 </div>
             </div>
 
-                <div class="accordion-group widget-box">
+                <div class="accordion-group widget-box ui-secao">
                     <div class="accordion-heading">
                         <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGTwo" data-toggle="collapse">
@@ -213,7 +213,7 @@ if (! is_array($permissoes)) {
                     </div>
                     <div class="collapse accordion-body" id="collapseGTwo">
                         <div class="widget-content">
-                        <table class="table table-bordered">
+                        <div class="ui-tabela-rolagem"><table class="table table-bordered">
                         <tr>
                             <td colspan="4"></td>
                         </tr>
@@ -259,12 +259,12 @@ if (! is_array($permissoes)) {
                                         </label>
                                     </td>
                                 </tr>
-                            </table>
+                            </table></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="accordion-group widget-box">
+                <div class="accordion-group widget-box ui-secao">
                     <div class="accordion-heading">
                         <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGThree" data-toggle="collapse">
@@ -276,7 +276,7 @@ if (! is_array($permissoes)) {
                     </div>
                     <div class="collapse accordion-body" id="collapseGThree">
                         <div class="widget-content">
-                        <table class="table table-bordered">
+                        <div class="ui-tabela-rolagem"><table class="table table-bordered">
                         <tr>
                             <td colspan="4"></td>
                         </tr>
@@ -322,12 +322,12 @@ if (! is_array($permissoes)) {
                                         </label>
                                     </td>
                                 </tr>
-                            </table>
+                            </table></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="accordion-group widget-box">
+                <div class="accordion-group widget-box ui-secao">
                     <div class="accordion-heading">
                         <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGFour" data-toggle="collapse">
@@ -339,7 +339,7 @@ if (! is_array($permissoes)) {
                     </div>
                     <div class="collapse accordion-body" id="collapseGFour">
                         <div class="widget-content">
-                        <table class="table table-bordered">
+                        <div class="ui-tabela-rolagem"><table class="table table-bordered">
                             <tr>
                                 <td colspan="4"></td>
                             </tr>
@@ -397,12 +397,12 @@ if (! is_array($permissoes)) {
                                         </label>
                                     </td>
                                 </tr>
-                            </table>
+                            </table></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="accordion-group widget-box">
+                <div class="accordion-group widget-box ui-secao">
                     <div class="accordion-heading">
                         <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGTecnico" data-toggle="collapse">
@@ -414,7 +414,7 @@ if (! is_array($permissoes)) {
                     </div>
                     <div class="collapse accordion-body" id="collapseGTecnico">
                         <div class="widget-content">
-                        <table class="table table-bordered">
+                        <div class="ui-tabela-rolagem"><table class="table table-bordered">
                             <tr>
                                 <td colspan="4">
                                     <label>
@@ -517,12 +517,12 @@ if (! is_array($permissoes)) {
                                     </label>
                                 </td>
                             </tr>
-                        </table>
+                        </table></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="accordion-group widget-box">
+                <div class="accordion-group widget-box ui-secao">
                     <div class="accordion-heading">
                         <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGRh" data-toggle="collapse">
@@ -534,7 +534,7 @@ if (! is_array($permissoes)) {
                     </div>
                     <div class="collapse accordion-body" id="collapseGRh">
                         <div class="widget-content">
-                        <table class="table table-bordered">
+                        <div class="ui-tabela-rolagem"><table class="table table-bordered">
                             <tr>
                                 <td>
                                     <label><input <?php if (! empty($permissoes['vRh']) && $permissoes['vRh'] == '1') echo 'checked'; ?> name="vRh" class="marcar" type="checkbox" value="1" />
@@ -571,12 +571,12 @@ if (! is_array($permissoes)) {
                                 </td>
                                 <td></td>
                             </tr>
-                        </table>
+                        </table></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="accordion-group widget-box">
+                <div class="accordion-group widget-box ui-secao">
                     <div class="accordion-heading">
                         <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGObras" data-toggle="collapse">
@@ -588,7 +588,7 @@ if (! is_array($permissoes)) {
                     </div>
                     <div class="collapse accordion-body" id="collapseGObras">
                         <div class="widget-content">
-                        <table class="table table-bordered">
+                        <div class="ui-tabela-rolagem"><table class="table table-bordered">
                             <tr>
                                 <td><label><input <?php if (! empty($permissoes['vObras']) && $permissoes['vObras'] == '1') echo 'checked'; ?> name="vObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Visualizar Projetos</strong></span></label></td>
                                 <td><label><input <?php if (! empty($permissoes['cObras']) && $permissoes['cObras'] == '1') echo 'checked'; ?> name="cObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Cadastrar Projeto</span></label></td>
@@ -619,12 +619,12 @@ if (! is_array($permissoes)) {
                                 <td></td>
                                 <td></td>
                             </tr>
-                        </table>
+                        </table></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="accordion-group widget-box">
+                <div class="accordion-group widget-box ui-secao">
                     <div class="accordion-heading">
                         <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGContratos" data-toggle="collapse">
@@ -636,7 +636,7 @@ if (! is_array($permissoes)) {
                     </div>
                     <div class="collapse accordion-body" id="collapseGContratos">
                         <div class="widget-content">
-                        <table class="table table-bordered">
+                        <div class="ui-tabela-rolagem"><table class="table table-bordered">
                             <tr>
                                 <td><label><input <?php if (! empty($permissoes['vContrato']) && $permissoes['vContrato'] == '1') echo 'checked'; ?> name="vContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Visualizar Contratos</strong></span></label></td>
                                 <td><label><input <?php if (! empty($permissoes['cContrato']) && $permissoes['cContrato'] == '1') echo 'checked'; ?> name="cContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Cadastrar Contrato</span></label></td>
@@ -649,12 +649,12 @@ if (! is_array($permissoes)) {
                                 <td></td>
                                 <td></td>
                             </tr>
-                        </table>
+                        </table></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="accordion-group widget-box">
+                <div class="accordion-group widget-box ui-secao">
                     <div class="accordion-heading">
                         <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGFive" data-toggle="collapse">
@@ -666,7 +666,7 @@ if (! is_array($permissoes)) {
                     </div>
                     <div class="collapse accordion-body" id="collapseGFive">
                         <div class="widget-content">
-                        <table class="table table-bordered">
+                        <div class="ui-tabela-rolagem"><table class="table table-bordered">
                             <tr>
                                 <td colspan="4"></td>
                             </tr>
@@ -712,12 +712,12 @@ if (! is_array($permissoes)) {
                                         </label>
                                     </td>
                                 </tr>
-                            </table>
+                            </table></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="accordion-group widget-box">
+                <div class="accordion-group widget-box ui-secao">
                     <div class="accordion-heading">
                         <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGSix" data-toggle="collapse">
@@ -729,7 +729,7 @@ if (! is_array($permissoes)) {
                     </div>
                     <div class="collapse accordion-body" id="collapseGSix">
                         <div class="widget-content">
-                        <table class="table table-bordered">
+                        <div class="ui-tabela-rolagem"><table class="table table-bordered">
                             <tr>
                                 <td colspan="4"></td>
                             </tr>
@@ -775,12 +775,12 @@ if (! is_array($permissoes)) {
                                         </label>
                                     </td>
                                 </tr>
-                            </table>
+                            </table></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="accordion-group widget-box">
+                <div class="accordion-group widget-box ui-secao">
                     <div class="accordion-heading">
                         <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGFiscal" data-toggle="collapse">
@@ -792,7 +792,7 @@ if (! is_array($permissoes)) {
                     </div>
                     <div class="collapse accordion-body" id="collapseGFiscal">
                         <div class="widget-content">
-                        <table class="table table-bordered">
+                        <div class="ui-tabela-rolagem"><table class="table table-bordered">
                             <tr>
                                 <td colspan="4"></td>
                             </tr>
@@ -858,12 +858,12 @@ if (! is_array($permissoes)) {
                                         </label>
                                     </td>
                                 </tr>
-                            </table>
+                            </table></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="accordion-group widget-box">
+                <div class="accordion-group widget-box ui-secao">
                     <div class="accordion-heading">
                         <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGSeven" data-toggle="collapse">
@@ -875,7 +875,7 @@ if (! is_array($permissoes)) {
                     </div>
                     <div class="collapse accordion-body" id="collapseGSeven">
                         <div class="widget-content">
-                        <table class="table table-bordered">
+                        <div class="ui-tabela-rolagem"><table class="table table-bordered">
                             <tr>
                                 <td colspan="4"></td>
                             </tr>
@@ -921,12 +921,12 @@ if (! is_array($permissoes)) {
                                         </label>
                                     </td>
                                 </tr>
-                            </table>
+                            </table></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="accordion-group widget-box">
+                <div class="accordion-group widget-box ui-secao">
                     <div class="accordion-heading">
                         <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGEight" data-toggle="collapse">
@@ -938,7 +938,7 @@ if (! is_array($permissoes)) {
                     </div>
                     <div class="collapse accordion-body" id="collapseGEight">
                         <div class="widget-content">
-                        <table class="table table-bordered">
+                        <div class="ui-tabela-rolagem"><table class="table table-bordered">
                             <tr>
                                 <td colspan="4"></td>
                             </tr>
@@ -984,12 +984,12 @@ if (! is_array($permissoes)) {
                                         </label>
                                     </td>
                                 </tr>
-                            </table>
+                            </table></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="accordion-group widget-box">
+                <div class="accordion-group widget-box ui-secao">
                     <div class="accordion-heading">
                         <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGNine" data-toggle="collapse">
@@ -1001,7 +1001,7 @@ if (! is_array($permissoes)) {
                     </div>
                     <div class="collapse accordion-body" id="collapseGNine">
                         <div class="widget-content">
-                        <table class="table table-bordered">
+                        <div class="ui-tabela-rolagem"><table class="table table-bordered">
                             <tr>
                                 <td colspan="4"></td>
                             </tr>
@@ -1047,12 +1047,12 @@ if (! is_array($permissoes)) {
                                         </label>
                                     </td>
                                 </tr>
-                            </table>
+                            </table></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="accordion-group widget-box">
+                <div class="accordion-group widget-box ui-secao">
                     <div class="accordion-heading">
                         <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGTen" data-toggle="collapse">
@@ -1064,7 +1064,7 @@ if (! is_array($permissoes)) {
                     </div>
                     <div class="collapse accordion-body" id="collapseGTen">
                         <div class="widget-content">
-                        <table class="table table-bordered">
+                        <div class="ui-tabela-rolagem"><table class="table table-bordered">
                             <tr>
                                 <td colspan="4"></td>
                             </tr>
@@ -1133,13 +1133,13 @@ if (! is_array($permissoes)) {
                                     </td>
                                     <td colspan="2"></td>
                                 </tr>
-                            </table>
+                            </table></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Seção Dashboard e Relatórios Avançados -->
-                <div class="accordion-group widget-box">
+                <div class="accordion-group widget-box ui-secao">
                     <div class="accordion-heading">
                         <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseG Twelve" data-toggle="collapse">
@@ -1151,7 +1151,7 @@ if (! is_array($permissoes)) {
                     </div>
                     <div class="collapse accordion-body" id="collapseG Twelve">
                         <div class="widget-content">
-                        <table class="table table-bordered">
+                        <div class="ui-tabela-rolagem"><table class="table table-bordered">
                             <tr>
                                 <td colspan="4"></td>
                             </tr>
@@ -1188,12 +1188,12 @@ if (! is_array($permissoes)) {
                                     </td>
                                     <td></td>
                                 </tr>
-                            </table>
+                            </table></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="accordion-group widget-box">
+                <div class="accordion-group widget-box ui-secao">
                     <div class="accordion-heading">
                         <div class="widget-title">
                             <a data-parent="#collapse-group" href="#collapseGEleven" data-toggle="collapse">
@@ -1205,7 +1205,7 @@ if (! is_array($permissoes)) {
                     </div>
                     <div class="collapse accordion-body" id="collapseGEleven">
                         <div class="widget-content">
-                        <table class="table table-bordered">
+                        <div class="ui-tabela-rolagem"><table class="table table-bordered">
                             <tr>
                                 <td colspan="4"></td>
                             </tr>
@@ -1283,7 +1283,7 @@ if (! is_array($permissoes)) {
                                         </label>
                                     </td>
                                 </tr>
-                            </table>
+                            </table></div>
                         </div>
                     </div>
                 </div>

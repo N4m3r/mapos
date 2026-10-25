@@ -3,11 +3,13 @@ $tokenName = $this->security->get_csrf_token_name();
 $tokenHash = $this->security->get_csrf_hash();
 $tags = array_filter(array_map('trim', explode(',', (string) $tpl->tags)));
 ?>
-<div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="fas fa-comment-dots"></i></span>
-        <h5>Modelo de WhatsApp: <?= html_escape($tpl->nome) ?></h5>
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-comment-edit"></i> Modelo de WhatsApp: <?= html_escape($tpl->nome) ?></h1>
+        <p class="ui-subtitulo">Edite o texto da mensagem e as tags que ela usa.</p>
     </div>
+</div>
+<div class="widget-box">
     <div class="widget-content">
         <p style="color:#6b7191; margin-top:0"><?= html_escape($tpl->descricao) ?></p>
 
@@ -43,7 +45,7 @@ $tags = array_filter(array_map('trim', explode(',', (string) $tpl->tags)));
                 </div>
             <?php } ?>
 
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+            <div class="ui-rodape-form">
                 <button type="submit" class="button btn btn-success">
                     <span class="button__icon"><i class="bx bx-save"></i></span>
                     <span class="button__text2">Salvar modelo</span>

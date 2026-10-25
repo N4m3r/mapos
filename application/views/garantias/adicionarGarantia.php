@@ -9,46 +9,44 @@
 <div class="row-fluid" style="margin-top:0">
     <div class="span12">
         <div class="widget-box">
-            <div class="widget-title">
-                <span class="icon">
-                    <i class="fas fa-book"></i>
-                </span>
-                <h5>Cadastro Termo de Garantia</h5>
-            </div>
-            <div class="widget-content">
+            <div class="widget-content" style="padding: 16px">
+                <div class="ui-cabecalho">
+                    <div>
+                        <h1 class="ui-titulo"><i class="fas fa-book"></i> Novo termo de garantia</h1>
+                        <p class="ui-subtitulo">Informe a referência do produto ou serviço e o texto do termo.</p>
+                    </div>
+                </div>
 
                 <?php if ($custom_error == true) { ?>
                     <div class="span12 alert alert-danger" id="divInfo" style="padding: 1%;">Dados incompletos, verifique os campos com asterisco.</div>
                 <?php
                 } ?>
                 <form action="<?php echo current_url(); ?>" method="post" id="formGarantia">
-                    <div class="span12">
-                        <div class="span2">
+                    <div class="ui-grade">
+                        <div>
                             <label for="dataGarantia">Data<span class="required">*</span></label>
                             <input id="dataGarantia" class="span12 datepicker" type="text" name="dataGarantia" value="<?php echo date('d/m/Y'); ?>" disabled />
                         </div>
-                        <div class="span3">
+                        <div>
                             <label for="usuarios_id">Responsável<span class="required">*</span></label>
                             <input id="usuarios_id" class="span12" type="text" name="usuarios_id" value="<?php echo $this->session->userdata('nome_admin') ?>" disabled />
                         </div>
-                        <div class="span7">
+                        <div>
                             <label for="refGarantia">Ref Garantia<span class="required">*</span></label>
                             <input type="text" class="span12" name="refGarantia" required placeholder="Informe uma referência: Exemplos: TV, Notebook, Celular">
                         </div>
-                        <div class="span12" style="margin-left: 0">
+                        <div style="grid-column: 1 / -1">
                             <label for="textoGarantia">
                                 <h4 class="text-center">Termo de Garantia<span class="required">*</span></h4>
                             </label>
                             <textarea required class="span12 editor" name="textoGarantia" id="textoGarantia" cols="30" rows="5"></textarea></textarea>
                         </div>
                     </div>
-                    <div class="span12" style="padding: 1%; margin-left: 0">
-                        <div class="span6 offset3" style="display:flex;justify-content: center">
-                            <button class="button btn btn-success" id="btnContinuar">
-                              <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Adicionar</span></button>
-                            <a href="<?php echo base_url() ?>index.php/garantias" class="button btn btn-mini btn-warning">
-                              <span class="button__icon"><i class="bx bx-undo"></i></span> <span class="button__text2">Voltar</span></a>
-                        </div>
+                    <div class="ui-rodape-form">
+                        <button class="button btn btn-success" id="btnContinuar">
+                          <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Adicionar</span></button>
+                        <a href="<?php echo base_url() ?>index.php/garantias" class="button btn btn-mini btn-warning">
+                          <span class="button__icon"><i class="bx bx-undo"></i></span> <span class="button__text2">Voltar</span></a>
                     </div>
                 </form>
                 .

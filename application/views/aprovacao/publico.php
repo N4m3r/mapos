@@ -229,6 +229,8 @@ $emitente = isset($emitente) ? $emitente : null;
             margin-top: 12px;
         }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<?= base_url('assets/css/moderno.css') ?>?v=<?= asset_versao('assets/css/moderno.css', '1') ?>" />
 </head>
 
 <body>
@@ -376,6 +378,7 @@ $emitente = isset($emitente) ? $emitente : null;
 
                     <?php if ($situacao === 'pendente' && $precisaVerificar) { ?>
                         <div class="ap-actions">
+                            <div class="ui-dica"><i class="bx bx-info-circle"></i><div><strong>Passo 1 de 2:</strong> peça o código e digite-o para liberar a aprovação.</div></div>
                             <h4 style="margin-top:0"><i class="fa fa-lock"></i> Verificação de segurança</h4>
                             <p class="muted">Para sua proteção, é preciso confirmar sua identidade com um código antes de aprovar. Enviaremos o código para <strong><?= html_escape($canalMascarado ?: 'seu contato cadastrado') ?></strong><?php if (! empty($qtdDestinos) && $qtdDestinos > 1) { ?> e mais <?= (int) $qtdDestinos - 1 ?> contato(s) cadastrado(s)<?php } ?>.</p>
 
@@ -403,6 +406,7 @@ $emitente = isset($emitente) ? $emitente : null;
 
                     <?php if ($situacao === 'pendente' && ! $precisaVerificar) { ?>
                         <div class="ap-actions">
+                            <div class="ui-dica"><i class="bx bx-info-circle"></i><div><strong>Seu próximo passo:</strong> revise o orçamento e escolha Aprovar ou Reprovar.</div></div>
                             <h4 style="margin-top:0">Confirme sua decisão</h4>
                             <p class="muted">Revise o orçamento acima e informe se autoriza a execução do serviço.</p>
 

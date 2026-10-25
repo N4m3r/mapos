@@ -4,11 +4,13 @@ $fmt = fn ($v) => number_format((float) $v, 2, ',', '.');
 <div class="row-fluid" style="margin-top:0">
     <div class="span12">
         <div class="widget-box">
-            <div class="widget-title">
-                <span class="icon"><i class="fas fa-file-import"></i></span>
-                <h5>Entradas / Créditos de IBS/CBS</h5>
-            </div>
-            <div class="widget-content">
+            <div class="widget-content" style="padding: 16px">
+                <div class="ui-cabecalho">
+                    <div>
+                        <h1 class="ui-titulo"><i class="fas fa-file-import"></i> Entradas e créditos de IBS/CBS</h1>
+                        <p class="ui-subtitulo">Notas de compra que geram crédito de imposto. Importe XML ou lance manualmente.</p>
+                    </div>
+                </div>
 
                 <?php if ($this->session->flashdata('success')) { ?>
                     <div class="alert alert-success"><?php echo $this->session->flashdata('success'); ?></div>
@@ -110,7 +112,7 @@ $fmt = fn ($v) => number_format((float) $v, 2, ',', '.');
                     </thead>
                     <tbody>
                         <?php if (empty($results)) { ?>
-                            <tr><td colspan="9" style="text-align:center;color:#999">Nenhuma entrada registrada<?= $competencia ? ' nesta competência' : '' ?>.</td></tr>
+                            <tr><td colspan="9"><div class="ui-vazio"><i class="bx bx-file-blank"></i><strong>Nenhuma entrada registrada<?= $competencia ? ' nesta competência' : '' ?></strong>Importe o XML de uma nota de compra ou use "Lançar manual".</div></td></tr>
                         <?php } else { ?>
                             <?php foreach ($results as $e) { ?>
                                 <tr<?= $e->credita ? '' : ' style="opacity:.5"' ?>>
@@ -122,12 +124,12 @@ $fmt = fn ($v) => number_format((float) $v, 2, ',', '.');
                                     <td style="text-align:right"><?= $fmt($e->v_cbs) ?></td>
                                     <td style="text-align:right"><?= $fmt($e->v_cred_pres_zfm) ?></td>
                                     <td style="text-align:center">
-                                        <a href="<?= site_url('entradas/toggleCredita/' . $e->idEntrada) ?>" title="Alternar aproveitamento do crédito">
+                                        <a href="<?= site_url('entradas/toggleCredita/' . $e->idEntrada) ?>" title="Alternar aproveitamento do crédito" aria-label="Alternar aproveitamento do crédito">
                                             <?= $e->credita ? '<span style="color:#3a3">Sim</span>' : '<span style="color:#999">Não</span>' ?>
                                         </a>
                                     </td>
                                     <td style="text-align:center">
-                                        <a href="<?= site_url('entradas/excluir/' . $e->idEntrada) ?>" data-confirmar="Excluir esta entrada?" title="Excluir"><i class="bx bx-trash" style="color:#c33"></i></a>
+                                        <a href="<?= site_url('entradas/excluir/' . $e->idEntrada) ?>" data-confirmar="Excluir esta entrada?" title="Excluir" aria-label="Excluir"><i class="bx bx-trash" style="color:#c33"></i></a>
                                     </td>
                                 </tr>
                             <?php } ?>

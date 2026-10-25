@@ -2,11 +2,13 @@
 $tokenName = $this->security->get_csrf_token_name();
 $tokenHash = $this->security->get_csrf_hash();
 ?>
-<div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="fas fa-palette"></i></span>
-        <h5>Layout &amp; CSS global dos e-mails</h5>
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-palette"></i> Layout &amp; CSS global dos e-mails</h1>
+        <p class="ui-subtitulo">Cabeçalho, rodapé e estilos aplicados a todos os e-mails enviados.</p>
     </div>
+</div>
+<div class="widget-box">
     <div class="widget-content">
         <p style="color:#6b7191">
             O HTML abaixo envolve o conteúdo de todos os e-mails. Use <code>{{conteudo}}</code> onde o corpo

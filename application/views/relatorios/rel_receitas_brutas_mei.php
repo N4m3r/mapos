@@ -1,5 +1,13 @@
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
 
+<div class="ui-cabecalho">
+    <div>
+        <h1><i class="fas fa-file-invoice-dollar"></i> Receitas brutas (MEI)</h1>
+        <p>Relatório mensal de receitas brutas para o MEI.</p>
+    </div>
+</div>
+<div class="ui-dica"><i class="bx bx-info-circle"></i><div>Os relatórios abrem em uma nova aba. Use os rápidos para o caso comum ou os customizáveis para filtrar; escolha PDF para imprimir ou XLS para planilha.</div></div>
+
 <div class="row-fluid" style="margin-top: 0">
     <div class="span4">
         <div class="widget-box">

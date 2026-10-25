@@ -9,9 +9,11 @@ $chk = function ($k) use ($cfg) {
 };
 ?>
 <div class="new122">
-    <div class="widget-title" style="margin:0 0 10px">
-        <span class="icon"><i class="fas fa-balance-scale"></i></span>
-        <h5>Descontos CLT e Horas Extras</h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-balance"></i> Descontos CLT e horas extras</h1>
+            <p class="ui-subtitulo">Percentuais de encargos, vale-transporte e hora extra usados na folha.</p>
+        </div>
     </div>
     <p style="color:#6b7280;font-size:13px;margin-bottom:12px">
         Configuração conforme legislação trabalhista (CLT). Os valores e tabelas são <strong>editáveis</strong>

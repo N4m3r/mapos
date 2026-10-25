@@ -10,7 +10,20 @@ $data_br = function ($d) {
 };
 $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execução', 'paralisada' => 'Paralisada', 'concluida' => 'Concluída', 'entregue' => 'Entregue', 'cancelada' => 'Cancelada'];
 ?>
+<?php
+$coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisada' => 'alerta', 'concluida' => 'info', 'entregue' => 'sucesso', 'cancelada' => 'perigo'];
+?>
 <link rel="stylesheet" href="<?= base_url() ?>assets/css/obras.css">
+
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-building-house"></i> Projeto: <?= html_escape($obra->nome) ?></h1>
+        <p class="ui-subtitulo">Visão geral do projeto, cronograma, material, diário de obra, medição, equipe, mão de obra e OS.</p>
+    </div>
+    <div class="ui-acoes">
+        <a href="<?= site_url('obras') ?>" class="button btn btn-mini btn-warning"><span class="button__icon"><i class='bx bx-undo'></i></span><span class="button__text2">Voltar</span></a>
+    </div>
+</div>
 
 <div class="obra-header widget-box">
     <div class="widget-content">
@@ -19,7 +32,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                 <h4 style="margin:0"><?= html_escape($obra->nome) ?> <?= $obra->codigo ? '<small>#' . html_escape($obra->codigo) . '</small>' : '' ?></h4>
                 <div><i class='bx bx-user'></i> <?= html_escape($obra->nomeCliente ?: '—') ?> &nbsp; <i class='bx bx-wrench'></i> <?= html_escape($obra->responsavel ?: '—') ?></div>
                 <div><i class='bx bx-map'></i> <?= html_escape(trim($obra->logradouro . ', ' . $obra->numero . ' - ' . $obra->cidade . '/' . $obra->uf, ' ,-/')) ?: '—' ?></div>
-                <span class="label"><?= $statusLabels[$obra->status] ?? $obra->status ?></span>
+                <span class="ui-selo <?= $coresStatus[$obra->status] ?? '' ?>"><?= $statusLabels[$obra->status] ?? $obra->status ?></span>
             </div>
             <div style="text-align:center;min-width:180px">
                 <div class="obra-progress"><div class="obra-progress-bar" style="width:<?= (float) $obra->percentual_concluido ?>%"></div></div>
@@ -31,7 +44,6 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
             <?php if ($perm('eObras')): ?><a href="<?= site_url('obras/editar/' . $obra->idObra) ?>" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-edit'></i></span><span class="button__text2">Editar</span></a><?php endif; ?>
             <?php if ($perm('rObraMaterial')): ?><a href="<?= site_url('obramaterial/receber/' . $obra->idObra) ?>" class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-down-arrow-circle'></i></span><span class="button__text2">Receber material</span></a><?php endif; ?>
             <?php if ($perm('sObraMaterial')): ?><a href="<?= site_url('obramaterial/entregar/' . $obra->idObra) ?>" class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-up-arrow-circle'></i></span><span class="button__text2">Entregar material</span></a><?php endif; ?>
-            <a href="<?= site_url('obras') ?>" class="button btn btn-mini btn-warning"><span class="button__icon"><i class='bx bx-undo'></i></span><span class="button__text2">Voltar</span></a>
         </div>
     </div>
 </div>
@@ -68,14 +80,14 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
 
     <!-- CRONOGRAMA -->
     <div class="obra-pane" id="tab-cronograma" style="display:none">
-        <div class="widget-box"><div class="widget-content nopadding">
+        <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
             <?php if ($perm('eObraCronograma')): ?>
                 <div style="padding:8px"><a href="#modal-etapa" data-toggle="modal" class="button btn btn-mini btn-success" data-chamar="novaEtapa"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova etapa</span></a></div>
             <?php endif; ?>
             <table class="table table-bordered">
                 <thead><tr><th>EAP</th><th>Etapa</th><th>Peso %</th><th>Valor prev.</th><th>Início</th><th>Fim</th><th>%</th><?php if ($perm('eObraCronograma')): ?><th>Ações</th><?php endif; ?></tr></thead>
                 <tbody>
-                    <?php if (! $etapas) echo '<tr><td colspan="8">Nenhuma etapa cadastrada.</td></tr>'; ?>
+                    <?php if (! $etapas) echo '<tr><td colspan="8"><div class="ui-vazio"><i class="bx bx-list-ul"></i><strong>Nenhuma etapa cadastrada.</strong></div></td></tr>'; ?>
                     <?php foreach ($etapas as $e): ?>
                         <tr>
                             <td><?= html_escape($e->codigo_eap) ?></td>
@@ -90,8 +102,8 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                             </td>
                             <?php if ($perm('eObraCronograma')): ?>
                                 <td>
-                                    <a href="#" class="btn-nwe3" title="Editar" data-chamar="editarEtapa" data-args="<?= html_escape(json_encode([$e])) ?>" data-cancelar><i class="bx bx-edit bx-xs"></i></a>
-                                    <a href="#" class="btn-nwe4" title="Excluir" data-chamar="excluirEtapa" data-args="[<?= (int) $e->idEtapa ?>]" data-cancelar><i class="bx bx-trash-alt bx-xs"></i></a>
+                                    <a href="#" class="btn-nwe3" title="Editar" aria-label="Editar" data-chamar="editarEtapa" data-args="<?= html_escape(json_encode([$e])) ?>" data-cancelar><i class="bx bx-edit bx-xs"></i></a>
+                                    <a href="#" class="btn-nwe4" title="Excluir" aria-label="Excluir" data-chamar="excluirEtapa" data-args="[<?= (int) $e->idEtapa ?>]" data-cancelar><i class="bx bx-trash-alt bx-xs"></i></a>
                                 </td>
                             <?php endif; ?>
                         </tr>
@@ -116,30 +128,30 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                 </div>
             </div>
         </div></div>
-        <div class="widget-box"><div class="widget-title"><h5>Almoxarifado — saldo atual</h5></div><div class="widget-content nopadding">
+        <div class="widget-box"><div class="widget-title"><h5>Almoxarifado — saldo atual</h5></div><div class="widget-content nopadding ui-tabela-rolagem">
             <table class="table table-bordered">
                 <thead><tr><th>Item</th><th>Cód. barras</th><th>Un.</th><th>Origem</th><th>Saldo</th></tr></thead>
                 <tbody>
-                    <?php if (! $saldos) echo '<tr><td colspan="5">Sem material em estoque.</td></tr>'; ?>
+                    <?php if (! $saldos) echo '<tr><td colspan="5"><div class="ui-vazio"><i class="bx bx-package"></i><strong>Sem material em estoque.</strong></div></td></tr>'; ?>
                     <?php foreach ($saldos as $s): ?>
                         <tr>
                             <td><?= html_escape($s->descricao) ?></td>
                             <td><?= html_escape($s->cod_barras) ?></td>
                             <td><?= html_escape($s->unidade) ?></td>
-                            <td><?= $s->do_cliente ? '<span class="label label-info">Cliente</span>' : 'Próprio' ?></td>
+                            <td><?= $s->do_cliente ? '<span class="ui-selo info">Cliente</span>' : 'Próprio' ?></td>
                             <td><strong><?= rtrim(rtrim(number_format((float) $s->saldo, 3, ',', '.'), '0'), ',') ?></strong></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div></div>
-        <div class="span6" style="margin-left:0"><div class="widget-box"><div class="widget-title"><h5>Recebimentos</h5></div><div class="widget-content nopadding">
+        <div class="span6" style="margin-left:0"><div class="widget-box"><div class="widget-title"><h5>Recebimentos</h5></div><div class="widget-content nopadding ui-tabela-rolagem">
             <table class="table table-bordered"><thead><tr><th>#</th><th>Data</th><th>Origem</th><th>Doc.</th></tr></thead><tbody>
                 <?php if (! $recebimentos) echo '<tr><td colspan="4">—</td></tr>'; ?>
                 <?php foreach ($recebimentos as $r): ?><tr><td><?= html_escape($r->numero) ?></td><td><?= $data_br($r->data) ?></td><td><?= html_escape($r->origem) ?></td><td><?= html_escape($r->documento) ?></td></tr><?php endforeach; ?>
             </tbody></table>
         </div></div></div>
-        <div class="span6"><div class="widget-box"><div class="widget-title"><h5>Entregas à equipe</h5></div><div class="widget-content nopadding">
+        <div class="span6"><div class="widget-box"><div class="widget-title"><h5>Entregas à equipe</h5></div><div class="widget-content nopadding ui-tabela-rolagem">
             <table class="table table-bordered"><thead><tr><th>#</th><th>Data</th><th>Equipe</th><th>Recebedor</th></tr></thead><tbody>
                 <?php if (! $entregas) echo '<tr><td colspan="4">—</td></tr>'; ?>
                 <?php foreach ($entregas as $e): ?><tr><td><?= html_escape($e->numero) ?></td><td><?= $data_br($e->data) ?></td><td><?= html_escape($e->equipe ?: '—') ?></td><td><?= html_escape($e->recebedor_nome) ?></td></tr><?php endforeach; ?>
@@ -149,14 +161,14 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
 
     <!-- RDO -->
     <div class="obra-pane" id="tab-rdo" style="display:none">
-        <div class="widget-box"><div class="widget-content nopadding">
+        <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
             <?php if ($perm('cObraRdo')): ?>
                 <div style="padding:8px"><a href="#modal-rdo" data-toggle="modal" class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Novo RDO</span></a></div>
             <?php endif; ?>
             <table class="table table-bordered">
                 <thead><tr><th>#</th><th>Data</th><th>O que foi feito</th><th>Clima (M/T/N)</th><th>Condição</th><th>Efetivo</th><th>Responsável</th><th style="width:60px">Ações</th></tr></thead>
                 <tbody>
-                    <?php if (! $rdos) echo '<tr><td colspan="8">Nenhum RDO registrado.</td></tr>'; ?>
+                    <?php if (! $rdos) echo '<tr><td colspan="8"><div class="ui-vazio"><i class="bx bx-notepad"></i><strong>Nenhum RDO registrado.</strong>Registre a execução do dia para aparecer aqui.</div></td></tr>'; ?>
                     <?php foreach ($rdos as $r): ?>
                         <tr>
                             <td><?= html_escape($r->numero) ?></td>
@@ -166,7 +178,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                             <td><?= html_escape($r->condicao) ?></td>
                             <td><?= (int) $r->efetivo_total ?></td>
                             <td><?= html_escape($r->responsavel) ?></td>
-                            <td><a href="<?= site_url('obras/imprimirRdo/' . $r->idRdo) ?>" target="_blank" class="btn-nwe" title="Imprimir RDO"><i class="bx bx-printer bx-xs"></i></a></td>
+                            <td><a href="<?= site_url('obras/imprimirRdo/' . $r->idRdo) ?>" target="_blank" class="btn-nwe" title="Imprimir RDO" aria-label="Imprimir RDO"><i class="bx bx-printer bx-xs"></i></a></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -176,7 +188,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
 
     <!-- MEDIÇÃO -->
     <div class="obra-pane" id="tab-medicao" style="display:none">
-        <div class="widget-box"><div class="widget-content nopadding">
+        <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
             <?php if ($perm('cObraMedicao') && $etapas): ?>
                 <div style="padding:8px"><a href="#modal-medicao" data-toggle="modal" class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova medição</span></a></div>
             <?php elseif (! $etapas): ?>
@@ -185,7 +197,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
             <table class="table table-bordered">
                 <thead><tr><th>#</th><th>Período</th><th>% acum.</th><th>Valor</th><th>Status</th><th>Ações</th></tr></thead>
                 <tbody>
-                    <?php if (! $medicoes) echo '<tr><td colspan="6">Nenhuma medição.</td></tr>'; ?>
+                    <?php if (! $medicoes) echo '<tr><td colspan="6"><div class="ui-vazio"><i class="bx bx-receipt"></i><strong>Nenhuma medição.</strong></div></td></tr>'; ?>
                     <?php foreach ($medicoes as $m): ?>
                         <tr>
                             <td><?= html_escape($m->numero) ?></td>
@@ -214,11 +226,11 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
         <?php if ($perm('cObraEquipe')): ?>
             <div style="margin-bottom:8px"><a href="<?= site_url('obraequipe') ?>" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-group'></i></span><span class="button__text2">Gerenciar equipes</span></a></div>
         <?php endif; ?>
-        <div class="widget-box"><div class="widget-content nopadding">
+        <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
             <table class="table table-bordered">
                 <thead><tr><th>Equipe</th><th>Encarregado</th><th>Início</th><th>Fim</th><th>Ativa</th></tr></thead>
                 <tbody>
-                    <?php if (! $equipes) echo '<tr><td colspan="5">Nenhuma equipe alocada.</td></tr>'; ?>
+                    <?php if (! $equipes) echo '<tr><td colspan="5"><div class="ui-vazio"><i class="bx bx-group"></i><strong>Nenhuma equipe alocada.</strong></div></td></tr>'; ?>
                     <?php foreach ($equipes as $q): ?>
                         <tr><td><?= html_escape($q->nome) ?></td><td><?= html_escape($q->encarregado) ?></td><td><?= $data_br($q->data_inicio) ?></td><td><?= $data_br($q->data_fim) ?></td><td><?= $q->ativo ? 'Sim' : 'Não' ?></td></tr>
                     <?php endforeach; ?>
@@ -228,18 +240,18 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
 
         <!-- Usuários com acesso de execução -->
         <div class="widget-box"><div class="widget-title"><h5 style="padding-left:8px"><i class='bx bx-user-check'></i> Usuários com acesso ao projeto</h5></div>
-            <div class="widget-content nopadding">
+            <div class="widget-content nopadding ui-tabela-rolagem">
                 <p style="padding:8px 8px 0;margin:0;color:#888">Apenas estes usuários (e o responsável do projeto) podem registrar a execução das atividades.</p>
                 <table class="table table-bordered">
                     <thead><tr><th>Usuário</th><th>E-mail</th><?php if ($perm('eObras')): ?><th style="width:60px">Ações</th><?php endif; ?></tr></thead>
                     <tbody>
-                        <?php if (! $usuarios_projeto) echo '<tr><td colspan="3">Nenhum usuário vinculado. O responsável do projeto ainda pode registrar.</td></tr>'; ?>
+                        <?php if (! $usuarios_projeto) echo '<tr><td colspan="3"><div class="ui-vazio"><i class="bx bx-user-check"></i><strong>Nenhum usuário vinculado.</strong>O responsável do projeto ainda pode registrar.</div></td></tr>'; ?>
                         <?php foreach ($usuarios_projeto as $u): ?>
                             <tr>
                                 <td><?= html_escape($u->nome ?: '—') ?></td>
                                 <td><?= html_escape($u->email ?: '—') ?></td>
                                 <?php if ($perm('eObras')): ?>
-                                    <td><a href="#" class="btn-nwe4" title="Remover acesso" data-chamar="desvincularUsuario" data-args="[<?= (int) $u->idObraUsuario ?>]" data-cancelar><i class="bx bx-user-x bx-xs"></i></a></td>
+                                    <td><a href="#" class="btn-nwe4" title="Remover acesso" aria-label="Remover acesso" data-chamar="desvincularUsuario" data-args="[<?= (int) $u->idObraUsuario ?>]" data-cancelar><i class="bx bx-user-x bx-xs"></i></a></td>
                                 <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
@@ -278,11 +290,11 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
         <?php endif; ?>
 
         <div class="widget-box"><div class="widget-title"><h5>Efetivo apontado<?php if ($verValor): ?> — total R$ <?= $fmt($apontamento_total) ?><?php endif; ?></h5></div>
-            <div class="widget-content nopadding">
+            <div class="widget-content nopadding ui-tabela-rolagem">
                 <table class="table table-bordered">
                     <thead><tr><th>Data</th><th>Colaborador</th><th>Função</th><th>Horas</th><th>Diária</th><th>Origem</th><?php if ($verValor): ?><th>Valor</th><?php endif; ?><?php if ($perm('cObraRdo')): ?><th></th><?php endif; ?></tr></thead>
                     <tbody>
-                        <?php if (! $apontamentos) echo '<tr><td colspan="9">Nenhum apontamento. Consolide o ponto do dia ou lance manualmente.</td></tr>'; ?>
+                        <?php if (! $apontamentos) echo '<tr><td colspan="9"><div class="ui-vazio"><i class="bx bx-time-five"></i><strong>Nenhum apontamento.</strong>Consolide o ponto do dia ou lance manualmente.</div></td></tr>'; ?>
                         <?php foreach ($apontamentos as $ap): ?>
                             <tr>
                                 <td><?= $data_br($ap->data) ?></td>
@@ -293,7 +305,7 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                                 <td><span class="label"><?= $ap->origem === 'ponto_facial' ? 'Ponto' : 'Manual' ?></span></td>
                                 <?php if ($verValor): ?><td>R$ <?= $fmt($ap->valor) ?></td><?php endif; ?>
                                 <?php if ($perm('cObraRdo')): ?>
-                                    <td><a href="#" class="btn-nwe4" title="Remover" data-chamar="excluirApont" data-args="[<?= (int) $ap->idApontamento ?>]" data-cancelar><i class="bx bx-trash-alt bx-xs"></i></a></td>
+                                    <td><a href="#" class="btn-nwe4" title="Remover" aria-label="Remover" data-chamar="excluirApont" data-args="[<?= (int) $ap->idApontamento ?>]" data-cancelar><i class="bx bx-trash-alt bx-xs"></i></a></td>
                                 <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
@@ -328,11 +340,11 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
             </div>
         <?php endif; ?>
 
-        <div class="widget-box"><div class="widget-content nopadding">
+        <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
             <table class="table table-bordered">
                 <thead><tr><th>OS</th><th>Cliente</th><th>Técnico</th><th>Status</th><th>Etapa</th><th style="min-width:190px">Ações</th></tr></thead>
                 <tbody>
-                    <?php if (! $os_vinculadas) echo '<tr><td colspan="6">Nenhuma OS vinculada. Use "Vincular OS ao projeto" para trazer o que será executado.</td></tr>'; ?>
+                    <?php if (! $os_vinculadas) echo '<tr><td colspan="6"><div class="ui-vazio"><i class="bx bx-wrench"></i><strong>Nenhuma OS vinculada.</strong>Use "Vincular OS ao projeto" para trazer o que será executado.</div></td></tr>'; ?>
                     <?php foreach ($os_vinculadas as $o): ?>
                         <tr>
                             <td>#<?= (int) $o->idOs ?></td>
@@ -341,10 +353,10 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                             <td><span class="label"><?= $osStatusLabel($o->status) ?></span></td>
                             <td><?= html_escape($o->etapa_nome ?: '—') ?></td>
                             <td>
-                                <a href="<?= site_url('os/visualizar/' . $o->idOs) ?>" class="btn-nwe" title="Abrir OS"><i class="bx bx-show bx-xs"></i></a>
+                                <a href="<?= site_url('os/visualizar/' . $o->idOs) ?>" class="btn-nwe" title="Abrir OS" aria-label="Abrir OS"><i class="bx bx-show bx-xs"></i></a>
                                 <a href="<?= site_url('tecnico/visualizar/' . $o->idOs) ?>" class="button btn btn-mini btn-primary" style="margin:0 4px" title="Executar em campo"><span class="button__icon"><i class='bx bx-play-circle'></i></span><span class="button__text2">Executar</span></a>
                                 <?php if ($perm('eObras')): ?>
-                                    <a href="#" class="btn-nwe4" title="Desvincular" data-chamar="desvincularOs" data-args="[<?= (int) $o->idVinculo ?>]" data-cancelar><i class="bx bx-unlink bx-xs"></i></a>
+                                    <a href="#" class="btn-nwe4" title="Desvincular" aria-label="Desvincular" data-chamar="desvincularOs" data-args="[<?= (int) $o->idVinculo ?>]" data-cancelar><i class="bx bx-unlink bx-xs"></i></a>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -356,11 +368,11 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
         <?php if ($os_vinculadas): ?>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
             <div class="widget-box" style="flex:1;min-width:280px"><div class="widget-title"><h5 style="padding-left:8px"><i class='bx bx-list-check'></i> O que executar (serviços)</h5></div>
-                <div class="widget-content nopadding">
+                <div class="widget-content nopadding ui-tabela-rolagem">
                     <table class="table table-bordered">
                         <thead><tr><th>OS</th><th>Serviço</th><th>Qtd.</th></tr></thead>
                         <tbody>
-                            <?php if (! $os_servicos) echo '<tr><td colspan="3">Sem serviços lançados nas OS.</td></tr>'; ?>
+                            <?php if (! $os_servicos) echo '<tr><td colspan="3"><div class="ui-vazio"><strong>Sem serviços lançados nas OS.</strong></div></td></tr>'; ?>
                             <?php foreach ($os_servicos as $s): ?>
                                 <tr><td>#<?= (int) $s->os_id ?></td><td><?= html_escape($s->nome ?: '—') ?></td><td><?= $fmt($s->quantidade) ?></td></tr>
                             <?php endforeach; ?>
@@ -369,11 +381,11 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                 </div>
             </div>
             <div class="widget-box" style="flex:1;min-width:280px"><div class="widget-title"><h5 style="padding-left:8px"><i class='bx bx-package'></i> Material a utilizar (produtos)</h5></div>
-                <div class="widget-content nopadding">
+                <div class="widget-content nopadding ui-tabela-rolagem">
                     <table class="table table-bordered">
                         <thead><tr><th>OS</th><th>Produto</th><th>Qtd.</th></tr></thead>
                         <tbody>
-                            <?php if (! $os_produtos) echo '<tr><td colspan="3">Sem produtos lançados nas OS.</td></tr>'; ?>
+                            <?php if (! $os_produtos) echo '<tr><td colspan="3"><div class="ui-vazio"><strong>Sem produtos lançados nas OS.</strong></div></td></tr>'; ?>
                             <?php foreach ($os_produtos as $p): ?>
                                 <tr><td>#<?= (int) $p->os_id ?></td><td><?= html_escape($p->nome ?: '—') ?></td><td><?= $fmt($p->quantidade) ?></td></tr>
                             <?php endforeach; ?>

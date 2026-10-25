@@ -1,3 +1,9 @@
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-user"></i> <?= html_escape($result->nomeCliente) ?></h1>
+        <p class="ui-subtitulo"><?= $result->fornecedor == true ? 'Fornecedor' : 'Cliente' ?><?= trim((string) $result->documento) !== '' ? ' · ' . html_escape($result->documento) : '' ?></p>
+    </div>
+</div>
 <div class="widget-box">
     <div class="widget-title" style="margin: 0;font-size: 1.1em">
         <ul class="nav nav-tabs">
@@ -166,7 +172,7 @@
                     </thead>
                     <tbody>
                     <tr>
-                        <td colspan="6">Nenhuma OS Cadastrada</td>
+                        <td colspan="6"><div class="ui-vazio"><i class="bx bx-clipboard"></i><strong>Nenhuma OS para este cliente</strong>As ordens de serviço aparecem aqui quando forem criadas.</div></td>
                     </tr>
                     </tbody>
                 </table>
@@ -197,10 +203,10 @@
 
                         echo '<td>';
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
-                            echo '<a href="' . base_url() . 'index.php/os/visualizar/' . $r->idOs . '" style="margin-right: 1%" class="btn tip-top" title="Ver mais detalhes"><i class="fas fa-eye"></i></a>';
+                            echo '<a href="' . base_url() . 'index.php/os/visualizar/' . $r->idOs . '" style="margin-right: 1%" class="btn tip-top" title="Ver mais detalhes" aria-label="Ver mais detalhes"><i class="fas fa-eye"></i></a>';
                         }
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
-                            echo '<a href="' . base_url() . 'index.php/os/editar/' . $r->idOs . '" class="btn btn-info tip-top" title="Editar OS"><i class="fas fa-edit"></i></a>';
+                            echo '<a href="' . base_url() . 'index.php/os/editar/' . $r->idOs . '" class="btn btn-info tip-top" title="Editar OS" aria-label="Editar OS"><i class="fas fa-edit"></i></a>';
                         }
 
                         echo  '</td>';
@@ -228,7 +234,7 @@
                     </thead>
                     <tbody>
                     <tr>
-                        <td colspan="6">Nenhuma OS Cadastrada</td>
+                        <td colspan="6"><div class="ui-vazio"><i class="bx bx-cart"></i><strong>Nenhuma venda para este cliente</strong>As vendas aparecem aqui quando forem registradas.</div></td>
                     </tr>
                     </tbody>
                 </table>
@@ -261,10 +267,10 @@
 
                         echo '<td>';
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
-                            echo '<a href="' . base_url() . 'index.php/vendas/visualizar/' . $r->idVendas . '" style="margin-right: 1%" class="btn tip-top" title="Ver mais detalhes"><i class="fas fa-eye"></i></a>';
+                            echo '<a href="' . base_url() . 'index.php/vendas/visualizar/' . $r->idVendas . '" style="margin-right: 1%" class="btn tip-top" title="Ver mais detalhes" aria-label="Ver mais detalhes"><i class="fas fa-eye"></i></a>';
                         }
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
-                            echo '<a href="' . base_url() . 'index.php/vendas/editar/' . $r->idVendas . '" class="btn btn-info tip-top" title="Editar OS"><i class="fas fa-edit"></i></a>';
+                            echo '<a href="' . base_url() . 'index.php/vendas/editar/' . $r->idVendas . '" class="btn btn-info tip-top" title="Editar OS" aria-label="Editar OS"><i class="fas fa-edit"></i></a>';
                         }
                         echo  '</td>';
                         echo '</tr>';

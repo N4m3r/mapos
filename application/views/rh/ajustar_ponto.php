@@ -4,9 +4,11 @@ $lblTipo = ['entrada'=>'Entrada','saida'=>'Saída','inicio_intervalo'=>'Início 
 $diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 ?>
 <div class="new122">
-    <div class="widget-title" style="margin:0 0 10px">
-        <span class="icon"><i class="fas fa-edit"></i></span>
-        <h5>Ajustar ponto — <?= htmlspecialchars($colaborador->nome) ?></h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-edit"></i> Ajustar ponto</h1>
+            <p class="ui-subtitulo">Colaborador: <?= htmlspecialchars($colaborador->nome) ?>. Corrija as batidas do dia.</p>
+        </div>
     </div>
 
     <div class="span12" style="margin-left:0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
@@ -16,7 +18,7 @@ $diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
         </a>
     </div>
 
-    <div class="widget-box"><div class="widget-content nopadding">
+    <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
         <table class="table table-bordered">
             <thead><tr><th>Data</th><th>Hora</th><th>Tipo</th><th>Origem</th><th>Situação</th><th>Local</th><th>Ações</th></tr></thead>
             <tbody>
@@ -41,9 +43,9 @@ $diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
                         <?php if ($r->face_score !== null): ?><br><small>facial <?= number_format($r->face_score,2) ?></small><?php endif; ?>
                     </td>
                     <td style="white-space:nowrap">
-                        <a href="#modal-batida" data-toggle="modal" role="button" class="btn-nwe3" title="Editar"
+                        <a href="#modal-batida" data-toggle="modal" role="button" class="btn-nwe3" title="Editar" aria-label="Editar"
                            data-chamar="editarBatida" data-args="<?= html_escape(json_encode([["id"=>$r->id,"dt"=>$dtLocal,"tipo"=>$r->tipo,"status"=>$r->status]])) ?>"><i class="bx bx-edit bx-xs"></i></a>
-                        <a href="#modal-excluir-b" data-toggle="modal" role="button" reg="<?= $r->id ?>" class="btn-nwe4" title="Excluir"><i class="bx bx-trash-alt bx-xs"></i></a>
+                        <a href="#modal-excluir-b" data-toggle="modal" role="button" reg="<?= $r->id ?>" class="btn-nwe4" title="Excluir" aria-label="Excluir"><i class="bx bx-trash-alt bx-xs"></i></a>
                     </td>
                 </tr>
             <?php endforeach; endif; ?>

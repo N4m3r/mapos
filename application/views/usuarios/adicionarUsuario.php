@@ -4,13 +4,13 @@
 
 <div class="row-fluid" style="margin-top:0">
     <div class="span12">
-        <div class="widget-box">
-            <div class="widget-title" style="margin: -20px 0 0">
-                <span class="icon">
-                    <i class="fas fa-user"></i>
-                </span>
-                <h5>Cadastro de Usuário</h5>
+        <div class="ui-cabecalho">
+            <div>
+                <h1 class="ui-titulo"><i class="bx bx-user-plus"></i> Cadastro de Usuário</h1>
+                <p class="ui-subtitulo">Preencha os dados do novo usuário e escolha o nível de permissão.</p>
             </div>
+        </div>
+        <div class="widget-box">
             <div class="widget-content nopadding tab-content">
                 <?php if ($custom_error != '') {
                     echo '<div class="alert alert-danger">' . $custom_error . '</div>';
@@ -138,15 +138,11 @@
                         </div>
                     </div>
 
-                    <div class="form-actions">
-                        <div class="span12">
-                            <div class="span6 offset3" style="display:flex">
-                                <button type="submit" class="button btn btn-success">
-                                  <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Adicionar</span></button>
-                                <a href="<?php echo base_url() ?>index.php/usuarios" id="" class="button btn btn-mini btn-warning">
-                                  <span class="button__icon"><i class="bx bx-undo"></i></span> <span class="button__text2">Voltar</span></a>
-                            </div>
-                        </div>
+                    <div class="ui-rodape-form">
+                        <button type="submit" class="button btn btn-success">
+                          <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Adicionar</span></button>
+                        <a href="<?php echo base_url() ?>index.php/usuarios" id="" class="button btn btn-mini btn-warning">
+                          <span class="button__icon"><i class="bx bx-undo"></i></span> <span class="button__text2">Voltar</span></a>
                     </div>
 
 

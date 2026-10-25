@@ -1,15 +1,18 @@
 <?php $dsem = [0=>'Dom',1=>'Seg',2=>'Ter',3=>'Qua',4=>'Qui',5=>'Sex',6=>'Sáb']; ?>
 <div class="new122">
     <?php $this->load->view('rh/_subnav', ['ativo' => 'jornadas']); ?>
-    <div class="widget-title" style="margin:0 0 0">
-        <span class="icon"><i class="fas fa-clock"></i></span><h5>Jornadas / Escalas</h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-time-five"></i> Jornadas e escalas</h1>
+            <p class="ui-subtitulo">Modelos de jornada aplicados aos colaboradores.</p>
+        </div>
     </div>
     <div class="span12" style="margin-left:0">
         <a href="#modal-jornada" role="button" data-toggle="modal" class="button btn btn-mini btn-success" data-chamar="novaJornada">
             <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2"> Jornada</span>
         </a>
     </div>
-    <div class="widget-box"><div class="widget-content nopadding">
+    <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
         <table class="table table-bordered">
             <thead><tr><th>Nome</th><th>Carga/dia</th><th>Dias</th><th>Horário</th><th>Tolerância</th><th>Ações</th></tr></thead>
             <tbody>

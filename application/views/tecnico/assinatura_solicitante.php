@@ -37,6 +37,7 @@ $emailCliente = !empty($cliente->email) ? $cliente->email : '';
 </style>
 
 <div class="tec-container">
+<div class="ui-dica"><i class="bx bx-info-circle"></i><div>Peça ao solicitante para assinar no quadro abaixo e confirme para concluir.</div></div>
 
     <div class="asg-msg" id="asg-msg"></div>
 

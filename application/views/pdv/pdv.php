@@ -20,11 +20,13 @@
     #pdvFinal .caixa { background:#fff; border-radius:12px; padding:22px; width:min(92vw, 420px); text-align:center; }
 </style>
 
-<div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="bx bx-store"></i></span>
-        <h5>PDV - caixa #<?= (int) $caixa->id ?></h5>
+<div class="ui-cabecalho">
+    <div>
+        <h1><i class="bx bx-store"></i> PDV - caixa #<?= (int) $caixa->id ?></h1>
+        <p>Leia o código de barras ou busque o produto, escolha a forma de pagamento e finalize a venda.</p>
     </div>
+</div>
+<div class="widget-box">
     <div class="widget-content">
         <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:10px; color:#666; font-size:13px">
             <span>Aberto em <?= date('d/m/Y H:i', strtotime($caixa->aberto_em)) ?></span>
