@@ -664,9 +664,24 @@ class Os_model extends CI_Model
             case 'finalizados':
                 $this->db->where_in('os.status', ['Finalizado', 'Faturado']);
                 break;
+            case 'atrasados':
+                $this->db->where('os.data_agendamento IS NOT NULL');
+                $this->db->where('os.data_agendamento <', date('Y-m-d H:i:s'));
+                $this->db->where_not_in('os.status', ['Finalizado', 'Cancelado', 'Faturado']);
+                break;
+            case 'hoje':
+                $this->db->where('os.data_agendamento >=', date('Y-m-d') . ' 00:00:00');
+                $this->db->where('os.data_agendamento <=', date('Y-m-d') . ' 23:59:59');
+                $this->db->where_not_in('os.status', ['Finalizado', 'Cancelado', 'Faturado']);
+                break;
             default: // todos
                 $this->db->where_not_in('os.status', ['Finalizado', 'Cancelado', 'Faturado']);
                 break;
+        }
+
+        // Filtro por tecnico responsavel
+        if (! empty($filtros['tecnico'])) {
+            $this->db->where('os.tecnico_responsavel', (int) $filtros['tecnico']);
         }
 
         // Busca por cliente, nº da OS ou descrição

@@ -146,10 +146,10 @@ class Relatorioatendimentos_model extends CI_Model
      */
     public function getAtendimentosPorStatus($data_inicio, $data_fim, $usuario_id = null)
     {
-        $this->db->select('
-            CASE WHEN data_saida IS NOT NULL THEN "Finalizado" ELSE "Em Andamento" END as status,
+        $this->db->select("
+            CASE WHEN data_saida IS NOT NULL THEN 'Finalizado' ELSE 'Em Andamento' END as status,
             COUNT(*) as quantidade
-        ');
+        ", false);
         $this->db->from('os_checkin');
         $this->db->where('DATE(data_entrada) >=', $data_inicio);
         $this->db->where('DATE(data_entrada) <=', $data_fim);

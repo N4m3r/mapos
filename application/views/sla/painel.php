@@ -1,18 +1,21 @@
 <?php
 $rotulos = [
-    'estourado' => ['Estourado', '#c0392b'],
-    'risco' => ['Em risco', '#e67e22'],
-    'no_prazo' => ['No prazo', '#27ae60'],
-    'cumprido' => ['Cumprido', '#7f8c8d'],
-    'atrasado' => ['Cumprido com atraso', '#8e44ad'],
+    'estourado' => ['Estourado', 'perigo'],
+    'risco' => ['Em risco', 'alerta'],
+    'no_prazo' => ['No prazo', 'sucesso'],
+    'cumprido' => ['Cumprido', 'neutro'],
+    'atrasado' => ['Cumprido com atraso', 'roxo'],
 ];
 $selo = static function ($situacao) use ($rotulos) {
     if ($situacao === null) {
         return '<span style="color:#aaa">-</span>';
     }
-    [$texto, $cor] = $rotulos[$situacao];
+    [$texto, $tom] = $rotulos[$situacao];
 
-    return '<span class="ui-selo" style="background:' . $cor . '; color:#fff">' . $texto . '</span>';
+    return '<span class="ui-selo ' . $tom . '">' . $texto . '</span>';
+};
+$classeLinha = static function ($situacao) {
+    return $situacao === 'estourado' ? 'ui-linha-perigo' : ($situacao === 'risco' ? 'ui-linha-alerta' : '');
 };
 $falta = static function ($ts) {
     if ($ts === null) {
@@ -22,7 +25,7 @@ $falta = static function ($ts) {
     $abs = abs($seg);
     $txt = $abs >= 86400 ? floor($abs / 86400) . 'd ' . floor(($abs % 86400) / 3600) . 'h' : floor($abs / 3600) . 'h ' . floor(($abs % 3600) / 60) . 'min';
 
-    return $seg < 0 ? '<span style="color:#c0392b">há ' . $txt . '</span>' : 'em ' . $txt;
+    return $seg < 0 ? '<span class="ui-negativo">há ' . $txt . '</span>' : 'em ' . $txt;
 };
 $link = static function ($situacao) use ($filtros) {
     return site_url('sla') . '?' . http_build_query(array_filter(array_merge($filtros, ['situacao' => $situacao])));
@@ -98,7 +101,7 @@ $link = static function ($situacao) use ($filtros) {
                     <tr><td colspan="9"><div class="ui-vazio"><i class="bx bx-check-shield"></i><strong>Nenhuma OS aberta com SLA<?= $filtros['situacao'] ? ' nesta situação' : '' ?></strong>O SLA é calculado quando a OS tem contrato e prioridade.</div></td></tr>
                 <?php }
                 foreach ($lista as $os) { ?>
-                    <tr>
+                    <tr class="<?= $classeLinha($os->situacao) ?>">
                         <td><a href="<?= site_url('os/visualizar/' . (int) $os->idOs) ?>">#<?= (int) $os->idOs ?></a></td>
                         <td><?= html_escape($os->nomeCliente) ?><br><small style="color:#999"><?= html_escape($os->status) ?></small></td>
                         <td><?= html_escape($os->prioridade ?: '-') ?></td>

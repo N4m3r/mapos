@@ -1483,7 +1483,8 @@ class Os extends MY_Controller
         $busca    = trim((string) $this->input->get('busca'));
         $data_de  = trim((string) $this->input->get('data_de'));
         $data_ate = trim((string) $this->input->get('data_ate'));
-        $filtros  = ['busca' => $busca, 'data_de' => $data_de, 'data_ate' => $data_ate];
+        $tecnico  = (int) $this->input->get('tecnico');
+        $filtros  = ['busca' => $busca, 'data_de' => $data_de, 'data_ate' => $data_ate, 'tecnico' => $tecnico];
 
         // Configuração da paginação
         $config['base_url'] = site_url('os/atribuir');
@@ -1520,7 +1521,7 @@ class Os extends MY_Controller
         } else {
             // Abas baseadas em OS (todos, sem_tecnico, em_atendimento, finalizados)
             // com filtros de busca e período aplicados de forma unificada.
-            if (! in_array($aba, ['todos', 'sem_tecnico', 'em_atendimento', 'finalizados'], true)) {
+            if (! in_array($aba, ['todos', 'sem_tecnico', 'em_atendimento', 'finalizados', 'atrasados', 'hoje'], true)) {
                 $aba = 'todos';
             }
             $ordens = $this->os_model->getOsCentral($aba, $filtros, $config['per_page'], $page);
@@ -1532,12 +1533,34 @@ class Os extends MY_Controller
         $this->data['busca'] = $busca;
         $this->data['data_de'] = $data_de;
         $this->data['data_ate'] = $data_ate;
+        $this->data['tecnicoFiltro'] = $tecnico;
 
         // Ocorrências de "Não Realizado" pendentes (visão de gestão, todos os técnicos)
         $this->data['naoRealizadas'] = $this->naorealizada_model->getPendentes(null, 100);
 
+        // Atrasados / agendados hoje / carga por tecnico (contagens simples)
+        $concluidos = ['Finalizado', 'Cancelado', 'Faturado'];
+        $agora = date('Y-m-d H:i:s');
+        $this->db->where('data_agendamento IS NOT NULL')->where('data_agendamento <', $agora)->where_not_in('status', $concluidos);
+        $qtdAtrasados = (int) $this->db->count_all_results('os');
+        $this->db->where('data_agendamento >=', date('Y-m-d') . ' 00:00:00')->where('data_agendamento <=', date('Y-m-d') . ' 23:59:59')->where_not_in('status', $concluidos);
+        $qtdHoje = (int) $this->db->count_all_results('os');
+
+        $cargaTecnicos = [];
+        $this->db->select('tecnico_responsavel, COUNT(*) AS abertas, SUM(CASE WHEN data_agendamento >= ' . $this->db->escape(date('Y-m-d') . ' 00:00:00') . ' AND data_agendamento <= ' . $this->db->escape(date('Y-m-d') . ' 23:59:59') . ' THEN 1 ELSE 0 END) AS hoje', false);
+        $this->db->where('tecnico_responsavel IS NOT NULL')->where_not_in('status', $concluidos)->group_by('tecnico_responsavel');
+        $qCarga = $this->db->get('os');
+        if ($qCarga) {
+            foreach ($qCarga->result() as $linha) {
+                $cargaTecnicos[(int) $linha->tecnico_responsavel] = ['abertas' => (int) $linha->abertas, 'hoje' => (int) $linha->hoje];
+            }
+        }
+        $this->data['cargaTecnicos'] = $cargaTecnicos;
+
         // Indicadores (KPIs) do topo
         $this->data['kpis'] = [
+            'atrasados'      => $qtdAtrasados,
+            'hoje'           => $qtdHoje,
             'total'          => $this->tecnico_model->countOsParaAtribuicao(),
             'sem_tecnico'    => $this->tecnico_model->countOsSemTecnico(),
             'em_atendimento' => $this->tecnico_model->countOsComTecnico(),
