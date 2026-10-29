@@ -471,4 +471,374 @@ class Obra_planejamento_model extends CI_Model
         }
         return $res;
     }
+
+    /* ====================== Converter OS em projeto (fase 3) ====================== */
+
+    /** Status da OS que podem virar projeto. */
+    public static function statusConversao()
+    {
+        return ['Aprovado', 'Aguardando Peças', 'Em Andamento'];
+    }
+
+    /** Pesos (%) por subtotal, com 2 casas e soma exata de 100 (a diferenca vai para o ultimo). */
+    public static function distribuirPesos(array $subtotais)
+    {
+        $n = count($subtotais);
+        if ($n === 0) {
+            return [];
+        }
+        $vals = array_map(function ($v) {
+            return max(0.0, (float) $v);
+        }, array_values($subtotais));
+        $total = array_sum($vals);
+        $pesos = [];
+        $soma = 0.0;
+        foreach ($vals as $i => $v) {
+            if ($i === $n - 1) {
+                $pesos[] = round(100 - $soma, 2);
+                break;
+            }
+            $p = $total > 0 ? round($v / $total * 100, 2) : round(100 / $n, 2);
+            $pesos[] = $p;
+            $soma = round($soma + $p, 2);
+        }
+        return $pesos;
+    }
+
+    /** Tipo de ponto sugerido pela descricao do produto; null para cabo, conector, caixa etc. */
+    public static function classificarProduto($descricao)
+    {
+        $t = strtolower(strtr((string) $descricao, [
+            'á' => 'a', 'à' => 'a', 'â' => 'a', 'ã' => 'a', 'é' => 'e', 'ê' => 'e', 'í' => 'i',
+            'ó' => 'o', 'ô' => 'o', 'õ' => 'o', 'ú' => 'u', 'ç' => 'c',
+            'Á' => 'a', 'À' => 'a', 'Â' => 'a', 'Ã' => 'a', 'É' => 'e', 'Ê' => 'e', 'Í' => 'i',
+            'Ó' => 'o', 'Ô' => 'o', 'Õ' => 'o', 'Ú' => 'u', 'Ç' => 'c',
+        ]));
+        $t = trim(preg_replace('/\s+/', ' ', $t));
+        if ($t === '') {
+            return null;
+        }
+        // acessorio no inicio da descricao nao e ponto ("Fonte para camera", "Suporte de camera")
+        $primeira = strtok($t, ' ');
+        $acessorios = ['cabo', 'conector', 'caixa', 'fonte', 'suporte', 'patch', 'fita', 'parafuso', 'bucha',
+            'eletroduto', 'eletrocalha', 'espelho', 'gabinete', 'balun', 'abracadeira', 'canaleta', 'terminal',
+            'hd', 'cartao', 'adaptador', 'filtro', 'protetor', 'tubo', 'curva', 'luva', 'organizador'];
+        if (in_array($primeira, $acessorios, true)) {
+            return null;
+        }
+        $regras = [
+            'nvr' => ['nvr', 'dvr', 'gravador'],
+            'camera' => ['camera', 'cam ip', 'dome', 'bullet', 'ptz'],
+            'leitor_acesso' => ['leitor', 'controladora', 'biometri', 'facial'],
+            'fechadura' => ['fechadura', 'eletroima', 'eletro-ima', 'trava eletr'],
+            'botoeira' => ['botoeira', 'botao de saida'],
+            'interfone' => ['interfone', 'video porteiro', 'videoporteiro', 'porteiro'],
+            'sensor' => ['sensor', 'infravermelho'],
+            'ap_wifi' => ['access point', 'ponto de acesso', 'roteador wifi', 'ap wifi', 'wi-fi'],
+            'switch' => ['switch'],
+            'rack' => ['rack'],
+            'ponto_rede' => ['ponto de rede', 'keystone', 'rj45', 'rj-45', 'tomada de rede'],
+        ];
+        foreach ($regras as $tipo => $palavras) {
+            foreach ($palavras as $p) {
+                if (strpos($t, $p) !== false) {
+                    return $tipo;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Etapas do projeto a partir dos servicos e produtos da OS.
+     * servicos: [{servicos_id, nome, quantidade, preco, subtotal}], produtos: [{produtos_id, descricao, quantidade, preco}].
+     * Retorna [{codigo_eap, nome, peso_percentual, valor_previsto, itens:[{tipo, referencia_id, quantidade, preco}]}].
+     */
+    public static function montarEtapasDosServicos(array $servicos, array $produtos)
+    {
+        $itensProdutos = [];
+        $valorProdutos = 0.0;
+        foreach ($produtos as $p) {
+            $p = (array) $p;
+            $q = (float) ($p['quantidade'] ?? 0);
+            $itensProdutos[] = ['tipo' => 'produto', 'referencia_id' => (int) ($p['produtos_id'] ?? 0), 'quantidade' => $q, 'preco' => (float) ($p['preco'] ?? 0)];
+            $valorProdutos += self::subtotal($q, $p['preco'] ?? 0);
+        }
+
+        $etapas = [];
+        if (! $servicos) {
+            if ($itensProdutos) {
+                $etapas[] = ['codigo_eap' => '1', 'nome' => 'Execucao', 'peso_percentual' => 100.0, 'valor_previsto' => round($valorProdutos, 2), 'itens' => $itensProdutos];
+            }
+            return $etapas;
+        }
+
+        $subs = [];
+        foreach (array_values($servicos) as $s) {
+            $s = (array) $s;
+            $subs[] = isset($s['subtotal']) ? (float) $s['subtotal'] : self::subtotal($s['quantidade'] ?? 0, $s['preco'] ?? 0);
+        }
+        $pesos = self::distribuirPesos($subs);
+        $n = 0;
+        foreach (array_values($servicos) as $i => $s) {
+            $s = (array) $s;
+            $n++;
+            $nome = trim((string) ($s['nome'] ?? ''));
+            $etapas[] = [
+                'codigo_eap' => (string) $n,
+                'nome' => mb_substr($nome !== '' ? $nome : 'Servico ' . $n, 0, 150),
+                'peso_percentual' => $pesos[$i],
+                'valor_previsto' => round($subs[$i], 2),
+                'itens' => [['tipo' => 'servico', 'referencia_id' => (int) ($s['servicos_id'] ?? 0), 'quantidade' => (float) (($s['quantidade'] ?? 0) ?: 1), 'preco' => (float) ($s['preco'] ?? 0)]],
+            ];
+        }
+        if ($itensProdutos) {
+            $etapas[] = ['codigo_eap' => (string) ($n + 1), 'nome' => 'Fornecimento de materiais', 'peso_percentual' => 0.0, 'valor_previsto' => round($valorProdutos, 2), 'itens' => $itensProdutos];
+        }
+        return $etapas;
+    }
+
+    /* ====================== Converter OS em projeto (banco) ====================== */
+
+    /** [servicos, produtos] da OS no formato de montarEtapasDosServicos. */
+    private function itensDaOs($osId)
+    {
+        $servicos = [];
+        $rows = $this->db->select('servicos_os.servicos_id, servicos_os.quantidade, servicos_os.preco, servicos_os.subTotal, servicos.nome, servicos_os.servico, servicos.preco AS preco_cat')
+            ->from('servicos_os')->join('servicos', 'servicos.idServicos = servicos_os.servicos_id', 'left')
+            ->where('servicos_os.os_id', (int) $osId)->order_by('servicos_os.idServicos_os')->get()->result();
+        foreach ($rows as $r) {
+            $preco = (float) ($r->preco ?: $r->preco_cat);
+            $qtd = (float) ($r->quantidade ?: 1);
+            $servicos[] = [
+                'servicos_id' => (int) $r->servicos_id,
+                'nome' => $r->nome ?: $r->servico,
+                'quantidade' => $qtd,
+                'preco' => $preco,
+                'subtotal' => (float) $r->subTotal > 0 ? (float) $r->subTotal : self::subtotal($qtd, $preco),
+            ];
+        }
+        $produtos = [];
+        $rows = $this->db->select('produtos_os.produtos_id, produtos_os.quantidade, produtos_os.preco, produtos.descricao')
+            ->from('produtos_os')->join('produtos', 'produtos.idProdutos = produtos_os.produtos_id', 'left')
+            ->where('produtos_os.os_id', (int) $osId)->order_by('produtos_os.idProdutos_os')->get()->result();
+        foreach ($rows as $r) {
+            $produtos[] = [
+                'produtos_id' => (int) $r->produtos_id,
+                'descricao' => (string) $r->descricao,
+                'quantidade' => (float) $r->quantidade,
+                'preco' => (float) $r->preco,
+            ];
+        }
+        return [$servicos, $produtos];
+    }
+
+    /** Valida a OS para conversao; devolve [os|null, erro|null]. */
+    private function validarConversao($osId)
+    {
+        $os = $this->db->select('os.*, clientes.nomeCliente')->from('os')
+            ->join('clientes', 'clientes.idClientes = os.clientes_id', 'left')
+            ->where('os.idOs', (int) $osId)->get()->row();
+        if (! $os) {
+            return [null, 'OS nao encontrada'];
+        }
+        if (! in_array($os->status, self::statusConversao(), true)) {
+            if (in_array($os->status, ['Orçamento', 'Aberto'], true)) {
+                return [null, 'Aprove o orcamento antes de converter a OS em projeto'];
+            }
+            return [null, 'O status "' . $os->status . '" nao permite converter a OS em projeto'];
+        }
+        if (! $this->db->table_exists('obra_os') || ! $this->db->table_exists('obra_etapa_itens')) {
+            return [null, 'Recurso indisponivel neste ambiente (migracao pendente)'];
+        }
+        if ($this->db->where('os_id', (int) $osId)->count_all_results('obra_os')) {
+            return [null, 'A OS ja esta vinculada a um projeto'];
+        }
+        if (empty($os->clientes_id)) {
+            return [null, 'OS sem cliente'];
+        }
+        return [$os, null];
+    }
+
+    /** Previa da conversao (etapas com pesos e produtos com tipo de ponto sugerido). */
+    public function previaConversao($osId)
+    {
+        $osId = (int) $osId;
+        list($os, $erro) = $this->validarConversao($osId);
+        if ($erro) {
+            return ['ok' => false, 'erro' => $erro];
+        }
+        list($servicos, $produtos) = $this->itensDaOs($osId);
+        $prods = [];
+        foreach ($produtos as $p) {
+            $prods[] = [
+                'produtos_id' => $p['produtos_id'],
+                'descricao' => $p['descricao'],
+                'quantidade' => $p['quantidade'],
+                'tipo' => self::classificarProduto($p['descricao']),
+            ];
+        }
+        $etapas = array_map(function ($e) {
+            unset($e['itens']);
+            return $e;
+        }, self::montarEtapasDosServicos($servicos, $produtos));
+        return ['ok' => true, 'etapas' => $etapas, 'produtos' => $prods];
+    }
+
+    /** Total da OS sem desconto (servicos + produtos). */
+    private function valorOsSemDesconto($osId)
+    {
+        $this->load->model('os_model');
+        $v = $this->os_model->valorTotalOS($osId);
+        return round($v['totalServico'] + $v['totalProdutos'], 2);
+    }
+
+    /**
+     * Converte OS aprovada em projeto (ADR-015 fase 3). Retorna ['ok','idObra','erro','resumo'].
+     * opcoes: usuario_id, nome, tipo_obra, data_inicio_prevista, data_fim_prevista,
+     * etapas ('servicos'|'padrao'), gerar_pontos, pontos_por_produto [produtos_id => tipo].
+     * Nao muda o status da OS nem mexe em estoque.
+     */
+    public function converterOsEmProjeto($osId, array $opcoes)
+    {
+        $osId = (int) $osId;
+        $resumo = ['etapas' => 0, 'itens' => 0, 'pontos' => 0];
+        $falha = function ($msg) use (&$resumo) {
+            return ['ok' => false, 'idObra' => null, 'erro' => $msg, 'resumo' => ['etapas' => 0, 'itens' => 0, 'pontos' => 0]];
+        };
+        $usuarioId = (int) ($opcoes['usuario_id'] ?? 0);
+        if (! $usuarioId) {
+            return $falha('Usuario nao informado');
+        }
+        list($os, $erro) = $this->validarConversao($osId);
+        if ($erro) {
+            return $falha($erro);
+        }
+        list($servicos, $produtos) = $this->itensDaOs($osId);
+        if (! $servicos && ! $produtos) {
+            return $falha('A OS nao tem servicos nem produtos para converter');
+        }
+
+        $nome = trim((string) ($opcoes['nome'] ?? ''));
+        if ($nome === '') {
+            $nome = 'Projeto - OS #' . $osId . ' - ' . trim((string) $os->nomeCliente);
+        }
+        $nome = mb_substr($nome, 0, 150);
+        $tipoObra = mb_substr(trim((string) ($opcoes['tipo_obra'] ?? '')), 0, 60);
+        $modo = ($opcoes['etapas'] ?? 'servicos') === 'padrao' ? 'padrao' : 'servicos';
+        $data = function ($v) {
+            $v = trim((string) $v);
+            return preg_match('/^\d{4}-\d{2}-\d{2}$/', $v) ? $v : null;
+        };
+        $ini = $data($opcoes['data_inicio_prevista'] ?? '');
+        $fim = $data($opcoes['data_fim_prevista'] ?? '');
+        if ($ini && $fim && $fim < $ini) {
+            return $falha('A data final nao pode ser anterior a inicial');
+        }
+
+        // valor da OS ja com desconto (mesmo criterio da tela da OS)
+        $valor = (float) $os->valor_desconto != 0 ? (float) $os->valor_desconto : $this->valorOsSemDesconto($osId);
+
+        $this->load->model('obras_model');
+        $this->load->model('obra_pontos_model');
+        $this->db->trans_start();
+
+        $idObra = (int) $this->obras_model->add([
+            'nome' => $nome,
+            'clientes_id' => (int) $os->clientes_id,
+            'responsavel_id' => $usuarioId,
+            'tipo_obra' => $tipoObra !== '' ? $tipoObra : null,
+            'valor_contrato' => round($valor, 2),
+            'data_inicio_prevista' => $ini,
+            'data_fim_prevista' => $fim,
+            'status' => 'planejamento',
+            'observacoes' => 'Criado a partir da OS #' . $osId,
+            'data_cadastro' => date('Y-m-d H:i:s'),
+        ]);
+        $erro = $idObra ? null : 'Erro ao criar o projeto';
+
+        // etapas e itens previstos
+        if (! $erro) {
+            $itensTodos = [];
+            foreach (self::montarEtapasDosServicos($servicos, $produtos) as $e) {
+                foreach ($e['itens'] as $i) {
+                    $itensTodos[] = $i;
+                }
+                if ($modo !== 'servicos') {
+                    continue;
+                }
+                $etapaId = (int) $this->obras_model->addEtapa([
+                    'obra_id' => $idObra,
+                    'codigo_eap' => $e['codigo_eap'],
+                    'nome' => $e['nome'],
+                    'ordem' => (int) $e['codigo_eap'],
+                    'peso_percentual' => $e['peso_percentual'],
+                    'valor_previsto' => $e['valor_previsto'],
+                    'status' => 'pendente',
+                ]);
+                if (! $etapaId) {
+                    $erro = 'Erro ao criar etapa';
+                    break;
+                }
+                $resumo['etapas']++;
+                foreach ($e['itens'] as $i) {
+                    if (! $this->addItem($idObra, $etapaId, $i['tipo'], $i['referencia_id'], $i['quantidade'], $i['preco'])) {
+                        $erro = 'Erro ao gravar item previsto';
+                        break 2;
+                    }
+                    $resumo['itens']++;
+                }
+            }
+            if (! $erro && $modo === 'padrao') {
+                $resumo['etapas'] = (int) $this->obra_pontos_model->aplicarEtapasPadrao($idObra, $tipoObra);
+                $primeira = $this->db->where('obra_id', $idObra)->order_by('ordem')->order_by('idEtapa')->limit(1)->get('obra_etapas')->row();
+                if (! $primeira) {
+                    $erro = 'Erro ao criar as etapas padrao';
+                } else {
+                    foreach ($itensTodos as $i) {
+                        if (! $this->addItem($idObra, $primeira->idEtapa, $i['tipo'], $i['referencia_id'], $i['quantidade'], $i['preco'])) {
+                            $erro = 'Erro ao gravar item previsto';
+                            break;
+                        }
+                        $resumo['itens']++;
+                    }
+                }
+            }
+        }
+
+        // pontos pelos produtos classificados
+        if (! $erro && ! empty($opcoes['gerar_pontos'])) {
+            $tipos = Obra_pontos_model::tipos();
+            $over = (array) ($opcoes['pontos_por_produto'] ?? []);
+            $contador = [];
+            foreach ($produtos as $p) {
+                $tipo = array_key_exists($p['produtos_id'], $over) ? (string) $over[$p['produtos_id']] : self::classificarProduto($p['descricao']);
+                if (! $tipo || ! isset($tipos[$tipo])) {
+                    continue;
+                }
+                $qtd = min(500, (int) round($p['quantidade']));
+                if ($qtd < 1) {
+                    continue;
+                }
+                $inicio = ($contador[$tipo] ?? 0) + 1;
+                $resumo['pontos'] += $this->obra_pontos_model->gerarLote($idObra, $tipo, $tipos[$tipo]['prefixo'], $inicio, $qtd);
+                $contador[$tipo] = $inicio + $qtd - 1;
+            }
+        }
+
+        // vinculo de origem; a OS segue com o fluxo normal (sem mudar status)
+        if (! $erro && ! $this->obras_model->vincularOs($idObra, $osId, null, 'origem', 1)) {
+            $erro = 'Nao foi possivel vincular a OS ao projeto';
+        }
+
+        if ($erro) {
+            $this->db->trans_rollback();
+            return $falha($erro);
+        }
+        $this->db->trans_complete();
+        if ($this->db->trans_status() === false) {
+            return $falha('Erro ao gravar o projeto');
+        }
+        return ['ok' => true, 'idObra' => $idObra, 'erro' => null, 'resumo' => $resumo];
+    }
 }

@@ -368,6 +368,19 @@ class Os extends MY_Controller
         if ($this->data['podeVincularProjeto'] && ! $this->data['vinculoProjeto'] && $os) {
             $this->data['projetosVincular'] = $this->obras_model->getProjetosParaVincular($os->clientes_id);
         }
+
+        // converter OS em projeto (ADR-015 fase 3)
+        $this->data['podeCriarProjeto'] = $this->permission->checkPermission($perm, 'cObras');
+        $this->data['osElegivelConversao'] = false;
+        $this->data['tiposProjeto'] = [];
+        if ($this->data['podeCriarProjeto'] && ! $this->data['vinculoProjeto'] && $os) {
+            $this->load->model('obra_planejamento_model');
+            $this->data['osElegivelConversao'] = in_array($os->status, Obra_planejamento_model::statusConversao(), true)
+                && $this->db->table_exists('obra_etapa_itens');
+            $this->data['tiposProjeto'] = ['Rede estruturada', 'CFTV IP', 'Rede estruturada + CFTV IP', 'Cabeamento óptico / fibra',
+                'Controle de acesso', 'Alarme', 'Interfonia / vídeo porteiro', 'Controle de acesso + CFTV IP',
+                'Infraestrutura (eletrocalha/eletroduto)', 'Manutenção'];
+        }
     }
 
     /** Mapa os_id => vinculo (projeto/etapa) para as OS da listagem. */

@@ -1,6 +1,6 @@
 # ADR-015: Ponte entre Ordem de Serviço e planejamento do projeto
 
-- **Status**: accepted (Fases 1 e 2 implementadas)
+- **Status**: accepted (Fases 1 a 3 implementadas)
 - **Date**: 2026-10-29
 - **Deciders**: N4m3r
 - **Tags**: projetos, os, cronograma, etapas, sincronizacao, faturamento
@@ -47,7 +47,7 @@ A ponte passa a funcionar nos dois sentidos e o projeto se atualiza sozinho.
 |---|---|---|
 | 1 | Migration, `Projeto_sync`, status centralizado, vínculo/selo/filtro na OS | feito |
 | 2 | Itens previstos da etapa, gerar OS da etapa, em lote e por pontos (`Obra_planejamento_model`) | feito |
-| 3 | Converter OS em projeto | pendente |
+| 3 | Converter OS aprovada em projeto (etapas por servico ou padrao, itens e pontos) | feito |
 | 4 | Horas, material, pontos, sugestão de conclusão, relatório ADR-012 | pendente |
 | 5 | Faturamento por medição e alertas no painel | pendente |
 

@@ -276,7 +276,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                 <h3><i class='bx bx-file'></i> Ordem de Serviço #<?php echo sprintf('%04d', $result->idOs) ?></h3>
                             </tbody>
                         </table>
-                        <?php $this->load->view('os/_projeto_selo', ['vinculoProjeto' => $vinculoProjeto, 'podeVerProjeto' => $podeVerProjeto, 'podeVincularProjeto' => $podeVincularProjeto, 'mostrarAcoes' => true, 'projetosVincular' => $projetosVincular, 'osIdProjeto' => $result->idOs]); ?>
+                        <?php $this->load->view('os/_projeto_selo', ['vinculoProjeto' => $vinculoProjeto, 'podeVerProjeto' => $podeVerProjeto, 'podeVincularProjeto' => $podeVincularProjeto, 'mostrarAcoes' => true, 'projetosVincular' => $projetosVincular, 'podeCriarProjeto' => $podeCriarProjeto, 'osElegivelConversao' => $osElegivelConversao, 'tiposProjeto' => $tiposProjeto, 'osIdProjeto' => $result->idOs, 'osNomeCliente' => $result->nomeCliente ?? '']); ?>
                         <table class="table table-condensend">
                             <tbody>
                                 <tr>

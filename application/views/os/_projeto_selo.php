@@ -2,10 +2,13 @@
 /**
  * Selo "Projeto > Etapa" da OS (ADR-015) + acoes de vincular/desvincular.
  * Variaveis: $vinculoProjeto, $podeVerProjeto (link), $podeVincularProjeto, $mostrarAcoes, $projetosVincular, $osIdProjeto.
+ * Conversao em projeto (fase 3): $podeCriarProjeto, $osElegivelConversao, $tiposProjeto, $osNomeCliente.
  */
 $tiposVinculo = ['origem' => 'Origem do projeto', 'execucao' => 'Execução', 'adicional' => 'Adicional', 'corretiva' => 'Corretiva'];
-$mostrarAcoes = ! empty($mostrarAcoes) && ! empty($podeVincularProjeto);
-if (! empty($vinculoProjeto) || $mostrarAcoes):
+$telaComAcoes = ! empty($mostrarAcoes);
+$mostrarAcoes = $telaComAcoes && ! empty($podeVincularProjeto);
+$mostrarConverter = $telaComAcoes && empty($vinculoProjeto) && ! empty($podeCriarProjeto) && ! empty($osElegivelConversao);
+if (! empty($vinculoProjeto) || $mostrarAcoes || $mostrarConverter):
 ?>
 <div class="os-projeto-selo" style="margin:10px 0;padding:10px 14px;border:1px solid #d9e2ef;border-left:4px solid #436eee;border-radius:6px;background:#f6f8fd;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <?php if (! empty($vinculoProjeto)): $v = $vinculoProjeto; ?>
@@ -32,7 +35,12 @@ if (! empty($vinculoProjeto) || $mostrarAcoes):
     <?php else: ?>
         <i class="bx bx-buildings" style="font-size:20px;color:#8a8fa3"></i>
         <div style="flex:1;min-width:220px"><strong>Projeto:</strong> <span class="muted">esta OS não está vinculada a um projeto.</span></div>
+        <?php if ($mostrarAcoes): ?>
         <a href="#modal-vincular-projeto" data-toggle="modal" class="button btn btn-mini btn-success"><span class="button__icon"><i class="bx bx-link"></i></span><span class="button__text2">Vincular a projeto</span></a>
+        <?php endif; ?>
+        <?php if ($mostrarConverter): ?>
+        <a href="#modal-converter-projeto" id="btnConverterProjeto" data-toggle="modal" class="button btn btn-mini btn-primary"><span class="button__icon"><i class="bx bx-buildings"></i></span><span class="button__text2">Converter em projeto</span></a>
+        <?php endif; ?>
     <?php endif; ?>
 </div>
 
@@ -95,6 +103,82 @@ $(function () {
         $.post('<?= site_url('os/desvincularProjetoAction') ?>', { os_id: <?= (int) $osIdProjeto ?> }, null, 'json')
             .done(function (r) { if (r && r.success) { location.reload(); } else { erro((r && r.message) || 'Erro ao desvincular.'); } })
             .fail(function () { erro('Falha de comunicação. Tente novamente.'); });
+    });
+});
+</script>
+<?php endif; ?>
+
+<?php if ($mostrarConverter): ?>
+<div id="modal-converter-projeto" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <form id="formConverterProjeto" method="post" action="<?= site_url('obras/converterOs') ?>">
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Converter OS #<?= (int) $osIdProjeto ?> em projeto</h5></div>
+        <div class="modal-body">
+            <input type="hidden" name="os_id" value="<?= (int) $osIdProjeto ?>">
+            <div class="span12" style="margin-left:0"><label for="cp_nome">Nome do projeto</label>
+                <input type="text" name="nome" id="cp_nome" class="span12" maxlength="150" value="<?= html_escape('Projeto - OS #' . (int) $osIdProjeto . ' - ' . ($osNomeCliente ?? '')) ?>">
+            </div>
+            <div class="span12" style="margin-left:0"><label for="cp_tipo">Tipo de projeto</label>
+                <input type="text" name="tipo_obra" id="cp_tipo" class="span12" list="cp_tipos" maxlength="60" placeholder="Rede estruturada, CFTV IP...">
+                <datalist id="cp_tipos">
+                    <?php foreach ((array) $tiposProjeto as $tp): ?><option value="<?= html_escape($tp) ?>"><?php endforeach; ?>
+                </datalist>
+            </div>
+            <div class="span6" style="margin-left:0"><label for="cp_ini">Início previsto</label><input type="date" name="data_inicio_prevista" id="cp_ini" class="span12"></div>
+            <div class="span6"><label for="cp_fim">Fim previsto</label><input type="date" name="data_fim_prevista" id="cp_fim" class="span12"></div>
+            <div class="span12" style="margin-left:0">
+                <label>Etapas</label>
+                <label class="radio"><input type="radio" name="etapas" value="servicos" checked> Uma etapa por serviço da OS (peso pelo valor)</label>
+                <label class="radio"><input type="radio" name="etapas" value="padrao"> Etapas padrão do tipo (itens na primeira etapa)</label>
+                <div id="cp_etapas" class="muted" style="margin:6px 0"><small>Carregando prévia...</small></div>
+            </div>
+            <div class="span12" style="margin-left:0">
+                <label class="checkbox"><input type="checkbox" name="gerar_pontos" value="1" id="cp_gerar"> Gerar pontos dos produtos (câmeras, leitores, pontos de rede...)</label>
+                <div id="cp_pontos" style="display:none;margin-top:6px"></div>
+            </div>
+            <div class="span12" style="margin-left:0"><small class="muted">O status da OS e o estoque não são alterados. O faturamento passa a ser pelo projeto.</small></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button type="submit" class="button btn btn-primary"><span class="button__text2">Criar projeto</span></button></div>
+    </form>
+</div>
+<script nonce="<?= csp_nonce() ?>">
+$(function () {
+    function esc(t) { return $('<div>').text(t == null ? '' : String(t)).html(); }
+    var previa = null;
+    function pesos() {
+        var $d = $('#cp_etapas');
+        if (!previa || !previa.etapas.length) { $d.html('<small>Sem serviços na OS.</small>'); return; }
+        if ($('input[name=etapas]:checked').val() === 'padrao') { $d.html('<small>As etapas padrão são criadas conforme o tipo escolhido.</small>'); return; }
+        var h = '<table class="table table-condensed"><thead><tr><th>Etapa</th><th style="text-align:right">Peso</th></tr></thead><tbody>';
+        $.each(previa.etapas, function (i, e) {
+            h += '<tr><td>' + esc(e.codigo_eap + ' ' + e.nome) + '</td><td style="text-align:right">' + esc(Number(e.peso_percentual).toFixed(2)) + '%</td></tr>';
+        });
+        $d.html(h + '</tbody></table>');
+    }
+    function pontos() {
+        var $p = $('#cp_pontos');
+        if (!previa) { return; }
+        var h = '<table class="table table-condensed"><thead><tr><th>Produto</th><th>Tipo de ponto</th><th style="text-align:right">Qtd</th></tr></thead><tbody>';
+        $.each(previa.produtos, function (i, p) {
+            var sel = '<select name="pontos_por_produto[' + Number(p.produtos_id) + ']" class="span12"><option value="nenhum">— não gerar ponto —</option>';
+            $.each(previa.tipos, function (j, t) {
+                sel += '<option value="' + esc(t.id) + '"' + (t.id === p.tipo ? ' selected' : '') + '>' + esc(t.rotulo) + '</option>';
+            });
+            h += '<tr><td>' + esc(p.descricao) + '</td><td>' + sel + '</select></td><td style="text-align:right">' + esc(p.quantidade) + '</td></tr>';
+        });
+        $p.html(previa.produtos.length ? h + '</tbody></table>' : '<small>A OS não tem produtos.</small>');
+    }
+    $('#btnConverterProjeto').on('click', function () {
+        if (previa) { return; }
+        $.getJSON('<?= site_url('obras/previaConversaoOs') ?>', { os_id: <?= (int) $osIdProjeto ?> }, function (r) {
+            if (r && r.ok) { previa = r; pesos(); pontos(); } else { $('#cp_etapas').text((r && r.erro) || 'Não foi possível carregar a prévia.'); }
+        }).fail(function () { $('#cp_etapas').text('Falha ao carregar a prévia.'); });
+    });
+    $('input[name=etapas]').on('change', pesos);
+    $('#cp_gerar').on('change', function () {
+        $('#cp_pontos').toggle(this.checked).find('select').prop('disabled', !this.checked);
+    });
+    $('#formConverterProjeto').on('submit', function () {
+        if (!$('#cp_gerar').is(':checked')) { $('#cp_pontos select').prop('disabled', true); }
     });
 });
 </script>

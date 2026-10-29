@@ -553,6 +553,65 @@ class Obras extends MY_Controller
         return $this->output->set_content_type('application/json')->set_output(json_encode($out));
     }
 
+    /** Previa da conversao de OS em projeto (JSON) para o modal da OS. */
+    public function previaConversaoOs()
+    {
+        $this->precisa('cObras', 'Você não tem permissão para adicionar Projetos.');
+        $this->load->model('obra_pontos_model');
+        $this->load->model('obra_planejamento_model');
+        $r = $this->obra_planejamento_model->previaConversao((int) $this->input->get('os_id'));
+        if ($r['ok']) {
+            $r['tipos'] = [];
+            foreach (Obra_pontos_model::tipos() as $k => $t) {
+                $r['tipos'][] = ['id' => $k, 'rotulo' => $t['rotulo']];
+            }
+        }
+        return $this->output->set_content_type('application/json')->set_output(json_encode($r));
+    }
+
+    /** Converte uma OS aprovada em projeto (ADR-015 fase 3). */
+    public function converterOs()
+    {
+        $this->precisa('cObras', 'Você não tem permissão para adicionar Projetos.');
+        $osId = (int) $this->input->post('os_id');
+        $voltar = 'os/visualizar/' . $osId;
+        if (! $osId || ! $this->input->post()) {
+            $this->session->set_flashdata('error', 'OS não informada.');
+            redirect('os');
+        }
+        $this->load->model('obra_pontos_model');
+        $this->load->model('obra_planejamento_model');
+
+        $op = [
+            'usuario_id' => (int) $this->session->userdata('id_admin'),
+            'nome' => $this->input->post('nome'),
+            'tipo_obra' => $this->input->post('tipo_obra'),
+            'data_inicio_prevista' => $this->dataOuNull($this->input->post('data_inicio_prevista')),
+            'data_fim_prevista' => $this->dataOuNull($this->input->post('data_fim_prevista')),
+            'etapas' => $this->input->post('etapas') === 'padrao' ? 'padrao' : 'servicos',
+            'gerar_pontos' => (bool) $this->input->post('gerar_pontos'),
+        ];
+        $porProduto = [];
+        foreach ((array) $this->input->post('pontos_por_produto') as $pid => $tipo) {
+            if ((int) $pid > 0) {
+                $porProduto[(int) $pid] = (string) $tipo;
+            }
+        }
+        if ($porProduto) {
+            $op['pontos_por_produto'] = $porProduto;
+        }
+
+        $r = $this->obra_planejamento_model->converterOsEmProjeto($osId, $op);
+        if (empty($r['ok'])) {
+            $this->session->set_flashdata('error', 'Não foi possível converter a OS: ' . $this->textoFlash($r['erro'] ?? 'erro desconhecido'));
+            redirect($voltar);
+        }
+        $x = $r['resumo'];
+        log_info('Converteu a OS ' . $osId . ' no projeto ' . (int) $r['idObra']);
+        $this->session->set_flashdata('success', 'Projeto criado a partir da OS #' . $osId . ': ' . (int) $x['etapas'] . ' etapas, ' . (int) $x['itens'] . ' itens previstos e ' . (int) $x['pontos'] . ' pontos.');
+        redirect('obras/visualizar/' . (int) $r['idObra']);
+    }
+
     public function salvarItemEtapa()
     {
         $obra_id = $this->planejamentoInicio();
