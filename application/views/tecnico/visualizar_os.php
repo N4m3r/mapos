@@ -91,6 +91,8 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
         <div class="info-row"><span class="info-label">Garantia</span><span class="info-value"><?= html_escape(formatar_garantia($os->garantia, 'N/A')) ?></span></div>
     </div>
 
+    <?php $this->load->view('tecnico/_projeto_selo', ['vinculo_projeto' => $vinculo_projeto ?? null, 'pode_ver_projeto' => $pode_ver_projeto ?? false]); ?>
+
     <!-- Dados do Cliente -->
     <div class="info-card">
         <h3><i class='bx bx-user'></i> Cliente</h3>

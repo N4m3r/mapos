@@ -319,7 +319,7 @@ class Checkin extends MY_Controller
         }
 
         // Atualiza status da OS para "Em Andamento"
-        $this->os_model->edit('os', ['status' => 'Em Andamento'], 'idOs', $os_id);
+        $this->os_model->alterarStatus((int) $os_id, 'Em Andamento');
 
         // Log
         log_info('Iniciou atendimento da OS. ID: ' . $os_id);
@@ -527,7 +527,7 @@ class Checkin extends MY_Controller
         }
 
         // Atualiza status da OS para "Finalizado"
-        $this->os_model->edit('os', ['status' => 'Finalizado'], 'idOs', $os_id);
+        $this->os_model->alterarStatus((int) $os_id, 'Finalizado');
 
         // Log
         log_info('Finalizou atendimento da OS. ID: ' . $os_id);

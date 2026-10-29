@@ -120,6 +120,7 @@
                                     <?php echo form_hidden('idOs', $result->idOs) ?>
                                     <div class="span12" style="padding: 1%; margin-left: 0">
                                         <h3>N° OS: <?php echo $result->idOs; ?></h3>
+                                        <?php $this->load->view('os/_projeto_selo', ['vinculoProjeto' => $vinculoProjeto, 'podeVerProjeto' => $podeVerProjeto, 'mostrarAcoes' => false, 'osIdProjeto' => $result->idOs]); ?>
                                         <div class="span6" style="margin-left: 0">
                                             <label for="cliente">Cliente<span class="required">*</span></label>
                                             <input id="cliente" class="span12" type="text" name="cliente" value="<?php echo html_escape($result->nomeCliente); ?>" />

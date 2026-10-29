@@ -30,7 +30,11 @@ class Os extends MY_Controller
         $status = $this->input->get('status');
         $inputDe = $this->input->get('data');
         $inputAte = $this->input->get('data2');
+        $filtroObra = (int) $this->input->get('obra_id');
 
+        if ($filtroObra) {
+            $where_array['obra_id'] = $filtroObra;
+        }
         if ($pesquisa) {
             $where_array['pesquisa'] = $pesquisa;
         }
@@ -63,8 +67,8 @@ class Os extends MY_Controller
         $this->data['configuration']['base_url'] = site_url('os/gerenciar/');
         $this->data['configuration']['total_rows'] = $this->os_model->count('os');
         if(count($where_array) > 0) {
-            $this->data['configuration']['suffix'] = "?pesquisa={$pesquisa}&status={$status}&data={$inputDe}&data2={$inputAte}";
-            $this->data['configuration']['first_url'] = base_url("index.php/os/gerenciar")."\?pesquisa={$pesquisa}&status={$status}&data={$inputDe}&data2={$inputAte}";
+            $this->data['configuration']['suffix'] = "?pesquisa={$pesquisa}&status={$status}&data={$inputDe}&data2={$inputAte}&obra_id={$filtroObra}";
+            $this->data['configuration']['first_url'] = base_url("index.php/os/gerenciar")."\?pesquisa={$pesquisa}&status={$status}&data={$inputDe}&data2={$inputAte}&obra_id={$filtroObra}";
         }
 
         $this->pagination->initialize($this->data['configuration']);
@@ -79,6 +83,10 @@ class Os extends MY_Controller
             $this->uri->segment(3)
         );
 
+        // Projetos para o filtro e vinculo de cada OS da pagina (1 query, sem N+1)
+        $this->load->model('obras_model');
+        $this->data['projetosFiltro'] = $this->db->table_exists('obras') ? $this->obras_model->getProjetosParaVincular() : [];
+        $this->data['vinculosPorOs'] = $this->vinculosDasOs($this->data['results']);
         $this->data['texto_de_notificacao'] = $this->data['configuration']['notifica_whats'];
         $this->data['emitente'] = $this->mapos_model->getEmitente();
         // Status que a acao rapida da listagem pode aplicar (mesma regra do alterarStatusAction)
@@ -287,6 +295,7 @@ class Os extends MY_Controller
             $data = array_merge($data, $this->montarCamposContratoEquipe($os));
 
             if ($this->os_model->edit('os', $data, 'idOs', $this->input->post('idOs')) == true) {
+                $this->os_model->notificarMudancaStatus((int) $this->input->post('idOs'), $os->status, (string) $this->input->post('status'));
                 $this->notificarEdicaoOs($this->input->post('idOs'));
 
                 $this->session->set_flashdata('success', 'Os editada com sucesso!');
@@ -340,9 +349,47 @@ class Os extends MY_Controller
             $this->data['coraStage'] = $this->coraStageAtivo();
         }
 
+        $this->carregarProjetoDaOs($this->uri->segment(3), $this->data['result']);
         $this->data['view'] = 'os/editarOs';
 
         return $this->layout();
+    }
+
+    /** Vinculo da OS com projeto (ADR-015) e dados para o modal de vincular. */
+    private function carregarProjetoDaOs($osId, $os)
+    {
+        $this->load->model('obras_model');
+        $perm = $this->session->userdata('permissao');
+        $this->data['vinculoProjeto'] = $this->obras_model->getVinculoDaOs($osId);
+        $this->data['podeVerProjeto'] = $this->permission->checkPermission($perm, 'vObras');
+        $this->data['podeVincularProjeto'] = $this->permission->checkPermission($perm, 'eObras')
+            && $this->permission->checkPermission($perm, 'eOs');
+        $this->data['projetosVincular'] = [];
+        if ($this->data['podeVincularProjeto'] && ! $this->data['vinculoProjeto'] && $os) {
+            $this->data['projetosVincular'] = $this->obras_model->getProjetosParaVincular($os->clientes_id);
+        }
+    }
+
+    /** Mapa os_id => vinculo (projeto/etapa) para as OS da listagem. */
+    private function vinculosDasOs($results)
+    {
+        $mapa = [];
+        if (! $results || ! $this->db->table_exists('obra_os')) {
+            return $mapa;
+        }
+        $ids = array_map(function ($r) {
+            return (int) $r->idOs;
+        }, $results);
+        $rows = $this->db->select('obra_os.os_id, obras.idObra, obras.nome as obra_nome, etapa.nome as etapa_nome')
+            ->from('obra_os')
+            ->join('obras', 'obras.idObra = obra_os.obra_id')
+            ->join('obra_etapas etapa', 'etapa.idEtapa = obra_os.etapa_id', 'left')
+            ->where_in('obra_os.os_id', $ids)
+            ->get()->result();
+        foreach ($rows as $row) {
+            $mapa[(int) $row->os_id] = $row;
+        }
+        return $mapa;
     }
 
     /** Campos de contrato/SLA/equipe da OS. Delegacao: logica em libraries/Os_contrato.php */
@@ -459,6 +506,7 @@ class Os extends MY_Controller
             ],
             true
         );
+        $this->carregarProjetoDaOs($os_id, $result);
         $this->data['view'] = 'os/visualizarOs';
         $this->data['chaveFormatada'] = formatar_chave_pix($this->data['configuration']['pix_key']);
 
@@ -1243,7 +1291,9 @@ class Os extends MY_Controller
             }
 
             $os_id = $this->input->post('os_id');
-            $valorTotalData = $this->os_model->valorTotalOS($os_id);
+            $osAntesFaturar = $this->os_model->getById($os_id);
+            $statusAnteriorFaturar = $osAntesFaturar ? $osAntesFaturar->status : null;
+            $valorTotalData =$this->os_model->valorTotalOS($os_id);
 
             $valorTotalServico = $valorTotalData['totalServico'];
             $valorTotalProduto = $valorTotalData['totalProdutos'];
@@ -1304,6 +1354,7 @@ class Os extends MY_Controller
                     $this->session->set_flashdata('error', 'Ocorreu um erro ao tentar faturar OS.');
                     $json = ['result' => false];
                 } else {
+                    $this->os_model->notificarMudancaStatus((int) $os_id, $statusAnteriorFaturar, 'Faturado');
                     $this->session->set_flashdata('success', 'OS faturada com sucesso!');
                     $json = ['result' => true];
                 }
@@ -1631,15 +1682,107 @@ class Os extends MY_Controller
 
         // Mesmo comportamento da edicao da OS: cronometro de SLA e notificacoes
         $this->load->library('os_contrato');
-        $dados = array_merge(['status' => $status], $this->os_contrato->camposCronometroSla($os, $status));
+        $extra = $this->os_contrato->camposCronometroSla($os, $status);
 
-        if ($this->os_model->edit('os', $dados, 'idOs', $os_id)) {
+        if ($this->os_model->alterarStatus($os_id, $status, $extra)) {
             log_info('Alterou status da OS #' . $os_id . ' para "' . $status . '" pela troca rapida de status.');
             $this->notificarEdicaoOs($os_id);
             echo json_encode(['success' => true, 'message' => 'Status da OS #' . $os_id . ' atualizado para ' . $status . '.', 'status' => $status]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Erro ao atualizar o status.']);
         }
+    }
+
+    /** Valida AJAX + permissao de projeto/OS; responde JSON e retorna false se negar. */
+    private function exigirVinculoProjeto()
+    {
+        if (! $this->input->is_ajax_request()) {
+            echo json_encode(['success' => false, 'message' => 'Requisição inválida.']);
+            return false;
+        }
+        $perm = $this->session->userdata('permissao');
+        if (! $this->permission->checkPermission($perm, 'eObras') || ! $this->permission->checkPermission($perm, 'eOs')) {
+            echo json_encode(['success' => false, 'message' => 'Sem permissão para vincular OS a projetos.']);
+            return false;
+        }
+        $this->load->model('obras_model');
+        return true;
+    }
+
+    /** Ação AJAX: vincula a OS a um projeto (e etapa) do mesmo cliente. */
+    public function vincularProjetoAction()
+    {
+        if (! $this->exigirVinculoProjeto()) {
+            return;
+        }
+        $os_id = (int) $this->input->post('os_id');
+        $obra_id = (int) $this->input->post('obra_id');
+        $etapa_id = (int) $this->input->post('etapa_id');
+        $tipo = (string) $this->input->post('tipo_vinculo');
+        if (! in_array($tipo, ['origem', 'execucao', 'adicional', 'corretiva'], true)) {
+            $tipo = 'execucao';
+        }
+        $fatura = $this->input->post('fatura_no_projeto') ? 1 : 0;
+
+        $os = $os_id ? $this->os_model->getById($os_id) : null;
+        if (! $os || ! $obra_id) {
+            echo json_encode(['success' => false, 'message' => 'Selecione a OS e o projeto.']);
+            return;
+        }
+        $existente = $this->obras_model->getVinculoDaOs($os_id);
+        if ($existente) {
+            echo json_encode(['success' => false, 'message' => 'Esta OS já está no projeto "' . $existente->obra_nome . '". Desvincule antes de vincular a outro.']);
+            return;
+        }
+        $obra = $this->db->get_where('obras', ['idObra' => $obra_id])->row();
+        if (! $obra || (int) $obra->clientes_id !== (int) $os->clientes_id) {
+            echo json_encode(['success' => false, 'message' => 'O projeto precisa ser do mesmo cliente da OS.']);
+            return;
+        }
+        if (in_array($obra->status, ['concluida', 'entregue', 'cancelada'], true)) {
+            echo json_encode(['success' => false, 'message' => 'O projeto não está em aberto.']);
+            return;
+        }
+        if ($etapa_id && ! $this->db->get_where('obra_etapas', ['idEtapa' => $etapa_id, 'obra_id' => $obra_id])->row()) {
+            echo json_encode(['success' => false, 'message' => 'A etapa não pertence ao projeto.']);
+            return;
+        }
+        if ($this->obras_model->vincularOs($obra_id, $os_id, $etapa_id ?: null, $tipo, $fatura)) {
+            log_info('Vinculou a OS ' . $os_id . ' ao projeto ' . $obra_id . ' pela tela da OS');
+            echo json_encode(['success' => true, 'message' => 'OS vinculada ao projeto.']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Não foi possível vincular a OS ao projeto.']);
+        }
+    }
+
+    /** Ação AJAX: remove o vínculo da OS com o projeto. */
+    public function desvincularProjetoAction()
+    {
+        if (! $this->exigirVinculoProjeto()) {
+            return;
+        }
+        $os_id = (int) $this->input->post('os_id');
+        $vinculo = $os_id ? $this->obras_model->getVinculoDaOs($os_id) : null;
+        if (! $vinculo) {
+            echo json_encode(['success' => false, 'message' => 'Esta OS não está vinculada a um projeto.']);
+            return;
+        }
+        $this->obras_model->desvincularOs($vinculo->idVinculo, $vinculo->idObra);
+        log_info('Desvinculou a OS ' . $os_id . ' do projeto ' . $vinculo->idObra . ' pela tela da OS');
+        echo json_encode(['success' => true, 'message' => 'OS desvinculada do projeto.']);
+    }
+
+    /** Ação AJAX (GET): etapas de um projeto para popular o select. */
+    public function etapasProjetoAction()
+    {
+        if (! $this->exigirVinculoProjeto()) {
+            return;
+        }
+        $etapas = [];
+        foreach ($this->obras_model->getEtapasSelect((int) $this->input->get('obra_id')) as $e) {
+            $etapas[] = ['id' => (int) $e->idEtapa, 'nome' => trim(($e->codigo_eap ? $e->codigo_eap . ' ' : '') . $e->nome)];
+        }
+        echo json_encode(['success' => true, 'etapas' => $etapas]);
     }
 
     /**

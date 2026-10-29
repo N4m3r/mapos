@@ -278,6 +278,7 @@ class OsController extends REST_Controller
         }
 
         if ($this->os_model->edit('os', $data, 'idOs', $id)) {
+            $this->os_model->notificarMudancaStatus((int) $id, $os->status, (string) $this->put('status', true));
             $this->load->model('mapos_model');
             $this->load->model('usuarios_model');
 

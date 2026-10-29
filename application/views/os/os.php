@@ -46,6 +46,15 @@
                 </select>
         </div>
         <div class="ui-campo">
+            <label for="obra_id">Projeto</label>
+            <select name="obra_id" id="obra_id" class="span12">
+                <option value="">Todos</option>
+                <?php foreach (($projetosFiltro ?? []) as $pj): ?>
+                    <option value="<?= (int) $pj->idObra ?>" <?= (int) $this->input->get('obra_id') === (int) $pj->idObra ? 'selected' : '' ?>><?= html_escape($pj->nome) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="ui-campo">
             <label for="data">De</label>
             <input type="text" name="data" autocomplete="off" id="data" placeholder="Data inicial" class="span12 datepicker" value="<?=$this->input->get('data')?>">
         </div>
@@ -158,7 +167,9 @@
                                 }
 
                                 echo '<tr>';
-                                echo '<td>' . $r->idOs . '</td>';
+                                $vp = $vinculosPorOs[(int) $r->idOs] ?? null;
+                                $seloProjeto = $vp ? ' <span title="Projeto: ' . html_escape($vp->obra_nome . ($vp->etapa_nome ? ' › ' . $vp->etapa_nome : '')) . '" style="color:#436eee"><i class="bx bx-buildings"></i></span>' : '';
+                                echo '<td>' . $r->idOs . $seloProjeto . '</td>';
                                 echo '<td class="cli1"><a href="' . base_url() . 'index.php/clientes/visualizar/' . $r->idClientes . '" style="margin-right: 1%">' . $r->nomeCliente . '</a></td>';
                                 echo '<td class="ph1">' . $r->nome . '</td>';
                                 echo '<td>' . $dataInicial . '</td>';

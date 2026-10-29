@@ -174,14 +174,13 @@ class Aprovacao_model extends CI_Model
             'aprovacao_nome' => mb_substr(trim($nome), 0, 150),
             'aprovacao_ip' => $ip,
             'aprovacao_obs' => $obs !== '' ? $obs : null,
-            // Reflete a decisão no status da OS.
-            'status' => $decisao === 'aprovado' ? 'Aprovado' : 'Orçamento',
         ];
 
-        $this->db->where('idOs', $osId);
-        $this->db->update('os', $data);
+        // Reflete a decisão no status da OS (e notifica a sincronização com projetos).
+        get_instance()->load->model('os_model');
+        $novoStatus = $decisao === 'aprovado' ? 'Aprovado' : 'Orçamento';
 
-        return $this->db->affected_rows() >= 0;
+        return (bool) get_instance()->os_model->alterarStatus((int) $osId, $novoStatus, $data);
     }
 
     /* ================================================================== */

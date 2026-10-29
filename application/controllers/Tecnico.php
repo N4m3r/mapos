@@ -689,6 +689,11 @@ class Tecnico extends MY_Controller
         $data['nao_realizada_pendente'] = $this->naorealizada_model->getPendentePorOs($os_id);
         $data['nao_realizada_historico'] = $this->naorealizada_model->getHistoricoPorOs($os_id);
 
+        // Projeto/etapa da OS (ADR-015), somente leitura
+        $this->load->model('obras_model');
+        $data['vinculo_projeto'] = $this->obras_model->getVinculoDaOs($os_id);
+        $data['pode_ver_projeto'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vObras');
+
         // Atalho para o painel principal (se tiver acesso)
         $data['pode_ver_sistema'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs');
 

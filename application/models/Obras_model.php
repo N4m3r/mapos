@@ -265,7 +265,11 @@ class Obras_model extends CI_Model
         return $this->db->get()->result();
     }
 
-    public function vincularOs($obra_id, $os_id, $etapa_id = null)
+    /**
+     * Liga uma OS a um projeto. Uma OS so pode estar em um projeto (unicidade global).
+     * Retorna o id do vinculo ou false (OS ja vinculada, dados invalidos).
+     */
+    public function vincularOs($obra_id, $os_id, $etapa_id = null, $tipo = 'execucao', $faturaNoProjeto = 1)
     {
         if (! $this->db->table_exists('obra_os')) {
             return false;
@@ -275,16 +279,73 @@ class Obras_model extends CI_Model
         if (! $obra_id || ! $os_id) {
             return false;
         }
-        // não duplica o mesmo vínculo
-        if ($this->db->where(['obra_id' => $obra_id, 'os_id' => $os_id])->count_all_results('obra_os')) {
+        // uma OS em um unico projeto
+        if ($this->db->where('os_id', $os_id)->count_all_results('obra_os')) {
             return false;
         }
-        $this->db->insert('obra_os', [
+        if (! in_array($tipo, ['origem', 'execucao', 'adicional', 'corretiva'], true)) {
+            $tipo = 'execucao';
+        }
+        $dados = [
             'obra_id' => $obra_id,
             'os_id' => $os_id,
             'etapa_id' => $etapa_id ? (int) $etapa_id : null,
-        ]);
+        ];
+        if ($this->db->field_exists('tipo_vinculo', 'obra_os')) {
+            $dados['tipo_vinculo'] = $tipo;
+        }
+        if ($this->db->field_exists('fatura_no_projeto', 'obra_os')) {
+            $dados['fatura_no_projeto'] = $faturaNoProjeto ? 1 : 0;
+        }
+        if ($this->db->field_exists('data_vinculo', 'obra_os')) {
+            $dados['data_vinculo'] = date('Y-m-d H:i:s');
+        }
+        $this->db->insert('obra_os', $dados);
         return $this->db->insert_id();
+    }
+
+    /** Vinculo da OS com o projeto (e etapa), ou null se a OS nao pertence a projeto. */
+    public function getVinculoDaOs($os_id)
+    {
+        if (! $this->db->table_exists('obra_os')) {
+            return null;
+        }
+        $this->db->select('obra_os.*, obras.idObra, obras.nome as obra_nome, obras.status as obra_status, etapa.codigo_eap, etapa.nome as etapa_nome, etapa.status as etapa_status');
+        $this->db->from('obra_os');
+        $this->db->join('obras', 'obras.idObra = obra_os.obra_id');
+        $this->db->join('obra_etapas etapa', 'etapa.idEtapa = obra_os.etapa_id', 'left');
+        $this->db->where('obra_os.os_id', (int) $os_id);
+        $this->db->limit(1);
+        return $this->db->get()->row() ?: null;
+    }
+
+    /** Projetos em aberto (nao concluidos/entregues/cancelados), opcionalmente de um cliente. */
+    public function getProjetosParaVincular($clienteId = null)
+    {
+        if (! $this->db->table_exists('obras')) {
+            return [];
+        }
+        $this->db->select('obras.idObra, obras.nome, obras.status, obras.clientes_id');
+        $this->db->from('obras');
+        $this->db->where_not_in('obras.status', ['concluida', 'entregue', 'cancelada']);
+        if ($clienteId) {
+            $this->db->where('obras.clientes_id', (int) $clienteId);
+        }
+        $this->db->order_by('obras.nome', 'ASC');
+        return $this->db->get()->result();
+    }
+
+    /** Etapas do projeto para <select> (id, codigo EAP, nome). */
+    public function getEtapasSelect($obra_id)
+    {
+        if (! $this->db->table_exists('obra_etapas')) {
+            return [];
+        }
+        return $this->db->select('idEtapa, codigo_eap, nome')
+            ->where('obra_id', (int) $obra_id)
+            ->order_by('ordem', 'ASC')
+            ->order_by('idEtapa', 'ASC')
+            ->get('obra_etapas')->result();
     }
 
     public function desvincularOs($idVinculo, $obra_id)
