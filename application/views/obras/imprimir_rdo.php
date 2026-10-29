@@ -3,13 +3,13 @@ $dataBr = function ($d) {
     return (! empty($d) && $d !== '0000-00-00') ? date('d/m/Y', strtotime($d)) : '—';
 };
 $end = trim(($obra->logradouro ?? '') . ', ' . ($obra->numero ?? '') . ' - ' . ($obra->bairro ?? '') . ' - ' . ($obra->cidade ?? '') . '/' . ($obra->uf ?? ''), ' ,-/');
-$condicoes = ['praticavel' => 'Praticável', 'parcial' => 'Parcialmente praticável', 'impraticavel' => 'Impraticável'];
+$condicoes = ['praticavel' => 'Normal', 'parcial' => 'Impedimento parcial', 'impraticavel' => 'Sem acesso'];
 ?>
 <!doctype html>
 <html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <title>RDO Nº <?= (int) $rdo->numero ?> — <?= html_escape($obra->nome ?? '') ?></title>
+    <title>Registro de execução Nº <?= (int) $rdo->numero ?> — <?= html_escape($obra->nome ?? '') ?></title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: Arial, Helvetica, sans-serif; color: #222; margin: 24px; font-size: 13px; }
@@ -47,8 +47,8 @@ $condicoes = ['praticavel' => 'Praticável', 'parcial' => 'Parcialmente praticá
             <?php if (! empty($emitente->telefone)): ?>Tel: <?= html_escape($emitente->telefone) ?><br><?php endif; ?>
         </div>
         <div class="rdo-title">
-            <h1>Relatório Diário de Obra</h1>
-            <div class="num">RDO Nº <?= (int) $rdo->numero ?></div>
+            <h1>Registro de execução</h1>
+            <div class="num">Nº <?= (int) $rdo->numero ?></div>
             <div><?= $dataBr($rdo->data) ?></div>
         </div>
     </div>
@@ -63,9 +63,8 @@ $condicoes = ['praticavel' => 'Praticável', 'parcial' => 'Parcialmente praticá
     <h2>Condições do dia</h2>
     <div class="grid">
         <div><span class="lbl">Data</span><br><?= $dataBr($rdo->data) ?></div>
-        <div><span class="lbl">Clima (M/T/N)</span><br><?= html_escape(($rdo->clima_manha ?: '-') . ' / ' . ($rdo->clima_tarde ?: '-') . ' / ' . ($rdo->clima_noite ?: '-')) ?></div>
         <div><span class="lbl">Condição</span><br><?= html_escape($condicoes[$rdo->condicao] ?? ucfirst((string) $rdo->condicao)) ?></div>
-        <div><span class="lbl">Efetivo</span><br><?= (int) $rdo->efetivo_total ?> pessoa(s)</div>
+        <div><span class="lbl">Técnicos no local</span><br><?= (int) $rdo->efetivo_total ?> técnico(s)</div>
         <div><span class="lbl">Responsável</span><br><?= html_escape($responsavel ?: '—') ?></div>
     </div>
 
@@ -86,7 +85,7 @@ $condicoes = ['praticavel' => 'Praticável', 'parcial' => 'Parcialmente praticá
         <h2>Fotos</h2>
         <div class="fotos">
             <?php foreach ($fotos as $f): ?>
-                <img src="<?= site_url('obras/fotoRdo/' . (int) $f->idFoto) ?>" alt="Foto RDO">
+                <img src="<?= site_url('obras/fotoRdo/' . (int) $f->idFoto) ?>" alt="Foto do registro">
             <?php endforeach; ?>
         </div>
     <?php endif; ?>

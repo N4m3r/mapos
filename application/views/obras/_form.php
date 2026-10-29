@@ -42,6 +42,10 @@ $statusAtual = $o ? $o->status : 'planejamento';
                                     <option value="Rede estruturada + CFTV IP">
                                     <option value="Cabeamento óptico / fibra">
                                     <option value="Controle de acesso">
+                                    <option value="Alarme">
+                                    <option value="Interfonia / vídeo porteiro">
+                                    <option value="Controle de acesso + CFTV IP">
+                                    <option value="Infraestrutura (eletrocalha/eletroduto)">
                                     <option value="Manutenção">
                                 </datalist>
                             </div>

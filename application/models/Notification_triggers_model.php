@@ -114,7 +114,7 @@ class Notification_triggers_model extends CI_Model
             'os_aprovada' => ['nome' => 'OS aprovada', 'grupo' => 'Ordem de Serviço'],
             'os_finalizada' => ['nome' => 'OS finalizada', 'grupo' => 'Ordem de Serviço'],
             'os_aceite' => ['nome' => 'Aceite da OS (resolução do chamado)', 'grupo' => 'Ordem de Serviço'],
-            'rdo_registrado' => ['nome' => 'RDO de projeto registrado', 'grupo' => 'Projetos'],
+            'rdo_registrado' => ['nome' => 'Registro de execução de projeto registrado', 'grupo' => 'Projetos'],
             'cobranca_gerada' => ['nome' => 'Boleto / cobrança gerada', 'grupo' => 'Cobrança'],
             'cobranca_enviada' => ['nome' => 'Cobrança enviada (manual)', 'grupo' => 'Cobrança'],
             'pagamento_confirmado' => ['nome' => 'Pagamento confirmado', 'grupo' => 'Cobrança'],

@@ -16,7 +16,7 @@
                 <label>Origem</label>
                 <select name="tipo" style="width:150px">
                     <option value="">Todas</option>
-                    <?php foreach (['os' => 'OS', 'venda' => 'Venda', 'tecnico' => 'Área do técnico', 'api' => 'API', 'ajuste' => 'Ajuste manual', 'cadastro' => 'Cadastro', 'inventario' => 'Inventário'] as $valor => $nome) { ?>
+                    <?php foreach (['os' => 'OS', 'venda' => 'Venda', 'tecnico' => 'Área do técnico', 'projeto' => 'Projeto', 'api' => 'API', 'ajuste' => 'Ajuste manual', 'cadastro' => 'Cadastro', 'inventario' => 'Inventário'] as $valor => $nome) { ?>
                         <option value="<?= $valor ?>" <?= $filtros['tipo'] === $valor ? 'selected' : '' ?>><?= $nome ?></option>
                     <?php } ?>
                 </select>

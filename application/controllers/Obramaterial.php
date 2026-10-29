@@ -62,7 +62,7 @@ class Obramaterial extends MY_Controller
                 'recebido_por' => $this->session->userdata('id_admin'),
                 'data' => date('Y-m-d'),
                 'observacao' => $this->input->post('observacao'),
-                'assinatura_entregador' => $this->input->post('assinatura') ?: null,
+                'assinatura_entregador' => dataurl_imagem($this->input->post('assinatura', false)),
                 'status' => 'conferido',
                 'data_registro' => date('Y-m-d H:i:s'),
             ];
@@ -106,7 +106,7 @@ class Obramaterial extends MY_Controller
                 'entregue_por' => $this->session->userdata('id_admin'),
                 'data' => date('Y-m-d'),
                 'observacao' => $this->input->post('observacao'),
-                'assinatura_recebedor' => $this->input->post('assinatura') ?: null,
+                'assinatura_recebedor' => dataurl_imagem($this->input->post('assinatura', false)),
                 'data_registro' => date('Y-m-d H:i:s'),
             ];
             $fotos = $this->coletarFotos();
@@ -182,7 +182,7 @@ class Obramaterial extends MY_Controller
     private function coletarFotos()
     {
         $fotos = [];
-        foreach ((array) $this->input->post('fotos') as $b64) {
+        foreach ((array) $this->input->post('fotos', false) as $b64) {
             if ($b64 && strpos($b64, 'base64,') !== false) {
                 $bin = base64_decode(explode('base64,', $b64)[1], true);
                 if ($bin) {

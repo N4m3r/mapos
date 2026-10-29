@@ -292,3 +292,22 @@ if (! function_exists('jquery_tags')) {
         return $tags;
     }
 }
+
+if (! function_exists('dataurl_imagem')) {
+    /**
+     * Valida uma imagem em data URL (assinatura/foto do canvas) e devolve a string limpa,
+     * ou null. Campos assim precisam ser lidos com $this->input->post($campo, false): o
+     * filtro global de XSS troca "data:image/...;base64," por "[removed]" e corrompe a
+     * imagem. Como o filtro fica desligado nesse campo, o formato é conferido aqui antes
+     * de gravar ou exibir em <img src>.
+     */
+    function dataurl_imagem($valor)
+    {
+        $valor = preg_replace('/\s+/', '', (string) $valor);
+        if (! preg_match('#^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$#', $valor)) {
+            return null;
+        }
+
+        return $valor;
+    }
+}

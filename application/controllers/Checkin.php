@@ -360,7 +360,17 @@ class Checkin extends MY_Controller
         log_info('Checkin::finalizar - Assinatura cliente recebida (primeiros 100 chars): ' . substr($assinatura_cliente ?? '', 0, 100));
         $nome_cliente = $this->input->post('nome_cliente');
         $documento_cliente = $this->input->post('documento_cliente');
-        $fotos = $this->input->post('fotos');
+        // Sem o filtro de XSS (ele corrompe o data URL); cada foto é validada aqui.
+        $fotos = [];
+        foreach ((array) $this->input->post('fotos', false) as $f) {
+            $f = preg_replace('/\s+/', '', (string) $f);
+            if (preg_match('#^[A-Za-z0-9+/]+={0,2}$#', $f)) {
+                $f = 'data:image/jpeg;base64,' . $f;
+            }
+            if (($f = dataurl_imagem($f)) !== null) {
+                $fotos[] = $f;
+            }
+        }
         $latitude = $this->input->post('latitude');
         $longitude = $this->input->post('longitude');
 

@@ -4,6 +4,7 @@ $tiposMov = [
     'os' => 'OS',
     'venda' => 'Venda',
     'tecnico' => 'Área do técnico',
+    'projeto' => 'Projeto',
     'api' => 'API',
     'ajuste' => 'Ajuste manual',
     'cadastro' => 'Cadastro',

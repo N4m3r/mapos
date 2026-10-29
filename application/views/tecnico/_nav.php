@@ -2,7 +2,7 @@
 /**
  * Barra de navegacao inferior (bottom-nav) compartilhada da Area do Tecnico.
  * Variaveis esperadas (passe ao incluir):
- *   $nav_ativo         (string)  - 'home' | 'os'  (item destacado)
+ *   $nav_ativo         (string)  - 'home' | 'os' | 'projetos' | 'fila'  (item destacado)
  *   $pode_ver_sistema  (bool)    - se true, mostra atalho para o painel principal
  */
 $nav_ativo = isset($nav_ativo) ? $nav_ativo : '';
@@ -20,6 +20,10 @@ $pode_ver_sistema = isset($pode_ver_sistema) ? $pode_ver_sistema : false;
     <a href="<?= site_url('tecnico/projetos') ?>" class="<?= $nav_ativo === 'projetos' ? 'active' : '' ?>">
         <i class='bx bx-network-chart'></i>
         <span>Projetos</span>
+    </a>
+    <a href="<?= site_url('tecnico/fila') ?>" class="<?= $nav_ativo === 'fila' ? 'active' : '' ?>">
+        <i class='bx bx-transfer-alt'></i>
+        <span>Fila</span>
     </a>
     <?php if ($pode_ver_sistema): ?>
     <a href="<?= base_url() ?>">

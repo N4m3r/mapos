@@ -27,7 +27,7 @@ $voltar_url   = isset($voltar_url) ? $voltar_url : null;
     <link rel="apple-touch-icon" href="<?= base_url('assets/pwa/icone-192.png') ?>">
     <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/fila-offline.js') ?>?v=<?= asset_versao('assets/js/fila-offline.js') ?>" defer></script>
     <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/pwa-tecnico.js') ?>?v=<?= asset_versao('assets/js/pwa-tecnico.js') ?>"></script>
-    <title><?= isset($titulo) ? $titulo : 'Área do Técnico' ?></title>
+    <title><?= html_escape(isset($titulo) ? (string) $titulo : 'Área do Técnico') ?></title>
     <link rel="shortcut icon" type="image/png" href="<?= base_url('assets/img/favicon.png') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/bootstrap.min.css') ?>">
     <link href="<?= base_url('assets/boxicons/css/boxicons.min.css') ?>" rel="stylesheet">
@@ -40,8 +40,8 @@ $voltar_url   = isset($voltar_url) ? $voltar_url : null;
     <header class="tec-header">
         <div class="tec-header-row">
             <div>
-                <h1><i class='bx <?= $header_icone ?>'></i> <?= isset($titulo) ? $titulo : 'Área do Técnico' ?></h1>
-                <?php if ($header_sub): ?><p><?= $header_sub ?></p><?php endif; ?>
+                <h1><i class='bx <?= $header_icone ?>'></i> <?= html_escape(isset($titulo) ? (string) $titulo : 'Área do Técnico') ?></h1>
+                <?php if ($header_sub): ?><p><?= html_escape((string) $header_sub) ?></p><?php endif; ?>
             </div>
             <?php if ($voltar_url): ?>
                 <a href="<?= $voltar_url ?>" class="tec-back"><i class='bx bx-arrow-back'></i> Voltar</a>

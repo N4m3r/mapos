@@ -133,6 +133,19 @@ jobs:
           cd tests/navegador
           CHROME="$(command -v google-chrome || command -v chromium)" node cobranca.mjs
 
+      - name: Acompanhamento de projetos (Chrome)
+        env:
+          BASE_URL: http://localhost:8099/
+          EMAIL: admin@mapos.test
+          SENHA: admin123
+        run: |
+          Q="mysql --protocol=TCP -h127.0.0.1 -uroot -proot -N mapos_ci"
+          $Q -e "INSERT INTO obras (nome, responsavel_id, status, data_inicio_prevista, data_fim_prevista, data_cadastro) VALUES ('Projeto smoke', 1, 'em_execucao', CURDATE() - INTERVAL 10 DAY, CURDATE() + INTERVAL 20 DAY, NOW()); INSERT INTO obra_rdo (obra_id, numero, data, responsavel_id, atividades, ocorrencias, status, data_registro) VALUES (LAST_INSERT_ID(), 1, CURDATE(), 1, 'Teste', 'Ocorrencia teste', 'finalizado', NOW())"
+          export OBRA_ID=$($Q -e "SELECT MAX(idObra) FROM obras")
+          $Q -e "INSERT INTO obra_pontos (obra_id, tipo, identificacao, status, data_cadastro) VALUES ($OBRA_ID, 'camera', 'CAM-01', 'cabeado', NOW()), ($OBRA_ID, 'ponto_rede', 'PR-01', 'previsto', NOW())"
+          cd tests/navegador
+          CHROME="$(command -v google-chrome || command -v chromium)" node projetos.mjs
+
       - name: Backup automatico (linha de comando)
         run: |
           php index.php backup/executar

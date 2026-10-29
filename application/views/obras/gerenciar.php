@@ -97,7 +97,7 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
         </div>
         <div class="modal-body">
             <input type="hidden" id="idObra" name="idObra" value="" />
-            <h5 style="text-align:center">Excluir este projeto e todos os seus dados (etapas, RDO, medições, material)?</h5>
+            <h5 style="text-align:center">Excluir este projeto e todos os seus dados (etapas, pontos, registros de execução, medições, material)?</h5>
         </div>
         <div class="modal-footer" style="display:flex;justify-content:center">
             <button class="button btn btn-warning" data-dismiss="modal" type="button"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>

@@ -8,6 +8,7 @@ $fmt = function ($v) {
 $data_br = function ($d) {
     return (! empty($d) && $d !== '0000-00-00') ? date('d/m/Y', strtotime($d)) : '—';
 };
+$condicoesRdo = ['praticavel' => 'Normal', 'parcial' => 'Impedimento parcial', 'impraticavel' => 'Sem acesso'];
 $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execução', 'paralisada' => 'Paralisada', 'concluida' => 'Concluída', 'entregue' => 'Entregue', 'cancelada' => 'Cancelada'];
 ?>
 <?php
@@ -18,7 +19,7 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
 <div class="ui-cabecalho">
     <div>
         <h1 class="ui-titulo"><i class="bx bx-building-house"></i> Projeto: <?= html_escape($obra->nome) ?></h1>
-        <p class="ui-subtitulo">Visão geral do projeto, cronograma, material, diário de obra, medição, equipe, mão de obra e OS.</p>
+        <p class="ui-subtitulo">Visão geral do projeto, cronograma, material, registros de execução, medição, equipe, mão de obra e OS.</p>
     </div>
     <div class="ui-acoes">
         <a href="<?= site_url('obras') ?>" class="button btn btn-mini btn-warning"><span class="button__icon"><i class='bx bx-undo'></i></span><span class="button__text2">Voltar</span></a>
@@ -50,9 +51,10 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
 
 <ul class="nav nav-tabs obra-tabs" id="obraTabs">
     <li class="active"><a href="#tab-geral" data-tab="geral">Visão geral</a></li>
+    <li><a href="#tab-pontos" data-tab="pontos">Pontos</a></li>
     <li><a href="#tab-cronograma" data-tab="cronograma">Cronograma</a></li>
     <li><a href="#tab-material" data-tab="material">Material</a></li>
-    <li><a href="#tab-rdo" data-tab="rdo">Diário de Obra</a></li>
+    <li><a href="#tab-rdo" data-tab="rdo">Registros de execução</a></li>
     <li><a href="#tab-medicao" data-tab="medicao">Medição</a></li>
     <li><a href="#tab-equipe" data-tab="equipe">Equipe</a></li>
     <li><a href="#tab-maodeobra" data-tab="maodeobra">Mão de obra</a></li>
@@ -78,11 +80,193 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
         </div></div>
     </div>
 
+    <!-- PONTOS -->
+    <?php
+    $ptEdita = $perm('eObras');
+    $ptMuda = $ptEdita || ! empty($pode_executar);
+    $ptFiltrado = ($pontos_filtro['tipo'] !== '' || $pontos_filtro['status'] !== ''
+        || ($pontos_filtro['aguardando'] ?? '') !== '' || ($pontos_filtro['resp'] ?? '') !== '');
+    $ptCols = 11 + ($ptEdita ? 1 : 0) + ($ptMuda ? 1 : 0);
+    ?>
+    <div class="obra-pane" id="tab-pontos" style="display:none">
+        <div class="pt-barra">
+            <?php if ($ptEdita): ?>
+                <a href="#modal-ponto" data-toggle="modal" class="button btn btn-mini btn-success" data-chamar="novoPonto"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Novo ponto</span></a>
+                <a href="#modal-lote" data-toggle="modal" class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-layer-plus'></i></span><span class="button__text2">Gerar em lote</span></a>
+            <?php endif; ?>
+            <a href="<?= site_url('obras/asbuilt/' . (int) $obra->idObra) ?>" target="_blank" rel="noopener" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-printer'></i></span><span class="button__text2">Imprimir as-built</span></a>
+        </div>
+
+        <?php if (! empty($pontos_resumo['por_tipo'])): ?>
+            <div class="pt-cartoes">
+                <?php foreach ($pontos_resumo['por_tipo'] as $tk => $tr):
+                    $pct = $tr['total'] > 0 ? round($tr['testados'] * 100 / $tr['total']) : 0; ?>
+                    <div class="pt-cartao">
+                        <div class="pt-cartao-titulo"><i class="bx <?= html_escape($pontos_tipos[$tk]['icone'] ?? 'bx-chip') ?>"></i> <?= html_escape($tr['rotulo']) ?></div>
+                        <div class="pt-cartao-num"><?= (int) $tr['testados'] ?> de <?= (int) $tr['total'] ?> testados</div>
+                        <div class="obra-progress mini"><div class="obra-progress-bar" style="width:<?= (int) $pct ?>%"></div></div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <p class="pt-resumo-linha">
+                <strong><?= (int) $pontos_resumo['total'] ?></strong> ponto(s)
+                <?php if ($pontos_resumo['progresso'] !== null): ?> &middot; progresso <strong><?= $fmt($pontos_resumo['progresso']) ?>%</strong><?php endif; ?>
+                <?php if ((float) $pontos_resumo['cabo_m'] > 0): ?> &middot; cabo passado <strong><?= $fmt($pontos_resumo['cabo_m']) ?> m</strong><?php endif; ?>
+            </p>
+        <?php endif; ?>
+
+        <?php if ($pontos_resumo['total'] > 0): ?>
+        <form action="<?= site_url('obras/visualizar/' . (int) $obra->idObra) ?>#pontos" method="get" class="pt-filtros">
+            <select name="pt_tipo" aria-label="Filtrar por tipo">
+                <option value="">Todos os tipos</option>
+                <?php foreach ($pontos_tipos as $k => $t): ?>
+                    <option value="<?= html_escape($k) ?>" <?= $pontos_filtro['tipo'] === $k ? 'selected' : '' ?>><?= html_escape($t['rotulo']) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <select name="pt_status" aria-label="Filtrar por status">
+                <option value="">Todos os status</option>
+                <?php foreach ($pontos_status as $k => $st): ?>
+                    <option value="<?= html_escape($k) ?>" <?= $pontos_filtro['status'] === $k ? 'selected' : '' ?>><?= html_escape($st['rotulo']) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <select name="pt_aguardando" aria-label="Filtrar por etapa aguardando">
+                <option value="">Qualquer etapa</option>
+                <?php foreach ($pontos_status as $k => $st):
+                    $rotAg = $k === 'previsto' ? '' : Obra_pontos_model::rotuloAguardando($k);
+                    if ($rotAg === '') continue; ?>
+                    <option value="<?= html_escape($k) ?>" <?= ($pontos_filtro['aguardando'] ?? '') === $k ? 'selected' : '' ?>><?= html_escape($rotAg) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <select name="pt_resp" aria-label="Filtrar por quem está com o ponto">
+                <option value="">Com quem: todos</option>
+                <option value="equipe" <?= ($pontos_filtro['resp'] ?? '') === 'equipe' ? 'selected' : '' ?>>Equipe (livre)</option>
+                <?php foreach ($executores as $ex): $exId = (string) (int) $ex['idUsuarios']; ?>
+                    <option value="<?= html_escape($exId) ?>" <?= ($pontos_filtro['resp'] ?? '') === $exId ? 'selected' : '' ?>><?= html_escape($ex['nome']) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <button class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-filter-alt'></i></span><span class="button__text2">Filtrar</span></button>
+            <?php if ($ptFiltrado): ?><a href="<?= site_url('obras/visualizar/' . (int) $obra->idObra) ?>#pontos" class="button btn btn-mini btn-warning"><span class="button__text2">Limpar</span></a><?php endif; ?>
+        </form>
+        <?php endif; ?>
+
+        <?php if ($ptEdita): ?>
+            <form id="form-repasse-lote" action="<?= site_url('obras/repassarPontos') ?>" method="post" class="pt-lote">
+                <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
+                <span class="pt-lote-rotulo"><i class="bx bx-transfer-alt"></i> Repassar selecionados para</span>
+                <select name="destinatario" aria-label="Quem recebe os pontos selecionados">
+                    <option value="">Equipe (livre)</option>
+                    <?php foreach ($executores as $ex): ?>
+                        <option value="<?= (int) $ex['idUsuarios'] ?>"><?= html_escape($ex['nome']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <input type="text" name="instrucao" maxlength="255" class="pt-lote-instrucao" placeholder="Instrução — não escreva senhas" aria-label="Instrução para quem recebe">
+                <button class="button btn btn-mini btn-primary" title="Repassar os pontos marcados"><span class="button__icon"><i class='bx bx-check'></i></span><span class="button__text2">Repassar selecionados</span></button>
+            </form>
+        <?php endif; ?>
+
+        <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
+            <table class="table table-bordered pt-tabela">
+                <thead><tr><?php if ($ptEdita): ?><th class="pt-col-sel"><input type="checkbox" id="pt-selecionar-todos" title="Selecionar todos" aria-label="Selecionar todos os pontos"></th><?php endif; ?><th class="pt-col-foto">Foto</th><th>Identificação</th><th>Tipo</th><th>Local</th><th>IP</th><th>Canal</th><th>Porta</th><th>Metros</th><th>Status</th><th>Com / aguardando</th><th>Atualizado em</th><?php if ($ptMuda): ?><th style="min-width:260px">Ações</th><?php endif; ?></tr></thead>
+                <tbody>
+                    <?php if (! $pontos): ?>
+                        <tr><td colspan="<?= (int) $ptCols ?>">
+                            <?php if ($ptFiltrado): ?>
+                                <div class="ui-vazio"><i class="bx bx-filter-alt"></i><strong>Nenhum ponto com esse filtro.</strong></div>
+                            <?php else: ?>
+                                <div class="ui-vazio"><i class="bx bx-cctv"></i><strong>Nenhum ponto cadastrado.</strong>Gere os pontos em lote: ex. 16 câmeras CAM-01 a CAM-16. Depois cada um avança (cabo passado, instalado, configurado, testado) e o progresso do projeto é calculado sozinho.</div>
+                            <?php endif; ?>
+                        </td></tr>
+                    <?php endif; ?>
+                    <?php foreach ($pontos as $pt):
+                        $st = $pontos_status[$pt->status] ?? null; ?>
+                        <?php
+                        $fotosPt = array_values($fotos_pontos[$pt->idPonto] ?? []);
+                        $nFotosPt = count($fotosPt);
+                        $rotAguardando = Obra_pontos_model::rotuloAguardando($pt->aguardando ?? null);
+                        $instrucaoPt = (string) ($pt->instrucao ?? '');
+                        ?>
+                        <tr>
+                            <?php if ($ptEdita): ?>
+                                <td class="pt-col-sel"><input type="checkbox" name="ponto_ids[]" value="<?= (int) $pt->idPonto ?>" form="form-repasse-lote" aria-label="Selecionar <?= html_escape($pt->identificacao) ?>"></td>
+                            <?php endif; ?>
+                            <td data-label="Foto" class="pt-col-foto">
+                                <?php if ($nFotosPt): ?>
+                                    <div class="pt-foto-wrap">
+                                        <a href="<?= site_url('obras/fotoPonto/' . (int) $fotosPt[0]->idFoto) ?>" target="_blank" rel="noopener" title="Abrir foto de <?= html_escape($pt->identificacao) ?> em nova aba">
+                                            <img class="pt-foto" src="<?= site_url('obras/fotoPonto/' . (int) $fotosPt[0]->idFoto) ?>" alt="Foto de <?= html_escape($pt->identificacao) ?>" width="48" height="48" loading="lazy">
+                                        </a>
+                                        <?php if ($nFotosPt > 1): ?><span class="pt-foto-mais" title="<?= (int) $nFotosPt ?> fotos">+<?= (int) ($nFotosPt - 1) ?></span><?php endif; ?>
+                                    </div>
+                                    <?php if ($nFotosPt > 1): ?>
+                                        <div class="pt-foto-links">
+                                            <?php foreach ($fotosPt as $i => $fp): ?>
+                                                <a href="<?= site_url('obras/fotoPonto/' . (int) $fp->idFoto) ?>" target="_blank" rel="noopener" title="Foto <?= (int) ($i + 1) ?> de <?= html_escape($pt->identificacao) ?>"><?= (int) ($i + 1) ?></a>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <span class="pt-sem-foto">—</span>
+                                <?php endif; ?>
+                            </td>
+                            <td data-label="Identificação"><strong><?= html_escape($pt->identificacao) ?></strong></td>
+                            <td data-label="Tipo"><?= html_escape($pontos_tipos[$pt->tipo]['rotulo'] ?? $pt->tipo) ?></td>
+                            <td data-label="Local"><?= html_escape($pt->local ?: '—') ?></td>
+                            <td data-label="IP"><?= html_escape($pt->ip ?: '—') ?></td>
+                            <td data-label="Canal"><?= html_escape($pt->canal ?: '—') ?></td>
+                            <td data-label="Porta"><?= html_escape($pt->porta ?: '—') ?></td>
+                            <td data-label="Metros"><?= (float) $pt->metragem_cabo > 0 ? $fmt($pt->metragem_cabo) : '—' ?></td>
+                            <td data-label="Status"><span class="ui-selo <?= html_escape($st['classe'] ?? '') ?>"><?= html_escape($st['rotulo'] ?? $pt->status) ?></span></td>
+                            <td data-label="Com / aguardando" class="pt-col-com">
+                                <?php $comNome = trim((string) ($pt->responsavel_nome ?? '')); ?>
+                                <?php if ($comNome !== ''): ?>
+                                    <span class="pt-com-nome"><?= html_escape($comNome) ?></span>
+                                <?php elseif (! empty($pt->aguardando)): ?>
+                                    <span class="pt-com-nome pt-com-equipe">Equipe</span>
+                                <?php else: ?>
+                                    <span class="pt-sem-foto">—</span>
+                                <?php endif; ?>
+                                <?php if ($rotAguardando !== ''): ?>
+                                    <div class="pt-aguard" title="<?= html_escape($instrucaoPt !== '' ? 'Instrução: ' . $instrucaoPt : $rotAguardando) ?>"><?= html_escape($rotAguardando) ?></div>
+                                <?php endif; ?>
+                            </td>
+                            <td data-label="Atualizado em"><?= ! empty($pt->atualizado_em) ? date('d/m/Y H:i', strtotime($pt->atualizado_em)) : '—' ?></td>
+                            <?php if ($ptMuda): ?>
+                                <td class="pt-acoes">
+                                    <form action="<?= site_url('obras/statusPonto') ?>" method="post" class="pt-status-form">
+                                        <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
+                                        <input type="hidden" name="ponto_id" value="<?= (int) $pt->idPonto ?>">
+                                        <select name="status" aria-label="Novo status de <?= html_escape($pt->identificacao) ?>">
+                                            <?php foreach ($pontos_status as $k => $s2): ?>
+                                                <option value="<?= html_escape($k) ?>" <?= $pt->status === $k ? 'selected' : '' ?>><?= html_escape($s2['rotulo']) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                        <input type="number" step="0.01" min="0" name="metragem_cabo" placeholder="m" title="Metros de cabo passados agora" aria-label="Metros de cabo">
+                                        <button class="btn btn-mini btn-success" title="Atualizar status">OK</button>
+                                    </form>
+                                    <?php if ($ptEdita): ?>
+                                        <a href="#" class="btn-nwe3" title="Editar" aria-label="Editar" data-chamar="editarPonto" data-args="<?= html_escape(json_encode([$pt])) ?>" data-cancelar><i class="bx bx-edit bx-xs"></i></a>
+                                        <a href="#" class="btn-nwe4" title="Excluir" aria-label="Excluir" data-chamar="excluirPonto" data-args="[<?= (int) $pt->idPonto ?>]" data-cancelar><i class="bx bx-trash-alt bx-xs"></i></a>
+                                    <?php endif; ?>
+                                </td>
+                            <?php endif; ?>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div></div>
+    </div>
+
     <!-- CRONOGRAMA -->
     <div class="obra-pane" id="tab-cronograma" style="display:none">
         <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
             <?php if ($perm('eObraCronograma')): ?>
                 <div style="padding:8px"><a href="#modal-etapa" data-toggle="modal" class="button btn btn-mini btn-success" data-chamar="novaEtapa"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova etapa</span></a></div>
+            <?php endif; ?>
+            <?php if ($perm('eObras') && trim((string) $obra->tipo_obra) !== ''): ?>
+                <form action="<?= site_url('obras/aplicarEtapasPadrao') ?>" method="post" style="padding:0 8px 8px;margin:0">
+                    <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
+                    <button class="button btn btn-mini btn-primary" data-confirmar="Criar as etapas padrão para &quot;<?= html_escape($obra->tipo_obra) ?>&quot;? As que já existem não são repetidas."><span class="button__icon"><i class='bx bx-list-plus'></i></span><span class="button__text2">Criar etapas padrão</span></button>
+                </form>
             <?php endif; ?>
             <table class="table table-bordered">
                 <thead><tr><th>EAP</th><th>Etapa</th><th>Peso %</th><th>Valor prev.</th><th>Início</th><th>Fim</th><th>%</th><?php if ($perm('eObraCronograma')): ?><th>Ações</th><?php endif; ?></tr></thead>
@@ -163,22 +347,21 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
     <div class="obra-pane" id="tab-rdo" style="display:none">
         <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
             <?php if ($perm('cObraRdo')): ?>
-                <div style="padding:8px"><a href="#modal-rdo" data-toggle="modal" class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Novo RDO</span></a></div>
+                <div style="padding:8px"><a href="#modal-rdo" data-toggle="modal" class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Novo registro</span></a></div>
             <?php endif; ?>
             <table class="table table-bordered">
-                <thead><tr><th>#</th><th>Data</th><th>O que foi feito</th><th>Clima (M/T/N)</th><th>Condição</th><th>Efetivo</th><th>Responsável</th><th style="width:60px">Ações</th></tr></thead>
+                <thead><tr><th>#</th><th>Data</th><th>O que foi feito</th><th>Condição</th><th>Técnicos</th><th>Responsável</th><th style="width:60px">Ações</th></tr></thead>
                 <tbody>
-                    <?php if (! $rdos) echo '<tr><td colspan="8"><div class="ui-vazio"><i class="bx bx-notepad"></i><strong>Nenhum RDO registrado.</strong>Registre a execução do dia para aparecer aqui.</div></td></tr>'; ?>
+                    <?php if (! $rdos) echo '<tr><td colspan="7"><div class="ui-vazio"><i class="bx bx-notepad"></i><strong>Nenhum registro de execução.</strong>Registre o que foi feito no dia para aparecer aqui.</div></td></tr>'; ?>
                     <?php foreach ($rdos as $r): ?>
                         <tr>
                             <td><?= html_escape($r->numero) ?></td>
                             <td><?= $data_br($r->data) ?></td>
                             <td><?= html_escape(mb_strimwidth((string) $r->atividades, 0, 80, '…')) ?: '—' ?></td>
-                            <td><?= html_escape(($r->clima_manha ?: '-') . '/' . ($r->clima_tarde ?: '-') . '/' . ($r->clima_noite ?: '-')) ?></td>
-                            <td><?= html_escape($r->condicao) ?></td>
+                            <td><?= html_escape($condicoesRdo[$r->condicao] ?? (string) $r->condicao) ?></td>
                             <td><?= (int) $r->efetivo_total ?></td>
                             <td><?= html_escape($r->responsavel) ?></td>
-                            <td><a href="<?= site_url('obras/imprimirRdo/' . $r->idRdo) ?>" target="_blank" class="btn-nwe" title="Imprimir RDO" aria-label="Imprimir RDO"><i class="bx bx-printer bx-xs"></i></a></td>
+                            <td><a href="<?= site_url('obras/imprimirRdo/' . $r->idRdo) ?>" target="_blank" class="btn-nwe" title="Imprimir registro" aria-label="Imprimir registro"><i class="bx bx-printer bx-xs"></i></a></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -467,6 +650,64 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
 </script>
 <?php endif; ?>
 
+<?php if ($perm('eObras')): ?>
+<!-- Modal Ponto -->
+<div id="modal-ponto" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <form action="<?= site_url('obras/salvarPonto') ?>" method="post">
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Ponto do projeto</h5></div>
+        <div class="modal-body">
+            <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
+            <input type="hidden" name="idPonto" id="pt_id" value="">
+            <div class="span6" style="margin-left:0"><label>Tipo *</label>
+                <select name="tipo" id="pt_tipo" class="span12" required>
+                    <?php foreach ($pontos_tipos as $k => $t): ?><option value="<?= html_escape($k) ?>"><?= html_escape($t['rotulo']) ?></option><?php endforeach; ?>
+                </select>
+            </div>
+            <div class="span6"><label>Identificação *</label><input type="text" class="span12" name="identificacao" id="pt_ident" maxlength="30" placeholder="CAM-07" required></div>
+            <div class="span12" style="margin-left:0"><label>Local</label><input type="text" class="span12" name="local" id="pt_local" maxlength="150" placeholder="Ex.: Corredor 2, entrada de funcionários"></div>
+            <div class="span6" style="margin-left:0"><label>IP</label><input type="text" class="span12" name="ip" id="pt_ip" maxlength="45" placeholder="192.168.1.107"></div>
+            <div class="span3"><label>Canal</label><input type="text" class="span12" name="canal" id="pt_canal" maxlength="10"></div>
+            <div class="span3"><label>Porta</label><input type="text" class="span12" name="porta" id="pt_porta" maxlength="30"></div>
+            <div class="span6" style="margin-left:0"><label>Modelo</label><input type="text" class="span12" name="modelo" id="pt_modelo" maxlength="80"></div>
+            <div class="span6"><label>Série / MAC</label><input type="text" class="span12" name="serie" id="pt_serie" maxlength="60"></div>
+            <div class="span12" style="margin-left:0"><label>Observação</label><input type="text" class="span12" name="observacao" id="pt_obs" maxlength="255"></div>
+            <div class="span12 pt-modal-fotos" style="margin-left:0">
+                <label for="pt_fotos">Fotos do equipamento e da etiqueta (até 6)</label>
+                <input type="file" id="pt_fotos" accept="image/*" multiple data-foto-compacta>
+                <div class="pt-foto-preview" data-foto-preview></div>
+                <small>As fotos são reduzidas no seu navegador antes de enviar. Não fotografe senhas.</small>
+            </div>
+        </div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Salvar</span></button></div>
+    </form>
+</div>
+
+<!-- Modal Gerar em lote -->
+<div id="modal-lote" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <form action="<?= site_url('obras/gerarPontos') ?>" method="post">
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Gerar pontos em lote</h5></div>
+        <div class="modal-body">
+            <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
+            <div class="span12" style="margin-left:0"><label>Tipo *</label>
+                <select name="tipo" id="lt_tipo" class="span12" required>
+                    <?php foreach ($pontos_tipos as $k => $t): ?><option value="<?= html_escape($k) ?>" data-prefixo="<?= html_escape($t['prefixo']) ?>"><?= html_escape($t['rotulo']) ?></option><?php endforeach; ?>
+                </select>
+            </div>
+            <div class="span4" style="margin-left:0"><label>Prefixo</label><input type="text" class="span12" name="prefixo" id="lt_prefixo" maxlength="20"></div>
+            <div class="span4"><label>Número inicial</label><input type="number" min="1" class="span12" name="inicio" value="1"></div>
+            <div class="span4"><label>Quantidade (1 a 500)</label><input type="number" min="1" max="500" class="span12" name="quantidade" value="16" required></div>
+            <div class="span12" style="margin-left:0"><label>Local (opcional, igual para todos)</label><input type="text" class="span12" name="local" maxlength="150"></div>
+            <div class="span12" style="margin-left:0"><small>Ex.: tipo Câmera, prefixo CAM, início 1, quantidade 16 cria CAM-01 a CAM-16. Identificações que já existem são ignoradas.</small></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Gerar</span></button></div>
+    </form>
+</div>
+<form id="formExcluirPonto" action="<?= site_url('obras/excluirPonto') ?>" method="post" style="display:none">
+    <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>"><input type="hidden" name="idPonto" id="del_ponto">
+</form>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/foto-compacta.js') ?>"></script>
+<?php endif; ?>
+
 <!-- Modal Etapa -->
 <div id="modal-etapa" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
     <form action="<?= site_url('obras/salvarEtapa') ?>" method="post">
@@ -492,22 +733,18 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
 <!-- Modal RDO -->
 <div id="modal-rdo" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
     <form action="<?= site_url('obras/salvarRdo') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Diário de Obra</h5></div>
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Registro de execução</h5></div>
         <div class="modal-body">
             <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
             <div class="span4" style="margin-left:0"><label>Data</label><input type="text" class="span12 datepicker" name="data" value="<?= date('d/m/Y') ?>"></div>
-            <div class="span4"><label>Efetivo total</label><input type="number" class="span12" name="efetivo_total" value="0"></div>
-            <div class="span4"><label>Condição</label><select name="condicao" class="span12"><option value="praticavel">Praticável</option><option value="parcial">Parcial</option><option value="impraticavel">Impraticável</option></select></div>
-            <?php $climas = ['ensolarado' => 'Ensolarado', 'nublado' => 'Nublado', 'chuvoso' => 'Chuvoso']; ?>
-            <?php foreach (['manha' => 'Manhã', 'tarde' => 'Tarde', 'noite' => 'Noite'] as $p => $lbl): ?>
-                <div class="span4 <?= $p === 'manha' ? '' : '' ?>" style="<?= $p === 'manha' ? 'margin-left:0' : '' ?>"><label>Clima <?= $lbl ?></label><select name="clima_<?= $p ?>" class="span12"><option value="">—</option><?php foreach ($climas as $ck => $cv): ?><option value="<?= $ck ?>"><?= $cv ?></option><?php endforeach; ?></select></div>
-            <?php endforeach; ?>
+            <div class="span4"><label>Técnicos no local</label><input type="number" class="span12" name="efetivo_total" value="0"></div>
+            <div class="span4"><label>Condição</label><select name="condicao" class="span12"><option value="praticavel">Normal</option><option value="parcial">Impedimento parcial</option><option value="impraticavel">Sem acesso</option></select></div>
             <div class="span12" style="margin-left:0"><label>Atividades executadas</label><textarea class="span12" name="atividades" rows="3"></textarea></div>
             <div class="span6" style="margin-left:0"><label>Ocorrências</label><textarea class="span12" name="ocorrencias" rows="2"></textarea></div>
             <div class="span6"><label>Observações</label><textarea class="span12" name="observacoes" rows="2"></textarea></div>
             <div class="span12" style="margin-left:0"><label>Fotos</label><input type="file" accept="image/*" multiple id="rdoFotos" capture="environment"><div id="rdoFotosHidden"></div><div id="rdoFotosPrev" class="obra-fotos-prev"></div></div>
         </div>
-        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Registrar RDO</span></button></div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Registrar</span></button></div>
     </form>
 </div>
 
@@ -586,4 +823,33 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
     function excluirEtapa(id) {
         if (confirm('Excluir esta etapa?')) { $('#del_etapa').val(id); $('#formExcluirEtapa').submit(); }
     }
+
+    function limparFotosPonto() {
+        $('#modal-ponto input[type=file][data-foto-compacta]').val('');
+        $('#modal-ponto [data-foto-preview]').empty();
+        $('#modal-ponto input[name="fotos[]"]').remove();
+    }
+    function novoPonto() {
+        $('#pt_id,#pt_ident,#pt_local,#pt_ip,#pt_canal,#pt_porta,#pt_modelo,#pt_serie,#pt_obs').val('');
+        limparFotosPonto();
+    }
+    function editarPonto(p) {
+        $('#pt_id').val(p.idPonto); $('#pt_tipo').val(p.tipo); $('#pt_ident').val(p.identificacao);
+        $('#pt_local').val(p.local || ''); $('#pt_ip').val(p.ip || ''); $('#pt_canal').val(p.canal || '');
+        $('#pt_porta').val(p.porta || ''); $('#pt_modelo').val(p.modelo || ''); $('#pt_serie').val(p.serie || '');
+        $('#pt_obs').val(p.observacao || '');
+        limparFotosPonto();
+        $('#modal-ponto').modal('show');
+    }
+    function excluirPonto(id) {
+        if (confirm('Excluir este ponto e o histórico dele?')) { $('#del_ponto').val(id); $('#formExcluirPonto').submit(); }
+    }
+    $(function () {
+        $('#lt_tipo').on('change', function () { $('#lt_prefixo').val($(this).find(':selected').data('prefixo') || ''); }).trigger('change');
+
+        // Pontos: marcar todos para repasse
+        $('#pt-selecionar-todos').on('change', function () {
+            $('input[name="ponto_ids[]"]').prop('checked', this.checked);
+        });
+    });
 </script>

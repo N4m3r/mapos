@@ -239,7 +239,7 @@ class Notificador
                 $clienteId,
                 $numeroCliente,
                 'rdo',
-                "📋 RDO Nº {NUMERO_RDO} — {PROJETO}\nResponsável: {RESPONSAVEL}\nData: {DATA}\n\n*O que foi feito:*\n{ATIVIDADES}\n\nDetalhes e fotos:\n{LINK}",
+                "📋 Registro de execução Nº {NUMERO_RDO} — {PROJETO}\nResponsável: {RESPONSAVEL}\nData: {DATA}\n\n*O que foi feito:*\n{ATIVIDADES}\n\nDetalhes e fotos:\n{LINK}",
                 (int) $rdo->obra_id
             );
         } catch (\Exception $e) {
@@ -301,7 +301,7 @@ class Notificador
                 $link = $this->ci->encurtador->encurtar(site_url('rdo/' . $token), 30);
             }
 
-            $assunto = 'RDO — ' . $obra->nome . ' (#' . $obra->idObra . ')';
+            $assunto = 'Registro de execução — ' . $obra->nome . ' (#' . $obra->idObra . ')';
             $corpo = $this->montarCorpoRdo($obra, $rdo, $responsavel, $link);
 
             foreach ($triggers as $t) {
@@ -376,7 +376,7 @@ class Notificador
                 return;
             }
 
-            $assunto = 'RDO — ' . $obra->nome . ' (#' . $obra->idObra . ')';
+            $assunto = 'Registro de execução — ' . $obra->nome . ' (#' . $obra->idObra . ')';
             $corpo = $this->montarCorpoFinalizacao($obra);
 
             $enviouAlgum = false;
@@ -436,7 +436,7 @@ class Notificador
         $data = ! empty($rdo->data) ? date('d/m/Y', strtotime($rdo->data)) : date('d/m/Y');
 
         $html = '<div style="font-family:Arial,sans-serif;font-size:14px;color:#222">';
-        $html .= '<p>RDO nº <strong>' . (int) $rdo->numero . '</strong> do projeto <strong>' . html_escape($obra->nome) . '</strong>.</p>';
+        $html .= '<p>Registro de execução nº <strong>' . (int) $rdo->numero . '</strong> do projeto <strong>' . html_escape($obra->nome) . '</strong>.</p>';
         $html .= '<p><strong>Responsável:</strong> ' . html_escape($responsavel) . '<br>';
         $html .= '<strong>Data:</strong> ' . $data . '</p>';
         $html .= '<p><strong>O que foi feito:</strong><br>' . ($atividades !== '' ? $atividades : '(sem descrição)') . '</p>';
@@ -452,7 +452,7 @@ class Notificador
     {
         $html = '<div style="font-family:Arial,sans-serif;font-size:14px;color:#222">';
         $html .= '<p>O projeto <strong>' . html_escape($obra->nome) . '</strong> foi finalizado.</p>';
-        $html .= '<p>Este é o último e-mail desta conversa — obrigado por acompanhar os diários de execução ao longo do projeto.</p>';
+        $html .= '<p>Este é o último e-mail desta conversa — obrigado por acompanhar os registros de execução ao longo do projeto.</p>';
         $html .= '</div>';
 
         return $html;

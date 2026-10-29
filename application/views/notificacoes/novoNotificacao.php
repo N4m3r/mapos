@@ -98,7 +98,7 @@ $anexos = Notification_triggers_model::anexosDisponiveis();
                             <?php } ?>
                         </select>
                         <span class="help-inline">Mensagem usada no WhatsApp deste gatilho. <a href="<?= site_url('whatsapptemplates') ?>" target="_blank">Gerenciar modelos</a>.</span>
-                        <span class="help-block" style="font-size:11px">Nos eventos <strong>Aceite da OS</strong> e <strong>RDO de projeto</strong>, use a tag <code>{LINK}</code> na mensagem — ela vira o link (já encurtado) do aceite/RDO.</span>
+                        <span class="help-block" style="font-size:11px">Nos eventos <strong>Aceite da OS</strong> e <strong>Registro de execução de projeto</strong>, use a tag <code>{LINK}</code> na mensagem — ela vira o link (já encurtado) do aceite/registro de execução.</span>
                     </div>
                 </div>
             <?php } ?>

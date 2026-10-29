@@ -81,7 +81,7 @@ class Aceite extends CI_Controller
         $decisao = $this->input->post('decisao'); // 'aceito' | 'recusado'
         $nome = trim((string) $this->input->post('nome'));
         $obs = trim((string) $this->input->post('obs'));
-        $assinaturaBase64 = (string) $this->input->post('assinatura');
+        $assinaturaBase64 = (string) dataurl_imagem($this->input->post('assinatura', false));
 
         $os = $this->aceite_model->getByToken($token);
         $situacao = $this->aceite_model->situacao($os);

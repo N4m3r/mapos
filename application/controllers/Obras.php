@@ -36,6 +36,8 @@ class Obras extends MY_Controller
         $this->data['obras_execucao'] = $this->obras_model->getObrasPorStatus('em_execucao', 8);
         $this->data['medicoes_abertas'] = $this->obras_model->getMedicoesAbertas(10);
         $this->data['rdos_recentes'] = $this->obras_model->getRdosRecentes(8);
+        $this->load->model('projeto_acompanhamento_model');
+        $this->data['acomp'] = $this->projeto_acompanhamento_model->painel(date('Y-m-d'));
         $this->data['obra_menu'] = 'painel';
         $this->data['view'] = 'obras/painel';
         return $this->layout();
@@ -151,6 +153,42 @@ class Obras extends MY_Controller
         $this->data['os_servicos'] = $this->obras_model->getServicosDasOs($id);
         $this->data['os_produtos'] = $this->obras_model->getProdutosDasOs($id);
 
+        // Pontos do projeto (câmeras, pontos de rede, leitores...)
+        $this->load->model('obra_pontos_model');
+        $ptTipos = Obra_pontos_model::tipos();
+        $ptStatus = Obra_pontos_model::statusLista();
+        $filtros = [];
+        $ft = (string) $this->input->get('pt_tipo');
+        $fs = (string) $this->input->get('pt_status');
+        if ($ft !== '' && isset($ptTipos[$ft])) {
+            $filtros['tipo'] = $ft;
+        }
+        if ($fs !== '' && isset($ptStatus[$fs])) {
+            $filtros['status'] = $fs;
+        }
+        $fa = (string) $this->input->get('pt_aguardando');
+        if ($fa !== '' && isset($ptStatus[$fa])) {
+            $filtros['aguardando'] = $fa;
+        }
+        $fr = (string) $this->input->get('pt_resp');
+        if ($fr === 'equipe') {
+            $filtros['responsavel_id'] = 'equipe';
+        } elseif ($fr !== '' && ctype_digit($fr) && (int) $fr > 0) {
+            $filtros['responsavel_id'] = (int) $fr;
+        }
+        $this->data['pontos'] = $this->obra_pontos_model->getPontos($id, $filtros);
+        $this->data['pontos_resumo'] = Obra_pontos_model::resumo($this->obra_pontos_model->getPontos($id));
+        $this->data['pontos_tipos'] = $ptTipos;
+        $this->data['pontos_status'] = $ptStatus;
+        $this->data['pontos_filtro'] = [
+            'tipo' => $filtros['tipo'] ?? '',
+            'status' => $filtros['status'] ?? '',
+            'aguardando' => $filtros['aguardando'] ?? '',
+            'resp' => isset($filtros['responsavel_id']) ? (string) $filtros['responsavel_id'] : '',
+        ];
+        $this->data['executores'] = $this->obra_pontos_model->executores($id);
+        $this->data['fotos_pontos'] = $this->obra_pontos_model->getFotosObra($id);
+
         // Executores do projeto + controle de acesso à execução
         $this->data['usuarios_projeto'] = $this->obras_model->getUsuariosProjeto($id);
         $idsVinculados = array_map(function ($u) {
@@ -236,7 +274,7 @@ class Obras extends MY_Controller
             'data_registro' => date('Y-m-d H:i:s'),
         ]);
 
-        foreach ((array) $this->input->post('fotos') as $b64) {
+        foreach ((array) $this->input->post('fotos', false) as $b64) {
             $bin = $this->base64ParaBlob($b64);
             if ($bin !== null) {
                 $this->obras_model->addRdoFoto($rdoId, $bin);
@@ -396,6 +434,300 @@ class Obras extends MY_Controller
         redirect('obras/visualizar/' . $obra_id . '#cronograma');
     }
 
+    /* ============================ Pontos ============================ */
+
+    /** Corta o texto no limite da coluna; vazio vira null. */
+    private function textoPonto($campo, $max)
+    {
+        $v = trim((string) $this->input->post($campo));
+        if ($v === '') {
+            return null;
+        }
+        return mb_substr($v, 0, $max);
+    }
+
+    private function voltarPontos($obra_id)
+    {
+        redirect('obras/visualizar/' . (int) $obra_id . '#pontos');
+    }
+
+    public function salvarPonto()
+    {
+        $this->precisa('eObras', 'Você não tem permissão para editar Projetos.');
+        $this->load->model('obra_pontos_model');
+        $obra_id = (int) $this->input->post('obra_id');
+        $idPonto = (int) $this->input->post('idPonto');
+        if (! $obra_id || ! $this->obras_model->getObra($obra_id)) {
+            $this->session->set_flashdata('error', 'Projeto não encontrado.');
+            redirect('obras');
+        }
+        $tipo = (string) $this->input->post('tipo');
+        $ident = mb_substr(trim((string) $this->input->post('identificacao')), 0, 30);
+        if (! isset(Obra_pontos_model::tipos()[$tipo])) {
+            $this->session->set_flashdata('error', 'Tipo de ponto inválido.');
+            $this->voltarPontos($obra_id);
+        }
+        if ($ident === '') {
+            $this->session->set_flashdata('error', 'Informe a identificação do ponto (ex.: CAM-07).');
+            $this->voltarPontos($obra_id);
+        }
+        $dados = [
+            'tipo' => $tipo,
+            'identificacao' => $ident,
+            'local' => $this->textoPonto('local', 150),
+            'ip' => $this->textoPonto('ip', 45),
+            'canal' => $this->textoPonto('canal', 10),
+            'porta' => $this->textoPonto('porta', 30),
+            'modelo' => $this->textoPonto('modelo', 80),
+            'serie' => $this->textoPonto('serie', 60),
+            'observacao' => $this->textoPonto('observacao', 255),
+        ];
+        if ($idPonto) {
+            $ponto = $this->obra_pontos_model->getPonto($idPonto);
+            if (! $ponto || (int) $ponto->obra_id !== $obra_id) {
+                $this->session->set_flashdata('error', 'Ponto não encontrado neste projeto.');
+                $this->voltarPontos($obra_id);
+            }
+            $dados['atualizado_por'] = (int) $this->session->userdata('id_admin');
+            $dados['atualizado_em'] = date('Y-m-d H:i:s');
+            $this->obra_pontos_model->editPonto($idPonto, $obra_id, $dados);
+        } else {
+            $dados['obra_id'] = $obra_id;
+            $dados['status'] = 'previsto';
+            $dados['data_cadastro'] = date('Y-m-d H:i:s');
+            $idPonto = (int) $this->obra_pontos_model->addPonto($dados);
+            $this->obra_pontos_model->recalcularProgressoObra($obra_id);
+        }
+
+        // Fotos (data URL, até 6) entram com a etapa = status atual do ponto
+        $fotosSalvas = 0;
+        $fotosRecusadas = 0;
+        $pontoSalvo = $idPonto ? $this->obra_pontos_model->getPonto($idPonto) : null;
+        if ($pontoSalvo) {
+            $uid = (int) $this->session->userdata('id_admin');
+            foreach (array_slice((array) $this->input->post('fotos', false), 0, 6) as $b64) {
+                $bin = $this->base64ParaBlob($b64);
+                if ($bin === null) {
+                    $fotosRecusadas++;
+                    continue;
+                }
+                if ($this->obra_pontos_model->addFoto($idPonto, $obra_id, $bin, $uid ?: null, (string) $pontoSalvo->status) > 0) {
+                    $fotosSalvas++;
+                } else {
+                    $fotosRecusadas++;
+                }
+            }
+        }
+
+        log_info('Salvou ponto ' . $ident . ' na obra ' . $obra_id);
+        $msg = 'Ponto salvo.';
+        if ($fotosSalvas > 0) {
+            $msg .= ' ' . $fotosSalvas . ($fotosSalvas === 1 ? ' foto adicionada.' : ' fotos adicionadas.');
+        }
+        if ($fotosRecusadas > 0) {
+            $msg .= ' ' . $fotosRecusadas . ($fotosRecusadas === 1 ? ' foto não aceita (formato ou tamanho).' : ' fotos não aceitas (formato ou tamanho).');
+        }
+        $this->session->set_flashdata('success', $msg);
+        $this->voltarPontos($obra_id);
+    }
+
+    /** Foto de um ponto (equipamento/etiqueta). Gestão ou acesso ao projeto. */
+    public function fotoPonto()
+    {
+        $this->load->model('obra_pontos_model');
+        $id = (int) $this->uri->segment(3);
+        $row = $id ? $this->obra_pontos_model->getFotoBinaria($id) : null;
+        $podeVer = $row && ($this->permission->checkPermission($this->session->userdata('permissao'), 'vObras')
+            || $this->obras_model->usuarioTemAcesso($row->obra_id, $this->session->userdata('id_admin')));
+        if (! $podeVer) {
+            show_404();
+        }
+        $mime = Obra_pontos_model::fotoValida($row->foto);
+        if ($mime === null) {
+            show_404();
+        }
+        header('Content-Type: ' . $mime);
+        header('Cache-Control: private, max-age=86400');
+        header('X-Content-Type-Options: nosniff');
+        echo $row->foto;
+        return;
+    }
+
+    /** Repassa os pontos marcados para um executor do projeto, ou para a equipe (destinatario vazio). */
+    public function repassarPontos()
+    {
+        $this->precisa('eObras', 'Você não tem permissão para editar Projetos.');
+        $this->load->model('obra_pontos_model');
+        $obra_id = (int) $this->input->post('obra_id');
+        if (! $obra_id || ! $this->obras_model->getObra($obra_id)) {
+            $this->session->set_flashdata('error', 'Projeto não encontrado.');
+            redirect('obras');
+        }
+
+        $ids = array_values(array_unique(array_filter(array_map('intval', (array) $this->input->post('ponto_ids')), function ($v) {
+            return $v > 0;
+        })));
+        if (! $ids) {
+            $this->session->set_flashdata('error', 'Marque ao menos um ponto para repassar.');
+            $this->voltarPontos($obra_id);
+        }
+
+        $executores = $this->obra_pontos_model->executores($obra_id);
+        $destino = (string) $this->input->post('destinatario');
+        $destinoId = null;
+        $destinoNome = 'a equipe';
+        if ($destino !== '') {
+            $destinoId = (int) $destino;
+            $nome = null;
+            foreach ($executores as $e) {
+                if ((int) $e['idUsuarios'] === $destinoId) {
+                    $nome = $e['nome'];
+                }
+            }
+            if (! $destinoId || $nome === null) {
+                $this->session->set_flashdata('error', 'Escolha um executor do projeto ou a equipe.');
+                $this->voltarPontos($obra_id);
+            }
+            // O flash é injetado em JS pela view: sem aspas e sem tags no nome
+            $destinoNome = preg_replace('/[<>"\'\\\\]/u', '', (string) $nome);
+        }
+
+        $uid = (int) $this->session->userdata('id_admin');
+        $instrucao = $this->textoPonto('instrucao', 255);
+        $n = $this->obra_pontos_model->repassarLote($obra_id, $ids, $destinoId, $uid ?: null, $instrucao);
+        log_info('Repassou ' . $n . ' pontos na obra ' . $obra_id);
+        if ($n > 0) {
+            $this->session->set_flashdata('success', $n . ($n === 1 ? ' ponto repassado' : ' pontos repassados') . ' para ' . $destinoNome . '.');
+        } else {
+            $this->session->set_flashdata('error', 'Nenhum ponto foi repassado (pontos testados não podem ser repassados).');
+        }
+        $this->voltarPontos($obra_id);
+    }
+
+    public function gerarPontos()
+    {
+        $this->precisa('eObras', 'Você não tem permissão para editar Projetos.');
+        $this->load->model('obra_pontos_model');
+        $obra_id = (int) $this->input->post('obra_id');
+        if (! $obra_id || ! $this->obras_model->getObra($obra_id)) {
+            $this->session->set_flashdata('error', 'Projeto não encontrado.');
+            redirect('obras');
+        }
+        $tipos = Obra_pontos_model::tipos();
+        $tipo = (string) $this->input->post('tipo');
+        if (! isset($tipos[$tipo])) {
+            $this->session->set_flashdata('error', 'Escolha o tipo de ponto.');
+            $this->voltarPontos($obra_id);
+        }
+        $prefixo = mb_substr(trim((string) $this->input->post('prefixo')), 0, 20);
+        if ($prefixo === '') {
+            $prefixo = $tipos[$tipo]['prefixo'];
+        }
+        $inicio = max(1, (int) $this->input->post('inicio'));
+        $qtd = max(1, min(500, (int) $this->input->post('quantidade')));
+        $local = $this->textoPonto('local', 150);
+        $n = $this->obra_pontos_model->gerarLote($obra_id, $tipo, $prefixo, $inicio, $qtd, $local);
+        if ($n > 0) {
+            $this->obra_pontos_model->recalcularProgressoObra($obra_id);
+        }
+        log_info('Gerou ' . $n . ' pontos (' . $tipo . ') na obra ' . $obra_id);
+        $this->session->set_flashdata('success', $n . ($n === 1 ? ' ponto criado.' : ' pontos criados.') . ($n < $qtd ? ' Os demais já existiam.' : ''));
+        $this->voltarPontos($obra_id);
+    }
+
+    public function excluirPonto()
+    {
+        $this->precisa('eObras', 'Você não tem permissão para editar Projetos.');
+        $this->load->model('obra_pontos_model');
+        $obra_id = (int) $this->input->post('obra_id');
+        $this->obra_pontos_model->excluirPonto((int) $this->input->post('idPonto'), $obra_id);
+        $this->obra_pontos_model->recalcularProgressoObra($obra_id);
+        log_info('Excluiu ponto ' . (int) $this->input->post('idPonto') . ' da obra ' . $obra_id);
+        $this->session->set_flashdata('success', 'Ponto removido.');
+        $this->voltarPontos($obra_id);
+    }
+
+    public function statusPonto()
+    {
+        $this->load->model('obra_pontos_model');
+        $obra_id = (int) $this->input->post('obra_id');
+        $uid = (int) $this->session->userdata('id_admin');
+        $pode = $this->permission->checkPermission($this->session->userdata('permissao'), 'eObras')
+            || $this->obras_model->usuarioTemAcesso($obra_id, $uid);
+        if (! $pode) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para atualizar este projeto.');
+            redirect('obras');
+        }
+        $ponto = $this->obra_pontos_model->getPonto((int) $this->input->post('ponto_id'));
+        if (! $ponto || (int) $ponto->obra_id !== $obra_id) {
+            $this->session->set_flashdata('error', 'Ponto não encontrado neste projeto.');
+            $this->voltarPontos($obra_id);
+        }
+        $status = (string) $this->input->post('status');
+        $lista = Obra_pontos_model::statusLista();
+        if (! isset($lista[$status])) {
+            $this->session->set_flashdata('error', 'Status inválido.');
+            $this->voltarPontos($obra_id);
+        }
+        $metros = max(0, (float) str_replace(',', '.', (string) $this->input->post('metragem_cabo')));
+        $extras = ['metragem_cabo' => min($metros, 999999.99)];
+        $obs = $this->textoPonto('observacao', 255);
+        if ($obs !== null) {
+            $extras['observacao'] = $obs;
+        }
+        $this->obra_pontos_model->mudarStatus((int) $ponto->idPonto, $obra_id, $status, $uid ?: null, $extras);
+        log_info('Status do ponto ' . $ponto->identificacao . ' para ' . $status . ' na obra ' . $obra_id);
+        $this->session->set_flashdata('success', $ponto->identificacao . ': ' . $lista[$status]['rotulo']);
+        $this->voltarPontos($obra_id);
+    }
+
+    public function aplicarEtapasPadrao()
+    {
+        $this->precisa('eObras', 'Você não tem permissão para editar Projetos.');
+        $this->load->model('obra_pontos_model');
+        $obra_id = (int) $this->input->post('obra_id');
+        $obra = $obra_id ? $this->obras_model->getObra($obra_id) : null;
+        if (! $obra) {
+            $this->session->set_flashdata('error', 'Projeto não encontrado.');
+            redirect('obras');
+        }
+        if (trim((string) $obra->tipo_obra) === '') {
+            $this->session->set_flashdata('error', 'Defina o tipo do projeto para criar as etapas padrão.');
+            redirect('obras/visualizar/' . $obra_id . '#cronograma');
+        }
+        $n = $this->obra_pontos_model->aplicarEtapasPadrao($obra_id, (string) $obra->tipo_obra);
+        if (! $this->obra_pontos_model->getPontos($obra_id)) {
+            $this->obras_model->recalcularProgresso($obra_id);
+        }
+        log_info('Aplicou etapas padrão (' . $n . ') na obra ' . $obra_id);
+        $this->session->set_flashdata('success', $n > 0 ? $n . ($n === 1 ? ' etapa criada.' : ' etapas criadas.') : 'Todas as etapas padrão já existem.');
+        redirect('obras/visualizar/' . $obra_id . '#cronograma');
+    }
+
+    /** As-built: lista dos pontos instalados, imprimível, para entregar ao cliente. */
+    public function asbuilt()
+    {
+        $this->precisa('vObras', 'Você não tem permissão para visualizar Projetos.');
+        $id = (int) $this->uri->segment(3);
+        $obra = $id ? $this->obras_model->getObra($id) : null;
+        if (! $obra) {
+            $this->session->set_flashdata('error', 'Projeto não encontrado.');
+            redirect('obras');
+        }
+        $this->load->model('mapos_model');
+        $this->load->model('obra_pontos_model');
+        $pontos = $this->obra_pontos_model->getPontos($id);
+        $this->data['obra'] = $obra;
+        $this->data['pontos'] = $pontos;
+        $this->data['resumo'] = Obra_pontos_model::resumo($pontos);
+        $this->data['tipos'] = Obra_pontos_model::tipos();
+        $this->data['status_lista'] = Obra_pontos_model::statusLista();
+        $this->data['emitente'] = $this->mapos_model->getEmitente();
+        $this->data['com_fotos'] = (string) $this->input->get('fotos') === '1';
+        $this->data['fotos_pontos'] = $this->data['com_fotos'] ? $this->obra_pontos_model->getFotosObra($id) : [];
+        $this->load->view('obras/asbuilt', $this->data);
+    }
+
     /* ============================= RDO ============================= */
 
     public function salvarRdo()
@@ -416,13 +748,13 @@ class Obras extends MY_Controller
             'ocorrencias' => $this->input->post('ocorrencias'),
             'observacoes' => $this->input->post('observacoes'),
             'status' => 'finalizado',
-            'assinatura' => $this->input->post('assinatura') ?: null,
+            'assinatura' => dataurl_imagem($this->input->post('assinatura', false)),
             'data_registro' => date('Y-m-d H:i:s'),
         ];
         $rdoId = $this->obras_model->addRdo($dados);
 
         // Fotos enviadas como base64 (campo repetível fotos[])
-        foreach ((array) $this->input->post('fotos') as $b64) {
+        foreach ((array) $this->input->post('fotos', false) as $b64) {
             $bin = $this->base64ParaBlob($b64);
             if ($bin !== null) {
                 $this->obras_model->addRdoFoto($rdoId, $bin);
@@ -446,12 +778,20 @@ class Obras extends MY_Controller
 
     public function fotoRdo()
     {
-        $foto = $this->obras_model->getRdoFotos((int) $this->uri->segment(3));
-        // devolve a primeira imagem por id da foto
         $id = (int) $this->uri->segment(3);
-        $this->db->where('idFoto', $id);
-        $row = $this->db->get('obra_rdo_foto')->row();
-        if ($row && $row->foto) {
+        $row = $this->db->select('f.foto, r.obra_id')
+            ->from('obra_rdo_foto f')
+            ->join('obra_rdo r', 'r.idRdo = f.rdo_id')
+            ->where('f.idFoto', $id)
+            ->get()->row();
+
+        // Gestão (vObras) ou executor com acesso ao projeto do RDO.
+        $podeVer = $row && ($this->permission->checkPermission($this->session->userdata('permissao'), 'vObras')
+            || $this->obras_model->usuarioTemAcesso($row->obra_id, $this->session->userdata('id_admin')));
+        if (! $podeVer) {
+            show_404();
+        }
+        if ($row->foto) {
             header('Content-Type: image/jpeg');
             echo $row->foto;
         }
@@ -578,6 +918,7 @@ class Obras extends MY_Controller
             ->where('situacao', 1)->order_by('nome', 'ASC')->get('usuarios')->result();
     }
 
+    /** Fotos devem vir de $this->input->post('fotos', false): o filtro de XSS corrompe o data URL. */
     private function base64ParaBlob($b64)
     {
         if (! $b64 || strpos($b64, 'base64,') === false) {

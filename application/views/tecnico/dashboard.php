@@ -17,6 +17,17 @@ $this->load->view('tecnico/_topo', [
         </a>
     <?php endif; ?>
 
+    <!-- Minha fila (pontos repassados, ADR-014) -->
+    <?php $filaQtd = (int) ($fila_qtd ?? 0); ?>
+    <a href="<?= site_url('tecnico/fila') ?>" class="info-card" style="display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;margin-bottom:18px;<?= $filaQtd > 0 ? 'border-left:4px solid #e67e22;' : '' ?>">
+        <i class='bx bx-transfer-alt' style="font-size:1.8em;"></i>
+        <div style="flex:1;">
+            <strong>Minha fila</strong>
+            <div style="color:#666;font-size:13px;">Pontos para você configurar ou testar</div>
+        </div>
+        <span style="min-width:32px;text-align:center;padding:4px 10px;border-radius:999px;font-weight:700;color:#fff;background:<?= $filaQtd > 0 ? '#e67e22' : '#999' ?>;"><?= $filaQtd ?></span>
+    </a>
+
     <!-- Estatisticas -->
     <div class="tec-stats">
         <div class="tec-stat">
