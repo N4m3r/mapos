@@ -203,6 +203,32 @@ class Obras extends MY_Controller
         $this->data['pode_executar'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'cObraRdo')
             || $this->obras_model->usuarioTemAcesso($id, $uid);
 
+        // Planejamento por etapa (itens previstos e OS geradas) - ADR-015 fase 2.
+        $this->data['plan_ativo'] = false;
+        $this->data['itensPorEtapa'] = [];
+        $this->data['totaisPrevistos'] = [];
+        $this->data['osPorEtapa'] = [];
+        $this->data['pontosSemOs'] = [];
+        $this->data['tecnicos_os'] = [];
+        $this->data['equipes_os'] = [];
+        if ($this->planejamentoDisponivel()) {
+            $this->load->model('obra_planejamento_model');
+            $this->data['plan_ativo'] = true;
+            $this->data['itensPorEtapa'] = $this->obra_planejamento_model->getItensObra($id);
+            $this->data['totaisPrevistos'] = $this->obra_planejamento_model->totaisPrevistosPorEtapa($id);
+            $this->data['osPorEtapa'] = $this->obra_planejamento_model->getOsPorEtapa($id);
+            $semOs = [];
+            foreach ((array) $this->obra_planejamento_model->pontosSemOs($id) as $p) {
+                $semOs[(int) (is_object($p) ? $p->idPonto : $p['idPonto'])] = true;
+            }
+            $this->data['pontosSemOs'] = $semOs;
+            $this->data['tecnicos_os'] = $this->db->select('idUsuarios, nome')->where('situacao', 1)->order_by('nome', 'ASC')->get('usuarios')->result();
+            if ($this->db->table_exists('equipes')) {
+                $this->load->model('obra_equipe_model');
+                $this->data['equipes_os'] = $this->obra_equipe_model->getEquipesSelect();
+            }
+        }
+
         $this->data['view'] = 'obras/visualizar';
         return $this->layout();
     }
@@ -432,6 +458,227 @@ class Obras extends MY_Controller
         $this->obras_model->recalcularProgresso($obra_id);
         $this->session->set_flashdata('success', 'Etapa removida.');
         redirect('obras/visualizar/' . $obra_id . '#cronograma');
+    }
+
+    /* ============ Planejamento: itens previstos e geração de OS ============ */
+
+    private function planejamentoDisponivel()
+    {
+        return file_exists(APPPATH . 'models/Obra_planejamento_model.php')
+            && $this->db->table_exists('obra_etapa_itens');
+    }
+
+    /** Valida permissão, projeto e model; devolve o id do projeto (ou redireciona). */
+    private function planejamentoInicio()
+    {
+        $this->precisa('eObras', 'Você não tem permissão para editar Projetos.');
+        $obra_id = (int) $this->input->post('obra_id');
+        if (! $obra_id || ! $this->obras_model->getObra($obra_id)) {
+            $this->session->set_flashdata('error', 'Projeto não encontrado.');
+            redirect('obras');
+        }
+        if (! $this->planejamentoDisponivel()) {
+            $this->session->set_flashdata('error', 'O planejamento por etapa ainda não está disponível neste ambiente.');
+            redirect('obras/visualizar/' . $obra_id . '#cronograma');
+        }
+        $this->load->model('obra_planejamento_model');
+        return $obra_id;
+    }
+
+    private function etapaDaObra($obra_id, $etapa_id)
+    {
+        foreach ($this->obras_model->getEtapas($obra_id) as $e) {
+            if ((int) $e->idEtapa === (int) $etapa_id) {
+                return $e;
+            }
+        }
+        return null;
+    }
+
+    /** Opções comuns de geração de OS a partir do POST. */
+    private function opcoesGerarOs()
+    {
+        $tv = (string) $this->input->post('tipo_vinculo');
+        $op = [
+            'usuario_id' => (int) $this->session->userdata('id_admin'),
+            'tipo_vinculo' => in_array($tv, ['execucao', 'complementar', 'garantia'], true) ? $tv : 'execucao',
+            'fatura_no_projeto' => $this->input->post('fatura_no_projeto') ? 1 : 0,
+        ];
+        $tec = (int) $this->input->post('tecnico_id');
+        if ($tec > 0) {
+            $op['tecnico_id'] = $tec;
+        }
+        $eq = (int) $this->input->post('equipe_id');
+        if ($eq > 0) {
+            $op['equipe_id'] = $eq;
+        }
+        $dt = $this->dataOuNull($this->input->post('data_agendamento'));
+        if ($dt) {
+            $op['data_agendamento'] = $dt;
+        }
+        return $op;
+    }
+
+    /** O flash é injetado em JS (swal): sem aspas, barras nem tags. */
+    private function textoFlash($t)
+    {
+        return preg_replace('/[<>"\'\\\\\r\n]/u', '', (string) $t);
+    }
+
+    private function linkOs($idOs)
+    {
+        return 'OS #' . (int) $idOs;
+    }
+
+    /** Autocomplete de produto/serviço para os itens previstos. */
+    public function autoCompleteItem()
+    {
+        $this->precisa('vObras', 'Sem permissão.');
+        $termo = trim((string) $this->input->get('term'));
+        $tipo = $this->input->get('tipo') === 'servico' ? 'servico' : 'produto';
+        $out = [];
+        if ($termo !== '') {
+            if ($tipo === 'servico') {
+                $rows = $this->db->select('idServicos, nome, preco')->like('nome', $termo)->limit(25)->get('servicos')->result();
+                foreach ($rows as $r) {
+                    $out[] = ['label' => $r->nome . ' | R$ ' . $r->preco, 'id' => (int) $r->idServicos, 'preco' => $r->preco];
+                }
+            } else {
+                $rows = $this->db->select('idProdutos, descricao, precoVenda')->group_start()->like('descricao', $termo)->or_like('codDeBarra', $termo)->group_end()->limit(25)->get('produtos')->result();
+                foreach ($rows as $r) {
+                    $out[] = ['label' => $r->descricao . ' | R$ ' . $r->precoVenda, 'id' => (int) $r->idProdutos, 'preco' => $r->precoVenda];
+                }
+            }
+        }
+        return $this->output->set_content_type('application/json')->set_output(json_encode($out));
+    }
+
+    public function salvarItemEtapa()
+    {
+        $obra_id = $this->planejamentoInicio();
+        $etapa_id = (int) $this->input->post('etapa_id');
+        $tipo = $this->input->post('tipo') === 'servico' ? 'servico' : 'produto';
+        $ref = (int) $this->input->post('referencia_id');
+        $qtd = (float) str_replace(',', '.', (string) $this->input->post('quantidade'));
+        $precoPost = trim((string) $this->input->post('preco'));
+        $preco = $precoPost === '' ? null : (float) str_replace(',', '.', $precoPost);
+        if (! $this->etapaDaObra($obra_id, $etapa_id)) {
+            $this->session->set_flashdata('error', 'Etapa não encontrada neste projeto.');
+        } elseif ($ref <= 0 || $qtd <= 0) {
+            $this->session->set_flashdata('error', 'Escolha o item na busca e informe a quantidade.');
+        } elseif ($this->obra_planejamento_model->addItem($obra_id, $etapa_id, $tipo, $ref, $qtd, $preco) === false) {
+            $this->session->set_flashdata('error', 'Não foi possível adicionar o item.');
+        } else {
+            log_info('Adicionou item previsto na etapa ' . $etapa_id . ' da obra ' . $obra_id);
+            $this->session->set_flashdata('success', 'Item previsto adicionado.');
+        }
+        redirect('obras/visualizar/' . $obra_id . '#cronograma');
+    }
+
+    public function excluirItemEtapa()
+    {
+        $obra_id = $this->planejamentoInicio();
+        if ($this->obra_planejamento_model->deleteItem((int) $this->input->post('idItem'), $obra_id)) {
+            $this->session->set_flashdata('success', 'Item removido.');
+        } else {
+            $this->session->set_flashdata('error', 'Item não encontrado neste projeto.');
+        }
+        redirect('obras/visualizar/' . $obra_id . '#cronograma');
+    }
+
+    public function gerarOsEtapa()
+    {
+        $obra_id = $this->planejamentoInicio();
+        $etapa_id = (int) $this->input->post('etapa_id');
+        if (! $this->etapaDaObra($obra_id, $etapa_id)) {
+            $this->session->set_flashdata('error', 'Etapa não encontrada neste projeto.');
+            redirect('obras/visualizar/' . $obra_id . '#cronograma');
+        }
+        $op = $this->opcoesGerarOs();
+        $pontos = $this->pontosValidos($obra_id, (array) $this->input->post('pontos'));
+        if ($pontos) {
+            $op['pontos'] = $pontos;
+        }
+        $r = $this->obra_planejamento_model->gerarOsDaEtapa($etapa_id, $op);
+        if (! empty($r['ok'])) {
+            log_info('Gerou OS ' . (int) $r['idOs'] . ' da etapa ' . $etapa_id . ' (obra ' . $obra_id . ')');
+            $this->session->set_flashdata('success', 'OS criada: ' . $this->linkOs($r['idOs']) . '.');
+        } else {
+            $this->session->set_flashdata('error', 'Não foi possível gerar a OS: ' . $this->textoFlash($r['erro'] ?? 'erro desconhecido'));
+        }
+        redirect('obras/visualizar/' . $obra_id . '#cronograma');
+    }
+
+    public function gerarOsLote()
+    {
+        $obra_id = $this->planejamentoInicio();
+        $ids = [];
+        foreach ((array) $this->input->post('etapas') as $eid) {
+            if ((int) $eid > 0 && $this->etapaDaObra($obra_id, (int) $eid)) {
+                $ids[] = (int) $eid;
+            }
+        }
+        $op = $this->opcoesGerarOs();
+        if ($this->input->post('forcar')) {
+            $op['forcar'] = true;
+        }
+        $res = $this->obra_planejamento_model->gerarOsEmLote($obra_id, array_values(array_unique($ids)), $op);
+        $criadas = [];
+        $puladas = [];
+        foreach ((array) $res as $r) {
+            if (! empty($r['ok'])) {
+                $criadas[] = $this->linkOs($r['idOs']);
+            } else {
+                $puladas[] = '#' . (int) $r['etapa_id'] . ': ' . $this->textoFlash($r['erro'] ?? 'motivo não informado');
+            }
+        }
+        $msg = count($criadas) . ' OS criadas' . ($criadas ? ' (' . implode(', ', $criadas) . ')' : '')
+            . ', ' . count($puladas) . ' etapas puladas' . ($puladas ? ' (' . implode('; ', $puladas) . ')' : '') . '.';
+        log_info('Gerou OS em lote na obra ' . $obra_id . ': ' . count($criadas) . ' criadas');
+        $this->session->set_flashdata($criadas ? 'success' : 'error', $msg);
+        redirect('obras/visualizar/' . $obra_id . '#cronograma');
+    }
+
+    public function gerarOsPontos()
+    {
+        $obra_id = $this->planejamentoInicio();
+        $etapa_id = (int) $this->input->post('etapa_id');
+        $pontos = $this->pontosValidos($obra_id, (array) $this->input->post('pontos'));
+        if (! $this->etapaDaObra($obra_id, $etapa_id)) {
+            $this->session->set_flashdata('error', 'Escolha a etapa da OS.');
+        } elseif (! $pontos) {
+            $this->session->set_flashdata('error', 'Marque ao menos um ponto do projeto.');
+        } else {
+            $op = $this->opcoesGerarOs();
+            $op['pontos'] = $pontos;
+            $r = $this->obra_planejamento_model->gerarOsDaEtapa($etapa_id, $op);
+            if (! empty($r['ok'])) {
+                log_info('Gerou OS ' . (int) $r['idOs'] . ' para ' . count($pontos) . ' pontos (obra ' . $obra_id . ')');
+                $this->session->set_flashdata('success', 'OS criada com ' . count($pontos) . ' ponto(s): ' . $this->linkOs($r['idOs']) . '.');
+            } else {
+                $this->session->set_flashdata('error', 'Não foi possível gerar a OS: ' . $this->textoFlash($r['erro'] ?? 'erro desconhecido'));
+            }
+        }
+        $this->voltarPontos($obra_id);
+    }
+
+    /** Filtra os ids para os pontos que realmente pertencem ao projeto. */
+    private function pontosValidos($obra_id, array $ids)
+    {
+        $ids = array_filter(array_map('intval', $ids), function ($v) {
+            return $v > 0;
+        });
+        if (! $ids) {
+            return [];
+        }
+        $this->load->model('obra_pontos_model');
+        $ok = [];
+        foreach ($this->obra_pontos_model->getPontos($obra_id) as $p) {
+            $ok[(int) $p->idPonto] = true;
+        }
+        return array_values(array_unique(array_filter($ids, function ($v) use ($ok) {
+            return isset($ok[$v]);
+        })));
     }
 
     /* ============================ Pontos ============================ */

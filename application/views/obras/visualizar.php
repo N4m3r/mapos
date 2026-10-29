@@ -162,6 +162,12 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
                 <input type="text" name="instrucao" maxlength="255" class="pt-lote-instrucao" placeholder="Instrução — não escreva senhas" aria-label="Instrução para quem recebe">
                 <button class="button btn btn-mini btn-primary" title="Repassar os pontos marcados"><span class="button__icon"><i class='bx bx-check'></i></span><span class="button__text2">Repassar selecionados</span></button>
             </form>
+            <?php if (! empty($plan_ativo) && $etapas): ?>
+                <div class="pt-lote">
+                    <span class="pt-lote-rotulo"><i class="bx bx-receipt"></i> Pontos sem OS marcados</span>
+                    <a href="#modal-os-pontos" data-toggle="modal" class="button btn btn-mini btn-primary js-os-pontos" title="Gerar uma OS com os pontos marcados"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2">Gerar OS para selecionados</span></a>
+                </div>
+            <?php endif; ?>
         <?php endif; ?>
 
         <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
@@ -187,7 +193,7 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
                         ?>
                         <tr>
                             <?php if ($ptEdita): ?>
-                                <td class="pt-col-sel"><input type="checkbox" name="ponto_ids[]" value="<?= (int) $pt->idPonto ?>" form="form-repasse-lote" aria-label="Selecionar <?= html_escape($pt->identificacao) ?>"></td>
+                                <td class="pt-col-sel"><input type="checkbox" name="ponto_ids[]" value="<?= (int) $pt->idPonto ?>" form="form-repasse-lote" data-sem-os="<?= isset($pontosSemOs[(int) $pt->idPonto]) ? 1 : 0 ?>" aria-label="Selecionar <?= html_escape($pt->identificacao) ?>"></td>
                             <?php endif; ?>
                             <td data-label="Foto" class="pt-col-foto">
                                 <?php if ($nFotosPt): ?>
@@ -258,6 +264,19 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
 
     <!-- CRONOGRAMA -->
     <div class="obra-pane" id="tab-cronograma" style="display:none">
+        <?php
+        $planOk = ! empty($plan_ativo) && $perm('eObras');
+        $etapasSemOs = [];
+        foreach ($etapas as $_e) {
+            if (empty($osPorEtapa[$_e->idEtapa])) {
+                $etapasSemOs[] = $_e;
+            }
+        }
+        $coresOs = ['Aberto' => 'info', 'Orçamento' => 'neutro', 'Em Andamento' => 'alerta', 'Aguardando peças' => 'alerta', 'Finalizado' => 'sucesso', 'Faturado' => 'sucesso', 'Cancelado' => 'perigo'];
+        ?>
+        <?php if ($planOk && $etapas): ?>
+            <div style="padding:0 0 8px"><a href="#modal-os-lote" data-toggle="modal" class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2">Gerar OS das etapas sem OS</span></a></div>
+        <?php endif; ?>
         <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
             <?php if ($perm('eObraCronograma')): ?>
                 <div style="padding:8px"><a href="#modal-etapa" data-toggle="modal" class="button btn btn-mini btn-success" data-chamar="novaEtapa"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova etapa</span></a></div>
@@ -269,7 +288,7 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
                 </form>
             <?php endif; ?>
             <table class="table table-bordered">
-                <thead><tr><th>EAP</th><th>Etapa</th><th>Peso %</th><th>Valor prev.</th><th>Início</th><th>Fim</th><th>%</th><?php if ($perm('eObraCronograma')): ?><th>Ações</th><?php endif; ?></tr></thead>
+                <thead><tr><th>EAP</th><th>Etapa</th><th>Peso %</th><th>Valor prev.</th><?php if (! empty($plan_ativo)): ?><th>Itens prev.</th><th>OS</th><?php endif; ?><th>Início</th><th>Fim</th><th>%</th><?php if ($perm('eObraCronograma')): ?><th>Ações</th><?php endif; ?></tr></thead>
                 <tbody>
                     <?php if (! $etapas) echo '<tr><td colspan="8"><div class="ui-vazio"><i class="bx bx-list-ul"></i><strong>Nenhuma etapa cadastrada.</strong></div></td></tr>'; ?>
                     <?php foreach ($etapas as $e): ?>
@@ -278,6 +297,21 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
                             <td><?= html_escape($e->nome) ?></td>
                             <td><?= $fmt($e->peso_percentual) ?></td>
                             <td>R$ <?= $fmt($e->valor_previsto) ?></td>
+                            <?php if (! empty($plan_ativo)):
+                                $osEt = $osPorEtapa[$e->idEtapa] ?? [];
+                                $itEt = $itensPorEtapa[$e->idEtapa] ?? []; ?>
+                                <td>
+                                    R$ <?= $fmt($totaisPrevistos[$e->idEtapa] ?? 0) ?>
+                                    <?php if ($planOk || $itEt): ?><br><a href="#" class="js-itens-toggle" data-alvo="itens-etapa-<?= (int) $e->idEtapa ?>"><small><i class="bx bx-list-ul"></i> Itens (<?= count($itEt) ?>)</small></a><?php endif; ?>
+                                </td>
+                                <td>
+                                    <small><?= count($osEt) ?> OS</small>
+                                    <?php foreach ($osEt as $oe): $oe = (object) $oe; ?>
+                                        <br><a href="<?= site_url('os/visualizar/' . (int) $oe->idOs) ?>" class="ui-selo <?= $coresOs[$oe->status] ?? 'neutro' ?>" title="<?= html_escape(($oe->status ?? '') . (! empty($oe->tecnico_nome) ? ' - ' . $oe->tecnico_nome : '')) ?>">#<?= (int) $oe->idOs ?> <?= html_escape($oe->status ?? '') ?></a>
+                                    <?php endforeach; ?>
+                                    <?php if ($planOk): ?><br><a href="#modal-os-etapa" data-toggle="modal" class="button btn btn-mini btn-primary js-gerar-os" data-etapa="<?= (int) $e->idEtapa ?>" data-nome="<?= html_escape($e->nome) ?>" data-inicio="<?= html_escape($data_br($e->data_inicio_prevista) === '—' ? '' : $data_br($e->data_inicio_prevista)) ?>"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2">Gerar OS</span></a><?php endif; ?>
+                                </td>
+                            <?php endif; ?>
                             <td><?= $data_br($e->data_inicio_prevista) ?></td>
                             <td><?= $data_br($e->data_fim_prevista) ?></td>
                             <td>
@@ -291,6 +325,49 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
                                 </td>
                             <?php endif; ?>
                         </tr>
+                        <?php if (! empty($plan_ativo) && ($planOk || ! empty($itensPorEtapa[$e->idEtapa]))): ?>
+                        <tr id="itens-etapa-<?= (int) $e->idEtapa ?>" class="js-itens-row" style="display:none">
+                            <td colspan="10">
+                                <strong><i class="bx bx-package"></i> Itens previstos de &quot;<?= html_escape($e->nome) ?>&quot;</strong>
+                                <table class="table table-bordered" style="margin-top:6px">
+                                    <thead><tr><th>Tipo</th><th>Descrição</th><th>Qtd</th><th>Preço</th><th>Subtotal</th><?php if ($planOk): ?><th></th><?php endif; ?></tr></thead>
+                                    <tbody>
+                                    <?php if (empty($itensPorEtapa[$e->idEtapa])): ?><tr><td colspan="6"><small>Nenhum item previsto.</small></td></tr><?php endif; ?>
+                                    <?php foreach (($itensPorEtapa[$e->idEtapa] ?? []) as $it): $it = (object) $it; ?>
+                                        <tr>
+                                            <td><?= $it->tipo === 'servico' ? 'Serviço' : 'Produto' ?></td>
+                                            <td><?= html_escape($it->descricao) ?></td>
+                                            <td><?= $fmt($it->quantidade) ?></td>
+                                            <td>R$ <?= $fmt($it->preco) ?></td>
+                                            <td>R$ <?= $fmt($it->subtotal) ?></td>
+                                            <?php if ($planOk): ?>
+                                                <td>
+                                                    <form action="<?= site_url('obras/excluirItemEtapa') ?>" method="post" style="margin:0" class="js-excluir-item">
+                                                        <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
+                                                        <input type="hidden" name="idItem" value="<?= (int) $it->idItem ?>">
+                                                        <button class="btn-nwe4" style="border:0;background:none" title="Excluir item" aria-label="Excluir item"><i class="bx bx-trash-alt bx-xs"></i></button>
+                                                    </form>
+                                                </td>
+                                            <?php endif; ?>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                                <?php if ($planOk): ?>
+                                <form action="<?= site_url('obras/salvarItemEtapa') ?>" method="post" class="js-form-item" style="margin:0;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                                    <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
+                                    <input type="hidden" name="etapa_id" value="<?= (int) $e->idEtapa ?>">
+                                    <input type="hidden" name="referencia_id" class="js-ref">
+                                    <select name="tipo" class="js-tipo" style="width:110px;margin:0" aria-label="Tipo do item"><option value="produto">Produto</option><option value="servico">Serviço</option></select>
+                                    <input type="text" class="js-busca" placeholder="Buscar produto/serviço..." autocomplete="off" style="width:260px;margin:0" aria-label="Buscar item">
+                                    <input type="text" name="quantidade" value="1" style="width:70px;margin:0" aria-label="Quantidade">
+                                    <input type="text" name="preco" class="js-preco" placeholder="Preço" style="width:90px;margin:0" aria-label="Preço (opcional)">
+                                    <button class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Adicionar</span></button>
+                                </form>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endif; ?>
                     <?php endforeach; ?>
                 </tbody>
             </table>
@@ -609,6 +686,112 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
         <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Vincular</span></button></div>
     </form>
 </div>
+<?php if (! empty($plan_ativo)):
+    $camposOs = function ($com_data) use ($tecnicos_os, $equipes_os) { ob_start(); ?>
+        <div class="span6" style="margin-left:0"><label>Técnico</label>
+            <select name="tecnico_id" class="span12"><option value="">— nenhum —</option>
+                <?php foreach ($tecnicos_os as $t): ?><option value="<?= (int) $t->idUsuarios ?>"><?= html_escape($t->nome) ?></option><?php endforeach; ?>
+            </select></div>
+        <div class="span6"><label>Equipe</label>
+            <select name="equipe_id" class="span12"><option value="">— nenhuma —</option>
+                <?php foreach ($equipes_os as $q): ?><option value="<?= (int) $q->idEquipe ?>"><?= html_escape($q->nome) ?></option><?php endforeach; ?>
+            </select></div>
+        <?php if ($com_data): ?>
+        <div class="span6" style="margin-left:0"><label>Data de agendamento</label>
+            <input type="text" name="data_agendamento" class="span12 datepicker js-os-data" autocomplete="off" placeholder="dd/mm/aaaa"></div>
+        <?php endif; ?>
+        <div class="span6" <?= $com_data ? '' : 'style="margin-left:0"' ?>><label>Tipo de vínculo</label>
+            <select name="tipo_vinculo" class="span12"><option value="execucao">Execução</option><option value="complementar">Complementar</option><option value="garantia">Garantia</option></select></div>
+        <div class="span12" style="margin-left:0"><label><input type="checkbox" name="fatura_no_projeto" value="1" checked style="margin:0 6px 0 0"> Faturar no projeto</label></div>
+    <?php return ob_get_clean(); }; ?>
+<!-- Modal Gerar OS da etapa -->
+<div id="modal-os-etapa" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <form action="<?= site_url('obras/gerarOsEtapa') ?>" method="post">
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Gerar OS da etapa: <span id="os_etapa_nome"></span></h5></div>
+        <div class="modal-body">
+            <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
+            <input type="hidden" name="etapa_id" id="os_etapa_id">
+            <?= $camposOs(true) ?>
+            <small>Os itens previstos da etapa são copiados para a OS.</small>
+        </div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Gerar OS</span></button></div>
+    </form>
+</div>
+<!-- Modal Gerar OS em lote -->
+<div id="modal-os-lote" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <form action="<?= site_url('obras/gerarOsLote') ?>" method="post">
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Gerar OS das etapas sem OS</h5></div>
+        <div class="modal-body">
+            <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
+            <div class="span12" style="margin-left:0"><label>Etapas (nenhuma marcada = todas sem OS)</label>
+                <?php foreach ($etapasSemOs as $es): ?>
+                    <label style="display:block"><input type="checkbox" name="etapas[]" value="<?= (int) $es->idEtapa ?>" style="margin:0 6px 0 0"> <?= html_escape(trim($es->codigo_eap . ' ' . $es->nome)) ?></label>
+                <?php endforeach; ?>
+                <?php if (! $etapasSemOs): ?><small>Todas as etapas já têm OS.</small><?php endif; ?>
+            </div>
+            <?= $camposOs(false) ?>
+            <div class="span12" style="margin-left:0"><label><input type="checkbox" name="forcar" value="1" style="margin:0 6px 0 0"> Forçar (gerar mesmo se a etapa já tiver OS ou não tiver itens)</label></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Gerar OS</span></button></div>
+    </form>
+</div>
+<!-- Modal Gerar OS por pontos -->
+<div id="modal-os-pontos" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <form action="<?= site_url('obras/gerarOsPontos') ?>" method="post" id="form-os-pontos">
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Gerar OS para os pontos marcados</h5></div>
+        <div class="modal-body">
+            <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
+            <div id="os_pontos_ids"></div>
+            <p><strong id="os_pontos_qtd">0</strong> ponto(s) sem OS selecionado(s).</p>
+            <div class="span12" style="margin-left:0"><label>Etapa *</label>
+                <select name="etapa_id" class="span12" required><option value="">Selecione a etapa...</option>
+                    <?php foreach ($etapas as $e): ?><option value="<?= (int) $e->idEtapa ?>"><?= html_escape($e->nome) ?></option><?php endforeach; ?>
+                </select></div>
+            <?= $camposOs(false) ?>
+        </div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Gerar OS</span></button></div>
+    </form>
+</div>
+<script nonce="<?= csp_nonce() ?>">
+    $(function () {
+        $('.js-itens-toggle').on('click', function (ev) { ev.preventDefault(); $('#' + $(this).data('alvo')).toggle(); });
+        $('.js-excluir-item').on('submit', function () { return confirm('Remover este item previsto?'); });
+        $('.js-gerar-os').on('click', function () {
+            $('#os_etapa_id').val($(this).data('etapa')); $('#os_etapa_nome').text($(this).data('nome'));
+            $('#modal-os-etapa .js-os-data').val($(this).data('inicio') || '');
+        });
+        $('.js-form-item').each(function () {
+            var $f = $(this), $busca = $f.find('.js-busca');
+            $busca.autocomplete({
+                minLength: 2,
+                source: function (req, resp) {
+                    $.getJSON('<?= site_url('obras/autoCompleteItem') ?>', { term: req.term, tipo: $f.find('.js-tipo').val() }, resp);
+                },
+                select: function (ev, ui) {
+                    $f.find('.js-ref').val(ui.item.id); $f.find('.js-preco').val(ui.item.preco);
+                    $busca.val(ui.item.label.split(' | ')[0]);
+                    return false;
+                }
+            });
+            $busca.on('input', function () { $f.find('.js-ref').val(''); });
+            $f.find('.js-tipo').on('change', function () { $busca.val(''); $f.find('.js-ref').val(''); });
+            $f.on('submit', function () {
+                if (! $f.find('.js-ref').val()) { alert('Escolha o item na lista de busca.'); return false; }
+            });
+        });
+        $('.js-os-pontos').on('click', function () {
+            var $box = $('#os_pontos_ids').empty(), n = 0;
+            $('input[name="ponto_ids[]"]:checked').each(function () {
+                if (String($(this).data('sem-os')) === '1') { n++; $box.append($('<input type="hidden" name="pontos[]">').val($(this).val())); }
+            });
+            $('#os_pontos_qtd').text(n);
+        });
+        $('#form-os-pontos').on('submit', function () {
+            if (! $('#os_pontos_ids input').length) { alert('Marque ao menos um ponto sem OS.'); return false; }
+        });
+    });
+</script>
+<?php endif; ?>
 <form id="formDesvincularOs" action="<?= site_url('obras/desvincularOs') ?>" method="post" style="display:none">
     <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>"><input type="hidden" name="idVinculo" id="del_vinculo">
 </form>

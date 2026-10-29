@@ -1,6 +1,6 @@
 # ADR-015: Ponte entre Ordem de Serviço e planejamento do projeto
 
-- **Status**: accepted (Fase 1 implementada)
+- **Status**: accepted (Fases 1 e 2 implementadas)
 - **Date**: 2026-10-29
 - **Deciders**: N4m3r
 - **Tags**: projetos, os, cronograma, etapas, sincronizacao, faturamento
@@ -46,14 +46,15 @@ A ponte passa a funcionar nos dois sentidos e o projeto se atualiza sozinho.
 | Fase | Parte | Situação |
 |---|---|---|
 | 1 | Migration, `Projeto_sync`, status centralizado, vínculo/selo/filtro na OS | feito |
-| 2 | Itens previstos da etapa, gerar OS da etapa e em lote por pontos | pendente |
+| 2 | Itens previstos da etapa, gerar OS da etapa, em lote e por pontos (`Obra_planejamento_model`) | feito |
 | 3 | Converter OS em projeto | pendente |
 | 4 | Horas, material, pontos, sugestão de conclusão, relatório ADR-012 | pendente |
 | 5 | Faturamento por medição e alertas no painel | pendente |
 
 ## Verificação
 
-- PHPUnit: `tests/Unit/ProjetoSyncTest.php` (regras de decisão da sincronização).
+- PHPUnit: `tests/Unit/ProjetoSyncTest.php` (decisão da sincronização) e
+  `tests/Unit/ObraPlanejamentoTest.php` (descrição, totais e filtro do lote).
 - Navegador: vincular OS pela tela da OS, mudar status e ver a etapa no projeto.
 
 ## Consequences
