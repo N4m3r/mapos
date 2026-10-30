@@ -322,4 +322,36 @@ class ProjetoAcompanhamentoTest extends TestCase
             ['2026-10-29 22:00:00', '2026-10-30 03:30:00'],
         ]));
     }
+
+    /* ----------------------- classificarOrigemAtividade ----------------------- */
+
+    public function testOrigemSemOsEhRegistroDoDia(): void
+    {
+        $r = Projeto_acompanhamento_model::classificarOrigemAtividade(null);
+        $this->assertSame('rdo', $r['origem']);
+        $this->assertSame('Registro do dia', $r['rotulo']);
+        $this->assertNull($r['os_id']);
+    }
+
+    public function testOrigemComZeroEhRegistroDoDia(): void
+    {
+        $r = Projeto_acompanhamento_model::classificarOrigemAtividade(0);
+        $this->assertSame('rdo', $r['origem']);
+        $this->assertSame('Registro do dia', $r['rotulo']);
+    }
+
+    public function testOrigemComOsIdentificaAOs(): void
+    {
+        $r = Projeto_acompanhamento_model::classificarOrigemAtividade(123);
+        $this->assertSame('os', $r['origem']);
+        $this->assertSame('OS #123', $r['rotulo']);
+        $this->assertSame(123, $r['os_id']);
+    }
+
+    public function testOrigemAceitaStringNumerica(): void
+    {
+        $r = Projeto_acompanhamento_model::classificarOrigemAtividade('45');
+        $this->assertSame('os', $r['origem']);
+        $this->assertSame('OS #45', $r['rotulo']);
+    }
 }

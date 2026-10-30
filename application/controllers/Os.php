@@ -901,8 +901,16 @@ class Os extends MY_Controller
         if ($this->os_model->add('produtos_os', $data) == true) {
             $this->load->model('produtos_model');
 
-            if ($this->data['configuration']['control_estoque']) {
+            // Projeto (ADR-015): OS vinculada com fatura_no_projeto baixa do
+            // almoxarifado do projeto, nao do estoque geral.
+            $this->load->library('projeto_sync');
+            $resProjeto = $this->projeto_sync->aplicarProdutoDaOs((int) $id, (int) $produto, (float) $quantidade, 'adicionar');
+
+            if ($resProjeto['origem'] !== 'obra' && $this->data['configuration']['control_estoque']) {
                 $this->produtos_model->updateEstoque($produto, $quantidade, '-', ['tipo' => 'os', 'referencia' => $id]);
+            }
+            if (! empty($resProjeto['aviso'])) {
+                log_info('Os::adicionarProduto - ' . $resProjeto['aviso']);
             }
 
             $this->db->set('desconto', 0.00);
@@ -916,7 +924,7 @@ class Os extends MY_Controller
             return $this->output
                 ->set_content_type('application/json')
                 ->set_status_header(200)
-                ->set_output(json_encode(['result' => true]));
+                ->set_output(json_encode(['result' => true, 'aviso' => $resProjeto['aviso'] ?? null]));
         } else {
             return $this->output
                 ->set_content_type('application/json')
@@ -949,7 +957,12 @@ class Os extends MY_Controller
         if ($this->os_model->delete('produtos_os', 'idProdutos_os', $id) == true) {
             $this->load->model('produtos_model');
 
-            if ($this->data['configuration']['control_estoque']) {
+            // Projeto (ADR-015): se a OS vinculada baixava do almoxarifado do
+            // projeto, devolve ali; senao, devolve ao estoque geral (como hoje).
+            $this->load->library('projeto_sync');
+            $resProjeto = $this->projeto_sync->aplicarProdutoDaOs((int) $idOs, (int) $item->produtos_id, (float) $item->quantidade, 'remover');
+
+            if ($resProjeto['origem'] !== 'obra' && $this->data['configuration']['control_estoque']) {
                 $this->produtos_model->updateEstoque($item->produtos_id, $item->quantidade, '+', ['tipo' => 'os', 'referencia' => $idOs, 'observacao' => 'Produto removido da OS']);
             }
 
@@ -1068,6 +1081,10 @@ class Os extends MY_Controller
         $preco = $this->input->post('preco');
         $subtotal = $preco * $quantidade;
 
+        // Item como estava antes da edicao: a OS e o produto vem do banco (nao do
+        // navegador) pra ajustar a fonte certa de material (ADR-015).
+        $itemAntes = $this->db->where('idProdutos_os', $idProdutoOs)->get('produtos_os')->row();
+
         $data = [
             'quantidade' => $quantidade,
             'preco' => $preco,
@@ -1076,6 +1093,14 @@ class Os extends MY_Controller
 
         $this->db->where('idProdutos_os', $idProdutoOs);
         if ($this->db->update('produtos_os', $data)) {
+            if ($itemAntes) {
+                $this->load->library('projeto_sync');
+                $resProjeto = $this->projeto_sync->aplicarProdutoDaOs((int) $itemAntes->os_id, (int) $itemAntes->produtos_id, (float) $quantidade, 'ajustar');
+                if (! empty($resProjeto['aviso'])) {
+                    log_info('Os::editarProduto - ' . $resProjeto['aviso']);
+                }
+            }
+
             $this->db->set('desconto', 0.00);
             $this->db->set('valor_desconto', 0.00);
             $this->db->set('tipo_desconto', null);

@@ -260,6 +260,9 @@ class Checkin extends MY_Controller
                     'status' => 'Finalizado'
                 ]);
                 log_info('Auto-finalizado checkin preso da OS: ' . $os_id);
+                // Projeto (ADR-015): lanca a mao de obra desse checkin fechado.
+                $this->load->library('projeto_sync');
+                $this->projeto_sync->lancarHorasDoCheckin((int) $ultimo_checkin->idCheckin);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Existe um atendimento iniciado recentemente. Finalize-o ou aguarde 24h para iniciar um novo.']);
                 return;
@@ -397,6 +400,14 @@ class Checkin extends MY_Controller
         // Obtém check-in ativo (com auto-finalização de checkins expirados)
         $checkin = $this->checkin_model->getCheckinAtivoComAutoFinalizacao($os_id);
 
+        // getCheckinAtivoComAutoFinalizacao pode ter fechado um checkin preso (>24h)
+        // por dentro do model; se foi o caso, lanca a mao de obra dele agora (idempotente).
+        $possoAuto = $this->checkin_model->getUltimoCheckin($os_id);
+        if ($possoAuto && !empty($possoAuto->data_saida) && (!$checkin || (int) $possoAuto->idCheckin !== (int) $checkin->idCheckin)) {
+            $this->load->library('projeto_sync');
+            $this->projeto_sync->lancarHorasDoCheckin((int) $possoAuto->idCheckin);
+        }
+
         if (!$checkin) {
             // Verifica se existe checkin mais antigo sem data de saída ("preso")
             $ultimo_checkin = $this->checkin_model->getUltimoCheckin($os_id);
@@ -451,6 +462,10 @@ class Checkin extends MY_Controller
             echo json_encode(['success' => false, 'message' => 'Erro ao finalizar atendimento']);
             return;
         }
+
+        // Projeto (ADR-015): lanca a mao de obra desse checkin na obra vinculada a OS (se houver).
+        $this->load->library('projeto_sync');
+        $this->projeto_sync->lancarHorasDoCheckin((int) $checkin->idCheckin);
 
         // Salva assinatura do técnico na saída.
         // salvarImagem já grava a linha em os_assinaturas quando cai no modo

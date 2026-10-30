@@ -791,6 +791,9 @@ class Tecnico extends MY_Controller
                     'status' => 'Finalizado'
                 ]);
                 log_info('Auto-finalizado checkin preso da OS: ' . $os_id);
+                // Projeto (ADR-015): lanca a mao de obra desse checkin fechado.
+                $this->load->library('projeto_sync');
+                $this->projeto_sync->lancarHorasDoCheckin((int) $ultimo_checkin->idCheckin);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Existe um atendimento iniciado recentemente. Finalize-o ou aguarde 24h para iniciar um novo.']);
                 return;
@@ -967,6 +970,9 @@ class Tecnico extends MY_Controller
                 'observacao_saida' => 'Serviço não realizado' . ($observacao !== '' ? ': ' . $observacao : ''),
                 'status' => 'Finalizado',
             ]);
+            // Projeto (ADR-015): o tempo em campo conta mesmo quando o servico nao foi feito.
+            $this->load->library('projeto_sync');
+            $this->projeto_sync->lancarHorasDoCheckin((int) $checkin->idCheckin);
         }
 
         $id = $this->naorealizada_model->registrar(

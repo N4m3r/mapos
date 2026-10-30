@@ -51,6 +51,18 @@ $fasePasso = (int) $guia['fase'];
 $trilho = [1 => 'Montar', 2 => 'Planejar', 3 => 'Executar', 4 => 'Entregar'];
 $projetoEncerrado = in_array($obra->status, ['concluida', 'entregue'], true);
 
+// Sugestao de concluir etapa (ADR-015 fase 4): OS da etapa todas terminadas, mas ainda
+// há ponto sem teste. Enquanto existir, ela vira o proximo passo da faixa.
+$etapaSugeridaDestaque = $etapasSugestoesConcluir ? reset($etapasSugestoesConcluir) : null;
+if ($etapaSugeridaDestaque && ! $projetoEncerrado) {
+    $guia['texto'] = 'Todas as OS da etapa "' . $etapaSugeridaDestaque['etapa_nome'] . '" terminaram, mas '
+        . (int) $etapaSugeridaDestaque['pontos_pendentes'] . ' ponto(s) ainda não foram testados.';
+    $guia['alvo'] = '#aba-planejamento';
+    $guia['botao_rotulo'] = 'Ver etapa';
+    // ja houve OS terminada: o projeto esta em execucao, nao mais planejando
+    $fasePasso = max($fasePasso, 3);
+}
+
 // Acao principal do topo: registrar execucao quando em execucao e pode executar; senao o proximo passo.
 if ($obra->status === 'em_execucao' && ! empty($pode_executar)) {
     $acaoTopo = $linkAlvo('#modal-registro', 'Registrar execução', 'btn-primary pj-primaria', 'bx-check-circle');
@@ -304,6 +316,16 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
             </div>
         </div>
 
+        <?php if (! empty($pontos_filtro_etapa)): ?>
+            <div class="ui-dica">
+                <i class="bx bx-filter-alt"></i>
+                <div>
+                    Mostrando só os pontos pendentes da etapa &quot;<?= html_escape($pontos_filtro_etapa['nome']) ?>&quot;.
+                    <a href="<?= site_url('obras/visualizar/' . (int) $obra->idObra) ?>#pontos" class="pj-link">Ver todos os pontos</a>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <?php if ($pontos_resumo['total'] > 0): ?>
         <form action="<?= site_url('obras/visualizar/' . (int) $obra->idObra) ?>#pontos" method="get" class="pj-filtros">
             <select name="pt_tipo" aria-label="Filtrar por tipo">
@@ -534,6 +556,37 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                                 </td>
                             <?php endif; ?>
                         </tr>
+                        <?php $sugEtapa = $etapasSugestoesConcluir[$e->idEtapa] ?? null; ?>
+                        <?php if ($sugEtapa && $e->status !== 'concluida'): ?>
+                        <tr class="pj-linha-sugestao">
+                            <td colspan="10">
+                                <div class="ui-dica alerta pj-sugestao-concluir">
+                                    <i class="bx bx-error"></i>
+                                    <div>
+                                        Todas as OS desta etapa terminaram, mas <?= (int) $sugEtapa['pontos_pendentes'] ?> ponto(s) ainda não foram testados.
+                                        <div class="pj-sugestao-acoes">
+                                            <a href="<?= site_url('obras/visualizar/' . (int) $obra->idObra) ?>?pt_etapa=<?= (int) $e->idEtapa ?>#pontos" class="button btn btn-mini"><span class="button__icon"><i class="bx bx-cctv"></i></span><span class="button__text2">Ver pontos pendentes</span></a>
+                                            <?php if ($perm('eObraCronograma')): ?>
+                                            <form action="<?= site_url('obras/salvarEtapa') ?>" method="post" class="pj-form-linha" data-confirmar="Concluir esta etapa mesmo com pontos pendentes?">
+                                                <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
+                                                <input type="hidden" name="idEtapa" value="<?= (int) $e->idEtapa ?>">
+                                                <input type="hidden" name="codigo_eap" value="<?= html_escape((string) $e->codigo_eap) ?>">
+                                                <input type="hidden" name="nome" value="<?= html_escape($e->nome) ?>">
+                                                <input type="hidden" name="peso_percentual" value="<?= (float) $e->peso_percentual ?>">
+                                                <input type="hidden" name="valor_previsto" value="<?= (float) $e->valor_previsto ?>">
+                                                <input type="hidden" name="percentual_concluido" value="100">
+                                                <input type="hidden" name="data_inicio_prevista" value="<?= html_escape((string) $e->data_inicio_prevista) ?>">
+                                                <input type="hidden" name="data_fim_prevista" value="<?= html_escape((string) $e->data_fim_prevista) ?>">
+                                                <input type="hidden" name="status" value="concluida">
+                                                <button class="button btn btn-mini btn-success"><span class="button__icon"><i class="bx bx-check-circle"></i></span><span class="button__text2">Concluir etapa assim mesmo</span></button>
+                                            </form>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endif; ?>
                         <?php if (! empty($plan_ativo) && ($planOk || $itEt)): ?>
                         <tr id="itens-etapa-<?= (int) $e->idEtapa ?>" class="js-itens-row pj-linha-itens" style="display:none">
                             <td colspan="10">
@@ -597,21 +650,47 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                     <?php if ($podeRdo): ?><a href="#modal-rdo" data-toggle="modal" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Registro completo</span></a><?php endif; ?>
                 </div>
             </div>
+            <?php
+            // Junta os registros do dia (RDO) com a atividade vinda de OS vinculada
+            // (check-in/checkout, mão de obra e consumo com os_id) - ADR-012/ADR-015 fase 4.
+            $execRegistros = [];
+            foreach ($rdos as $r) {
+                $execRegistros[] = ['data' => (string) $r->data, 'ordem' => (int) $r->idRdo, 'tipo' => 'rdo', 'obj' => $r];
+            }
+            foreach ($atividades_os as $a) {
+                $execRegistros[] = ['data' => (string) $a['data'], 'ordem' => 0, 'tipo' => 'os', 'obj' => (object) $a];
+            }
+            usort($execRegistros, function ($x, $y) {
+                return strcmp($y['data'], $x['data']) ?: ($y['ordem'] <=> $x['ordem']);
+            });
+            ?>
             <div class="pj-tabela-caixa ui-tabela-rolagem">
                 <table class="table pj-tab-cartao">
-                    <thead><tr><th>Nº</th><th>Data</th><th>O que foi feito</th><th>Condição</th><th>Técnicos</th><th>Responsável</th><th></th></tr></thead>
+                    <thead><tr><th>Origem</th><th>Data</th><th>O que foi feito</th><th>Condição</th><th>Técnicos</th><th>Responsável</th><th></th></tr></thead>
                     <tbody>
-                        <?php if (! $rdos): ?><tr class="pj-linha-vazia"><td colspan="7"><div class="ui-vazio"><i class="bx bx-notepad"></i><strong>Nenhum registro do dia ainda.</strong>Registre o que foi feito para o histórico e o cliente acompanharem.</div></td></tr><?php endif; ?>
-                        <?php foreach ($rdos as $r): ?>
-                            <tr>
-                                <td data-label="Nº"><?= html_escape($r->numero) ?></td>
-                                <td data-label="Data"><?= $data_br($r->data) ?></td>
-                                <td data-label="O que foi feito"><?= html_escape(mb_strimwidth((string) $r->atividades, 0, 80, '…')) ?: '—' ?></td>
-                                <td data-label="Condição"><?= html_escape($condicoesRdo[$r->condicao] ?? (string) $r->condicao) ?></td>
-                                <td data-label="Técnicos"><?= (int) $r->efetivo_total ?></td>
-                                <td data-label="Responsável"><?= html_escape($r->responsavel) ?></td>
-                                <td class="pj-col-acoes"><a href="<?= site_url('obras/imprimirRdo/' . $r->idRdo) ?>" target="_blank" class="btn-nwe" title="Imprimir registro" aria-label="Imprimir registro <?= html_escape($r->numero) ?>"><i class="bx bx-printer bx-xs"></i></a></td>
-                            </tr>
+                        <?php if (! $execRegistros): ?><tr class="pj-linha-vazia"><td colspan="7"><div class="ui-vazio"><i class="bx bx-notepad"></i><strong>Nenhum registro do dia ainda.</strong>Registre o que foi feito para o histórico e o cliente acompanharem.</div></td></tr><?php endif; ?>
+                        <?php foreach ($execRegistros as $item): $o = $item['obj']; ?>
+                            <?php if ($item['tipo'] === 'rdo'): ?>
+                                <tr>
+                                    <td data-label="Origem"><span class="ui-selo neutro" title="Registro do dia nº <?= html_escape($o->numero) ?>">Registro do dia</span></td>
+                                    <td data-label="Data"><?= $data_br($o->data) ?></td>
+                                    <td data-label="O que foi feito"><?= html_escape(mb_strimwidth((string) $o->atividades, 0, 80, '…')) ?: '—' ?></td>
+                                    <td data-label="Condição"><?= html_escape($condicoesRdo[$o->condicao] ?? (string) $o->condicao) ?></td>
+                                    <td data-label="Técnicos"><?= (int) $o->efetivo_total ?></td>
+                                    <td data-label="Responsável"><?= html_escape($o->responsavel) ?></td>
+                                    <td class="pj-col-acoes"><a href="<?= site_url('obras/imprimirRdo/' . $o->idRdo) ?>" target="_blank" class="btn-nwe" title="Imprimir registro" aria-label="Imprimir registro <?= html_escape($o->numero) ?>"><i class="bx bx-printer bx-xs"></i></a></td>
+                                </tr>
+                            <?php else: ?>
+                                <tr class="pj-linha-os">
+                                    <td data-label="Origem"><a href="<?= site_url('os/visualizar/' . (int) $o->os_id) ?>" class="ui-selo info" title="Atividade vinda da OS #<?= (int) $o->os_id ?>">OS #<?= (int) $o->os_id ?></a></td>
+                                    <td data-label="Data"><?= $data_br($o->data) ?></td>
+                                    <td data-label="O que foi feito"><?= html_escape((string) $o->atividades) ?></td>
+                                    <td data-label="Condição">—</td>
+                                    <td data-label="Técnicos">—</td>
+                                    <td data-label="Responsável"><?= html_escape((string) ($o->responsavel ?: '—')) ?></td>
+                                    <td class="pj-col-acoes"><a href="<?= site_url('os/visualizar/' . (int) $o->os_id) ?>" class="btn-nwe" title="Ver a OS" aria-label="Ver a OS <?= (int) $o->os_id ?>"><i class="bx bx-link-external bx-xs"></i></a></td>
+                                </tr>
+                            <?php endif; ?>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
@@ -644,7 +723,13 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                                 <td data-label="Função"><?= html_escape($ap->funcao) ?></td>
                                 <td data-label="Horas"><?= $fmt($ap->horas) ?></td>
                                 <td data-label="Diária"><?= $ap->diaria ? '1' : '—' ?></td>
-                                <td data-label="Origem"><span class="ui-selo neutro"><?= $ap->origem === 'ponto_facial' ? 'Ponto' : 'Manual' ?></span></td>
+                                <td data-label="Origem">
+                                    <?php if (! empty($ap->os_id)): ?>
+                                        <a href="<?= site_url('os/visualizar/' . (int) $ap->os_id) ?>" class="ui-selo info" title="Lançado pela execução da OS">OS #<?= (int) $ap->os_id ?></a>
+                                    <?php else: ?>
+                                        <span class="ui-selo neutro"><?= $ap->origem === 'ponto_facial' ? 'Ponto' : 'Manual' ?></span>
+                                    <?php endif; ?>
+                                </td>
                                 <?php if ($verValor): ?><td data-label="Valor">R$ <?= $fmt($ap->valor) ?></td><?php endif; ?>
                                 <?php if ($podeRdo): ?>
                                     <td class="pj-col-acoes"><a href="#" class="btn-nwe4" title="Remover" aria-label="Remover apontamento" data-chamar="excluirApont" data-args="[<?= (int) $ap->idApontamento ?>]" data-cancelar><i class="bx bx-trash-alt bx-xs"></i></a></td>
@@ -758,6 +843,34 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                                 <td data-label="Un."><?= html_escape($s->unidade) ?></td>
                                 <td data-label="Origem"><?= $s->do_cliente ? '<span class="ui-selo info">Cliente</span>' : 'Próprio' ?></td>
                                 <td data-label="Saldo"><strong><?= rtrim(rtrim(number_format((float) $s->saldo, 3, ',', '.'), '0'), ',') ?></strong></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="pj-bloco" aria-labelledby="pj-t-consumo">
+            <div class="pj-secao-cab"><h2 id="pj-t-consumo">Consumo registrado</h2></div>
+            <div class="pj-tabela-caixa ui-tabela-rolagem">
+                <table class="table pj-tab-cartao">
+                    <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Qtd.</th><th>Origem</th><th>Quem</th></tr></thead>
+                    <tbody>
+                        <?php if (! $consumo_projeto): ?><tr class="pj-linha-vazia"><td colspan="6"><div class="ui-vazio"><i class="bx bx-cube"></i><strong>Nenhum consumo registrado ainda.</strong>Material e serviço usados no Registro do dia ou na OS aparecem aqui.</div></td></tr><?php endif; ?>
+                        <?php foreach ($consumo_projeto as $c): ?>
+                            <tr>
+                                <td data-label="Data"><?= $data_br($c['data']) ?></td>
+                                <td data-label="Tipo"><?= $c['tipo'] === 'servico' ? 'Serviço' : 'Material' ?></td>
+                                <td data-label="Descrição"><?= html_escape($c['descricao']) ?></td>
+                                <td data-label="Qtd."><?= rtrim(rtrim(number_format((float) $c['quantidade'], 3, ',', '.'), '0'), ',') ?></td>
+                                <td data-label="Origem">
+                                    <?php if ($c['os_id']): ?>
+                                        <a href="<?= site_url('os/visualizar/' . (int) $c['os_id']) ?>" class="ui-selo info" title="Consumo lançado pela execução da OS"><?= html_escape($c['origem_rotulo']) ?></a>
+                                    <?php else: ?>
+                                        <span class="ui-selo neutro"><?= html_escape($c['origem_rotulo']) ?></span>
+                                    <?php endif; ?>
+                                </td>
+                                <td data-label="Quem"><?= html_escape($c['usuario'] ?: '—') ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

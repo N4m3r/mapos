@@ -493,6 +493,9 @@ class Obra_pontos_model extends CI_Model
             if ($this->db->field_exists('evento', 'obra_ponto_historico')) {
                 $hist['evento'] = 'status';
             }
+            if (! empty($extras['os_id']) && $this->db->field_exists('os_id', 'obra_ponto_historico')) {
+                $hist['os_id'] = (int) $extras['os_id'];
+            }
             $this->db->insert('obra_ponto_historico', $hist);
         }
 

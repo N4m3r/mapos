@@ -186,6 +186,12 @@ class Obras extends MY_Controller
         $this->data['os_servicos'] = $this->obras_model->getServicosDasOs($id);
         $this->data['os_produtos'] = $this->obras_model->getProdutosDasOs($id);
 
+        // Atividade vinda de OS vinculada (check-in/checkout, mão de obra e consumo com
+        // os_id) e consumo do projeto com a origem (RDO ou OS) - ADR-012/ADR-015 fase 4.
+        $this->load->model('projeto_acompanhamento_model');
+        $this->data['atividades_os'] = $this->projeto_acompanhamento_model->atividadesProjeto($id);
+        $this->data['consumo_projeto'] = $this->projeto_acompanhamento_model->consumoProjeto($id);
+
         // Pontos do projeto (câmeras, pontos de rede, leitores...)
         $this->load->model('obra_pontos_model');
         $ptTipos = Obra_pontos_model::tipos();
@@ -214,6 +220,34 @@ class Obras extends MY_Controller
         $this->data['pontos_resumo'] = Obra_pontos_model::resumo($this->data['pontos_todos']);
         $this->data['pontos_tipos'] = $ptTipos;
         $this->data['pontos_status'] = $ptStatus;
+
+        // "Ver pontos pendentes" da sugestão de conclusão de etapa (ADR-015 fase 4):
+        // filtra, sem precisar de nada no Obra_pontos_model, os pontos ligados às OS da etapa.
+        $feEtapa = (int) $this->input->get('pt_etapa');
+        $etapaFiltroNome = '';
+        if ($feEtapa > 0) {
+            foreach ($this->data['etapas'] as $et) {
+                if ((int) $et->idEtapa === $feEtapa) {
+                    $etapaFiltroNome = (string) $et->nome;
+                }
+            }
+        }
+        if ($feEtapa > 0 && $etapaFiltroNome !== '' && $this->db->table_exists('obra_os') && $this->db->table_exists('obra_ponto_os')) {
+            $this->db->select('obra_ponto_os.ponto_id');
+            $this->db->from('obra_ponto_os');
+            $this->db->join('obra_os', 'obra_os.os_id = obra_ponto_os.os_id');
+            $this->db->where('obra_os.etapa_id', $feEtapa);
+            $idsEtapa = [];
+            foreach ($this->db->get()->result() as $r) {
+                $idsEtapa[(int) $r->ponto_id] = true;
+            }
+            $this->data['pontos'] = array_values(array_filter($this->data['pontos'], function ($p) use ($idsEtapa) {
+                return isset($idsEtapa[(int) $p->idPonto]) && $p->status !== 'testado';
+            }));
+        } elseif ($feEtapa > 0) {
+            $etapaFiltroNome = '';
+        }
+        $this->data['pontos_filtro_etapa'] = $etapaFiltroNome !== '' ? ['id' => $feEtapa, 'nome' => $etapaFiltroNome] : null;
         $this->data['pontos_filtro'] = [
             'tipo' => $filtros['tipo'] ?? '',
             'status' => $filtros['status'] ?? '',
@@ -263,10 +297,46 @@ class Obras extends MY_Controller
             }
         }
 
+        $this->data['etapasSugestoesConcluir'] = $this->etapasSugeridasParaConcluir($id);
+
         $this->montarGuiaProjeto($obra);
 
         $this->data['view'] = 'obras/visualizar';
         return $this->layout();
+    }
+
+    /**
+     * Etapas com todas as OS finalizadas mas pontos pendentes, por idEtapa (ADR-015 fase 4).
+     * Erro na consulta nao derruba a pagina do projeto.
+     */
+    private function etapasSugeridasParaConcluir(int $obraId): array
+    {
+        if (! $obraId) {
+            return [];
+        }
+        try {
+            $this->load->library('projeto_sync');
+            $lista = $this->projeto_sync->etapasSugeridasParaConcluir($obraId);
+        } catch (\Throwable $e) {
+            log_message('error', 'etapasSugeridasParaConcluir falhou: ' . $e->getMessage());
+
+            return [];
+        }
+        $out = [];
+        foreach ((array) $lista as $s) {
+            $s = (array) $s;
+            if (! isset($s['etapa_id'])) {
+                continue;
+            }
+            $out[(int) $s['etapa_id']] = [
+                'etapa_id' => (int) $s['etapa_id'],
+                'etapa_nome' => (string) ($s['etapa_nome'] ?? ''),
+                'os_finalizadas' => (int) ($s['os_finalizadas'] ?? 0),
+                'pontos_pendentes' => (int) ($s['pontos_pendentes'] ?? 0),
+            ];
+        }
+
+        return $out;
     }
 
     /** Estado do projeto -> trilho, proximo passo e prazo (ADR-016). Usa so dados ja carregados em visualizar. */

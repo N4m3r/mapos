@@ -1,5 +1,4 @@
 <link rel="stylesheet" href="<?= base_url() ?>assets/css/obras.css">
-<link rel="stylesheet" href="<?= base_url() ?>assets/css/projeto-lista.css">
 
 <?php $this->load->view('obras/_nav'); ?>
 

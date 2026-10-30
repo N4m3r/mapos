@@ -1,6 +1,6 @@
 # ADR-015: Ponte entre Ordem de Serviço e planejamento do projeto
 
-- **Status**: accepted (Fases 1 a 3 implementadas)
+- **Status**: accepted (Fases 1 a 4 implementadas)
 - **Date**: 2026-10-29
 - **Deciders**: N4m3r
 - **Tags**: projetos, os, cronograma, etapas, sincronizacao, faturamento
@@ -48,7 +48,7 @@ A ponte passa a funcionar nos dois sentidos e o projeto se atualiza sozinho.
 | 1 | Migration, `Projeto_sync`, status centralizado, vínculo/selo/filtro na OS | feito |
 | 2 | Itens previstos da etapa, gerar OS da etapa, em lote e por pontos (`Obra_planejamento_model`) | feito |
 | 3 | Converter OS aprovada em projeto (etapas por servico ou padrao, itens e pontos) | feito |
-| 4 | Horas, material, pontos, sugestão de conclusão, relatório ADR-012 | pendente |
+| 4 | Horas do check-out, material do almoxarifado do projeto, pontos pela OS, sugestão de conclusão, relatório ADR-012 com atividade de OS | feito |
 | 5 | Faturamento por medição e alertas no painel | pendente |
 
 ## Verificação
@@ -71,3 +71,12 @@ A ponte passa a funcionar nos dois sentidos e o projeto se atualiza sozinho.
 
 ## Links
 - **Depends on**: ADR-012, ADR-013
+
+## Notas da fase 4
+
+- Horas: lancadas em `obra_apontamento` no check-out (painel e portal do tecnico, inclusive
+  "nao realizado"); a marca `checkin:<id>` em `observacao` evita lancamento duplicado.
+- Material: OS com `fatura_no_projeto` baixa de `obra_material_saldo` e registra `obra_consumo`
+  com `os_id`; o estoque geral nao muda. Saldo insuficiente avisa e nao bloqueia.
+- Pendente: cancelar, reabrir ou excluir a OS ainda devolve so ao estoque geral, sem ajustar o
+  almoxarifado do projeto.

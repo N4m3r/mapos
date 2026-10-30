@@ -290,6 +290,20 @@ class Projeto_acompanhamento_model extends CI_Model
         return $a >= $b ? $a : $b;
     }
 
+    /**
+     * Origem de uma atividade a partir do os_id (ADR-015 fase 4): sem OS é "Registro do
+     * dia" (RDO); com OS é "OS #N", com link pronto para a tela da OS. Pura, sem banco.
+     */
+    public static function classificarOrigemAtividade($osId): array
+    {
+        $id = (int) ($osId ?? 0);
+        if ($id > 0) {
+            return ['origem' => 'os', 'rotulo' => 'OS #' . $id, 'os_id' => $id];
+        }
+
+        return ['origem' => 'rdo', 'rotulo' => 'Registro do dia', 'os_id' => null];
+    }
+
     /** Avanços de ponto (histórico) do período, com filtros opcionais de projeto e técnico. */
     private function avancosPontos(string $inicio, string $fim, int $obraId, int $usuarioId): array
     {
@@ -430,6 +444,373 @@ class Projeto_acompanhamento_model extends CI_Model
         return ['usuario_id' => $uid, 'nome' => $nome, 'registros' => 0, 'avancos' => 0, 'obras' => [], 'datas' => [], 'ultimo' => null];
     }
 
+    /* ===================== Atividade vinda de OS (ADR-015 fase 4) ===================== */
+
+    /** obra_os existe, a tabela existe e tem a coluna os_id (instalação já passou pela migration da ponte). */
+    private function temColunaOs(string $tabela): bool
+    {
+        return $this->db->table_exists('obra_os')
+            && $this->db->table_exists($tabela)
+            && $this->db->field_exists('os_id', $tabela);
+    }
+
+    /** Uma linha de atividade originada de OS, no mesmo formato de 'registros' do RDO (para caber na mesma tabela). */
+    private static function linhaOs(int $osId, string $data, string $responsavel, string $descricao, int $usuarioId): array
+    {
+        $origem = self::classificarOrigemAtividade($osId);
+
+        return [
+            'idRdo' => 0,
+            'numero' => $origem['rotulo'],
+            'data' => $data,
+            'responsavel' => $responsavel,
+            'atividades' => $descricao,
+            'ocorrencias' => '',
+            'condicao' => '',
+            'efetivo_total' => 0,
+            'fotos' => [],
+            'materiais' => [],
+            'servicos' => [],
+            'origem' => $origem['origem'],
+            'os_id' => $osId,
+            'usuario_id' => $usuarioId ?: null,
+        ];
+    }
+
+    /**
+     * Atividade vinda de OS vinculada a um projeto: check-in/check-out, mão de obra e
+     * consumo lançados com os_id. $inicio/$fim nulos = sem limite de data (histórico
+     * inteiro, usado na página do projeto). Devolve [obra_id => linhaOs[]]. Protegido por
+     * table_exists/field_exists: sem a migration da ponte, devolve vazio.
+     */
+    private function atividadesOs(?string $inicio, ?string $fim, int $obraId, int $usuarioId): array
+    {
+        $porObra = [];
+        if (! $this->db->table_exists('obra_os')) {
+            return $porObra;
+        }
+        $iniDt = $inicio ? $inicio . ' 00:00:00' : null;
+        $fimDt = $fim ? $fim . ' 23:59:59' : null;
+
+        // Check-in / check-out da OS
+        if ($this->db->table_exists('os_checkin')) {
+            $this->db->select('obra_os.obra_id as obra_id, os_checkin.os_id, os_checkin.usuarios_id, os_checkin.data_entrada, os_checkin.data_saida, usuarios.nome as tecnico');
+            $this->db->from('os_checkin');
+            $this->db->join('obra_os', 'obra_os.os_id = os_checkin.os_id');
+            $this->db->join('usuarios', 'usuarios.idUsuarios = os_checkin.usuarios_id', 'left');
+            if ($obraId) {
+                $this->db->where('obra_os.obra_id', $obraId);
+            }
+            if ($usuarioId) {
+                $this->db->where('os_checkin.usuarios_id', $usuarioId);
+            }
+            $this->db->group_start();
+            $this->db->where('os_checkin.data_entrada IS NOT NULL', null, false);
+            if ($iniDt) {
+                $this->db->where('os_checkin.data_entrada >=', $iniDt);
+            }
+            if ($fimDt) {
+                $this->db->where('os_checkin.data_entrada <=', $fimDt);
+            }
+            $this->db->group_end();
+            $this->db->or_group_start();
+            $this->db->where('os_checkin.data_saida IS NOT NULL', null, false);
+            if ($iniDt) {
+                $this->db->where('os_checkin.data_saida >=', $iniDt);
+            }
+            if ($fimDt) {
+                $this->db->where('os_checkin.data_saida <=', $fimDt);
+            }
+            $this->db->group_end();
+            foreach ($this->db->get()->result() as $c) {
+                $dataRef = (string) ($c->data_saida ?: $c->data_entrada);
+                if ($dataRef === '') {
+                    continue;
+                }
+                $acao = $c->data_saida
+                    ? 'Check-in e check-out registrados na execução da OS'
+                    : 'Check-in registrado na execução da OS';
+                $porObra[(int) $c->obra_id][] = self::linhaOs(
+                    (int) $c->os_id,
+                    substr($dataRef, 0, 10),
+                    (string) ($c->tecnico ?? ''),
+                    $acao,
+                    (int) ($c->usuarios_id ?? 0)
+                );
+            }
+        }
+
+        // Mão de obra lançada via OS
+        if ($this->temColunaOs('obra_apontamento')) {
+            $this->db->select('obra_id, os_id, nome, data, SUM(horas) as horas', false);
+            $this->db->where('os_id IS NOT NULL', null, false);
+            if ($obraId) {
+                $this->db->where('obra_id', $obraId);
+            }
+            if ($iniDt) {
+                $this->db->where('data >=', $inicio);
+            }
+            if ($fimDt) {
+                $this->db->where('data <=', $fim);
+            }
+            $this->db->group_by(['obra_id', 'os_id', 'nome', 'data']);
+            foreach ($this->db->get('obra_apontamento')->result() as $a) {
+                $horas = number_format((float) $a->horas, 1, ',', '.');
+                $porObra[(int) $a->obra_id][] = self::linhaOs(
+                    (int) $a->os_id,
+                    (string) $a->data,
+                    (string) $a->nome,
+                    $horas . ' h de mão de obra lançada(s) na OS',
+                    0
+                );
+            }
+        }
+
+        // Consumo (material/serviço) lançado via OS
+        if ($this->temColunaOs('obra_consumo')) {
+            $this->db->select('obra_id, os_id, tipo, descricao, quantidade, data, usuario_id');
+            $this->db->where('os_id IS NOT NULL', null, false);
+            if ($obraId) {
+                $this->db->where('obra_id', $obraId);
+            }
+            if ($iniDt) {
+                $this->db->where('data >=', $iniDt);
+            }
+            if ($fimDt) {
+                $this->db->where('data <=', $fimDt);
+            }
+            if ($usuarioId) {
+                $this->db->where('usuario_id', $usuarioId);
+            }
+            $this->db->order_by('idConsumo', 'asc');
+            $linhas = $this->db->get('obra_consumo')->result();
+            $uids = array_values(array_unique(array_filter(array_map(function ($c) {
+                return (int) ($c->usuario_id ?? 0);
+            }, $linhas))));
+            $nomes = [];
+            if ($uids) {
+                $this->db->select('idUsuarios, nome');
+                $this->db->where_in('idUsuarios', $uids);
+                foreach ($this->db->get('usuarios')->result() as $u) {
+                    $nomes[(int) $u->idUsuarios] = (string) $u->nome;
+                }
+            }
+            foreach ($linhas as $c) {
+                $rotuloTipo = $c->tipo === 'servico' ? 'Serviço' : 'Material';
+                $qtd = rtrim(rtrim(number_format((float) $c->quantidade, 2, ',', '.'), '0'), ',');
+                $desc = $rotuloTipo . ' via OS: ' . $c->descricao . ' (' . $qtd . ')';
+                $linha = self::linhaOs(
+                    (int) $c->os_id,
+                    substr((string) $c->data, 0, 10),
+                    $nomes[(int) ($c->usuario_id ?? 0)] ?? '',
+                    $desc,
+                    (int) ($c->usuario_id ?? 0)
+                );
+                if ($c->tipo === 'servico') {
+                    $linha['servicos'][] = ['descricao' => (string) $c->descricao, 'quantidade' => (float) $c->quantidade];
+                } else {
+                    $linha['materiais'][] = ['descricao' => (string) $c->descricao, 'quantidade' => (float) $c->quantidade];
+                }
+                $porObra[(int) $c->obra_id][] = $linha;
+            }
+        }
+
+        return $porObra;
+    }
+
+    /**
+     * Último dia de atividade (sem limite) e quantidade num intervalo (se informado) da
+     * atividade vinda de OS (check-in/checkout, mão de obra e consumo com os_id), por
+     * projeto. Mais leve que atividadesOs(): sem joins com usuários, para uso no painel
+     * e na lista de projetos (muitos projetos de uma vez). Protegido do mesmo jeito.
+     */
+    private function atividadeOsPorObra(array $ids, ?string $ini = null, ?string $fim = null): array
+    {
+        $ultimo = [];
+        $contagem = [];
+        if (! $ids) {
+            return ['ultimo' => $ultimo, 'contagem' => $contagem];
+        }
+        $somar = function (int $obraId, string $dia) use (&$ultimo, &$contagem) {
+            $ultimo[$obraId] = self::maiorData($ultimo[$obraId] ?? null, $dia);
+            $contagem[$obraId] = ($contagem[$obraId] ?? 0) + 1;
+        };
+        $dentro = function (string $dia) use ($ini, $fim) {
+            if ($ini && $dia < $ini) {
+                return false;
+            }
+            if ($fim && $dia > $fim) {
+                return false;
+            }
+
+            return true;
+        };
+
+        if ($this->db->table_exists('obra_os') && $this->db->table_exists('os_checkin')) {
+            $this->db->select('obra_os.obra_id as obra_id, os_checkin.data_entrada, os_checkin.data_saida', false);
+            $this->db->from('os_checkin');
+            $this->db->join('obra_os', 'obra_os.os_id = os_checkin.os_id');
+            $this->db->where_in('obra_os.obra_id', $ids);
+            foreach ($this->db->get()->result() as $r) {
+                foreach ([$r->data_entrada, $r->data_saida] as $dt) {
+                    if (! $dt) {
+                        continue;
+                    }
+                    $dia = substr((string) $dt, 0, 10);
+                    if ($dentro($dia)) {
+                        $somar((int) $r->obra_id, $dia);
+                    }
+                }
+            }
+        }
+        foreach (['obra_apontamento', 'obra_consumo'] as $tabela) {
+            if (! $this->temColunaOs($tabela)) {
+                continue;
+            }
+            $this->db->select('obra_id, data');
+            $this->db->where_in('obra_id', $ids);
+            $this->db->where('os_id IS NOT NULL', null, false);
+            foreach ($this->db->get($tabela)->result() as $r) {
+                $dia = substr((string) $r->data, 0, 10);
+                if ($dentro($dia)) {
+                    $somar((int) $r->obra_id, $dia);
+                }
+            }
+        }
+
+        return ['ultimo' => $ultimo, 'contagem' => $contagem];
+    }
+
+    /**
+     * Atividade vinda de OS (check-in/checkout, mão de obra e consumo com os_id) de
+     * todos os projetos, contada por dia num intervalo — para o gráfico de atividade do
+     * painel (ADR-015 fase 4). [dia Y-m-d => quantidade].
+     */
+    private function atividadePorDiaOs(string $ini, string $fim): array
+    {
+        $porDia = [];
+        if (! $this->db->table_exists('obra_os')) {
+            return $porDia;
+        }
+        $somar = function (string $dia) use (&$porDia) {
+            $porDia[$dia] = ($porDia[$dia] ?? 0) + 1;
+        };
+        $iniDt = $ini . ' 00:00:00';
+        $fimDt = $fim . ' 23:59:59';
+        if ($this->db->table_exists('os_checkin')) {
+            $this->db->select('os_checkin.data_entrada, os_checkin.data_saida', false);
+            $this->db->from('os_checkin');
+            $this->db->join('obra_os', 'obra_os.os_id = os_checkin.os_id');
+            $this->db->group_start()
+                ->where('os_checkin.data_entrada >=', $iniDt)->where('os_checkin.data_entrada <=', $fimDt)
+            ->group_end();
+            $this->db->or_group_start()
+                ->where('os_checkin.data_saida >=', $iniDt)->where('os_checkin.data_saida <=', $fimDt)
+            ->group_end();
+            foreach ($this->db->get()->result() as $r) {
+                foreach ([$r->data_entrada, $r->data_saida] as $dt) {
+                    if (! $dt) {
+                        continue;
+                    }
+                    $dia = substr((string) $dt, 0, 10);
+                    if ($dia >= $ini && $dia <= $fim) {
+                        $somar($dia);
+                    }
+                }
+            }
+        }
+        if ($this->temColunaOs('obra_apontamento')) {
+            $this->db->select('data', false);
+            $this->db->where('os_id IS NOT NULL', null, false);
+            $this->db->where('data >=', $ini);
+            $this->db->where('data <=', $fim);
+            foreach ($this->db->get('obra_apontamento')->result() as $r) {
+                $somar(substr((string) $r->data, 0, 10));
+            }
+        }
+        if ($this->temColunaOs('obra_consumo')) {
+            $this->db->select('data', false);
+            $this->db->where('os_id IS NOT NULL', null, false);
+            $this->db->where('data >=', $iniDt);
+            $this->db->where('data <=', $fimDt);
+            foreach ($this->db->get('obra_consumo')->result() as $r) {
+                $somar(substr((string) $r->data, 0, 10));
+            }
+        }
+
+        return $porDia;
+    }
+
+    /**
+     * Atividade de OS de um único projeto (qualquer período), mais recente primeiro.
+     * Usada na página do projeto (aba Execução, ADR-016).
+     */
+    public function atividadesProjeto(int $obraId): array
+    {
+        if (! $obraId) {
+            return [];
+        }
+        $linhas = $this->atividadesOs(null, null, $obraId, 0)[$obraId] ?? [];
+        usort($linhas, function ($a, $b) {
+            return strcmp((string) $b['data'], (string) $a['data']);
+        });
+
+        return $linhas;
+    }
+
+    /**
+     * Consumo (material/serviço) do projeto, mais recente primeiro, com a origem (RDO ou
+     * OS, pela coluna os_id). Usada na aba Material da página do projeto (ADR-016).
+     */
+    public function consumoProjeto(int $obraId, int $limite = 100): array
+    {
+        if (! $obraId || ! $this->db->table_exists('obra_consumo')) {
+            return [];
+        }
+        $temOsId = $this->db->field_exists('os_id', 'obra_consumo');
+        $campos = ['idConsumo', 'rdo_id', 'tipo', 'descricao', 'quantidade', 'data', 'usuario_id'];
+        if ($temOsId) {
+            $campos[] = 'os_id';
+        }
+        $this->db->select(implode(', ', $campos));
+        $this->db->where('obra_id', $obraId);
+        $this->db->order_by('data', 'desc');
+        $this->db->order_by('idConsumo', 'desc');
+        $this->db->limit($limite);
+        $linhas = $this->db->get('obra_consumo')->result();
+
+        $uids = array_values(array_unique(array_filter(array_map(function ($c) {
+            return (int) ($c->usuario_id ?? 0);
+        }, $linhas))));
+        $nomes = [];
+        if ($uids) {
+            $this->db->select('idUsuarios, nome');
+            $this->db->where_in('idUsuarios', $uids);
+            foreach ($this->db->get('usuarios')->result() as $u) {
+                $nomes[(int) $u->idUsuarios] = (string) $u->nome;
+            }
+        }
+
+        $out = [];
+        foreach ($linhas as $c) {
+            $osId = $temOsId ? (int) ($c->os_id ?? 0) : 0;
+            $origem = self::classificarOrigemAtividade($osId ?: null);
+            $out[] = [
+                'idConsumo' => (int) $c->idConsumo,
+                'tipo' => (string) $c->tipo,
+                'descricao' => (string) $c->descricao,
+                'quantidade' => (float) $c->quantidade,
+                'data' => (string) $c->data,
+                'usuario' => $nomes[(int) ($c->usuario_id ?? 0)] ?? '',
+                'os_id' => $osId ?: null,
+                'origem' => $origem['origem'],
+                'origem_rotulo' => $origem['rotulo'],
+            ];
+        }
+
+        return $out;
+    }
+
     /**
      * Relatório do período: RDOs, avanços de ponto, fotos, consumo, horas, etapas, OS e
      * pontos por projeto. Filtros: obra_id e usuario_id (responsável do RDO ou quem avançou).
@@ -491,6 +872,15 @@ class Projeto_acompanhamento_model extends CI_Model
         foreach ($this->paresConfiguracao($todosAv, $fim) as $pr) {
             $paresObra[$pr['obra_id']][] = $pr['par'];
             $paresTodos[] = $pr['par'];
+        }
+
+        // Atividade vinda de OS vinculada (check-in/checkout, mão de obra e consumo com
+        // os_id): o projeto entra na lista mesmo sem RDO (ADR-012/ADR-015 fase 4).
+        $osAtividadesPorObra = $this->atividadesOs($inicio, $fim, $obraId, $usuarioId);
+        foreach ($osAtividadesPorObra as $oid => $linhas) {
+            if ($linhas) {
+                $obraIds[(int) $oid] = true;
+            }
         }
 
         // Fotos e consumo dos RDOs, em lote
@@ -670,6 +1060,33 @@ class Projeto_acompanhamento_model extends CI_Model
                 }
             }
 
+            // Atividade vinda de OS vinculada: entra junto com os registros do dia,
+            // identificada pela origem ("OS #123" em vez de "Registro do dia").
+            foreach ($osAtividadesPorObra[$id] ?? [] as $linhaOs) {
+                $registros[] = $linhaOs;
+                $datas[$linhaOs['data']] = true;
+                if ($linhaOs['materiais']) {
+                    $mat = array_merge($mat, $linhaOs['materiais']);
+                }
+                if ($linhaOs['servicos']) {
+                    $srv = array_merge($srv, $linhaOs['servicos']);
+                }
+                if ($linhaOs['usuario_id']) {
+                    $uid = (int) $linhaOs['usuario_id'];
+                    $resp[$uid] = true;
+                    if (! isset($tecnicos[$uid])) {
+                        $tecnicos[$uid] = self::tecnicoInicial($uid, $linhaOs['responsavel']);
+                    }
+                    $tecnicos[$uid]['registros']++;
+                    $tecnicos[$uid]['obras'][$id] = true;
+                    $tecnicos[$uid]['datas'][$linhaOs['data']] = true;
+                    $tecnicos[$uid]['ultimo'] = self::maiorData($tecnicos[$uid]['ultimo'], $linhaOs['data']);
+                }
+            }
+            usort($registros, function ($a, $b) {
+                return strcmp((string) $a['data'], (string) $b['data']);
+            });
+
             $h = $horas[$id] ?? [];
             $projetos[] = [
                 'obra' => [
@@ -758,6 +1175,11 @@ class Projeto_acompanhamento_model extends CI_Model
                         $ultimos[$k] = self::maiorData($ultimos[$k] ?? null, substr((string) $u->ultimo, 0, 10));
                     }
                 }
+                // Atividade vinda de OS vinculada (ADR-012/ADR-015 fase 4): um projeto
+                // acompanhado só por OS não deve aparecer aqui como "sem registro".
+                foreach ($this->atividadeOsPorObra($ids)['ultimo'] as $k => $ult) {
+                    $ultimos[$k] = self::maiorData($ultimos[$k] ?? null, $ult);
+                }
             }
             $semRegistro = [];
             foreach ($lista as $o) {
@@ -778,7 +1200,8 @@ class Projeto_acompanhamento_model extends CI_Model
             'tecnicos' => $listaTecnicos,
             'totais' => [
                 'projetos' => count($projetos),
-                'registros' => count($rdos),
+                // RDOs + atividade vinda de OS (ADR-015 fase 4), já somados em cada projeto.
+                'registros' => (int) array_sum(array_column($totais, 'registros')),
                 'fotos' => (int) array_sum(array_column($totais, 'fotos')),
                 'ocorrencias' => (int) array_sum(array_column($totais, 'ocorrencias')),
                 'horas' => (float) array_sum(array_column($totais, 'horas')),
@@ -970,6 +1393,15 @@ class Projeto_acompanhamento_model extends CI_Model
             }
         }
 
+        // Atividade vinda de OS vinculada (check-in/checkout, mão de obra e consumo com
+        // os_id): último dia (sem limite) e contagem nos últimos 7 dias (ADR-015 fase 4).
+        $osUltimo = [];
+        $osReg7 = [];
+        if ($ids) {
+            $osUltimo = $this->atividadeOsPorObra($ids)['ultimo'];
+            $osReg7 = $this->atividadeOsPorObra($ids, $ini7, $hoje)['contagem'];
+        }
+
         // Pontos dos projetos ativos, em lote
         $pontosPorObra = [];
         $pontosAtivos = [];
@@ -998,7 +1430,7 @@ class Projeto_acompanhamento_model extends CI_Model
         $projetos = [];
         foreach ($obras as $o) {
             $id = (int) $o->idObra;
-            $ult = self::maiorData($ultimo[$id] ?? null, $avUltimo[$id] ?? null);
+            $ult = self::maiorData(self::maiorData($ultimo[$id] ?? null, $avUltimo[$id] ?? null), $osUltimo[$id] ?? null);
             $resumo = self::resumoPontos($pontosPorObra[$id] ?? []);
             $saude = self::saude([
                 'status' => $o->status,
@@ -1024,7 +1456,7 @@ class Projeto_acompanhamento_model extends CI_Model
                 'dias_sem_registro' => $ult ? self::dias($ult, $hoje) : null,
                 'etapas_atrasadas' => $atrasadas[$id] ?? 0,
                 'ocorrencias_7d' => $oc7[$id] ?? 0,
-                'registros_7d' => ($reg7[$id] ?? 0) + ($avReg7[$id] ?? 0),
+                'registros_7d' => ($reg7[$id] ?? 0) + ($avReg7[$id] ?? 0) + ($osReg7[$id] ?? 0),
                 'pontos' => [
                     'total' => (int) $resumo['total'],
                     'testados' => (int) ($resumo['por_status']['testado'] ?? 0),
@@ -1061,6 +1493,11 @@ class Projeto_acompanhamento_model extends CI_Model
             foreach ($this->db->get('obra_ponto_historico')->result() as $r) {
                 $porDia[$r->dia] = ($porDia[$r->dia] ?? 0) + (int) $r->n;
             }
+        }
+        // ... somado à atividade vinda de OS vinculada (check-in/checkout, mão de obra e
+        // consumo com os_id), de todos os projetos (ADR-015 fase 4).
+        foreach ($this->atividadePorDiaOs($ini7, $hoje) as $dia => $n) {
+            $porDia[$dia] = ($porDia[$dia] ?? 0) + $n;
         }
         foreach ($saida['atividade_7d'] as &$d) {
             $d['registros'] = $porDia[$d['data']] ?? 0;
@@ -1183,6 +1620,11 @@ class Projeto_acompanhamento_model extends CI_Model
                 $k = (int) $r->obra_id;
                 $ultimo[$k] = self::maiorData($ultimo[$k] ?? null, substr((string) $r->ultimo, 0, 10));
             }
+        }
+        // Atividade vinda de OS vinculada (ADR-015 fase 4): sem ela, um projeto só
+        // acompanhado por OS aparecia como sem registro (ADR-012).
+        foreach ($this->atividadeOsPorObra($ids)['ultimo'] as $id => $data) {
+            $ultimo[$id] = self::maiorData($ultimo[$id] ?? null, $data);
         }
         foreach ($ultimo as $id => $data) {
             if ($data && isset($saida[$id])) {

@@ -1,5 +1,4 @@
 <link rel="stylesheet" href="<?= base_url() ?>assets/css/obras.css">
-<link rel="stylesheet" href="<?= base_url() ?>assets/css/projeto-lista.css">
 <?php
 $fmt =function ($v, $d = 2) { return number_format((float) $v, $d, ',', '.'); };
 $data_br = function ($x) { return (! empty($x) && $x !== '0000-00-00') ? date('d/m/Y', strtotime($x)) : '—'; };

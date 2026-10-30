@@ -11,6 +11,7 @@ if ($permE) {
     $itens[] = ['equipes', 'obraequipe', 'Equipes', 'bx-group'];
 }
 ?>
+<link rel="stylesheet" href="<?= base_url('assets/css/projeto-lista.css') ?>?v=<?= asset_versao('assets/css/projeto-lista.css', '1') ?>">
 <nav class="projeto-nav" aria-label="Projetos">
     <ul class="projeto-nav-lista">
         <?php foreach ($itens as $i): ?>

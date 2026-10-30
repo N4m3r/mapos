@@ -720,6 +720,42 @@ class Obras_model extends CI_Model
         }
     }
 
+    /**
+     * Mantém uma linha única de custo "Material (consumo via OS)" com o total
+     * realizado a partir do obra_consumo de material (inclui o que a OS vinculada
+     * baixou do almoxarifame do projeto). Idempotente (ADR-015 fase 4).
+     */
+    public function recalcularCustoMaterialConsumo($obra_id)
+    {
+        if (! $this->db->table_exists('obra_custo')
+            || ! $this->db->table_exists('obra_consumo')
+            || ! $this->db->table_exists('produtos')) {
+            return;
+        }
+        $obra_id = (int) $obra_id;
+        $r = $this->db->select('SUM(c.quantidade * COALESCE(p.precoCompra, 0)) t', false)
+            ->from('obra_consumo c')
+            ->join('produtos p', 'p.idProdutos = c.referencia_id', 'left')
+            ->where('c.obra_id', $obra_id)
+            ->where('c.tipo', 'material')
+            ->get()->row();
+        $total = $r ? (float) $r->t : 0;
+
+        $desc = 'Material (consumo via OS)';
+        $ex = $this->db->where('obra_id', $obra_id)->where('categoria', 'material')
+            ->where('descricao', $desc)->get('obra_custo')->row();
+        if ($ex) {
+            $this->db->where('idCusto', $ex->idCusto)->update('obra_custo', [
+                'valor_realizado' => $total, 'data' => date('Y-m-d'),
+            ]);
+        } else {
+            $this->db->insert('obra_custo', [
+                'obra_id' => $obra_id, 'categoria' => 'material', 'descricao' => $desc,
+                'valor_previsto' => 0, 'valor_realizado' => $total, 'data' => date('Y-m-d'),
+            ]);
+        }
+    }
+
     /* ========================= Apontamento (efetivo) ========================= */
 
     public function getApontamentos($obra_id, $limite = 200)

@@ -287,3 +287,11 @@
 .pj-pagina .button.btn:not(.btn-primary):not(.btn-success):not(.btn-danger) .button__icon { background: none; color: inherit; }
 .pj-pagina .pj-passo .button.btn { background: #fff; }
 .pj-pagina .pj-tabela-caixa .table th { text-transform: none; letter-spacing: 0; }
+
+/* Sugestao de concluir etapa (ADR-015 fase 4): OS da etapa terminaram, pontos pendentes */
+.pj-linha-sugestao td { padding: 0 !important; border: 0 !important; }
+.pj-sugestao-concluir { margin: 6px 0; }
+.pj-sugestao-acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
+/* Atividade vinda de OS vinculada, junto com os registros do dia (ADR-012/ADR-015 fase 4) */
+.pj-pagina .pj-linha-os { background: var(--ui-suave); }
