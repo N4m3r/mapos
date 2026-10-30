@@ -1150,4 +1150,78 @@ class Projeto_acompanhamento_model extends CI_Model
 
         return $saida;
     }
+
+    /**
+     * Resumo para a lista de projetos, em poucas queries agregadas (sem N+1).
+     * Retorna [idObra => ['dias_sem_registro' => ?int, 'etapas_sem_os' => int, 'etapas_atrasadas' => int]].
+     */
+    public function resumoLista(array $ids, ?string $hoje = null): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+        $hoje = $hoje ?: date('Y-m-d');
+        $saida = [];
+        foreach ($ids as $id) {
+            $saida[$id] = ['dias_sem_registro' => null, 'etapas_sem_os' => 0, 'etapas_atrasadas' => 0];
+        }
+        if (! $ids) {
+            return $saida;
+        }
+        $ultimo = [];
+        if ($this->db->table_exists('obra_rdo')) {
+            $this->db->select('obra_id, MAX(data) as ultimo', false);
+            $this->db->where_in('obra_id', $ids);
+            $this->db->group_by('obra_id');
+            foreach ($this->db->get('obra_rdo')->result() as $r) {
+                $ultimo[(int) $r->obra_id] = $r->ultimo;
+            }
+        }
+        if ($this->db->table_exists('obra_ponto_historico')) {
+            $this->db->select('obra_id, MAX(data) as ultimo', false);
+            $this->db->where_in('obra_id', $ids);
+            $this->db->group_by('obra_id');
+            foreach ($this->db->get('obra_ponto_historico')->result() as $r) {
+                $k = (int) $r->obra_id;
+                $ultimo[$k] = self::maiorData($ultimo[$k] ?? null, substr((string) $r->ultimo, 0, 10));
+            }
+        }
+        foreach ($ultimo as $id => $data) {
+            if ($data && isset($saida[$id])) {
+                $saida[$id]['dias_sem_registro'] = self::dias(substr((string) $data, 0, 10), $hoje);
+            }
+        }
+        if ($this->db->table_exists('obra_etapas')) {
+            $temOs = $this->db->table_exists('obra_os');
+            $this->db->select('obra_etapas.obra_id, COUNT(*) as n, '
+                . 'SUM(CASE WHEN obra_etapas.data_fim_prevista < ' . $this->db->escape($hoje) . ' THEN 1 ELSE 0 END) as atrasadas'
+                . ($temOs ? ', SUM(CASE WHEN NOT EXISTS (SELECT 1 FROM obra_os WHERE obra_os.etapa_id = obra_etapas.idEtapa) THEN 1 ELSE 0 END) as sem_os' : ''), false);
+            $this->db->from('obra_etapas');
+            $this->db->where_in('obra_etapas.obra_id', $ids);
+            $this->db->where('obra_etapas.percentual_concluido <', 100);
+            $this->db->where('obra_etapas.status <>', 'concluida');
+            $this->db->group_by('obra_etapas.obra_id');
+            foreach ($this->db->get()->result() as $r) {
+                $k = (int) $r->obra_id;
+                $saida[$k]['etapas_atrasadas'] = (int) $r->atrasadas;
+                $saida[$k]['etapas_sem_os'] = $temOs ? (int) $r->sem_os : 0;
+            }
+        }
+
+        return $saida;
+    }
+
+    /** Quantidade de projetos por status (para os filtros da lista). */
+    public function contagemStatus(): array
+    {
+        if (! $this->db->table_exists('obras')) {
+            return [];
+        }
+        $this->db->select('status, COUNT(*) as n', false);
+        $this->db->group_by('status');
+        $c = [];
+        foreach ($this->db->get('obras')->result() as $r) {
+            $c[(string) $r->status] = (int) $r->n;
+        }
+
+        return $c;
+    }
 }

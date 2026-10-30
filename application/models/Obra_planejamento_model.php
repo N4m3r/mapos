@@ -841,4 +841,86 @@ class Obra_planejamento_model extends CI_Model
         }
         return ['ok' => true, 'idObra' => $idObra, 'erro' => null, 'resumo' => $resumo];
     }
+
+    /* ============== Assistente "Novo projeto" (ADR-016) ============== */
+
+    /** Limpa nomes de etapas vindos do formulario: apara, remove vazios e repetidos (max 30). */
+    public static function normalizarEtapasIniciais(array $etapas)
+    {
+        $res = [];
+        foreach ($etapas as $nome) {
+            $nome = trim(preg_replace('/\s+/', ' ', (string) $nome));
+            if ($nome === '' || in_array($nome, $res, true)) {
+                continue;
+            }
+            $res[] = mb_substr($nome, 0, 150);
+            if (count($res) >= 30) {
+                break;
+            }
+        }
+        return $res;
+    }
+
+    /** Pontos por tipo: so tipos conhecidos, quantidade entre 1 e 500. */
+    public static function normalizarPontosIniciais(array $pontosPorTipo, array $tiposValidos)
+    {
+        $res = [];
+        foreach ($pontosPorTipo as $tipo => $qtd) {
+            $qtd = min(500, (int) $qtd);
+            if ($qtd >= 1 && isset($tiposValidos[$tipo])) {
+                $res[(string) $tipo] = $qtd;
+            }
+        }
+        return $res;
+    }
+
+    /**
+     * Cria etapas (peso igual somando 100), pontos e equipe de um projeto recem-criado.
+     * Devolve ['etapas' => n, 'pontos' => n, 'tecnicos' => n].
+     */
+    public function montarProjetoInicial($obraId, array $etapas, array $pontosPorTipo, array $tecnicos, $usuarioId = 0)
+    {
+        $obraId = (int) $obraId;
+        $resumo = ['etapas' => 0, 'pontos' => 0, 'tecnicos' => 0];
+        if (! $obraId) {
+            return $resumo;
+        }
+        $this->load->model('obras_model');
+        $this->load->model('obra_pontos_model');
+        $tipos = Obra_pontos_model::tipos();
+        $etapas = self::normalizarEtapasIniciais($etapas);
+        $pontosPorTipo = self::normalizarPontosIniciais($pontosPorTipo, $tipos);
+
+        $this->db->trans_start();
+        if ($etapas) {
+            $pesos = self::distribuirPesos(array_fill(0, count($etapas), 1));
+            foreach ($etapas as $i => $nome) {
+                $id = $this->obras_model->addEtapa([
+                    'obra_id' => $obraId,
+                    'codigo_eap' => (string) ($i + 1),
+                    'nome' => $nome,
+                    'ordem' => $i + 1,
+                    'peso_percentual' => $pesos[$i],
+                    'valor_previsto' => 0,
+                    'status' => 'pendente',
+                ]);
+                if ($id) {
+                    $resumo['etapas']++;
+                }
+            }
+        }
+        foreach ($pontosPorTipo as $tipo => $qtd) {
+            $resumo['pontos'] += (int) $this->obra_pontos_model->gerarLote($obraId, $tipo, $tipos[$tipo]['prefixo'], 1, $qtd);
+        }
+        foreach (array_unique(array_filter(array_map('intval', $tecnicos))) as $uid) {
+            if ($this->obras_model->vincularUsuario($obraId, $uid)) {
+                $resumo['tecnicos']++;
+            }
+        }
+        $this->db->trans_complete();
+        if ($this->db->trans_status() === false) {
+            return ['etapas' => 0, 'pontos' => 0, 'tecnicos' => 0, 'erro' => true];
+        }
+        return $resumo;
+    }
 }

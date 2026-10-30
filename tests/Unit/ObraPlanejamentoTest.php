@@ -122,4 +122,16 @@ class ObraPlanejamentoTest extends TestCase
         $this->assertContains('Aprovado', Obra_planejamento_model::statusConversao());
         $this->assertNotContains('Aberto', Obra_planejamento_model::statusConversao());
     }
+
+    public function testNormalizarEtapasIniciais(): void
+    {
+        $r = Obra_planejamento_model::normalizarEtapasIniciais([' Infra  ', '', 'Infra', 'Testes']);
+        $this->assertSame(['Infra', 'Testes'], $r);
+    }
+
+    public function testNormalizarPontosIniciais(): void
+    {
+        $r = Obra_planejamento_model::normalizarPontosIniciais(['camera' => '6', 'nvr' => 0, 'x' => 3, 'rack' => 900], ['camera' => 1, 'nvr' => 1, 'rack' => 1]);
+        $this->assertSame(['camera' => 6, 'rack' => 500], $r);
+    }
 }

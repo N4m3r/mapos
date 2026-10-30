@@ -4,9 +4,12 @@
    <div></div>
       <div id="breadcrumb">
         <a href="<?= base_url() ?>" title="Dashboard" class="tip-bottom"> Início</a>
-        <?php if ($this->uri->segment(1) != null) { ?>
-            <a href="<?= base_url() . 'index.php/' . $this->uri->segment(1) ?>" class="tip-bottom" title="<?= ucfirst($this->uri->segment(1)); ?>">
-              <?= ucfirst($this->uri->segment(1)); ?>
+        <?php if ($this->uri->segment(1) != null) {
+            // nomes que a interface usa no lugar do nome do controller
+            $nomesSecao = ['obras' => 'Projetos', 'obraequipe' => 'Equipes', 'relatorioprojetos' => 'Relatório de projetos'];
+            $secao = $nomesSecao[strtolower($this->uri->segment(1))] ?? ucfirst($this->uri->segment(1)); ?>
+            <a href="<?= base_url() . 'index.php/' . $this->uri->segment(1) ?>" class="tip-bottom" title="<?= html_escape($secao); ?>">
+              <?= html_escape($secao); ?>
             </a>
           <?php if ($this->uri->segment(2) != null) { ?>
             <a href="<?= base_url() . 'index.php/' . $this->uri->segment(1) . '/' . $this->uri->segment(2) . '/' . $this->uri->segment(3) ?>" class="current tip-bottom" title="<?= ucfirst($this->uri->segment(2)); ?>">

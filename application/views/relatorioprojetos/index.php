@@ -89,7 +89,7 @@ $link = function (array $over = []) use ($base) {
 
     @media print {
         #sidebar, #header, #user-nav, #userr, #footer, #breadcrumb, .breadcrumb, .ui-filtros, .ui-acoes, .ui-dica,
-        .obra-tabs, .obra-mainnav, .ui-cabecalho, button, .btn { display: none !important; }
+        .obra-tabs, .obra-mainnav, .projeto-nav, .ui-cabecalho, button, .btn { display: none !important; }
         a[href]:after { content: none !important; }
         html body #content, html body .container-fluid, .new122 { margin: 0 !important; padding: 0 !important; left: 0 !important; position: static !important; width: auto !important; max-width: none !important; }
         html body { padding: 0 !important; margin: 0 !important; }

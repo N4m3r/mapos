@@ -10,113 +10,302 @@ $data_br = function ($d) {
 };
 $condicoesRdo = ['praticavel' => 'Normal', 'parcial' => 'Impedimento parcial', 'impraticavel' => 'Sem acesso'];
 $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execução', 'paralisada' => 'Paralisada', 'concluida' => 'Concluída', 'entregue' => 'Entregue', 'cancelada' => 'Cancelada'];
-?>
-<?php
 $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisada' => 'alerta', 'concluida' => 'info', 'entregue' => 'sucesso', 'cancelada' => 'perigo'];
+$coresOs = ['Aberto' => 'info', 'Orçamento' => 'neutro', 'Em Andamento' => 'alerta', 'Aguardando peças' => 'alerta', 'Finalizado' => 'sucesso', 'Faturado' => 'sucesso', 'Cancelado' => 'perigo'];
+
+$ptEdita = $perm('eObras');
+$ptMuda = $ptEdita || ! empty($pode_executar);
+$planOk = ! empty($plan_ativo) && $ptEdita;
+$verValor = $perm('vObraCusto');
+$ptFiltrado = ($pontos_filtro['tipo'] !== '' || $pontos_filtro['status'] !== ''
+    || ($pontos_filtro['aguardando'] ?? '') !== '' || ($pontos_filtro['resp'] ?? '') !== '');
+$ptTestados = (int) ($pontos_resumo['por_status']['testado'] ?? 0);
+
+$etapasSemOs = [];
+foreach ($etapas as $_e) {
+    if (empty($osPorEtapa[$_e->idEtapa])) {
+        $etapasSemOs[] = $_e;
+    }
+}
+
+$endereco = trim(trim((string) $obra->logradouro . ' ' . (string) $obra->numero) . ($obra->cidade ? ' - ' . $obra->cidade . ($obra->uf ? '/' . $obra->uf : '') : ''), ' ,-/');
+
+// Alvo do guia: aba (#aba-x) ou modal (#modal-x). Devolve o link pronto ou '' se o usuario nao pode usar.
+$linkAlvo = function ($alvo, $rotulo, $classe, $icone = '') use ($ptEdita, $planOk, $pode_executar) {
+    if ($alvo === '' || $rotulo === '') {
+        return '';
+    }
+    $conteudo = ($icone ? '<span class="button__icon"><i class="bx ' . $icone . '"></i></span>' : '') . '<span class="button__text2">' . html_escape($rotulo) . '</span>';
+    if (strpos($alvo, '#aba-') === 0) {
+        $aba = substr($alvo, 5);
+        return '<a href="#' . html_escape($aba) . '" class="button btn ' . $classe . ' js-ir-aba" data-aba="' . html_escape($aba) . '">' . $conteudo . '</a>';
+    }
+    $ok = ['#modal-lote' => $ptEdita, '#modal-os-lote' => $planOk, '#modal-registro' => ! empty($pode_executar)];
+    if (empty($ok[$alvo])) {
+        return '';
+    }
+    return '<a href="' . html_escape($alvo) . '" data-toggle="modal" class="button btn ' . $classe . '">' . $conteudo . '</a>';
+};
+
+$fasePasso = (int) $guia['fase'];
+$trilho = [1 => 'Montar', 2 => 'Planejar', 3 => 'Executar', 4 => 'Entregar'];
+$projetoEncerrado = in_array($obra->status, ['concluida', 'entregue'], true);
+
+// Acao principal do topo: registrar execucao quando em execucao e pode executar; senao o proximo passo.
+if ($obra->status === 'em_execucao' && ! empty($pode_executar)) {
+    $acaoTopo = $linkAlvo('#modal-registro', 'Registrar execução', 'btn-primary pj-primaria', 'bx-check-circle');
+} else {
+    $acaoTopo = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'btn-primary pj-primaria');
+}
+$botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
 ?>
-<link rel="stylesheet" href="<?= base_url() ?>assets/css/obras.css">
+<link rel="stylesheet" href="<?= base_url('assets/css/projeto-pagina.css') ?>?v=<?= asset_versao('assets/css/projeto-pagina.css', '1') ?>">
+<link rel="stylesheet" href="<?= base_url('assets/css/obras.css') ?>">
 
-<div class="ui-cabecalho">
-    <div>
-        <h1 class="ui-titulo"><i class="bx bx-building-house"></i> Projeto: <?= html_escape($obra->nome) ?></h1>
-        <p class="ui-subtitulo">Visão geral do projeto, cronograma, material, registros de execução, medição, equipe, mão de obra e OS.</p>
+<div class="pj-pagina">
+
+<nav class="pj-migalhas" aria-label="Você está em">
+    <a href="<?= site_url('obras/painel') ?>">Painel</a>
+    <a href="<?= site_url('obras/gerenciar') ?>">Projetos</a>
+    <span aria-current="page"><?= html_escape($obra->nome) ?></span>
+</nav>
+
+<header class="pj-topo">
+    <div class="pj-topo-titulo">
+        <h1 class="pj-nome"><?= html_escape($obra->nome) ?><?= $obra->codigo ? ' <small>#' . html_escape($obra->codigo) . '</small>' : '' ?></h1>
+        <span class="ui-selo <?= $coresStatus[$obra->status] ?? '' ?>"><?= html_escape($statusLabels[$obra->status] ?? $obra->status) ?></span>
     </div>
-    <div class="ui-acoes">
-        <a href="<?= site_url('obras') ?>" class="button btn btn-mini btn-warning"><span class="button__icon"><i class='bx bx-undo'></i></span><span class="button__text2">Voltar</span></a>
+    <div class="pj-topo-acoes">
+        <?= $acaoTopo ?>
+        <details class="pj-mais">
+            <summary class="button btn pj-secundario" aria-label="Mais ações do projeto"><span class="button__icon"><i class="bx bx-dots-horizontal-rounded"></i></span><span class="button__text2">Mais</span></summary>
+            <ul class="pj-mais-menu">
+                <?php if ($perm('eObras')): ?><li><a href="<?= site_url('obras/editar/' . $obra->idObra) ?>"><i class="bx bx-edit"></i> Editar projeto</a></li><?php endif; ?>
+                <li><a href="<?= site_url('obras/asbuilt/' . (int) $obra->idObra) ?>" target="_blank" rel="noopener"><i class="bx bx-printer"></i> Documentação final (as-built)</a></li>
+                <?php if ($perm('rObraMaterial')): ?><li><a href="<?= site_url('obramaterial/receber/' . $obra->idObra) ?>"><i class="bx bx-down-arrow-circle"></i> Receber material</a></li><?php endif; ?>
+                <?php if ($perm('sObraMaterial')): ?><li><a href="<?= site_url('obramaterial/entregar/' . $obra->idObra) ?>"><i class="bx bx-up-arrow-circle"></i> Entregar material</a></li><?php endif; ?>
+                <?php if ($ptEdita): ?><li><a href="#modal-vincular-os" data-toggle="modal"><i class="bx bx-link"></i> Vincular OS existente</a></li><?php endif; ?>
+                <li><a href="<?= site_url('obras/gerenciar') ?>"><i class="bx bx-undo"></i> Voltar para Projetos</a></li>
+                <?php if ($perm('dObras')): ?>
+                    <li class="pj-mais-perigo">
+                        <form action="<?= site_url('obras/excluir') ?>" method="post" data-confirmar="Excluir este projeto? Etapas, pontos e registros dele também serão removidos.">
+                            <input type="hidden" name="idObra" value="<?= (int) $obra->idObra ?>">
+                            <button type="submit"><i class="bx bx-trash-alt"></i> Excluir projeto</button>
+                        </form>
+                    </li>
+                <?php endif; ?>
+            </ul>
+        </details>
     </div>
+</header>
+
+<p class="pj-meta">
+    <span><i class="bx bx-user"></i> <?= html_escape($obra->nomeCliente ?: 'Sem cliente') ?></span>
+    <span><i class="bx bx-wrench"></i> <?= html_escape($obra->responsavel ?: 'Sem técnico responsável') ?></span>
+    <?php if ($endereco !== ''): ?><span><i class="bx bx-map"></i> <?= html_escape($endereco) ?></span><?php endif; ?>
+    <span class="pj-prazo <?= html_escape($prazo['classe']) ?>"><i class="bx bx-calendar"></i> <?= html_escape($prazo['texto']) ?></span>
+</p>
+
+<ol class="pj-trilho" aria-label="Fases do projeto">
+    <?php foreach ($trilho as $n => $rot):
+        $estadoFase = $projetoEncerrado ? 'feito' : ($fasePasso === 0 ? 'futuro' : ($n < $fasePasso ? 'feito' : ($n === $fasePasso ? 'atual' : 'futuro'))); ?>
+        <li class="pj-fase <?= $estadoFase ?>"<?= $estadoFase === 'atual' ? ' aria-current="step"' : '' ?>>
+            <span class="pj-fase-n"><?= $estadoFase === 'feito' ? '<i class="bx bx-check"></i>' : (int) $n ?></span>
+            <span class="pj-fase-rot"><?= html_escape($rot) ?></span>
+        </li>
+    <?php endforeach; ?>
+</ol>
+
+<div class="pj-passo <?= $fasePasso === 0 || $projetoEncerrado ? 'quieto' : '' ?>">
+    <div class="pj-passo-texto">
+        <strong><?= $projetoEncerrado || $fasePasso === 0 ? 'Situação' : 'Próximo passo' ?></strong>
+        <span><?= html_escape($guia['texto']) ?></span>
+    </div>
+    <?= $botaoPasso ?>
 </div>
 
-<div class="obra-header widget-box">
-    <div class="widget-content">
-        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;align-items:center">
-            <div>
-                <h4 style="margin:0"><?= html_escape($obra->nome) ?> <?= $obra->codigo ? '<small>#' . html_escape($obra->codigo) . '</small>' : '' ?></h4>
-                <div><i class='bx bx-user'></i> <?= html_escape($obra->nomeCliente ?: '—') ?> &nbsp; <i class='bx bx-wrench'></i> <?= html_escape($obra->responsavel ?: '—') ?></div>
-                <div><i class='bx bx-map'></i> <?= html_escape(trim($obra->logradouro . ', ' . $obra->numero . ' - ' . $obra->cidade . '/' . $obra->uf, ' ,-/')) ?: '—' ?></div>
-                <span class="ui-selo <?= $coresStatus[$obra->status] ?? '' ?>"><?= $statusLabels[$obra->status] ?? $obra->status ?></span>
-            </div>
-            <div style="text-align:center;min-width:180px">
-                <div class="obra-progress"><div class="obra-progress-bar" style="width:<?= (float) $obra->percentual_concluido ?>%"></div></div>
-                <strong><?= $fmt($obra->percentual_concluido) ?>% concluído</strong>
-            </div>
-        </div>
-        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
-            <?php if (! empty($pode_executar)): ?><a href="#modal-registro" data-toggle="modal" class="button btn btn-success" style="font-weight:bold"><span class="button__icon"><i class='bx bx-check-circle'></i></span><span class="button__text2">Registrar execução de hoje</span></a><?php endif; ?>
-            <?php if ($perm('eObras')): ?><a href="<?= site_url('obras/editar/' . $obra->idObra) ?>" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-edit'></i></span><span class="button__text2">Editar</span></a><?php endif; ?>
-            <?php if ($perm('rObraMaterial')): ?><a href="<?= site_url('obramaterial/receber/' . $obra->idObra) ?>" class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-down-arrow-circle'></i></span><span class="button__text2">Receber material</span></a><?php endif; ?>
-            <?php if ($perm('sObraMaterial')): ?><a href="<?= site_url('obramaterial/entregar/' . $obra->idObra) ?>" class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-up-arrow-circle'></i></span><span class="button__text2">Entregar material</span></a><?php endif; ?>
-        </div>
-    </div>
-</div>
-
-<ul class="nav nav-tabs obra-tabs" id="obraTabs">
-    <li class="active"><a href="#tab-geral" data-tab="geral">Visão geral</a></li>
-    <li><a href="#tab-pontos" data-tab="pontos">Pontos</a></li>
-    <li><a href="#tab-cronograma" data-tab="cronograma">Cronograma</a></li>
+<ul class="nav nav-tabs obra-tabs pj-abas" id="obraTabs">
+    <li class="active"><a href="#tab-resumo" data-tab="resumo">Resumo</a></li>
+    <li><a href="#tab-planejamento" data-tab="planejamento">Planejamento <span class="pj-aba-n"><?= count($etapas) ?></span></a></li>
+    <li><a href="#tab-pontos" data-tab="pontos">Pontos<?php if ($pontos_resumo['total'] > 0): ?> <span class="pj-aba-n"><?= $ptTestados ?>/<?= (int) $pontos_resumo['total'] ?></span><?php endif; ?></a></li>
+    <li><a href="#tab-execucao" data-tab="execucao">Execução</a></li>
     <li><a href="#tab-material" data-tab="material">Material</a></li>
-    <li><a href="#tab-rdo" data-tab="rdo">Registros de execução</a></li>
-    <li><a href="#tab-medicao" data-tab="medicao">Medição</a></li>
-    <li><a href="#tab-equipe" data-tab="equipe">Equipe</a></li>
-    <li><a href="#tab-maodeobra" data-tab="maodeobra">Mão de obra</a></li>
-    <li><a href="#tab-os" data-tab="os">Ordens de Serviço</a></li>
+    <li><a href="#tab-financeiro" data-tab="financeiro">Financeiro</a></li>
 </ul>
 
 <div class="obra-tab-content">
 
-    <!-- VISÃO GERAL -->
-    <div class="obra-pane" id="tab-geral">
-        <div class="widget-box"><div class="widget-content">
-            <div class="span4"><strong>Valor do contrato:</strong> R$ <?= $fmt($obra->valor_contrato) ?></div>
-            <div class="span4"><strong>BDI:</strong> <?= $fmt($obra->bdi_percentual) ?>%</div>
-            <div class="span4"><strong>Contrato nº:</strong> <?= html_escape($obra->contrato_numero ?: '—') ?></div>
-            <div class="span3"><strong>Início previsto:</strong> <?= $data_br($obra->data_inicio_prevista) ?></div>
-            <div class="span3"><strong>Fim previsto:</strong> <?= $data_br($obra->data_fim_prevista) ?></div>
-            <div class="span3"><strong>Início real:</strong> <?= $data_br($obra->data_inicio_real) ?></div>
-            <div class="span3"><strong>Fim real:</strong> <?= $data_br($obra->data_fim_real) ?></div>
-            <div class="span12" style="margin-top:10px">
-                <strong>Custo:</strong> Previsto R$ <?= $fmt($custo['previsto']) ?> &nbsp;|&nbsp; Realizado R$ <?= $fmt($custo['realizado']) ?>
+    <!-- RESUMO -->
+    <div class="obra-pane" id="tab-resumo">
+        <div class="pj-grade">
+            <div class="pj-coluna">
+
+                <section class="pj-cartao" aria-labelledby="pj-t-pontos">
+                    <div class="pj-cartao-cab">
+                        <h2 id="pj-t-pontos">Painel de pontos</h2>
+                        <?php if ($pontos_resumo['total'] > 0): ?><span class="pj-cartao-nota"><?= $ptTestados ?> de <?= (int) $pontos_resumo['total'] ?> testados</span><?php endif; ?>
+                    </div>
+                    <?php if ($pontos_resumo['total'] > 0):
+                        $porTipoPt = [];
+                        foreach ($pontos_todos as $_pt) {
+                            $_k = isset($pontos_tipos[$_pt->tipo]) ? $_pt->tipo : 'outro';
+                            $porTipoPt[$_k][] = $_pt;
+                        } ?>
+                        <div class="pj-rack">
+                            <?php foreach ($pontos_resumo['por_tipo'] as $tk => $tr): ?>
+                                <div class="pj-rack-faixa">
+                                    <div class="pj-rack-tipo">
+                                        <i class="bx <?= html_escape($pontos_tipos[$tk]['icone'] ?? 'bx-chip') ?>"></i>
+                                        <span class="pj-rack-nome"><?= html_escape($tr['rotulo']) ?></span>
+                                        <span class="pj-rack-cont"><?= (int) $tr['testados'] ?>/<?= (int) $tr['total'] ?> testados</span>
+                                    </div>
+                                    <div class="pj-rack-portas">
+                                        <?php foreach (($porTipoPt[$tk] ?? []) as $pt):
+                                            $stR = $pontos_status[$pt->status]['rotulo'] ?? $pt->status;
+                                            $dica = $pt->identificacao . ' - ' . $stR . ($pt->local ? ' - ' . $pt->local : '');
+                                            if ($ptEdita) {
+                                                $argsPt = [[
+                                                    'idPonto' => (int) $pt->idPonto, 'tipo' => $pt->tipo, 'identificacao' => $pt->identificacao,
+                                                    'local' => $pt->local, 'ip' => $pt->ip, 'canal' => $pt->canal, 'porta' => $pt->porta,
+                                                    'modelo' => $pt->modelo ?? '', 'serie' => $pt->serie ?? '', 'observacao' => $pt->observacao ?? '',
+                                                ]];
+                                            } ?>
+                                            <?php if ($ptEdita): ?>
+                                                <a href="#" class="pj-porta st-<?= html_escape($pt->status) ?>" title="<?= html_escape($dica) ?>" aria-label="<?= html_escape($dica) ?>" data-chamar="editarPonto" data-args="<?= html_escape(json_encode($argsPt)) ?>" data-cancelar><?= html_escape($pt->identificacao) ?></a>
+                                            <?php else: ?>
+                                                <a href="#pt-linha-<?= (int) $pt->idPonto ?>" class="pj-porta st-<?= html_escape($pt->status) ?> js-ir-ponto" data-ponto="<?= (int) $pt->idPonto ?>" title="<?= html_escape($dica) ?>" aria-label="<?= html_escape($dica) ?>"><?= html_escape($pt->identificacao) ?></a>
+                                            <?php endif; ?>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <ul class="pj-legenda" aria-label="Legenda das cores">
+                            <?php foreach ($pontos_status as $k => $st): ?>
+                                <li><span class="pj-legenda-cor st-<?= html_escape($k) ?>"></span><?= html_escape($st['rotulo']) ?> <b><?= (int) ($pontos_resumo['por_status'][$k] ?? 0) ?></b></li>
+                            <?php endforeach; ?>
+                        </ul>
+                        <p class="pj-nota">
+                            <?php if ((float) $pontos_resumo['cabo_m'] > 0): ?>Cabo passado: <b><?= $fmt($pontos_resumo['cabo_m']) ?> m</b>. <?php endif; ?>
+                            Clique em um ponto para <?= $ptEdita ? 'editar' : 'ver na lista' ?>. O status é atualizado na aba <a href="#pontos" class="js-ir-aba" data-aba="pontos">Pontos</a>.
+                        </p>
+                    <?php else: ?>
+                        <div class="ui-vazio">
+                            <i class="bx bx-cctv"></i>
+                            <strong>Nenhum ponto ainda.</strong>
+                            Cadastre câmeras, leitores e tomadas para acompanhar cada um até o teste.
+                            <?php if ($ptEdita): ?><div class="pj-vazio-acao"><a href="#modal-lote" data-toggle="modal" class="button btn btn-primary"><span class="button__icon"><i class="bx bx-layer-plus"></i></span><span class="button__text2">Adicionar pontos</span></a></div><?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+                </section>
+
+                <section class="pj-cartao" aria-labelledby="pj-t-prog">
+                    <div class="pj-cartao-cab"><h2 id="pj-t-prog">Progresso</h2></div>
+                    <div class="pj-prog">
+                        <span class="pj-prog-num"><?= $fmt($obra->percentual_concluido) ?>%</span>
+                        <div class="ui-barra" role="progressbar" aria-valuenow="<?= (int) round($obra->percentual_concluido) ?>" aria-valuemin="0" aria-valuemax="100"><span style="width:<?= max(0, min(100, (float) $obra->percentual_concluido)) ?>%"></span></div>
+                    </div>
+                    <p class="pj-nota">
+                        Média das etapas pelo peso<?php if ($pontos_resumo['total'] > 0): ?>; pontos: <?= $ptTestados ?> de <?= (int) $pontos_resumo['total'] ?> testados<?php endif; ?>.
+                    </p>
+                    <dl class="pj-dl">
+                        <dt>Início previsto</dt><dd><?= $data_br($obra->data_inicio_prevista) ?></dd>
+                        <dt>Fim previsto</dt><dd><?= $data_br($obra->data_fim_prevista) ?> <span class="ui-selo <?= html_escape($prazo['classe']) ?>"><?= html_escape($prazo['texto']) ?></span></dd>
+                        <dt>Início real</dt><dd><?= $data_br($obra->data_inicio_real) ?></dd>
+                        <dt>Fim real</dt><dd><?= $data_br($obra->data_fim_real) ?></dd>
+                    </dl>
+                </section>
+
+                <section class="pj-cartao" aria-labelledby="pj-t-contr">
+                    <div class="pj-cartao-cab"><h2 id="pj-t-contr">Dados do contrato</h2></div>
+                    <dl class="pj-dl">
+                        <dt>Contrato nº</dt><dd><?= html_escape($obra->contrato_numero ?: '—') ?></dd>
+                        <dt>Tipo de projeto</dt><dd><?= html_escape($obra->tipo_obra ?: '—') ?></dd>
+                        <dt>Cliente</dt><dd><?= html_escape($obra->nomeCliente ?: '—') ?></dd>
+                        <dt>Endereço</dt><dd><?= html_escape($endereco ?: '—') ?></dd>
+                        <dt>Observações</dt><dd><?= $obra->observacoes ? nl2br(html_escape($obra->observacoes)) : '—' ?></dd>
+                    </dl>
+                </section>
             </div>
-            <?php if ($obra->observacoes): ?><div class="span12" style="margin-top:10px"><strong>Observações:</strong><br><?= nl2br(html_escape($obra->observacoes)) ?></div><?php endif; ?>
-        </div></div>
+
+            <div class="pj-coluna">
+                <!-- Equipe: tecnicos com acesso e equipes alocadas -->
+                <section class="pj-cartao" id="equipe" aria-labelledby="pj-t-equipe">
+                    <div class="pj-cartao-cab">
+                        <h2 id="pj-t-equipe">Equipe</h2>
+                        <?php if ($perm('cObraEquipe')): ?><a href="<?= site_url('obraequipe') ?>" class="pj-link">Gerenciar equipes</a><?php endif; ?>
+                    </div>
+                    <p class="pj-nota">Só quem está aqui (e o técnico responsável) pode registrar a execução.</p>
+                    <ul class="pj-lista">
+                        <?php if (! $usuarios_projeto): ?><li class="pj-lista-vazio">Nenhum técnico vinculado.</li><?php endif; ?>
+                        <?php foreach ($usuarios_projeto as $u): ?>
+                            <li>
+                                <span class="pj-lista-nome"><?= html_escape($u->nome ?: '—') ?><small><?= html_escape($u->email ?: '') ?></small></span>
+                                <?php if ($ptEdita): ?><a href="#" class="btn-nwe4" title="Desvincular" aria-label="Desvincular <?= html_escape($u->nome) ?>" data-chamar="desvincularUsuario" data-args="[<?= (int) $u->idObraUsuario ?>]" data-cancelar><i class="bx bx-user-x"></i></a><?php endif; ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <?php if ($ptEdita): ?>
+                        <form action="<?= site_url('obras/vincularUsuario') ?>" method="post" class="pj-vincular">
+                            <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
+                            <label for="pj-usuario-id" class="pj-sr">Vincular técnico</label>
+                            <select name="usuario_id" id="pj-usuario-id" required>
+                                <option value="">Escolha um técnico</option>
+                                <?php foreach ($usuarios_disponiveis as $ud): ?>
+                                    <option value="<?= (int) $ud->idUsuarios ?>"><?= html_escape($ud->nome) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <button class="button btn btn-mini"><span class="button__icon"><i class="bx bx-plus"></i></span><span class="button__text2">Vincular</span></button>
+                        </form>
+                    <?php endif; ?>
+                    <?php if ($equipes): ?>
+                        <h3 class="pj-sub">Equipes alocadas</h3>
+                        <ul class="pj-lista">
+                            <?php foreach ($equipes as $q): ?>
+                                <li><span class="pj-lista-nome"><?= html_escape($q->nome) ?><small>Encarregado: <?= html_escape($q->encarregado ?: '—') ?><?= $q->data_inicio ? ', desde ' . $data_br($q->data_inicio) : '' ?></small></span><span class="ui-selo <?= $q->ativo ? 'sucesso' : 'neutro' ?>"><?= $q->ativo ? 'Ativa' : 'Inativa' ?></span></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+                </section>
+
+                <section class="pj-cartao" aria-labelledby="pj-t-os">
+                    <div class="pj-cartao-cab">
+                        <h2 id="pj-t-os">OS recentes</h2>
+                        <?php if ($os_vinculadas): ?><a href="#execucao" class="pj-link js-ir-aba" data-aba="execucao">Ver todas (<?= count($os_vinculadas) ?>)</a><?php endif; ?>
+                    </div>
+                    <?php if (! $os_vinculadas): ?>
+                        <div class="ui-vazio pj-vazio-p"><strong>Nenhuma OS ainda.</strong>
+                            <?php if ($planOk && $etapas): ?>Gere uma OS para cada etapa.<div class="pj-vazio-acao"><a href="#modal-os-lote" data-toggle="modal" class="button btn btn-mini"><span class="button__icon"><i class="bx bx-receipt"></i></span><span class="button__text2">Gerar OS das etapas</span></a></div><?php endif; ?>
+                        </div>
+                    <?php else: ?>
+                        <ul class="pj-lista">
+                            <?php foreach (array_slice(array_reverse($os_vinculadas), 0, 5) as $o): ?>
+                                <li>
+                                    <span class="pj-lista-nome"><a href="<?= site_url('os/visualizar/' . (int) $o->idOs) ?>">OS #<?= (int) $o->idOs ?></a><small><?= html_escape($o->tecnico ?: 'Sem técnico') ?><?= $o->etapa_nome ? ', ' . html_escape($o->etapa_nome) : '' ?></small></span>
+                                    <span class="ui-selo <?= $coresOs[$o->status] ?? 'neutro' ?>"><?= html_escape($o->status ?: '—') ?></span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+                </section>
+            </div>
+        </div>
     </div>
 
     <!-- PONTOS -->
-    <?php
-    $ptEdita = $perm('eObras');
-    $ptMuda = $ptEdita || ! empty($pode_executar);
-    $ptFiltrado = ($pontos_filtro['tipo'] !== '' || $pontos_filtro['status'] !== ''
-        || ($pontos_filtro['aguardando'] ?? '') !== '' || ($pontos_filtro['resp'] ?? '') !== '');
-    $ptCols = 11 + ($ptEdita ? 1 : 0) + ($ptMuda ? 1 : 0);
-    ?>
     <div class="obra-pane" id="tab-pontos" style="display:none">
-        <div class="pt-barra">
-            <?php if ($ptEdita): ?>
-                <a href="#modal-ponto" data-toggle="modal" class="button btn btn-mini btn-success" data-chamar="novoPonto"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Novo ponto</span></a>
-                <a href="#modal-lote" data-toggle="modal" class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-layer-plus'></i></span><span class="button__text2">Gerar em lote</span></a>
-            <?php endif; ?>
-            <a href="<?= site_url('obras/asbuilt/' . (int) $obra->idObra) ?>" target="_blank" rel="noopener" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-printer'></i></span><span class="button__text2">Imprimir as-built</span></a>
+        <div class="pj-secao-cab">
+            <h2>Pontos <?php if ($pontos_resumo['total'] > 0): ?><small><?= (int) $pontos_resumo['total'] ?> no total, <?= $ptTestados ?> testados</small><?php endif; ?></h2>
+            <div class="pj-secao-acoes">
+                <?php if ($ptEdita): ?>
+                    <a href="#modal-ponto" data-toggle="modal" class="button btn btn-mini" data-chamar="novoPonto"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Novo ponto</span></a>
+                    <a href="#modal-lote" data-toggle="modal" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-layer-plus'></i></span><span class="button__text2">Gerar em lote</span></a>
+                <?php endif; ?>
+            </div>
         </div>
 
-        <?php if (! empty($pontos_resumo['por_tipo'])): ?>
-            <div class="pt-cartoes">
-                <?php foreach ($pontos_resumo['por_tipo'] as $tk => $tr):
-                    $pct = $tr['total'] > 0 ? round($tr['testados'] * 100 / $tr['total']) : 0; ?>
-                    <div class="pt-cartao">
-                        <div class="pt-cartao-titulo"><i class="bx <?= html_escape($pontos_tipos[$tk]['icone'] ?? 'bx-chip') ?>"></i> <?= html_escape($tr['rotulo']) ?></div>
-                        <div class="pt-cartao-num"><?= (int) $tr['testados'] ?> de <?= (int) $tr['total'] ?> testados</div>
-                        <div class="obra-progress mini"><div class="obra-progress-bar" style="width:<?= (int) $pct ?>%"></div></div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-            <p class="pt-resumo-linha">
-                <strong><?= (int) $pontos_resumo['total'] ?></strong> ponto(s)
-                <?php if ($pontos_resumo['progresso'] !== null): ?> &middot; progresso <strong><?= $fmt($pontos_resumo['progresso']) ?>%</strong><?php endif; ?>
-                <?php if ((float) $pontos_resumo['cabo_m'] > 0): ?> &middot; cabo passado <strong><?= $fmt($pontos_resumo['cabo_m']) ?> m</strong><?php endif; ?>
-            </p>
-        <?php endif; ?>
-
         <?php if ($pontos_resumo['total'] > 0): ?>
-        <form action="<?= site_url('obras/visualizar/' . (int) $obra->idObra) ?>#pontos" method="get" class="pt-filtros">
+        <form action="<?= site_url('obras/visualizar/' . (int) $obra->idObra) ?>#pontos" method="get" class="pj-filtros">
             <select name="pt_tipo" aria-label="Filtrar por tipo">
                 <option value="">Todos os tipos</option>
                 <?php foreach ($pontos_tipos as $k => $t): ?>
@@ -144,54 +333,57 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
                     <option value="<?= html_escape($exId) ?>" <?= ($pontos_filtro['resp'] ?? '') === $exId ? 'selected' : '' ?>><?= html_escape($ex['nome']) ?></option>
                 <?php endforeach; ?>
             </select>
-            <button class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-filter-alt'></i></span><span class="button__text2">Filtrar</span></button>
-            <?php if ($ptFiltrado): ?><a href="<?= site_url('obras/visualizar/' . (int) $obra->idObra) ?>#pontos" class="button btn btn-mini btn-warning"><span class="button__text2">Limpar</span></a><?php endif; ?>
+            <button class="button btn btn-mini"><span class="button__icon"><i class='bx bx-filter-alt'></i></span><span class="button__text2">Filtrar</span></button>
+            <?php if ($ptFiltrado): ?><a href="<?= site_url('obras/visualizar/' . (int) $obra->idObra) ?>#pontos" class="pj-link">Limpar filtros</a><?php endif; ?>
         </form>
         <?php endif; ?>
 
         <?php if ($ptEdita): ?>
-            <form id="form-repasse-lote" action="<?= site_url('obras/repassarPontos') ?>" method="post" class="pt-lote">
-                <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
-                <span class="pt-lote-rotulo"><i class="bx bx-transfer-alt"></i> Repassar selecionados para</span>
-                <select name="destinatario" aria-label="Quem recebe os pontos selecionados">
-                    <option value="">Equipe (livre)</option>
-                    <?php foreach ($executores as $ex): ?>
-                        <option value="<?= (int) $ex['idUsuarios'] ?>"><?= html_escape($ex['nome']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <input type="text" name="instrucao" maxlength="255" class="pt-lote-instrucao" placeholder="Instrução — não escreva senhas" aria-label="Instrução para quem recebe">
-                <button class="button btn btn-mini btn-primary" title="Repassar os pontos marcados"><span class="button__icon"><i class='bx bx-check'></i></span><span class="button__text2">Repassar selecionados</span></button>
-            </form>
-            <?php if (! empty($plan_ativo) && $etapas): ?>
-                <div class="pt-lote">
-                    <span class="pt-lote-rotulo"><i class="bx bx-receipt"></i> Pontos sem OS marcados</span>
-                    <a href="#modal-os-pontos" data-toggle="modal" class="button btn btn-mini btn-primary js-os-pontos" title="Gerar uma OS com os pontos marcados"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2">Gerar OS para selecionados</span></a>
-                </div>
-            <?php endif; ?>
+            <!-- Barra de selecao: so aparece com pontos marcados -->
+            <div class="pj-selecao" id="pj-selecao" hidden>
+                <strong class="pj-selecao-qtd"><span id="pj-sel-qtd">0</span> selecionado(s)</strong>
+                <form id="form-repasse-lote" action="<?= site_url('obras/repassarPontos') ?>" method="post" class="pj-selecao-form">
+                    <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
+                    <select name="destinatario" aria-label="Quem recebe os pontos selecionados">
+                        <option value="">Equipe (livre)</option>
+                        <?php foreach ($executores as $ex): ?>
+                            <option value="<?= (int) $ex['idUsuarios'] ?>"><?= html_escape($ex['nome']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <input type="text" name="instrucao" maxlength="255" placeholder="Instrução (não escreva senhas)" aria-label="Instrução para quem recebe">
+                    <button class="button btn btn-mini" title="Passar os pontos marcados para outro técnico"><span class="button__icon"><i class='bx bx-transfer-alt'></i></span><span class="button__text2">Passar para outro técnico</span></button>
+                </form>
+                <?php if (! empty($plan_ativo) && $etapas): ?>
+                    <a href="#modal-os-pontos" data-toggle="modal" class="button btn btn-mini btn-primary js-os-pontos" title="Gerar uma OS com os pontos marcados que ainda não têm OS"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2">Gerar OS</span></a>
+                <?php endif; ?>
+            </div>
         <?php endif; ?>
 
-        <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
-            <table class="table table-bordered pt-tabela">
-                <thead><tr><?php if ($ptEdita): ?><th class="pt-col-sel"><input type="checkbox" id="pt-selecionar-todos" title="Selecionar todos" aria-label="Selecionar todos os pontos"></th><?php endif; ?><th class="pt-col-foto">Foto</th><th>Identificação</th><th>Tipo</th><th>Local</th><th>IP</th><th>Canal</th><th>Porta</th><th>Metros</th><th>Status</th><th>Com / aguardando</th><th>Atualizado em</th><?php if ($ptMuda): ?><th style="min-width:260px">Ações</th><?php endif; ?></tr></thead>
+        <div class="pj-tabela-caixa ui-tabela-rolagem">
+            <table class="table pt-tabela pj-tab-cartao">
+                <thead><tr>
+                    <?php if ($ptEdita): ?><th class="pt-col-sel"><input type="checkbox" id="pt-selecionar-todos" title="Selecionar todos" aria-label="Selecionar todos os pontos"></th><?php endif; ?>
+                    <th class="pt-col-foto">Foto</th><th>Ponto</th><th>Local</th><th>Rede</th><th>Cabo</th><th>Status</th><th>Com quem</th><?php if ($ptMuda): ?><th class="pj-col-atualizar">Atualizar status</th><?php endif; ?>
+                </tr></thead>
                 <tbody>
                     <?php if (! $pontos): ?>
-                        <tr><td colspan="<?= (int) $ptCols ?>">
+                        <tr class="pj-linha-vazia"><td colspan="<?= 8 + ($ptEdita ? 1 : 0) + ($ptMuda ? 1 : 0) ?>">
                             <?php if ($ptFiltrado): ?>
-                                <div class="ui-vazio"><i class="bx bx-filter-alt"></i><strong>Nenhum ponto com esse filtro.</strong></div>
+                                <div class="ui-vazio"><i class="bx bx-filter-alt"></i><strong>Nenhum ponto com esse filtro.</strong>Tire um filtro para ver mais pontos.</div>
                             <?php else: ?>
-                                <div class="ui-vazio"><i class="bx bx-cctv"></i><strong>Nenhum ponto cadastrado.</strong>Gere os pontos em lote: ex. 16 câmeras CAM-01 a CAM-16. Depois cada um avança (cabo passado, instalado, configurado, testado) e o progresso do projeto é calculado sozinho.</div>
+                                <div class="ui-vazio"><i class="bx bx-cctv"></i><strong>Nenhum ponto ainda.</strong>Gere os pontos em lote, por exemplo 16 câmeras de CAM-01 a CAM-16. Depois cada um avança até o teste e o progresso do projeto é calculado sozinho.
+                                    <?php if ($ptEdita): ?><div class="pj-vazio-acao"><a href="#modal-lote" data-toggle="modal" class="button btn btn-primary"><span class="button__icon"><i class="bx bx-layer-plus"></i></span><span class="button__text2">Adicionar pontos</span></a></div><?php endif; ?></div>
                             <?php endif; ?>
                         </td></tr>
                     <?php endif; ?>
                     <?php foreach ($pontos as $pt):
-                        $st = $pontos_status[$pt->status] ?? null; ?>
-                        <?php
+                        $st = $pontos_status[$pt->status] ?? null;
                         $fotosPt = array_values($fotos_pontos[$pt->idPonto] ?? []);
                         $nFotosPt = count($fotosPt);
                         $rotAguardando = Obra_pontos_model::rotuloAguardando($pt->aguardando ?? null);
                         $instrucaoPt = (string) ($pt->instrucao ?? '');
                         ?>
-                        <tr>
+                        <tr id="pt-linha-<?= (int) $pt->idPonto ?>">
                             <?php if ($ptEdita): ?>
                                 <td class="pt-col-sel"><input type="checkbox" name="ponto_ids[]" value="<?= (int) $pt->idPonto ?>" form="form-repasse-lote" data-sem-os="<?= isset($pontosSemOs[(int) $pt->idPonto]) ? 1 : 0 ?>" aria-label="Selecionar <?= html_escape($pt->identificacao) ?>"></td>
                             <?php endif; ?>
@@ -214,15 +406,19 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
                                     <span class="pt-sem-foto">—</span>
                                 <?php endif; ?>
                             </td>
-                            <td data-label="Identificação"><strong><?= html_escape($pt->identificacao) ?></strong></td>
-                            <td data-label="Tipo"><?= html_escape($pontos_tipos[$pt->tipo]['rotulo'] ?? $pt->tipo) ?></td>
+                            <td data-label="Ponto" class="pj-col-ponto"><strong><?= html_escape($pt->identificacao) ?></strong><small><?= html_escape($pontos_tipos[$pt->tipo]['rotulo'] ?? $pt->tipo) ?></small></td>
                             <td data-label="Local"><?= html_escape($pt->local ?: '—') ?></td>
-                            <td data-label="IP"><?= html_escape($pt->ip ?: '—') ?></td>
-                            <td data-label="Canal"><?= html_escape($pt->canal ?: '—') ?></td>
-                            <td data-label="Porta"><?= html_escape($pt->porta ?: '—') ?></td>
-                            <td data-label="Metros"><?= (float) $pt->metragem_cabo > 0 ? $fmt($pt->metragem_cabo) : '—' ?></td>
-                            <td data-label="Status"><span class="ui-selo <?= html_escape($st['classe'] ?? '') ?>"><?= html_escape($st['rotulo'] ?? $pt->status) ?></span></td>
-                            <td data-label="Com / aguardando" class="pt-col-com">
+                            <td data-label="Rede" class="pj-col-rede">
+                                <?php if ($pt->ip || $pt->canal || $pt->porta): ?>
+                                    <?php if ($pt->ip): ?><span>IP <?= html_escape($pt->ip) ?></span><?php endif; ?>
+                                    <?php if ($pt->canal): ?><span>Canal <?= html_escape($pt->canal) ?></span><?php endif; ?>
+                                    <?php if ($pt->porta): ?><span>Porta <?= html_escape($pt->porta) ?></span><?php endif; ?>
+                                <?php else: ?>—<?php endif; ?>
+                            </td>
+                            <td data-label="Cabo"><?= (float) $pt->metragem_cabo > 0 ? $fmt($pt->metragem_cabo) . ' m' : '—' ?></td>
+                            <td data-label="Status"><span class="ui-selo <?= html_escape($st['classe'] ?? '') ?>"><?= html_escape($st['rotulo'] ?? $pt->status) ?></span>
+                                <small class="pj-atualizado"><?= ! empty($pt->atualizado_em) ? 'em ' . date('d/m/Y H:i', strtotime($pt->atualizado_em)) : '' ?></small></td>
+                            <td data-label="Com quem" class="pt-col-com">
                                 <?php $comNome = trim((string) ($pt->responsavel_nome ?? '')); ?>
                                 <?php if ($comNome !== ''): ?>
                                     <span class="pt-com-nome"><?= html_escape($comNome) ?></span>
@@ -235,9 +431,8 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
                                     <div class="pt-aguard" title="<?= html_escape($instrucaoPt !== '' ? 'Instrução: ' . $instrucaoPt : $rotAguardando) ?>"><?= html_escape($rotAguardando) ?></div>
                                 <?php endif; ?>
                             </td>
-                            <td data-label="Atualizado em"><?= ! empty($pt->atualizado_em) ? date('d/m/Y H:i', strtotime($pt->atualizado_em)) : '—' ?></td>
                             <?php if ($ptMuda): ?>
-                                <td class="pt-acoes">
+                                <td class="pt-acoes pj-col-atualizar" data-label="Atualizar status">
                                     <form action="<?= site_url('obras/statusPonto') ?>" method="post" class="pt-status-form">
                                         <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
                                         <input type="hidden" name="ponto_id" value="<?= (int) $pt->idPonto ?>">
@@ -250,8 +445,10 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
                                         <button class="btn btn-mini btn-success" title="Atualizar status">OK</button>
                                     </form>
                                     <?php if ($ptEdita): ?>
-                                        <a href="#" class="btn-nwe3" title="Editar" aria-label="Editar" data-chamar="editarPonto" data-args="<?= html_escape(json_encode([$pt])) ?>" data-cancelar><i class="bx bx-edit bx-xs"></i></a>
-                                        <a href="#" class="btn-nwe4" title="Excluir" aria-label="Excluir" data-chamar="excluirPonto" data-args="[<?= (int) $pt->idPonto ?>]" data-cancelar><i class="bx bx-trash-alt bx-xs"></i></a>
+                                        <span class="pj-icones">
+                                        <a href="#" class="btn-nwe3" title="Editar" aria-label="Editar <?= html_escape($pt->identificacao) ?>" data-chamar="editarPonto" data-args="<?= html_escape(json_encode([$pt])) ?>" data-cancelar><i class="bx bx-edit bx-xs"></i></a>
+                                        <a href="#" class="btn-nwe4" title="Excluir" aria-label="Excluir <?= html_escape($pt->identificacao) ?>" data-chamar="excluirPonto" data-args="[<?= (int) $pt->idPonto ?>]" data-cancelar><i class="bx bx-trash-alt bx-xs"></i></a>
+                                        </span>
                                     <?php endif; ?>
                                 </td>
                             <?php endif; ?>
@@ -259,81 +456,94 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
                     <?php endforeach; ?>
                 </tbody>
             </table>
-        </div></div>
+        </div>
     </div>
 
-    <!-- CRONOGRAMA -->
-    <div class="obra-pane" id="tab-cronograma" style="display:none">
-        <?php
-        $planOk = ! empty($plan_ativo) && $perm('eObras');
-        $etapasSemOs = [];
-        foreach ($etapas as $_e) {
-            if (empty($osPorEtapa[$_e->idEtapa])) {
-                $etapasSemOs[] = $_e;
-            }
-        }
-        $coresOs = ['Aberto' => 'info', 'Orçamento' => 'neutro', 'Em Andamento' => 'alerta', 'Aguardando peças' => 'alerta', 'Finalizado' => 'sucesso', 'Faturado' => 'sucesso', 'Cancelado' => 'perigo'];
-        ?>
-        <?php if ($planOk && $etapas): ?>
-            <div style="padding:0 0 8px"><a href="#modal-os-lote" data-toggle="modal" class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2">Gerar OS das etapas sem OS</span></a></div>
-        <?php endif; ?>
-        <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
-            <?php if ($perm('eObraCronograma')): ?>
-                <div style="padding:8px"><a href="#modal-etapa" data-toggle="modal" class="button btn btn-mini btn-success" data-chamar="novaEtapa"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova etapa</span></a></div>
-            <?php endif; ?>
-            <?php if ($perm('eObras') && trim((string) $obra->tipo_obra) !== ''): ?>
-                <form action="<?= site_url('obras/aplicarEtapasPadrao') ?>" method="post" style="padding:0 8px 8px;margin:0">
-                    <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
-                    <button class="button btn btn-mini btn-primary" data-confirmar="Criar as etapas padrão para &quot;<?= html_escape($obra->tipo_obra) ?>&quot;? As que já existem não são repetidas."><span class="button__icon"><i class='bx bx-list-plus'></i></span><span class="button__text2">Criar etapas padrão</span></button>
-                </form>
-            <?php endif; ?>
-            <table class="table table-bordered">
-                <thead><tr><th>EAP</th><th>Etapa</th><th>Peso %</th><th>Valor prev.</th><?php if (! empty($plan_ativo)): ?><th>Itens prev.</th><th>OS</th><?php endif; ?><th>Início</th><th>Fim</th><th>%</th><?php if ($perm('eObraCronograma')): ?><th>Ações</th><?php endif; ?></tr></thead>
+    <!-- PLANEJAMENTO -->
+    <div class="obra-pane" id="tab-planejamento" style="display:none">
+        <div class="pj-secao-cab">
+            <h2>Etapas <?php if ($etapas): ?><small><?= count($etapas) ?> no total<?= $etapasSemOs && ! empty($plan_ativo) ? ', ' . count($etapasSemOs) . ' sem OS' : '' ?></small><?php endif; ?></h2>
+            <div class="pj-secao-acoes">
+                <?php if ($perm('eObraCronograma')): ?>
+                    <a href="#modal-etapa" data-toggle="modal" class="button btn btn-mini" data-chamar="novaEtapa"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova etapa</span></a>
+                <?php endif; ?>
+                <?php if ($perm('eObras') && trim((string) $obra->tipo_obra) !== ''): ?>
+                    <form action="<?= site_url('obras/aplicarEtapasPadrao') ?>" method="post" class="pj-form-linha">
+                        <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
+                        <button class="button btn btn-mini" data-confirmar="Criar as etapas padrão para &quot;<?= html_escape($obra->tipo_obra) ?>&quot;? As que já existem não são repetidas."><span class="button__icon"><i class='bx bx-list-plus'></i></span><span class="button__text2">Criar etapas padrão</span></button>
+                    </form>
+                <?php endif; ?>
+                <?php if ($planOk && $etapas): ?>
+                    <a href="#modal-os-lote" data-toggle="modal" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2">Gerar OS das etapas sem OS</span></a>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div class="pj-tabela-caixa ui-tabela-rolagem">
+            <table class="table pj-tab-etapas pj-tab-cartao">
+                <thead><tr><th>Nº</th><th>Etapa</th><th>Peso</th><th>Valor previsto</th><?php if (! empty($plan_ativo)): ?><th>Materiais e serviços</th><th>OS</th><?php endif; ?><th>Datas</th><th>Progresso</th><?php if ($perm('eObraCronograma')): ?><th></th><?php endif; ?></tr></thead>
                 <tbody>
-                    <?php if (! $etapas) echo '<tr><td colspan="8"><div class="ui-vazio"><i class="bx bx-list-ul"></i><strong>Nenhuma etapa cadastrada.</strong></div></td></tr>'; ?>
-                    <?php foreach ($etapas as $e): ?>
+                    <?php if (! $etapas): ?>
+                        <tr class="pj-linha-vazia"><td colspan="10"><div class="ui-vazio"><i class="bx bx-list-ul"></i><strong>Nenhuma etapa ainda.</strong>As etapas dividem o trabalho e dão o peso de cada parte no progresso.
+                            <div class="pj-vazio-acao">
+                                <?php if ($perm('eObras') && trim((string) $obra->tipo_obra) !== ''): ?>
+                                    <form action="<?= site_url('obras/aplicarEtapasPadrao') ?>" method="post" class="pj-form-linha"><input type="hidden" name="obra_id" value="<?= $obra->idObra ?>"><button class="button btn btn-primary"><span class="button__icon"><i class='bx bx-list-plus'></i></span><span class="button__text2">Criar etapas padrão</span></button></form>
+                                <?php elseif ($perm('eObraCronograma')): ?>
+                                    <a href="#modal-etapa" data-toggle="modal" class="button btn btn-primary" data-chamar="novaEtapa"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova etapa</span></a>
+                                <?php endif; ?>
+                            </div></div></td></tr>
+                    <?php endif; ?>
+                    <?php foreach ($etapas as $e):
+                        $osEt = $osPorEtapa[$e->idEtapa] ?? [];
+                        $itEt = $itensPorEtapa[$e->idEtapa] ?? [];
+                        $iniOs = $data_br($e->data_inicio_prevista) === '—' ? '' : $data_br($e->data_inicio_prevista); ?>
                         <tr>
-                            <td><?= html_escape($e->codigo_eap) ?></td>
-                            <td><?= html_escape($e->nome) ?></td>
-                            <td><?= $fmt($e->peso_percentual) ?></td>
-                            <td>R$ <?= $fmt($e->valor_previsto) ?></td>
-                            <?php if (! empty($plan_ativo)):
-                                $osEt = $osPorEtapa[$e->idEtapa] ?? [];
-                                $itEt = $itensPorEtapa[$e->idEtapa] ?? []; ?>
-                                <td>
-                                    R$ <?= $fmt($totaisPrevistos[$e->idEtapa] ?? 0) ?>
-                                    <?php if ($planOk || $itEt): ?><br><a href="#" class="js-itens-toggle" data-alvo="itens-etapa-<?= (int) $e->idEtapa ?>"><small><i class="bx bx-list-ul"></i> Itens (<?= count($itEt) ?>)</small></a><?php endif; ?>
+                            <td data-label="Nº" class="pj-col-n"><?= html_escape($e->codigo_eap) ?></td>
+                            <td data-label="Etapa"><strong><?= html_escape($e->nome) ?></strong></td>
+                            <td data-label="Peso"><?= $fmt($e->peso_percentual) ?>%</td>
+                            <td data-label="Valor previsto">R$ <?= $fmt($e->valor_previsto) ?></td>
+                            <?php if (! empty($plan_ativo)): ?>
+                                <td data-label="Materiais e serviços" class="pj-col-itens">
+                                    <?php if ($planOk || $itEt): ?>
+                                        <a href="#" class="js-itens-toggle pj-itens-link" data-alvo="itens-etapa-<?= (int) $e->idEtapa ?>" aria-expanded="false">
+                                            <i class="bx bx-chevron-down"></i> <?= count($itEt) ?> <?= count($itEt) === 1 ? 'item' : 'itens' ?><?= $itEt ? ', R$ ' . $fmt($totaisPrevistos[$e->idEtapa] ?? 0) : '' ?>
+                                        </a>
+                                        <?php if ($itEt): ?><small class="pj-itens-previa"><?= html_escape(implode(', ', array_map(function ($i) { return ((object) $i)->descricao; }, array_slice($itEt, 0, 2)))) ?><?= count($itEt) > 2 ? ' e mais ' . (count($itEt) - 2) : '' ?></small><?php endif; ?>
+                                    <?php else: ?>—<?php endif; ?>
                                 </td>
-                                <td>
-                                    <small><?= count($osEt) ?> OS</small>
+                                <td data-label="OS" class="pj-col-os">
                                     <?php foreach ($osEt as $oe): $oe = (object) $oe; ?>
-                                        <br><a href="<?= site_url('os/visualizar/' . (int) $oe->idOs) ?>" class="ui-selo <?= $coresOs[$oe->status] ?? 'neutro' ?>" title="<?= html_escape(($oe->status ?? '') . (! empty($oe->tecnico_nome) ? ' - ' . $oe->tecnico_nome : '')) ?>">#<?= (int) $oe->idOs ?> <?= html_escape($oe->status ?? '') ?></a>
+                                        <a href="<?= site_url('os/visualizar/' . (int) $oe->idOs) ?>" class="ui-selo <?= $coresOs[$oe->status] ?? 'neutro' ?>" title="<?= html_escape(($oe->status ?? '') . (! empty($oe->tecnico_nome) ? ' - ' . $oe->tecnico_nome : '')) ?>">#<?= (int) $oe->idOs ?> <?= html_escape($oe->status ?? '') ?></a>
                                     <?php endforeach; ?>
-                                    <?php if ($planOk): ?><br><a href="#modal-os-etapa" data-toggle="modal" class="button btn btn-mini btn-primary js-gerar-os" data-etapa="<?= (int) $e->idEtapa ?>" data-nome="<?= html_escape($e->nome) ?>" data-inicio="<?= html_escape($data_br($e->data_inicio_prevista) === '—' ? '' : $data_br($e->data_inicio_prevista)) ?>"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2">Gerar OS</span></a><?php endif; ?>
+                                    <?php if ($planOk && ! $osEt): ?>
+                                        <a href="#modal-os-etapa" data-toggle="modal" class="button btn btn-mini js-gerar-os" data-etapa="<?= (int) $e->idEtapa ?>" data-nome="<?= html_escape($e->nome) ?>" data-inicio="<?= html_escape($iniOs) ?>"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2">Gerar OS</span></a>
+                                    <?php elseif ($planOk): ?>
+                                        <a href="#modal-os-etapa" data-toggle="modal" class="pj-link-fraco js-gerar-os" data-etapa="<?= (int) $e->idEtapa ?>" data-nome="<?= html_escape($e->nome) ?>" data-inicio="<?= html_escape($iniOs) ?>">Gerar outra</a>
+                                    <?php elseif (! $osEt): ?>—<?php endif; ?>
                                 </td>
                             <?php endif; ?>
-                            <td><?= $data_br($e->data_inicio_prevista) ?></td>
-                            <td><?= $data_br($e->data_fim_prevista) ?></td>
-                            <td>
-                                <div class="obra-progress mini"><div class="obra-progress-bar" style="width:<?= (float) $e->percentual_concluido ?>%"></div></div>
+                            <td data-label="Datas" class="pj-col-datas"><?= $data_br($e->data_inicio_prevista) ?><br><small>até <?= $data_br($e->data_fim_prevista) ?></small></td>
+                            <td data-label="Progresso" class="pj-col-prog">
+                                <div class="ui-barra"><span style="width:<?= max(0, min(100, (float) $e->percentual_concluido)) ?>%"></span></div>
                                 <small><?= $fmt($e->percentual_concluido) ?>%</small>
                             </td>
                             <?php if ($perm('eObraCronograma')): ?>
-                                <td>
-                                    <a href="#" class="btn-nwe3" title="Editar" aria-label="Editar" data-chamar="editarEtapa" data-args="<?= html_escape(json_encode([$e])) ?>" data-cancelar><i class="bx bx-edit bx-xs"></i></a>
-                                    <a href="#" class="btn-nwe4" title="Excluir" aria-label="Excluir" data-chamar="excluirEtapa" data-args="[<?= (int) $e->idEtapa ?>]" data-cancelar><i class="bx bx-trash-alt bx-xs"></i></a>
+                                <td class="pj-col-acoes">
+                                    <a href="#" class="btn-nwe3" title="Editar" aria-label="Editar etapa <?= html_escape($e->nome) ?>" data-chamar="editarEtapa" data-args="<?= html_escape(json_encode([$e])) ?>" data-cancelar><i class="bx bx-edit bx-xs"></i></a>
+                                    <a href="#" class="btn-nwe4" title="Excluir" aria-label="Excluir etapa <?= html_escape($e->nome) ?>" data-chamar="excluirEtapa" data-args="[<?= (int) $e->idEtapa ?>]" data-cancelar><i class="bx bx-trash-alt bx-xs"></i></a>
                                 </td>
                             <?php endif; ?>
                         </tr>
-                        <?php if (! empty($plan_ativo) && ($planOk || ! empty($itensPorEtapa[$e->idEtapa]))): ?>
-                        <tr id="itens-etapa-<?= (int) $e->idEtapa ?>" class="js-itens-row" style="display:none">
+                        <?php if (! empty($plan_ativo) && ($planOk || $itEt)): ?>
+                        <tr id="itens-etapa-<?= (int) $e->idEtapa ?>" class="js-itens-row pj-linha-itens" style="display:none">
                             <td colspan="10">
-                                <strong><i class="bx bx-package"></i> Itens previstos de &quot;<?= html_escape($e->nome) ?>&quot;</strong>
-                                <table class="table table-bordered" style="margin-top:6px">
+                                <div class="pj-itens">
+                                <strong>Materiais e serviços de &quot;<?= html_escape($e->nome) ?>&quot;</strong>
+                                <table class="table pj-tab-itens">
                                     <thead><tr><th>Tipo</th><th>Descrição</th><th>Qtd</th><th>Preço</th><th>Subtotal</th><?php if ($planOk): ?><th></th><?php endif; ?></tr></thead>
                                     <tbody>
-                                    <?php if (empty($itensPorEtapa[$e->idEtapa])): ?><tr><td colspan="6"><small>Nenhum item previsto.</small></td></tr><?php endif; ?>
-                                    <?php foreach (($itensPorEtapa[$e->idEtapa] ?? []) as $it): $it = (object) $it; ?>
+                                    <?php if (! $itEt): ?><tr><td colspan="6"><small>Nenhum item previsto. Adicione abaixo o que será usado nesta etapa.</small></td></tr><?php endif; ?>
+                                    <?php foreach ($itEt as $it): $it = (object) $it; ?>
                                         <tr>
                                             <td><?= $it->tipo === 'servico' ? 'Serviço' : 'Produto' ?></td>
                                             <td><?= html_escape($it->descricao) ?></td>
@@ -345,7 +555,7 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
                                                     <form action="<?= site_url('obras/excluirItemEtapa') ?>" method="post" style="margin:0" class="js-excluir-item">
                                                         <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
                                                         <input type="hidden" name="idItem" value="<?= (int) $it->idItem ?>">
-                                                        <button class="btn-nwe4" style="border:0;background:none" title="Excluir item" aria-label="Excluir item"><i class="bx bx-trash-alt bx-xs"></i></button>
+                                                        <button class="btn-nwe4" style="border:0;background:none" title="Remover item" aria-label="Remover item"><i class="bx bx-trash-alt bx-xs"></i></button>
                                                     </form>
                                                 </td>
                                             <?php endif; ?>
@@ -354,318 +564,301 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
                                     </tbody>
                                 </table>
                                 <?php if ($planOk): ?>
-                                <form action="<?= site_url('obras/salvarItemEtapa') ?>" method="post" class="js-form-item" style="margin:0;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                                <form action="<?= site_url('obras/salvarItemEtapa') ?>" method="post" class="js-form-item pj-form-item">
                                     <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
                                     <input type="hidden" name="etapa_id" value="<?= (int) $e->idEtapa ?>">
                                     <input type="hidden" name="referencia_id" class="js-ref">
-                                    <select name="tipo" class="js-tipo" style="width:110px;margin:0" aria-label="Tipo do item"><option value="produto">Produto</option><option value="servico">Serviço</option></select>
-                                    <input type="text" class="js-busca" placeholder="Buscar produto/serviço..." autocomplete="off" style="width:260px;margin:0" aria-label="Buscar item">
-                                    <input type="text" name="quantidade" value="1" style="width:70px;margin:0" aria-label="Quantidade">
-                                    <input type="text" name="preco" class="js-preco" placeholder="Preço" style="width:90px;margin:0" aria-label="Preço (opcional)">
-                                    <button class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Adicionar</span></button>
+                                    <select name="tipo" class="js-tipo" aria-label="Tipo do item"><option value="produto">Produto</option><option value="servico">Serviço</option></select>
+                                    <input type="text" class="js-busca" placeholder="Buscar produto ou serviço" autocomplete="off" aria-label="Buscar item">
+                                    <input type="text" name="quantidade" value="1" class="pj-curto" aria-label="Quantidade">
+                                    <input type="text" name="preco" class="js-preco pj-curto" placeholder="Preço" aria-label="Preço (opcional)">
+                                    <button class="button btn btn-mini"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Adicionar item</span></button>
                                 </form>
                                 <?php endif; ?>
+                                </div>
                             </td>
                         </tr>
                         <?php endif; ?>
                     <?php endforeach; ?>
                 </tbody>
             </table>
-        </div></div>
+        </div>
+    </div>
+
+    <!-- EXECUCAO: registros do dia, mao de obra e OS vinculadas -->
+    <?php $podeRdo = $perm('cObraRdo'); ?>
+    <div class="obra-pane" id="tab-execucao" style="display:none">
+
+        <section class="pj-bloco" id="registros" aria-labelledby="pj-t-reg">
+            <div class="pj-secao-cab">
+                <h2 id="pj-t-reg">Registros do dia</h2>
+                <div class="pj-secao-acoes">
+                    <?php if (! empty($pode_executar)): ?><a href="#modal-registro" data-toggle="modal" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-check-circle'></i></span><span class="button__text2">Registrar execução</span></a><?php endif; ?>
+                    <?php if ($podeRdo): ?><a href="#modal-rdo" data-toggle="modal" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Registro completo</span></a><?php endif; ?>
+                </div>
+            </div>
+            <div class="pj-tabela-caixa ui-tabela-rolagem">
+                <table class="table pj-tab-cartao">
+                    <thead><tr><th>Nº</th><th>Data</th><th>O que foi feito</th><th>Condição</th><th>Técnicos</th><th>Responsável</th><th></th></tr></thead>
+                    <tbody>
+                        <?php if (! $rdos): ?><tr class="pj-linha-vazia"><td colspan="7"><div class="ui-vazio"><i class="bx bx-notepad"></i><strong>Nenhum registro do dia ainda.</strong>Registre o que foi feito para o histórico e o cliente acompanharem.</div></td></tr><?php endif; ?>
+                        <?php foreach ($rdos as $r): ?>
+                            <tr>
+                                <td data-label="Nº"><?= html_escape($r->numero) ?></td>
+                                <td data-label="Data"><?= $data_br($r->data) ?></td>
+                                <td data-label="O que foi feito"><?= html_escape(mb_strimwidth((string) $r->atividades, 0, 80, '…')) ?: '—' ?></td>
+                                <td data-label="Condição"><?= html_escape($condicoesRdo[$r->condicao] ?? (string) $r->condicao) ?></td>
+                                <td data-label="Técnicos"><?= (int) $r->efetivo_total ?></td>
+                                <td data-label="Responsável"><?= html_escape($r->responsavel) ?></td>
+                                <td class="pj-col-acoes"><a href="<?= site_url('obras/imprimirRdo/' . $r->idRdo) ?>" target="_blank" class="btn-nwe" title="Imprimir registro" aria-label="Imprimir registro <?= html_escape($r->numero) ?>"><i class="bx bx-printer bx-xs"></i></a></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="pj-bloco" id="maodeobra" aria-labelledby="pj-t-mo">
+            <div class="pj-secao-cab">
+                <h2 id="pj-t-mo">Mão de obra<?php if ($verValor): ?> <small>total R$ <?= $fmt($apontamento_total) ?></small><?php endif; ?></h2>
+                <?php if ($podeRdo): ?>
+                <div class="pj-secao-acoes">
+                    <form action="<?= site_url('obras/consolidarPonto') ?>" method="post" class="pj-form-linha pj-consolidar">
+                        <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
+                        <label for="pj-cons-data" class="pj-sr">Data do ponto</label>
+                        <input type="text" id="pj-cons-data" class="datepicker" name="data" value="<?= date('d/m/Y') ?>" autocomplete="off">
+                        <button class="button btn btn-mini" data-confirmar="Consolidar as batidas de ponto vinculadas a este projeto nesse dia?" title="Transforma as batidas de ponto (facial/GPS) do dia em horas e custo de mão de obra"><span class="button__icon"><i class='bx bx-sync'></i></span><span class="button__text2">Consolidar ponto do dia</span></button>
+                    </form>
+                </div>
+                <?php endif; ?>
+            </div>
+            <div class="pj-tabela-caixa ui-tabela-rolagem">
+                <table class="table pj-tab-cartao">
+                    <thead><tr><th>Data</th><th>Colaborador</th><th>Função</th><th>Horas</th><th>Diária</th><th>Origem</th><?php if ($verValor): ?><th>Valor</th><?php endif; ?><?php if ($podeRdo): ?><th></th><?php endif; ?></tr></thead>
+                    <tbody>
+                        <?php if (! $apontamentos): ?><tr class="pj-linha-vazia"><td colspan="9"><div class="ui-vazio"><i class="bx bx-time-five"></i><strong>Nenhum apontamento ainda.</strong>Consolide o ponto do dia ou lance manualmente abaixo.</div></td></tr><?php endif; ?>
+                        <?php foreach ($apontamentos as $ap): ?>
+                            <tr>
+                                <td data-label="Data"><?= $data_br($ap->data) ?></td>
+                                <td data-label="Colaborador"><?= html_escape($ap->nome ?: ('#' . $ap->colaborador_id)) ?></td>
+                                <td data-label="Função"><?= html_escape($ap->funcao) ?></td>
+                                <td data-label="Horas"><?= $fmt($ap->horas) ?></td>
+                                <td data-label="Diária"><?= $ap->diaria ? '1' : '—' ?></td>
+                                <td data-label="Origem"><span class="ui-selo neutro"><?= $ap->origem === 'ponto_facial' ? 'Ponto' : 'Manual' ?></span></td>
+                                <?php if ($verValor): ?><td data-label="Valor">R$ <?= $fmt($ap->valor) ?></td><?php endif; ?>
+                                <?php if ($podeRdo): ?>
+                                    <td class="pj-col-acoes"><a href="#" class="btn-nwe4" title="Remover" aria-label="Remover apontamento" data-chamar="excluirApont" data-args="[<?= (int) $ap->idApontamento ?>]" data-cancelar><i class="bx bx-trash-alt bx-xs"></i></a></td>
+                                <?php endif; ?>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <?php if ($podeRdo): ?>
+                <form action="<?= site_url('obras/salvarApontamento') ?>" method="post" class="pj-form-manual">
+                    <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
+                    <strong>Lançar horas manualmente</strong>
+                    <div class="pj-campos">
+                        <label>Data<input type="text" class="datepicker" name="data" value="<?= date('d/m/Y') ?>" autocomplete="off"></label>
+                        <label>Colaborador<input type="text" name="nome" placeholder="Nome"></label>
+                        <label>Função<input type="text" name="funcao"></label>
+                        <label>Horas<input type="number" step="0.5" name="horas" value="0"></label>
+                        <label>Valor (R$)<input type="number" step="0.01" name="valor" value="0"></label>
+                        <label class="pj-check"><input type="checkbox" name="diaria" value="1"> Diária</label>
+                        <button class="button btn btn-mini"><span class="button__icon"><i class='bx bx-plus'></i></span><span class="button__text2">Lançar</span></button>
+                    </div>
+                </form>
+            <?php endif; ?>
+        </section>
+
+        <section class="pj-bloco" id="os" aria-labelledby="pj-t-osv">
+            <div class="pj-secao-cab">
+                <h2 id="pj-t-osv">OS vinculadas <?php if ($os_vinculadas): ?><small><?= count($os_vinculadas) ?></small><?php endif; ?></h2>
+                <div class="pj-secao-acoes">
+                    <?php if ($ptEdita): ?><a href="#modal-vincular-os" data-toggle="modal" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-link'></i></span><span class="button__text2">Vincular OS existente</span></a><?php endif; ?>
+                </div>
+            </div>
+            <div class="pj-tabela-caixa ui-tabela-rolagem">
+                <table class="table pj-tab-cartao">
+                    <thead><tr><th>OS</th><th>Cliente</th><th>Técnico</th><th>Status</th><th>Etapa</th><th></th></tr></thead>
+                    <tbody>
+                        <?php if (! $os_vinculadas): ?><tr class="pj-linha-vazia"><td colspan="6"><div class="ui-vazio"><i class="bx bx-wrench"></i><strong>Nenhuma OS vinculada.</strong>Gere as OS pelo Planejamento ou vincule uma OS que já existe.</div></td></tr><?php endif; ?>
+                        <?php foreach ($os_vinculadas as $o): ?>
+                            <tr>
+                                <td data-label="OS"><a href="<?= site_url('os/visualizar/' . $o->idOs) ?>"><strong>#<?= (int) $o->idOs ?></strong></a></td>
+                                <td data-label="Cliente"><?= html_escape($o->nomeCliente ?: '—') ?></td>
+                                <td data-label="Técnico"><?= html_escape($o->tecnico ?: '—') ?></td>
+                                <td data-label="Status"><span class="ui-selo <?= $coresOs[$o->status] ?? 'neutro' ?>"><?= html_escape($o->status ?: '—') ?></span></td>
+                                <td data-label="Etapa"><?= html_escape($o->etapa_nome ?: '—') ?></td>
+                                <td class="pj-col-acoes">
+                                    <a href="<?= site_url('tecnico/visualizar/' . $o->idOs) ?>" class="button btn btn-mini" title="Executar em campo"><span class="button__icon"><i class='bx bx-play-circle'></i></span><span class="button__text2">Executar</span></a>
+                                    <?php if ($ptEdita): ?><a href="#" class="btn-nwe4" title="Desvincular" aria-label="Desvincular OS <?= (int) $o->idOs ?>" data-chamar="desvincularOs" data-args="[<?= (int) $o->idVinculo ?>]" data-cancelar><i class="bx bx-unlink bx-xs"></i></a><?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <?php if ($os_vinculadas): ?>
+            <div class="pj-duas">
+                <div>
+                    <h3 class="pj-sub">O que executar (serviços)</h3>
+                    <div class="pj-tabela-caixa ui-tabela-rolagem"><table class="table">
+                        <thead><tr><th>OS</th><th>Serviço</th><th>Qtd.</th></tr></thead>
+                        <tbody>
+                            <?php if (! $os_servicos): ?><tr><td colspan="3" class="pj-vazio-linha">Sem serviços lançados nas OS.</td></tr><?php endif; ?>
+                            <?php foreach ($os_servicos as $s): ?><tr><td>#<?= (int) $s->os_id ?></td><td><?= html_escape($s->nome ?: '—') ?></td><td><?= $fmt($s->quantidade) ?></td></tr><?php endforeach; ?>
+                        </tbody>
+                    </table></div>
+                </div>
+                <div>
+                    <h3 class="pj-sub">Material a utilizar (produtos)</h3>
+                    <div class="pj-tabela-caixa ui-tabela-rolagem"><table class="table">
+                        <thead><tr><th>OS</th><th>Produto</th><th>Qtd.</th></tr></thead>
+                        <tbody>
+                            <?php if (! $os_produtos): ?><tr><td colspan="3" class="pj-vazio-linha">Sem produtos lançados nas OS.</td></tr><?php endif; ?>
+                            <?php foreach ($os_produtos as $p): ?><tr><td>#<?= (int) $p->os_id ?></td><td><?= html_escape($p->nome ?: '—') ?></td><td><?= $fmt($p->quantidade) ?></td></tr><?php endforeach; ?>
+                        </tbody>
+                    </table></div>
+                </div>
+            </div>
+            <?php endif; ?>
+        </section>
     </div>
 
     <!-- MATERIAL -->
     <div class="obra-pane" id="tab-material" style="display:none">
-        <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
-            <?php if ($perm('rObraMaterial')): ?><a href="<?= site_url('obramaterial/receber/' . $obra->idObra) ?>" class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-down-arrow-circle'></i></span><span class="button__text2">Receber (do cliente)</span></a><?php endif; ?>
-            <?php if ($perm('sObraMaterial')): ?><a href="<?= site_url('obramaterial/entregar/' . $obra->idObra) ?>" class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-up-arrow-circle'></i></span><span class="button__text2">Entregar (à equipe)</span></a><?php endif; ?>
-        </div>
-        <div class="widget-box"><div class="widget-title"><h5><i class='bx bx-cart-alt'></i> Compras da empresa</h5></div><div class="widget-content">
-            <div class="obra-compras">
-                <div class="k-icon" style="background:#e7f5ec;color:#2e7d32;width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px"><i class='bx bx-cart-alt'></i></div>
-                <div>
-                    <div class="c-total">R$ <?= $fmt($compras['total']) ?></div>
-                    <div class="c-lbl">Material comprado pela empresa — <?= (int) $compras['recebimentos'] ?> recebimento(s) por compra própria. Entra no custo realizado do projeto.</div>
-                </div>
+        <div class="pj-secao-cab">
+            <h2>Material</h2>
+            <div class="pj-secao-acoes">
+                <?php if ($perm('rObraMaterial')): ?><a href="<?= site_url('obramaterial/receber/' . $obra->idObra) ?>" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-down-arrow-circle'></i></span><span class="button__text2">Receber material</span></a><?php endif; ?>
+                <?php if ($perm('sObraMaterial')): ?><a href="<?= site_url('obramaterial/entregar/' . $obra->idObra) ?>" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-up-arrow-circle'></i></span><span class="button__text2">Entregar à equipe</span></a><?php endif; ?>
             </div>
-        </div></div>
-        <div class="widget-box"><div class="widget-title"><h5>Almoxarifado — saldo atual</h5></div><div class="widget-content nopadding ui-tabela-rolagem">
-            <table class="table table-bordered">
-                <thead><tr><th>Item</th><th>Cód. barras</th><th>Un.</th><th>Origem</th><th>Saldo</th></tr></thead>
-                <tbody>
-                    <?php if (! $saldos) echo '<tr><td colspan="5"><div class="ui-vazio"><i class="bx bx-package"></i><strong>Sem material em estoque.</strong></div></td></tr>'; ?>
-                    <?php foreach ($saldos as $s): ?>
-                        <tr>
-                            <td><?= html_escape($s->descricao) ?></td>
-                            <td><?= html_escape($s->cod_barras) ?></td>
-                            <td><?= html_escape($s->unidade) ?></td>
-                            <td><?= $s->do_cliente ? '<span class="ui-selo info">Cliente</span>' : 'Próprio' ?></td>
-                            <td><strong><?= rtrim(rtrim(number_format((float) $s->saldo, 3, ',', '.'), '0'), ',') ?></strong></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div></div>
-        <div class="span6" style="margin-left:0"><div class="widget-box"><div class="widget-title"><h5>Recebimentos</h5></div><div class="widget-content nopadding ui-tabela-rolagem">
-            <table class="table table-bordered"><thead><tr><th>#</th><th>Data</th><th>Origem</th><th>Doc.</th></tr></thead><tbody>
-                <?php if (! $recebimentos) echo '<tr><td colspan="4">—</td></tr>'; ?>
-                <?php foreach ($recebimentos as $r): ?><tr><td><?= html_escape($r->numero) ?></td><td><?= $data_br($r->data) ?></td><td><?= html_escape($r->origem) ?></td><td><?= html_escape($r->documento) ?></td></tr><?php endforeach; ?>
-            </tbody></table>
-        </div></div></div>
-        <div class="span6"><div class="widget-box"><div class="widget-title"><h5>Entregas à equipe</h5></div><div class="widget-content nopadding ui-tabela-rolagem">
-            <table class="table table-bordered"><thead><tr><th>#</th><th>Data</th><th>Equipe</th><th>Recebedor</th></tr></thead><tbody>
-                <?php if (! $entregas) echo '<tr><td colspan="4">—</td></tr>'; ?>
-                <?php foreach ($entregas as $e): ?><tr><td><?= html_escape($e->numero) ?></td><td><?= $data_br($e->data) ?></td><td><?= html_escape($e->equipe ?: '—') ?></td><td><?= html_escape($e->recebedor_nome) ?></td></tr><?php endforeach; ?>
-            </tbody></table>
-        </div></div></div>
-    </div>
+        </div>
+        <div class="pj-cartao pj-compras">
+            <i class='bx bx-cart-alt'></i>
+            <div>
+                <div class="pj-compras-total">R$ <?= $fmt($compras['total']) ?></div>
+                <div class="pj-nota">Comprado pela empresa para este projeto (<?= (int) $compras['recebimentos'] ?> recebimento(s) por compra própria). Entra no custo realizado.</div>
+            </div>
+        </div>
 
-    <!-- RDO -->
-    <div class="obra-pane" id="tab-rdo" style="display:none">
-        <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
-            <?php if ($perm('cObraRdo')): ?>
-                <div style="padding:8px"><a href="#modal-rdo" data-toggle="modal" class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Novo registro</span></a></div>
-            <?php endif; ?>
-            <table class="table table-bordered">
-                <thead><tr><th>#</th><th>Data</th><th>O que foi feito</th><th>Condição</th><th>Técnicos</th><th>Responsável</th><th style="width:60px">Ações</th></tr></thead>
-                <tbody>
-                    <?php if (! $rdos) echo '<tr><td colspan="7"><div class="ui-vazio"><i class="bx bx-notepad"></i><strong>Nenhum registro de execução.</strong>Registre o que foi feito no dia para aparecer aqui.</div></td></tr>'; ?>
-                    <?php foreach ($rdos as $r): ?>
-                        <tr>
-                            <td><?= html_escape($r->numero) ?></td>
-                            <td><?= $data_br($r->data) ?></td>
-                            <td><?= html_escape(mb_strimwidth((string) $r->atividades, 0, 80, '…')) ?: '—' ?></td>
-                            <td><?= html_escape($condicoesRdo[$r->condicao] ?? (string) $r->condicao) ?></td>
-                            <td><?= (int) $r->efetivo_total ?></td>
-                            <td><?= html_escape($r->responsavel) ?></td>
-                            <td><a href="<?= site_url('obras/imprimirRdo/' . $r->idRdo) ?>" target="_blank" class="btn-nwe" title="Imprimir registro" aria-label="Imprimir registro"><i class="bx bx-printer bx-xs"></i></a></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div></div>
-    </div>
-
-    <!-- MEDIÇÃO -->
-    <div class="obra-pane" id="tab-medicao" style="display:none">
-        <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
-            <?php if ($perm('cObraMedicao') && $etapas): ?>
-                <div style="padding:8px"><a href="#modal-medicao" data-toggle="modal" class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova medição</span></a></div>
-            <?php elseif (! $etapas): ?>
-                <div style="padding:8px" class="text-warning">Cadastre etapas no cronograma para poder medir.</div>
-            <?php endif; ?>
-            <table class="table table-bordered">
-                <thead><tr><th>#</th><th>Período</th><th>% acum.</th><th>Valor</th><th>Status</th><th>Ações</th></tr></thead>
-                <tbody>
-                    <?php if (! $medicoes) echo '<tr><td colspan="6"><div class="ui-vazio"><i class="bx bx-receipt"></i><strong>Nenhuma medição.</strong></div></td></tr>'; ?>
-                    <?php foreach ($medicoes as $m): ?>
-                        <tr>
-                            <td><?= html_escape($m->numero) ?></td>
-                            <td><?= $data_br($m->periodo_inicio) ?> a <?= $data_br($m->periodo_fim) ?></td>
-                            <td><?= $fmt($m->percentual_acumulado) ?>%</td>
-                            <td>R$ <?= $fmt($m->valor_medido) ?></td>
-                            <td><span class="label"><?= html_escape($m->status) ?></span></td>
-                            <td>
-                                <?php if ($m->status === 'aberta' && $perm('aObraMedicao')): ?>
-                                    <form action="<?= site_url('obras/aprovarMedicao') ?>" method="post" style="display:inline">
-                                        <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
-                                        <input type="hidden" name="idMedicao" value="<?= $m->idMedicao ?>">
-                                        <button class="button btn btn-mini btn-success" data-confirmar="Aprovar medição?"><span class="button__text2">Aprovar</span></button>
-                                    </form>
-                                <?php else: ?>—<?php endif; ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div></div>
-    </div>
-
-    <!-- EQUIPE -->
-    <div class="obra-pane" id="tab-equipe" style="display:none">
-        <?php if ($perm('cObraEquipe')): ?>
-            <div style="margin-bottom:8px"><a href="<?= site_url('obraequipe') ?>" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-group'></i></span><span class="button__text2">Gerenciar equipes</span></a></div>
-        <?php endif; ?>
-        <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
-            <table class="table table-bordered">
-                <thead><tr><th>Equipe</th><th>Encarregado</th><th>Início</th><th>Fim</th><th>Ativa</th></tr></thead>
-                <tbody>
-                    <?php if (! $equipes) echo '<tr><td colspan="5"><div class="ui-vazio"><i class="bx bx-group"></i><strong>Nenhuma equipe alocada.</strong></div></td></tr>'; ?>
-                    <?php foreach ($equipes as $q): ?>
-                        <tr><td><?= html_escape($q->nome) ?></td><td><?= html_escape($q->encarregado) ?></td><td><?= $data_br($q->data_inicio) ?></td><td><?= $data_br($q->data_fim) ?></td><td><?= $q->ativo ? 'Sim' : 'Não' ?></td></tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div></div>
-
-        <!-- Usuários com acesso de execução -->
-        <div class="widget-box"><div class="widget-title"><h5 style="padding-left:8px"><i class='bx bx-user-check'></i> Usuários com acesso ao projeto</h5></div>
-            <div class="widget-content nopadding ui-tabela-rolagem">
-                <p style="padding:8px 8px 0;margin:0;color:#888">Apenas estes usuários (e o responsável do projeto) podem registrar a execução das atividades.</p>
-                <table class="table table-bordered">
-                    <thead><tr><th>Usuário</th><th>E-mail</th><?php if ($perm('eObras')): ?><th style="width:60px">Ações</th><?php endif; ?></tr></thead>
+        <section class="pj-bloco" aria-labelledby="pj-t-saldo">
+            <div class="pj-secao-cab"><h2 id="pj-t-saldo">Saldo no almoxarifado</h2></div>
+            <div class="pj-tabela-caixa ui-tabela-rolagem">
+                <table class="table pj-tab-cartao">
+                    <thead><tr><th>Item</th><th>Cód. barras</th><th>Un.</th><th>Origem</th><th>Saldo</th></tr></thead>
                     <tbody>
-                        <?php if (! $usuarios_projeto) echo '<tr><td colspan="3"><div class="ui-vazio"><i class="bx bx-user-check"></i><strong>Nenhum usuário vinculado.</strong>O responsável do projeto ainda pode registrar.</div></td></tr>'; ?>
-                        <?php foreach ($usuarios_projeto as $u): ?>
+                        <?php if (! $saldos): ?><tr class="pj-linha-vazia"><td colspan="5"><div class="ui-vazio"><i class="bx bx-package"></i><strong>Sem material em estoque.</strong>Quando o material chegar, use Receber material.</div></td></tr><?php endif; ?>
+                        <?php foreach ($saldos as $s): ?>
                             <tr>
-                                <td><?= html_escape($u->nome ?: '—') ?></td>
-                                <td><?= html_escape($u->email ?: '—') ?></td>
-                                <?php if ($perm('eObras')): ?>
-                                    <td><a href="#" class="btn-nwe4" title="Remover acesso" aria-label="Remover acesso" data-chamar="desvincularUsuario" data-args="[<?= (int) $u->idObraUsuario ?>]" data-cancelar><i class="bx bx-user-x bx-xs"></i></a></td>
-                                <?php endif; ?>
+                                <td data-label="Item"><?= html_escape($s->descricao) ?></td>
+                                <td data-label="Cód. barras"><?= html_escape($s->cod_barras) ?></td>
+                                <td data-label="Un."><?= html_escape($s->unidade) ?></td>
+                                <td data-label="Origem"><?= $s->do_cliente ? '<span class="ui-selo info">Cliente</span>' : 'Próprio' ?></td>
+                                <td data-label="Saldo"><strong><?= rtrim(rtrim(number_format((float) $s->saldo, 3, ',', '.'), '0'), ',') ?></strong></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
-                <?php if ($perm('eObras')): ?>
-                    <form action="<?= site_url('obras/vincularUsuario') ?>" method="post" style="padding:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
-                        <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
-                        <div style="flex:1;min-width:220px"><label>Adicionar usuário</label>
-                            <select name="usuario_id" class="span12" required>
-                                <option value="">Selecione...</option>
-                                <?php foreach ($usuarios_disponiveis as $ud): ?>
-                                    <option value="<?= (int) $ud->idUsuarios ?>"><?= html_escape($ud->nome) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <button class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-plus'></i></span><span class="button__text2">Dar acesso</span></button>
-                    </form>
-                <?php endif; ?>
             </div>
+        </section>
+
+        <div class="pj-duas">
+            <section aria-labelledby="pj-t-rec">
+                <h3 class="pj-sub" id="pj-t-rec">Recebimentos</h3>
+                <div class="pj-tabela-caixa ui-tabela-rolagem"><table class="table">
+                    <thead><tr><th>Nº</th><th>Data</th><th>Origem</th><th>Doc.</th></tr></thead>
+                    <tbody>
+                        <?php if (! $recebimentos): ?><tr><td colspan="4" class="pj-vazio-linha">Nenhum recebimento.</td></tr><?php endif; ?>
+                        <?php foreach ($recebimentos as $r): ?><tr><td><?= html_escape($r->numero) ?></td><td><?= $data_br($r->data) ?></td><td><?= html_escape($r->origem) ?></td><td><?= html_escape($r->documento) ?></td></tr><?php endforeach; ?>
+                    </tbody>
+                </table></div>
+            </section>
+            <section aria-labelledby="pj-t-ent">
+                <h3 class="pj-sub" id="pj-t-ent">Entregas à equipe</h3>
+                <div class="pj-tabela-caixa ui-tabela-rolagem"><table class="table">
+                    <thead><tr><th>Nº</th><th>Data</th><th>Equipe</th><th>Recebedor</th></tr></thead>
+                    <tbody>
+                        <?php if (! $entregas): ?><tr><td colspan="4" class="pj-vazio-linha">Nenhuma entrega.</td></tr><?php endif; ?>
+                        <?php foreach ($entregas as $e): ?><tr><td><?= html_escape($e->numero) ?></td><td><?= $data_br($e->data) ?></td><td><?= html_escape($e->equipe ?: '—') ?></td><td><?= html_escape($e->recebedor_nome) ?></td></tr><?php endforeach; ?>
+                    </tbody>
+                </table></div>
+            </section>
         </div>
     </div>
 
-    <!-- MÃO DE OBRA / EFETIVO -->
-    <div class="obra-pane" id="tab-maodeobra" style="display:none">
-        <?php $verValor = $perm('vObraCusto'); ?>
-        <?php if ($perm('cObraRdo')): ?>
-            <div class="widget-box"><div class="widget-content" style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
-                <form action="<?= site_url('obras/consolidarPonto') ?>" method="post" style="display:flex;gap:6px;align-items:flex-end;margin:0">
-                    <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
-                    <div><label>Gerar efetivo do dia (ponto facial/GPS)</label><input type="text" class="datepicker" name="data" value="<?= date('d/m/Y') ?>" style="width:130px"></div>
-                    <button class="button btn btn-mini btn-primary" data-confirmar="Consolidar as batidas de ponto vinculadas a esta obra nesse dia?"><span class="button__icon"><i class='bx bx-sync'></i></span><span class="button__text2">Consolidar ponto</span></button>
-                </form>
-                <span class="scanner-status">As batidas de ponto que o colaborador vincular a esta obra viram efetivo aqui (horas/diária e custo de mão de obra).</span>
-            </div></div>
-        <?php endif; ?>
+    <!-- FINANCEIRO -->
+    <div class="obra-pane" id="tab-financeiro" style="display:none">
+        <div class="pj-grade">
+            <section class="pj-cartao" aria-labelledby="pj-t-fin">
+                <div class="pj-cartao-cab"><h2 id="pj-t-fin">Contrato</h2></div>
+                <dl class="pj-dl">
+                    <dt>Valor do contrato</dt><dd>R$ <?= $fmt($obra->valor_contrato) ?></dd>
+                    <dt>BDI</dt><dd><?= $fmt($obra->bdi_percentual) ?>% <small class="pj-dica-inline">margem aplicada sobre o custo</small></dd>
+                    <dt>Contrato nº</dt><dd><?= html_escape($obra->contrato_numero ?: '—') ?></dd>
+                </dl>
+            </section>
+            <section class="pj-cartao" aria-labelledby="pj-t-custo">
+                <div class="pj-cartao-cab"><h2 id="pj-t-custo">Custos</h2></div>
+                <?php $cPrev = (float) $custo['previsto']; $cReal = (float) $custo['realizado'];
+                $cPct = $cPrev > 0 ? min(100, round($cReal * 100 / $cPrev)) : 0; ?>
+                <dl class="pj-dl">
+                    <dt>Previsto</dt><dd>R$ <?= $fmt($cPrev) ?></dd>
+                    <dt>Realizado</dt><dd>R$ <?= $fmt($cReal) ?> <?php if ($cPrev > 0): ?><span class="ui-selo <?= $cReal > $cPrev ? 'perigo' : 'neutro' ?>"><?= (int) round($cReal * 100 / $cPrev) ?>% do previsto</span><?php endif; ?></dd>
+                </dl>
+                <?php if ($cPrev > 0): ?><div class="ui-barra" role="progressbar" aria-valuenow="<?= (int) $cPct ?>" aria-valuemin="0" aria-valuemax="100"><span style="width:<?= (int) $cPct ?>%"></span></div><?php endif; ?>
+            </section>
+        </div>
 
-        <div class="widget-box"><div class="widget-title"><h5>Efetivo apontado<?php if ($verValor): ?> — total R$ <?= $fmt($apontamento_total) ?><?php endif; ?></h5></div>
-            <div class="widget-content nopadding ui-tabela-rolagem">
-                <table class="table table-bordered">
-                    <thead><tr><th>Data</th><th>Colaborador</th><th>Função</th><th>Horas</th><th>Diária</th><th>Origem</th><?php if ($verValor): ?><th>Valor</th><?php endif; ?><?php if ($perm('cObraRdo')): ?><th></th><?php endif; ?></tr></thead>
+        <section class="pj-bloco" id="medicao" aria-labelledby="pj-t-med">
+            <div class="pj-secao-cab">
+                <h2 id="pj-t-med">Medições</h2>
+                <div class="pj-secao-acoes">
+                    <?php if ($perm('cObraMedicao') && $etapas): ?><a href="#modal-medicao" data-toggle="modal" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova medição</span></a><?php endif; ?>
+                </div>
+            </div>
+            <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Medição é a cobrança parcial do que foi executado. Informe o novo percentual de cada etapa e o valor é calculado.<?php if (! $etapas): ?> Crie as etapas no Planejamento para poder medir.<?php endif; ?></div></div>
+            <div class="pj-tabela-caixa ui-tabela-rolagem">
+                <table class="table pj-tab-cartao">
+                    <thead><tr><th>Nº</th><th>Período</th><th>% acumulado</th><th>Valor</th><th>Status</th><th></th></tr></thead>
                     <tbody>
-                        <?php if (! $apontamentos) echo '<tr><td colspan="9"><div class="ui-vazio"><i class="bx bx-time-five"></i><strong>Nenhum apontamento.</strong>Consolide o ponto do dia ou lance manualmente.</div></td></tr>'; ?>
-                        <?php foreach ($apontamentos as $ap): ?>
+                        <?php if (! $medicoes): ?><tr class="pj-linha-vazia"><td colspan="6"><div class="ui-vazio"><i class="bx bx-receipt"></i><strong>Nenhuma medição ainda.</strong>Faça a primeira quando houver etapas executadas para cobrar.</div></td></tr><?php endif; ?>
+                        <?php foreach ($medicoes as $m): ?>
                             <tr>
-                                <td><?= $data_br($ap->data) ?></td>
-                                <td><?= html_escape($ap->nome ?: ('#' . $ap->colaborador_id)) ?></td>
-                                <td><?= html_escape($ap->funcao) ?></td>
-                                <td><?= $fmt($ap->horas, 2) ?></td>
-                                <td><?= $ap->diaria ? '1' : '—' ?></td>
-                                <td><span class="label"><?= $ap->origem === 'ponto_facial' ? 'Ponto' : 'Manual' ?></span></td>
-                                <?php if ($verValor): ?><td>R$ <?= $fmt($ap->valor) ?></td><?php endif; ?>
-                                <?php if ($perm('cObraRdo')): ?>
-                                    <td><a href="#" class="btn-nwe4" title="Remover" aria-label="Remover" data-chamar="excluirApont" data-args="[<?= (int) $ap->idApontamento ?>]" data-cancelar><i class="bx bx-trash-alt bx-xs"></i></a></td>
-                                <?php endif; ?>
+                                <td data-label="Nº"><?= html_escape($m->numero) ?></td>
+                                <td data-label="Período"><?= $data_br($m->periodo_inicio) ?> a <?= $data_br($m->periodo_fim) ?></td>
+                                <td data-label="% acumulado"><?= $fmt($m->percentual_acumulado) ?>%</td>
+                                <td data-label="Valor">R$ <?= $fmt($m->valor_medido) ?></td>
+                                <td data-label="Status"><span class="ui-selo <?= $m->status === 'aberta' ? 'alerta' : 'sucesso' ?>"><?= html_escape($m->status) ?></span></td>
+                                <td class="pj-col-acoes">
+                                    <?php if ($m->status === 'aberta' && $perm('aObraMedicao')): ?>
+                                        <form action="<?= site_url('obras/aprovarMedicao') ?>" method="post" class="pj-form-linha">
+                                            <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
+                                            <input type="hidden" name="idMedicao" value="<?= $m->idMedicao ?>">
+                                            <button class="button btn btn-mini btn-success" data-confirmar="Aprovar medição?"><span class="button__text2">Aprovar</span></button>
+                                        </form>
+                                    <?php endif; ?>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
-                <?php if ($perm('cObraRdo')): ?>
-                    <form action="<?= site_url('obras/salvarApontamento') ?>" method="post" style="padding:8px">
-                        <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
-                        <div class="span3" style="margin-left:0"><label>Data</label><input type="text" class="span12 datepicker" name="data" value="<?= date('d/m/Y') ?>"></div>
-                        <div class="span3"><label>Colaborador</label><input type="text" class="span12" name="nome" placeholder="Nome"></div>
-                        <div class="span2"><label>Função</label><input type="text" class="span12" name="funcao"></div>
-                        <div class="span1"><label>Horas</label><input type="number" step="0.5" class="span12" name="horas" value="0"></div>
-                        <div class="span1"><label>Diária</label><br><input type="checkbox" name="diaria" value="1"></div>
-                        <div class="span2"><label>Valor (R$)</label><input type="number" step="0.01" class="span12" name="valor" value="0"></div>
-                        <div class="span12" style="margin-left:0;margin-top:6px"><button class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-plus'></i></span><span class="button__text2">Lançar manual</span></button></div>
-                    </form>
-                <?php endif; ?>
             </div>
-        </div>
-    </div>
-
-    <!-- ORDENS DE SERVIÇO -->
-    <?php
-    $osStatusLabel = function ($s) {
-        return $s ? html_escape($s) : '—';
-    };
-    ?>
-    <div class="obra-pane" id="tab-os" style="display:none">
-        <?php if ($perm('eObras')): ?>
-            <div style="padding:8px 0">
-                <a href="#modal-vincular-os" data-toggle="modal" class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-link'></i></span><span class="button__text2">Vincular OS ao projeto</span></a>
-            </div>
-        <?php endif; ?>
-
-        <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
-            <table class="table table-bordered">
-                <thead><tr><th>OS</th><th>Cliente</th><th>Técnico</th><th>Status</th><th>Etapa</th><th style="min-width:190px">Ações</th></tr></thead>
-                <tbody>
-                    <?php if (! $os_vinculadas) echo '<tr><td colspan="6"><div class="ui-vazio"><i class="bx bx-wrench"></i><strong>Nenhuma OS vinculada.</strong>Use "Vincular OS ao projeto" para trazer o que será executado.</div></td></tr>'; ?>
-                    <?php foreach ($os_vinculadas as $o): ?>
-                        <tr>
-                            <td>#<?= (int) $o->idOs ?></td>
-                            <td><?= html_escape($o->nomeCliente ?: '—') ?></td>
-                            <td><?= html_escape($o->tecnico ?: '—') ?></td>
-                            <td><span class="label"><?= $osStatusLabel($o->status) ?></span></td>
-                            <td><?= html_escape($o->etapa_nome ?: '—') ?></td>
-                            <td>
-                                <a href="<?= site_url('os/visualizar/' . $o->idOs) ?>" class="btn-nwe" title="Abrir OS" aria-label="Abrir OS"><i class="bx bx-show bx-xs"></i></a>
-                                <a href="<?= site_url('tecnico/visualizar/' . $o->idOs) ?>" class="button btn btn-mini btn-primary" style="margin:0 4px" title="Executar em campo"><span class="button__icon"><i class='bx bx-play-circle'></i></span><span class="button__text2">Executar</span></a>
-                                <?php if ($perm('eObras')): ?>
-                                    <a href="#" class="btn-nwe4" title="Desvincular" aria-label="Desvincular" data-chamar="desvincularOs" data-args="[<?= (int) $o->idVinculo ?>]" data-cancelar><i class="bx bx-unlink bx-xs"></i></a>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div></div>
-
-        <?php if ($os_vinculadas): ?>
-        <div style="display:flex;gap:12px;flex-wrap:wrap">
-            <div class="widget-box" style="flex:1;min-width:280px"><div class="widget-title"><h5 style="padding-left:8px"><i class='bx bx-list-check'></i> O que executar (serviços)</h5></div>
-                <div class="widget-content nopadding ui-tabela-rolagem">
-                    <table class="table table-bordered">
-                        <thead><tr><th>OS</th><th>Serviço</th><th>Qtd.</th></tr></thead>
-                        <tbody>
-                            <?php if (! $os_servicos) echo '<tr><td colspan="3"><div class="ui-vazio"><strong>Sem serviços lançados nas OS.</strong></div></td></tr>'; ?>
-                            <?php foreach ($os_servicos as $s): ?>
-                                <tr><td>#<?= (int) $s->os_id ?></td><td><?= html_escape($s->nome ?: '—') ?></td><td><?= $fmt($s->quantidade) ?></td></tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="widget-box" style="flex:1;min-width:280px"><div class="widget-title"><h5 style="padding-left:8px"><i class='bx bx-package'></i> Material a utilizar (produtos)</h5></div>
-                <div class="widget-content nopadding ui-tabela-rolagem">
-                    <table class="table table-bordered">
-                        <thead><tr><th>OS</th><th>Produto</th><th>Qtd.</th></tr></thead>
-                        <tbody>
-                            <?php if (! $os_produtos) echo '<tr><td colspan="3"><div class="ui-vazio"><strong>Sem produtos lançados nas OS.</strong></div></td></tr>'; ?>
-                            <?php foreach ($os_produtos as $p): ?>
-                                <tr><td>#<?= (int) $p->os_id ?></td><td><?= html_escape($p->nome ?: '—') ?></td><td><?= $fmt($p->quantidade) ?></td></tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <?php endif; ?>
+        </section>
     </div>
 </div>
+</div><!-- /.pj-pagina -->
 
 <?php if ($perm('eObras')): ?>
 <!-- Modal Vincular OS -->
 <div id="modal-vincular-os" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
     <form action="<?= site_url('obras/vincularOs') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Vincular Ordem de Serviço</h5></div>
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Vincular OS existente</h5></div>
         <div class="modal-body">
             <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
-            <div class="span12" style="margin-left:0"><label>Ordem de Serviço *</label>
+            <div class="span12" style="margin-left:0"><label>Ordem de serviço *</label>
                 <select name="os_id" class="span12" required>
                     <option value="">Selecione a OS...</option>
                     <?php foreach ($os_disponiveis as $d): ?>
@@ -674,9 +867,9 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
                 </select>
                 <?php if (! $os_disponiveis): ?><small>Nenhuma OS livre para vincular (todas já estão em algum projeto).</small><?php endif; ?>
             </div>
-            <div class="span12" style="margin-left:0"><label>Etapa do cronograma (opcional)</label>
+            <div class="span12" style="margin-left:0"><label>Etapa (opcional)</label>
                 <select name="etapa_id" class="span12">
-                    <option value="">— sem etapa —</option>
+                    <option value="">Sem etapa</option>
                     <?php foreach ($etapas as $e): ?>
                         <option value="<?= (int) $e->idEtapa ?>"><?= html_escape($e->nome) ?></option>
                     <?php endforeach; ?>
@@ -707,12 +900,12 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
 <!-- Modal Gerar OS da etapa -->
 <div id="modal-os-etapa" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
     <form action="<?= site_url('obras/gerarOsEtapa') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Gerar OS da etapa: <span id="os_etapa_nome"></span></h5></div>
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Gerar OS da etapa <span id="os_etapa_nome"></span></h5></div>
         <div class="modal-body">
             <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
             <input type="hidden" name="etapa_id" id="os_etapa_id">
             <?= $camposOs(true) ?>
-            <small>Os itens previstos da etapa são copiados para a OS.</small>
+            <small>Os materiais e serviços da etapa são copiados para a OS.</small>
         </div>
         <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Gerar OS</span></button></div>
     </form>
@@ -730,7 +923,7 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
                 <?php if (! $etapasSemOs): ?><small>Todas as etapas já têm OS.</small><?php endif; ?>
             </div>
             <?= $camposOs(false) ?>
-            <div class="span12" style="margin-left:0"><label><input type="checkbox" name="forcar" value="1" style="margin:0 6px 0 0"> Forçar (gerar mesmo se a etapa já tiver OS ou não tiver itens)</label></div>
+            <div class="span12" style="margin-left:0"><label><input type="checkbox" name="forcar" value="1" style="margin:0 6px 0 0"> Gerar mesmo se a etapa já tiver OS ou não tiver itens</label></div>
         </div>
         <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Gerar OS</span></button></div>
     </form>
@@ -738,7 +931,7 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
 <!-- Modal Gerar OS por pontos -->
 <div id="modal-os-pontos" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
     <form action="<?= site_url('obras/gerarOsPontos') ?>" method="post" id="form-os-pontos">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Gerar OS para os pontos marcados</h5></div>
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Gerar OS dos pontos marcados</h5></div>
         <div class="modal-body">
             <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
             <div id="os_pontos_ids"></div>
@@ -754,7 +947,7 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
 </div>
 <script nonce="<?= csp_nonce() ?>">
     $(function () {
-        $('.js-itens-toggle').on('click', function (ev) { ev.preventDefault(); $('#' + $(this).data('alvo')).toggle(); });
+        $('.js-itens-toggle').on('click', function (ev) { ev.preventDefault(); var $l = $(this), $r = $('#' + $l.data('alvo')); $r.toggle(); var aberto = $r.is(':visible'); $l.attr('aria-expanded', aberto).toggleClass('aberto', aberto); });
         $('.js-excluir-item').on('submit', function () { return confirm('Remover este item previsto?'); });
         $('.js-gerar-os').on('click', function () {
             $('#os_etapa_id').val($(this).data('etapa')); $('#os_etapa_nome').text($(this).data('nome'));
@@ -808,7 +1001,7 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
 <!-- Modal Registro rápido de execução (reusa RDO) -->
 <div id="modal-registro" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
     <form action="<?= site_url('obras/registrarExecucao') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5><i class='bx bx-check-circle'></i> Registrar execução — <?= date('d/m/Y') ?></h5></div>
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5><i class='bx bx-check-circle'></i> Registrar execução do dia — <?= date('d/m/Y') ?></h5></div>
         <div class="modal-body">
             <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
             <div class="span12" style="margin-left:0"><label>O que foi feito hoje? *</label>
@@ -868,7 +1061,7 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
 <!-- Modal Gerar em lote -->
 <div id="modal-lote" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
     <form action="<?= site_url('obras/gerarPontos') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Gerar pontos em lote</h5></div>
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Adicionar pontos em lote</h5></div>
         <div class="modal-body">
             <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
             <div class="span12" style="margin-left:0"><label>Tipo *</label>
@@ -894,13 +1087,13 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
 <!-- Modal Etapa -->
 <div id="modal-etapa" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
     <form action="<?= site_url('obras/salvarEtapa') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Etapa do cronograma</h5></div>
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Etapa do projeto</h5></div>
         <div class="modal-body">
             <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
             <input type="hidden" name="idEtapa" id="et_id" value="">
-            <div class="span5" style="margin-left:0"><label>Código EAP</label><input type="text" class="span12" name="codigo_eap" id="et_cod"></div>
+            <div class="span5" style="margin-left:0"><label>Nº</label><input type="text" class="span12" name="codigo_eap" id="et_cod"></div>
             <div class="span7"><label>Nome *</label><input type="text" class="span12" name="nome" id="et_nome" required></div>
-            <div class="span4" style="margin-left:0"><label>Peso %</label><input type="number" step="0.01" class="span12" name="peso_percentual" id="et_peso" value="0"></div>
+            <div class="span4" style="margin-left:0"><label>Peso</label><input type="number" step="0.01" class="span12" name="peso_percentual" id="et_peso" value="0"></div>
             <div class="span4"><label>Valor previsto</label><input type="number" step="0.01" class="span12" name="valor_previsto" id="et_valor" value="0"></div>
             <div class="span4"><label>% concluído</label><input type="number" step="0.01" class="span12" name="percentual_concluido" id="et_pct" value="0"></div>
             <div class="span6" style="margin-left:0"><label>Início previsto</label><input type="text" class="span12 datepicker" name="data_inicio_prevista" id="et_ini"></div>
@@ -916,7 +1109,7 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
 <!-- Modal RDO -->
 <div id="modal-rdo" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
     <form action="<?= site_url('obras/salvarRdo') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Registro de execução</h5></div>
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Registro do dia</h5></div>
         <div class="modal-body">
             <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
             <div class="span4" style="margin-left:0"><label>Data</label><input type="text" class="span12 datepicker" name="data" value="<?= date('d/m/Y') ?>"></div>
@@ -939,7 +1132,7 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
             <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
             <div class="span6" style="margin-left:0"><label>Período de</label><input type="text" class="span12 datepicker" name="periodo_inicio"></div>
             <div class="span6"><label>até</label><input type="text" class="span12 datepicker" name="periodo_fim"></div>
-            <div class="span12" style="margin-left:0"><label>% concluído por etapa</label>
+            <div class="span12" style="margin-left:0"><label>% concluído por etapa (medição é a cobrança parcial do que foi executado)</label>
                 <table class="table table-bordered"><thead><tr><th>Etapa</th><th>Atual</th><th>Novo %</th></tr></thead><tbody>
                     <?php foreach ($etapas as $e): ?>
                         <tr><td><?= html_escape($e->nome) ?></td><td><?= $fmt($e->percentual_concluido) ?>%</td>
@@ -958,12 +1151,17 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
     $(function () {
         $('.datepicker').datepicker({ dateFormat: 'dd/mm/yy' });
 
-        // abas por hash
+        // abas por hash (aceita os nomes antigos das abas)
+        var apelidos = { geral: 'resumo', cronograma: 'planejamento', rdo: 'execucao', os: 'execucao', maodeobra: 'execucao', equipe: 'resumo', medicao: 'financeiro' };
         function ativar(tab) {
+            tab = apelidos[tab] || tab;
+            if (! $('#tab-' + tab).length) return;
             $('.obra-pane').hide();
             $('#tab-' + tab).show();
             $('#obraTabs li').removeClass('active');
-            $('#obraTabs a[data-tab="' + tab + '"]').parent().addClass('active');
+            var $a = $('#obraTabs a[data-tab="' + tab + '"]');
+            $a.parent().addClass('active');
+            if ($a[0] && $a[0].scrollIntoView) { try { $a[0].scrollIntoView({ block: 'nearest', inline: 'center' }); } catch (e) {} }
         }
         $('#obraTabs a').on('click', function (e) {
             e.preventDefault();
@@ -971,8 +1169,29 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
             ativar(t);
             history.replaceState(null, '', '#' + t);
         });
+        $(document).on('click', '.js-ir-aba', function (e) {
+            e.preventDefault();
+            var t = $(this).data('aba');
+            ativar(t);
+            history.replaceState(null, '', '#' + t);
+            window.scrollTo(0, 0);
+        });
+        $(document).on('click', '.js-ir-ponto', function (e) {
+            e.preventDefault();
+            ativar('pontos');
+            var el = document.getElementById('pt-linha-' + $(this).data('ponto'));
+            if (el) { el.scrollIntoView({ block: 'center' }); $(el).addClass('pj-destaque'); setTimeout(function () { $(el).removeClass('pj-destaque'); }, 2200); }
+        });
         var h = (location.hash || '').replace('#', '');
-        if (h && $('#tab-' + h).length) ativar(h);
+        if (h && (apelidos[h] || $('#tab-' + h).length)) {
+            ativar(h);
+            var alvoEl = document.getElementById(h);
+            if (alvoEl && h !== (apelidos[h] || h)) { alvoEl.scrollIntoView(); }
+        }
+        // menu Mais: fecha ao clicar fora
+        $(document).on('click', function (e) {
+            $('.pj-mais[open]').each(function () { if (! this.contains(e.target)) this.removeAttribute('open'); });
+        });
 
         // fotos (RDO e registro rápido) -> base64 em hidden
         function fotosParaBase64(input, alvoHidden, alvoPrev) {
@@ -1031,8 +1250,16 @@ $coresStatus = ['planejamento' => 'info', 'em_execucao' => 'sucesso', 'paralisad
         $('#lt_tipo').on('change', function () { $('#lt_prefixo').val($(this).find(':selected').data('prefixo') || ''); }).trigger('change');
 
         // Pontos: marcar todos para repasse
+        function atualizarSelecao() {
+            var n = $('input[name="ponto_ids[]"]:checked').length;
+            $('#pj-sel-qtd').text(n);
+            $('#pj-selecao').prop('hidden', n === 0);
+        }
         $('#pt-selecionar-todos').on('change', function () {
             $('input[name="ponto_ids[]"]').prop('checked', this.checked);
+            atualizarSelecao();
         });
+        $(document).on('change', 'input[name="ponto_ids[]"]', atualizarSelecao);
+        atualizarSelecao();
     });
 </script>

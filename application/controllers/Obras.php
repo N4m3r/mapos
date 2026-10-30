@@ -63,6 +63,11 @@ class Obras extends MY_Controller
             $this->uri->segment(3),
             $filtros
         );
+        $this->load->model('projeto_acompanhamento_model');
+        $this->data['resumo'] = $this->projeto_acompanhamento_model->resumoLista(array_map(function ($r) {
+            return (int) $r->idObra;
+        }, $this->data['results'] ?: []));
+        $this->data['contagem_status'] = $this->projeto_acompanhamento_model->contagemStatus();
         $this->data['view'] = 'obras/gerenciar';
         return $this->layout();
     }
@@ -76,19 +81,47 @@ class Obras extends MY_Controller
             if ($nome === '') {
                 $this->session->set_flashdata('error', 'Informe o nome do projeto.');
             } else {
-                $id = $this->obras_model->add($this->montarDados());
+                $dadosNovo = $this->montarDados();
+                $dadosNovo['status'] = 'planejamento';
+                $id = $this->obras_model->add($dadosNovo);
                 if ($id) {
                     log_info('Adicionou um projeto. ID: ' . $id);
-                    $this->session->set_flashdata('success', 'Projeto cadastrado com sucesso.');
+                    $msg = 'Projeto cadastrado com sucesso.';
+                    $etapasIn = (array) $this->input->post('etapas');
+                    $pontosIn = (array) $this->input->post('pontos');
+                    $tecnicosIn = (array) $this->input->post('tecnicos');
+                    if ($etapasIn || $pontosIn || $tecnicosIn) {
+                        $this->load->model('obra_planejamento_model');
+                        $r = $this->obra_planejamento_model->montarProjetoInicial(
+                            $id,
+                            $etapasIn,
+                            $pontosIn,
+                            $tecnicosIn,
+                            (int) $this->session->userdata('id_admin')
+                        );
+                        $msg = 'Projeto criado com ' . (int) $r['etapas'] . ' etapas e ' . (int) $r['pontos'] . ' pontos.';
+                    }
+                    $this->session->set_flashdata('success', $msg);
                     redirect('obras/visualizar/' . $id);
                 }
                 $this->session->set_flashdata('error', 'Ocorreu um erro ao salvar.');
             }
         }
 
+        $this->load->model('obra_pontos_model');
         $this->carregarSelects();
         $this->data['view'] = 'obras/adicionar';
         return $this->layout();
+    }
+
+    /** Etapas padrao do tipo de projeto (assistente "Novo projeto"). GET ?tipo= */
+    public function etapasPadraoTipo()
+    {
+        $this->precisa('cObras', 'Você não tem permissão para adicionar Projetos.');
+        $this->load->model('obra_pontos_model');
+        $tipo = (string) $this->input->get('tipo');
+        return $this->output->set_content_type('application/json')
+            ->set_output(json_encode(['etapas' => Obra_pontos_model::etapasPadrao($tipo)], JSON_UNESCAPED_UNICODE));
     }
 
     public function editar()
@@ -177,7 +210,8 @@ class Obras extends MY_Controller
             $filtros['responsavel_id'] = (int) $fr;
         }
         $this->data['pontos'] = $this->obra_pontos_model->getPontos($id, $filtros);
-        $this->data['pontos_resumo'] = Obra_pontos_model::resumo($this->obra_pontos_model->getPontos($id));
+        $this->data['pontos_todos'] = $this->obra_pontos_model->getPontos($id);
+        $this->data['pontos_resumo'] = Obra_pontos_model::resumo($this->data['pontos_todos']);
         $this->data['pontos_tipos'] = $ptTipos;
         $this->data['pontos_status'] = $ptStatus;
         $this->data['pontos_filtro'] = [
@@ -229,8 +263,44 @@ class Obras extends MY_Controller
             }
         }
 
+        $this->montarGuiaProjeto($obra);
+
         $this->data['view'] = 'obras/visualizar';
         return $this->layout();
+    }
+
+    /** Estado do projeto -> trilho, proximo passo e prazo (ADR-016). Usa so dados ja carregados em visualizar. */
+    private function montarGuiaProjeto($obra)
+    {
+        require_once APPPATH . 'libraries/Projeto_guia.php';
+        $d = $this->data;
+        $semOs = 0;
+        foreach ((array) $d['etapas'] as $e) {
+            if (empty($d['osPorEtapa'][$e->idEtapa])) {
+                $semOs++;
+            }
+        }
+        $statusOs = array_map(function ($o) {
+            return $o->status;
+        }, (array) $d['os_vinculadas']);
+        $resumo = $d['pontos_resumo'];
+        $encerrada = in_array($obra->status, ['concluida', 'entregue', 'cancelada'], true);
+        $estado = [
+            'status' => (string) $obra->status,
+            'etapas' => count((array) $d['etapas']),
+            'etapas_sem_os' => $semOs,
+            'plan_ativo' => ! empty($d['plan_ativo']),
+            'exige_pontos' => Projeto_guia::tipoExigePontos($obra->tipo_obra) && $this->db->table_exists('obra_pontos'),
+            'pontos' => (int) $resumo['total'],
+            'pontos_testados' => (int) ($resumo['por_status']['testado'] ?? 0),
+            'tem_equipe' => ! empty($d['usuarios_projeto']) || ! empty($d['equipes']) || ! empty($obra->responsavel_id),
+            'os_abertas' => Projeto_guia::contarOsAbertas($statusOs),
+            'pode_executar' => ! empty($d['pode_executar']),
+            'pode_editar' => $this->permission->checkPermission($this->session->userdata('permissao'), 'eObras'),
+        ];
+        $this->data['guia'] = Projeto_guia::proximoPasso($estado);
+        $this->data['guia_estado'] = $estado;
+        $this->data['prazo'] = Projeto_guia::prazo($obra->data_fim_prevista, date('Y-m-d'), $encerrada);
     }
 
     /* ==================== Usuários do projeto ==================== */

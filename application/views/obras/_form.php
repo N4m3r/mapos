@@ -11,24 +11,21 @@ $dt = function ($campo) use ($o) {
 };
 $statusAtual = $o ? $o->status : 'planejamento';
 ?>
+<link rel="stylesheet" href="<?= base_url('assets/css/projeto-assistente.css') ?>?v=<?= asset_versao('assets/css/projeto-assistente.css') ?>">
 <div class="row-fluid" style="margin-top:0">
     <div class="span12">
         <div class="widget-box">
-            <div class="widget-content">
+            <div class="widget-content pa">
                 <div class="ui-cabecalho">
                     <div>
-                        <h1 class="ui-titulo"><i class="bx bx-building-house"></i> <?= $o ? 'Editar Projeto' : 'Novo Projeto' ?></h1>
-                        <p class="ui-subtitulo">Dados do projeto, cliente, endereço e prazos.</p>
+                        <h1 class="ui-titulo"><i class="bx bx-building-house"></i> Editar projeto</h1>
+                        <p class="ui-subtitulo">Ajuste o que mudou. Os dados menos usados ficam em "Mais detalhes".</p>
                     </div>
                 </div>
                 <form action="<?= current_url() ?>" method="post" id="formObra">
                     <div class="ui-secao">
-                        <h4>Identificação</h4>
+                        <h4>Projeto e cliente</h4>
                         <div class="ui-grade">
-                            <div class="control-group">
-                                <label for="codigo">Código</label>
-                                <input type="text" id="codigo" name="codigo" value="<?= $val('codigo') ?>">
-                            </div>
                             <div class="control-group" style="grid-column:span 2">
                                 <label for="nome">Nome do projeto <span class="required">*</span></label>
                                 <input type="text" id="nome" name="nome" required value="<?= $val('nome') ?>">
@@ -70,15 +67,6 @@ $statusAtual = $o ? $o->status : 'planejamento';
                                 <small class="help-block">Digite o nome ou o documento do cliente.</small>
                             </div>
                             <div class="control-group">
-                                <label for="responsavel_id">Responsável técnico</label>
-                                <select id="responsavel_id" name="responsavel_id">
-                                    <option value="">— Selecione —</option>
-                                    <?php foreach ($usuarios as $u): ?>
-                                        <option value="<?= $u->idUsuarios ?>" <?= $o && $o->responsavel_id == $u->idUsuarios ? 'selected' : '' ?>><?= html_escape($u->nome) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="control-group">
                                 <label for="status">Status</label>
                                 <select id="status" name="status">
                                     <?php foreach (['planejamento' => 'Planejamento', 'em_execucao' => 'Em execução', 'paralisada' => 'Paralisada', 'concluida' => 'Concluída', 'entregue' => 'Entregue', 'cancelada' => 'Cancelada'] as $k => $v): ?>
@@ -86,31 +74,6 @@ $statusAtual = $o ? $o->status : 'planejamento';
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                            <div class="control-group">
-                                <label for="contrato_numero">Nº do contrato</label>
-                                <input type="text" id="contrato_numero" name="contrato_numero" value="<?= $val('contrato_numero') ?>">
-                            </div>
-                            <div class="control-group">
-                                <label for="valor_contrato">Valor do contrato (R$)</label>
-                                <input type="number" id="valor_contrato" step="0.01" name="valor_contrato" value="<?= $val('valor_contrato', '0') ?>">
-                            </div>
-                            <div class="control-group">
-                                <label for="bdi_percentual">BDI (%)</label>
-                                <input type="number" id="bdi_percentual" step="0.01" name="bdi_percentual" value="<?= $val('bdi_percentual', '0') ?>">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="ui-secao">
-                        <h4>Endereço do projeto</h4>
-                        <div class="ui-grade">
-                            <div class="control-group"><label for="cep">CEP</label><input type="text" id="cep" name="cep" value="<?= $val('cep') ?>"></div>
-                            <div class="control-group" style="grid-column:span 2"><label for="logradouro">Logradouro</label><input type="text" id="logradouro" name="logradouro" value="<?= $val('logradouro') ?>"></div>
-                            <div class="control-group"><label for="numero">Número</label><input type="text" id="numero" name="numero" value="<?= $val('numero') ?>"></div>
-                            <div class="control-group"><label for="complemento">Complemento</label><input type="text" id="complemento" name="complemento" value="<?= $val('complemento') ?>"></div>
-                            <div class="control-group"><label for="bairro">Bairro</label><input type="text" id="bairro" name="bairro" value="<?= $val('bairro') ?>"></div>
-                            <div class="control-group" style="grid-column:span 2"><label for="cidade">Cidade</label><input type="text" id="cidade" name="cidade" value="<?= $val('cidade') ?>"></div>
-                            <div class="control-group"><label for="uf">UF</label><input type="text" id="uf" name="uf" maxlength="2" value="<?= $val('uf') ?>"></div>
                         </div>
                     </div>
 
@@ -125,15 +88,55 @@ $statusAtual = $o ? $o->status : 'planejamento';
                     </div>
 
                     <div class="ui-secao">
-                        <div class="control-group">
-                            <label for="observacoes">Observações</label>
-                            <textarea id="observacoes" name="observacoes" rows="3"><?= $val('observacoes') ?></textarea>
-                        </div>
+                        <details class="pe-detalhes">
+                            <summary>Mais detalhes</summary>
+                            <div class="ui-grade">
+                            <div class="control-group">
+                                <label for="codigo">Código</label>
+                                <input type="text" id="codigo" name="codigo" value="<?= $val('codigo') ?>">
+                            </div>
+                            <div class="control-group">
+                                <label for="responsavel_id">Responsável técnico</label>
+                                <select id="responsavel_id" name="responsavel_id">
+                                    <option value="">— Selecione —</option>
+                                    <?php foreach ($usuarios as $u): ?>
+                                        <option value="<?= $u->idUsuarios ?>" <?= $o && $o->responsavel_id == $u->idUsuarios ? 'selected' : '' ?>><?= html_escape($u->nome) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label for="contrato_numero">Nº do contrato</label>
+                                <input type="text" id="contrato_numero" name="contrato_numero" value="<?= $val('contrato_numero') ?>">
+                            </div>
+                            <div class="control-group">
+                                <label for="valor_contrato">Valor do contrato (R$)</label>
+                                <input type="number" id="valor_contrato" step="0.01" name="valor_contrato" value="<?= $val('valor_contrato', '0') ?>">
+                            </div>
+                            <div class="control-group">
+                                <label for="bdi_percentual">BDI (%)</label>
+                                <input type="number" id="bdi_percentual" step="0.01" name="bdi_percentual" value="<?= $val('bdi_percentual', '0') ?>"><small class="help-block">Margem aplicada sobre o custo.</small>
+                            </div>
+                            </div>
+                            <h4 style="margin-top:14px">Endereço do projeto</h4>
+                            <div class="ui-grade">
+                            <div class="control-group"><label for="cep">CEP</label><input type="text" id="cep" name="cep" value="<?= $val('cep') ?>"></div>
+                            <div class="control-group" style="grid-column:span 2"><label for="logradouro">Logradouro</label><input type="text" id="logradouro" name="logradouro" value="<?= $val('logradouro') ?>"></div>
+                            <div class="control-group"><label for="numero">Número</label><input type="text" id="numero" name="numero" value="<?= $val('numero') ?>"></div>
+                            <div class="control-group"><label for="complemento">Complemento</label><input type="text" id="complemento" name="complemento" value="<?= $val('complemento') ?>"></div>
+                            <div class="control-group"><label for="bairro">Bairro</label><input type="text" id="bairro" name="bairro" value="<?= $val('bairro') ?>"></div>
+                            <div class="control-group" style="grid-column:span 2"><label for="cidade">Cidade</label><input type="text" id="cidade" name="cidade" value="<?= $val('cidade') ?>"></div>
+                            <div class="control-group"><label for="uf">UF</label><input type="text" id="uf" name="uf" maxlength="2" value="<?= $val('uf') ?>"></div>
+                            </div>
+                            <div class="control-group">
+                                <label for="observacoes">Observações</label>
+                                <textarea id="observacoes" name="observacoes" rows="3"><?= $val('observacoes') ?></textarea>
+                            </div>
+                        </details>
                     </div>
 
                     <div class="ui-rodape-form">
                         <a href="<?= site_url('obras') ?>" class="button btn btn-mini btn-warning"><span class="button__icon"><i class="bx bx-undo"></i></span><span class="button__text2">Voltar</span></a>
-                        <button class="button btn btn-success"><span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Salvar</span></button>
+                        <button class="button btn btn-primary"><span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Salvar alterações</span></button>
                     </div>
                 </form>
             </div>

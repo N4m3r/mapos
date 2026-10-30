@@ -55,7 +55,7 @@ await entrar(page, EMAIL, SENHA);
 let resp = await page.goto(BASE + 'index.php/obras/painel', { waitUntil: 'networkidle2' });
 ok(resp.status() === 200, 'painel abre (' + resp.status() + ')');
 let texto = await page.evaluate(() => document.body.innerText);
-ok(texto.includes('Saúde dos projetos'), 'painel: bloco "Saúde dos projetos"');
+ok(texto.includes('Situação de cada projeto'), 'painel: bloco "Situação de cada projeto"');
 ok(texto.includes('Pontos por tipo'), 'painel: pontos por tipo');
 ok(texto.includes('Atividade dos últimos 7 dias'), 'painel: atividade dos ultimos 7 dias');
 ok(texto.includes('Técnicos hoje'), 'painel: tecnicos hoje');
@@ -67,7 +67,7 @@ ok(resp.status() === 200, 'relatorio abre (' + resp.status() + ')');
 texto = await page.evaluate(() => document.body.innerText);
 ok(/Semana de \d{2}\/\d{2} a \d{2}\/\d{2}\/\d{4}/.test(texto), 'relatorio: periodo semanal por padrao');
 ok(!!(await page.$('[data-acao="imprimir"]')), 'relatorio: botao imprimir');
-ok(!!(await page.$('.obra-mainnav li.active a[href*="relatorioprojetos"]')), 'relatorio: aba ativa na navegacao de projetos');
+ok(!!(await page.$('.projeto-nav a.ativo[href*="relatorioprojetos"]')), 'relatorio: aba ativa na navegacao de projetos');
 await foto(page, 'relatorio-semanal');
 
 // Seta "anterior" troca o periodo
@@ -108,8 +108,8 @@ if (OBRA_ID) {
     });
     ok(aba.visivel, 'pontos: #pontos abre a aba Pontos');
     ok(aba.linhas > 0, `pontos: tabela com pontos (${aba.linhas})`);
-    texto = await page.evaluate(() => document.body.innerText);
-    ok(texto.includes('Registros de execução') && !texto.includes('Diário de Obra'), 'pontos: vocabulario "Registros de execução"');
+    texto = await page.evaluate(() => document.body.textContent);
+    ok(texto.includes('Registros do dia') && !texto.includes('Diário de Obra'), 'pontos: vocabulario "Registros do dia"');
     await foto(page, 'pontos-gestao');
 
     // Gestor muda o status do primeiro ponto pela tabela
