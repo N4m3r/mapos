@@ -48,3 +48,19 @@ $voltar_url   = isset($voltar_url) ? $voltar_url : null;
             <?php endif; ?>
         </div>
     </header>
+                    <button id="install-btn" class="btn-tec primary" style="margin-left:12px;display:none;">Instalar app</button>
+        <script nonce="<?= csp_nonce() ?>">
+            (function(){
+                const btn=document.getElementById('toggle-offline');
+                const key='offlineEnabled';
+                const enabled=localStorage.getItem(key)!=='false';
+                btn.textContent=enabled?'Desativar modo offline':'Ativar modo offline';
+                btn.addEventListener('click',()=>{
+                    const now=!localStorage.getItem(key)||localStorage.getItem(key)==='false';
+                    localStorage.setItem(key, now?'true':'false');
+                    btn.textContent=now?'Desativar modo offline':'Ativar modo offline';
+                    // Notifica pwa-tecnico.js
+                    window.dispatchEvent(new Event('offlineToggle'));
+                });
+            })();
+        </script>

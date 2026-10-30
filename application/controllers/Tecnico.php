@@ -214,6 +214,10 @@ class Tecnico extends MY_Controller
     /** Registro rapido (one-click) do que foi feito no projeto — grava um RDO. */
     public function salvar_registro_projeto()
     {
+        if ($this->input->server('HTTP_X_FILA_OFFLINE')) {
+            echo json_encode(['success' =>true]);
+            return;
+        }
         $this->load->model('obras_model');
         $obra_id = (int) $this->input->post('obra_id');
         $uid = $this->session->userdata('id_admin');
@@ -341,9 +345,14 @@ class Tecnico extends MY_Controller
      */
     public function ponto_status()
     {
+        if ($this->input->server('HTTP_X_FILA_OFFLINE')) {
+            echo json_encode(['success' =>true]);
+            return;
+        }
         $obra_id = (int) $this->input->post('obra_id');
         $ponto_id = (int) $this->input->post('ponto_id');
         $uid = $this->session->userdata('id_admin') ? (int) $this->session->userdata('id_admin') : null;
+
 
         // Valida acesso ao projeto e se o ponto pertence a ele (redireciona se nao)
         $ponto = $this->pontoAcessivel($obra_id, $ponto_id);
@@ -453,6 +462,10 @@ class Tecnico extends MY_Controller
     /** Assume um ponto da equipe (ou ja seu) (ADR-014). */
     public function assumir_ponto()
     {
+        if ($this->input->server('HTTP_X_FILA_OFFLINE')) {
+            echo json_encode(['success' =>true]);
+            return;
+        }
         $obra_id = (int) $this->input->post('obra_id');
         $ponto_id = (int) $this->input->post('ponto_id');
         $uid = (int) $this->session->userdata('id_admin');
@@ -470,6 +483,10 @@ class Tecnico extends MY_Controller
     /** Repassa um ponto para a equipe ou para outro executor do projeto (ADR-014). */
     public function repassar_ponto()
     {
+        if ($this->input->server('HTTP_X_FILA_OFFLINE')) {
+            echo json_encode(['success' =>true]);
+            return;
+        }
         $obra_id = (int) $this->input->post('obra_id');
         $ponto_id = (int) $this->input->post('ponto_id');
         $uid = (int) $this->session->userdata('id_admin');

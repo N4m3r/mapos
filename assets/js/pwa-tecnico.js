@@ -2,8 +2,33 @@
  * Registra o service worker da Area do Tecnico e avisa quando o aparelho fica sem internet
  * (ADR-005, F4).
  */
-(function (window, document) {
-    'use strict';
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const installBtn = document.getElementById('install-btn');
+  if (installBtn) installBtn.style.display = 'inline-block';
+});
+const installBtn = document.getElementById('install-btn');
+if (installBtn) {
+  installBtn.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log('User response to the install prompt:', outcome);
+      deferredPrompt = null;
+      installBtn.style.display = 'none';
+    }
+  });
+}
+
+// If offline mode disabled, do not register service worker or start background sync
+if(localStorage.getItem('offlineEnabled')==='false'){
+    console.log('Modo offline desativado pelo usuário');
+    // Skip rest of script by exiting early
+} else {
+    // Existing script content follows
+
 
     var script = document.currentScript;
     var base = script ? script.src.replace(/assets\/js\/pwa-tecnico\.js.*$/, '') : '/';

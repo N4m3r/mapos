@@ -1,4 +1,5 @@
 {
+    "id": "com.mapos.tecnico",
     "name": "Map-OS - Área do Técnico",
     "short_name": "Map-OS Técnico",
     "description": "Ordens de serviço, check-in, fotos e assinaturas em campo, inclusive sem internet.",
@@ -12,5 +13,25 @@
     "icons": [
         { "src": "icone-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
         { "src": "icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    ],
+    "shortcuts": [
+        {
+            "name": "Minhas OS",
+            "short_name": "OS",
+            "url": "../../index.php/tecnico/os",
+            "icons": [{ "src": "icone-192.png", "sizes": "192x192" }]
+        },
+        {
+            "name": "Projetos",
+            "short_name": "Projetos",
+            "url": "../../index.php/tecnico/projetos",
+            "icons": [{ "src": "icone-192.png", "sizes": "192x192" }]
+        },
+        {
+            "name": "Fila",
+            "short_name": "Fila",
+            "url": "../../index.php/tecnico/fila",
+            "icons": [{ "src": "icone-192.png", "sizes": "192x192" }]
+        }
     ]
 }
