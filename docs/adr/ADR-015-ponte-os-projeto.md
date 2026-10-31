@@ -1,6 +1,6 @@
 # ADR-015: Ponte entre Ordem de Serviço e planejamento do projeto
 
-- **Status**: accepted (Fases 1 a 4 implementadas)
+- **Status**: accepted (Fases 1 a 4 implementadas; fase 5 implementada, alerta no painel pendente)
 - **Date**: 2026-10-29
 - **Deciders**: N4m3r
 - **Tags**: projetos, os, cronograma, etapas, sincronizacao, faturamento
@@ -49,12 +49,13 @@ A ponte passa a funcionar nos dois sentidos e o projeto se atualiza sozinho.
 | 2 | Itens previstos da etapa, gerar OS da etapa, em lote e por pontos (`Obra_planejamento_model`) | feito |
 | 3 | Converter OS aprovada em projeto (etapas por servico ou padrao, itens e pontos) | feito |
 | 4 | Horas do check-out, material do almoxarifado do projeto, pontos pela OS, sugestão de conclusão, relatório ADR-012 com atividade de OS | feito |
-| 5 | Faturamento por medição e alertas no painel | pendente |
+| 5 | Faturamento por medição (`Obra_medicao_model`, `Obras::faturarMedicao`, migration `application/database/migrations/20261031000000_add_medicao_os.php`) e alertas no painel | parcial: faturamento feito; alerta no painel pendente (`Obra_medicao_model::resumoFinanceiro()` devolve `os_aguardando`, mas nenhuma view o exibe) |
 
 ## Verificação
 
-- PHPUnit: `tests/Unit/ProjetoSyncTest.php` (decisão da sincronização) e
-  `tests/Unit/ObraPlanejamentoTest.php` (descrição, totais e filtro do lote).
+- PHPUnit: `tests/Unit/ProjetoSyncTest.php` (decisão da sincronização),
+  `tests/Unit/ObraPlanejamentoTest.php` (descrição, totais e filtro do lote) e
+  `tests/Unit/ObraMedicaoTest.php` (valor das OS, cálculo das etapas e medição).
 - Navegador: vincular OS pela tela da OS, mudar status e ver a etapa no projeto.
 
 ## Consequences
@@ -78,5 +79,15 @@ A ponte passa a funcionar nos dois sentidos e o projeto se atualiza sozinho.
   "nao realizado"); a marca `checkin:<id>` em `observacao` evita lancamento duplicado.
 - Material: OS com `fatura_no_projeto` baixa de `obra_material_saldo` e registra `obra_consumo`
   com `os_id`; o estoque geral nao muda. Saldo insuficiente avisa e nao bloqueia.
-- Pendente: cancelar, reabrir ou excluir a OS ainda devolve so ao estoque geral, sem ajustar o
-  almoxarifado do projeto.
+- Cancelar, reabrir e excluir a OS: feito. `Os::editar` e `Os::excluir` (`application/controllers/Os.php`)
+  consultam `Projeto_sync::decidirDestinoEstoque()` e, se a OS fatura no projeto, chamam
+  `devolverMaterialDaOs()` / `debitarMaterialDaOs()` (almoxarifado do projeto); a exclusão também
+  chama `removerVinculoDaOs()`.
+
+## Notas da fase 5
+
+- Medição: `Obra_medicao_model::criarMedicao()` trava o projeto e liga as OS (`obra_medicao_os`);
+  uma OS entra em uma única medição. `faturarMedicao()` gera o lançamento e o valor das OS adicionais
+  fatura separado, como antes.
+- Pendente: exibir no painel do projeto as OS aguardando medição (hoje só existe no retorno de
+  `resumoFinanceiro()`).

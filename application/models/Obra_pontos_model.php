@@ -128,6 +128,46 @@ class Obra_pontos_model extends CI_Model
         ];
     }
 
+    /**
+     * Confere IP, canal e porta digitados no ponto. Vazio e aceito (campo opcional).
+     * Canal: numero, com ate 3 letras na frente (1, 16, D1, IP 3). Porta: texto livre
+     * (porta do switch, ex.: SW1-P05), mas se for so numero tem de ser 1 a 65535.
+     *
+     * @return string|null mensagem de erro ou null se estiver tudo certo
+     */
+    public static function validarRede($ip, $canal, $porta)
+    {
+        $ip = trim((string) $ip);
+        if ($ip !== '' && filter_var($ip, FILTER_VALIDATE_IP) === false) {
+            return 'IP inválido: ' . $ip . ' (ex.: 192.168.1.107).';
+        }
+        $canal = trim((string) $canal);
+        if ($canal !== '' && ! preg_match('/^[A-Za-z]{0,3} ?\d{1,4}$/', $canal)) {
+            return 'Canal inválido: ' . $canal . ' (ex.: 5 ou D5).';
+        }
+        $porta = trim((string) $porta);
+        if ($porta !== '' && ctype_digit($porta) && ((int) $porta < 1 || (int) $porta > 65535)) {
+            return 'Porta inválida: ' . $porta . ' (1 a 65535).';
+        }
+        return null;
+    }
+
+    /**
+     * Separa as identificacoes do lote em novas e ja existentes no projeto.
+     *
+     * @param array $existentes identificacoes que o projeto ja tem
+     * @return array ['novos' => [...], 'pulados' => [...]]
+     */
+    public static function separarLote(array $existentes, $prefixo, $inicio, $qtd)
+    {
+        $ja = array_fill_keys(array_map('strval', $existentes), true);
+        $out = ['novos' => [], 'pulados' => []];
+        foreach (self::gerarIdentificacoes($prefixo, $inicio, $qtd) as $ident) {
+            $out[isset($ja[$ident]) ? 'pulados' : 'novos'][] = $ident;
+        }
+        return $out;
+    }
+
     /** ['CAM-01', 'CAM-02', ...]; 2 digitos, 3 se o ultimo passar de 99. */
     public static function gerarIdentificacoes($prefixo, $inicio, $qtd)
     {
@@ -352,6 +392,20 @@ class Obra_pontos_model extends CI_Model
         return $row ?: null;
     }
 
+    /** Outro ponto do projeto com o mesmo valor na coluna (ip/canal); null se nao houver. */
+    public function outroPontoCom($obra_id, $coluna, $valor, $exceto = 0)
+    {
+        if (! in_array($coluna, ['ip', 'canal'], true) || $valor === null || $valor === ''
+            || ! $this->db->table_exists('obra_pontos')) {
+            return null;
+        }
+        $this->db->select('idPonto, identificacao')->where('obra_id', (int) $obra_id)->where($coluna, $valor);
+        if ($exceto) {
+            $this->db->where('idPonto !=', (int) $exceto);
+        }
+        return $this->db->limit(1)->get('obra_pontos')->row() ?: null;
+    }
+
     public function addPonto($d)
     {
         if (! $this->db->table_exists('obra_pontos')) {
@@ -399,23 +453,23 @@ class Obra_pontos_model extends CI_Model
         return true;
     }
 
-    /** Cria os pontos que ainda nao existem (mesma identificacao no projeto); devolve quantos criou. */
-    public function gerarLote($obra_id, $tipo, $prefixo, $inicio, $qtd, $local = null)
+    /**
+     * Cria os pontos que ainda nao existem (mesma identificacao no projeto); devolve quantos criou.
+     * $pulados recebe as identificacoes que ja existiam.
+     */
+    public function gerarLote($obra_id, $tipo, $prefixo, $inicio, $qtd, $local = null, &$pulados = [])
     {
         if (! $this->db->table_exists('obra_pontos')) {
             return 0;
         }
         $obra_id = (int) $obra_id;
-        $existentes = [];
-        foreach ($this->db->select('identificacao')->where('obra_id', $obra_id)->get('obra_pontos')->result() as $r) {
-            $existentes[$r->identificacao] = true;
-        }
+        $existentes = array_column($this->db->select('identificacao')->where('obra_id', $obra_id)
+            ->get('obra_pontos')->result_array(), 'identificacao');
+        $lote = self::separarLote($existentes, $prefixo, $inicio, $qtd);
+        $pulados = $lote['pulados'];
         $agora = date('Y-m-d H:i:s');
         $criados = 0;
-        foreach (self::gerarIdentificacoes($prefixo, $inicio, $qtd) as $ident) {
-            if (isset($existentes[$ident])) {
-                continue;
-            }
+        foreach ($lote['novos'] as $ident) {
             $this->db->insert('obra_pontos', [
                 'obra_id' => $obra_id,
                 'tipo' => $tipo,

@@ -49,20 +49,21 @@ class Obras extends MY_Controller
         $this->load->library('pagination');
         $this->data['obra_menu'] = 'obras';
 
-        $filtros = [
-            'pesquisa' => $this->input->get('pesquisa'),
-            'status' => $this->input->get('status'),
-        ];
+        $filtros = $this->filtrosLista();
 
         $this->data['configuration']['base_url'] = site_url('obras/gerenciar/');
-        $this->data['configuration']['total_rows'] = $this->obras_model->count();
+        $this->data['configuration']['reuse_query_string'] = true;
+        $this->data['configuration']['total_rows'] = $this->obras_model->countObras($filtros);
         $this->pagination->initialize($this->data['configuration']);
 
         $this->data['results'] = $this->obras_model->getObras(
             $this->data['configuration']['per_page'],
-            $this->uri->segment(3),
+            (int) $this->uri->segment(3),
             $filtros
         );
+        $this->data['tipos_projeto'] = $this->obras_model->getTiposProjeto();
+        $this->data['responsaveis_projeto'] = $this->obras_model->getResponsaveisProjeto();
+        $this->data['filtros'] = $filtros;
         $this->load->model('projeto_acompanhamento_model');
         $this->data['resumo'] = $this->projeto_acompanhamento_model->resumoLista(array_map(function ($r) {
             return (int) $r->idObra;
@@ -70,6 +71,45 @@ class Obras extends MY_Controller
         $this->data['contagem_status'] = $this->projeto_acompanhamento_model->contagemStatus();
         $this->data['view'] = 'obras/gerenciar';
         return $this->layout();
+    }
+
+    /** Filtros da lista lidos do GET (usados na lista e no CSV). */
+    private function filtrosLista()
+    {
+        return [
+            'pesquisa' => trim((string) $this->input->get('pesquisa')),
+            'status' => (string) $this->input->get('status'),
+            'tipo' => trim((string) $this->input->get('tipo')),
+            'responsavel' => (int) $this->input->get('responsavel'),
+            'atrasados' => $this->input->get('atrasados') ? 1 : 0,
+            'ordem' => (string) $this->input->get('ordem'),
+            'dir' => (string) $this->input->get('dir'),
+        ];
+    }
+
+    public function exportarCsv()
+    {
+        $this->precisa('vObras', 'Você não tem permissão para visualizar Projetos.');
+        require_once APPPATH . 'libraries/Projeto_csv.php';
+        $rotulos = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execução', 'paralisada' => 'Paralisado', 'concluida' => 'Concluído', 'entregue' => 'Entregue', 'cancelada' => 'Cancelado'];
+        $rows = $this->obras_model->getObras(0, 0, $this->filtrosLista());
+
+        $out = "﻿" . Projeto_csv::linha(['Código', 'Nome', 'Cliente', 'Tipo', 'Responsável', 'Status', 'Início previsto', 'Fim previsto', 'Progresso (%)']);
+        $data = function ($d) {
+            return (empty($d) || $d === '0000-00-00') ? '' : date('d/m/Y', strtotime($d));
+        };
+        foreach ($rows ?: [] as $r) {
+            $out .= Projeto_csv::linha([
+                $r->codigo, $r->nome, $r->nomeCliente, $r->tipo_obra, $r->responsavel,
+                $rotulos[$r->status] ?? $r->status,
+                $data($r->data_inicio_prevista ?? null), $data($r->data_fim_prevista ?? null),
+                Projeto_csv::numero($r->percentual_concluido),
+            ]);
+        }
+        $this->output
+            ->set_content_type('text/csv', 'utf-8')
+            ->set_header('Content-Disposition: attachment; filename="projetos-' . date('Ymd-His') . '.csv"')
+            ->set_output($out);
     }
 
     public function adicionar()
@@ -962,6 +1002,18 @@ class Obras extends MY_Controller
             'serie' => $this->textoPonto('serie', 60),
             'observacao' => $this->textoPonto('observacao', 255),
         ];
+        $erroRede = Obra_pontos_model::validarRede($dados['ip'], $dados['canal'], $dados['porta']);
+        if ($erroRede !== null) {
+            $this->session->set_flashdata('error', $this->textoFlash($erroRede));
+            $this->voltarPontos($obra_id);
+        }
+        // IP repetido no projeto e conflito de rede; canal repetido so avisa (pode haver mais de um NVR)
+        $outro = $this->obra_pontos_model->outroPontoCom($obra_id, 'ip', $dados['ip'], $idPonto);
+        if ($outro) {
+            $this->session->set_flashdata('error', 'O IP ' . $dados['ip'] . ' já está no ponto ' . $this->textoFlash($outro->identificacao) . ' deste projeto.');
+            $this->voltarPontos($obra_id);
+        }
+        $outroCanal = $this->obra_pontos_model->outroPontoCom($obra_id, 'canal', $dados['canal'], $idPonto);
         if ($idPonto) {
             $ponto = $this->obra_pontos_model->getPonto($idPonto);
             if (! $ponto || (int) $ponto->obra_id !== $obra_id) {
@@ -1001,6 +1053,9 @@ class Obras extends MY_Controller
 
         log_info('Salvou ponto ' . $ident . ' na obra ' . $obra_id);
         $msg = 'Ponto salvo.';
+        if ($outroCanal) {
+            $msg .= ' Atenção: o canal ' . $dados['canal'] . ' também está no ponto ' . $this->textoFlash($outroCanal->identificacao) . ' (confira se é outro NVR).';
+        }
         if ($fotosSalvas > 0) {
             $msg .= ' ' . $fotosSalvas . ($fotosSalvas === 1 ? ' foto adicionada.' : ' fotos adicionadas.');
         }
@@ -1106,12 +1161,18 @@ class Obras extends MY_Controller
         $inicio = max(1, (int) $this->input->post('inicio'));
         $qtd = max(1, min(500, (int) $this->input->post('quantidade')));
         $local = $this->textoPonto('local', 150);
-        $n = $this->obra_pontos_model->gerarLote($obra_id, $tipo, $prefixo, $inicio, $qtd, $local);
+        $pulados = [];
+        $n = $this->obra_pontos_model->gerarLote($obra_id, $tipo, $prefixo, $inicio, $qtd, $local, $pulados);
         if ($n > 0) {
             $this->obra_pontos_model->recalcularProgressoObra($obra_id);
         }
         log_info('Gerou ' . $n . ' pontos (' . $tipo . ') na obra ' . $obra_id);
-        $this->session->set_flashdata('success', $n . ($n === 1 ? ' ponto criado.' : ' pontos criados.') . ($n < $qtd ? ' Os demais já existiam.' : ''));
+        $msg = $n . ($n === 1 ? ' ponto criado.' : ' pontos criados.');
+        if ($pulados) {
+            $lista = implode(', ', array_slice($pulados, 0, 10)) . (count($pulados) > 10 ? '…' : '');
+            $msg .= ' ' . count($pulados) . ' já existia(m) e não foi(ram) duplicado(s): ' . $this->textoFlash($lista) . '.';
+        }
+        $this->session->set_flashdata($n > 0 ? 'success' : 'error', $msg);
         $this->voltarPontos($obra_id);
     }
 

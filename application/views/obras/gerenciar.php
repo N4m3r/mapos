@@ -9,6 +9,15 @@ $rotulos = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execução', 
 $contagem = $contagem_status ?? [];
 $statusAtual = (string) $this->input->get('status');
 $pesquisa = (string) $this->input->get('pesquisa');
+$tipoAtual = (string) $this->input->get('tipo');
+$respAtual = (int) $this->input->get('responsavel');
+$atrasados = $this->input->get('atrasados') ? 1 : 0;
+$ordemAtual = (string) $this->input->get('ordem');
+$dirAtual = strtolower((string) $this->input->get('dir')) === 'desc' ? 'desc' : 'asc';
+$ordens = ['' => 'Mais recentes', 'nome' => 'Nome', 'inicio' => 'Data de início', 'fim' => 'Data de fim prevista', 'progresso' => 'Progresso', 'status' => 'Status'];
+if (! isset($ordens[$ordemAtual])) { $ordemAtual = ''; }
+$filtrosExtras = array_filter(['tipo' => $tipoAtual, 'responsavel' => $respAtual ?: '', 'atrasados' => $atrasados ?: '', 'ordem' => $ordemAtual, 'dir' => $ordemAtual !== '' ? $dirAtual : ''], function ($v) { return $v !== '' && $v !== null; });
+$temFiltro = $pesquisa !== '' || $statusAtual !== '' || $filtrosExtras;
 $hoje = date('Y-m-d');
 $prazo = function ($fim, $status) use ($hoje) {
     if (empty($fim) || $fim === '0000-00-00') { return ['sem prazo', '']; }
@@ -18,13 +27,16 @@ $prazo = function ($fim, $status) use ($hoje) {
     if ($d === 0) { return ['vence hoje', 'atencao']; }
     return ['faltam ' . $d . ($d === 1 ? ' dia' : ' dias'), $d <= 7 ? 'atencao' : ''];
 };
-$qs = function ($status) use ($pesquisa) {
+$qs = function ($status) use ($pesquisa, $filtrosExtras) {
     $p = [];
     if ($pesquisa !== '') { $p['pesquisa'] = $pesquisa; }
     if ($status !== '') { $p['status'] = $status; }
+    $p += $filtrosExtras;
     return site_url('obras/gerenciar') . ($p ? '?' . http_build_query($p) : '');
 };
 $totalGeral = array_sum($contagem);
+$pCsv = array_filter(['pesquisa' => $pesquisa, 'status' => $statusAtual] + $filtrosExtras, function ($v) { return $v !== '' && $v !== null; });
+$urlCsv = site_url('obras/exportarCsv') . ($pCsv ? '?' . http_build_query($pCsv) : '');
 ?>
 <div class="new122" style="margin-top:0">
     <div class="ui-cabecalho">
@@ -45,13 +57,39 @@ $totalGeral = array_sum($contagem);
         <?php if ($statusAtual !== ''): ?><input type="hidden" name="status" value="<?= html_escape($statusAtual) ?>"><?php endif; ?>
         <label for="filtro-pesquisa" class="pl-sr">Buscar</label>
         <input type="text" id="filtro-pesquisa" name="pesquisa" placeholder="Buscar por nome, código ou cliente" value="<?= html_escape($pesquisa) ?>">
-        <button class="button btn btn-mini pl-btn" type="submit"><span class="button__icon"><i class='bx bx-search'></i></span><span class="button__text2">Buscar</span></button>
+        <label for="filtro-tipo" class="pl-sr">Tipo</label>
+        <select id="filtro-tipo" name="tipo">
+            <option value="">Todos os tipos</option>
+            <?php foreach (($tipos_projeto ?? []) as $t): ?>
+                <option value="<?= html_escape($t) ?>" <?= $tipoAtual === $t ? 'selected' : '' ?>><?= html_escape($t) ?></option>
+            <?php endforeach; ?>
+        </select>
+        <label for="filtro-resp" class="pl-sr">Responsável</label>
+        <select id="filtro-resp" name="responsavel">
+            <option value="">Todos os responsáveis</option>
+            <?php foreach (($responsaveis_projeto ?? []) as $u): ?>
+                <option value="<?= (int) $u->idUsuarios ?>" <?= $respAtual === (int) $u->idUsuarios ? 'selected' : '' ?>><?= html_escape($u->nome) ?></option>
+            <?php endforeach; ?>
+        </select>
+        <label for="filtro-ordem" class="pl-sr">Ordenar por</label>
+        <select id="filtro-ordem" name="ordem">
+            <?php foreach ($ordens as $k => $v): ?>
+                <option value="<?= html_escape($k) ?>" <?= $ordemAtual === $k ? 'selected' : '' ?>><?= html_escape($v) ?></option>
+            <?php endforeach; ?>
+        </select>
+        <select name="dir" aria-label="Sentido da ordenação">
+            <option value="asc" <?= $dirAtual === 'asc' ? 'selected' : '' ?>>Crescente</option>
+            <option value="desc" <?= $dirAtual === 'desc' ? 'selected' : '' ?>>Decrescente</option>
+        </select>
+        <label><input type="checkbox" name="atrasados" value="1" <?= $atrasados ? 'checked' : '' ?>> Só atrasados</label>
+        <button class="button btn btn-mini pl-btn" type="submit"><span class="button__icon"><i class='bx bx-search'></i></span><span class="button__text2">Filtrar</span></button>
+        <a href="<?= html_escape($urlCsv) ?>" class="button btn btn-mini pl-btn"><span class="button__icon"><i class='bx bx-download'></i></span><span class="button__text2">Exportar CSV</span></a>
     </form>
 
     <?php if (! $results): ?>
         <div class="ui-vazio">
             <i class="bx bx-building-house"></i>
-            <?php if ($pesquisa !== '' || $statusAtual !== ''): ?>
+            <?php if ($temFiltro): ?>
                 <strong>Nenhum projeto encontrado com esses filtros.</strong>
                 <a href="<?= site_url('obras/gerenciar') ?>" class="button btn btn-mini pl-btn"><span class="button__text2">Limpar filtros</span></a>
             <?php else: ?>

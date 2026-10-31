@@ -1154,8 +1154,8 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
             </div>
             <div class="span6"><label>Identificação *</label><input type="text" class="span12" name="identificacao" id="pt_ident" maxlength="30" placeholder="CAM-07" required></div>
             <div class="span12" style="margin-left:0"><label>Local</label><input type="text" class="span12" name="local" id="pt_local" maxlength="150" placeholder="Ex.: Corredor 2, entrada de funcionários"></div>
-            <div class="span6" style="margin-left:0"><label>IP</label><input type="text" class="span12" name="ip" id="pt_ip" maxlength="45" placeholder="192.168.1.107"></div>
-            <div class="span3"><label>Canal</label><input type="text" class="span12" name="canal" id="pt_canal" maxlength="10"></div>
+            <div class="span6" style="margin-left:0"><label>IP</label><input type="text" class="span12" name="ip" id="pt_ip" maxlength="45" placeholder="192.168.1.107" inputmode="decimal" pattern="[0-9A-Fa-f:.]*" title="IPv4 (192.168.1.107) ou IPv6"></div>
+            <div class="span3"><label>Canal</label><input type="text" class="span12" name="canal" id="pt_canal" maxlength="10" pattern="[A-Za-z]{0,3} ?[0-9]{1,4}" title="Número do canal, ex.: 5 ou D5"></div>
             <div class="span3"><label>Porta</label><input type="text" class="span12" name="porta" id="pt_porta" maxlength="30"></div>
             <div class="span6" style="margin-left:0"><label>Modelo</label><input type="text" class="span12" name="modelo" id="pt_modelo" maxlength="80"></div>
             <div class="span6"><label>Série / MAC</label><input type="text" class="span12" name="serie" id="pt_serie" maxlength="60"></div>
@@ -1186,6 +1186,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
             <div class="span4"><label>Número inicial</label><input type="number" min="1" class="span12" name="inicio" value="1"></div>
             <div class="span4"><label>Quantidade (1 a 500)</label><input type="number" min="1" max="500" class="span12" name="quantidade" value="16" required></div>
             <div class="span12" style="margin-left:0"><label>Local (opcional, igual para todos)</label><input type="text" class="span12" name="local" maxlength="150"></div>
+            <div class="span12" style="margin-left:0"><strong id="lt_previa" aria-live="polite"></strong></div>
             <div class="span12" style="margin-left:0"><small>Ex.: tipo Câmera, prefixo CAM, início 1, quantidade 16 cria CAM-01 a CAM-16. Identificações que já existem são ignoradas.</small></div>
         </div>
         <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Gerar</span></button></div>
@@ -1360,7 +1361,28 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
         if (confirm('Excluir este ponto e o histórico dele?')) { $('#del_ponto').val(id); $('#formExcluirPonto').submit(); }
     }
     $(function () {
-        $('#lt_tipo').on('change', function () { $('#lt_prefixo').val($(this).find(':selected').data('prefixo') || ''); }).trigger('change');
+        $('#lt_tipo').on('change', function () { $('#lt_prefixo').val($(this).find(':selected').data('prefixo') || ''); $('#lt_previa').trigger('atualizar'); }).trigger('change');
+
+        // Previa do lote: mesma regra de Obra_pontos_model::gerarIdentificacoes (2 digitos, 3 se passar de 99)
+        function identLote(prefixo, n, largura) { var s = String(n); while (s.length < largura) { s = '0' + s; } return prefixo + '-' + s; }
+        function dadosLote() {
+            var $f = $('#modal-lote form');
+            var ini = Math.max(1, parseInt($f.find('[name=inicio]').val(), 10) || 1);
+            var qtd = Math.max(1, Math.min(500, parseInt($f.find('[name=quantidade]').val(), 10) || 1));
+            var prefixo = $.trim($('#lt_prefixo').val()) || ($('#lt_tipo :selected').data('prefixo') || '');
+            var largura = (ini + qtd - 1) > 99 ? 3 : 2;
+            return { qtd: qtd, primeiro: identLote(prefixo, ini, largura), ultimo: identLote(prefixo, ini + qtd - 1, largura) };
+        }
+        $('#lt_previa').on('atualizar', function () {
+            var d = dadosLote();
+            $(this).text(d.qtd === 1 ? 'Vai criar ' + d.primeiro + '.' : 'Vai criar ' + d.primeiro + ' a ' + d.ultimo + ' (' + d.qtd + ' pontos).');
+        });
+        $('#modal-lote form').on('input change', 'input', function () { $('#lt_previa').trigger('atualizar'); })
+            .on('submit', function () {
+                var d = dadosLote();
+                return d.qtd <= 50 || confirm('Criar ' + d.qtd + ' pontos (' + d.primeiro + ' a ' + d.ultimo + ')?');
+            });
+        $('#lt_previa').trigger('atualizar');
 
         // Pontos: marcar todos para repasse
         function atualizarSelecao() {

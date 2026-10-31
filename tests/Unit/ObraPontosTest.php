@@ -194,4 +194,33 @@ class ObraPontosTest extends TestCase
         $this->assertSame('image/jpeg', Obra_pontos_model::fotoValida($cab . str_repeat('a', $limite - 4)));
         $this->assertNull(Obra_pontos_model::fotoValida($cab . str_repeat('a', $limite - 3)));
     }
+
+    public function testValidarRedeAceitaVazioEValores(): void
+    {
+        $this->assertNull(Obra_pontos_model::validarRede('', null, ''));
+        $this->assertNull(Obra_pontos_model::validarRede('192.168.1.107', '5', '8000'));
+        $this->assertNull(Obra_pontos_model::validarRede('fe80::1', 'D12', 'SW1-P05'));
+        $this->assertNull(Obra_pontos_model::validarRede(' 10.0.0.1 ', 'IP 3', '65535'));
+    }
+
+    public function testValidarRedeRecusaFormatoErrado(): void
+    {
+        $this->assertStringContainsString('IP', Obra_pontos_model::validarRede('192.168.1.300', '', ''));
+        $this->assertStringContainsString('IP', Obra_pontos_model::validarRede('cam-01', '', ''));
+        $this->assertStringContainsString('Canal', Obra_pontos_model::validarRede('', 'canal1', ''));
+        $this->assertStringContainsString('Canal', Obra_pontos_model::validarRede('', '12345', ''));
+        $this->assertStringContainsString('Porta', Obra_pontos_model::validarRede('', '', '0'));
+        $this->assertStringContainsString('Porta', Obra_pontos_model::validarRede('', '', '70000'));
+    }
+
+    public function testSepararLoteNaoDuplicaExistentes(): void
+    {
+        $r = Obra_pontos_model::separarLote(['CAM-02', 'CAM-04', 'OUTRO'], 'CAM', 1, 5);
+        $this->assertSame(['CAM-01', 'CAM-03', 'CAM-05'], $r['novos']);
+        $this->assertSame(['CAM-02', 'CAM-04'], $r['pulados']);
+
+        $vazio = Obra_pontos_model::separarLote([], 'SW', 99, 2);
+        $this->assertSame(['SW-099', 'SW-100'], $vazio['novos']);
+        $this->assertSame([], $vazio['pulados']);
+    }
 }

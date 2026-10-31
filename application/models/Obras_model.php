@@ -10,6 +10,12 @@ defined('BASEPATH') or exit('No direct script access allowed');
  */
 class Obras_model extends CI_Model
 {
+    public function __construct()
+    {
+        parent::__construct();
+        require_once APPPATH . 'libraries/Projeto_csv.php';
+    }
+
     public function disponivel()
     {
         return $this->db->table_exists('obras');
@@ -28,15 +34,44 @@ class Obras_model extends CI_Model
         return $this->db->count_all_results('obras');
     }
 
-    public function getObras($perpage = 0, $start = 0, $filtros = [])
+    /** Tipos de projeto distintos (para o filtro da lista). */
+    public function getTiposProjeto()
     {
         if (! $this->db->table_exists('obras')) {
             return [];
         }
-        $this->db->select('obras.*, clientes.nomeCliente, usuarios.nome as responsavel');
+        $rows = $this->db->distinct()->select('tipo_obra')->where("tipo_obra IS NOT NULL AND tipo_obra <> ''", null, false)
+            ->order_by('tipo_obra')->get('obras')->result();
+        return array_map(function ($r) {
+            return $r->tipo_obra;
+        }, $rows);
+    }
+
+    /** Responsaveis (usuarios) que aparecem em algum projeto. */
+    public function getResponsaveisProjeto()
+    {
+        if (! $this->db->table_exists('obras')) {
+            return [];
+        }
+        return $this->db->distinct()->select('usuarios.idUsuarios, usuarios.nome')
+            ->from('obras')->join('usuarios', 'usuarios.idUsuarios = obras.responsavel_id')
+            ->order_by('usuarios.nome')->get()->result();
+    }
+
+    /** Total de projetos respeitando os mesmos filtros da listagem. */
+    public function countObras($filtros = [])
+    {
+        if (! $this->db->table_exists('obras')) {
+            return 0;
+        }
         $this->db->from('obras');
         $this->db->join('clientes', 'clientes.idClientes = obras.clientes_id', 'left');
-        $this->db->join('usuarios', 'usuarios.idUsuarios = obras.responsavel_id', 'left');
+        $this->aplicarFiltros($filtros);
+        return (int) $this->db->count_all_results();
+    }
+
+    private function aplicarFiltros($filtros)
+    {
         if (! empty($filtros['pesquisa'])) {
             $this->db->group_start()
                 ->like('obras.nome', $filtros['pesquisa'])
@@ -47,7 +82,34 @@ class Obras_model extends CI_Model
         if (! empty($filtros['status'])) {
             $this->db->where('obras.status', $filtros['status']);
         }
-        $this->db->order_by('obras.idObra', 'desc');
+        if (isset($filtros['tipo']) && $filtros['tipo'] !== '') {
+            $this->db->where('obras.tipo_obra', $filtros['tipo']);
+        }
+        if (! empty($filtros['responsavel'])) {
+            $this->db->where('obras.responsavel_id', (int) $filtros['responsavel']);
+        }
+        if (! empty($filtros['atrasados'])) {
+            $this->db->where('obras.data_fim_prevista <', date('Y-m-d'));
+            $this->db->where('obras.data_fim_prevista IS NOT NULL', null, false);
+            $this->db->where_not_in('obras.status', ['concluida', 'entregue', 'cancelada']);
+        }
+    }
+
+    public function getObras($perpage = 0, $start = 0, $filtros = [])
+    {
+        if (! $this->db->table_exists('obras')) {
+            return [];
+        }
+        $this->db->select('obras.*, clientes.nomeCliente, usuarios.nome as responsavel');
+        $this->db->from('obras');
+        $this->db->join('clientes', 'clientes.idClientes = obras.clientes_id', 'left');
+        $this->db->join('usuarios', 'usuarios.idUsuarios = obras.responsavel_id', 'left');
+        $this->aplicarFiltros($filtros);
+        [$col, $dir] = Projeto_csv::colunaOrdem($filtros['ordem'] ?? '', $filtros['dir'] ?? 'asc');
+        $this->db->order_by($col, $dir);
+        if ($col !== 'obras.idObra') {
+            $this->db->order_by('obras.idObra', 'desc');
+        }
         if ($perpage) {
             $this->db->limit($perpage, $start);
         }

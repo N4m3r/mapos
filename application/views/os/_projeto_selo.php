@@ -97,18 +97,44 @@ $(function () {
             }
         });
     });
+    // Envia a requisicao; em falha de rede preserva o form, reabilita o botao e oferece "Tentar de novo".
+    function enviar(url, dados, msgErro, $btn) {
+        if ($btn) { $btn.prop('disabled', true); }
+        $.post(url, dados, null, 'json')
+            .done(function (r) {
+                if (r && r.success) { location.reload(); return; }
+                if ($btn) { $btn.prop('disabled', false); }
+                erro((r && r.message) || msgErro);
+            })
+            .fail(function () {
+                if ($btn) { $btn.prop('disabled', false); }
+                var msg = 'Falha de comunicação. Os dados preenchidos foram mantidos.';
+                if (window.Swal) {
+                    Swal.fire({ icon: 'error', title: 'Não foi possível', text: msg, showCancelButton: true,
+                        confirmButtonText: 'Tentar de novo', cancelButtonText: 'Cancelar' })
+                        .then(function (res) { if (res && res.isConfirmed) { enviar(url, dados, msgErro, $btn); } });
+                } else if (confirm(msg + ' Tentar de novo?')) {
+                    enviar(url, dados, msgErro, $btn);
+                }
+            });
+    }
     $('#formVincularProjeto').on('submit', function (e) {
         e.preventDefault();
-        $.post('<?= site_url('os/vincularProjetoAction') ?>', $(this).serialize(), null, 'json')
-            .done(function (r) { if (r && r.success) { location.reload(); } else { erro((r && r.message) || 'Erro ao vincular.'); } })
-            .fail(function () { erro('Falha de comunicação. Tente novamente.'); });
+        enviar('<?= site_url('os/vincularProjetoAction') ?>', $(this).serialize(), 'Erro ao vincular.', $(this).find('button[type=submit]'));
     });
     $('#btnDesvincularProjeto').on('click', function (e) {
         e.preventDefault();
-        if (!confirm('Desvincular esta OS do projeto? A OS não é excluída.')) { return; }
-        $.post('<?= site_url('os/desvincularProjetoAction') ?>', { os_id: <?= (int) $osIdProjeto ?> }, null, 'json')
-            .done(function (r) { if (r && r.success) { location.reload(); } else { erro((r && r.message) || 'Erro ao desvincular.'); } })
-            .fail(function () { erro('Falha de comunicação. Tente novamente.'); });
+        var texto = 'Desvincular esta OS do projeto? A OS não é excluída.';
+        var executar = function () {
+            enviar('<?= site_url('os/desvincularProjetoAction') ?>', { os_id: <?= (int) $osIdProjeto ?> }, 'Erro ao desvincular.', null);
+        };
+        if (window.Swal) {
+            Swal.fire({ icon: 'warning', title: 'Desvincular da OS?', text: texto, showCancelButton: true,
+                confirmButtonText: 'Sim, desvincular', cancelButtonText: 'Cancelar' })
+                .then(function (res) { if (res && res.isConfirmed) { executar(); } });
+        } else if (confirm(texto)) {
+            executar();
+        }
     });
 });
 </script>
@@ -165,7 +191,7 @@ $(function () {
         if (!previa) { return; }
         var h = '<table class="table table-condensed"><thead><tr><th>Produto</th><th>Tipo de ponto</th><th style="text-align:right">Qtd</th></tr></thead><tbody>';
         $.each(previa.produtos, function (i, p) {
-            var sel = '<select name="pontos_por_produto[' + Number(p.produtos_id) + ']" class="span12"><option value="nenhum">— não gerar ponto —</option>';
+            var sel = '<select name="pontos_por_produto[' + Number(p.produtos_id) + ']" class="span12" aria-label="Tipo de ponto para ' + esc(p.descricao) + '"><option value="nenhum">— não gerar ponto —</option>';
             $.each(previa.tipos, function (j, t) {
                 sel += '<option value="' + esc(t.id) + '"' + (t.id === p.tipo ? ' selected' : '') + '>' + esc(t.rotulo) + '</option>';
             });
