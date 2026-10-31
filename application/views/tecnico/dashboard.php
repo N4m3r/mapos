@@ -63,6 +63,9 @@ $prox = $proxima ?? null;
                         <i class='bx bx-map-pin'></i> Ir até lá
                     </a>
                 <?php endif; ?>
+                <?php if (!$continuar): ?>
+                    <button type="button" class="ti-btn soft" data-a-caminho="<?= (int) $os->idOs ?>"><i class='bx bx-car'></i> Estou a caminho</button>
+                <?php endif; ?>
             </div>
         </section>
     <?php else: ?>
@@ -123,6 +126,7 @@ $prox = $proxima ?? null;
     <a href="<?= site_url('tecnico/os') ?>" class="ti-btn soft ti-mais"><i class='bx bx-list-ul'></i> Ver todas as minhas OS</a>
 </div>
 
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/tecnico-a-caminho.js') ?>?v=<?= asset_versao('assets/js/tecnico-a-caminho.js', '1') ?>" data-url="<?= site_url('tecnico/a_caminho') ?>"></script>
 <?php $this->load->view('tecnico/_nav', ['nav_ativo' => 'home', 'pode_ver_sistema' => isset($pode_ver_sistema) ? $pode_ver_sistema : false]); ?>
 </body>
 </html>

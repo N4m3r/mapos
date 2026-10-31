@@ -502,3 +502,8 @@ body.tec-menu-travado { overflow: hidden; }
   .tec-bottomnav { background: var(--tec-card); border-top-color: var(--tec-line); }
   .tec-bottomnav a.active { color: #9fa8ff; }
 }
+
+/* Aviso "a caminho" */
+.tec-a-caminho-ok { display:inline-flex; align-items:center; gap:6px; font-weight:700; color:#1b7f3b; padding:8px 4px; }
+.tec-acao-caminho { margin:8px 0; }
+.tec-acao-caminho .tec-btn { width:100%; }

@@ -1978,12 +1978,14 @@ class Os extends MY_Controller
         }
 
         $atribuido_por = $this->session->userdata('id_admin');
+        $antes = $this->db->select('tecnico_responsavel, data_agendamento')->where('idOs', (int) $os_id)->get('os')->row();
 
         if ($this->tecnico_model->atribuirTecnico($os_id, $tecnico_id, $atribuido_por, $observacao)) {
             // Agendamento do atendimento (data + hora). O input datetime-local
             // manda "Y-m-d\TH:i"; normaliza para DATETIME do banco.
             $this->salvarAgendamentoOs($os_id, $agendamento);
             $this->notificarTecnicoAtribuicao($os_id, $tecnico_id);
+            $this->avisarClienteTecnicoDefinido($os_id, $antes);
             $this->session->set_flashdata('success', 'Técnico atribuído à OS #' . $os_id . ' com sucesso!');
             log_info('Atribuiu técnico ' . $tecnico_id . ' à OS #' . $os_id);
         } else {
@@ -1991,6 +1993,33 @@ class Os extends MY_Controller
         }
 
         redirect('os/atribuir');
+    }
+
+    /**
+     * Avisa o cliente (WhatsApp) que técnico/data da visita foram definidos,
+     * somente se algum dos dois mudou de fato em relação ao estado anterior.
+     * Best-effort: nunca derruba a atribuição.
+     */
+    private function avisarClienteTecnicoDefinido($os_id, $antes)
+    {
+        try {
+            require_once APPPATH . 'helpers/avisos_atendimento_helper.php';
+            $depois = $this->db->select('tecnico_responsavel, data_agendamento')->where('idOs', (int) $os_id)->get('os')->row();
+            if (! $depois || empty($depois->tecnico_responsavel)) {
+                return;
+            }
+            if (AvisosAtendimento::mudouTecnicoOuData(
+                $antes->tecnico_responsavel ?? null,
+                $antes->data_agendamento ?? null,
+                $depois->tecnico_responsavel,
+                $depois->data_agendamento ?? null
+            )) {
+                $this->load->library('notificador');
+                $this->notificador->avisarAtendimento((int) $os_id, 'os_tecnico_definido');
+            }
+        } catch (\Throwable $e) {
+            log_message('error', 'Aviso de técnico definido da OS #' . $os_id . ' falhou: ' . $e->getMessage());
+        }
     }
 
     /**

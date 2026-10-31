@@ -327,6 +327,18 @@ class Checkin extends MY_Controller
         // Log
         log_info('Iniciou atendimento da OS. ID: ' . $os_id);
 
+        // Avisa o cliente que o técnico chegou (best-effort). Check-in atrasado
+        // vindo da fila offline (registrado_em antigo) não avisa.
+        try {
+            require_once APPPATH . 'helpers/avisos_atendimento_helper.php';
+            if (AvisosAtendimento::deveAvisarChegada($this->input->post('registrado_em'), time())) {
+                $this->load->library('notificador');
+                $this->notificador->avisarAtendimento((int) $os_id, 'os_tecnico_chegou');
+            }
+        } catch (\Throwable $e) {
+            log_message('error', 'Aviso de chegada da OS #' . $os_id . ' falhou: ' . $e->getMessage());
+        }
+
         echo json_encode([
             'success' => true,
             'message' => 'Atendimento iniciado com sucesso',

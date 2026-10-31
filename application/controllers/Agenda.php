@@ -108,6 +108,16 @@ class Agenda extends MY_Controller
         $this->db->where('idOs', $osId)->update('os', ['data_agendamento' => $novo]);
         log_info('Reagendou a OS #' . $osId . ' de ' . ($os->data_agendamento ?: 'sem data') . ' para ' . $novo);
 
+        // Avisa o cliente só quando a data mudou de fato (best-effort).
+        if (substr((string) $os->data_agendamento, 0, 16) !== substr($novo, 0, 16)) {
+            try {
+                $this->load->library('notificador');
+                $this->notificador->avisarAtendimento($osId, 'os_reagendada');
+            } catch (\Throwable $e) {
+                log_message('error', 'Aviso de reagendamento da OS #' . $osId . ' falhou: ' . $e->getMessage());
+            }
+        }
+
         return $resposta(true, 'OS #' . $osId . ' reagendada para ' . date('d/m/Y H:i', $ts) . '.');
     }
 

@@ -193,6 +193,7 @@ $statusSimples = function ($st) {
         'permFotos'  => !empty($permissao_fotos),
         'permCheckin' => !empty($permissao_checkin),
         'permCheckout' => !empty($permissao_checkout),
+        'urlACaminho' => site_url('tecnico/a_caminho'),
         'naoRealizado' => !empty($permissao_nao_realizado) && empty($nr_pendente) && !$os_concluida,
     ];
     ?>
@@ -545,6 +546,7 @@ $statusSimples = function ($st) {
         }).fail(function () { avisoTec('Sem conexão com a internet. Tente de novo.', 'error'); btn.disabled = false; });
     }
 </script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/tecnico-a-caminho.js') ?>?v=<?= asset_versao('assets/js/tecnico-a-caminho.js', '1') ?>" data-url="<?= site_url('tecnico/a_caminho') ?>"></script>
 <script nonce="<?= csp_nonce() ?>">
 // ---- Assistente de atendimento (camada de interface sobre check-in / fotos / checklist / check-out) ----
 (function () {
@@ -621,6 +623,15 @@ $statusSimples = function ($st) {
         });
         h += '</ol>';
 
+        // "Estou a caminho": antes do passo "Cheguei", enquanto nao houver chegada
+        if (!st.chegou && cfg.permCheckin) {
+            var av = window.TecACaminho ? window.TecACaminho.lerAviso(cfg.osId) : null;
+            h += '<div class="tec-acao-caminho">'
+                + (av ? '<span class="tec-a-caminho-ok" role="status"><i class="bx bx-check-circle" aria-hidden="true"></i> Cliente avisado às ' + av.hora + '</span>'
+                      : '<button type="button" class="tec-btn tec-btn-cinza" data-a-caminho="' + cfg.osId + '"><i class="bx bx-car" aria-hidden="true"></i> Estou a caminho</button>')
+                + '</div>';
+        }
+
         if (cur < PASSOS.length) {
             var p = PASSOS[cur];
             var bloqueado = (p.id === 'chegou' && !cfg.permCheckin) || (p.id === 'concluir' && !cfg.permCheckout);
@@ -671,6 +682,7 @@ $statusSimples = function ($st) {
 
     // Eventos do fluxo existente (checkin.js / atendimento_ui.php)
     $(document).on('checkin:iniciado', function () { st.chegou = true; render(); });
+    document.addEventListener('tec:aCaminho', function () { render(); });
     $(document).on('checkin:fotoEnviada', function (e, d) {
         d = d || {};
         if (d.etapa === 'entrada') { st.nAntes++; }

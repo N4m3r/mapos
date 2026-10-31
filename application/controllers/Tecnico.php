@@ -1039,6 +1039,76 @@ class Tecnico extends MY_Controller
         ]);
     }
 
+    /**
+     * Avisa o cliente por WhatsApp (gatilho de atendimento em campo). Roda
+     * sempre DEPOIS da ação principal e nunca derruba a ação.
+     */
+    private function avisarClienteAtendimento($os_id, $evento, array $extras = [])
+    {
+        try {
+            $this->load->library('notificador');
+
+            return $this->notificador->avisarAtendimento($os_id, $evento, $extras);
+        } catch (\Throwable $e) {
+            log_message('error', 'Aviso ao cliente (' . $evento . ') da OS #' . $os_id . ' falhou: ' . $e->getMessage());
+
+            return ['status' => 'falha', 'quando' => null];
+        }
+    }
+
+    /**
+     * "Estou a caminho": avisa o cliente por WhatsApp. Só o técnico da OS (ou
+     * quem tem acesso pelo projeto). Anti-repetição no servidor (30 min).
+     */
+    public function a_caminho()
+    {
+        $this->output->set_content_type('application/json');
+        $resp = function ($ok, $msg, array $extra = []) {
+            $this->output->set_output(json_encode(['success' => $ok, 'message' => $msg] + $extra));
+        };
+
+        if ($this->input->method() !== 'post') {
+            return $resp(false, 'Requisição inválida');
+        }
+
+        $os_id = (int) $this->input->post('os_id');
+        $tecnico_id = $this->session->userdata('id_admin');
+        $os = $os_id ? $this->tecnico_model->getOsById($os_id, $tecnico_id) : null;
+        if (!$os && $os_id) {
+            $this->load->model('obras_model');
+            if ($this->obras_model->osEmProjetoDoUsuario($os_id, $tecnico_id)) {
+                $os = $this->tecnico_model->getOsById($os_id);
+            }
+        }
+        if (!$os) {
+            return $resp(false, 'OS não encontrada ou não designada a você.');
+        }
+        if (in_array($os->status, ['Finalizado', 'Faturado', 'Cancelado'], true)) {
+            return $resp(false, 'Esta OS já está ' . $os->status . '.');
+        }
+        if ($this->checkin_model->getCheckinAtivo($os_id)) {
+            return $resp(false, 'Você já chegou ao local.');
+        }
+
+        $r = $this->avisarClienteAtendimento($os_id, 'os_tecnico_a_caminho');
+        $hora = $r['quando'] ? date('H:i', $r['quando']) : date('H:i');
+        switch ($r['status']) {
+            case 'enviado':
+                log_info('Técnico avisou o cliente que está a caminho. OS ID: ' . $os_id);
+
+                return $resp(true, 'Cliente avisado às ' . $hora, ['hora' => $hora]);
+            case 'repetido':
+                return $resp(true, 'O cliente já foi avisado às ' . $hora, ['hora' => $hora, 'repetido' => true]);
+            case 'sem_numero':
+                return $resp(false, 'O cliente não tem WhatsApp cadastrado — ele não foi avisado.');
+            case 'inativo':
+            case 'sem_gatilho':
+                return $resp(false, 'O aviso por WhatsApp não está ativo — o cliente não foi avisado.');
+            default:
+                return $resp(false, 'Não foi possível avisar o cliente agora. Tente de novo.');
+        }
+    }
+
     /* ================================================================= *
      *  SERVIÇO NÃO REALIZADO (não foi possível executar em campo)
      * ================================================================= */
@@ -1110,6 +1180,15 @@ class Tecnico extends MY_Controller
         }
 
         log_info('Técnico marcou OS como não realizada. OS ID: ' . $os_id);
+
+        // Avisa o cliente (best-effort, depois de registrado).
+        $motivoTxt = '';
+        $oc = $this->naorealizada_model->getOcorrencia($id);
+        if ($oc) {
+            $motivoTxt = trim((string) ($oc->motivo_texto ?: $oc->observacao));
+        }
+        $this->avisarClienteAtendimento($os_id, 'os_nao_realizada', ['motivo' => $motivoTxt]);
+
         echo json_encode([
             'success' => true,
             'message' => 'Registrado! A OS ficou em espera na aba "Não Realizadas".',
@@ -1169,6 +1248,7 @@ class Tecnico extends MY_Controller
         }
 
         log_info('Técnico reagendou OS não realizada. OS ID: ' . $oc->os_id);
+        $this->avisarClienteAtendimento($oc->os_id, 'os_reagendada');
         echo json_encode(['success' => true, 'message' => 'OS reagendada para ' . date('d/m/Y', strtotime($nova_data)) . '.']);
     }
 

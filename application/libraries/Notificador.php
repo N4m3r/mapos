@@ -16,6 +16,9 @@ class Notificador
     /** @var CI_Controller */
     private $ci;
 
+    /** Envios bem-sucedidos da última chamada de whatsappOs. */
+    private $okEnvios = 0;
+
     public function __construct()
     {
         $this->ci = &get_instance();
@@ -30,12 +33,13 @@ class Notificador
      * @param string|array $eventos  ex.: 'os_aprovada' ou ['os_editada','os_finalizada']
      * @param object|null  $emitente
      */
-    public function whatsappOs($osId, $eventos, $emitente = null)
+    public function whatsappOs($osId, $eventos, $emitente = null, array $extras = [])
     {
+        $this->okEnvios = 0;
         try {
             $this->ci->load->library('evolution_api');
             if (! $this->ci->evolution_api->estaAtivo()) {
-                return;
+                return 0;
             }
 
             $this->ci->load->model('os_model');
@@ -44,7 +48,7 @@ class Notificador
 
             $os = $this->ci->os_model->getById($osId);
             if (! $os) {
-                return;
+                return 0;
             }
             if ($emitente === null) {
                 $emitente = $this->ci->mapos_model->getEmitente();
@@ -63,7 +67,7 @@ class Notificador
 
             if (empty($triggers)) {
                 if (! $this->ci->evolution_api->disparaAutomaticoPara($os->status)) {
-                    return;
+                    return 0;
                 }
                 $triggers = [null]; // fallback: envio padrão só ao cliente
             }
@@ -87,7 +91,7 @@ class Notificador
 
                 $slug = ($t && ! empty($t->whatsapp_template)) ? $t->whatsapp_template : 'os';
                 $conteudo = $this->ci->whatsapp_templates_model->conteudo($slug, $fallbackOs);
-                $mensagem = $this->ci->os_model->montarNotificacaoOs($os->idOs, $conteudo, $emitente);
+                $mensagem = $this->ci->os_model->montarNotificacaoOs($os->idOs, $conteudo, $emitente, $extras);
 
                 $destCliente = $t ? in_array('cliente', Notification_triggers_model::toList($t->destinatarios), true) : true;
                 $destTecnico = $t ? in_array('tecnico', Notification_triggers_model::toList($t->destinatarios), true) : false;
@@ -106,6 +110,63 @@ class Notificador
             }
         } catch (\Exception $e) {
             log_info('Falha na notificação WhatsApp da OS #' . $osId . ': ' . $e->getMessage());
+        }
+
+        return $this->okEnvios;
+    }
+
+    /**
+     * Avisa o CLIENTE sobre um momento do atendimento em campo (a caminho,
+     * chegou, não realizado, reagendada, técnico definido) usando os gatilhos
+     * WhatsApp ativos do evento. Anti-repetição no servidor (whatsapp_envios):
+     * mesmo evento + mesma OS não reenvia dentro da janela. Nunca lança.
+     *
+     * @param array $extras ['motivo' => '...', 'data_agendamento' => 'Y-m-d H:i:s']
+     *
+     * @return array ['status' => enviado|repetido|sem_gatilho|inativo|sem_numero|falha, 'quando' => timestamp|null]
+     */
+    public function avisarAtendimento($osId, $evento, array $extras = [])
+    {
+        try {
+            require_once APPPATH . 'helpers/avisos_atendimento_helper.php';
+            if (! in_array($evento, AvisosAtendimento::EVENTOS, true)) {
+                return ['status' => 'falha', 'quando' => null];
+            }
+
+            $this->ci->load->library('evolution_api');
+            if (! $this->ci->evolution_api->estaAtivo()) {
+                return ['status' => 'inativo', 'quando' => null];
+            }
+
+            $this->ci->load->model('notification_triggers_model');
+            if (empty($this->ci->notification_triggers_model->getActiveByEvento($evento, 'whatsapp'))) {
+                return ['status' => 'sem_gatilho', 'quando' => null];
+            }
+
+            // Anti-repetição: último envio bem-sucedido deste evento para esta OS.
+            if ($this->ci->db->table_exists('whatsapp_envios')) {
+                $ult = $this->ci->db->select('data_envio')
+                    ->where('os_id', (int) $osId)->where('evento', $evento)->where('status', 'enviado')
+                    ->order_by('id', 'DESC')->limit(1)->get('whatsapp_envios')->row();
+                $ts = $ult ? strtotime($ult->data_envio) : null;
+                if (AvisosAtendimento::repetido($ts ?: null, time(), $evento)) {
+                    return ['status' => 'repetido', 'quando' => $ts];
+                }
+            }
+
+            $this->ci->load->model('os_model');
+            $os = $this->ci->os_model->getById($osId);
+            if ($os && trim((string) $this->ci->os_model->numeroNotificacao($os)) === '') {
+                return ['status' => 'sem_numero', 'quando' => null];
+            }
+
+            $n = $this->whatsappOs($osId, $evento, null, $extras);
+
+            return ['status' => $n > 0 ? 'enviado' : 'falha', 'quando' => $n > 0 ? time() : null];
+        } catch (\Throwable $e) {
+            log_message('error', 'Falha no aviso de atendimento (' . $evento . ') da OS #' . $osId . ': ' . $e->getMessage());
+
+            return ['status' => 'falha', 'quando' => null];
         }
     }
 
@@ -497,6 +558,7 @@ class Notificador
 
         try {
             $this->ci->evolution_api->enviarTexto($destino, $mensagem, $ctx);
+            $this->okEnvios++;
             log_info('Notificação WhatsApp (' . ($ctx['tipo'] ?? '-') . ') enviada para ' . $destino . '. OS #' . ($ctx['os_id'] ?? '?'));
         } catch (\Exception $e) {
             log_info('Falha WhatsApp para ' . $destino . ' (OS #' . ($ctx['os_id'] ?? '?') . '): ' . $e->getMessage());

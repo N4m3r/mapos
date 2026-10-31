@@ -518,7 +518,7 @@ class Os_model extends CI_Model
      * @param string      $textoBase Template (configuracoes.notifica_whats)
      * @param object|null $emitente  Emitente; se null, é carregado do mapos_model
      */
-    public function montarNotificacaoOs($idOs, $textoBase, $emitente = null)
+    public function montarNotificacaoOs($idOs, $textoBase, $emitente = null, array $extras = [])
     {
         $os = $this->getById($idOs);
         if (! $os) {
@@ -557,6 +557,24 @@ class Os_model extends CI_Model
             $textoBase = str_replace('{LINK_ACOMPANHAR}', $this->acompanhamento_model->link($idOs), $textoBase);
         }
 
+        // Tags do atendimento em campo: {TECNICO_NOME}, {DATA_AGENDAMENTO}, {MOTIVO}
+        if (strpos($textoBase, '{TECNICO_NOME}') !== false
+            || strpos($textoBase, '{DATA_AGENDAMENTO}') !== false
+            || strpos($textoBase, '{MOTIVO}') !== false) {
+            require_once APPPATH . 'helpers/avisos_atendimento_helper.php';
+            $tecnicoNome = '';
+            if (! empty($os->tecnico_responsavel)) {
+                $u = $this->db->select('nome')->where('idUsuarios', (int) $os->tecnico_responsavel)->get('usuarios')->row();
+                $tecnicoNome = $u ? AvisosAtendimento::primeiroNome($u->nome) : '';
+            }
+            $agendamento = isset($extras['data_agendamento']) ? $extras['data_agendamento'] : ($os->data_agendamento ?? '');
+            $textoBase = str_replace(
+                ['{TECNICO_NOME}', '{DATA_AGENDAMENTO}', '{MOTIVO}'],
+                [$tecnicoNome, AvisosAtendimento::formatarAgendamento($agendamento), trim(strip_tags((string) ($extras['motivo'] ?? '')))],
+                $textoBase
+            );
+        }
+
         return $this->montarTextoWhats($textoBase, $troca);
     }
 
@@ -577,8 +595,29 @@ class Os_model extends CI_Model
         if (! empty($obj->celular_cliente)) {
             return $obj->celular_cliente;
         }
+        if (! empty($obj->celular)) {
+            return $obj->celular;
+        }
+        // Sem celular: usa o telefone so se ele for de celular (DDD + 9 + 8 digitos);
+        // muitos cadastros antigos tem o celular digitado no campo telefone.
+        foreach (['telefone_cliente', 'telefone'] as $campo) {
+            if (! empty($obj->$campo) && self::pareceCelular($obj->$campo)) {
+                return $obj->$campo;
+            }
+        }
 
-        return ! empty($obj->celular) ? $obj->celular : '';
+        return '';
+    }
+
+    /** Numero brasileiro de celular: DDD + 9 + 8 digitos (com ou sem +55). */
+    public static function pareceCelular($numero)
+    {
+        $d = preg_replace('/\D+/', '', (string) $numero);
+        if (strlen($d) === 13 && strpos($d, '55') === 0) {
+            $d = substr($d, 2);
+        }
+
+        return strlen($d) === 11 && $d[2] === '9';
     }
 
     public function valorTotalOS($id = null)
