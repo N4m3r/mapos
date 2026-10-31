@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="<?= base_url() ?>assets/css/obras.css">
+<link rel="stylesheet" href="<?= base_url('assets/css/relatorios-escuro.css') ?>?v=<?= asset_versao('assets/css/relatorios-escuro.css') ?>">
 <?php
 // Relatorio de acompanhamento de projetos - ADR-012
 $e = fn ($v) => html_escape((string) ($v ?? ''));

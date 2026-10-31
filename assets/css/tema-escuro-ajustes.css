@@ -1,0 +1,168 @@
+/*
+ * Ajustes de contraste nos temas escuros (puredark, darkviolet, darkorange), so na tela.
+ * Texto sem cor propria herda #f0efec pelo container; aqui ficam os componentes que tinham cor escura fixa.
+ * Temas claros e impressao nao sao afetados (regras escopadas por data-theme e @media screen).
+ */
+@media screen {
+    body[data-theme="puredark"] #content,
+    body[data-theme="darkviolet"] #content,
+    body[data-theme="darkorange"] #content,
+    body[data-theme="puredark"] #content .container-fluid,
+    body[data-theme="darkviolet"] #content .container-fluid,
+    body[data-theme="darkorange"] #content .container-fluid { color: #f0efec; }
+
+    body[data-theme="puredark"] a.tip-bottom,
+    body[data-theme="darkviolet"] a.tip-bottom,
+    body[data-theme="darkorange"] a.tip-bottom { color: #c3c2b7; }
+
+    body[data-theme="puredark"] .projeto-nav-lista > li > a:not(.ativo),
+    body[data-theme="darkviolet"] .projeto-nav-lista > li > a:not(.ativo),
+    body[data-theme="darkorange"] .projeto-nav-lista > li > a:not(.ativo) { color: #f0efec; }
+
+    body[data-theme="puredark"] .button:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info):not(.btn-inverse) .button__text2,
+    body[data-theme="darkviolet"] .button:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info):not(.btn-inverse) .button__text2,
+    body[data-theme="darkorange"] .button:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info):not(.btn-inverse) .button__text2,
+    body[data-theme="puredark"] .button:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info):not(.btn-inverse) .button__icon,
+    body[data-theme="darkviolet"] .button:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info):not(.btn-inverse) .button__icon,
+    body[data-theme="darkorange"] .button:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info):not(.btn-inverse) .button__icon { color: #f0efec; }
+
+    body[data-theme="puredark"] .pl-tudo-certo,
+    body[data-theme="darkviolet"] .pl-tudo-certo,
+    body[data-theme="darkorange"] .pl-tudo-certo { color: #f0efec; }
+
+    body[data-theme="puredark"] details.pl-sec > summary,
+    body[data-theme="darkviolet"] details.pl-sec > summary,
+    body[data-theme="darkorange"] details.pl-sec > summary { color: #f0efec; }
+
+    body[data-theme="puredark"] .acomp-barra-num,
+    body[data-theme="darkviolet"] .acomp-barra-num,
+    body[data-theme="darkorange"] .acomp-barra-num { color: #f0efec; }
+
+    body[data-theme="puredark"] li.acomp-tec strong,
+    body[data-theme="darkviolet"] li.acomp-tec strong,
+    body[data-theme="darkorange"] li.acomp-tec strong { color: #f0efec; }
+
+    body[data-theme="puredark"] li.acomp-tec small,
+    body[data-theme="darkviolet"] li.acomp-tec small,
+    body[data-theme="darkorange"] li.acomp-tec small { color: #c3c2b7; }
+
+    body[data-theme="puredark"] .pontos-tipo-topo strong,
+    body[data-theme="darkviolet"] .pontos-tipo-topo strong,
+    body[data-theme="darkorange"] .pontos-tipo-topo strong,
+    body[data-theme="puredark"] .pontos-tipo-topo span,
+    body[data-theme="darkviolet"] .pontos-tipo-topo span,
+    body[data-theme="darkorange"] .pontos-tipo-topo span { color: #f0efec; }
+
+    body[data-theme="puredark"] .pl-chip:not(.ativo),
+    body[data-theme="darkviolet"] .pl-chip:not(.ativo),
+    body[data-theme="darkorange"] .pl-chip:not(.ativo),
+    body[data-theme="puredark"] .pl-chip:not(.ativo) strong,
+    body[data-theme="darkviolet"] .pl-chip:not(.ativo) strong,
+    body[data-theme="darkorange"] .pl-chip:not(.ativo) strong { color: #f0efec; }
+
+    body[data-theme="puredark"] a.pl-nome,
+    body[data-theme="darkviolet"] a.pl-nome,
+    body[data-theme="darkorange"] a.pl-nome { color: #f0efec; }
+
+    body[data-theme="puredark"] .pl-cliente,
+    body[data-theme="darkviolet"] .pl-cliente,
+    body[data-theme="darkorange"] .pl-cliente { color: #c3c2b7; }
+
+    body[data-theme="puredark"] .pl-pct,
+    body[data-theme="darkviolet"] .pl-pct,
+    body[data-theme="darkorange"] .pl-pct { color: #f0efec; }
+
+    body[data-theme="puredark"] .pl-prazo:not(.atrasado):not(.atencao),
+    body[data-theme="darkviolet"] .pl-prazo:not(.atrasado):not(.atencao),
+    body[data-theme="darkorange"] .pl-prazo:not(.atrasado):not(.atencao) { color: #c3c2b7; }
+
+    body[data-theme="puredark"] .pl-menu-itens a:not([obra]),
+    body[data-theme="darkviolet"] .pl-menu-itens a:not([obra]),
+    body[data-theme="darkorange"] .pl-menu-itens a:not([obra]) { color: #f0efec; }
+
+    body[data-theme="puredark"] p.pj-meta span,
+    body[data-theme="darkviolet"] p.pj-meta span,
+    body[data-theme="darkorange"] p.pj-meta span,
+    body[data-theme="puredark"] .pj-fase-rot,
+    body[data-theme="darkviolet"] .pj-fase-rot,
+    body[data-theme="darkorange"] .pj-fase-rot { color: #c3c2b7; }
+
+    body[data-theme="puredark"] .pj-passo-texto span,
+    body[data-theme="darkviolet"] .pj-passo-texto span,
+    body[data-theme="darkorange"] .pj-passo-texto span,
+    body[data-theme="puredark"] .pj-cartao-cab h2,
+    body[data-theme="darkviolet"] .pj-cartao-cab h2,
+    body[data-theme="darkorange"] .pj-cartao-cab h2,
+    body[data-theme="puredark"] label.pj-sr,
+    body[data-theme="darkviolet"] label.pj-sr,
+    body[data-theme="darkorange"] label.pj-sr { color: #f0efec; }
+
+    body[data-theme="puredark"] .ui-kpi:not(.sucesso):not(.alerta):not(.perigo):not(.info) .ui-kpi-valor,
+    body[data-theme="darkviolet"] .ui-kpi:not(.sucesso):not(.alerta):not(.perigo):not(.info) .ui-kpi-valor,
+    body[data-theme="darkorange"] .ui-kpi:not(.sucesso):not(.alerta):not(.perigo):not(.info) .ui-kpi-valor { color: #f0efec; }
+
+    body[data-theme="puredark"] .rel-bloco-titulo h5,
+    body[data-theme="darkviolet"] .rel-bloco-titulo h5,
+    body[data-theme="darkorange"] .rel-bloco-titulo h5,
+    body[data-theme="puredark"] .rel-projeto-cab h5,
+    body[data-theme="darkviolet"] .rel-projeto-cab h5,
+    body[data-theme="darkorange"] .rel-projeto-cab h5,
+    body[data-theme="puredark"] .rel-projeto-cab h5 a,
+    body[data-theme="darkviolet"] .rel-projeto-cab h5 a,
+    body[data-theme="darkorange"] .rel-projeto-cab h5 a,
+    body[data-theme="puredark"] .rel-progresso strong,
+    body[data-theme="darkviolet"] .rel-progresso strong,
+    body[data-theme="darkorange"] .rel-progresso strong,
+    body[data-theme="puredark"] .rel-pontos-lista li span,
+    body[data-theme="darkviolet"] .rel-pontos-lista li span,
+    body[data-theme="darkorange"] .rel-pontos-lista li span,
+    body[data-theme="puredark"] .rel-pontos-valor,
+    body[data-theme="darkviolet"] .rel-pontos-valor,
+    body[data-theme="darkorange"] .rel-pontos-valor { color: #f0efec; }
+
+    body[data-theme="puredark"] .ui-selo.neutro,
+    body[data-theme="darkviolet"] .ui-selo.neutro,
+    body[data-theme="darkorange"] .ui-selo.neutro { color: #f0efec; }
+
+    body[data-theme="puredark"] .pj-pagina .pj-passo .button.btn,
+    body[data-theme="darkviolet"] .pj-pagina .pj-passo .button.btn,
+    body[data-theme="darkorange"] .pj-pagina .pj-passo .button.btn { background: rgba(255, 255, 255, .04); }
+
+    body[data-theme="puredark"] .pj-cartao,
+    body[data-theme="darkviolet"] .pj-cartao,
+    body[data-theme="darkorange"] .pj-cartao,
+    body[data-theme="puredark"] .pj-tabela-caixa,
+    body[data-theme="darkviolet"] .pj-tabela-caixa,
+    body[data-theme="darkorange"] .pj-tabela-caixa,
+    body[data-theme="puredark"] .pj-selecao,
+    body[data-theme="darkviolet"] .pj-selecao,
+    body[data-theme="darkorange"] .pj-selecao,
+    body[data-theme="puredark"] .pj-tab-itens,
+    body[data-theme="darkviolet"] .pj-tab-itens,
+    body[data-theme="darkorange"] .pj-tab-itens { background: rgba(255, 255, 255, .04); }
+
+    body[data-theme="puredark"] .pj-mais-menu,
+    body[data-theme="darkviolet"] .pj-mais-menu,
+    body[data-theme="darkorange"] .pj-mais-menu { background: var(--dark-2, #222); color: #f0efec; }
+
+    /* trilha de navegacao: o tema usa #breadcrumb a (id), entao a regra precisa do id */
+    body[data-theme="puredark"] #breadcrumb a,
+    body[data-theme="darkviolet"] #breadcrumb a,
+    body[data-theme="darkorange"] #breadcrumb a { color: #c3c2b7; }
+    body[data-theme="puredark"] #breadcrumb a:last-child,
+    body[data-theme="darkviolet"] #breadcrumb a:last-child,
+    body[data-theme="darkorange"] #breadcrumb a:last-child,
+    body[data-theme="puredark"] #breadcrumb a.current,
+    body[data-theme="darkviolet"] #breadcrumb a.current,
+    body[data-theme="darkorange"] #breadcrumb a.current { color: #f0efec; }
+    /* painel inicial: titulos e nomes dos cartoes */
+    body[data-theme="puredark"] h5.cardHeader,
+    body[data-theme="darkviolet"] h5.cardHeader,
+    body[data-theme="darkorange"] h5.cardHeader { color: #c3c2b7; }
+    body[data-theme="puredark"] .new-bottons .card .cardName,
+    body[data-theme="puredark"] .cardBox .card .cardName,
+    body[data-theme="darkviolet"] .new-bottons .card .cardName,
+    body[data-theme="darkviolet"] .cardBox .card .cardName,
+    body[data-theme="darkorange"] .new-bottons .card .cardName,
+    body[data-theme="darkorange"] .cardBox .card .cardName { color: #f0efec; }
+}
