@@ -325,6 +325,12 @@ class Obra_pontos_model extends CI_Model
         return 'Teste de imagem incompleto. Falta: ' . implode('; ', $faltando) . '.';
     }
 
+    /** Status em que o tecnico pode anexar foto sem ser obrigado (ex.: eletroduto/eletrocalha da infra). */
+    public static function fotoOpcional($status)
+    {
+        return (string) $status === 'infra';
+    }
+
     /** Foto obrigatoria para "Instalado" e, em camera, para "Testado". */
     public static function exigeFoto($status, $tipo = null)
     {

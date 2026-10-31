@@ -1171,6 +1171,9 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
             <div class="span6" style="margin-left:0"><label>IP</label><input type="text" class="span12" name="ip" id="pt_ip" maxlength="45" placeholder="192.168.1.107" inputmode="decimal" pattern="[0-9A-Fa-f:.]*" title="IPv4 (192.168.1.107) ou IPv6"></div>
             <div class="span3"><label>Canal</label><input type="text" class="span12" name="canal" id="pt_canal" maxlength="10" pattern="[A-Za-z]{0,3} ?[0-9]{1,4}" title="Número do canal, ex.: 5 ou D5"></div>
             <div class="span3"><label>Porta</label><input type="text" class="span12" name="porta" id="pt_porta" maxlength="30"></div>
+            <div class="span12" style="margin-left:0"><label for="pt_etiqueta">Foto da etiqueta (preenche modelo e série)</label>
+                <input type="file" id="pt_etiqueta" accept="image/*" capture="environment" data-foto-compacta data-etiqueta data-etiqueta-modelo="#pt_modelo" data-etiqueta-serie="#pt_serie">
+            </div>
             <div class="span6" style="margin-left:0"><label>Modelo</label><input type="text" class="span12" name="modelo" id="pt_modelo" maxlength="80"></div>
             <div class="span6"><label>Série / MAC</label><input type="text" class="span12" name="serie" id="pt_serie" maxlength="60"></div>
             <div class="span12" style="margin-left:0"><label>Observação</label><input type="text" class="span12" name="observacao" id="pt_obs" maxlength="255"></div>
@@ -1227,6 +1230,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
     <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>"><input type="hidden" name="idPonto" id="del_ponto">
 </form>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/foto-compacta.js') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/etiqueta-camera.js') ?>"></script>
 <?php endif; ?>
 
 <!-- Modal Etapa -->

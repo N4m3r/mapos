@@ -29,11 +29,11 @@ $haQuanto = function ($it) {
 };
 
 // Bloco de foto compactada (liga em foto-compacta.js): botao, miniaturas e erro.
-$blocoFoto = function ($rotulo) {
+$blocoFoto = function ($rotulo, $etiqueta = false) {
     ?>
     <label class="btn-tec ghost block" style="cursor:pointer;margin-top:8px;">
-        <i class='bx bx-camera'></i> <?= html_escape($rotulo) ?>
-        <input type="file" accept="image/*" capture="environment" multiple data-foto-compacta style="display:none;">
+        <i class='bx <?= $etiqueta ? 'bx-barcode-reader' : 'bx-camera' ?>'></i> <?= html_escape($rotulo) ?>
+        <input type="file" accept="image/*" capture="environment" multiple data-foto-compacta<?= $etiqueta ? ' data-etiqueta' : '' ?> style="display:none;">
     </label>
     <div data-foto-preview style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
     <div data-foto-erro role="alert" style="display:none;color:#e74c3c;font-weight:600;margin-top:6px;"></div>
@@ -138,6 +138,7 @@ $cartao = function ($it, $minha) use ($executores, $uidAtual, $status_lista, $ti
                     <input type="hidden" name="status" value="instalado">
                     <input type="hidden" name="voltar" value="fila">
                     <?php $blocoFoto('Foto do equipamento e etiqueta (obrigatória)'); ?>
+                    <?php $blocoFoto('Foto da etiqueta (preenche modelo e série)', true); ?>
                     <label class="ponto-campo">Modelo
                         <input type="text" name="modelo" value="<?= html_escape((string) ($it->modelo ?? '')) ?>" maxlength="80" class="ponto-input">
                     </label>
@@ -167,6 +168,9 @@ $cartao = function ($it, $minha) use ($executores, $uidAtual, $status_lista, $ti
                     <input type="hidden" name="ponto_id" value="<?= $pid ?>">
                     <input type="hidden" name="status" value="<?= html_escape($aguardando) ?>">
                     <input type="hidden" name="voltar" value="fila">
+                    <?php if (Obra_pontos_model::fotoOpcional($aguardando)): ?>
+                        <?php $blocoFoto('Foto da infraestrutura (opcional)'); ?>
+                    <?php endif; ?>
                     <button type="submit" class="btn-tec primary block lg ponto-acao"><?= html_escape($status_lista[$aguardando]['acao'] ?? $rotulo) ?> ✓</button>
                 </form>
             <?php endif; ?>
@@ -243,5 +247,6 @@ $cartao = function ($it, $minha) use ($executores, $uidAtual, $status_lista, $ti
 <?php $this->load->view('tecnico/_nav', ['nav_ativo' => 'fila', 'pode_ver_sistema' => isset($pode_ver_sistema) ? $pode_ver_sistema : false]); ?>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/csrf.js') ?>?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/foto-compacta.js') ?>?v=<?= asset_versao('assets/js/foto-compacta.js', '1') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/etiqueta-camera.js') ?>?v=<?= asset_versao('assets/js/etiqueta-camera.js', '1') ?>"></script>
 </body>
 </html>

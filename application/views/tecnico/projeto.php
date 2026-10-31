@@ -6,11 +6,11 @@ $this->load->view('tecnico/_topo', [
     'voltar_url'   => site_url('tecnico/projetos'),
 ]);
 // Bloco de foto compactada (liga em foto-compacta.js): botao, miniaturas e erro.
-$blocoFoto = function ($rotulo) {
+$blocoFoto = function ($rotulo, $etiqueta = false) {
     ?>
     <label class="btn-tec ghost block" style="cursor:pointer;margin-top:8px;">
-        <i class='bx bx-camera'></i> <?= html_escape($rotulo) ?>
-        <input type="file" accept="image/*" capture="environment" multiple data-foto-compacta style="display:none;">
+        <i class='bx <?= $etiqueta ? 'bx-barcode-reader' : 'bx-camera' ?>'></i> <?= html_escape($rotulo) ?>
+        <input type="file" accept="image/*" capture="environment" multiple data-foto-compacta<?= $etiqueta ? ' data-etiqueta' : '' ?> style="display:none;">
     </label>
     <div data-foto-preview style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
     <div data-foto-erro role="alert" style="display:none;color:#e74c3c;font-weight:600;margin-top:6px;"></div>
@@ -185,6 +185,7 @@ foreach ($os_servicos as $ms) {
                             <input type="hidden" name="ponto_id" value="<?= $pid ?>">
                             <input type="hidden" name="status" value="instalado">
                             <?php $blocoFoto($temInstalado ? 'Foto do equipamento e etiqueta (opcional, já tem foto)' : 'Foto do equipamento e etiqueta (obrigatória)'); ?>
+                            <?php $blocoFoto('Foto da etiqueta (preenche modelo e série)', true); ?>
                             <label class="ponto-campo">Modelo
                                 <input type="text" name="modelo" value="<?= html_escape((string) $pt->modelo) ?>" maxlength="80" class="ponto-input">
                             </label>
@@ -220,6 +221,8 @@ foreach ($os_servicos as $ms) {
                             <?php if ($camTeste): ?>
                                 <?php $blocoFoto('Foto da imagem da câmera (obrigatória)'); ?>
                                 <?php include APPPATH . 'views/tecnico/_teste_camera.php'; ?>
+                            <?php elseif (Obra_pontos_model::fotoOpcional($proximo)): ?>
+                                <?php $blocoFoto('Foto da infraestrutura (opcional)'); ?>
                             <?php endif; ?>
                             <?php if ($proximo === 'cabeado'): ?>
                                 <label class="ponto-campo">Metros de cabo (opcional)
@@ -464,6 +467,7 @@ foreach ($os_servicos as $ms) {
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/assinatura-canvas.js') ?>"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/csrf.js') ?>?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/foto-compacta.js') ?>?v=<?= asset_versao('assets/js/foto-compacta.js', '1') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/etiqueta-camera.js') ?>?v=<?= asset_versao('assets/js/etiqueta-camera.js', '1') ?>"></script>
 <script nonce="<?= csp_nonce() ?>">
     // Assinatura do cliente (opcional) — revelada pelo checkbox.
     (function () {

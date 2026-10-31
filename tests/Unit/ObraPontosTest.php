@@ -262,4 +262,13 @@ class ObraPontosTest extends TestCase
         }
         $this->assertFalse(Obra_pontos_model::validarTeste(null)['ok']);
     }
+
+    public function testFotoOpcionalNaInfraestrutura(): void
+    {
+        $this->assertTrue(Obra_pontos_model::fotoOpcional('infra'));
+        $this->assertFalse(Obra_pontos_model::exigeFoto('infra'));
+        $this->assertFalse(Obra_pontos_model::exigeFoto('infra', 'camera'));
+        $this->assertFalse(Obra_pontos_model::fotoOpcional('instalado'));
+        $this->assertTrue(Obra_pontos_model::exigeFoto('instalado'));
+    }
 }
