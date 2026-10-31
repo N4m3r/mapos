@@ -44,6 +44,7 @@ $base = [
     'data' => $filtro['data'],
     'obra_id' => $filtro['obra_id'],
     'usuario_id' => $filtro['usuario_id'],
+    'fotos' => $fotosModo !== '12' ? $fotosModo : null,
 ];
 $link = function (array $over = []) use ($base) {
     $q = array_filter(array_merge($base, $over), fn ($v) => $v !== null && $v !== '');
@@ -87,6 +88,42 @@ $link = function (array $over = []) use ($base) {
     .rel-pontos-lista .obra-progress { grid-column: 1 / -1; }
     .rel-pontos-valor { font-weight: 600; }
 
+    .rel-fotos-secao { margin-top: 14px; }
+    .rel-fotos-cab { break-inside: avoid; page-break-inside: avoid; break-after: avoid; page-break-after: avoid; }
+    .rel-fotos-grade { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .rel-fotos-item { margin: 0; break-inside: avoid; page-break-inside: avoid; font-size: 11px; line-height: 1.3; }
+    .rel-fotos-item a { display: block; }
+    .rel-fotos-img { width: 100%; height: 150px; object-fit: cover; border-radius: 4px; border: 1px solid var(--ui-borda); display: block; background: #eee; }
+    .rel-fotos-item figcaption { margin-top: 3px; }
+    .rel-fotos-item figcaption strong { display: block; }
+    .rel-fotos-item figcaption span { color: var(--ui-texto-2); }
+    @media (max-width: 900px) { .rel-fotos-grade { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Painel do periodo (graficos SVG) */
+    .pn { margin-bottom: 18px; color: #0b0b0b; }
+    .pn-titulo { font-size: 16px; margin: 0 0 10px; }
+    .pn-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px; }
+    .pn-tile { background: #fcfcfb; border: 1px solid #e1e0d9; border-radius: var(--ui-raio); padding: 10px 12px; break-inside: avoid; page-break-inside: avoid; }
+    .pn-tile-rot { font-size: 12px; color: #52514e; }
+    .pn-tile-valor { font-size: 26px; font-weight: 600; line-height: 1.2; }
+    .pn-tile-delta { font-size: 12px; color: #52514e; }
+    .pn-tile-delta.pn-atencao { color: #8a5a00; font-weight: 600; }
+    .pn-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(520px, 100%), 1fr)); gap: 12px; }
+    .pn-larga { grid-column: 1 / -1; }
+    .pn-fig { margin: 0; background: #fcfcfb; border: 1px solid #e1e0d9; border-radius: var(--ui-raio); padding: 10px 12px; break-inside: avoid; page-break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pn-fig figcaption { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    /* graficos desenhados em 640px de largura: nunca ampliar (o texto cresceria junto) */
+    .pn-fig svg { display: block; width: 100%; max-width: 640px; height: auto; overflow: visible; }
+    .pn-tabela { margin-top: 6px; font-size: 12px; }
+    .pn-tabela summary { cursor: pointer; color: #52514e; }
+    .pn-tabela table { margin-top: 6px; font-size: 12px; }
+    .gsvg-marca { outline: none; }
+    .gsvg-marca:hover .gsvg-barra, .gsvg-marca:focus .gsvg-barra, .gsvg-marca.gsvg-ativa .gsvg-barra { filter: brightness(1.12); }
+    .gsvg-marca:focus-visible .gsvg-alvo { stroke: #0b0b0b; stroke-width: 2; }
+    .gsvg-tip { position: absolute; z-index: 9999; pointer-events: none; background: #fcfcfb; border: 1px solid #c3c2b7; border-radius: 6px; padding: 6px 9px; box-shadow: 0 2px 8px rgba(0, 0, 0, .15); font-size: 12px; color: #52514e; max-width: 260px; }
+    .gsvg-tip-t { font-weight: 600; color: #0b0b0b; }
+    @media print { .gsvg-tip, .pn-tabela { display: none !important; } }
+
     @media print {
         #sidebar, #header, #user-nav, #userr, #footer, #breadcrumb, .breadcrumb, .ui-filtros, .ui-acoes, .ui-dica,
         .obra-tabs, .obra-mainnav, .projeto-nav, .ui-cabecalho, button, .btn { display: none !important; }
@@ -111,11 +148,25 @@ $link = function (array $over = []) use ($base) {
         .rel-projeto-cab, .rel-bloco-titulo { border-bottom: 1px solid #000 !important; padding-left: 0; padding-right: 0; }
         .rel-projeto-cab *, .rel-bloco-titulo * { color: #000 !important; }
         .rel-projeto-corpo { padding: 0; }
+        .pn, .pn * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .pn-tile, .pn-tile *, .pn-fig { background: #fcfcfb !important; }
+        .pn-tile { border: 1px solid #c3c2b7 !important; }
+        .pn-tiles { display: grid !important; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .pn-tile-valor { font-size: 18px; }
+        .pn-grade { display: block; }
+        .pn-fig { margin-bottom: 8px; border: 1px solid #c3c2b7 !important; }
+        .pn-titulo { color: #000 !important; }
         .rel-pontos, .rel-avancos { break-inside: avoid; page-break-inside: avoid; }
         .rel-registro { break-inside: avoid; page-break-inside: avoid; }
         .rel-alerta { border: 1px solid #000 !important; background: #fff !important; }
         .rel-alerta * { color: #000 !important; }
         .rel-foto { width: 40px; height: 40px; }
+        .rel-fotos-secao { display: block !important; }
+        .rel-fotos-grade { display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .rel-fotos-item { break-inside: avoid; page-break-inside: avoid; }
+        .rel-fotos-img { height: 4.5cm; object-fit: cover; -webkit-print-color-adjust: exact; print-color-adjust: exact; border: 1px solid #000; }
+        .rel-fotos-item figcaption, .rel-fotos-item figcaption * { color: #000 !important; }
+        .rel-fotos-cab { break-inside: avoid; page-break-inside: avoid; break-after: avoid; page-break-after: avoid; }
         .ui-tabela-rolagem { overflow: visible !important; max-height: none !important; }
         table, th, td { border: 1px solid #000 !important; color: #000 !important; background: #fff !important; }
         table { border-collapse: collapse !important; width: 100% !important; font-size: 11px; }
@@ -181,11 +232,157 @@ $link = function (array $over = []) use ($base) {
                     <?php endforeach; ?>
                 </select>
             </div>
+            <div class="ui-campo">
+                <label for="fotos">Fotos</label>
+                <select id="fotos" name="fotos">
+                    <option value="12" <?= $fotosModo === '12' ? 'selected' : '' ?>>até 12 por projeto</option>
+                    <option value="todas" <?= $fotosModo === 'todas' ? 'selected' : '' ?>>todas</option>
+                    <option value="0" <?= $fotosModo === '0' ? 'selected' : '' ?>>não mostrar</option>
+                </select>
+            </div>
             <div class="ui-campo ui-campo-acao">
                 <button class="button btn btn-inverse"><span class="button__icon"><i class="bx bx-filter-alt"></i></span><span class="button__text">Filtrar</span></button>
                 <a class="btn" href="<?= site_url('relatorioprojetos') ?>" title="Limpar filtros"><i class="bx bx-x"></i> Limpar</a>
             </div>
         </form>
+
+        <?php
+        // Painel do periodo (graficos SVG acessiveis; dados de Projeto_acompanhamento_model::dashboardPeriodo)
+        $dashboard = $dashboard ?? [];
+        if (! empty($dashboard) && ! empty($dashboard['kpis'])) :
+            require_once APPPATH . 'libraries/Grafico_svg.php';
+            $gn = fn ($v, $d = 0) => Grafico_svg::num($v, $d);
+            $dk = $dashboard['kpis'];
+            $dka = $dashboard['kpis_anterior'] ?? [];
+            $vsRotulo = ['diario' => 'dia anterior', 'semanal' => 'semana anterior', 'mensal' => 'mês anterior'][$periodo['tipo'] ?? ''] ?? 'período anterior';
+            $igualA = (($periodo['tipo'] ?? '') === 'semanal' ? 'igual à ' : 'igual ao ') . $vsRotulo;
+            $tiles = [
+                ['projetos', 'Projetos', 0, false], ['registros', 'Registros', 0, false], ['fotos', 'Fotos', 0, false],
+                ['horas', 'Horas', 1, false], ['avancos', 'Avanços', 0, false], ['testados', 'Testados', 0, false],
+                ['ocorrencias', 'Ocorrências', 0, true],
+            ];
+            $delta = function (string $k, int $dec, bool $ruim) use ($dk, $dka, $vsRotulo, $igualA, $gn) {
+                if (! isset($dka[$k])) {
+                    return ['→', 'sem comparação', ''];
+                }
+                $d = round((float) ($dk[$k] ?? 0) - (float) $dka[$k], $dec);
+                if ($d == 0) {
+                    return ['→', $igualA, ''];
+                }
+
+                return [$d > 0 ? '▲' : '▼', ($d > 0 ? '+' : '−') . $gn(abs($d), $dec) . ' vs ' . $vsRotulo, ($ruim && $d > 0) ? 'pn-atencao' : ''];
+            };
+
+            $porDia = $dashboard['por_dia'] ?? [];
+            $diasSemana = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+            $pontosDia = [];
+            foreach ($porDia as $d) {
+                $ts = strtotime($d['dia']);
+                $rotDia = ($periodo['tipo'] ?? '') === 'mensal' ? date('d', $ts) : $diasSemana[(int) date('w', $ts)] . ' ' . date('d', $ts);
+                $pontosDia[] = [
+                    'rotulo' => $rotDia, 'valor' => (int) $d['avancos'],
+                    'dica' => date('d/m/Y', $ts) . "\n" . $gn($d['avancos']) . ' avanços' . "\n" . $gn($d['registros']) . ' registros · ' . $gn($d['fotos']) . ' fotos',
+                ];
+            }
+
+            $nomesStatus = ['previsto' => 'Previsto', 'infra' => 'Infra', 'cabeado' => 'Cabeado', 'instalado' => 'Instalado', 'configurado' => 'Configurado', 'testado' => 'Testado'];
+            $coresStatus = ['infra' => '#86b6ef', 'cabeado' => '#5598e7', 'instalado' => '#2a78d6', 'configurado' => '#1c5cab', 'testado' => '#104281'];
+            $linhasStatus = [];
+            foreach ($dashboard['status_pontos'] ?? [] as $sp) {
+                $total = (int) $sp['total'];
+                $ps = $sp['por_status'] ?? [];
+                $tes = (int) ($ps['testado'] ?? 0);
+                $segs = [];
+                foreach ($coresStatus as $chave => $cor) {
+                    $q = (int) ($ps[$chave] ?? 0);
+                    $segs[] = ['rotulo' => $nomesStatus[$chave], 'valor' => $q, 'cor' => $cor,
+                        'dica' => $sp['nome'] . "\n" . $nomesStatus[$chave] . ': ' . $gn($q) . ' de ' . $gn($total) . ' pontos'];
+                }
+                $linhasStatus[] = [
+                    'rotulo' => $sp['nome'], 'total' => $total, 'segmentos' => $segs,
+                    'texto' => $total > 0 ? $gn($tes / $total * 100) . '% testado · ' . $gn($tes) . ' de ' . $gn($total) : 'sem pontos',
+                ];
+            }
+            $legendaStatus = [['rotulo' => 'Previsto', 'cor' => null]];
+            foreach ($coresStatus as $chave => $cor) {
+                $legendaStatus[] = ['rotulo' => $nomesStatus[$chave], 'cor' => $cor];
+            }
+
+            $pontosHoras = [];
+            foreach ($dashboard['horas_tecnico'] ?? [] as $ht) {
+                $pontosHoras[] = ['rotulo' => $ht['nome'], 'valor' => (float) $ht['horas'],
+                    'dica' => $ht['nome'] . "\n" . $gn($ht['horas'], 1) . ' h apontadas' . "\n" . $gn($ht['avancos']) . ' avanços'];
+            }
+            ?>
+        <section class="pn" aria-labelledby="pn-titulo">
+            <h2 class="pn-titulo" id="pn-titulo">Painel do período</h2>
+            <div class="pn-tiles">
+                <?php foreach ($tiles as [$k, $rot, $dec, $ruim]) :
+                    [$seta, $txt, $cls] = $delta($k, $dec, $ruim); ?>
+                    <div class="pn-tile">
+                        <div class="pn-tile-rot"><?= $e($rot) ?></div>
+                        <div class="pn-tile-valor"><?= $e($gn($dk[$k] ?? 0, $dec)) ?></div>
+                        <div class="pn-tile-delta <?= $cls ?>"><span aria-hidden="true"><?= $seta ?></span> <?= $e($txt) ?></div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+            <div class="pn-grade">
+                <figure class="pn-fig">
+                    <figcaption>Avanços por dia</figcaption>
+                    <?= Grafico_svg::colunas($pontosDia, ['titulo' => 'Avanços por dia', 'descricao' => 'Colunas com o número de avanços de pontos em cada dia do período.']) ?>
+                    <details class="pn-tabela">
+                        <summary>Ver como tabela</summary>
+                        <table class="table table-bordered">
+                            <thead><tr><th>Dia</th><th>Avanços</th><th>Registros</th><th>Fotos</th></tr></thead>
+                            <tbody>
+                                <?php foreach ($porDia as $d) : ?>
+                                    <tr><td><?= $e(date('d/m/Y', strtotime($d['dia']))) ?></td><td><?= $e($gn($d['avancos'])) ?></td><td><?= $e($gn($d['registros'])) ?></td><td><?= $e($gn($d['fotos'])) ?></td></tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </details>
+                </figure>
+
+                <?php if (! empty($linhasStatus)) : ?>
+                    <figure class="pn-fig">
+                        <figcaption>Status dos pontos por projeto</figcaption>
+                        <?= Grafico_svg::empilhada100($linhasStatus, ['titulo' => 'Status dos pontos por projeto', 'descricao' => 'Barra por projeto mostrando a proporção de pontos em cada etapa, de infra a testado.', 'legenda' => $legendaStatus]) ?>
+                        <details class="pn-tabela">
+                            <summary>Ver como tabela</summary>
+                            <table class="table table-bordered">
+                                <thead><tr><th>Projeto</th><?php foreach ($nomesStatus as $nm) : ?><th><?= $e($nm) ?></th><?php endforeach; ?><th>Total</th></tr></thead>
+                                <tbody>
+                                    <?php foreach ($dashboard['status_pontos'] as $sp) : ?>
+                                        <tr><td><?= $e($sp['nome']) ?></td><?php foreach ($nomesStatus as $ch => $nm) : ?><td><?= $e($gn($sp['por_status'][$ch] ?? 0)) ?></td><?php endforeach; ?><td><?= $e($gn($sp['total'])) ?></td></tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </details>
+                    </figure>
+                <?php endif; ?>
+
+                <?php if (! empty($pontosHoras)) : ?>
+                    <figure class="pn-fig">
+                        <figcaption>Horas por técnico</figcaption>
+                        <?= Grafico_svg::barrasHorizontais($pontosHoras, ['titulo' => 'Horas apontadas por técnico', 'descricao' => 'Barras horizontais com as horas apontadas por cada técnico no período.', 'decimais' => 1, 'sufixo' => ' h']) ?>
+                        <details class="pn-tabela">
+                            <summary>Ver como tabela</summary>
+                            <table class="table table-bordered">
+                                <thead><tr><th>Técnico</th><th>Horas</th><th>Avanços</th></tr></thead>
+                                <tbody>
+                                    <?php foreach ($dashboard['horas_tecnico'] as $ht) : ?>
+                                        <tr><td><?= $e($ht['nome']) ?></td><td><?= $e($gn($ht['horas'], 1)) ?></td><td><?= $e($gn($ht['avancos'])) ?></td></tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </details>
+                    </figure>
+                <?php endif; ?>
+            </div>
+        </section>
+        <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/grafico-svg.js"></script>
+        <?php endif; ?>
 
         <div class="ui-kpis">
             <div class="ui-kpi info"><div class="ui-kpi-rotulo">Projetos</div><div class="ui-kpi-valor"><?= $fmtNum($tot['projetos']) ?></div><div class="ui-kpi-extra">com registro no período</div></div>
@@ -389,7 +586,7 @@ $link = function (array $over = []) use ($base) {
                                                 <div class="rel-fotos">
                                                     <?php foreach (array_slice($fotos, 0, $fotosLimite) as $fid) : ?>
                                                         <a href="<?= site_url('obras/fotoRdo/' . (int) $fid) ?>" target="_blank" rel="noopener">
-                                                            <img class="rel-foto" src="<?= site_url('obras/fotoRdo/' . (int) $fid) ?>" loading="lazy" alt="Foto do registro" />
+                                                            <img class="rel-foto" src="<?= site_url('obras/fotoRdo/' . (int) $fid) ?>" loading="eager" alt="Foto do registro" />
                                                         </a>
                                                     <?php endforeach; ?>
                                                     <?php if (count($fotos) > $fotosLimite) : ?>
@@ -405,6 +602,29 @@ $link = function (array $over = []) use ($base) {
                             </tbody>
                         </table>
                     </div>
+
+                    <?php $fg = $fotosPeriodo[(int) $o['idObra']] ?? null; ?>
+                    <?php if ($fotosModo !== '0' && $fg && $fg['itens']) : ?>
+                        <div class="rel-fotos-secao">
+                            <h6 class="rel-sub rel-fotos-cab">Fotos do período (<?= $fmtNum($fg['total']) ?>)</h6>
+                            <div class="rel-fotos-grade">
+                                <?php foreach ($fg['itens'] as $ft) :
+                                    $leg = Projeto_acompanhamento_model::legendaFoto($ft);
+                                    $urlFoto = site_url($ft['url']);
+                                    ?>
+                                    <figure class="rel-fotos-item">
+                                        <a href="<?= $e($urlFoto) ?>" target="_blank" rel="noopener">
+                                            <img class="rel-fotos-img" src="<?= $e($urlFoto) ?>" loading="eager" decoding="sync" alt="<?= $e($leg['titulo']) ?>" />
+                                        </a>
+                                        <figcaption><strong><?= $e($leg['titulo']) ?></strong><span><?= $e($leg['detalhe']) ?></span></figcaption>
+                                    </figure>
+                                <?php endforeach; ?>
+                            </div>
+                            <?php if ($fg['restantes'] > 0) : ?>
+                                <p class="rel-itens"><a href="<?= $e($link(['fotos' => 'todas'])) ?>">+<?= $fmtNum($fg['restantes']) ?> fotos</a> (mostrar todas)</p>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
 
                     <div class="rel-resumo">
                         <div>

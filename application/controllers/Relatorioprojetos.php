@@ -48,6 +48,12 @@ class Relatorioprojetos extends MY_Controller
         $p = Projeto_acompanhamento_model::periodo($tipo, $data);
         $relatorio = $this->projeto_acompanhamento_model->relatorio($p['inicio'], $p['fim'], $filtros);
 
+        $limiteFotos = Projeto_acompanhamento_model::limiteFotos($this->input->get('fotos'));
+        $fotosModo = $limiteFotos === null ? 'todas' : ($limiteFotos === 0 ? '0' : (string) $limiteFotos);
+        $fotosPeriodo = $limiteFotos === 0
+            ? []
+            : $this->projeto_acompanhamento_model->fotosPeriodo($p['inicio'], $p['fim'], $filtros, $limiteFotos);
+
         $obras = $this->db
             ->select('idObra, nome')
             ->order_by('nome', 'ASC')
@@ -71,6 +77,14 @@ class Relatorioprojetos extends MY_Controller
             'obra_id' => $obraId > 0 ? $obraId : null,
             'usuario_id' => $usuarioId > 0 ? $usuarioId : null,
         ];
+        try {
+            $this->data['dashboard'] = $this->projeto_acompanhamento_model->dashboardPeriodo($p['inicio'], $p['fim'], $filtros);
+        } catch (Throwable $e) {
+            log_message('error', 'Relatorioprojetos dashboard: ' . $e->getMessage());
+            $this->data['dashboard'] = [];
+        }
+        $this->data['fotosPeriodo'] = $fotosPeriodo;
+        $this->data['fotosModo'] = $fotosModo;
         $this->data['obras'] = $obras;
         $this->data['usuarios'] = $usuarios;
         $this->data['view'] = 'relatorioprojetos/index';

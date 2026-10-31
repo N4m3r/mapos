@@ -400,4 +400,91 @@ class ProjetoAcompanhamentoTest extends TestCase
         $this->assertSame('obras/visualizar/9903#os', $c['link']);
         $this->assertSame('alerta', $c['nivel']);
     }
+
+    public function testLimiteFotos(): void
+    {
+        $this->assertSame(12, Projeto_acompanhamento_model::limiteFotos(null));
+        $this->assertSame(12, Projeto_acompanhamento_model::limiteFotos(''));
+        $this->assertNull(Projeto_acompanhamento_model::limiteFotos('todas'));
+        $this->assertSame(0, Projeto_acompanhamento_model::limiteFotos('0'));
+        $this->assertSame(5, Projeto_acompanhamento_model::limiteFotos('5'));
+        $this->assertSame(12, Projeto_acompanhamento_model::limiteFotos('abc'));
+    }
+
+    public function testAgruparFotosLimitaOrdenaEConta(): void
+    {
+        $fotos = [];
+        for ($i = 1; $i <= 15; $i++) {
+            $fotos[] = ['id' => $i, 'obra_id' => 1, 'ordem' => sprintf('2026-10-%02d 10:00:00', $i)];
+        }
+        $fotos[] = ['id' => 99, 'obra_id' => 2, 'ordem' => '2026-10-01 08:00:00'];
+        $g = Projeto_acompanhamento_model::agruparFotos($fotos, 12);
+        $this->assertSame(15, $g[1]['total']);
+        $this->assertCount(12, $g[1]['itens']);
+        $this->assertSame(3, $g[1]['restantes']);
+        $this->assertSame(15, $g[1]['itens'][0]['id']);
+        $this->assertSame(1, $g[2]['total']);
+        $this->assertSame(0, $g[2]['restantes']);
+        $todas = Projeto_acompanhamento_model::agruparFotos($fotos, null);
+        $this->assertCount(15, $todas[1]['itens']);
+        $this->assertSame(0, $todas[1]['restantes']);
+    }
+
+    public function testLegendaFoto(): void
+    {
+        $p = ['origem' => 'ponto', 'ponto_id' => 3, 'identificacao' => 'CAM-01', 'etapa_rotulo' => 'Instalado', 'etiqueta' => false, 'usuario' => 'Ana', 'data' => '2026-10-29 14:05:00'];
+        $l = Projeto_acompanhamento_model::legendaFoto($p);
+        $this->assertSame('CAM-01', $l['titulo']);
+        $this->assertSame('Instalado · Ana · 29/10/2026 14:05', $l['detalhe']);
+        $p['etiqueta'] = true;
+        $this->assertStringStartsWith('Etiqueta · Ana', Projeto_acompanhamento_model::legendaFoto($p)['detalhe']);
+        $this->assertSame('Ponto #7', Projeto_acompanhamento_model::legendaFoto(['origem' => 'ponto', 'ponto_id' => 7])['titulo']);
+        $r = Projeto_acompanhamento_model::legendaFoto(['origem' => 'rdo', 'usuario' => 'Bia', 'data' => '2026-10-28']);
+        $this->assertSame('Registro do dia', $r['titulo']);
+        $this->assertSame('28/10/2026 · Bia', $r['detalhe']);
+    }
+
+    public function testKpisDeProjetosSomaTotais(): void
+    {
+        $projetos = [
+            ['totais' => ['registros' => 1, 'fotos' => 1, 'ocorrencias' => 0, 'horas' => 1.5, 'avancos' => 26, 'testados' => 11]],
+            ['totais' => ['registros' => 2, 'fotos' => 3, 'ocorrencias' => 1, 'horas' => 2.0, 'avancos' => 4, 'testados' => 0]],
+        ];
+        $k = Projeto_acompanhamento_model::kpisDeProjetos($projetos);
+        $this->assertSame(['projetos' => 2, 'registros' => 3, 'fotos' => 4, 'horas' => 3.5, 'avancos' => 30, 'testados' => 11, 'ocorrencias' => 1], $k);
+        $this->assertSame(0, Projeto_acompanhamento_model::kpisDeProjetos([])['projetos']);
+    }
+
+    public function testPeriodoAnteriorMesmaDuracao(): void
+    {
+        $this->assertSame(['inicio' => '2026-10-19', 'fim' => '2026-10-25'], Projeto_acompanhamento_model::periodoAnterior('2026-10-26', '2026-11-01'));
+        $this->assertSame(['inicio' => '2026-10-28', 'fim' => '2026-10-28'], Projeto_acompanhamento_model::periodoAnterior('2026-10-29', '2026-10-29'));
+        $this->assertSame(['inicio' => '2026-09-30', 'fim' => '2026-09-30'], Projeto_acompanhamento_model::periodoAnterior('2026-10-01', '2026-10-01'));
+    }
+
+    public function testPreencherDiasECountPorDia(): void
+    {
+        $projetos = [[
+            'registros' => [['data' => '2026-10-27', 'fotos' => [1, 2]], ['data' => '2026-10-27', 'fotos' => []]],
+            'avancos' => [['data' => '2026-10-28 10:00:00', 'evento' => 'status'], ['data' => '2026-10-28 11:00:00', 'evento' => 'repasse']],
+        ]];
+        $dias = Projeto_acompanhamento_model::preencherDias('2026-10-26', '2026-10-29', Projeto_acompanhamento_model::contagemPorDia($projetos));
+        $this->assertCount(4, $dias);
+        $this->assertSame(['dia' => '2026-10-26', 'avancos' => 0, 'registros' => 0, 'fotos' => 0], $dias[0]);
+        $this->assertSame(['dia' => '2026-10-27', 'avancos' => 0, 'registros' => 2, 'fotos' => 2], $dias[1]);
+        $this->assertSame(['dia' => '2026-10-28', 'avancos' => 1, 'registros' => 0, 'fotos' => 0], $dias[2]);
+    }
+
+    public function testTopTecnicosAgrupaOutros(): void
+    {
+        $linhas = [];
+        for ($i = 1; $i <= 12; $i++) {
+            $linhas[] = ['usuario_id' => $i, 'nome' => 'T' . $i, 'horas' => (float) $i, 'avancos' => $i];
+        }
+        $top = Projeto_acompanhamento_model::topTecnicos($linhas, 10);
+        $this->assertCount(11, $top);
+        $this->assertSame(12, $top[0]['usuario_id']);
+        $this->assertSame(['usuario_id' => 0, 'nome' => 'Outros', 'horas' => 3.0, 'avancos' => 3], $top[10]);
+        $this->assertCount(2, Projeto_acompanhamento_model::topTecnicos(array_slice($linhas, 0, 2), 10));
+    }
 }

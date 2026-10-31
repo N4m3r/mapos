@@ -804,6 +804,139 @@ class Projeto_acompanhamento_model extends CI_Model
         return $out;
     }
 
+    public const FOTOS_LIMITE_PADRAO = 12;
+
+    /** GET fotos: vazio = padrão (12), "todas" = sem limite (null), "0" = esconder (0), número = limite. */
+    public static function limiteFotos($valor): ?int
+    {
+        $v = strtolower(trim((string) $valor));
+        if ($v === '') {
+            return self::FOTOS_LIMITE_PADRAO;
+        }
+        if ($v === 'todas') {
+            return null;
+        }
+        if (! ctype_digit($v)) {
+            return self::FOTOS_LIMITE_PADRAO;
+        }
+
+        return min((int) $v, 500);
+    }
+
+    /**
+     * Agrupa fotos (já com 'obra_id' e 'ordem') por projeto, mais recentes primeiro,
+     * limitando por projeto. Devolve [obra_id => ['total' => n, 'itens' => [...], 'restantes' => n]].
+     */
+    public static function agruparFotos(array $fotos, ?int $limite): array
+    {
+        usort($fotos, function ($a, $b) {
+            return [(string) $b['ordem'], (int) $b['id']] <=> [(string) $a['ordem'], (int) $a['id']];
+        });
+        $out = [];
+        foreach ($fotos as $f) {
+            $o = (int) $f['obra_id'];
+            if (! isset($out[$o])) {
+                $out[$o] = ['total' => 0, 'itens' => [], 'restantes' => 0];
+            }
+            $out[$o]['total']++;
+            if ($limite === null || count($out[$o]['itens']) < $limite) {
+                $out[$o]['itens'][] = $f;
+            }
+        }
+        foreach ($out as $o => $g) {
+            $out[$o]['restantes'] = $g['total'] - count($g['itens']);
+        }
+
+        return $out;
+    }
+
+    /** Legenda curta da foto: ['titulo' => ..., 'detalhe' => ...]. */
+    public static function legendaFoto(array $f): array
+    {
+        $quando = ! empty($f['data']) ? date('d/m/Y H:i', strtotime((string) $f['data'])) : '';
+        if (($f['origem'] ?? '') === 'rdo') {
+            $dia = ! empty($f['data']) ? date('d/m/Y', strtotime((string) $f['data'])) : '';
+
+            return ['titulo' => 'Registro do dia', 'detalhe' => implode(' · ', array_filter([$dia, (string) ($f['usuario'] ?? '')], 'strlen'))];
+        }
+        $titulo = trim((string) ($f['identificacao'] ?? '')) !== '' ? trim((string) $f['identificacao']) : 'Ponto #' . (int) ($f['ponto_id'] ?? 0);
+        $partes = [];
+        if (! empty($f['etiqueta'])) {
+            $partes[] = 'Etiqueta';
+        } elseif (trim((string) ($f['etapa_rotulo'] ?? '')) !== '') {
+            $partes[] = $f['etapa_rotulo'];
+        }
+        $det = trim(implode(' · ', array_filter([implode(' · ', $partes), (string) ($f['usuario'] ?? ''), $quando], 'strlen')));
+
+        return ['titulo' => $titulo, 'detalhe' => $det];
+    }
+
+    /**
+     * Fotos anexadas no período (pontos e RDO), agrupadas por projeto. Sem selecionar o blob.
+     * Uma query por fonte. Filtros: obra_id e usuario_id (quem tirou/registrou).
+     */
+    public function fotosPeriodo(string $inicio, string $fim, array $filtros = [], ?int $limitePorProjeto = self::FOTOS_LIMITE_PADRAO): array
+    {
+        $obraId = (int) ($filtros['obra_id'] ?? 0);
+        $usuarioId = (int) ($filtros['usuario_id'] ?? 0);
+        $ini = $inicio . ' 00:00:00';
+        $ate = date('Y-m-d', strtotime($fim . ' +1 day')) . ' 00:00:00';
+        $fotos = [];
+
+        if ($this->db->table_exists('obra_ponto_foto')) {
+            $etapas = self::statusPontos();
+            $this->db->select('f.idFoto, f.ponto_id, f.obra_id, f.etapa, f.legenda, f.usuario_id, f.data, p.identificacao, u.nome as usuario');
+            $this->db->from('obra_ponto_foto f');
+            $this->db->join('obra_pontos p', 'p.idPonto = f.ponto_id', 'left');
+            $this->db->join('usuarios u', 'u.idUsuarios = f.usuario_id', 'left');
+            $this->db->where('f.data >=', $ini);
+            $this->db->where('f.data <', $ate);
+            if ($obraId) {
+                $this->db->where('f.obra_id', $obraId);
+            }
+            if ($usuarioId) {
+                $this->db->where('f.usuario_id', $usuarioId);
+            }
+            $this->db->order_by('f.data', 'desc');
+            foreach ($this->db->get()->result() as $r) {
+                $et = (string) ($r->etapa ?? '');
+                $fotos[] = [
+                    'origem' => 'ponto', 'id' => (int) $r->idFoto, 'obra_id' => (int) $r->obra_id,
+                    'ponto_id' => (int) $r->ponto_id, 'identificacao' => (string) ($r->identificacao ?? ''),
+                    'etapa_rotulo' => (string) ($etapas[$et]['rotulo'] ?? $et),
+                    'etiqueta' => (string) $r->legenda === Obra_pontos_model::LEGENDA_ETIQUETA,
+                    'usuario' => (string) ($r->usuario ?? ''), 'data' => (string) $r->data, 'ordem' => (string) $r->data,
+                    'url' => 'obras/fotoPonto/' . (int) $r->idFoto,
+                ];
+            }
+        }
+
+        if ($this->db->table_exists('obra_rdo_foto') && $this->db->table_exists('obra_rdo')) {
+            $this->db->select('f.idFoto, f.data as foto_data, r.obra_id, r.data, u.nome as usuario');
+            $this->db->from('obra_rdo_foto f');
+            $this->db->join('obra_rdo r', 'r.idRdo = f.rdo_id');
+            $this->db->join('usuarios u', 'u.idUsuarios = r.responsavel_id', 'left');
+            $this->db->where('r.data >=', $inicio);
+            $this->db->where('r.data <', date('Y-m-d', strtotime($fim . ' +1 day')));
+            if ($obraId) {
+                $this->db->where('r.obra_id', $obraId);
+            }
+            if ($usuarioId) {
+                $this->db->where('r.responsavel_id', $usuarioId);
+            }
+            foreach ($this->db->get()->result() as $r) {
+                $fotos[] = [
+                    'origem' => 'rdo', 'id' => (int) $r->idFoto, 'obra_id' => (int) $r->obra_id,
+                    'usuario' => (string) ($r->usuario ?? ''), 'data' => (string) $r->data,
+                    'ordem' => ! empty($r->foto_data) ? (string) $r->foto_data : $r->data . ' 00:00:00',
+                    'url' => 'obras/fotoRdo/' . (int) $r->idFoto,
+                ];
+            }
+        }
+
+        return self::agruparFotos($fotos, $limitePorProjeto);
+    }
+
     /**
      * Relatório do período: RDOs, avanços de ponto, fotos, consumo, horas, etapas, OS e
      * pontos por projeto. Filtros: obra_id e usuario_id (responsável do RDO ou quem avançou).
@@ -1206,6 +1339,217 @@ class Projeto_acompanhamento_model extends CI_Model
                 'tempo_medio_config_h' => self::tempoMedioHoras($paresTodos),
             ],
         ];
+    }
+
+    /* ===================== Painel de gráficos do relatório ===================== */
+
+    private const KPIS_CHAVES = ['projetos', 'registros', 'fotos', 'horas', 'avancos', 'testados', 'ocorrencias'];
+
+    /** Soma os KPIs dos projetos do relatório (mesmos números do resumo de cada projeto). */
+    public static function kpisDeProjetos(array $projetos): array
+    {
+        $k = ['projetos' => count($projetos), 'registros' => 0, 'fotos' => 0, 'horas' => 0.0, 'avancos' => 0, 'testados' => 0, 'ocorrencias' => 0];
+        foreach ($projetos as $p) {
+            $t = $p['totais'] ?? [];
+            $k['registros'] += (int) ($t['registros'] ?? 0);
+            $k['fotos'] += (int) ($t['fotos'] ?? 0);
+            $k['horas'] += (float) ($t['horas'] ?? 0);
+            $k['avancos'] += (int) ($t['avancos'] ?? 0);
+            $k['testados'] += (int) ($t['testados'] ?? 0);
+            $k['ocorrencias'] += (int) ($t['ocorrencias'] ?? 0);
+        }
+        $k['horas'] = round($k['horas'], 2);
+
+        return $k;
+    }
+
+    /** Período imediatamente anterior, com a mesma duração em dias. */
+    public static function periodoAnterior(string $inicio, string $fim): array
+    {
+        $i = new DateTime($inicio);
+        $f = new DateTime($fim);
+        $dias = max(1, (int) $i->diff($f)->days + 1);
+
+        return [
+            'inicio' => (clone $i)->modify('-' . $dias . ' days')->format('Y-m-d'),
+            'fim' => (clone $i)->modify('-1 day')->format('Y-m-d'),
+        ];
+    }
+
+    /** Conta registros, fotos e avanços (só mudança de status) por dia a partir dos projetos do relatório. */
+    public static function contagemPorDia(array $projetos): array
+    {
+        $out = [];
+        $nova = ['avancos' => 0, 'registros' => 0, 'fotos' => 0];
+        foreach ($projetos as $p) {
+            foreach ($p['registros'] ?? [] as $r) {
+                $d = substr((string) ($r['data'] ?? ''), 0, 10);
+                $out[$d] = $out[$d] ?? $nova;
+                $out[$d]['registros']++;
+                $out[$d]['fotos'] += is_array($r['fotos'] ?? null) ? count($r['fotos']) : 0;
+            }
+            foreach ($p['avancos'] ?? [] as $a) {
+                if (($a['evento'] ?? 'status') !== 'status') {
+                    continue;
+                }
+                $d = substr((string) ($a['data'] ?? ''), 0, 10);
+                $out[$d] = $out[$d] ?? $nova;
+                $out[$d]['avancos']++;
+            }
+        }
+
+        return $out;
+    }
+
+    /** Uma linha por dia do período (inclusive), com zeros onde não houve atividade. */
+    public static function preencherDias(string $inicio, string $fim, array $contagem): array
+    {
+        $out = [];
+        $d = new DateTime($inicio);
+        $f = new DateTime($fim);
+        while ($d <= $f) {
+            $k = $d->format('Y-m-d');
+            $c = $contagem[$k] ?? [];
+            $out[] = ['dia' => $k, 'avancos' => (int) ($c['avancos'] ?? 0), 'registros' => (int) ($c['registros'] ?? 0), 'fotos' => (int) ($c['fotos'] ?? 0)];
+            $d->modify('+1 day');
+        }
+
+        return $out;
+    }
+
+    /** Ordena por horas desc e mantém $max linhas; o resto soma em 'Outros' (usuario_id 0). */
+    public static function topTecnicos(array $linhas, int $max = 10): array
+    {
+        usort($linhas, function ($a, $b) {
+            return ($b['horas'] <=> $a['horas']) ?: ($b['avancos'] <=> $a['avancos']) ?: strcasecmp((string) $a['nome'], (string) $b['nome']);
+        });
+        if (count($linhas) <= $max) {
+            return array_values($linhas);
+        }
+        $top = array_slice($linhas, 0, $max);
+        $outros = ['usuario_id' => 0, 'nome' => 'Outros', 'horas' => 0.0, 'avancos' => 0];
+        foreach (array_slice($linhas, $max) as $l) {
+            $outros['horas'] += (float) $l['horas'];
+            $outros['avancos'] += (int) $l['avancos'];
+        }
+        $outros['horas'] = round($outros['horas'], 2);
+        $top[] = $outros;
+
+        return $top;
+    }
+
+    /**
+     * Dados do painel de gráficos. KPIs derivam de relatorio() (mesma regra do resumo de cada
+     * projeto), para o período e para o anterior de mesma duração.
+     */
+    public function dashboardPeriodo(string $inicio, string $fim, array $filtros = []): array
+    {
+        $rel = $this->relatorio($inicio, $fim, $filtros);
+        $ant = self::periodoAnterior($inicio, $fim);
+        $relAnt = $this->relatorio($ant['inicio'], $ant['fim'], $filtros);
+        $projetos = $rel['projetos'];
+        $usuarioId = (int) ($filtros['usuario_id'] ?? 0);
+
+        $nomes = [];
+        foreach ($projetos as $p) {
+            $nomes[(int) $p['obra']['idObra']] = (string) $p['obra']['nome'];
+        }
+        $obraIds = array_keys($nomes);
+
+        // Situação atual dos pontos: 1 query agregada por obra + status
+        $statusPontos = [];
+        if ($obraIds && $this->db->table_exists('obra_pontos') && self::pontosDisponiveis()) {
+            $zero = array_fill_keys(array_keys(Obra_pontos_model::statusLista()), 0);
+            $por = [];
+            $this->db->select('obra_id, status, COUNT(*) as n', false);
+            $this->db->where_in('obra_id', $obraIds);
+            $this->db->group_by(['obra_id', 'status']);
+            foreach ($this->db->get('obra_pontos')->result() as $r) {
+                $st = (string) $r->status;
+                $por[(int) $r->obra_id] = $por[(int) $r->obra_id] ?? $zero;
+                if (isset($zero[$st])) {
+                    $por[(int) $r->obra_id][$st] += (int) $r->n;
+                } else {
+                    $por[(int) $r->obra_id]['previsto'] += (int) $r->n;
+                }
+            }
+            foreach ($nomes as $id => $nome) {
+                $ps = $por[$id] ?? $zero;
+                $statusPontos[] = ['obra_id' => $id, 'nome' => $nome, 'total' => (int) array_sum($ps), 'por_status' => $ps];
+            }
+            usort($statusPontos, function ($a, $b) {
+                return strcasecmp($a['nome'], $b['nome']);
+            });
+        }
+
+        // Horas por técnico: mesma fonte do relatório (obra_apontamento), 1 query; some com filtro de usuário
+        $tec = [];
+        foreach ($rel['tecnicos'] as $t) {
+            $tec[(int) $t['usuario_id']] = ['usuario_id' => (int) $t['usuario_id'], 'nome' => (string) $t['nome'], 'horas' => 0.0, 'avancos' => (int) $t['avancos']];
+        }
+        if ($obraIds && ! $usuarioId && $this->db->table_exists('obra_apontamento')) {
+            $this->db->select('colaborador_id, nome, SUM(horas) as horas', false);
+            $this->db->where_in('obra_id', $obraIds);
+            $this->db->where('data >=', $inicio);
+            $this->db->where('data <=', $fim);
+            $this->db->group_by(['colaborador_id', 'nome']);
+            foreach ($this->db->get('obra_apontamento')->result() as $h) {
+                $uid = (int) $h->colaborador_id;
+                if (! isset($tec[$uid])) {
+                    $tec[$uid] = ['usuario_id' => $uid, 'nome' => (string) $h->nome, 'horas' => 0.0, 'avancos' => 0];
+                }
+                $tec[$uid]['horas'] += (float) $h->horas;
+            }
+        }
+        foreach ($tec as $k => $t) {
+            $tec[$k]['horas'] = round($t['horas'], 2);
+        }
+
+        // Fotos dos pontos entram no total de fotos (a secao "Fotos do periodo" tambem as mostra)
+        $idsAnt = [];
+        foreach ($relAnt['projetos'] as $p) {
+            $idsAnt[] = (int) $p['obra']['idObra'];
+        }
+        $fotosPonto = $this->fotosPontoPorDia($obraIds, $inicio, $fim, $usuarioId);
+        $fotosPontoAnt = $this->fotosPontoPorDia($idsAnt, $ant['inicio'], $ant['fim'], $usuarioId);
+
+        $kpis = self::kpisDeProjetos($projetos);
+        $kpis['fotos'] += array_sum($fotosPonto);
+        $kpisAnt = self::kpisDeProjetos($relAnt['projetos']);
+        $kpisAnt['fotos'] += array_sum($fotosPontoAnt);
+        $porDia = self::preencherDias($inicio, $fim, self::contagemPorDia($projetos));
+        foreach ($porDia as $i => $d) {
+            $porDia[$i]['fotos'] += (int) ($fotosPonto[$d['dia']] ?? 0);
+        }
+
+        return [
+            'kpis' => $kpis,
+            'kpis_anterior' => $kpisAnt,
+            'por_dia' => $porDia,
+            'status_pontos' => $statusPontos,
+            'horas_tecnico' => self::topTecnicos(array_values($tec), 10),
+        ];
+    }
+
+    /** Fotos dos pontos por dia ['Y-m-d' => n] nas obras dadas; filtro de usuario = quem tirou. */
+    private function fotosPontoPorDia(array $obraIds, string $inicio, string $fim, int $usuarioId): array
+    {
+        if (! $obraIds || ! $this->db->table_exists('obra_ponto_foto')) {
+            return [];
+        }
+        $this->db->select('DATE(data) as dia, COUNT(*) as n', false);
+        $this->db->where_in('obra_id', $obraIds);
+        $this->db->where('data >=', $inicio . ' 00:00:00');
+        $this->db->where('data <', date('Y-m-d', strtotime($fim . ' +1 day')) . ' 00:00:00');
+        if ($usuarioId) {
+            $this->db->where('usuario_id', $usuarioId);
+        }
+        $this->db->group_by('DATE(data)', false);
+        $out = [];
+        foreach ($this->db->get('obra_ponto_foto')->result() as $r) {
+            $out[(string) $r->dia] = (int) $r->n;
+        }
+        return $out;
     }
 
     /* ============================== Painel ============================== */
