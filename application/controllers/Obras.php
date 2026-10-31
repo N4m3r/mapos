@@ -1216,7 +1216,18 @@ class Obras extends MY_Controller
         if ($obs !== null) {
             $extras['observacao'] = $obs;
         }
-        $this->obra_pontos_model->mudarStatus((int) $ponto->idPonto, $obra_id, $status, $uid ?: null, $extras);
+        if ($this->obra_pontos_model->precisaTeste($ponto, $status)) {
+            $extras['teste'] = ['itens' => $this->input->post('teste_itens'), 'retencao_dias' => $this->input->post('retencao_dias')];
+            $v = Obra_pontos_model::validarTeste($extras['teste']);
+            if (! $v['ok']) {
+                $this->session->set_flashdata('error', $ponto->identificacao . ': ' . Obra_pontos_model::mensagemTesteFaltando($v['faltando']));
+                $this->voltarPontos($obra_id);
+            }
+        }
+        if (! $this->obra_pontos_model->mudarStatus((int) $ponto->idPonto, $obra_id, $status, $uid ?: null, $extras)) {
+            $this->session->set_flashdata('error', 'Não foi possível atualizar o ponto.');
+            $this->voltarPontos($obra_id);
+        }
         log_info('Status do ponto ' . $ponto->identificacao . ' para ' . $status . ' na obra ' . $obra_id);
         $this->session->set_flashdata('success', $ponto->identificacao . ': ' . $lista[$status]['rotulo']);
         $this->voltarPontos($obra_id);
@@ -1263,6 +1274,7 @@ class Obras extends MY_Controller
         $this->data['resumo'] = Obra_pontos_model::resumo($pontos);
         $this->data['tipos'] = Obra_pontos_model::tipos();
         $this->data['status_lista'] = Obra_pontos_model::statusLista();
+        $this->data['testes_pontos'] = $this->obra_pontos_model->getUltimosTestes($id);
         $this->data['emitente'] = $this->mapos_model->getEmitente();
         $this->data['com_fotos'] = (string) $this->input->get('fotos') === '1';
         $this->data['fotos_pontos'] = $this->data['com_fotos'] ? $this->obra_pontos_model->getFotosObra($id) : [];

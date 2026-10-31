@@ -192,7 +192,7 @@ class Obras_model extends CI_Model
                 }
             }
         }
-        foreach (['obra_etapa_itens', 'obra_ponto_foto', 'obra_ponto_historico', 'obra_pontos', 'obra_etapas', 'obra_os',
+        foreach (['obra_etapa_itens', 'obra_ponto_teste', 'obra_ponto_foto', 'obra_ponto_historico', 'obra_pontos', 'obra_etapas', 'obra_os',
             'obra_usuario', 'obra_consumo', 'obra_rdo', 'obra_medicao', 'obra_custo', 'obra_material_saldo',
             'obra_material_recebimento', 'obra_material_entrega', 'obra_apontamento', 'obra_equipe_alocacao'] as $t) {
             if ($this->db->table_exists($t)) {

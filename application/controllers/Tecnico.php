@@ -379,16 +379,30 @@ class Tecnico extends MY_Controller
         $fotos = array_values(array_filter($this->fotosDoPost(), function ($bin) {
             return Obra_pontos_model::fotoValida($bin) !== null;
         }));
-        if (Obra_pontos_model::exigeFoto($status) && empty($fotos)) {
-            $temInstalado = false;
+        $exigeTeste = $this->obra_pontos_model->precisaTeste($ponto, $status);
+        if ((Obra_pontos_model::exigeFoto($status) || $exigeTeste) && empty($fotos)) {
+            $temEtapa = false;
             foreach ($this->obra_pontos_model->getFotos($ponto_id) as $foto) {
-                if ($foto->etapa === 'instalado') {
-                    $temInstalado = true;
+                if ($foto->etapa === $status) {
+                    $temEtapa = true;
                     break;
                 }
             }
-            if (!$temInstalado) {
-                $this->session->set_flashdata('error', 'Tire ao menos uma foto do equipamento instalado.');
+            if (!$temEtapa) {
+                $this->session->set_flashdata('error', $status === 'testado'
+                    ? 'Tire ao menos uma foto da imagem da câmera testada.'
+                    : 'Tire ao menos uma foto do equipamento instalado.');
+                redirect($destino);
+            }
+        }
+
+        // Camera -> testado: checklist de imagem obrigatorio (itens que faltam voltam na mensagem)
+        $teste = null;
+        if ($exigeTeste) {
+            $teste = ['itens' => $this->input->post('teste_itens'), 'retencao_dias' => $this->input->post('retencao_dias')];
+            $v = Obra_pontos_model::validarTeste($teste);
+            if (!$v['ok']) {
+                $this->session->set_flashdata('error', Obra_pontos_model::mensagemTesteFaltando($v['faltando']));
                 redirect($destino);
             }
         }
@@ -405,6 +419,7 @@ class Tecnico extends MY_Controller
             'local' => $local,
             'metragem_cabo' => $metragem,
             'observacao' => $this->cortar($this->input->post('observacao'), 255),
+            'teste' => $teste,
         ];
 
         // 2. Muda o status (grava tambem responsavel e aguardando)

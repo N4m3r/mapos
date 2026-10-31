@@ -273,10 +273,62 @@ class Obra_pontos_model extends CI_Model
         return $mapa[(string) $aguardando] ?? '';
     }
 
-    /** Foto obrigatoria so para marcar "Instalado" no app do tecnico. */
-    public static function exigeFoto($status)
+    /** Itens do checklist de teste de imagem das cameras (chave => rotulo). */
+    const TESTE_ITENS = [
+        'imagem_ok' => 'Imagem ok',
+        'gravando_nvr' => 'Gravando no NVR',
+        'visao_noturna' => 'Visão noturna (IR) ok',
+        'foco_enquadramento' => 'Foco / enquadramento ok',
+        'data_hora' => 'Data/hora correta',
+    ];
+
+    /** Itens que precisam estar marcados (configuravel). A retencao em dias e sempre obrigatoria. */
+    const TESTE_OBRIGATORIOS = ['imagem_ok', 'gravando_nvr', 'visao_noturna', 'foco_enquadramento', 'data_hora'];
+
+    const TESTE_RETENCAO_MAX = 3650;
+
+    /** Camera marcada como testada exige o checklist de imagem. */
+    public static function exigeTeste($status, $tipo)
     {
-        return (string) $status === 'instalado';
+        return (string) $status === 'testado' && (string) $tipo === 'camera';
+    }
+
+    /**
+     * Valida o checklist enviado. $dados: itens[chave]=1 e retencao_dias.
+     * Retorna ['ok','itens' (chave => bool),'retencao' (int|null),'faltando' (lista de textos)].
+     */
+    public static function validarTeste($dados)
+    {
+        $dados = is_array($dados) ? $dados : [];
+        $marcados = (isset($dados['itens']) && is_array($dados['itens'])) ? $dados['itens'] : [];
+        $itens = [];
+        $faltando = [];
+        foreach (self::TESTE_ITENS as $k => $rotulo) {
+            $itens[$k] = ! empty($marcados[$k]) && (string) $marcados[$k] !== '0';
+            if (! $itens[$k] && in_array($k, self::TESTE_OBRIGATORIOS, true)) {
+                $faltando[] = $rotulo;
+            }
+        }
+        $ret = trim((string) ($dados['retencao_dias'] ?? ''));
+        $retencao = null;
+        if ($ret !== '' && ctype_digit($ret) && (int) $ret >= 1 && (int) $ret <= self::TESTE_RETENCAO_MAX) {
+            $retencao = (int) $ret;
+        } else {
+            $faltando[] = 'Retenção da gravação em dias (1 a ' . self::TESTE_RETENCAO_MAX . ')';
+        }
+        return ['ok' => $faltando === [], 'itens' => $itens, 'retencao' => $retencao, 'faltando' => $faltando];
+    }
+
+    /** Mensagem de erro com os itens que faltam. */
+    public static function mensagemTesteFaltando(array $faltando)
+    {
+        return 'Teste de imagem incompleto. Falta: ' . implode('; ', $faltando) . '.';
+    }
+
+    /** Foto obrigatoria para "Instalado" e, em camera, para "Testado". */
+    public static function exigeFoto($status, $tipo = null)
+    {
+        return (string) $status === 'instalado' || self::exigeTeste($status, $tipo);
     }
 
     /** MIME pelos bytes iniciais (jpeg, png, webp); null se nao for imagem ou passar de 4 MB. */
@@ -448,6 +500,9 @@ class Obra_pontos_model extends CI_Model
         if ($this->temFotos()) {
             $this->db->where('ponto_id', (int) $id)->delete('obra_ponto_foto');
         }
+        if ($this->db->table_exists('obra_ponto_teste')) {
+            $this->db->where('ponto_id', (int) $id)->delete('obra_ponto_teste');
+        }
         $this->db->where('idPonto', (int) $id)->where('obra_id', (int) $obra_id)->delete('obra_pontos');
         $this->recalcularProgressoObra($obra_id);
         return true;
@@ -501,6 +556,15 @@ class Obra_pontos_model extends CI_Model
             return false;
         }
 
+        $teste = null;
+        if ($this->precisaTeste($ponto, $status)) {
+            $teste = self::validarTeste($extras['teste'] ?? []);
+            if (! $teste['ok']) {
+                $this->erroTeste = $teste['faltando'];
+                return false;
+            }
+        }
+
         $agora = date('Y-m-d H:i:s');
         $upd = ['status' => $status, 'atualizado_por' => $usuario_id, 'atualizado_em' => $agora];
         $temDados = false;
@@ -531,7 +595,21 @@ class Obra_pontos_model extends CI_Model
                 $upd['responsavel_id'] = $usuario_id !== null ? (int) $usuario_id : null;
             }
         }
+        $this->db->trans_start();
         $this->db->where('idPonto', (int) $ponto_id)->update('obra_pontos', $upd);
+
+        if ($teste !== null) {
+            $this->db->insert('obra_ponto_teste', [
+                'ponto_id' => (int) $ponto_id,
+                'obra_id' => (int) $obra_id,
+                'usuario_id' => $usuario_id,
+                'itens' => json_encode($teste['itens']),
+                'retencao_dias' => $teste['retencao'],
+                'observacao' => isset($upd['observacao']) ? $this->cortar($upd['observacao'], 255) : null,
+                'aprovado' => 1,
+                'data' => $agora,
+            ]);
+        }
 
         if ($this->db->table_exists('obra_ponto_historico')) {
             $hist = [
@@ -544,6 +622,9 @@ class Obra_pontos_model extends CI_Model
                 'data' => $agora,
                 'observacao' => $upd['observacao'] ?? null,
             ];
+            if ($teste !== null) {
+                $hist['observacao'] = $this->cortar(trim('Teste de imagem aprovado, retenção ' . $teste['retencao'] . ' dias. ' . (string) ($upd['observacao'] ?? '')), 255);
+            }
             if ($this->db->field_exists('evento', 'obra_ponto_historico')) {
                 $hist['evento'] = 'status';
             }
@@ -552,9 +633,47 @@ class Obra_pontos_model extends CI_Model
             }
             $this->db->insert('obra_ponto_historico', $hist);
         }
+        $this->db->trans_complete();
+        if ($this->db->trans_status() === false) {
+            return false;
+        }
 
         $this->recalcularProgressoObra($obra_id);
         return true;
+    }
+
+    /** Itens que faltaram quando mudarStatus recusou por teste incompleto. */
+    private $erroTeste = [];
+
+    public function ultimoErroTeste()
+    {
+        return $this->erroTeste;
+    }
+
+    public function testeDisponivel()
+    {
+        return $this->db->table_exists('obra_ponto_teste');
+    }
+
+    /** True se levar o ponto a $status exige o checklist (camera indo para testado, tabela existente). */
+    public function precisaTeste($ponto, $status)
+    {
+        return self::exigeTeste($status, $ponto->tipo ?? '') && (string) $ponto->status !== (string) $status && $this->testeDisponivel();
+    }
+
+    /** Ultimo teste de cada ponto do projeto, indexado por ponto_id (itens ja decodificados). */
+    public function getUltimosTestes($obra_id)
+    {
+        if (! $this->testeDisponivel()) {
+            return [];
+        }
+        $sql = 'SELECT t.* FROM obra_ponto_teste t JOIN (SELECT MAX(idTeste) m FROM obra_ponto_teste WHERE obra_id = ? GROUP BY ponto_id) x ON x.m = t.idTeste';
+        $out = [];
+        foreach ($this->db->query($sql, [(int) $obra_id])->result() as $t) {
+            $t->itens = json_decode((string) $t->itens, true) ?: [];
+            $out[(int) $t->ponto_id] = $t;
+        }
+        return $out;
     }
 
     public function ultimoHistoricoId($ponto_id)

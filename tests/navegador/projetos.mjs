@@ -116,6 +116,12 @@ if (OBRA_ID) {
     const antesSt = await page.$eval('#tab-pontos .pt-status-form select[name="status"]', (s) => s.value);
     const novo = antesSt === 'testado' ? 'configurado' : 'testado';
     await page.$eval('#tab-pontos .pt-status-form select[name="status"]', (s, v) => { s.value = v; }, novo);
+    // Camera indo para "testado" exige o checklist de teste de imagem
+    await page.$eval('#tab-pontos .pt-status-form', (f) => {
+        f.querySelectorAll('input[name^="teste_itens"]').forEach((c) => { c.checked = true; });
+        const ret = f.querySelector('input[name="retencao_dias"]');
+        if (ret) { ret.value = '30'; }
+    });
     await Promise.all([
         page.waitForNavigation({ waitUntil: 'networkidle2' }),
         page.$eval('#tab-pontos .pt-status-form', (f) => (f.requestSubmit ? f.requestSubmit() : f.submit())),
@@ -150,11 +156,17 @@ if (EMAIL_TEC) {
     if (OBRA_ID) {
         await tec.goto(BASE + 'index.php/tecnico/projeto/' + OBRA_ID + '#pontos', { waitUntil: 'networkidle2' });
         await foto(tec, 'tecnico-pontos');
-        const botao = await tec.$('form[action*="tecnico/ponto_status"] button.ponto-acao');
+        // "Um toque" so vale para avanco sem foto nem checklist obrigatorios
+        const botao = await tec.evaluateHandle(() => {
+            const forms = [...document.querySelectorAll('form[action*="tecnico/ponto_status"]')]
+                .filter((f) => !f.dataset.exigeFoto && !f.querySelector('.ponto-teste'));
+            return forms.length ? forms[0].querySelector('button.ponto-acao') : null;
+        }).then((h) => h.asElement());
         ok(!!botao, 'tecnico: botao de avancar ponto');
         if (botao) {
             const rotulo = (await botao.evaluate((b) => b.textContent)).trim();
-            await Promise.all([tec.waitForNavigation({ waitUntil: 'networkidle2' }), botao.click()]);
+            // clique pelo DOM: neste Chrome headless o clique do mouse do puppeteer nao chega a pagina
+            await Promise.all([tec.waitForNavigation({ waitUntil: 'networkidle2' }), botao.evaluate((b) => b.click())]);
             texto = await tec.evaluate(() => document.body.innerText);
             ok(/[A-Z]+-\d+: /.test(texto), `tecnico: avancou ponto com um toque ("${rotulo}")`);
         }

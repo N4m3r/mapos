@@ -223,4 +223,43 @@ class ObraPontosTest extends TestCase
         $this->assertSame(['SW-099', 'SW-100'], $vazio['novos']);
         $this->assertSame([], $vazio['pulados']);
     }
+    public function testExigeTesteSoParaCameraTestada(): void
+    {
+        $this->assertTrue(Obra_pontos_model::exigeTeste('testado', 'camera'));
+        $this->assertFalse(Obra_pontos_model::exigeTeste('testado', 'switch'));
+        $this->assertFalse(Obra_pontos_model::exigeTeste('instalado', 'camera'));
+        $this->assertTrue(Obra_pontos_model::exigeFoto('testado', 'camera'));
+        $this->assertFalse(Obra_pontos_model::exigeFoto('testado'));
+        $this->assertTrue(Obra_pontos_model::exigeFoto('instalado'));
+    }
+
+    public function testValidarTesteCompleto(): void
+    {
+        $itens = array_fill_keys(array_keys(Obra_pontos_model::TESTE_ITENS), '1');
+        $r = Obra_pontos_model::validarTeste(['itens' => $itens, 'retencao_dias' => '30']);
+        $this->assertTrue($r['ok']);
+        $this->assertSame(30, $r['retencao']);
+        $this->assertSame([], $r['faltando']);
+    }
+
+    public function testValidarTesteListaFaltantes(): void
+    {
+        $r = Obra_pontos_model::validarTeste(['itens' => ['imagem_ok' => '1', 'gravando_nvr' => '0'], 'retencao_dias' => '']);
+        $this->assertFalse($r['ok']);
+        $this->assertNull($r['retencao']);
+        $this->assertContains('Gravando no NVR', $r['faltando']);
+        $this->assertContains('Visão noturna (IR) ok', $r['faltando']);
+        $this->assertNotContains('Imagem ok', $r['faltando']);
+        $this->assertCount(5, $r['faltando']);
+        $this->assertStringContainsString('Falta:', Obra_pontos_model::mensagemTesteFaltando($r['faltando']));
+    }
+
+    public function testValidarTesteRetencaoInvalida(): void
+    {
+        $itens = array_fill_keys(array_keys(Obra_pontos_model::TESTE_ITENS), '1');
+        foreach (['0', '-5', 'abc', '3.5', '99999'] as $ret) {
+            $this->assertFalse(Obra_pontos_model::validarTeste(['itens' => $itens, 'retencao_dias' => $ret])['ok'], $ret);
+        }
+        $this->assertFalse(Obra_pontos_model::validarTeste(null)['ok']);
+    }
 }

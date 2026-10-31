@@ -212,10 +212,15 @@ foreach ($os_servicos as $ms) {
                             <button type="submit" class="btn-tec primary block lg ponto-acao" style="margin-top:10px;"><?= html_escape($infoProx['acao'] ?? 'Instalei') ?> ✓</button>
                         </form>
                     <?php elseif ($infoProx): ?>
-                        <form action="<?= site_url('tecnico/ponto_status') ?>" method="post" style="margin-top:10px;">
+                        <?php $camTeste = Obra_pontos_model::exigeTeste($proximo, $pt->tipo); ?>
+                        <form action="<?= site_url('tecnico/ponto_status') ?>" method="post" style="margin-top:10px;"<?= $camTeste ? ' data-exige-foto="Tire ao menos uma foto da imagem da câmera testada"' : '' ?>>
                             <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
                             <input type="hidden" name="ponto_id" value="<?= $pid ?>">
                             <input type="hidden" name="status" value="<?= html_escape($proximo) ?>">
+                            <?php if ($camTeste): ?>
+                                <?php $blocoFoto('Foto da imagem da câmera (obrigatória)'); ?>
+                                <?php include APPPATH . 'views/tecnico/_teste_camera.php'; ?>
+                            <?php endif; ?>
                             <?php if ($proximo === 'cabeado'): ?>
                                 <label class="ponto-campo">Metros de cabo (opcional)
                                     <input type="number" name="metragem_cabo" min="0" step="0.01" inputmode="decimal" placeholder="0" class="ponto-input">

@@ -343,8 +343,18 @@ ao projeto no banco de CI.
 ### Negative
 - Fotos em LONGBLOB aumentam o banco e o backup: cerca de 300 KB por foto depois da
   redução, ou seja, uns 6 MB por 20 câmeras. Se crescer, mover para disco depois.
-- Sem notificação push: o técnico vê a fila ao abrir o app. A notificação por WhatsApp
-  fica para depois.
+- Sem notificação push imediata: o técnico vê a fila ao abrir o app. O alerta de ponto
+  parado por WhatsApp existe (abaixo), mas só roda por cron.
+
+### Alerta de ponto parado (WhatsApp)
+`php index.php lembretes/pontos_parados [simular]` (biblioteca `Alerta_repasse`, agendar a
+cada 1-2 h). Ponto com responsável e `aguardando` há mais de N horas (`repassado_em`, senão
+`atualizado_em`; projetos não concluídos/entregues/cancelados, ponto não testado) gera um
+WhatsApp ao técnico, agrupado por projeto, com link para `tecnico/fila`. Após 2N horas, resumo
+ao `obras.responsavel_id`. Não repete antes de N horas (`obra_pontos.alertado_em` e
+`alertado_gestor_em`, migration 20261031030000). Config no `.env`: `ALERTA_REPASSE_ATIVO`
+(padrão false) e `ALERTA_REPASSE_HORAS` (padrão 24). Sem Evolution API ativa ou sem
+`usuarios.telefone`, só registra no log e não marca como alertado.
 
 ## Links
 - **Depends on**: ADR-013

@@ -95,7 +95,7 @@ foreach ($pontos as $pt) {
     <?php foreach ($tipos as $tk => $tinfo): if (empty($porTipo[$tk])) continue; ?>
         <h2><?= html_escape($tinfo['rotulo']) ?> (<?= count($porTipo[$tk]) ?>)</h2>
         <table>
-            <thead><tr><?php if (! empty($com_fotos)): ?><th>Foto</th><?php endif; ?><th>Identificação</th><th>Local</th><th>IP</th><th>Canal</th><th>Porta</th><th>Modelo</th><th>Série / MAC</th><th class="num">Metros</th><th>Status</th><th>Atualizado em</th></tr></thead>
+            <thead><tr><?php if (! empty($com_fotos)): ?><th>Foto</th><?php endif; ?><th>Identificação</th><th>Local</th><th>IP</th><th>Canal</th><th>Porta</th><th>Modelo</th><th>Série / MAC</th><th class="num">Metros</th><th>Status</th><?php if ($tk === 'camera'): ?><th>Teste de imagem</th><?php endif; ?><th>Atualizado em</th></tr></thead>
             <tbody>
                 <?php foreach ($porTipo[$tk] as $pt): ?>
                     <tr>
@@ -111,6 +111,9 @@ foreach ($pontos as $pt) {
                         <td><?= html_escape($pt->serie ?: '—') ?></td>
                         <td class="num"><?= $fmtM($pt->metragem_cabo) ?></td>
                         <td><?= html_escape($status_lista[$pt->status]['rotulo'] ?? $pt->status) ?></td>
+                        <?php if ($tk === 'camera'): $tst = $testes_pontos[(int) $pt->idPonto] ?? null; ?>
+                            <td><?php if ($tst): ?><?= ! empty($tst->aprovado) ? '✓' : '✗' ?> <?= (int) $tst->retencao_dias ?> d · <?= date('d/m/Y', strtotime($tst->data)) ?><?php else: ?>—<?php endif; ?></td>
+                        <?php endif; ?>
                         <td><?= ! empty($pt->atualizado_em) ? date('d/m/Y', strtotime($pt->atualizado_em)) : '—' ?></td>
                     </tr>
                 <?php endforeach; ?>

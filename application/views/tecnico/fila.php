@@ -119,11 +119,16 @@ $cartao = function ($it, $minha) use ($executores, $uidAtual, $status_lista, $ti
                     <button type="submit" class="btn-tec primary block lg ponto-acao" style="margin-top:10px;">Configurei ✓</button>
                 </form>
             <?php elseif ($aguardando === 'testado'): ?>
-                <form action="<?= site_url('tecnico/ponto_status') ?>" method="post" style="margin-top:10px;">
+                <?php $camTeste = Obra_pontos_model::exigeTeste('testado', $it->tipo); ?>
+                <form action="<?= site_url('tecnico/ponto_status') ?>" method="post" style="margin-top:10px;"<?= $camTeste ? ' data-exige-foto="Tire ao menos uma foto da imagem da câmera testada"' : '' ?>>
                     <input type="hidden" name="obra_id" value="<?= $oid ?>">
                     <input type="hidden" name="ponto_id" value="<?= $pid ?>">
                     <input type="hidden" name="status" value="testado">
                     <input type="hidden" name="voltar" value="fila">
+                    <?php if ($camTeste): ?>
+                        <?php $blocoFoto('Foto da imagem da câmera (obrigatória)'); ?>
+                        <?php include APPPATH . 'views/tecnico/_teste_camera.php'; ?>
+                    <?php endif; ?>
                     <button type="submit" class="btn-tec success block lg ponto-acao">Testei ✓</button>
                 </form>
             <?php elseif ($aguardando === 'instalado'): ?>

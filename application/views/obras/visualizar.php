@@ -312,6 +312,11 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                 <?php if ($ptEdita): ?>
                     <a href="#modal-ponto" data-toggle="modal" class="button btn btn-mini" data-chamar="novoPonto"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Novo ponto</span></a>
                     <a href="#modal-lote" data-toggle="modal" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-layer-plus'></i></span><span class="button__text2">Gerar em lote</span></a>
+                    <a href="#modal-importar-pontos" data-toggle="modal" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-upload'></i></span><span class="button__text2">Importar planilha</span></a>
+                <?php endif; ?>
+                <?php if ($pontos_resumo['total'] > 0): ?>
+                    <a href="<?= site_url('obraetiquetas/etiquetas/' . (int) $obra->idObra) ?>" target="_blank" rel="noopener" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-qr'></i></span><span class="button__text2">Imprimir etiquetas (QR)</span></a>
+                    <a href="<?= site_url('obraetiquetas/asbuiltPlanilha/' . (int) $obra->idObra) ?>" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-spreadsheet'></i></span><span class="button__text2">As-built (planilha)</span></a>
                 <?php endif; ?>
             </div>
         </div>
@@ -464,6 +469,15 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                                             <?php endforeach; ?>
                                         </select>
                                         <input type="number" step="0.01" min="0" name="metragem_cabo" placeholder="m" title="Metros de cabo passados agora" aria-label="Metros de cabo">
+                                        <?php if (($pt->tipo ?? '') === 'camera' && $pt->status !== 'testado'): ?>
+                                            <details class="pt-teste" style="display:inline-block;text-align:left;">
+                                                <summary title="Obrigatório ao marcar a câmera como Testado">Teste de imagem</summary>
+                                                <?php foreach (Obra_pontos_model::TESTE_ITENS as $tk => $trot): ?>
+                                                    <label style="display:block;"><input type="checkbox" name="teste_itens[<?= html_escape($tk) ?>]" value="1" style="margin:0 4px 0 0;"> <?= html_escape($trot) ?></label>
+                                                <?php endforeach; ?>
+                                                <input type="number" min="1" max="<?= (int) Obra_pontos_model::TESTE_RETENCAO_MAX ?>" step="1" name="retencao_dias" placeholder="Retenção (dias)" aria-label="Retenção da gravação em dias">
+                                            </details>
+                                        <?php endif; ?>
                                         <button class="btn btn-mini btn-success" title="Atualizar status">OK</button>
                                     </form>
                                     <?php if ($ptEdita): ?>
@@ -1192,7 +1206,24 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
         <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Gerar</span></button></div>
     </form>
 </div>
-<form id="formExcluirPonto" action="<?= site_url('obras/excluirPonto') ?>" method="post" style="display:none">
+
+<!-- Modal Importar planilha -->
+<div id="modal-importar-pontos" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <form action="<?= site_url('obraimportar/previa') ?>" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="<?= $this->security->get_csrf_token_name() ?>" value="<?= $this->security->get_csrf_hash() ?>">
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Importar pontos de planilha</h5></div>
+        <div class="modal-body">
+            <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
+            <div class="span12" style="margin-left:0"><label>Arquivo CSV (até 2 MB e 1000 linhas) *</label><input type="file" name="planilha" class="span12" accept=".csv,.xlsx" required></div>
+            <div class="span12" style="margin-left:0"><label>Identificação que já existe no projeto</label>
+                <select name="existentes" class="span12"><option value="pular">Pular (não altera)</option><option value="atualizar">Atualizar com os dados da planilha</option></select>
+            </div>
+            <div class="span12" style="margin-left:0"><small>Colunas: identificacao, tipo, local, ip, canal, porta, modelo, serie, observacao. <a href="<?= site_url('obraimportar/modelo') ?>">Baixar modelo</a>. Você verá uma prévia antes de gravar.</small></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Ver prévia</span></button></div>
+    </form>
+</div>
+<form id="formExcluirPonto"action="<?= site_url('obras/excluirPonto') ?>" method="post" style="display:none">
     <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>"><input type="hidden" name="idPonto" id="del_ponto">
 </form>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/foto-compacta.js') ?>"></script>
