@@ -733,6 +733,31 @@ class Mine extends CI_Controller
         redirect('mine/aprovacoes');
     }
 
+    /**
+     * Foto do atendimento para o portal do cliente: so sai se a OS da foto for do
+     * cliente logado (ou de um cliente vinculado). Senao, 404 (nao revela que existe).
+     */
+    public function fotoAtendimento($foto_id = null)
+    {
+        if (! session_id() || ! $this->session->userdata('conectado') || ! (int) $foto_id) {
+            show_404();
+        }
+        $this->load->model('fotosatendimento_model');
+        $foto = $this->fotosatendimento_model->getImagemBase64((int) $foto_id);
+        if (! $foto || empty($foto->imagem_base64)) {
+            show_404();
+        }
+        $os = $this->db->select('clientes_id')->where('idOs', (int) $foto->os_id)->get('os')->row();
+        if (! $os || ! in_array((int) $os->clientes_id, array_map('intval', $this->clientesPermitidos()), true)) {
+            show_404();
+        }
+        $bin = Fotosatendimento_model::binarioDaFoto($foto->imagem_base64, $foto->mime_type);
+        if ($bin === null) {
+            show_404();
+        }
+        Fotosatendimento_model::enviarFoto($bin);
+    }
+
     public function visualizarOs($id = null)
     {
         if (! session_id() || ! $this->session->userdata('conectado')) {

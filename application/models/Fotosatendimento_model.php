@@ -327,13 +327,49 @@ class Fotosatendimento_model extends CI_Model
             return null;
         }
 
-        $this->db->select('imagem_base64, mime_type, arquivo');
+        $this->db->select('imagem_base64, mime_type, arquivo, os_id');
         $this->db->from('os_fotos_atendimento');
         $this->db->where('idFoto', $foto_id);
         $this->db->limit(1);
 
         $query = $this->db->get();
         return $query ? $query->row() : null;
+    }
+
+    /**
+     * Binario e tipo da foto guardada em base64 (com ou sem prefixo "data:image/...;base64,").
+     * O tipo so pode ser imagem; qualquer outro vira image/jpeg.
+     *
+     * @return array|null ['mime' => string, 'dados' => string] ou null se nao decodificar
+     */
+    public static function binarioDaFoto($imagemBase64, $mimeGravado = null)
+    {
+        $imagemBase64 = (string) $imagemBase64;
+        $mime = $mimeGravado ?: 'image/jpeg';
+        if (preg_match('/^data:(image\/[\w+.-]+);base64,/', $imagemBase64, $m)) {
+            $mime = $m[1];
+            $imagemBase64 = substr($imagemBase64, strlen($m[0]));
+        }
+        $dados = base64_decode($imagemBase64, true);
+        if ($dados === false || $dados === '') {
+            return null;
+        }
+        if (!in_array($mime, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true)) {
+            $mime = 'image/jpeg';
+        }
+
+        return ['mime' => $mime, 'dados' => $dados];
+    }
+
+    /** Envia a foto como imagem (sem adivinhacao de tipo, cache privado) e encerra. */
+    public static function enviarFoto(array $foto)
+    {
+        header('Content-Type: ' . $foto['mime']);
+        header('Content-Length: ' . strlen($foto['dados']));
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, max-age=86400');
+        echo $foto['dados'];
+        exit;
     }
 
     /**

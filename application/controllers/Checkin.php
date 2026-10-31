@@ -999,37 +999,12 @@ class Checkin extends MY_Controller
             return;
         }
 
-        // Extrair MIME type e dados base64
-        if (preg_match('/^data:(image\/\w+);base64,/', $foto->imagem_base64, $matches)) {
-            $mime_type = $matches[1];
-            $base64_data = substr($foto->imagem_base64, strlen($matches[0]));
-        } else {
-            $mime_type = $foto->mime_type ?: 'image/jpeg';
-            $base64_data = $foto->imagem_base64;
-            // Se não tem o prefixo data:, assume que é apenas o base64
-            if (strpos($foto->imagem_base64, 'data:') === 0) {
-                $base64_data = preg_replace('/^data:image\/\w+;base64,/', '', $foto->imagem_base64);
-            }
-        }
-
-        // Decodifica base64
-        $image_data = base64_decode($base64_data, true);
-
-        if ($image_data === false) {
+        $bin = Fotosatendimento_model::binarioDaFoto($foto->imagem_base64, $foto->mime_type);
+        if ($bin === null) {
             show_error('Erro ao decodificar imagem', 500);
             return;
         }
-
-        // So tipos de imagem; o navegador nao deve adivinhar o tipo (foto de cliente: cache privado)
-        if (!in_array($mime_type, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true)) {
-            $mime_type = 'image/jpeg';
-        }
-        header('Content-Type: ' . $mime_type);
-        header('Content-Length: ' . strlen($image_data));
-        header('X-Content-Type-Options: nosniff');
-        header('Cache-Control: private, max-age=86400');
-        echo $image_data;
-        exit;
+        Fotosatendimento_model::enviarFoto($bin);
     }
 
     /**

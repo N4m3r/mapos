@@ -147,7 +147,7 @@ $rotulosAssinatura = [
                         <div class="row-fluid">
                             <?php foreach ($fotosPorEtapa[$etapa] as $foto) {
                                 $imgUrl = ! empty($foto->imagem_base64)
-                                    ? base_url('index.php/checkin/verFotoDB/' . $foto->idFoto)
+                                    ? site_url('mine/fotoAtendimento/' . (int) $foto->idFoto)
                                     : $foto->url; ?>
                                 <div class="span3" style="margin-bottom:12px">
                                     <a href="<?= html_escape($imgUrl) ?>" target="_blank" style="display:block; border:1px solid #e2e6ef; border-radius:6px; overflow:hidden">
