@@ -119,12 +119,44 @@ class Obra_medicao_model extends CI_Model
             && $this->db->field_exists('fatura_no_projeto', 'obra_os');
     }
 
-    /** Valor da OS com desconto, como Os::faturar calcula. */
-    private function valorDaOs(int $idOs): float
+    /**
+     * Valor das OS com desconto, como Os::faturar calcula (mesma conta de
+     * Os_model::valorTotalOS), em lote: 2 queries para todas as OS.
+     *
+     * @param array<int,float|string|null> $descontos desconto por idOs
+     * @return array<int,float> valor por idOs
+     */
+    private function valoresDasOs(array $descontos): array
     {
-        $this->load->model('os_model');
-        $t = $this->os_model->valorTotalOS($idOs);
-        return self::valorOsComDesconto($t['totalServico'], $t['totalProdutos'], $t['valor_desconto']);
+        $ids = array_keys($descontos);
+        if (! $ids) {
+            return [];
+        }
+        $servico = array_fill_keys($ids, 0);
+        $produtos = array_fill_keys($ids, 0);
+
+        $this->db->select('servicos_os.os_id, servicos_os.preco, servicos_os.quantidade, servicos.preco as precoVenda');
+        $this->db->from('servicos_os');
+        $this->db->join('servicos', 'servicos.idServicos = servicos_os.servicos_id');
+        $this->db->where_in('servicos_os.os_id', $ids);
+        foreach ($this->db->get()->result() as $s) {
+            $preco = $s->preco ?: $s->precoVenda;
+            $servico[(int) $s->os_id] += ($preco * ($s->quantidade ?: 1));
+        }
+
+        $this->db->select('produtos_os.os_id, produtos_os.subTotal');
+        $this->db->from('produtos_os');
+        $this->db->join('produtos', 'produtos.idProdutos = produtos_os.produtos_id');
+        $this->db->where_in('produtos_os.os_id', $ids);
+        foreach ($this->db->get()->result() as $p) {
+            $produtos[(int) $p->os_id] += $p->subTotal;
+        }
+
+        $out = [];
+        foreach ($ids as $id) {
+            $out[$id] = self::valorOsComDesconto($servico[$id], $produtos[$id], $descontos[$id]);
+        }
+        return $out;
     }
 
     /** OS do projeto finalizadas, que faturam no projeto e ainda nao entraram em medicao. */
@@ -133,7 +165,7 @@ class Obra_medicao_model extends CI_Model
         if (! $this->disponivel()) {
             return [];
         }
-        $this->db->select('os.idOs, os.status, obra_os.tipo_vinculo, etapa.nome as etapa_nome');
+        $this->db->select('os.idOs, os.status, os.valor_desconto, obra_os.tipo_vinculo, etapa.nome as etapa_nome');
         $this->db->from('obra_os');
         $this->db->join('os', 'os.idOs = obra_os.os_id');
         $this->db->join('obra_etapas etapa', 'etapa.idEtapa = obra_os.etapa_id', 'left');
@@ -146,11 +178,18 @@ class Obra_medicao_model extends CI_Model
         $this->db->order_by('os.idOs', 'ASC');
         $lista = $this->db->get()->result();
 
+        $descontos = [];
+        foreach ($lista as $o) {
+            $descontos[(int) $o->idOs] = $o->valor_desconto;
+        }
+        $valores = $this->valoresDasOs($descontos);
+
         foreach ($lista as $o) {
             $o->idOs = (int) $o->idOs;
             $o->tipo_vinculo = (string) ($o->tipo_vinculo ?: 'execucao');
-            $o->valor = $this->valorDaOs($o->idOs);
+            $o->valor = $valores[$o->idOs];
             $o->soma_valor = self::entraNoValor($o->tipo_vinculo);
+            unset($o->valor_desconto); // so serviu para o valor; a previa (JSON) segue igual
         }
         return $lista;
     }

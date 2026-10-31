@@ -899,7 +899,8 @@ class Obras_model extends CI_Model
 
         $this->db->select('colaborador_id, MIN(data_hora) ent, MAX(data_hora) sai, COUNT(*) n', false);
         $this->db->where('obra_id', $obra_id);
-        $this->db->where('DATE(data_hora) = ' . $this->db->escape($dataDia), null, false);
+        $this->db->where('data_hora >=', $dataDia . ' 00:00:00');
+        $this->db->where('data_hora <', date('Y-m-d', strtotime($dataDia . ' +1 day')) . ' 00:00:00');
         $this->db->group_by('colaborador_id');
         $rows = $this->db->get('rh_ponto_registros')->result();
         if (! $rows) {
@@ -912,6 +913,39 @@ class Obras_model extends CI_Model
             ->where('origem', 'ponto_facial')
             ->delete('obra_apontamento');
 
+        // Carrega colaboradores e membros de equipe em lote
+        $colabIds = array_map(static function ($r) {
+            return (int) $r->colaborador_id;
+        }, $rows);
+        $colabs = [];
+        if ($this->db->table_exists('rh_colaboradores')) {
+            foreach ($this->db->where_in('id', $colabIds)->get('rh_colaboradores')->result() as $c) {
+                $colabs[(int) $c->id] = $c;
+            }
+        }
+        $usuarioIds = [];
+        foreach ($colabs as $c) {
+            if (! empty($c->usuarios_id)) {
+                $usuarioIds[] = (int) $c->usuarios_id;
+            }
+        }
+        $membros = [];
+        if ($usuarioIds && $this->db->table_exists('equipe_membros')) {
+            $this->db->select('em.colaborador_id, em.funcao, em.valor_diaria, em.valor_hora');
+            $this->db->from('equipe_membros em');
+            if ($this->db->table_exists('obra_equipe_alocacao')) {
+                $this->db->join('obra_equipe_alocacao a', 'a.equipe_id = em.equipe_id');
+                $this->db->where('a.obra_id', $obra_id);
+            }
+            $this->db->where_in('em.colaborador_id', array_values(array_unique($usuarioIds)));
+            foreach ($this->db->get()->result() as $m) {
+                // Mantem o primeiro membro encontrado por usuario
+                if (! isset($membros[(int) $m->colaborador_id])) {
+                    $membros[(int) $m->colaborador_id] = $m;
+                }
+            }
+        }
+
         $count = 0;
         foreach ($rows as $r) {
             $horas = (strtotime($r->sai) - strtotime($r->ent)) / 3600;
@@ -919,32 +953,20 @@ class Obras_model extends CI_Model
 
             $nome = null;
             $usuarioId = null;
-            if ($this->db->table_exists('rh_colaboradores')) {
-                $c = $this->db->where('id', (int) $r->colaborador_id)->get('rh_colaboradores')->row();
-                if ($c) {
-                    $nome = $c->nome ?? null;
-                    $usuarioId = $c->usuarios_id ?? null;
-                }
+            $c = $colabs[(int) $r->colaborador_id] ?? null;
+            if ($c) {
+                $nome = $c->nome ?? null;
+                $usuarioId = $c->usuarios_id ?? null;
             }
 
             $funcao = null;
             $diaria = 0;
             $hora = 0;
-            if ($usuarioId && $this->db->table_exists('equipe_membros')) {
-                $this->db->select('em.funcao, em.valor_diaria, em.valor_hora');
-                $this->db->from('equipe_membros em');
-                if ($this->db->table_exists('obra_equipe_alocacao')) {
-                    $this->db->join('obra_equipe_alocacao a', 'a.equipe_id = em.equipe_id');
-                    $this->db->where('a.obra_id', $obra_id);
-                }
-                $this->db->where('em.colaborador_id', (int) $usuarioId);
-                $this->db->limit(1);
-                $m = $this->db->get()->row();
-                if ($m) {
-                    $funcao = $m->funcao;
-                    $diaria = (float) $m->valor_diaria;
-                    $hora = (float) $m->valor_hora;
-                }
+            $m = $usuarioId ? ($membros[(int) $usuarioId] ?? null) : null;
+            if ($m) {
+                $funcao = $m->funcao;
+                $diaria = (float) $m->valor_diaria;
+                $hora = (float) $m->valor_hora;
             }
 
             $usaDiaria = $diaria > 0;

@@ -841,8 +841,13 @@ class Obras extends MY_Controller
     {
         $obra_id = $this->planejamentoInicio();
         $ids = [];
+        // Carrega as etapas do projeto uma vez e indexa por id
+        $etapasDaObra = [];
+        foreach ($this->obras_model->getEtapas($obra_id) as $e) {
+            $etapasDaObra[(int) $e->idEtapa] = true;
+        }
         foreach ((array) $this->input->post('etapas') as $eid) {
-            if ((int) $eid > 0 && $this->etapaDaObra($obra_id, (int) $eid)) {
+            if ((int) $eid > 0 && isset($etapasDaObra[(int) $eid])) {
                 $ids[] = (int) $eid;
             }
         }

@@ -588,14 +588,24 @@ class Projeto_sync
         $etapas = $db->where('obra_id', $obraId)->where('status !=', self::ETAPA_CONCLUIDA)
             ->get('obra_etapas')->result();
 
+        if ($etapas === []) {
+            return $out;
+        }
+
+        // Uma unica query de OS para todas as etapas, agrupada por etapa
+        $statusPorEtapa = [];
+        $ids = array_map(static function ($e) {
+            return (int) $e->idEtapa;
+        }, $etapas);
+        $rows = $db->select('obra_os.etapa_id, os.status')->from('obra_os')
+            ->join('os', 'os.idOs = obra_os.os_id')
+            ->where_in('obra_os.etapa_id', $ids)->get()->result();
+        foreach ($rows as $row) {
+            $statusPorEtapa[(int) $row->etapa_id][] = $row->status;
+        }
+
         foreach ($etapas as $etapa) {
-            $statusOs = [];
-            $rows = $db->select('os.status')->from('obra_os')
-                ->join('os', 'os.idOs = obra_os.os_id')
-                ->where('obra_os.etapa_id', (int) $etapa->idEtapa)->get()->result();
-            foreach ($rows as $row) {
-                $statusOs[] = $row->status;
-            }
+            $statusOs = $statusPorEtapa[(int) $etapa->idEtapa] ?? [];
             $ativas = array_values(array_filter($statusOs, static function ($s) {
                 return $s !== 'Cancelado';
             }));

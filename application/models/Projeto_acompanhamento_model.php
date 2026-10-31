@@ -631,50 +631,43 @@ class Projeto_acompanhamento_model extends CI_Model
         if (! $ids) {
             return ['ultimo' => $ultimo, 'contagem' => $contagem];
         }
-        $somar = function (int $obraId, string $dia) use (&$ultimo, &$contagem) {
-            $ultimo[$obraId] = self::maiorData($ultimo[$obraId] ?? null, $dia);
-            $contagem[$obraId] = ($contagem[$obraId] ?? 0) + 1;
-        };
-        $dentro = function (string $dia) use ($ini, $fim) {
-            if ($ini && $dia < $ini) {
-                return false;
+        // Agrega no SQL: ultimo = maior data (sem limite); contagem = registros no intervalo
+        $iniDt = $ini ? $ini . ' 00:00:00' : null;
+        $fimExcl = $fim ? date('Y-m-d', strtotime($fim . ' +1 day')) . ' 00:00:00' : null;
+        $somar = function (string $obraCol, string $col, string $tabela, bool $comJoin) use ($ids, $iniDt, $fimExcl, &$ultimo, &$contagem) {
+            $cond = [];
+            if ($iniDt) {
+                $cond[] = $col . ' >= ' . $this->db->escape($iniDt);
             }
-            if ($fim && $dia > $fim) {
-                return false;
+            if ($fimExcl) {
+                $cond[] = $col . ' < ' . $this->db->escape($fimExcl);
             }
-
-            return true;
+            $dentro = $cond ? implode(' AND ', $cond) : '1=1';
+            $this->db->select($obraCol . ' as obra_id, MAX(' . $col . ') as ult, SUM(CASE WHEN ' . $dentro . ' THEN 1 ELSE 0 END) as n', false);
+            if ($comJoin) {
+                $this->db->from($tabela);
+                $this->db->join('obra_os', 'obra_os.os_id = os_checkin.os_id');
+            } else {
+                $this->db->from($tabela);
+                $this->db->where('os_id IS NOT NULL', null, false);
+            }
+            $this->db->where_in($obraCol, $ids);
+            $this->db->where($col . ' IS NOT NULL', null, false);
+            $this->db->group_by($obraCol);
+            foreach ($this->db->get()->result() as $r) {
+                $obraId = (int) $r->obra_id;
+                $ultimo[$obraId] = self::maiorData($ultimo[$obraId] ?? null, substr((string) $r->ult, 0, 10));
+                $contagem[$obraId] = ($contagem[$obraId] ?? 0) + (int) $r->n;
+            }
         };
 
         if ($this->db->table_exists('obra_os') && $this->db->table_exists('os_checkin')) {
-            $this->db->select('obra_os.obra_id as obra_id, os_checkin.data_entrada, os_checkin.data_saida', false);
-            $this->db->from('os_checkin');
-            $this->db->join('obra_os', 'obra_os.os_id = os_checkin.os_id');
-            $this->db->where_in('obra_os.obra_id', $ids);
-            foreach ($this->db->get()->result() as $r) {
-                foreach ([$r->data_entrada, $r->data_saida] as $dt) {
-                    if (! $dt) {
-                        continue;
-                    }
-                    $dia = substr((string) $dt, 0, 10);
-                    if ($dentro($dia)) {
-                        $somar((int) $r->obra_id, $dia);
-                    }
-                }
-            }
+            $somar('obra_os.obra_id', 'os_checkin.data_entrada', 'os_checkin', true);
+            $somar('obra_os.obra_id', 'os_checkin.data_saida', 'os_checkin', true);
         }
         foreach (['obra_apontamento', 'obra_consumo'] as $tabela) {
-            if (! $this->temColunaOs($tabela)) {
-                continue;
-            }
-            $this->db->select('obra_id, data');
-            $this->db->where_in('obra_id', $ids);
-            $this->db->where('os_id IS NOT NULL', null, false);
-            foreach ($this->db->get($tabela)->result() as $r) {
-                $dia = substr((string) $r->data, 0, 10);
-                if ($dentro($dia)) {
-                    $somar((int) $r->obra_id, $dia);
-                }
+            if ($this->temColunaOs($tabela)) {
+                $somar($tabela . '.obra_id', $tabela . '.data', $tabela, false);
             }
         }
 
@@ -1398,8 +1391,9 @@ class Projeto_acompanhamento_model extends CI_Model
         $osUltimo = [];
         $osReg7 = [];
         if ($ids) {
-            $osUltimo = $this->atividadeOsPorObra($ids)['ultimo'];
-            $osReg7 = $this->atividadeOsPorObra($ids, $ini7, $hoje)['contagem'];
+            $osAtiv = $this->atividadeOsPorObra($ids, $ini7, $hoje);
+            $osUltimo = $osAtiv['ultimo'];
+            $osReg7 = $osAtiv['contagem'];
         }
 
         // Pontos dos projetos ativos, em lote
