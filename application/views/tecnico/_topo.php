@@ -43,24 +43,27 @@ $voltar_url   = isset($voltar_url) ? $voltar_url : null;
                 <h1><i class='bx <?= $header_icone ?>'></i> <?= html_escape(isset($titulo) ? (string) $titulo : 'Área do Técnico') ?></h1>
                 <?php if ($header_sub): ?><p><?= html_escape((string) $header_sub) ?></p><?php endif; ?>
             </div>
-            <?php if ($voltar_url): ?>
-                <a href="<?= $voltar_url ?>" class="tec-back"><i class='bx bx-arrow-back'></i> Voltar</a>
-            <?php endif; ?>
+            <div class="tec-header-acoes" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+                <button type="button" id="install-btn" class="tec-back" style="display:none;border:0"><i class='bx bx-download'></i> Instalar app</button>
+                <button type="button" id="toggle-offline" class="tec-back" style="border:0"></button>
+                <?php if ($voltar_url): ?>
+                    <a href="<?= $voltar_url ?>" class="tec-back"><i class='bx bx-arrow-back'></i> Voltar</a>
+                <?php endif; ?>
+            </div>
         </div>
     </header>
-                    <button id="install-btn" class="btn-tec primary" style="margin-left:12px;display:none;">Instalar app</button>
-        <script nonce="<?= csp_nonce() ?>">
-            (function(){
-                const btn=document.getElementById('toggle-offline');
-                const key='offlineEnabled';
-                const enabled=localStorage.getItem(key)!=='false';
-                btn.textContent=enabled?'Desativar modo offline':'Ativar modo offline';
-                btn.addEventListener('click',()=>{
-                    const now=!localStorage.getItem(key)||localStorage.getItem(key)==='false';
-                    localStorage.setItem(key, now?'true':'false');
-                    btn.textContent=now?'Desativar modo offline':'Ativar modo offline';
-                    // Notifica pwa-tecnico.js
-                    window.dispatchEvent(new Event('offlineToggle'));
-                });
-            })();
-        </script>
+    <script nonce="<?= csp_nonce() ?>">
+        (function () {
+            var btn = document.getElementById('toggle-offline');
+            if (!btn) { return; }
+            var key = 'offlineEnabled';
+            function ligado() { return localStorage.getItem(key) !== 'false'; }
+            function rotulo() { btn.textContent = ligado() ? 'Desativar modo offline' : 'Ativar modo offline'; }
+            rotulo();
+            btn.addEventListener('click', function () {
+                localStorage.setItem(key, ligado() ? 'false' : 'true');
+                rotulo();
+                window.dispatchEvent(new Event('offlineToggle'));
+            });
+        })();
+    </script>

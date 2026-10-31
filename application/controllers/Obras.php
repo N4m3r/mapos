@@ -478,7 +478,7 @@ class Obras extends MY_Controller
             log_info('Vinculou a OS ' . $os_id . ' ao projeto ' . $obra_id);
             $this->session->set_flashdata('success', 'OS vinculada ao projeto.');
         } else {
-            $this->session->set_flashdata('error', 'Não foi possível vincular (a OS já pode estar em um projeto).');
+            $this->session->set_flashdata('error', 'Não foi possível vincular (a OS já está em um projeto ou a etapa não é deste projeto).');
         }
         redirect('obras/visualizar/' . $obra_id . '#os');
     }
@@ -540,8 +540,11 @@ class Obras extends MY_Controller
     {
         $this->precisa('cObraRdo', 'Sem permissão.');
         $obra_id = (int) $this->input->post('obra_id');
-        $this->obras_model->deleteApontamento((int) $this->input->post('idApontamento'), $obra_id);
-        $this->session->set_flashdata('success', 'Apontamento removido.');
+        if ($this->obras_model->deleteApontamento((int) $this->input->post('idApontamento'), $obra_id)) {
+            $this->session->set_flashdata('success', 'Apontamento removido.');
+        } else {
+            $this->session->set_flashdata('error', 'Apontamento não encontrado neste projeto.');
+        }
         redirect('obras/visualizar/' . $obra_id . '#maodeobra');
     }
 
@@ -549,12 +552,27 @@ class Obras extends MY_Controller
     {
         $this->precisa('dObras', 'Você não tem permissão para excluir Projetos.');
         $id = (int) $this->input->post('idObra');
-        if ($id) {
-            $this->obras_model->delete($id);
+        if (! $id) {
+            redirect('obras');
+        }
+        if ($this->obras_model->temMedicaoFechada($id)) {
+            $this->session->set_flashdata('error', 'Projeto com medição aprovada ou faturada não pode ser excluído. Cancele ou conclua o projeto.');
+            redirect('obras/visualizar/' . $id);
+        }
+        if ($this->obras_model->delete($id)) {
             log_info('Removeu o projeto. ID: ' . $id);
             $this->session->set_flashdata('success', 'Projeto excluído com sucesso.');
+        } else {
+            $this->session->set_flashdata('error', 'Não foi possível excluir o projeto.');
         }
         redirect('obras');
+    }
+
+    /** Limita um numero do POST ao intervalo [min, max]. */
+    private function numeroEntre($valor, $min, $max = null)
+    {
+        $n = max($min, (float) $valor);
+        return $max === null ? $n : min($max, $n);
     }
 
     /* ============================ Etapas ============================ */
@@ -568,9 +586,9 @@ class Obras extends MY_Controller
             'obra_id' => $obra_id,
             'codigo_eap' => $this->input->post('codigo_eap'),
             'nome' => trim((string) $this->input->post('nome')),
-            'peso_percentual' => (float) $this->input->post('peso_percentual'),
-            'valor_previsto' => (float) $this->input->post('valor_previsto'),
-            'percentual_concluido' => (float) $this->input->post('percentual_concluido'),
+            'peso_percentual' => $this->numeroEntre($this->input->post('peso_percentual'), 0, 100),
+            'valor_previsto' => $this->numeroEntre($this->input->post('valor_previsto'), 0),
+            'percentual_concluido' => $this->numeroEntre($this->input->post('percentual_concluido'), 0, 100),
             'data_inicio_prevista' => $this->dataOuNull($this->input->post('data_inicio_prevista')),
             'data_fim_prevista' => $this->dataOuNull($this->input->post('data_fim_prevista')),
             'status' => $this->input->post('status') ?: 'pendente',
@@ -579,8 +597,16 @@ class Obras extends MY_Controller
             $this->session->set_flashdata('error', 'Informe o nome da etapa.');
             redirect('obras/visualizar/' . $obra_id);
         }
+        if (! $this->obras_model->getObra($obra_id)) {
+            $this->session->set_flashdata('error', 'Projeto não encontrado.');
+            redirect('obras');
+        }
         if ($idEtapa) {
-            $this->obras_model->editEtapa($idEtapa, $dados);
+            if (! $this->etapaDaObra($obra_id, $idEtapa)) {
+                $this->session->set_flashdata('error', 'Etapa não encontrada neste projeto.');
+                redirect('obras/visualizar/' . $obra_id . '#cronograma');
+            }
+            $this->obras_model->editEtapa($idEtapa, $dados, $obra_id);
         } else {
             $dados['ordem'] = count($this->obras_model->getEtapas($obra_id));
             $this->obras_model->addEtapa($dados);
@@ -594,7 +620,10 @@ class Obras extends MY_Controller
     {
         $this->precisa('eObraCronograma', 'Sem permissão.');
         $obra_id = (int) $this->input->post('obra_id');
-        $this->obras_model->deleteEtapa((int) $this->input->post('idEtapa'));
+        if (! $this->obras_model->deleteEtapa((int) $this->input->post('idEtapa'), $obra_id)) {
+            $this->session->set_flashdata('error', 'Etapa não encontrada neste projeto.');
+            redirect('obras/visualizar/' . $obra_id . '#cronograma');
+        }
         $this->obras_model->recalcularProgresso($obra_id);
         $this->session->set_flashdata('success', 'Etapa removida.');
         redirect('obras/visualizar/' . $obra_id . '#cronograma');
@@ -1270,46 +1299,37 @@ class Obras extends MY_Controller
     {
         $this->precisa('cObraMedicao', 'Você não tem permissão para lançar medição.');
         $obra_id = (int) $this->input->post('obra_id');
-        $etapas = $this->obras_model->getEtapas($obra_id);
-
-        $itens = [];
-        $valorTotal = 0;
-        $pesoTotal = 0;
-        $pctPonderado = 0;
-        foreach ($etapas as $e) {
-            $novo = (float) $this->input->post('pct_' . $e->idEtapa);
-            $anterior = (float) $e->percentual_concluido;
-            if ($novo < $anterior) {
-                $novo = $anterior;
-            }
-            $valorItem = (float) $e->valor_previsto * (($novo - $anterior) / 100);
-            $itens[] = [
-                'etapa_id' => $e->idEtapa,
-                'percentual_anterior' => $anterior,
-                'percentual_atual' => $novo,
-                'valor' => $valorItem,
-            ];
-            $valorTotal += $valorItem;
-            $pesoTotal += (float) $e->peso_percentual;
-            $pctPonderado += (float) $e->peso_percentual * $novo;
-            // aplica avanço na etapa
-            $this->obras_model->editEtapa($e->idEtapa, ['percentual_concluido' => $novo]);
+        if (! $obra_id || ! $this->obras_model->getObra($obra_id)) {
+            $this->session->set_flashdata('error', 'Projeto não encontrado.');
+            redirect('obras');
         }
-        $acumulado = $pesoTotal > 0 ? round($pctPonderado / $pesoTotal, 2) : 0;
+        $this->load->model('obra_medicao_model');
 
-        $cab = [
-            'obra_id' => $obra_id,
-            'numero' => $this->obras_model->proximoNumeroMedicao($obra_id),
+        // form antigo manda pct_<idEtapa>; o novo pode mandar p[idEtapa]
+        $pct = (array) $this->input->post('p');
+        foreach ($this->obras_model->getEtapas($obra_id) as $e) {
+            $v = $this->input->post('pct_' . $e->idEtapa);
+            if ($v !== null && $v !== '') {
+                $pct[(int) $e->idEtapa] = $v;
+            }
+        }
+
+        $osIds = $this->osIdsDaMedicao($obra_id, (array) $this->input->post('os_ids'), (bool) $this->input->post('os_selecao'));
+        if ($osIds === false) {
+            $this->session->set_flashdata('error', 'Há OS que não pertencem a este projeto ou não aguardam medição.');
+            redirect('obras/visualizar/' . $obra_id . '#medicao');
+        }
+
+        $id = $this->obra_medicao_model->criarMedicao($obra_id, [
             'periodo_inicio' => $this->dataOuNull($this->input->post('periodo_inicio')),
             'periodo_fim' => $this->dataOuNull($this->input->post('periodo_fim')),
-            'percentual_acumulado' => $acumulado,
-            'valor_medido' => $valorTotal,
-            'status' => 'aberta',
-            'data_cadastro' => date('Y-m-d H:i:s'),
-        ];
-        $this->obras_model->addMedicao($cab, $itens);
-        $this->obras_model->recalcularProgresso($obra_id);
-        $this->session->set_flashdata('success', 'Medição registrada.');
+        ], $pct, $osIds, (int) $this->session->userdata('id_admin'));
+
+        if (! $id) {
+            $this->session->set_flashdata('error', 'Nada a medir: nenhuma etapa avançou e nenhuma OS foi incluída.');
+        } else {
+            $this->session->set_flashdata('success', 'Medição registrada' . ($osIds ? ' com ' . count($osIds) . ' OS.' : '.'));
+        }
         redirect('obras/visualizar/' . $obra_id . '#medicao');
     }
 
@@ -1318,9 +1338,100 @@ class Obras extends MY_Controller
         $this->precisa('aObraMedicao', 'Você não tem permissão para aprovar medição.');
         $obra_id = (int) $this->input->post('obra_id');
         $id = (int) $this->input->post('idMedicao');
-        $this->obras_model->aprovarMedicao($id, $this->session->userdata('id_admin'), $this->input->post('assinatura'));
+        $m = $this->medicaoDaObra($obra_id, $id);
+        if (! $m || $m->status !== 'aberta') {
+            $this->session->set_flashdata('error', 'Medição não encontrada ou já aprovada.');
+            redirect('obras/visualizar/' . $obra_id . '#medicao');
+        }
+        $assinatura = dataurl_imagem($this->input->post('assinatura', false));
+        if (! $this->obras_model->aprovarMedicao($id, $this->session->userdata('id_admin'), $assinatura)) {
+            $this->session->set_flashdata('error', 'Medição já aprovada por outra pessoa.');
+            redirect('obras/visualizar/' . $obra_id . '#medicao');
+        }
         $this->session->set_flashdata('success', 'Medição aprovada.');
         redirect('obras/visualizar/' . $obra_id . '#medicao');
+    }
+
+    /** Previa da medicao (JSON): GET obra_id, p[etapa]=percentual, os[]=idOs (sem os[] e sem os_selecao: todas as aguardando). */
+    public function previaMedicaoAction()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'cObraMedicao')) {
+            return $this->jsonMedicao(['ok' => false, 'erro' => 'Você não tem permissão para lançar medição.'], 403);
+        }
+        $obra_id = (int) $this->input->get('obra_id');
+        if (! $obra_id || ! $this->obras_model->getObra($obra_id)) {
+            return $this->jsonMedicao(['ok' => false, 'erro' => 'Projeto não encontrado.'], 404);
+        }
+        $this->load->model('obra_medicao_model');
+        $osIds = $this->osIdsDaMedicao($obra_id, (array) $this->input->get('os'), (bool) $this->input->get('os_selecao'));
+        if ($osIds === false) {
+            return $this->jsonMedicao(['ok' => false, 'erro' => 'Há OS que não pertencem a este projeto ou não aguardam medição.'], 400);
+        }
+        $r = $this->obra_medicao_model->previaMedicao($obra_id, (array) $this->input->get('p'), $osIds);
+        return $this->jsonMedicao(['ok' => true] + $r);
+    }
+
+    /** Fatura a medicao aprovada: lancamento de receita e OS da medicao faturadas (ADR-015 fase 5). */
+    public function faturarMedicao()
+    {
+        $perm = $this->session->userdata('permissao');
+        $ajax = $this->input->is_ajax_request();
+        $obra_id = (int) $this->input->post('obra_id');
+        $voltar = 'obras/visualizar/' . $obra_id . '#medicao';
+        $responder = function ($ok, $msg, $extra = []) use ($ajax, $voltar) {
+            if ($ajax) {
+                return $this->jsonMedicao(['result' => $ok, 'message' => $msg] + $extra, $ok ? 200 : 400);
+            }
+            $this->session->set_flashdata($ok ? 'success' : 'error', $this->textoFlash($msg));
+            redirect($voltar);
+        };
+
+        if (! $this->permission->checkPermission($perm, 'aObraMedicao') || ! $this->permission->checkPermission($perm, 'aLancamento')) {
+            return $responder(false, 'Você não tem permissão para faturar medição.');
+        }
+        $id = (int) $this->input->post('idMedicao');
+        $m = $this->medicaoDaObra($obra_id, $id);
+        if (! $m) {
+            return $responder(false, 'Medição não encontrada neste projeto.');
+        }
+        $this->load->model('obra_medicao_model');
+        $r = $this->obra_medicao_model->faturarMedicao($id, (int) $this->session->userdata('id_admin'), [
+            'vencimento' => $this->dataOuNull($this->input->post('vencimento')) ?: date('Y-m-d'),
+            'forma_pagamento' => (string) ($this->input->post('forma_pagamento') ?: $this->input->post('formaPgto')),
+        ]);
+        if (empty($r['ok'])) {
+            return $responder(false, $r['erro'] ?: 'Não foi possível faturar a medição.');
+        }
+        return $responder(true, 'Medição ' . (int) $m->numero . ' faturada.', ['lancamento_id' => $r['lancamento_id']]);
+    }
+
+    /**
+     * OS da medicao: sem lista e sem a flag os_selecao (form antigo), todas as aguardando.
+     * Retorna false se alguma OS nao for do projeto ou nao aguardar medicao.
+     */
+    private function osIdsDaMedicao($obra_id, array $pedidas, $selecao)
+    {
+        $aguardando = array_map(function ($o) { return (int) $o->idOs; }, $this->obra_medicao_model->osAguardandoMedicao($obra_id));
+        $pedidas = array_values(array_unique(array_filter(array_map('intval', $pedidas))));
+        if (! $pedidas && ! $selecao) {
+            return $aguardando;
+        }
+        if (array_diff($pedidas, $aguardando)) {
+            return false;
+        }
+        return $pedidas;
+    }
+
+    /** Medicao se pertencer ao projeto, senao null. */
+    private function medicaoDaObra($obra_id, $idMedicao)
+    {
+        $m = $this->obras_model->getMedicao($idMedicao);
+        return ($m && $obra_id && (int) $m->obra_id === (int) $obra_id) ? $m : null;
+    }
+
+    private function jsonMedicao(array $dados, $status = 200)
+    {
+        return $this->output->set_status_header($status)->set_content_type('application/json')->set_output(json_encode($dados));
     }
 
     /* ============================ Helpers ============================ */

@@ -80,17 +80,77 @@ class Obras_model extends CI_Model
         return true;
     }
 
+    /** O projeto tem medicao aprovada ou faturada (nao pode ser excluido). */
+    public function temMedicaoFechada($id)
+    {
+        if (! $this->db->table_exists('obra_medicao')) {
+            return false;
+        }
+        return $this->db->where('obra_id', (int) $id)->where_in('status', ['aprovada', 'faturada'])
+            ->count_all_results('obra_medicao') > 0;
+    }
+
+    /**
+     * Exclui o projeto e tudo o que pende dele, numa transacao.
+     * Projeto com medicao aprovada/faturada nao e excluido (retorna false).
+     */
     public function delete($id)
     {
         $id = (int) $id;
-        foreach (['obra_etapas', 'obra_os', 'obra_usuario', 'obra_consumo', 'obra_rdo', 'obra_medicao', 'obra_custo',
-            'obra_material_saldo', 'obra_apontamento', 'obra_equipe_alocacao'] as $t) {
+        if (! $id || $this->temMedicaoFechada($id)) {
+            return false;
+        }
+
+        // tabela neta => [coluna, tabela filha do projeto, chave da filha]
+        $netos = [
+            'obra_medicao_item' => ['medicao_id', 'obra_medicao', 'idMedicao'],
+            'obra_medicao_os' => ['medicao_id', 'obra_medicao', 'idMedicao'],
+            'obra_rdo_foto' => ['rdo_id', 'obra_rdo', 'idRdo'],
+            'obra_ponto_os' => ['ponto_id', 'obra_pontos', 'idPonto'],
+            'obra_material_recebimento_item' => ['recebimento_id', 'obra_material_recebimento', 'idRecebimento'],
+            'obra_material_entrega_item' => ['entrega_id', 'obra_material_entrega', 'idEntrega'],
+        ];
+        $fotosMaterial = [
+            'recebimento' => ['obra_material_recebimento', 'idRecebimento'],
+            'entrega' => ['obra_material_entrega', 'idEntrega'],
+        ];
+
+        $this->db->trans_start();
+        foreach ($netos as $neta => [$coluna, $filha, $chave]) {
+            $ids = $this->idsDoProjeto($filha, $chave, $id);
+            if ($ids && $this->db->table_exists($neta)) {
+                $this->db->where_in($coluna, $ids)->delete($neta);
+            }
+        }
+        if ($this->db->table_exists('obra_material_foto')) {
+            foreach ($fotosMaterial as $tipo => [$filha, $chave]) {
+                $ids = $this->idsDoProjeto($filha, $chave, $id);
+                if ($ids) {
+                    $this->db->where('ref_tipo', $tipo)->where_in('ref_id', $ids)->delete('obra_material_foto');
+                }
+            }
+        }
+        foreach (['obra_etapa_itens', 'obra_ponto_foto', 'obra_ponto_historico', 'obra_pontos', 'obra_etapas', 'obra_os',
+            'obra_usuario', 'obra_consumo', 'obra_rdo', 'obra_medicao', 'obra_custo', 'obra_material_saldo',
+            'obra_material_recebimento', 'obra_material_entrega', 'obra_apontamento', 'obra_equipe_alocacao'] as $t) {
             if ($this->db->table_exists($t)) {
                 $this->db->where('obra_id', $id)->delete($t);
             }
         }
         $this->db->where('idObra', $id)->delete('obras');
-        return true;
+        $this->db->trans_complete();
+
+        return $this->db->trans_status() !== false;
+    }
+
+    /** Ids das linhas de uma tabela filha do projeto (vazio se a tabela nao existe). */
+    private function idsDoProjeto($tabela, $chave, $obra_id)
+    {
+        if (! $this->db->table_exists($tabela)) {
+            return [];
+        }
+        $rows = $this->db->select($chave)->where('obra_id', (int) $obra_id)->get($tabela)->result_array();
+        return array_map('intval', array_column($rows, $chave));
     }
 
     /* ======================= Consumo (baixa) ===================== */
@@ -283,6 +343,14 @@ class Obras_model extends CI_Model
         if ($this->db->where('os_id', $os_id)->count_all_results('obra_os')) {
             return false;
         }
+        // projeto e OS existem; a etapa (se informada) precisa ser deste projeto
+        if (! $this->db->where('idObra', $obra_id)->count_all_results('obras')
+            || ! $this->db->where('idOs', $os_id)->count_all_results('os')) {
+            return false;
+        }
+        if ($etapa_id && ! $this->db->where('idEtapa', (int) $etapa_id)->where('obra_id', $obra_id)->count_all_results('obra_etapas')) {
+            return false;
+        }
         if (! in_array($tipo, ['origem', 'execucao', 'adicional', 'corretiva'], true)) {
             $tipo = 'execucao';
         }
@@ -416,16 +484,22 @@ class Obras_model extends CI_Model
         return $this->db->insert_id();
     }
 
-    public function editEtapa($id, $data)
+    /** Edita a etapa; com $obra_id, so altera se a etapa for desse projeto. A etapa nunca troca de projeto. */
+    public function editEtapa($id, $data, $obra_id = null)
     {
-        $this->db->where('idEtapa', (int) $id)->update('obra_etapas', $data);
+        unset($data['obra_id'], $data['idEtapa']);
+        $this->db->where('idEtapa', (int) $id);
+        if ($obra_id !== null) {
+            $this->db->where('obra_id', (int) $obra_id);
+        }
+        $this->db->update('obra_etapas', $data);
         return true;
     }
 
-    public function deleteEtapa($id)
+    public function deleteEtapa($id, $obra_id)
     {
-        $this->db->where('idEtapa', (int) $id)->delete('obra_etapas');
-        return true;
+        $this->db->where('idEtapa', (int) $id)->where('obra_id', (int) $obra_id)->delete('obra_etapas');
+        return $this->db->affected_rows() > 0;
     }
 
     /**
@@ -618,15 +692,16 @@ class Obras_model extends CI_Model
         return $id;
     }
 
+    /** Aprova a medicao em aberto; false se ela ja estava aprovada/faturada (dois cliques, duas abas). */
     public function aprovarMedicao($id, $usuario_id, $assinatura = null)
     {
-        $this->db->where('idMedicao', (int) $id)->update('obra_medicao', [
+        $this->db->where('idMedicao', (int) $id)->where('status', 'aberta')->update('obra_medicao', [
             'status' => 'aprovada',
             'aprovado_por' => (int) $usuario_id ?: null,
             'data_aprovacao' => date('Y-m-d H:i:s'),
             'assinatura_cliente' => $assinatura,
         ]);
-        return true;
+        return $this->db->affected_rows() > 0;
     }
 
     /* =========================== Custo =========================== */
@@ -796,7 +871,10 @@ class Obras_model extends CI_Model
         if (! $this->db->table_exists('obra_apontamento')) {
             return false;
         }
-        $this->db->where('idApontamento', (int) $id)->delete('obra_apontamento');
+        $this->db->where('idApontamento', (int) $id)->where('obra_id', (int) $obra_id)->delete('obra_apontamento');
+        if ($this->db->affected_rows() < 1) {
+            return false;
+        }
         $this->recalcularCustoMaoObra($obra_id);
         return true;
     }

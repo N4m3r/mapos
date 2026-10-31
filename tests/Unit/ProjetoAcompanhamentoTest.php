@@ -354,4 +354,50 @@ class ProjetoAcompanhamentoTest extends TestCase
         $this->assertSame('os', $r['origem']);
         $this->assertSame('OS #45', $r['rotulo']);
     }
+
+    /* ------------------ alertas da ponte OS x projeto ------------------ */
+
+    public function testTextoEtapaAtrasada(): void
+    {
+        $t = Projeto_acompanhamento_model::textoAlerta('etapa_atrasada', ['qtd' => 1, 'nome' => 'Cabos', 'dias' => 3]);
+        $this->assertSame('A etapa "Cabos" passou do fim previsto há 3 dias sem OS concluída.', $t);
+        $this->assertSame('2 etapas passaram do fim previsto sem OS concluída.', Projeto_acompanhamento_model::textoAlerta('etapa_atrasada', ['qtd' => 2]));
+    }
+
+    public function testTextoEtapaSemOs(): void
+    {
+        $this->assertSame('A etapa "NVR" começa em 1 dia e ainda não tem OS.', Projeto_acompanhamento_model::textoAlerta('etapa_sem_os', ['qtd' => 1, 'nome' => 'NVR', 'dias' => 1]));
+        $this->assertSame('A etapa "NVR" começa hoje e ainda não tem OS.', Projeto_acompanhamento_model::textoAlerta('etapa_sem_os', ['nome' => 'NVR', 'dias' => 0]));
+        $this->assertSame('A etapa "NVR" deveria ter começado há 4 dias e ainda não tem OS.', Projeto_acompanhamento_model::textoAlerta('etapa_sem_os', ['nome' => 'NVR', 'dias' => -4]));
+        $this->assertStringStartsWith('3 etapas começam', Projeto_acompanhamento_model::textoAlerta('etapa_sem_os', ['qtd' => 3]));
+    }
+
+    public function testTextoOsSemEtapaEAguardandoMedicao(): void
+    {
+        $this->assertStringStartsWith('A OS #12 é de execução e está sem etapa.', Projeto_acompanhamento_model::textoAlerta('os_sem_etapa', ['qtd' => 1, 'os_id' => 12]));
+        $this->assertSame('A OS #7 foi finalizada há 9 dias e aguarda medição.', Projeto_acompanhamento_model::textoAlerta('os_aguardando_medicao', ['qtd' => 1, 'os_id' => 7, 'dias' => 9]));
+        $this->assertSame('4 OS finalizadas há mais de 7 dias aguardam medição.', Projeto_acompanhamento_model::textoAlerta('os_aguardando_medicao', ['qtd' => 4]));
+    }
+
+    public function testTextoMedicaoNaoFaturada(): void
+    {
+        $this->assertSame('A medição nº 3 foi aprovada e ainda não foi faturada (R$ 1.234,50).', Projeto_acompanhamento_model::textoAlerta('medicao_nao_faturada', ['qtd' => 1, 'numero' => 3, 'valor' => 1234.5]));
+        $this->assertSame('2 medições aprovadas ainda não foram faturadas (R$ 10,00).', Projeto_acompanhamento_model::textoAlerta('medicao_nao_faturada', ['qtd' => 2, 'valor' => 10]));
+        $this->assertSame('', Projeto_acompanhamento_model::textoAlerta('desconhecido', []));
+    }
+
+    public function testAlertaMontaLinkEAcao(): void
+    {
+        $a = Projeto_acompanhamento_model::alerta('medicao_nao_faturada', 9903, 'Demo', ['qtd' => 1, 'numero' => 1, 'valor' => 5], 'medicao');
+        $this->assertSame('obras/visualizar/9903#medicao', $a['link']);
+        $this->assertSame('Faturar', $a['acao']);
+        $this->assertSame('perigo', $a['nivel']);
+        $this->assertSame(9903, $a['obra_id']);
+        // uma OS sem etapa: vai direto para a OS, onde a etapa é escolhida
+        $b = Projeto_acompanhamento_model::alerta('os_sem_etapa', 9903, 'Demo', ['qtd' => 1, 'os_id' => 44], 'os');
+        $this->assertSame('os/visualizar/44', $b['link']);
+        $c = Projeto_acompanhamento_model::alerta('os_sem_etapa', 9903, 'Demo', ['qtd' => 2, 'os_id' => 44], 'os');
+        $this->assertSame('obras/visualizar/9903#os', $c['link']);
+        $this->assertSame('alerta', $c['nivel']);
+    }
 }

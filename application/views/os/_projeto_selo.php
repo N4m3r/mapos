@@ -26,7 +26,13 @@ if (! empty($vinculoProjeto) || $mostrarAcoes || $mostrarConverter):
             <br>
             <small>
                 Vínculo: <?= html_escape($tiposVinculo[$v->tipo_vinculo] ?? $v->tipo_vinculo) ?>
-                <?php if (! empty($v->fatura_no_projeto)): ?> &middot; <span class="label label-info">fatura pelo projeto</span><?php endif; ?>
+                <?php if (! empty($v->fatura_no_projeto)): ?> &middot;
+                    <?php if (! empty($podeVerProjeto)): ?>
+                        <a href="<?= site_url('obras/visualizar/' . (int) $v->idObra) ?>#financeiro" class="label label-info" style="color:#fff">Cobrada pela medição do projeto</a>
+                    <?php else: ?>
+                        <span class="label label-info">Cobrada pela medição do projeto</span>
+                    <?php endif; ?>
+                <?php endif; ?>
             </small>
         </div>
         <?php if ($mostrarAcoes): ?>

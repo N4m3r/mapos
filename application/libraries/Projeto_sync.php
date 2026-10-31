@@ -110,6 +110,49 @@ class Projeto_sync
         return ((int) $fatura === 1) ? 'obra' : 'estoque';
     }
 
+    /** OS fatura sozinha, salvo se o vinculo e cobrado na medicao do projeto (decisao 6). */
+    public static function podeFaturarOsSozinha($vinculo): bool
+    {
+        return self::decidirOrigemMaterial($vinculo) !== 'obra';
+    }
+
+    /**
+     * Onde cancelar/reabrir/excluir a OS mexe no material: 'projeto' (almoxarifado
+     * do projeto) quando o vinculo fatura no projeto; senao 'geral' (estoque geral).
+     */
+    public static function decidirDestinoEstoque($vinculo, string $operacao): string
+    {
+        if (! in_array($operacao, ['cancelar', 'reabrir', 'excluir'], true)) {
+            return 'geral';
+        }
+        return self::decidirOrigemMaterial($vinculo) === 'obra' ? 'projeto' : 'geral';
+    }
+
+    /**
+     * Parte da quantidade do produto na OS que nao tem consumo no projeto (lancada
+     * antes do vinculo, saiu do estoque geral) e volta para o estoque geral.
+     */
+    public static function sobraParaEstoqueGeral(float $qtdNaOs, float $qtdConsumida): float
+    {
+        $sobra = round($qtdNaOs - max(0.0, $qtdConsumida), 4);
+        return $sobra > 0 ? $sobra : 0.0;
+    }
+
+    /** Soma das quantidades por produto (produtos_id => qtd) das linhas de produtos_os. */
+    public static function somarPorProduto(array $linhas): array
+    {
+        $out = [];
+        foreach ($linhas as $l) {
+            $l = (array) $l;
+            $pid = (int) ($l['produtos_id'] ?? 0);
+            if (! $pid) {
+                continue;
+            }
+            $out[$pid] = ($out[$pid] ?? 0.0) + (float) ($l['quantidade'] ?? 0);
+        }
+        return $out;
+    }
+
     /** Reage a mudanca de status da OS; devolve o que foi feito. */
     public function aposMudarStatusOs($idOs, $anterior, $novo): array
     {
@@ -342,6 +385,18 @@ class Projeto_sync
             return ['origem' => 'estoque'];
         }
 
+        // Consumo e saldo mudam juntos; a trava no projeto evita descontar duas vezes (duplo clique, duas OS)
+        $db->trans_start();
+        $db->query('SELECT idObra FROM ' . $db->dbprefix('obras') . ' WHERE idObra = ? FOR UPDATE', [(int) $vinculo->obra_id]);
+        $r = $this->aplicarProdutoNoProjeto($vinculo, $idOs, $produtoId, $qtd, $acao);
+        $db->trans_complete();
+
+        return $r;
+    }
+
+    private function aplicarProdutoNoProjeto($vinculo, int $idOs, int $produtoId, float $qtd, string $acao): array
+    {
+        $db = $this->ci->db;
         $obraId = (int) $vinculo->obra_id;
         $etapaId = $vinculo->etapa_id ? (int) $vinculo->etapa_id : null;
         $descricao = null;
@@ -410,6 +465,103 @@ class Projeto_sync
             : null;
 
         return ['origem' => 'obra', 'acao' => $acao, 'quantidade' => $novaQtd, 'saldo' => $saldo, 'aviso' => $aviso];
+    }
+
+    /**
+     * Cancelar/excluir OS de projeto: devolve ao almoxarifado do projeto tudo o que
+     * a OS consumiu (obra_consumo e a fonte da verdade) e apaga esses consumos.
+     * Idempotente: sem consumo, nao devolve nada. 'sem_consumo' lista o que a OS
+     * tem sem consumo no projeto (lancado antes do vinculo) para o controller
+     * devolver ao estoque geral.
+     *
+     * @return array{origem:string, devolvidos?:array<int,float>, sem_consumo?:array<int,float>}
+     */
+    public function devolverMaterialDaOs(int $idOs): array
+    {
+        $db = $this->ci->db;
+        $this->ci->load->model('obras_model');
+        $vinculo = $this->ci->obras_model->getVinculoDaOs($idOs);
+        if (self::decidirDestinoEstoque($vinculo, 'cancelar') !== 'projeto') {
+            return ['origem' => 'estoque'];
+        }
+        if (! $db->table_exists('obra_consumo') || ! $db->table_exists('obra_material_saldo')) {
+            return ['origem' => 'estoque'];
+        }
+
+        $obraId = (int) $vinculo->obra_id;
+        $devolvidos = [];
+        if ($db->field_exists('os_id', 'obra_consumo')) {
+            $this->ci->load->model('obra_material_model');
+            $rows = $db->where('obra_id', $obraId)->where('os_id', $idOs)
+                ->where('tipo', 'material')->get('obra_consumo')->result();
+            foreach ($rows as $c) {
+                $pid = (int) $c->referencia_id;
+                $qtd = (float) $c->quantidade;
+                $this->ci->obra_material_model->ajustarSaldoPorOs($obraId, $pid ?: null, $c->descricao, $qtd);
+                $db->where('idConsumo', $c->idConsumo)->delete('obra_consumo');
+                $devolvidos[$pid] = ($devolvidos[$pid] ?? 0.0) + $qtd;
+            }
+            if ($rows) {
+                $this->ci->obras_model->recalcularCustoMaterialConsumo($obraId);
+            }
+        }
+
+        $semConsumo = [];
+        $naOs = self::somarPorProduto($db->where('os_id', $idOs)->get('produtos_os')->result());
+        foreach ($naOs as $pid => $qtd) {
+            $sobra = self::sobraParaEstoqueGeral($qtd, $devolvidos[$pid] ?? 0.0);
+            if ($sobra > 0) {
+                $semConsumo[$pid] = $sobra;
+            }
+        }
+
+        return ['origem' => 'obra', 'devolvidos' => $devolvidos, 'sem_consumo' => $semConsumo];
+    }
+
+    /**
+     * Reabrir OS de projeto (sai de Cancelado): debita do almoxarifado do projeto
+     * os produtos da OS e recria o obra_consumo. Idempotente: leva o consumo de cada
+     * produto ao total da OS (so debita a diferenca).
+     */
+    public function debitarMaterialDaOs(int $idOs): array
+    {
+        $db = $this->ci->db;
+        $this->ci->load->model('obras_model');
+        $vinculo = $this->ci->obras_model->getVinculoDaOs($idOs);
+        if (self::decidirDestinoEstoque($vinculo, 'reabrir') !== 'projeto') {
+            return ['origem' => 'estoque'];
+        }
+        if (! $db->table_exists('obra_consumo') || ! $db->table_exists('obra_material_saldo')) {
+            return ['origem' => 'estoque'];
+        }
+
+        $debitados = [];
+        $avisos = [];
+        $naOs = self::somarPorProduto($db->where('os_id', $idOs)->get('produtos_os')->result());
+        foreach ($naOs as $pid => $qtd) {
+            $r = $this->aplicarProdutoDaOs($idOs, (int) $pid, (float) $qtd, 'ajustar');
+            $debitados[$pid] = $qtd;
+            if (! empty($r['aviso'])) {
+                $avisos[] = $r['aviso'];
+            }
+        }
+
+        return ['origem' => 'obra', 'debitados' => $debitados, 'avisos' => $avisos];
+    }
+
+    /**
+     * Excluir OS: tira o vinculo com o projeto (obra_os) e com os pontos
+     * (obra_ponto_os). O historico dos pontos fica.
+     */
+    public function removerVinculoDaOs(int $idOs): void
+    {
+        $db = $this->ci->db;
+        if ($db->table_exists('obra_ponto_os')) {
+            $db->where('os_id', $idOs)->delete('obra_ponto_os');
+        }
+        if ($db->table_exists('obra_os')) {
+            $db->where('os_id', $idOs)->delete('obra_os');
+        }
     }
 
     /**

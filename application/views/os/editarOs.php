@@ -17,7 +17,7 @@
                 <span class="icon"><i class="fas fa-diagnoses"></i></span>
                 <h5>Editar Ordem de Serviço</h5>
                 <div class="buttons">
-                    <?php if ($result->faturado == 0) { ?>
+                    <?php if ($result->faturado == 0 && (! isset($podeFaturarOs) || $podeFaturarOs)) { ?>
                         <a href="#modal-faturar" id="btn-faturar" role="button" data-toggle="modal" class="button btn btn-mini btn-danger">
                             <span class="button__icon"><i class='bx bx-dollar'></i></span> <span class="button__text">Faturar</span>
                         </a>
@@ -1050,7 +1050,7 @@
                                 Swal.fire({
                                     type: "error",
                                     title: "Atenção",
-                                    text: "Ocorreu um erro ao tentar faturar OS."
+                                    text: data.mensagem || "Ocorreu um erro ao tentar faturar OS."
                                 });
                                 $('#progress-fatura').hide();
                             }
@@ -1154,7 +1154,7 @@
                             Swal.fire({
                                 type: "error",
                                 title: "Atenção",
-                                text: "Ocorreu um erro ao tentar  OS."
+                                text: data.mensagem || "Ocorreu um erro ao tentar faturar OS."
                             });
                             $('#progress-fatura').hide();
                         }

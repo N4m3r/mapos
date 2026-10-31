@@ -76,6 +76,52 @@ class ProjetoGuiaTest extends TestCase
         $this->assertSame('#aba-financeiro', $r['alvo']);
     }
 
+    public function testTudoTestadoComOsAguardandoPedeMedicao(): void
+    {
+        $r = Projeto_guia::proximoPasso($this->base(['os_aguardando_medicao' => 2, 'saldo_a_medir' => 0.0, 'pode_medir' => true]));
+        $this->assertSame(4, $r['fase']);
+        $this->assertSame('Fazer a medição', $r['botao_rotulo']);
+        $this->assertSame('#modal-medicao', $r['alvo']);
+        $this->assertStringContainsString('2 OS aguardando', $r['texto']);
+    }
+
+    public function testTudoTestadoComSaldoAMedirPedeMedicao(): void
+    {
+        $r = Projeto_guia::proximoPasso($this->base(['os_aguardando_medicao' => 0, 'saldo_a_medir' => 1500.0]));
+        $this->assertSame('Fazer a medição', $r['botao_rotulo']);
+        // sem permissao de medir: leva para a aba
+        $this->assertSame('#aba-financeiro', $r['alvo']);
+    }
+
+    public function testTudoMedidoPedeDocumentacaoFinal(): void
+    {
+        $r = Projeto_guia::proximoPasso($this->base(['os_aguardando_medicao' => 0, 'saldo_a_medir' => 0.0, 'pode_medir' => true]));
+        $this->assertSame(4, $r['fase']);
+        $this->assertSame('Ver financeiro', $r['botao_rotulo']);
+        $this->assertStringContainsString('medido', $r['texto']);
+    }
+
+    public function testMedicaoAprovadaNaoFaturadaPedeFaturar(): void
+    {
+        $r = Projeto_guia::proximoPasso($this->base(['medicoes_a_faturar' => 1, 'os_aguardando_medicao' => 3, 'saldo_a_medir' => 10.0, 'pode_medir' => true]));
+        $this->assertSame(4, $r['fase']);
+        $this->assertSame('Faturar a medição', $r['botao_rotulo']);
+        $this->assertSame('#aba-financeiro', $r['alvo']);
+        // durante a execucao tambem pede para faturar, mas a fase continua Executar
+        $r = Projeto_guia::proximoPasso($this->base(['medicoes_a_faturar' => 2, 'os_abertas' => 1]));
+        $this->assertSame(3, $r['fase']);
+        $this->assertSame('Faturar a medição', $r['botao_rotulo']);
+        $this->assertStringContainsString('2 medições', $r['texto']);
+    }
+
+    public function testMedicaoNaoPassaNaFrenteDoPlanejamento(): void
+    {
+        $r = Projeto_guia::proximoPasso($this->base(['etapas_sem_os' => 1, 'medicoes_a_faturar' => 1]));
+        $this->assertSame(2, $r['fase']);
+        $r = Projeto_guia::proximoPasso($this->base(['os_abertas' => 1, 'os_aguardando_medicao' => 4, 'saldo_a_medir' => 100.0]));
+        $this->assertSame('#modal-registro', $r['alvo']);
+    }
+
     public function testConcluidaNaoTemBotao(): void
     {
         foreach (['concluida', 'entregue'] as $s) {

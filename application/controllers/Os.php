@@ -283,12 +283,24 @@ class Os extends MY_Controller
 
             //Verifica para poder fazer a devolução do produto para o estoque caso OS seja cancelada.
 
+            // Handle material stock based on project linkage
+            $vinculo = $this->obras_model->getVinculoDaOs((int) $this->input->post('idOs'));
+            $destino = \Projeto_sync::decidirDestinoEstoque($vinculo, 'cancelar');
             if (strtolower($this->input->post('status')) == 'cancelado' && strtolower($os->status) != 'cancelado') {
-                $this->devolucaoEstoque($this->input->post('idOs'));
+                if ($destino === 'projeto') {
+                    $this->projeto_sync->devolverMaterialDaOs((int) $this->input->post('idOs'));
+                } else {
+                    $this->devolucaoEstoque($this->input->post('idOs'));
+                }
             }
 
+            $destinoReabrir = \Projeto_sync::decidirDestinoEstoque($vinculo, 'reabrir');
             if (strtolower($os->status) == 'cancelado' && strtolower($this->input->post('status')) != 'cancelado') {
-                $this->debitarEstoque($this->input->post('idOs'));
+                if ($destinoReabrir === 'projeto') {
+                    $this->projeto_sync->debitarMaterialDaOs((int) $this->input->post('idOs'));
+                } else {
+                    $this->debitarEstoque($this->input->post('idOs'));
+                }
             }
 
             // Contrato/SLA e equipe (só grava se as colunas existirem).
@@ -361,6 +373,8 @@ class Os extends MY_Controller
         $this->load->model('obras_model');
         $perm = $this->session->userdata('permissao');
         $this->data['vinculoProjeto'] = $this->obras_model->getVinculoDaOs($osId);
+        $this->load->library('projeto_sync');
+        $this->data['podeFaturarOs'] = Projeto_sync::podeFaturarOsSozinha($this->data['vinculoProjeto']);
         $this->data['podeVerProjeto'] = $this->permission->checkPermission($perm, 'vObras');
         $this->data['podeVincularProjeto'] = $this->permission->checkPermission($perm, 'eObras')
             && $this->permission->checkPermission($perm, 'eOs');
@@ -749,6 +763,20 @@ class Os extends MY_Controller
 
     private function devolucaoEstoque($id)
     {
+        // OS cobrada no projeto (ADR-015): devolve ao almoxarifado do projeto; ao
+        // estoque geral so volta o que foi lancado antes do vinculo (sem consumo).
+        $this->load->library('projeto_sync');
+        $resProjeto = $this->projeto_sync->devolverMaterialDaOs((int) $id);
+        if ($resProjeto['origem'] === 'obra') {
+            if (! empty($resProjeto['sem_consumo']) && $this->data['configuration']['control_estoque']) {
+                $this->load->model('produtos_model');
+                foreach ($resProjeto['sem_consumo'] as $produtoId => $qtd) {
+                    $this->produtos_model->updateEstoque($produtoId, $qtd, '+', ['tipo' => 'os', 'referencia' => $id, 'observacao' => 'OS cancelada ou excluída']);
+                }
+            }
+            return;
+        }
+
         if ($produtos = $this->os_model->getProdutos($id)) {
             $this->load->model('produtos_model');
             if ($this->data['configuration']['control_estoque']) {
@@ -761,6 +789,16 @@ class Os extends MY_Controller
 
     private function debitarEstoque($id)
     {
+        // OS cobrada no projeto (ADR-015): debita do almoxarifado do projeto
+        $this->load->library('projeto_sync');
+        $resProjeto = $this->projeto_sync->debitarMaterialDaOs((int) $id);
+        if ($resProjeto['origem'] === 'obra') {
+            foreach ($resProjeto['avisos'] ?? [] as $aviso) {
+                log_info('Os::editar - ' . $aviso);
+            }
+            return;
+        }
+
         if ($produtos = $this->os_model->getProdutos($id)) {
             $this->load->model('produtos_model');
             if ($this->data['configuration']['control_estoque']) {
@@ -800,8 +838,19 @@ class Os extends MY_Controller
         $osStockRefund = $this->os_model->getById($id);
         //Verifica para poder fazer a devolução do produto para o estoque caso OS seja excluida.
         if (strtolower($osStockRefund->status) != 'cancelado') {
-            $this->devolucaoEstoque($id);
+            // Handle material based on project linkage
+            $vinculo = $this->obras_model->getVinculoDaOs((int) $id);
+            $destino = \Projeto_sync::decidirDestinoEstoque($vinculo, 'excluir');
+            if ($destino === 'projeto') {
+                $this->projeto_sync->devolverMaterialDaOs((int) $id);
+            } else {
+                $this->devolucaoEstoque($id);
+            }
         }
+
+        // tira o vinculo com projeto e pontos (historico dos pontos fica)
+        $this->load->library('projeto_sync');
+        $this->projeto_sync->removerVinculoDaOs((int) $id);
 
         $this->os_model->delete('servicos_os', 'os_id', $id);
         $this->os_model->delete('produtos_os', 'os_id', $id);
@@ -1310,6 +1359,22 @@ class Os extends MY_Controller
 
     public function faturar()
     {
+        // OS cobrada pela medicao do projeto nao fatura sozinha (ADR-015 decisao 6)
+        $osIdFaturar = (int) $this->input->post('os_id');
+        if ($osIdFaturar) {
+            $this->load->model('obras_model');
+            $this->load->library('projeto_sync');
+            $vinculo = $this->obras_model->getVinculoDaOs($osIdFaturar);
+            if (! Projeto_sync::podeFaturarOsSozinha($vinculo)) {
+                $msg = 'Esta OS é cobrada pela medição do projeto ' . $vinculo->obra_nome . '. Fature pela medição.';
+                $this->session->set_flashdata('error', $msg);
+
+                return $this->output
+                    ->set_content_type('application/json')
+                    ->set_output(json_encode(['result' => false, 'mensagem' => $msg]));
+            }
+        }
+
         $this->load->library('form_validation');
         $this->data['custom_error'] = '';
 

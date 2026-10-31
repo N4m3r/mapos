@@ -1666,4 +1666,211 @@ class Projeto_acompanhamento_model extends CI_Model
 
         return $c;
     }
+
+    /* ================= Alertas da ponte OS x projeto (ADR-015 fase 5) ================= */
+
+    /** Ordem de exibição dos alertas (o que trava dinheiro primeiro). */
+    private const ALERTA_ORDEM = [
+        'medicao_nao_faturada' => 1, 'os_aguardando_medicao' => 2, 'etapa_atrasada' => 3,
+        'etapa_sem_os' => 4, 'os_sem_etapa' => 5,
+    ];
+
+    /** Rótulo do botão de cada alerta. */
+    private const ALERTA_ACAO = [
+        'medicao_nao_faturada' => 'Faturar', 'os_aguardando_medicao' => 'Fazer a medição',
+        'etapa_atrasada' => 'Ver etapas', 'etapa_sem_os' => 'Gerar OS', 'os_sem_etapa' => 'Escolher a etapa',
+    ];
+
+    /**
+     * Texto curto de um alerta da ponte. Pura (sem banco).
+     *
+     * @param array $d qtd, nome (etapa), dias, os_id, numero (medição), valor
+     */
+    public static function textoAlerta(string $tipo, array $d): string
+    {
+        $qtd = max(1, (int) ($d['qtd'] ?? 1));
+        $nome = trim((string) ($d['nome'] ?? ''));
+        $dias = isset($d['dias']) ? (int) $d['dias'] : null;
+        $nDias = function (int $n) {
+            return $n . ($n === 1 ? ' dia' : ' dias');
+        };
+        switch ($tipo) {
+            case 'etapa_atrasada':
+                if ($qtd > 1) {
+                    return $qtd . ' etapas passaram do fim previsto sem OS concluída.';
+                }
+
+                return 'A etapa "' . $nome . '" passou do fim previsto' . ($dias !== null && $dias > 0 ? ' há ' . $nDias($dias) : '') . ' sem OS concluída.';
+            case 'os_sem_etapa':
+                if ($qtd > 1) {
+                    return $qtd . ' OS de execução estão sem etapa. Sem etapa o avanço não chega ao planejamento.';
+                }
+
+                return 'A OS #' . (int) ($d['os_id'] ?? 0) . ' é de execução e está sem etapa. Sem etapa o avanço não chega ao planejamento.';
+            case 'etapa_sem_os':
+                if ($qtd > 1) {
+                    return $qtd . ' etapas começam em até 7 dias (ou já começaram) e ainda não têm OS.';
+                }
+                if ($dias === null || $dias === 0) {
+                    $quando = 'começa hoje';
+                } elseif ($dias > 0) {
+                    $quando = 'começa em ' . $nDias($dias);
+                } else {
+                    $quando = 'deveria ter começado há ' . $nDias(-$dias);
+                }
+
+                return 'A etapa "' . $nome . '" ' . $quando . ' e ainda não tem OS.';
+            case 'os_aguardando_medicao':
+                if ($qtd > 1) {
+                    return $qtd . ' OS finalizadas há mais de 7 dias aguardam medição.';
+                }
+
+                return 'A OS #' . (int) ($d['os_id'] ?? 0) . ' foi finalizada' . ($dias !== null ? ' há ' . $nDias($dias) : '') . ' e aguarda medição.';
+            case 'medicao_nao_faturada':
+                $valor = 'R$ ' . number_format((float) ($d['valor'] ?? 0), 2, ',', '.');
+                if ($qtd > 1) {
+                    return $qtd . ' medições aprovadas ainda não foram faturadas (' . $valor . ').';
+                }
+
+                return 'A medição nº ' . (int) ($d['numero'] ?? 0) . ' foi aprovada e ainda não foi faturada (' . $valor . ').';
+        }
+
+        return '';
+    }
+
+    /** Monta um alerta no formato devolvido por alertasPonte(). Pura. */
+    public static function alerta(string $tipo, int $obraId, string $obraNome, array $dados, string $ancora): array
+    {
+        $link = 'obras/visualizar/' . $obraId . '#' . $ancora;
+        if ($tipo === 'os_sem_etapa' && (int) ($dados['qtd'] ?? 0) === 1 && ! empty($dados['os_id'])) {
+            // a etapa é escolhida na própria OS (selo do projeto)
+            $link = 'os/visualizar/' . (int) $dados['os_id'];
+        }
+
+        return [
+            'tipo' => $tipo,
+            'obra_id' => $obraId,
+            'obra_nome' => $obraNome,
+            'texto' => self::textoAlerta($tipo, $dados),
+            'link' => $link,
+            'acao' => self::ALERTA_ACAO[$tipo] ?? 'Abrir',
+            'nivel' => in_array($tipo, ['etapa_atrasada', 'medicao_nao_faturada'], true) ? 'perigo' : 'alerta',
+        ];
+    }
+
+    /**
+     * Alertas que cruzam OS e projeto: etapa vencida sem OS concluída, OS de execução sem
+     * etapa, etapa começando sem OS, OS aguardando medição há mais de 7 dias e medição
+     * aprovada não faturada. Uma linha por projeto e tipo, em consultas agregadas (sem N+1).
+     * 'link' é relativo (usar com site_url()).
+     *
+     * @return array lista de ['tipo','obra_id','obra_nome','texto','link','acao','nivel']
+     */
+    public function alertasPonte(?int $obraId = null, ?string $hoje = null): array
+    {
+        $hoje = $hoje ?: date('Y-m-d');
+        if (! $this->db->table_exists('obras') || ! $this->db->table_exists('obra_os') || ! $this->db->table_exists('os')) {
+            return [];
+        }
+        $alertas = [];
+        $ativos = "obras.status IN ('planejamento', 'em_execucao', 'paralisada')";
+        $porObra = $obraId ? ' AND obras.idObra = ' . (int) $obraId : '';
+        $eHoje = $this->db->escape($hoje);
+        $diasAte = function ($data) use ($hoje) {
+            $data = substr((string) $data, 0, 10);
+
+            return self::data($data) ? self::dias($hoje, $data) : null;
+        };
+        $temEtapas = $this->db->table_exists('obra_etapas');
+        $etapaAberta = "obra_etapas.percentual_concluido < 100 AND obra_etapas.status <> 'concluida'";
+
+        // 1) etapa com fim previsto vencido e nenhuma OS concluída nela
+        if ($temEtapas) {
+            $sql = 'SELECT obras.idObra, obras.nome AS obra_nome, COUNT(*) AS n, MIN(obra_etapas.nome) AS etapa, MIN(obra_etapas.data_fim_prevista) AS fim'
+                . ' FROM obra_etapas JOIN obras ON obras.idObra = obra_etapas.obra_id'
+                . ' WHERE ' . $ativos . $porObra . ' AND ' . $etapaAberta
+                . " AND obra_etapas.data_fim_prevista > '1000-01-01' AND obra_etapas.data_fim_prevista < " . $eHoje
+                . " AND NOT EXISTS (SELECT 1 FROM obra_os JOIN os ON os.idOs = obra_os.os_id WHERE obra_os.etapa_id = obra_etapas.idEtapa AND os.status IN ('Finalizado', 'Faturado'))"
+                . ' GROUP BY obras.idObra, obras.nome';
+            foreach ($this->db->query($sql)->result() as $r) {
+                $d = $diasAte($r->fim);
+                $alertas[] = self::alerta('etapa_atrasada', (int) $r->idObra, (string) $r->obra_nome, [
+                    'qtd' => (int) $r->n, 'nome' => $r->etapa, 'dias' => $d !== null ? -$d : null,
+                ], 'planejamento');
+            }
+        }
+
+        // 2) OS vinculada como execução, mas sem etapa
+        if ($this->db->field_exists('tipo_vinculo', 'obra_os')) {
+            $sql = 'SELECT obras.idObra, obras.nome AS obra_nome, COUNT(*) AS n, MIN(obra_os.os_id) AS os_id'
+                . ' FROM obra_os JOIN obras ON obras.idObra = obra_os.obra_id JOIN os ON os.idOs = obra_os.os_id'
+                . ' WHERE ' . $ativos . $porObra . " AND obra_os.tipo_vinculo = 'execucao'"
+                . " AND (obra_os.etapa_id IS NULL OR obra_os.etapa_id = 0) AND os.status <> 'Cancelado'"
+                . ' GROUP BY obras.idObra, obras.nome';
+            foreach ($this->db->query($sql)->result() as $r) {
+                $alertas[] = self::alerta('os_sem_etapa', (int) $r->idObra, (string) $r->obra_nome, [
+                    'qtd' => (int) $r->n, 'os_id' => (int) $r->os_id,
+                ], 'os');
+            }
+        }
+
+        // 3) etapa que começa em até 7 dias (ou já devia ter começado) e ainda não tem OS.
+        //    Etapa com fim vencido já entra no alerta 1.
+        if ($temEtapas) {
+            $limite = $this->db->escape((new DateTime($hoje))->modify('+7 days')->format('Y-m-d'));
+            $sql = 'SELECT obras.idObra, obras.nome AS obra_nome, COUNT(*) AS n, MIN(obra_etapas.nome) AS etapa, MIN(obra_etapas.data_inicio_prevista) AS inicio'
+                . ' FROM obra_etapas JOIN obras ON obras.idObra = obra_etapas.obra_id'
+                . ' WHERE ' . $ativos . $porObra . ' AND ' . $etapaAberta
+                . " AND obra_etapas.data_inicio_prevista > '1000-01-01' AND obra_etapas.data_inicio_prevista <= " . $limite
+                . " AND (obra_etapas.data_fim_prevista IS NULL OR obra_etapas.data_fim_prevista < '1000-01-01' OR obra_etapas.data_fim_prevista >= " . $eHoje . ')'
+                . ' AND NOT EXISTS (SELECT 1 FROM obra_os WHERE obra_os.etapa_id = obra_etapas.idEtapa)'
+                . ' GROUP BY obras.idObra, obras.nome';
+            foreach ($this->db->query($sql)->result() as $r) {
+                $alertas[] = self::alerta('etapa_sem_os', (int) $r->idObra, (string) $r->obra_nome, [
+                    'qtd' => (int) $r->n, 'nome' => $r->etapa, 'dias' => $diasAte($r->inicio),
+                ], 'planejamento');
+            }
+        }
+
+        // 4) OS que fatura no projeto, finalizada há mais de 7 dias e fora de qualquer medição
+        if ($this->db->table_exists('obra_medicao_os') && $this->db->field_exists('fatura_no_projeto', 'obra_os')) {
+            $corte = $this->db->escape((new DateTime($hoje))->modify('-7 days')->format('Y-m-d'));
+            $sql = 'SELECT obras.idObra, obras.nome AS obra_nome, COUNT(*) AS n, MIN(obra_os.os_id) AS os_id, MIN(os.dataFinal) AS final'
+                . ' FROM obra_os JOIN obras ON obras.idObra = obra_os.obra_id JOIN os ON os.idOs = obra_os.os_id'
+                . " WHERE obras.status <> 'cancelada'" . $porObra
+                . " AND obra_os.fatura_no_projeto = 1 AND os.status = 'Finalizado'"
+                . " AND os.dataFinal > '1000-01-01' AND os.dataFinal < " . $corte
+                . ' AND NOT EXISTS (SELECT 1 FROM obra_medicao_os WHERE obra_medicao_os.os_id = obra_os.os_id)'
+                . ' GROUP BY obras.idObra, obras.nome';
+            foreach ($this->db->query($sql)->result() as $r) {
+                $d = $diasAte($r->final);
+                $alertas[] = self::alerta('os_aguardando_medicao', (int) $r->idObra, (string) $r->obra_nome, [
+                    'qtd' => (int) $r->n, 'os_id' => (int) $r->os_id, 'dias' => $d !== null ? -$d : null,
+                ], 'medicao');
+            }
+        }
+
+        // 5) medição aprovada e ainda sem lançamento no financeiro
+        if ($this->db->table_exists('obra_medicao') && $this->db->field_exists('lancamento_id', 'obra_medicao')) {
+            $valor = $this->db->field_exists('valor_total', 'obra_medicao')
+                ? 'CASE WHEN obra_medicao.valor_total > 0 THEN obra_medicao.valor_total ELSE obra_medicao.valor_medido END'
+                : 'obra_medicao.valor_medido';
+            $sql = 'SELECT obras.idObra, obras.nome AS obra_nome, COUNT(*) AS n, MIN(obra_medicao.numero) AS numero, SUM(' . $valor . ') AS valor'
+                . ' FROM obra_medicao JOIN obras ON obras.idObra = obra_medicao.obra_id'
+                . " WHERE obras.status <> 'cancelada'" . $porObra
+                . " AND obra_medicao.status = 'aprovada' AND (obra_medicao.lancamento_id IS NULL OR obra_medicao.lancamento_id = 0)"
+                . ' GROUP BY obras.idObra, obras.nome';
+            foreach ($this->db->query($sql)->result() as $r) {
+                $alertas[] = self::alerta('medicao_nao_faturada', (int) $r->idObra, (string) $r->obra_nome, [
+                    'qtd' => (int) $r->n, 'numero' => (int) $r->numero, 'valor' => (float) $r->valor,
+                ], 'medicao');
+            }
+        }
+
+        usort($alertas, function ($a, $b) {
+            return [self::ALERTA_ORDEM[$a['tipo']] ?? 9, $a['obra_nome']] <=> [self::ALERTA_ORDEM[$b['tipo']] ?? 9, $b['obra_nome']];
+        });
+
+        return $alertas;
+    }
 }
