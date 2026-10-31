@@ -7,11 +7,13 @@ $destinatarios = Notification_triggers_model::destinatariosDisponiveis();
 $blocos = Notification_triggers_model::blocosDisponiveis();
 $anexos = Notification_triggers_model::anexosDisponiveis();
 ?>
-<div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="fas fa-bolt"></i></span>
-        <h5>Novo gatilho de notificação</h5>
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-bolt-circle"></i> Novo gatilho de notificação</h1>
+        <p class="ui-subtitulo">Defina o evento, os canais e a mensagem que serão enviados automaticamente.</p>
     </div>
+</div>
+<div class="widget-box">
     <div class="widget-content">
         <p style="color:#6b7191; margin-top:0">
             Escolha um evento que o sistema sabe disparar e configure por onde e para quem notificar.
@@ -96,7 +98,7 @@ $anexos = Notification_triggers_model::anexosDisponiveis();
                             <?php } ?>
                         </select>
                         <span class="help-inline">Mensagem usada no WhatsApp deste gatilho. <a href="<?= site_url('whatsapptemplates') ?>" target="_blank">Gerenciar modelos</a>.</span>
-                        <span class="help-block" style="font-size:11px">Nos eventos <strong>Aceite da OS</strong> e <strong>RDO de projeto</strong>, use a tag <code>{LINK}</code> na mensagem — ela vira o link (já encurtado) do aceite/RDO.</span>
+                        <span class="help-block" style="font-size:11px">Nos eventos <strong>Aceite da OS</strong> e <strong>Registro de execução de projeto</strong>, use a tag <code>{LINK}</code> na mensagem — ela vira o link (já encurtado) do aceite/registro de execução.</span>
                     </div>
                 </div>
             <?php } ?>
@@ -159,7 +161,7 @@ $anexos = Notification_triggers_model::anexosDisponiveis();
                 </div>
             <?php } ?>
 
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+            <div class="ui-rodape-form">
                 <button type="submit" class="button btn btn-success">
                     <span class="button__icon"><i class="bx bx-save"></i></span>
                     <span class="button__text2">Criar gatilho</span>
@@ -174,8 +176,8 @@ $anexos = Notification_triggers_model::anexosDisponiveis();
 </div>
 
 <link rel="stylesheet" href="<?= base_url() ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
-<script type="text/javascript" src="<?= base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
-<script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
+<script nonce="<?= csp_nonce() ?>">
     $(function () {
         function escapa(t) { return $('<div>').text(t == null ? '' : t).html(); }
 

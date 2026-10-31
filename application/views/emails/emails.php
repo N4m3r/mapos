@@ -1,11 +1,11 @@
-<div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon">
-            <i class="fas fa-envelope"></i>
-        </span>
-        <h5>Lista de envio de e-mails</h5>
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-envelope"></i> Fila de e-mails</h1>
+        <p class="ui-subtitulo">E-mails aguardando envio ou já processados. Remova da fila o que não deve sair.</p>
     </div>
-    <div class="widget-content nopadding tab-content">
+</div>
+<div class="widget-box">
+    <div class="widget-content nopadding tab-content ui-tabela-rolagem">
         <table id="tabela" class="table table-bordered ">
             <thead>
                 <tr>
@@ -19,16 +19,16 @@
             <tbody>
                 <?php if (!$results) { ?>
                     <tr>
-                        <td colspan="5">Nenhum e-mail na fila</td>
+                        <td colspan="5"><div class="ui-vazio"><i class="bx bx-envelope"></i><strong>Nenhum e-mail na fila</strong>Os e-mails automáticos aparecem aqui quando forem gerados.</div></td>
                     </tr>
                 <?php } ?>
 
                 <?php foreach ($results as $r) {
                     $status = [
-                                        'pending' => '<span class="badge badge-default">Pendente</span>',
-                                        'sending' => '<span class="badge badge-info">Enviando</span>',
-                                        'sent' => '<span class="badge badge-success">Enviado</span>',
-                                        'failed' => '<span class="badge badge-warning">Falhou</span>',
+                                        'pending' => '<span class="ui-selo">Pendente</span>',
+                                        'sending' => '<span class="ui-selo info">Enviando</span>',
+                                        'sent' => '<span class="ui-selo sucesso">Enviado</span>',
+                                        'failed' => '<span class="ui-selo alerta">Falhou</span>',
                                     ];
                     echo '<tr>';
                     echo '<td>' . $r->id . '</td>';
@@ -36,7 +36,7 @@
                     echo '<td>' . $status[$r->status] . '</td>';
                     echo '<td>' . date('d/m/Y H:i:s', strtotime($r->date)) . '</td>';
                     echo '<td>';
-                    echo '<a href="#modal-excluir" role="button" data-toggle="modal" email="' . $r->id . '" class="btn-nwe4" title="Excluir item"><i class="bx bx-trash-alt"></i></a>  ';
+                    echo '<a href="#modal-excluir" role="button" data-toggle="modal" email="' . $r->id . '" class="btn-nwe4" title="Remover da fila" aria-label="Remover da fila"><i class="bx bx-trash-alt"></i></a>  ';
                     echo '</td>';
                     echo '</tr>';
                 } ?>
@@ -63,7 +63,7 @@
         </div>
     </form>
 </div>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         $(document).on('click', 'a', function(event) {
             var email = $(this).attr('email');

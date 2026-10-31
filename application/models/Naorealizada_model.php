@@ -155,8 +155,8 @@ class Naorealizada_model extends CI_Model
         $idOcorrencia = $this->db->insert_id();
 
         // Coloca a OS em espera.
-        $this->db->where('idOs', (int) $os_id);
-        $this->db->update('os', ['status' => 'Não Realizado']);
+        get_instance()->load->model('os_model');
+        get_instance()->os_model->alterarStatus((int) $os_id, 'Não Realizado');
 
         return $idOcorrencia ?: false;
     }
@@ -258,11 +258,8 @@ class Naorealizada_model extends CI_Model
         ]);
 
         // Devolve a OS à agenda na nova data.
-        $this->db->where('idOs', (int) $oc->os_id);
-        $this->db->update('os', [
-            'status' => 'Aberto',
-            'dataInicial' => $data,
-        ]);
+        get_instance()->load->model('os_model');
+        get_instance()->os_model->alterarStatus((int) $oc->os_id, 'Aberto', ['dataInicial' => $data]);
 
         return true;
     }
@@ -292,8 +289,8 @@ class Naorealizada_model extends CI_Model
             'data_resolucao' => date('Y-m-d H:i:s'),
         ]);
 
-        $this->db->where('idOs', (int) $oc->os_id);
-        $this->db->update('os', ['status' => $statusRestaurar]);
+        get_instance()->load->model('os_model');
+        get_instance()->os_model->alterarStatus((int) $oc->os_id, $statusRestaurar);
 
         return true;
     }

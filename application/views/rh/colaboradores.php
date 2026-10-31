@@ -1,8 +1,10 @@
 <div class="new122">
     <?php $this->load->view('rh/_subnav', ['ativo' => 'colaboradores']); ?>
-    <div class="widget-title" style="margin: 0 0 0">
-        <span class="icon"><i class="fas fa-users"></i></span>
-        <h5>Colaboradores</h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-group"></i> Colaboradores</h1>
+            <p class="ui-subtitulo">Cadastro e situação dos colaboradores.</p>
+        </div>
     </div>
     <div class="span12" style="margin-left:0">
         <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eRh')): ?>
@@ -42,11 +44,11 @@
                         <td><?= htmlspecialchars($c->nome_jornada ?: '-') ?></td>
                         <td><?= $c->situacao ? '<span style="color:#16a34a">Ativo</span>' : '<span style="color:#888">Inativo</span>' ?></td>
                         <td>
-                            <a href="<?= site_url('rh/espelho/'.$c->id) ?>" class="btn-nwe3" title="Espelho de ponto"><i class="bx bx-calendar-check bx-xs"></i></a>
+                            <a href="<?= site_url('rh/espelho/'.$c->id) ?>" class="btn-nwe3" title="Espelho de ponto" aria-label="Espelho de ponto"><i class="bx bx-calendar-check bx-xs"></i></a>
                             <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eRh')): ?>
-                                <a href="<?= site_url('rh/biometria/'.$c->id) ?>" class="btn-nwe3" title="Biometria facial"><i class="bx bx-face bx-xs"></i></a>
-                                <a href="<?= site_url('rh/editarColaborador/'.$c->id) ?>" class="btn-nwe3" title="Editar"><i class="bx bx-edit bx-xs"></i></a>
-                                <a href="#modal-excluir" role="button" data-toggle="modal" reg="<?= $c->id ?>" class="btn-nwe4" title="Excluir"><i class="bx bx-trash-alt bx-xs"></i></a>
+                                <a href="<?= site_url('rh/biometria/'.$c->id) ?>" class="btn-nwe3" title="Biometria facial" aria-label="Biometria facial"><i class="bx bx-face bx-xs"></i></a>
+                                <a href="<?= site_url('rh/editarColaborador/'.$c->id) ?>" class="btn-nwe3" title="Editar" aria-label="Editar"><i class="bx bx-edit bx-xs"></i></a>
+                                <a href="#modal-excluir" role="button" data-toggle="modal" reg="<?= $c->id ?>" class="btn-nwe4" title="Excluir" aria-label="Excluir"><i class="bx bx-trash-alt bx-xs"></i></a>
                             <?php endif; ?>
                         </td>
                     </tr>
@@ -67,6 +69,6 @@
         </div>
     </form>
 </div>
-<script>
+<script nonce="<?= csp_nonce() ?>">
 $(document).on('click', 'a[reg]', function(){ $('#reg-id').val($(this).attr('reg')); });
 </script>

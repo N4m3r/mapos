@@ -7,8 +7,9 @@
             <h5>Ordens de Serviço pendentes de aprovação</h5>
         </div>
 
+        <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Confira cada orçamento e toque em <strong>Aprovar</strong> ou <strong>Reprovar</strong>. A observação é opcional.</div></div>
         <div class="widget-content nopadding tab-content">
-            <table class="table table-bordered">
+            <div class="ui-tabela-rolagem"><table class="table table-bordered">
                 <thead>
                     <tr>
                         <th>Nº</th>
@@ -21,7 +22,7 @@
                 <tbody>
                     <?php if (empty($results)) { ?>
                         <tr>
-                            <td colspan="5">Nenhuma OS pendente de aprovação.</td>
+                            <td colspan="5"><div class="ui-vazio"><i class="bx bx-check-circle"></i><strong>Nenhuma OS pendente de aprovação.</strong></div></td>
                         </tr>
                     <?php } else {
                         foreach ($results as $r) {
@@ -53,12 +54,12 @@
                         <?php }
                     } ?>
                 </tbody>
-            </table>
+            </table></div>
         </div>
     </div>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     $(function() {
         $('.btn-reprovar').on('click', function(e) {
             if (!confirm('Confirma a REPROVAÇÃO desta OS?')) {

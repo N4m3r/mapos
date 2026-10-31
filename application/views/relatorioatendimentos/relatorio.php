@@ -1,108 +1,82 @@
-<div class="row-fluid" style="margin-top: 0">
+<div class="row-fluid">
     <div class="span12">
         <div class="widget-box">
-            <div class="widget-title">
-                <span class="icon"><i class="bx bx-time"></i></span>
-                <h5>Relatório de Atendimentos</h5>
+            <div class="ui-cabecalho rel-cabecalho">
+                <div>
+                    <h1 class="ui-titulo"><i class="bx bx-bar-chart-alt-2"></i> Relatório de Atendimentos</h1>
+                    <p class="ui-subtitulo">Histórico de check-ins e atendimentos dos técnicos: filtre por período e técnico e exporte os dados.</p>
+                </div>
+                <div class="ui-acoes">
+                    <a href="#" id="btn-exportar" class="btn btn-success">
+                        <i class="bx bx-download"></i> Exportar Excel
+                    </a>
+                </div>
             </div>
 
-            <div class="widget-content">
+            <div class="rel-conteudo">
                 <!-- Filtros -->
-                <div class="filtros-relatorio" style="background: #f5f5f5; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
-                    <form id="form-filtros" class="form-inline">
-                        <div class="row-fluid">
-                            <div class="span3">
-                                <label for="filtro-data-inicio">Data Início:</label>
-                                <input type="date" id="filtro-data-inicio" class="span12" value="<?php echo $results['data_inicio']; ?>">
-                            </div>
+                <form id="form-filtros" class="ui-filtros">
+                    <div class="ui-campo">
+                        <label for="filtro-data-inicio">Data início</label>
+                        <input type="date" id="filtro-data-inicio" value="<?php echo $results['data_inicio']; ?>">
+                    </div>
 
-                            <div class="span3">
-                                <label for="filtro-data-fim">Data Fim:</label>
-                                <input type="date" id="filtro-data-fim" class="span12" value="<?php echo $results['data_fim']; ?>">
-                            </div>
+                    <div class="ui-campo">
+                        <label for="filtro-data-fim">Data fim</label>
+                        <input type="date" id="filtro-data-fim" value="<?php echo $results['data_fim']; ?>">
+                    </div>
 
-                            <div class="span4">
-                                <label for="filtro-tecnico">Técnico:</label>
-                                <select id="filtro-tecnico" class="span12">
-                                    <option value="">Todos os Técnicos</option>
-                                    <?php foreach ($results['tecnicos'] as $tecnico): ?>
-                                        <option value="<?php echo $tecnico->idUsuarios; ?>"
-                                            <?php echo ($results['usuario_id'] == $tecnico->idUsuarios) ? 'selected' : ''; ?>>
-                                            <?php echo html_escape($tecnico->nome); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
+                    <div class="ui-campo">
+                        <label for="filtro-tecnico">Técnico</label>
+                        <select id="filtro-tecnico">
+                            <option value="">Todos os técnicos</option>
+                            <?php foreach ($results['tecnicos'] as $tecnico): ?>
+                                <option value="<?php echo $tecnico->idUsuarios; ?>"
+                                    <?php echo ($results['usuario_id'] == $tecnico->idUsuarios) ? 'selected' : ''; ?>>
+                                    <?php echo html_escape($tecnico->nome); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
 
-                            <div class="span2" style="padding-top: 25px;">
-                                <button type="button" id="btn-filtrar" class="btn btn-primary span12">
-                                    <i class="bx bx-filter"></i> Filtrar
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+                    <div class="ui-campo ui-campo-acao">
+                        <button type="button" id="btn-filtrar" class="btn btn-primary">
+                            <i class="bx bx-filter"></i> Filtrar
+                        </button>
+                    </div>
+                </form>
 
                 <!-- Cards de Estatísticas -->
-                <div id="cards-estatisticas" class="row-fluid" style="margin-bottom: 20px;">
-                    <div class="span3">
-                        <div class="card-estatistica" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                            <div class="icone" style="font-size: 36px; opacity: 0.8; margin-bottom: 10px;">
-                                <i class="bx bx-calendar-check"></i>
-                            </div>
-                            <div class="valor" id="card-total" style="font-size: 32px; font-weight: bold; margin-bottom: 5px;">0</div>
-                            <div class="label" style="font-size: 14px; opacity: 0.9;">Total de Atendimentos</div>
-                        </div>
+                <div id="cards-estatisticas" class="ui-kpis">
+                    <div class="ui-kpi info">
+                        <div class="ui-kpi-rotulo"><i class="bx bx-calendar-check"></i> Total de atendimentos</div>
+                        <div class="ui-kpi-valor" id="card-total">0</div>
                     </div>
 
-                    <div class="span3">
-                        <div class="card-estatistica" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                            <div class="icone" style="font-size: 36px; opacity: 0.8; margin-bottom: 10px;">
-                                <i class="bx bx-time"></i>
-                            </div>
-                            <div class="valor" id="card-tempo-medio" style="font-size: 32px; font-weight: bold; margin-bottom: 5px;">0h</div>
-                            <div class="label" style="font-size: 14px; opacity: 0.9;">Tempo Médio</div>
-                        </div>
+                    <div class="ui-kpi">
+                        <div class="ui-kpi-rotulo"><i class="bx bx-time"></i> Tempo médio</div>
+                        <div class="ui-kpi-valor" id="card-tempo-medio">0h</div>
                     </div>
 
-                    <div class="span3">
-                        <div class="card-estatistica" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                            <div class="icone" style="font-size: 36px; opacity: 0.8; margin-bottom: 10px;">
-                                <i class="bx bx-check-circle"></i>
-                            </div>
-                            <div class="valor" id="card-finalizados" style="font-size: 32px; font-weight: bold; margin-bottom: 5px;">0</div>
-                            <div class="label" style="font-size: 14px; opacity: 0.9;">Finalizados</div>
-                        </div>
+                    <div class="ui-kpi sucesso">
+                        <div class="ui-kpi-rotulo"><i class="bx bx-check-circle"></i> Finalizados</div>
+                        <div class="ui-kpi-valor" id="card-finalizados">0</div>
                     </div>
 
-                    <div class="span3">
-                        <div class="card-estatistica" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                            <div class="icone" style="font-size: 36px; opacity: 0.8; margin-bottom: 10px;">
-                                <i class="bx bx-loader"></i>
-                            </div>
-                            <div class="valor" id="card-andamento" style="font-size: 32px; font-weight: bold; margin-bottom: 5px;">0</div>
-                            <div class="label" style="font-size: 14px; opacity: 0.9;">Em Andamento</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Botão Exportar -->
-                <div class="row-fluid" style="margin-bottom: 20px;">
-                    <div class="span12" style="text-align: right;">
-                        <a href="#" id="btn-exportar" class="btn btn-success">
-                            <i class="bx bx-download"></i> Exportar Excel
-                        </a>
+                    <div class="ui-kpi alerta">
+                        <div class="ui-kpi-rotulo"><i class="bx bx-loader"></i> Em andamento</div>
+                        <div class="ui-kpi-valor" id="card-andamento">0</div>
                     </div>
                 </div>
 
                 <!-- Gráficos -->
-                <div class="row-fluid" style="margin-bottom: 20px;">
+                <div class="row-fluid rel-linha">
                     <!-- Gráfico de Atendimentos por Dia -->
                     <div class="span6">
                         <div class="widget-box">
                             <div class="widget-title">
                                 <span class="icon"><i class="bx bx-line-chart"></i></span>
-                                <h5>Atendimentos por Dia</h5>
+                                <h5>Atendimentos por dia</h5>
                             </div>
                             <div class="widget-content">
                                 <canvas id="grafico-atendimentos-dia" height="200"></canvas>
@@ -115,7 +89,7 @@
                         <div class="widget-box">
                             <div class="widget-title">
                                 <span class="icon"><i class="bx bx-bar-chart"></i></span>
-                                <h5>Atendimentos por Técnico</h5>
+                                <h5>Atendimentos por técnico</h5>
                             </div>
                             <div class="widget-content">
                                 <canvas id="grafico-atendimentos-tecnico" height="200"></canvas>
@@ -124,13 +98,13 @@
                     </div>
                 </div>
 
-                <div class="row-fluid" style="margin-bottom: 20px;">
+                <div class="row-fluid rel-linha">
                     <!-- Gráfico por Status -->
                     <div class="span6">
                         <div class="widget-box">
                             <div class="widget-title">
                                 <span class="icon"><i class="bx bx-pie-chart-alt"></i></span>
-                                <h5>Distribuição por Status</h5>
+                                <h5>Distribuição por status</h5>
                             </div>
                             <div class="widget-content">
                                 <canvas id="grafico-status" height="200"></canvas>
@@ -143,7 +117,7 @@
                         <div class="widget-box">
                             <div class="widget-title">
                                 <span class="icon"><i class="bx bx-time"></i></span>
-                                <h5>Tempo Médio por Técnico (horas)</h5>
+                                <h5>Tempo médio por técnico (horas)</h5>
                             </div>
                             <div class="widget-content">
                                 <canvas id="grafico-tempo-medio" height="200"></canvas>
@@ -156,25 +130,27 @@
                 <div class="widget-box">
                     <div class="widget-title">
                         <span class="icon"><i class="bx bx-list-ul"></i></span>
-                        <h5>Lista de Atendimentos</h5>
+                        <h5>Lista de atendimentos</h5>
                     </div>
                     <div class="widget-content">
-                        <table id="tabela-atendimentos" class="table table-bordered table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>OS</th>
-                                    <th>Técnico</th>
-                                    <th>Data Entrada</th>
-                                    <th>Data Saída</th>
-                                    <th>Tempo</th>
-                                    <th>Status</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
+                        <div class="ui-tabela-rolagem">
+                            <table id="tabela-atendimentos" class="table table-bordered table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>OS</th>
+                                        <th>Técnico</th>
+                                        <th>Data Entrada</th>
+                                        <th>Data Saída</th>
+                                        <th>Tempo</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -182,7 +158,9 @@
     </div>
 </div>
 
-<script>
+<!-- Chart.js (mesma versao do painel; a tela usava Chart sem carregar a biblioteca) -->
+<script nonce="<?= csp_nonce() ?>" src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+<script nonce="<?= csp_nonce() ?>">
 $(document).ready(function() {
     // Configurações globais
     const baseUrl = '<?php echo base_url(); ?>';
@@ -261,7 +239,7 @@ $(document).ready(function() {
                 }
             },
             language: {
-                url: '//cdn.datatables.net/plug-ins/1.10.21/i18n/Portuguese-Brasil.json'
+                url: '<?= base_url('assets/js/dataTable_pt-br.json') ?>'
             },
             columns: [
                 { data: 'idCheckin', width: '50px' },
@@ -598,72 +576,18 @@ $(document).ready(function() {
 </script>
 
 <style>
-/* Estilos adicionais para o dashboard */
-.card-estatistica {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
+/* Relatorio de atendimentos: so apresentacao (layout, responsividade e selos da tabela) */
+.rel-cabecalho { padding: 16px 16px 0; }
+.rel-conteudo { padding: 16px; }
+.rel-linha { margin: 0 0 16px; }
+.rel-linha > [class*="span"] { min-width: 0; }
+#tabela-atendimentos.dataTable { width: 100% !important; }
+#tabela-atendimentos .label { padding: 2px 10px; font-size: 12px; font-weight: 600; border-radius: 999px; }
 
-.card-estatistica:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
-}
-
-/* Animação de entrada */
-@keyframes slideInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.card-estatistica {
-    animation: slideInUp 0.5s ease forwards;
-}
-
-.card-estatistica:nth-child(1) { animation-delay: 0s; }
-.card-estatistica:nth-child(2) { animation-delay: 0.1s; }
-.card-estatistica:nth-child(3) { animation-delay: 0.2s; }
-.card-estatistica:nth-child(4) { animation-delay: 0.3s; }
-
-/* Responsividade */
-@media (max-width: 768px) {
-    .card-estatistica {
-        margin-bottom: 15px;
-    }
-
-    #cards-estatisticas .span3 {
-        width: 100%;
-        margin-left: 0;
-    }
-}
-
-/* DataTable personalizações */
-#tabela-atendimentos.dataTable {
-    width: 100% !important;
-}
-
-#tabela-atendimentos .label {
-    padding: 4px 8px;
-    font-size: 11px;
-    border-radius: 3px;
-}
-
-/* Filtros em mobile */
-@media (max-width: 768px) {
-    .filtros-relatorio .span3,
-    .filtros-relatorio .span4,
-    .filtros-relatorio .span2 {
-        width: 100%;
-        margin-left: 0;
-        margin-bottom: 10px;
-    }
-
-    .filtros-relatorio label {
-        margin-bottom: 5px;
-    }
+@media (max-width: 767px) {
+    .rel-cabecalho, .rel-conteudo { padding-left: 12px; padding-right: 12px; }
+    .rel-linha { margin-bottom: 12px; }
+    .rel-linha > [class*="span"] { width: 100%; float: none; margin-left: 0; }
+    .rel-linha > [class*="span"] + [class*="span"] { margin-top: 12px; }
 }
 </style>

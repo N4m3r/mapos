@@ -94,14 +94,14 @@
     
 
 </style>
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-user-circle"></i> Minha Conta</h1>
+        <p class="ui-subtitulo">Foto, senha e verificação em duas etapas do seu acesso.</p>
+    </div>
+</div>
 <div class="span6" style="margin-left: 0">
     <div class="widget-box">
-        <div class="widget-title" style="margin: -10px 0 0">
-            <span class="icon">
-                <i class="fas fa-user"></i>
-            </span>
-            <h5>Minha Conta</h5>
-        </div>
         <div class="widget-contentMC" style="margin: 20px 0 0;">
             <div id="userMC">
                 <div class="row">
@@ -182,12 +182,12 @@
         </div>
         <div class="widget-content">
             <?php if (empty($usuario->totp_ativo)) { ?>
-                <p><span class="badge">Desativada</span></p>
+                <p><span class="ui-selo">Desativada</span></p>
                 <p>Além da senha, o login passa a pedir um código do aplicativo autenticador do seu celular.
                     Recomendado principalmente para administradores.</p>
                 <a href="<?= site_url('mapos/doisFatores') ?>" class="button btn btn-success"><span class="button__icon"><i class="bx bx-shield-quarter"></i></span><span class="button__text2">Ativar</span></a>
             <?php } else { ?>
-                <p><span class="badge badge-success">Ativa</span>
+                <p><span class="ui-selo sucesso">Ativa</span>
                     &nbsp; Códigos de recuperação restantes: <strong><?= (int) $codigosRestantes ?></strong></p>
                 <?php if ($codigosRestantes <= 3) { ?>
                     <div class="alert">Restam poucos códigos de recuperação. Gere novos.</div>
@@ -197,7 +197,7 @@
                     <input type="password" name="senha" required autocomplete="current-password">
                     <br><button class="button btn btn-info" type="submit"><span class="button__icon"><i class="bx bx-key"></i></span><span class="button__text2">Novos códigos</span></button>
                 </form>
-                <form action="<?= site_url('mapos/doisFatoresDesativar') ?>" method="post" style="display:inline-block" onsubmit="return confirm('Desativar a verificação em duas etapas?');">
+                <form action="<?= site_url('mapos/doisFatoresDesativar') ?>" method="post" style="display:inline-block" data-confirmar="Desativar a verificação em duas etapas?">
                     <label>Senha atual</label>
                     <input type="password" name="senha" required autocomplete="current-password">
                     <br><button class="button btn btn-danger" type="submit"><span class="button__icon"><i class="bx bx-shield-x"></i></span><span class="button__text2">Desativar</span></button>
@@ -230,8 +230,8 @@
 </div>
 
 
-<script src="<?= base_url() ?>assets/js/jquery.validate.js"></script>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/jquery.validate.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
 
         $("#formImageUser").validate({

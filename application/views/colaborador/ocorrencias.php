@@ -102,7 +102,7 @@ $batidasRef = $batidas_ref ?? [];
         </div>
     <?php endforeach; endif; ?>
 </div>
-<script>
+<script nonce="<?= csp_nonce() ?>">
 (function(){
     var sel = document.getElementById('oc-tipo');
     var bloco = document.getElementById('bloco-correcao');

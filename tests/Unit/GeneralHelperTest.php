@@ -48,6 +48,14 @@ class GeneralHelperTest extends TestCase
         $this->assertSame($esperado, formatar_chave_pix($chave));
     }
 
+    public function testCspNonceEhFixoNaRequisicaoESeguroParaAtributo(): void
+    {
+        $nonce = csp_nonce();
+
+        $this->assertSame($nonce, csp_nonce(), 'mesmo nonce na pagina inteira');
+        $this->assertMatchesRegularExpression('/^[A-Za-z0-9_-]{24}$/', $nonce);
+    }
+
     public function testAssetVersaoUsaDataDoArquivoOuPadrao(): void
     {
         $this->assertSame((string) filemtime(FCPATH . 'assets/js/csrf.js'), asset_versao('assets/js/csrf.js'));

@@ -2,7 +2,7 @@
 $this->load->config('payment_gateways');
 ?>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     var paymentGatewaysConfig = JSON.parse("<?php echo addslashes(json_encode($this->config->item('payment_gateways'))); ?>");
 </script>
 
@@ -46,8 +46,8 @@ $this->load->config('payment_gateways');
     </div>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     $("#forma_pagamento").hide();
     $("#label_forma_pagamento").hide();
 </script>
-<script src="<?= base_url('assets/js/script-payments.js'); ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/script-payments.js'); ?>"></script>

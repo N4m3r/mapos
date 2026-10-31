@@ -4,12 +4,15 @@ $podeAprovar = $this->permission->checkPermission($this->session->userdata('perm
 ?>
 <div class="new122">
     <?php $this->load->view('rh/_subnav', ['ativo' => 'ocorrencias']); ?>
-    <div class="widget-title" style="margin:0 0 10px">
-        <span class="icon"><i class="fas fa-exclamation-circle"></i></span><h5>Ocorrências (correções / justificativas)</h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-error-circle"></i> Ocorrências</h1>
+            <p class="ui-subtitulo">Correções e justificativas de ponto.</p>
+        </div>
     </div>
     <div class="span12" style="margin-left:0">
         <form method="get" action="<?= site_url('rh/ocorrencias') ?>">
-            <select name="status" onchange="this.form.submit()">
+            <select name="status" data-ao-mudar="enviar">
                 <option value="">Todas</option>
                 <option value="pendente" <?= $status==='pendente'?'selected':'' ?>>Pendentes</option>
                 <option value="aprovado" <?= $status==='aprovado'?'selected':'' ?>>Aprovadas</option>
@@ -17,7 +20,7 @@ $podeAprovar = $this->permission->checkPermission($this->session->userdata('perm
             </select>
         </form>
     </div>
-    <div class="widget-box"><div class="widget-content nopadding">
+    <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
         <table class="table table-bordered">
             <thead><tr><th>Colaborador</th><th>Tipo</th><th>Referência</th><th>Descrição</th><th>Anexo</th><th>Status</th><th>Ações</th></tr></thead>
             <tbody>
@@ -32,7 +35,7 @@ $podeAprovar = $this->permission->checkPermission($this->session->userdata('perm
                     <td><?= ! empty($o->anexo_base64) ? '<a href="'.site_url('rh/anexo/ocorrencia/'.$o->id).'" target="_blank">ver</a>' : '-' ?></td>
                     <td><span class="rh-badge <?= $o->status ?>"><?= ucfirst($o->status) ?></span></td>
                     <td><?php if ($o->status==='pendente' && $podeAprovar): ?>
-                        <a href="#modal-analise" role="button" data-toggle="modal" class="btn btn-mini" onclick='analisar(<?= $o->id ?>)'>Analisar</a>
+                        <a href="#modal-analise" role="button" data-toggle="modal" class="btn btn-mini" data-chamar="analisar" data-args="[<?= (int) $o->id ?>]">Analisar</a>
                     <?php else: echo $o->resposta ? htmlspecialchars($o->resposta) : '-'; endif; ?></td>
                 </tr>
             <?php endforeach; endif; ?>
@@ -52,10 +55,10 @@ $podeAprovar = $this->permission->checkPermission($this->session->userdata('perm
             <input type="hidden" name="status" id="an-status">
         </div>
         <div class="modal-footer" style="display:flex;justify-content:center;gap:8px">
-            <button class="button btn btn-danger" onclick="$('#an-status').val('recusado')"><span class="button__text2">Recusar</span></button>
-            <button class="button btn btn-success" onclick="$('#an-status').val('aprovado')"><span class="button__text2">Aprovar</span></button>
+            <button class="button btn btn-danger" data-definir="#an-status" data-valor="recusado"><span class="button__text2">Recusar</span></button>
+            <button class="button btn btn-success" data-definir="#an-status" data-valor="aprovado"><span class="button__text2">Aprovar</span></button>
         </div>
     </form>
 </div>
-<script>function analisar(id){ $('#an-id').val(id); }</script>
+<script nonce="<?= csp_nonce() ?>">function analisar(id){ $('#an-id').val(id); }</script>
 <?php endif; ?>

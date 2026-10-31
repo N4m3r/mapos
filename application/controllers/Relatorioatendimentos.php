@@ -18,9 +18,11 @@ class Relatorioatendimentos extends MY_Controller
     {
         parent::__construct();
 
-        // Verifica se está logado
-        if (!$this->session->userdata('id_usuario')) {
-            redirect('login');
+        // Login ja e exigido pelo MY_Controller. Antes checava 'id_usuario', chave que o
+        // login nunca grava: a tela sempre voltava para o login. Mesma permissao do menu.
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'vRelatorioAtendimentos')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para ver o relatório de atendimentos.');
+            redirect(base_url());
         }
 
         // Carrega models
@@ -107,20 +109,20 @@ class Relatorioatendimentos extends MY_Controller
                 $entrada = new DateTime($atendimento->data_entrada);
                 $saida = new DateTime($atendimento->data_saida);
                 $intervalo = $entrada->diff($saida);
-                $tempo = $intervalo->format('%h:%i');
+                $tempo = sprintf('%02d:%02d', $intervalo->days * 24 + $intervalo->h, $intervalo->i);
             }
 
             $data[] = [
                 'idCheckin' => $atendimento->idCheckin,
                 'os_id' => $atendimento->os_id,
-                'nome_tecnico' => $atendimento->nome_tecnico,
+                'nome_tecnico' => html_escape($atendimento->nome_tecnico),
                 'data_entrada' => date('d/m/Y H:i', strtotime($atendimento->data_entrada)),
                 'data_saida' => $atendimento->data_saida ? date('d/m/Y H:i', strtotime($atendimento->data_saida)) : '-',
                 'tempo' => $tempo,
                 'status' => $atendimento->data_saida ?
-                    '<span class="label label-success">Finalizado</span>' :
-                    '<span class="label label-warning">Em Andamento</span>',
-                'acoes' => '<a href="' . site_url('os/visualizar/' . $atendimento->os_id) . '" class="btn btn-mini" title="Ver OS"><i class="bx bx-show"></i></a>'
+                    '<span class="ui-selo sucesso">Finalizado</span>' :
+                    '<span class="ui-selo alerta">Em andamento</span>',
+                'acoes' => '<a href="' . site_url('os/visualizar/' . (int) $atendimento->os_id) . '" class="btn btn-mini" title="Ver OS" aria-label="Ver OS"><i class="bx bx-show"></i> Ver OS</a>'
             ];
         }
 

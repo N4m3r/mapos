@@ -59,4 +59,33 @@ class Lembretes extends CI_Controller
         $enviados = count(array_filter($resultado, static fn ($r) => (bool) $r['canais']));
         echo ($simular ? 'Seriam enviados: ' : 'Enviados: ') . ($simular ? count($resultado) : $enviados) . PHP_EOL;
     }
+
+    /**
+     * Alerta de ponto parado (ADR-014): php index.php lembretes/pontos_parados [simular]
+     * Precisa ALERTA_REPASSE_ATIVO=true no .env; sem WhatsApp configurado so registra no log.
+     */
+    public function pontos_parados($modo = null)
+    {
+        $simular = $modo === 'simular';
+        $this->load->library('alerta_repasse');
+
+        if (! $this->alerta_repasse->disponivel()) {
+            fwrite(STDERR, 'Coluna obra_pontos.alertado_em nao existe. Rode: php index.php tools migrate' . PHP_EOL);
+            exit(1);
+        }
+        if (! $simular && ! $this->alerta_repasse->ativo()) {
+            echo 'Alerta de ponto parado desligado (ALERTA_REPASSE_ATIVO=false no .env). Use "simular" para ver.' . PHP_EOL;
+
+            return;
+        }
+
+        $resultado = $this->alerta_repasse->executar($simular);
+        foreach ($resultado as $r) {
+            echo ($simular ? '[simulacao] ' : '') . sprintf('%s %s (%d pontos): %s', $r['tipo'], $r['nome'], $r['pontos'], $r['enviado'] ? 'enviado' : ($r['erro'] ?: 'nao enviado')) . PHP_EOL;
+            if ($simular) {
+                echo '    ' . str_replace("\n", "\n    ", $r['mensagem']) . PHP_EOL;
+            }
+        }
+        echo 'Alertas ' . ($simular ? 'previstos: ' . count($resultado) : 'enviados: ' . count(array_filter($resultado, static fn ($r) => $r['enviado']))) . PHP_EOL;
+    }
 }

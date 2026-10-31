@@ -19,11 +19,13 @@ $check = function ($valor, $lista) {
     return in_array($valor, $lista, true) ? 'checked' : '';
 };
 ?>
-<div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="fas fa-bell"></i></span>
-        <h5>Gatilho: <?= html_escape($gatilho->nome) ?></h5>
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-bell"></i> Gatilho: <?= html_escape($gatilho->nome) ?></h1>
+        <p class="ui-subtitulo">Ajuste quando o aviso dispara, para quem vai e o texto da mensagem.</p>
     </div>
+</div>
+<div class="widget-box">
     <div class="widget-content">
         <p style="color:#6b7191; margin-top:0"><?= html_escape($gatilho->descricao) ?></p>
 
@@ -91,7 +93,7 @@ $check = function ($valor, $lista) {
                             <?php } ?>
                         </select>
                         <span class="help-inline">Mensagem usada no WhatsApp deste gatilho. <a href="<?= site_url('whatsapptemplates') ?>" target="_blank">Gerenciar modelos</a>.</span>
-                        <span class="help-block" style="font-size:11px">Nos eventos <strong>Aceite da OS</strong> e <strong>RDO de projeto</strong>, use a tag <code>{LINK}</code> na mensagem — ela vira o link (já encurtado) do aceite/RDO.</span>
+                        <span class="help-block" style="font-size:11px">Nos eventos <strong>Aceite da OS</strong> e <strong>Registro de execução de projeto</strong>, use a tag <code>{LINK}</code> na mensagem — ela vira o link (já encurtado) do aceite/registro de execução.</span>
                     </div>
                 </div>
             <?php } ?>
@@ -155,7 +157,7 @@ $check = function ($valor, $lista) {
                     <fieldset style="border:1px solid #e2e6f0; border-radius:8px; padding:12px 14px;">
                         <legend style="font-size:14px; font-weight:700; color:#1e3a8a; width:auto; padding:0 6px;">Projetos que disparam este gatilho</legend>
                         <p style="color:#6b7191; font-size:12px; margin:0 0 8px">
-                            Selecione os projetos cujo RDO dispara este gatilho (WhatsApp e/ou e-mail).
+                            Selecione os projetos cujo registro de execução dispara este gatilho (WhatsApp e/ou e-mail).
                             <strong>Sem projeto selecionado = vale para todos os projetos.</strong>
                         </p>
                         <input type="text" id="buscaProjetoGatilho" class="span8" placeholder="Buscar projeto por nome ou código..." autocomplete="off" style="margin-bottom:8px">
@@ -194,7 +196,7 @@ $check = function ($valor, $lista) {
                             <span>Manter os e-mails deste projeto como uma única conversa (thread) enquanto ele estiver em andamento</span>
                         </label>
                         <span class="help-block" style="font-size:11px; margin:4px 0 0">
-                            Com isso ativo: os e-mails de RDO do mesmo projeto respondem a conversa anterior (o cliente de e-mail
+                            Com isso ativo: os e-mails de registro de execução do mesmo projeto respondem a conversa anterior (o cliente de e-mail
                             agrupa tudo numa só thread) e, ao marcar o projeto como <strong>Concluída</strong> ou <strong>Entregue</strong>
                             em Projetos &gt; Editar, um último e-mail avisando que o projeto foi finalizado é enviado nessa mesma conversa.
                         </span>
@@ -233,7 +235,7 @@ $check = function ($valor, $lista) {
                 </div>
             <?php } ?>
 
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+            <div class="ui-rodape-form">
                 <button type="submit" class="button btn btn-success">
                     <span class="button__icon"><i class="bx bx-save"></i></span>
                     <span class="button__text2">Salvar gatilho</span>
@@ -248,8 +250,8 @@ $check = function ($valor, $lista) {
 </div>
 
 <link rel="stylesheet" href="<?= base_url() ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
-<script type="text/javascript" src="<?= base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
-<script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
+<script nonce="<?= csp_nonce() ?>">
     $(function () {
         var gruposSelecionados = <?= json_encode(array_values($selGrupos)) ?>;
 
@@ -319,14 +321,14 @@ $check = function ($valor, $lista) {
             var n = $('#listaProjetosGatilho .chip-projeto').length;
             var $c = $('#contadorProjetosGatilho');
             if (n === 0) {
-                $c.text('Filtro desligado: vale para o RDO de qualquer projeto.');
+                $c.text('Filtro desligado: vale para o registro de execução de qualquer projeto.');
                 if (!$('#projetosGatilhoVazio').length) {
                     $('#listaProjetosGatilho').append(
                         '<span id="projetosGatilhoVazio" style="color:#8a90a6; font-size:12px">Nenhum projeto filtrado — o gatilho vale para todos.</span>'
                     );
                 }
             } else {
-                $c.text(n + ' projeto(s) — só o RDO desses projetos dispara este gatilho.');
+                $c.text(n + ' projeto(s) — só o registro de execução desses projetos dispara este gatilho.');
                 $('#projetosGatilhoVazio').remove();
             }
         }

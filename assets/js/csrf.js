@@ -7,7 +7,8 @@ function getCookie(name) {
 
 function setCsrfTokenInAllForms(csrfTokenName, csrfCookieName) {
     $('input[name="' + csrfTokenName + '"]').remove();
-    var forms = document.querySelectorAll("form");
+    // So formularios POST: em GET o token iria para a URL (historico, logs, Referer)
+    var forms = document.querySelectorAll("form[method='post' i], form[method='POST']");
     forms.forEach(function (form) {
         var csrfInput = document.createElement('input');
         csrfInput.type = 'hidden';

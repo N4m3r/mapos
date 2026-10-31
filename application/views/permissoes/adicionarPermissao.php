@@ -1,13 +1,13 @@
 <div class="span12" style="margin-left: 0">
     <form action="<?php echo base_url(); ?>index.php/permissoes/adicionar" id="formPermissao" method="post">
         <div class="span12" style="margin-left: 0">
-            <div class="widget-box">
-                <div class="widget-title" style="margin: -20px 0 0">
-               <span class="icon">
-               <i class="fas fa-lock"></i>
-               </span>
-                    <h5>Cadastro de Permissão</h5>
+            <div class="ui-cabecalho">
+                <div>
+                    <h1 class="ui-titulo"><i class="bx bx-lock-alt"></i> Cadastro de Permissão</h1>
+                    <p class="ui-subtitulo">Dê um nome ao perfil e marque o que ele pode fazer em cada módulo.</p>
                 </div>
+            </div>
+            <div class="widget-box">
                 <div class="widget-content">
                     <div class="span6">
                         <label>Nome da Permissão</label>
@@ -22,7 +22,7 @@
                         <br />
                     </div>
                     <div class="accordion" id="collapse-group">
-                        <div class="accordion-group widget-box">
+                        <div class="accordion-group widget-box ui-secao">
                             <div class="accordion-heading">
                                 <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGOne" data-toggle="collapse">
@@ -33,7 +33,7 @@
                             </div>
                             <div class="collapse in accordion-body" id="collapseGOne">
                                 <div class="widget-content">
-                                    <table class="table table-bordered">
+                                    <div class="ui-tabela-rolagem"><table class="table table-bordered">
                                         <tbody>
                                         <tr>
                                             <td>
@@ -62,11 +62,11 @@
                                             </td>
                                         </tr>
                                         </tbody>
-                                    </table>
+                                    </table></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-group widget-box">
+                        <div class="accordion-group widget-box ui-secao">
                             <div class="accordion-heading">
                                 <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGTwo" data-toggle="collapse">
@@ -77,7 +77,7 @@
                             </div>
                             <div class="collapse accordion-body" id="collapseGTwo">
                                 <div class="widget-content">
-                                    <table class="table table-bordered">
+                                    <div class="ui-tabela-rolagem"><table class="table table-bordered">
                                         <tbody>
                                         <tr>
                                             <td>
@@ -106,11 +106,11 @@
                                             </td>
                                         </tr>
                                         </tbody>
-                                    </table>
+                                    </table></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-group widget-box">
+                        <div class="accordion-group widget-box ui-secao">
                             <div class="accordion-heading">
                                 <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGThree" data-toggle="collapse">
@@ -121,7 +121,7 @@
                             </div>
                             <div class="collapse accordion-body" id="collapseGThree">
                                 <div class="widget-content">
-                                    <table class="table table-bordered">
+                                    <div class="ui-tabela-rolagem"><table class="table table-bordered">
                                         <tbody>
                                         <tr>
                                             <td>
@@ -150,11 +150,11 @@
                                             </td>
                                         </tr>
                                         </tbody>
-                                    </table>
+                                    </table></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-group widget-box">
+                        <div class="accordion-group widget-box ui-secao">
                             <div class="accordion-heading">
                                 <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGThree3" data-toggle="collapse">
@@ -165,7 +165,7 @@
                             </div>
                             <div class="collapse accordion-body" id="collapseGThree3">
                                 <div class="widget-content">
-                                    <table class="table table-bordered">
+                                    <div class="ui-tabela-rolagem"><table class="table table-bordered">
                                         <tbody>
                                         <tr>
                                             <td>
@@ -202,11 +202,11 @@
                                             </td>
                                         </tr>
                                         </tbody>
-                                    </table>
+                                    </table></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-group widget-box">
+                        <div class="accordion-group widget-box ui-secao">
                             <div class="accordion-heading">
                                 <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGTecnico" data-toggle="collapse">
@@ -217,7 +217,7 @@
                             </div>
                             <div class="collapse accordion-body" id="collapseGTecnico">
                                 <div class="widget-content">
-                                    <table class="table table-bordered">
+                                    <div class="ui-tabela-rolagem"><table class="table table-bordered">
                                         <tbody>
                                         <tr>
                                             <td colspan="4">
@@ -286,11 +286,11 @@
                                             </td>
                                         </tr>
                                         </tbody>
-                                    </table>
+                                    </table></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-group widget-box">
+                        <div class="accordion-group widget-box ui-secao">
                             <div class="accordion-heading">
                                 <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGRh" data-toggle="collapse">
@@ -302,7 +302,7 @@
                             </div>
                             <div class="collapse accordion-body" id="collapseGRh">
                                 <div class="widget-content">
-                                <table class="table table-bordered">
+                                <div class="ui-tabela-rolagem"><table class="table table-bordered">
                                     <tr>
                                         <td><label><input name="vRh" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Acessar o módulo de RH</strong></span></label></td>
                                         <td><label><input name="eRh" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Gerenciar colaboradores/unidades/jornadas</span></label></td>
@@ -318,11 +318,11 @@
                                         <td><label><input name="baterPonto" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Registrar o próprio ponto</span></label></td>
                                         <td></td>
                                     </tr>
-                                </table>
+                                </table></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-group widget-box">
+                        <div class="accordion-group widget-box ui-secao">
                             <div class="accordion-heading">
                                 <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGObras" data-toggle="collapse">
@@ -334,7 +334,7 @@
                             </div>
                             <div class="collapse accordion-body" id="collapseGObras">
                                 <div class="widget-content">
-                                <table class="table table-bordered">
+                                <div class="ui-tabela-rolagem"><table class="table table-bordered">
                                     <tr>
                                         <td><label><input name="vObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Visualizar Projetos</strong></span></label></td>
                                         <td><label><input name="cObras" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Cadastrar Projeto</span></label></td>
@@ -365,11 +365,11 @@
                                         <td></td>
                                         <td></td>
                                     </tr>
-                                </table>
+                                </table></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-group widget-box">
+                        <div class="accordion-group widget-box ui-secao">
                             <div class="accordion-heading">
                                 <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGContratos" data-toggle="collapse">
@@ -381,7 +381,7 @@
                             </div>
                             <div class="collapse accordion-body" id="collapseGContratos">
                                 <div class="widget-content">
-                                <table class="table table-bordered">
+                                <div class="ui-tabela-rolagem"><table class="table table-bordered">
                                     <tr>
                                         <td><label><input name="vContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> <strong>Visualizar Contratos</strong></span></label></td>
                                         <td><label><input name="cContrato" class="marcar" type="checkbox" value="1" /> <span class="lbl"> Cadastrar Contrato</span></label></td>
@@ -394,11 +394,11 @@
                                         <td></td>
                                         <td></td>
                                     </tr>
-                                </table>
+                                </table></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-group widget-box">
+                        <div class="accordion-group widget-box ui-secao">
                             <div class="accordion-heading">
                                 <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGThree33" data-toggle="collapse">
@@ -409,7 +409,7 @@
                             </div>
                             <div class="collapse accordion-body" id="collapseGThree33">
                                 <div class="widget-content">
-                                    <table class="table table-bordered">
+                                    <div class="ui-tabela-rolagem"><table class="table table-bordered">
                                         <tbody>
                                         <tr>
                                             <td>
@@ -438,11 +438,11 @@
                                             </td>
                                         </tr>
                                         </tbody>
-                                    </table>
+                                    </table></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-group widget-box">
+                        <div class="accordion-group widget-box ui-secao">
                             <div class="accordion-heading">
                                 <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGThree333" data-toggle="collapse">
@@ -453,7 +453,7 @@
                             </div>
                             <div class="collapse accordion-body" id="collapseGThree333">
                                 <div class="widget-content">
-                                    <table class="table table-bordered">
+                                    <div class="ui-tabela-rolagem"><table class="table table-bordered">
                                         <tbody>
                                         <tr>
                                             <td>
@@ -482,11 +482,11 @@
                                             </td>
                                         </tr>
                                         </tbody>
-                                    </table>
+                                    </table></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-group widget-box">
+                        <div class="accordion-group widget-box ui-secao">
                             <div class="accordion-heading">
                                 <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGFiscal" data-toggle="collapse">
@@ -497,7 +497,7 @@
                             </div>
                             <div class="collapse accordion-body" id="collapseGFiscal">
                                 <div class="widget-content">
-                                    <table class="table table-bordered">
+                                    <div class="ui-tabela-rolagem"><table class="table table-bordered">
                                         <tbody>
                                         <tr>
                                             <td>
@@ -547,11 +547,11 @@
                                             <td></td>
                                         </tr>
                                         </tbody>
-                                    </table>
+                                    </table></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-group widget-box">
+                        <div class="accordion-group widget-box ui-secao">
                             <div class="accordion-heading">
                                 <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGThree3333" data-toggle="collapse">
@@ -562,7 +562,7 @@
                             </div>
                             <div class="collapse accordion-body" id="collapseGThree3333">
                                 <div class="widget-content">
-                                    <table class="table table-bordered">
+                                    <div class="ui-tabela-rolagem"><table class="table table-bordered">
                                         <tbody>
                                         <tr>
                                             <td>
@@ -591,11 +591,11 @@
                                             </td>
                                         </tr>
                                         </tbody>
-                                    </table>
+                                    </table></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-group widget-box">
+                        <div class="accordion-group widget-box ui-secao">
                             <div class="accordion-heading">
                                 <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGThree33333" data-toggle="collapse">
@@ -606,7 +606,7 @@
                             </div>
                             <div class="collapse accordion-body" id="collapseGThree33333">
                                 <div class="widget-content">
-                                    <table class="table table-bordered">
+                                    <div class="ui-tabela-rolagem"><table class="table table-bordered">
                                         <tbody>
                                         <tr>
                                             <td>
@@ -635,11 +635,11 @@
                                             </td>
                                         </tr>
                                         </tbody>
-                                    </table>
+                                    </table></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-group widget-box">
+                        <div class="accordion-group widget-box ui-secao">
                             <div class="accordion-heading">
                                 <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGThree333343" data-toggle="collapse">
@@ -650,7 +650,7 @@
                             </div>
                             <div class="collapse accordion-body" id="collapseGThree333343">
                                 <div class="widget-content">
-                                    <table class="table table-bordered">
+                                    <div class="ui-tabela-rolagem"><table class="table table-bordered">
                                         <tbody>
                                         <tr>
                                             <td>
@@ -705,11 +705,11 @@
                                             </td>
                                         </tr>
                                         </tbody>
-                                    </table>
+                                    </table></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-group widget-box">
+                        <div class="accordion-group widget-box ui-secao">
                             <div class="accordion-heading">
                                 <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGThree333335" data-toggle="collapse">
@@ -720,7 +720,7 @@
                             </div>
                             <div class="collapse accordion-body" id="collapseGThree333335">
                                 <div class="widget-content">
-                                    <table class="table table-bordered">
+                                    <div class="ui-tabela-rolagem"><table class="table table-bordered">
                                         <tbody>
                                         <tr>
                                             <td>
@@ -763,11 +763,11 @@
                                             </td>
                                         </tr>
                                         </tbody>
-                                    </table>
+                                    </table></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-group widget-box">
+                        <div class="accordion-group widget-box ui-secao">
                             <div class="accordion-heading">
                                 <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGThree333339" data-toggle="collapse">
@@ -778,7 +778,7 @@
                             </div>
                             <div class="collapse accordion-body" id="collapseGThree333339">
                                 <div class="widget-content">
-                                    <table class="table table-bordered">
+                                    <div class="ui-tabela-rolagem"><table class="table table-bordered">
                                         <tbody>
                                         <tr>
                                             <td>
@@ -801,11 +801,11 @@
                                             </td>
                                         </tr>
                                         </tbody>
-                                    </table>
+                                    </table></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="accordion-group widget-box">
+                        <div class="accordion-group widget-box ui-secao">
                             <div class="accordion-heading">
                                 <div class="widget-title">
                                     <a data-parent="#collapse-group" href="#collapseGThree333338" data-toggle="collapse">
@@ -816,7 +816,7 @@
                             </div>
                             <div class="collapse accordion-body" id="collapseGThree333338">
                                 <div class="widget-content">
-                                    <table class="table table-bordered">
+                                    <div class="ui-tabela-rolagem"><table class="table table-bordered">
                                         <tbody>
                                         <tr>
                                             <td>
@@ -877,7 +877,7 @@
                                             </td>
                                         </tr>
                                         </tbody>
-                                    </table>
+                                    </table></div>
                                 </div>
                             </div>
                         </div>
@@ -896,8 +896,8 @@
         </div>
     </form>
 </div>
-<script type="text/javascript" src="<?php echo base_url() ?>assets/js/validate.js"></script>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url() ?>assets/js/validate.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         $("#marcarTodos").change(function() {
             $("input:checkbox").prop('checked', $(this).prop("checked"));

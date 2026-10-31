@@ -30,7 +30,11 @@ class Os extends MY_Controller
         $status = $this->input->get('status');
         $inputDe = $this->input->get('data');
         $inputAte = $this->input->get('data2');
+        $filtroObra = (int) $this->input->get('obra_id');
 
+        if ($filtroObra) {
+            $where_array['obra_id'] = $filtroObra;
+        }
         if ($pesquisa) {
             $where_array['pesquisa'] = $pesquisa;
         }
@@ -63,8 +67,8 @@ class Os extends MY_Controller
         $this->data['configuration']['base_url'] = site_url('os/gerenciar/');
         $this->data['configuration']['total_rows'] = $this->os_model->count('os');
         if(count($where_array) > 0) {
-            $this->data['configuration']['suffix'] = "?pesquisa={$pesquisa}&status={$status}&data={$inputDe}&data2={$inputAte}";
-            $this->data['configuration']['first_url'] = base_url("index.php/os/gerenciar")."\?pesquisa={$pesquisa}&status={$status}&data={$inputDe}&data2={$inputAte}";
+            $this->data['configuration']['suffix'] = "?pesquisa={$pesquisa}&status={$status}&data={$inputDe}&data2={$inputAte}&obra_id={$filtroObra}";
+            $this->data['configuration']['first_url'] = base_url("index.php/os/gerenciar")."\?pesquisa={$pesquisa}&status={$status}&data={$inputDe}&data2={$inputAte}&obra_id={$filtroObra}";
         }
 
         $this->pagination->initialize($this->data['configuration']);
@@ -79,6 +83,10 @@ class Os extends MY_Controller
             $this->uri->segment(3)
         );
 
+        // Projetos para o filtro e vinculo de cada OS da pagina (1 query, sem N+1)
+        $this->load->model('obras_model');
+        $this->data['projetosFiltro'] = $this->db->table_exists('obras') ? $this->obras_model->getProjetosParaVincular() : [];
+        $this->data['vinculosPorOs'] = $this->vinculosDasOs($this->data['results']);
         $this->data['texto_de_notificacao'] = $this->data['configuration']['notifica_whats'];
         $this->data['emitente'] = $this->mapos_model->getEmitente();
         // Status que a acao rapida da listagem pode aplicar (mesma regra do alterarStatusAction)
@@ -275,18 +283,31 @@ class Os extends MY_Controller
 
             //Verifica para poder fazer a devolução do produto para o estoque caso OS seja cancelada.
 
+            // Handle material stock based on project linkage
+            $vinculo = $this->obras_model->getVinculoDaOs((int) $this->input->post('idOs'));
+            $destino = \Projeto_sync::decidirDestinoEstoque($vinculo, 'cancelar');
             if (strtolower($this->input->post('status')) == 'cancelado' && strtolower($os->status) != 'cancelado') {
-                $this->devolucaoEstoque($this->input->post('idOs'));
+                if ($destino === 'projeto') {
+                    $this->projeto_sync->devolverMaterialDaOs((int) $this->input->post('idOs'));
+                } else {
+                    $this->devolucaoEstoque($this->input->post('idOs'));
+                }
             }
 
+            $destinoReabrir = \Projeto_sync::decidirDestinoEstoque($vinculo, 'reabrir');
             if (strtolower($os->status) == 'cancelado' && strtolower($this->input->post('status')) != 'cancelado') {
-                $this->debitarEstoque($this->input->post('idOs'));
+                if ($destinoReabrir === 'projeto') {
+                    $this->projeto_sync->debitarMaterialDaOs((int) $this->input->post('idOs'));
+                } else {
+                    $this->debitarEstoque($this->input->post('idOs'));
+                }
             }
 
             // Contrato/SLA e equipe (só grava se as colunas existirem).
             $data = array_merge($data, $this->montarCamposContratoEquipe($os));
 
             if ($this->os_model->edit('os', $data, 'idOs', $this->input->post('idOs')) == true) {
+                $this->os_model->notificarMudancaStatus((int) $this->input->post('idOs'), $os->status, (string) $this->input->post('status'));
                 $this->notificarEdicaoOs($this->input->post('idOs'));
 
                 $this->session->set_flashdata('success', 'Os editada com sucesso!');
@@ -340,9 +361,62 @@ class Os extends MY_Controller
             $this->data['coraStage'] = $this->coraStageAtivo();
         }
 
+        $this->carregarProjetoDaOs($this->uri->segment(3), $this->data['result']);
         $this->data['view'] = 'os/editarOs';
 
         return $this->layout();
+    }
+
+    /** Vinculo da OS com projeto (ADR-015) e dados para o modal de vincular. */
+    private function carregarProjetoDaOs($osId, $os)
+    {
+        $this->load->model('obras_model');
+        $perm = $this->session->userdata('permissao');
+        $this->data['vinculoProjeto'] = $this->obras_model->getVinculoDaOs($osId);
+        $this->load->library('projeto_sync');
+        $this->data['podeFaturarOs'] = Projeto_sync::podeFaturarOsSozinha($this->data['vinculoProjeto']);
+        $this->data['podeVerProjeto'] = $this->permission->checkPermission($perm, 'vObras');
+        $this->data['podeVincularProjeto'] = $this->permission->checkPermission($perm, 'eObras')
+            && $this->permission->checkPermission($perm, 'eOs');
+        $this->data['projetosVincular'] = [];
+        if ($this->data['podeVincularProjeto'] && ! $this->data['vinculoProjeto'] && $os) {
+            $this->data['projetosVincular'] = $this->obras_model->getProjetosParaVincular($os->clientes_id);
+        }
+
+        // converter OS em projeto (ADR-015 fase 3)
+        $this->data['podeCriarProjeto'] = $this->permission->checkPermission($perm, 'cObras');
+        $this->data['osElegivelConversao'] = false;
+        $this->data['tiposProjeto'] = [];
+        if ($this->data['podeCriarProjeto'] && ! $this->data['vinculoProjeto'] && $os) {
+            $this->load->model('obra_planejamento_model');
+            $this->data['osElegivelConversao'] = in_array($os->status, Obra_planejamento_model::statusConversao(), true)
+                && $this->db->table_exists('obra_etapa_itens');
+            $this->data['tiposProjeto'] = ['Rede estruturada', 'CFTV IP', 'Rede estruturada + CFTV IP', 'Cabeamento óptico / fibra',
+                'Controle de acesso', 'Alarme', 'Interfonia / vídeo porteiro', 'Controle de acesso + CFTV IP',
+                'Infraestrutura (eletrocalha/eletroduto)', 'Manutenção'];
+        }
+    }
+
+    /** Mapa os_id => vinculo (projeto/etapa) para as OS da listagem. */
+    private function vinculosDasOs($results)
+    {
+        $mapa = [];
+        if (! $results || ! $this->db->table_exists('obra_os')) {
+            return $mapa;
+        }
+        $ids = array_map(function ($r) {
+            return (int) $r->idOs;
+        }, $results);
+        $rows = $this->db->select('obra_os.os_id, obras.idObra, obras.nome as obra_nome, etapa.nome as etapa_nome')
+            ->from('obra_os')
+            ->join('obras', 'obras.idObra = obra_os.obra_id')
+            ->join('obra_etapas etapa', 'etapa.idEtapa = obra_os.etapa_id', 'left')
+            ->where_in('obra_os.os_id', $ids)
+            ->get()->result();
+        foreach ($rows as $row) {
+            $mapa[(int) $row->os_id] = $row;
+        }
+        return $mapa;
     }
 
     /** Campos de contrato/SLA/equipe da OS. Delegacao: logica em libraries/Os_contrato.php */
@@ -351,6 +425,21 @@ class Os extends MY_Controller
         $this->load->library('os_contrato');
 
         return $this->os_contrato->camposContratoEquipe($osAtual);
+    }
+
+    /** Abre o link publico de acompanhamento da OS (ADR-007); gera o token na primeira vez. */
+    public function acompanhamento($id = null)
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para visualizar O.S.');
+            redirect(base_url());
+        }
+        $this->load->model('acompanhamento_model');
+        $token = $this->acompanhamento_model->tokenDaOs($id);
+        if (! $token) {
+            show_404();
+        }
+        redirect('acompanhar/' . $token);
     }
 
     public function visualizar()
@@ -444,6 +533,7 @@ class Os extends MY_Controller
             ],
             true
         );
+        $this->carregarProjetoDaOs($os_id, $result);
         $this->data['view'] = 'os/visualizarOs';
         $this->data['chaveFormatada'] = formatar_chave_pix($this->data['configuration']['pix_key']);
 
@@ -673,6 +763,20 @@ class Os extends MY_Controller
 
     private function devolucaoEstoque($id)
     {
+        // OS cobrada no projeto (ADR-015): devolve ao almoxarifado do projeto; ao
+        // estoque geral so volta o que foi lancado antes do vinculo (sem consumo).
+        $this->load->library('projeto_sync');
+        $resProjeto = $this->projeto_sync->devolverMaterialDaOs((int) $id);
+        if ($resProjeto['origem'] === 'obra') {
+            if (! empty($resProjeto['sem_consumo']) && $this->data['configuration']['control_estoque']) {
+                $this->load->model('produtos_model');
+                foreach ($resProjeto['sem_consumo'] as $produtoId => $qtd) {
+                    $this->produtos_model->updateEstoque($produtoId, $qtd, '+', ['tipo' => 'os', 'referencia' => $id, 'observacao' => 'OS cancelada ou excluída']);
+                }
+            }
+            return;
+        }
+
         if ($produtos = $this->os_model->getProdutos($id)) {
             $this->load->model('produtos_model');
             if ($this->data['configuration']['control_estoque']) {
@@ -685,6 +789,16 @@ class Os extends MY_Controller
 
     private function debitarEstoque($id)
     {
+        // OS cobrada no projeto (ADR-015): debita do almoxarifado do projeto
+        $this->load->library('projeto_sync');
+        $resProjeto = $this->projeto_sync->debitarMaterialDaOs((int) $id);
+        if ($resProjeto['origem'] === 'obra') {
+            foreach ($resProjeto['avisos'] ?? [] as $aviso) {
+                log_info('Os::editar - ' . $aviso);
+            }
+            return;
+        }
+
         if ($produtos = $this->os_model->getProdutos($id)) {
             $this->load->model('produtos_model');
             if ($this->data['configuration']['control_estoque']) {
@@ -724,8 +838,19 @@ class Os extends MY_Controller
         $osStockRefund = $this->os_model->getById($id);
         //Verifica para poder fazer a devolução do produto para o estoque caso OS seja excluida.
         if (strtolower($osStockRefund->status) != 'cancelado') {
-            $this->devolucaoEstoque($id);
+            // Handle material based on project linkage
+            $vinculo = $this->obras_model->getVinculoDaOs((int) $id);
+            $destino = \Projeto_sync::decidirDestinoEstoque($vinculo, 'excluir');
+            if ($destino === 'projeto') {
+                $this->projeto_sync->devolverMaterialDaOs((int) $id);
+            } else {
+                $this->devolucaoEstoque($id);
+            }
         }
+
+        // tira o vinculo com projeto e pontos (historico dos pontos fica)
+        $this->load->library('projeto_sync');
+        $this->projeto_sync->removerVinculoDaOs((int) $id);
 
         $this->os_model->delete('servicos_os', 'os_id', $id);
         $this->os_model->delete('produtos_os', 'os_id', $id);
@@ -825,8 +950,16 @@ class Os extends MY_Controller
         if ($this->os_model->add('produtos_os', $data) == true) {
             $this->load->model('produtos_model');
 
-            if ($this->data['configuration']['control_estoque']) {
+            // Projeto (ADR-015): OS vinculada com fatura_no_projeto baixa do
+            // almoxarifado do projeto, nao do estoque geral.
+            $this->load->library('projeto_sync');
+            $resProjeto = $this->projeto_sync->aplicarProdutoDaOs((int) $id, (int) $produto, (float) $quantidade, 'adicionar');
+
+            if ($resProjeto['origem'] !== 'obra' && $this->data['configuration']['control_estoque']) {
                 $this->produtos_model->updateEstoque($produto, $quantidade, '-', ['tipo' => 'os', 'referencia' => $id]);
+            }
+            if (! empty($resProjeto['aviso'])) {
+                log_info('Os::adicionarProduto - ' . $resProjeto['aviso']);
             }
 
             $this->db->set('desconto', 0.00);
@@ -840,7 +973,7 @@ class Os extends MY_Controller
             return $this->output
                 ->set_content_type('application/json')
                 ->set_status_header(200)
-                ->set_output(json_encode(['result' => true]));
+                ->set_output(json_encode(['result' => true, 'aviso' => $resProjeto['aviso'] ?? null]));
         } else {
             return $this->output
                 ->set_content_type('application/json')
@@ -873,7 +1006,12 @@ class Os extends MY_Controller
         if ($this->os_model->delete('produtos_os', 'idProdutos_os', $id) == true) {
             $this->load->model('produtos_model');
 
-            if ($this->data['configuration']['control_estoque']) {
+            // Projeto (ADR-015): se a OS vinculada baixava do almoxarifado do
+            // projeto, devolve ali; senao, devolve ao estoque geral (como hoje).
+            $this->load->library('projeto_sync');
+            $resProjeto = $this->projeto_sync->aplicarProdutoDaOs((int) $idOs, (int) $item->produtos_id, (float) $item->quantidade, 'remover');
+
+            if ($resProjeto['origem'] !== 'obra' && $this->data['configuration']['control_estoque']) {
                 $this->produtos_model->updateEstoque($item->produtos_id, $item->quantidade, '+', ['tipo' => 'os', 'referencia' => $idOs, 'observacao' => 'Produto removido da OS']);
             }
 
@@ -992,6 +1130,10 @@ class Os extends MY_Controller
         $preco = $this->input->post('preco');
         $subtotal = $preco * $quantidade;
 
+        // Item como estava antes da edicao: a OS e o produto vem do banco (nao do
+        // navegador) pra ajustar a fonte certa de material (ADR-015).
+        $itemAntes = $this->db->where('idProdutos_os', $idProdutoOs)->get('produtos_os')->row();
+
         $data = [
             'quantidade' => $quantidade,
             'preco' => $preco,
@@ -1000,6 +1142,14 @@ class Os extends MY_Controller
 
         $this->db->where('idProdutos_os', $idProdutoOs);
         if ($this->db->update('produtos_os', $data)) {
+            if ($itemAntes) {
+                $this->load->library('projeto_sync');
+                $resProjeto = $this->projeto_sync->aplicarProdutoDaOs((int) $itemAntes->os_id, (int) $itemAntes->produtos_id, (float) $quantidade, 'ajustar');
+                if (! empty($resProjeto['aviso'])) {
+                    log_info('Os::editarProduto - ' . $resProjeto['aviso']);
+                }
+            }
+
             $this->db->set('desconto', 0.00);
             $this->db->set('valor_desconto', 0.00);
             $this->db->set('tipo_desconto', null);
@@ -1128,137 +1278,37 @@ class Os extends MY_Controller
         }
     }
 
+    /* Anexos: logica em libraries/Os_anexos.php (ADR-006) */
+
     public function anexar()
     {
         $this->exigirEdicaoOs();
-
-        $this->load->library('upload');
-        $this->load->library('image_lib');
-
-        $directory = FCPATH . 'assets' . DIRECTORY_SEPARATOR . 'anexos' . DIRECTORY_SEPARATOR . date('m-Y') . DIRECTORY_SEPARATOR . 'OS-' . $this->input->post('idOsServico');
-
-        // If it exist, check if it's a directory
-        if (! is_dir($directory . DIRECTORY_SEPARATOR . 'thumbs')) {
-            // make directory for images and thumbs
-            try {
-                mkdir($directory . DIRECTORY_SEPARATOR . 'thumbs', 0755, true);
-            } catch (Exception $e) {
-                echo json_encode(['result' => false, 'mensagem' => $e->getMessage()]);
-                exit();
-            }
-        }
-
-        $upload_conf = [
-            'upload_path' => $directory,
-            'allowed_types' => 'jpg|png|gif|jpeg|JPG|PNG|GIF|JPEG|pdf|PDF|cdr|CDR|docx|DOCX|txt', // formatos permitidos para anexos de os
-            'max_size' => 0,
-        ];
-
-        $this->upload->initialize($upload_conf);
-
-        foreach ($_FILES['userfile'] as $key => $val) {
-            $i = 1;
-            foreach ($val as $v) {
-                $field_name = 'file_' . $i;
-                $_FILES[$field_name][$key] = $v;
-                $i++;
-            }
-        }
-        unset($_FILES['userfile']);
-
-        $error = [];
-        $success = [];
-
-        foreach ($_FILES as $field_name => $file) {
-            if (! $this->upload->do_upload($field_name)) {
-                $error['upload'][] = $this->upload->display_errors();
-            } else {
-                $upload_data = $this->upload->data();
-
-                // Gera um nome de arquivo aleatório mantendo a extensão original
-                $new_file_name = uniqid() . '.' . pathinfo($upload_data['file_name'], PATHINFO_EXTENSION);
-                $new_file_path = $upload_data['file_path'] . $new_file_name;
-
-                rename($upload_data['full_path'], $new_file_path);
-
-                if ($upload_data['is_image'] == 1) {
-                    $resize_conf = [
-                        'source_image' => $new_file_path,
-                        'new_image' => $upload_data['file_path'] . 'thumbs' . DIRECTORY_SEPARATOR . 'thumb_' . $new_file_name,
-                        'width' => 200,
-                        'height' => 125,
-                    ];
-
-                    $this->image_lib->initialize($resize_conf);
-
-                    if (! $this->image_lib->resize()) {
-                        $error['resize'][] = $this->image_lib->display_errors();
-                    } else {
-                        $success[] = $upload_data;
-                        $this->load->model('Os_model');
-                        $result = $this->Os_model->anexar($this->input->post('idOsServico'), $new_file_name, base_url('assets' . DIRECTORY_SEPARATOR . 'anexos' . DIRECTORY_SEPARATOR . date('m-Y') . DIRECTORY_SEPARATOR . 'OS-' . $this->input->post('idOsServico')), 'thumb_' . $new_file_name, $directory);
-                        if (! $result) {
-                            $error['db'][] = 'Erro ao inserir no banco de dados.';
-                        }
-                    }
-                } else {
-                    $success[] = $upload_data;
-
-                    $this->load->model('Os_model');
-
-                    $result = $this->Os_model->anexar($this->input->post('idOsServico'), $new_file_name, base_url('assets' . DIRECTORY_SEPARATOR . 'anexos' . DIRECTORY_SEPARATOR . date('m-Y') . DIRECTORY_SEPARATOR . 'OS-' . $this->input->post('idOsServico')), '', $directory);
-                    if (! $result) {
-                        $error['db'][] = 'Erro ao inserir no banco de dados.';
-                    }
-                }
-            }
-        }
-
-        if (count($error) > 0) {
-            echo json_encode(['result' => false, 'mensagem' => 'Ocorreu um erro ao processar os arquivos.', 'errors' => $error]);
-        } else {
-            log_info('Adicionou anexo(s) a uma OS. ID (OS): ' . $this->input->post('idOsServico'));
-            echo json_encode(['result' => true, 'mensagem' => 'Arquivo(s) anexado(s) com sucesso.']);
-        }
+        $this->load->library('os_anexos');
+        echo json_encode($this->os_anexos->anexar($this->input->post('idOsServico')));
     }
 
     public function excluirAnexo($id = null)
     {
         $this->exigirEdicaoOs();
-
-        if ($id == null || ! is_numeric($id)) {
-            echo json_encode(['result' => false, 'mensagem' => 'Erro ao tentar excluir anexo.']);
-        } else {
-            $this->db->where('idAnexos', $id);
-            $file = $this->db->get('anexos', 1)->row();
-            $idOs = $this->input->post('idOs');
-
-            unlink($file->path . DIRECTORY_SEPARATOR . $file->anexo);
-
-            if ($file->thumb != null) {
-                unlink($file->path . DIRECTORY_SEPARATOR . 'thumbs' . DIRECTORY_SEPARATOR . $file->thumb);
-            }
-
-            if ($this->os_model->delete('anexos', 'idAnexos', $id) == true) {
-                log_info('Removeu anexo de uma OS. ID (OS): ' . $idOs);
-                echo json_encode(['result' => true, 'mensagem' => 'Anexo excluído com sucesso.']);
-            } else {
-                echo json_encode(['result' => false, 'mensagem' => 'Erro ao tentar excluir anexo.']);
-            }
-        }
+        $this->load->library('os_anexos');
+        echo json_encode($this->os_anexos->excluir($id));
     }
 
     public function downloadanexo($id = null)
     {
-        if ($id != null && is_numeric($id)) {
-            $this->db->where('idAnexos', $id);
-            $file = $this->db->get('anexos', 1)->row();
-
-            $this->load->library('zip');
-            $path = $file->path;
-            $this->zip->read_file($path . '/' . $file->anexo);
-            $this->zip->download('file' . date('d-m-Y-H.i.s') . '.zip');
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para visualizar O.S.');
+            redirect(base_url());
         }
+        $this->load->library('os_anexos');
+        $arquivo = $this->os_anexos->arquivo($id);
+        if ($arquivo === null) {
+            show_404();
+        }
+
+        $this->load->library('zip');
+        $this->zip->read_file($arquivo);
+        $this->zip->download('file' . date('d-m-Y-H.i.s') . '.zip');
     }
 
     public function adicionarDesconto()
@@ -1309,6 +1359,22 @@ class Os extends MY_Controller
 
     public function faturar()
     {
+        // OS cobrada pela medicao do projeto nao fatura sozinha (ADR-015 decisao 6)
+        $osIdFaturar = (int) $this->input->post('os_id');
+        if ($osIdFaturar) {
+            $this->load->model('obras_model');
+            $this->load->library('projeto_sync');
+            $vinculo = $this->obras_model->getVinculoDaOs($osIdFaturar);
+            if (! Projeto_sync::podeFaturarOsSozinha($vinculo)) {
+                $msg = 'Esta OS é cobrada pela medição do projeto ' . $vinculo->obra_nome . '. Fature pela medição.';
+                $this->session->set_flashdata('error', $msg);
+
+                return $this->output
+                    ->set_content_type('application/json')
+                    ->set_output(json_encode(['result' => false, 'mensagem' => $msg]));
+            }
+        }
+
         $this->load->library('form_validation');
         $this->data['custom_error'] = '';
 
@@ -1328,7 +1394,9 @@ class Os extends MY_Controller
             }
 
             $os_id = $this->input->post('os_id');
-            $valorTotalData = $this->os_model->valorTotalOS($os_id);
+            $osAntesFaturar = $this->os_model->getById($os_id);
+            $statusAnteriorFaturar = $osAntesFaturar ? $osAntesFaturar->status : null;
+            $valorTotalData =$this->os_model->valorTotalOS($os_id);
 
             $valorTotalServico = $valorTotalData['totalServico'];
             $valorTotalProduto = $valorTotalData['totalProdutos'];
@@ -1389,6 +1457,7 @@ class Os extends MY_Controller
                     $this->session->set_flashdata('error', 'Ocorreu um erro ao tentar faturar OS.');
                     $json = ['result' => false];
                 } else {
+                    $this->os_model->notificarMudancaStatus((int) $os_id, $statusAnteriorFaturar, 'Faturado');
                     $this->session->set_flashdata('success', 'OS faturada com sucesso!');
                     $json = ['result' => true];
                 }
@@ -1568,7 +1637,8 @@ class Os extends MY_Controller
         $busca    = trim((string) $this->input->get('busca'));
         $data_de  = trim((string) $this->input->get('data_de'));
         $data_ate = trim((string) $this->input->get('data_ate'));
-        $filtros  = ['busca' => $busca, 'data_de' => $data_de, 'data_ate' => $data_ate];
+        $tecnico  = (int) $this->input->get('tecnico');
+        $filtros  = ['busca' => $busca, 'data_de' => $data_de, 'data_ate' => $data_ate, 'tecnico' => $tecnico];
 
         // Configuração da paginação
         $config['base_url'] = site_url('os/atribuir');
@@ -1605,7 +1675,7 @@ class Os extends MY_Controller
         } else {
             // Abas baseadas em OS (todos, sem_tecnico, em_atendimento, finalizados)
             // com filtros de busca e período aplicados de forma unificada.
-            if (! in_array($aba, ['todos', 'sem_tecnico', 'em_atendimento', 'finalizados'], true)) {
+            if (! in_array($aba, ['todos', 'sem_tecnico', 'em_atendimento', 'finalizados', 'atrasados', 'hoje'], true)) {
                 $aba = 'todos';
             }
             $ordens = $this->os_model->getOsCentral($aba, $filtros, $config['per_page'], $page);
@@ -1617,12 +1687,34 @@ class Os extends MY_Controller
         $this->data['busca'] = $busca;
         $this->data['data_de'] = $data_de;
         $this->data['data_ate'] = $data_ate;
+        $this->data['tecnicoFiltro'] = $tecnico;
 
         // Ocorrências de "Não Realizado" pendentes (visão de gestão, todos os técnicos)
         $this->data['naoRealizadas'] = $this->naorealizada_model->getPendentes(null, 100);
 
+        // Atrasados / agendados hoje / carga por tecnico (contagens simples)
+        $concluidos = ['Finalizado', 'Cancelado', 'Faturado'];
+        $agora = date('Y-m-d H:i:s');
+        $this->db->where('data_agendamento IS NOT NULL')->where('data_agendamento <', $agora)->where_not_in('status', $concluidos);
+        $qtdAtrasados = (int) $this->db->count_all_results('os');
+        $this->db->where('data_agendamento >=', date('Y-m-d') . ' 00:00:00')->where('data_agendamento <=', date('Y-m-d') . ' 23:59:59')->where_not_in('status', $concluidos);
+        $qtdHoje = (int) $this->db->count_all_results('os');
+
+        $cargaTecnicos = [];
+        $this->db->select('tecnico_responsavel, COUNT(*) AS abertas, SUM(CASE WHEN data_agendamento >= ' . $this->db->escape(date('Y-m-d') . ' 00:00:00') . ' AND data_agendamento <= ' . $this->db->escape(date('Y-m-d') . ' 23:59:59') . ' THEN 1 ELSE 0 END) AS hoje', false);
+        $this->db->where('tecnico_responsavel IS NOT NULL')->where_not_in('status', $concluidos)->group_by('tecnico_responsavel');
+        $qCarga = $this->db->get('os');
+        if ($qCarga) {
+            foreach ($qCarga->result() as $linha) {
+                $cargaTecnicos[(int) $linha->tecnico_responsavel] = ['abertas' => (int) $linha->abertas, 'hoje' => (int) $linha->hoje];
+            }
+        }
+        $this->data['cargaTecnicos'] = $cargaTecnicos;
+
         // Indicadores (KPIs) do topo
         $this->data['kpis'] = [
+            'atrasados'      => $qtdAtrasados,
+            'hoje'           => $qtdHoje,
             'total'          => $this->tecnico_model->countOsParaAtribuicao(),
             'sem_tecnico'    => $this->tecnico_model->countOsSemTecnico(),
             'em_atendimento' => $this->tecnico_model->countOsComTecnico(),
@@ -1693,15 +1785,107 @@ class Os extends MY_Controller
 
         // Mesmo comportamento da edicao da OS: cronometro de SLA e notificacoes
         $this->load->library('os_contrato');
-        $dados = array_merge(['status' => $status], $this->os_contrato->camposCronometroSla($os, $status));
+        $extra = $this->os_contrato->camposCronometroSla($os, $status);
 
-        if ($this->os_model->edit('os', $dados, 'idOs', $os_id)) {
+        if ($this->os_model->alterarStatus($os_id, $status, $extra)) {
             log_info('Alterou status da OS #' . $os_id . ' para "' . $status . '" pela troca rapida de status.');
             $this->notificarEdicaoOs($os_id);
             echo json_encode(['success' => true, 'message' => 'Status da OS #' . $os_id . ' atualizado para ' . $status . '.', 'status' => $status]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Erro ao atualizar o status.']);
         }
+    }
+
+    /** Valida AJAX + permissao de projeto/OS; responde JSON e retorna false se negar. */
+    private function exigirVinculoProjeto()
+    {
+        if (! $this->input->is_ajax_request()) {
+            echo json_encode(['success' => false, 'message' => 'Requisição inválida.']);
+            return false;
+        }
+        $perm = $this->session->userdata('permissao');
+        if (! $this->permission->checkPermission($perm, 'eObras') || ! $this->permission->checkPermission($perm, 'eOs')) {
+            echo json_encode(['success' => false, 'message' => 'Sem permissão para vincular OS a projetos.']);
+            return false;
+        }
+        $this->load->model('obras_model');
+        return true;
+    }
+
+    /** Ação AJAX: vincula a OS a um projeto (e etapa) do mesmo cliente. */
+    public function vincularProjetoAction()
+    {
+        if (! $this->exigirVinculoProjeto()) {
+            return;
+        }
+        $os_id = (int) $this->input->post('os_id');
+        $obra_id = (int) $this->input->post('obra_id');
+        $etapa_id = (int) $this->input->post('etapa_id');
+        $tipo = (string) $this->input->post('tipo_vinculo');
+        if (! in_array($tipo, ['origem', 'execucao', 'adicional', 'corretiva'], true)) {
+            $tipo = 'execucao';
+        }
+        $fatura = $this->input->post('fatura_no_projeto') ? 1 : 0;
+
+        $os = $os_id ? $this->os_model->getById($os_id) : null;
+        if (! $os || ! $obra_id) {
+            echo json_encode(['success' => false, 'message' => 'Selecione a OS e o projeto.']);
+            return;
+        }
+        $existente = $this->obras_model->getVinculoDaOs($os_id);
+        if ($existente) {
+            echo json_encode(['success' => false, 'message' => 'Esta OS já está no projeto "' . $existente->obra_nome . '". Desvincule antes de vincular a outro.']);
+            return;
+        }
+        $obra = $this->db->get_where('obras', ['idObra' => $obra_id])->row();
+        if (! $obra || (int) $obra->clientes_id !== (int) $os->clientes_id) {
+            echo json_encode(['success' => false, 'message' => 'O projeto precisa ser do mesmo cliente da OS.']);
+            return;
+        }
+        if (in_array($obra->status, ['concluida', 'entregue', 'cancelada'], true)) {
+            echo json_encode(['success' => false, 'message' => 'O projeto não está em aberto.']);
+            return;
+        }
+        if ($etapa_id && ! $this->db->get_where('obra_etapas', ['idEtapa' => $etapa_id, 'obra_id' => $obra_id])->row()) {
+            echo json_encode(['success' => false, 'message' => 'A etapa não pertence ao projeto.']);
+            return;
+        }
+        if ($this->obras_model->vincularOs($obra_id, $os_id, $etapa_id ?: null, $tipo, $fatura)) {
+            log_info('Vinculou a OS ' . $os_id . ' ao projeto ' . $obra_id . ' pela tela da OS');
+            echo json_encode(['success' => true, 'message' => 'OS vinculada ao projeto.']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Não foi possível vincular a OS ao projeto.']);
+        }
+    }
+
+    /** Ação AJAX: remove o vínculo da OS com o projeto. */
+    public function desvincularProjetoAction()
+    {
+        if (! $this->exigirVinculoProjeto()) {
+            return;
+        }
+        $os_id = (int) $this->input->post('os_id');
+        $vinculo = $os_id ? $this->obras_model->getVinculoDaOs($os_id) : null;
+        if (! $vinculo) {
+            echo json_encode(['success' => false, 'message' => 'Esta OS não está vinculada a um projeto.']);
+            return;
+        }
+        $this->obras_model->desvincularOs($vinculo->idVinculo, $vinculo->idObra);
+        log_info('Desvinculou a OS ' . $os_id . ' do projeto ' . $vinculo->idObra . ' pela tela da OS');
+        echo json_encode(['success' => true, 'message' => 'OS desvinculada do projeto.']);
+    }
+
+    /** Ação AJAX (GET): etapas de um projeto para popular o select. */
+    public function etapasProjetoAction()
+    {
+        if (! $this->exigirVinculoProjeto()) {
+            return;
+        }
+        $etapas = [];
+        foreach ($this->obras_model->getEtapasSelect((int) $this->input->get('obra_id')) as $e) {
+            $etapas[] = ['id' => (int) $e->idEtapa, 'nome' => trim(($e->codigo_eap ? $e->codigo_eap . ' ' : '') . $e->nome)];
+        }
+        echo json_encode(['success' => true, 'etapas' => $etapas]);
     }
 
     /**

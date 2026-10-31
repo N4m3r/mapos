@@ -23,6 +23,7 @@ $labels = [
         .btn { display:block; width:100%; text-align:center; padding:10px; margin-top:14px; border:none;
             border-radius:8px; background:#667eea; color:#fff; text-decoration:none; }
     </style>
+    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
 </head>
 <body>
     <div class="ticket">
@@ -40,7 +41,7 @@ $labels = [
         <div class="row"><span class="k">Facial</span><span><?= number_format($registro->face_score, 2) ?></span></div>
         <?php endif; ?>
         <div class="foot">Emitido em <?= date('d/m/Y H:i') ?></div>
-        <a href="javascript:window.print()" class="btn noprint">Imprimir</a>
+        <a href="#" data-acao="imprimir" class="btn noprint">Imprimir</a>
     </div>
 </body>
 </html>

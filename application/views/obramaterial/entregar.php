@@ -2,13 +2,18 @@
 
 <div id="obra-material" data-buscar-url="<?= site_url('obramaterial/buscarProduto') ?>" data-modo="entregar">
     <div class="widget-box">
-        <div class="widget-title"><span class="icon"><i class="fas fa-people-carry"></i></span><h5>Entregar material à equipe — <?= html_escape($obra->nome) ?></h5></div>
+        <div class="ui-cabecalho">
+            <div>
+                <h1 class="ui-titulo"><i class="bx bx-up-arrow-circle"></i> Entregar material à equipe</h1>
+                <p class="ui-subtitulo">Projeto: <?= html_escape($obra->nome) ?>. Registre a saída do material do almoxarifado para uma equipe.</p>
+            </div>
+        </div>
         <div class="widget-content">
 
             <?php if ($saldos): ?>
                 <div class="span12" style="margin-left:0"><small class="scanner-status">Saldo disponível:
                     <?php foreach ($saldos as $s): ?>
-                        <span class="label"><?= html_escape($s->descricao) ?>: <?= rtrim(rtrim(number_format((float) $s->saldo, 3, ',', '.'), '0'), ',') ?><?= $s->unidade ? ' ' . html_escape($s->unidade) : '' ?></span>
+                        <span class="ui-selo"><?= html_escape($s->descricao) ?>: <?= rtrim(rtrim(number_format((float) $s->saldo, 3, ',', '.'), '0'), ',') ?><?= $s->unidade ? ' ' . html_escape($s->unidade) : '' ?></span>
                     <?php endforeach; ?>
                 </small></div>
             <?php endif; ?>
@@ -75,4 +80,4 @@
         </div>
     </div>
 </div>
-<script src="<?= base_url() ?>assets/js/obra-scanner.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/obra-scanner.js"></script>

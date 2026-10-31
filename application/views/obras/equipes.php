@@ -4,30 +4,39 @@
 <?php $this->load->view('obras/_nav'); ?>
 
 <div class="new122" style="margin-top:0">
-    <div class="widget-title" style="margin:-6px 0 8px"><span class="icon"><i class="fas fa-users"></i></span><h5>Equipes de Projeto</h5></div>
-    <?php if ($perm('cObraEquipe')): ?>
-        <a href="#modal-equipe" data-toggle="modal" class="button btn btn-mini btn-success" style="max-width:160px" onclick="novaEquipe()"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova Equipe</span></a>
-    <?php endif; ?>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-group"></i> Equipes de Projeto</h1>
+            <p class="ui-subtitulo">Equipes internas e terceirizadas, com encarregado e membros alocados.</p>
+        </div>
+        <?php if ($perm('cObraEquipe')): ?>
+            <div class="ui-acoes">
+                <a href="#modal-equipe" data-toggle="modal" class="button btn btn-mini btn-success" data-chamar="novaEquipe"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova Equipe</span></a>
+            </div>
+        <?php endif; ?>
+    </div>
 
-    <div class="widget-box"><div class="widget-content nopadding">
+    <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
         <table class="table table-bordered">
             <thead><tr><th>#</th><th>Equipe</th><th>Tipo</th><th>Encarregado</th><th>Membros</th><th>Ativa</th><th>Ações</th></tr></thead>
             <tbody>
-                <?php if (! $equipes) echo '<tr><td colspan="7">Nenhuma equipe cadastrada.</td></tr>'; ?>
+                <?php if (! $equipes) echo '<tr><td colspan="7"><div class="ui-vazio"><i class="bx bx-group"></i><strong>Nenhuma equipe cadastrada.</strong>Crie a primeira equipe para alocar pessoas nos projetos.</div></td></tr>'; ?>
                 <?php foreach ($equipes as $q): ?>
                     <tr>
                         <td><?= $q->idEquipe ?></td>
                         <td><?= html_escape($q->nome) ?></td>
-                        <td><?= (isset($q->tipo) && $q->tipo === 'terceirizada') ? '<span class="label label-warning">Terceirizada</span>' : '<span class="label">Interna</span>' ?></td>
+                        <td><?= (isset($q->tipo) && $q->tipo === 'terceirizada') ? '<span class="ui-selo alerta">Terceirizada</span>' : '<span class="ui-selo info">Interna</span>' ?></td>
                         <td><?= html_escape($q->encarregado ?: '—') ?></td>
                         <td><?= (int) $q->total_membros ?></td>
-                        <td><?= $q->ativo ? '<span class="label label-success">Sim</span>' : '<span class="label">Não</span>' ?></td>
+                        <td><?= $q->ativo ? '<span class="ui-selo sucesso">Sim</span>' : '<span class="ui-selo">Não</span>' ?></td>
                         <td>
-                            <a href="<?= site_url('obraequipe/membros/' . $q->idEquipe) ?>" class="btn-nwe" title="Membros e alocação"><i class="bx bx-group bx-xs"></i></a>
+                            <div class="ui-acoes-linha">
+                            <a href="<?= site_url('obraequipe/membros/' . $q->idEquipe) ?>" class="btn-nwe" title="Membros e alocação" aria-label="Membros e alocação"><i class="bx bx-group bx-xs"></i></a>
                             <?php if ($perm('cObraEquipe')): ?>
-                                <a href="#" class="btn-nwe3" title="Editar" onclick='editarEquipe(<?= json_encode($q, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP) ?>);return false;'><i class="bx bx-edit bx-xs"></i></a>
-                                <a href="#" class="btn-nwe4" title="Excluir" onclick="excluirEquipe(<?= $q->idEquipe ?>);return false;"><i class="bx bx-trash-alt bx-xs"></i></a>
+                                <a href="#" class="btn-nwe3" title="Editar" aria-label="Editar equipe" data-chamar="editarEquipe" data-args="<?= html_escape(json_encode([$q])) ?>" data-cancelar><i class="bx bx-edit bx-xs"></i></a>
+                                <a href="#" class="btn-nwe4" title="Excluir" aria-label="Excluir equipe" data-chamar="excluirEquipe" data-args="[<?= (int) $q->idEquipe ?>]" data-cancelar><i class="bx bx-trash-alt bx-xs"></i></a>
                             <?php endif; ?>
+                            </div>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -71,7 +80,7 @@
 <form id="formExcluirEquipe" action="<?= site_url('obraequipe/excluir') ?>" method="post" style="display:none"><input type="hidden" name="idEquipe" id="del_equipe"></form>
 <?php endif; ?>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     function novaEquipe() {
         $('#eq_id').val(''); $('#eq_nome').val(''); $('#eq_enc').val(''); $('#eq_ativo').prop('checked', true);
         $('#eq_tipo').val('interna'); $('#eq_custo').val(''); $('#eq_doc').val(''); $('#eq_contato').val(''); $('#eq_tel').val('');

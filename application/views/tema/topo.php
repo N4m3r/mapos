@@ -38,19 +38,17 @@
   <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,800' rel='stylesheet' type='text/css'>
   <link href='https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;500;700&display=swap' rel='stylesheet' type='text/css'>
   <link href='<?= base_url('assets/boxicons/css/boxicons.min.css') ?>' rel='stylesheet'>
-  <?php if (filter_var($_ENV['APP_JQUERY3'] ?? true, FILTER_VALIDATE_BOOLEAN)): ?>
-  <!-- jQuery 3 (padrao). Para voltar ao 1.12: APP_JQUERY3=false no .env. O Migrate mantem APIs antigas e avisa no console o que precisa ser atualizado. -->
-  <script type="text/javascript" src="<?= base_url(); ?>assets/js/jquery-3.7.1.min.js"></script>
-  <script type="text/javascript" src="<?= base_url(); ?>assets/js/jquery-migrate-3.4.1.min.js"></script>
-  <?php else: ?>
-  <script type="text/javascript" src="<?= base_url(); ?>assets/js/jquery-1.12.4.min.js"></script>
-  <?php endif; ?>
-  <script type="text/javascript" src="<?= base_url(); ?>assets/js/shortcut.js"></script>
-  <script type="text/javascript" src="<?= base_url(); ?>assets/js/funcoesGlobal.js"></script>
-  <script type="text/javascript" src="<?= base_url(); ?>assets/js/datatables.min.js"></script>
-  <script type="text/javascript" src="<?= base_url(); ?>assets/js/sweetalert.min.js"></script>
-  <script type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
-  <script type="text/javascript">
+  <link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+  <!-- Camada visual moderna (ADR-009): depois do tema, que continua dando as cores -->
+  <link rel="stylesheet" href="<?= base_url('assets/css/moderno.css') ?>?v=<?= asset_versao('assets/css/moderno.css', '1') ?>" />
+  <!-- jQuery 3.7 + Migrate (padrao); APP_JQUERY3=false no .env volta ao 1.12 -->
+  <?= jquery_tags() ?>
+  <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/shortcut.js"></script>
+  <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/funcoesGlobal.js"></script>
+  <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/datatables.min.js"></script>
+  <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/sweetalert.min.js"></script>
+  <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
+  <script nonce="<?= csp_nonce() ?>" type="text/javascript">
     shortcut.add("escape", function() {
       location.href = '<?= base_url(); ?>';
     });
@@ -80,6 +78,7 @@
     shortcut.add("F12", function() {});
     window.BaseUrl = "<?= base_url() ?>";
   </script>
+    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
 </head>
 
 <body data-theme="<?= html_escape($configuration['app_theme'] ?: 'white') ?>">
@@ -104,6 +103,14 @@
             <li><a href="<?= site_url('relatorios/servicos') ?>">Serviços</a></li>
             <li><a href="<?= site_url('relatorios/os') ?>">Ordens de Serviço</a></li>
             <li><a href="<?= site_url('relatorios/cicloFaturamento') ?>">Ciclo / Faturamento das OS</a></li>
+            <li><a href="<?= site_url('relatorios/nps') ?>">Satisfação (NPS)</a></li>
+            <li class="divider"></li>
+            <li><a href="<?= site_url('relatoriocobranca') ?>">Cobrança do mês (por cliente)</a></li>
+            <li><a href="<?= site_url('painelgerencial') ?>">Painel gerencial</a></li>
+            <li><a href="<?= site_url('margem') ?>">Custo e margem por OS</a></li>
+            <li><a href="<?= site_url('comprasugerida') ?>">Compra sugerida (estoque)</a></li>
+            <li><a href="<?= site_url('conciliacao') ?>">Conciliação bancária (OFX)</a></li>
+            <li class="divider"></li>
             <li><a href="<?= site_url('relatorios/vendas') ?>">Vendas</a></li>
             <li><a href="<?= site_url('relatorios/financeiro') ?>">Financeiro</a></li>
             <li><a href="<?= site_url('relatorios/sku') ?>">SKU</a></li>

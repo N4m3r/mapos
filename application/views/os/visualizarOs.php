@@ -6,14 +6,14 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
 <link href="<?= base_url('assets/css/custom.css'); ?>" rel="stylesheet">
 
 <!-- Scripts do Sistema de Check-in (carregados antes dos modais) -->
-<script src="<?php echo base_url(); ?>assets/js/assinatura-canvas.js?v=3"></script>
-<script src="<?php echo base_url(); ?>assets/js/assinatura-fullscreen.js?v=1"></script>
-<script src="<?php echo base_url(); ?>assets/js/checkin-fotos.js?v=3"></script>
-<script src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= asset_versao('assets/js/rascunho-form.js') ?>"></script>
-<script src="<?php echo base_url(); ?>assets/js/checkin.js?v=7"></script>
-<script src="<?php echo base_url(); ?>assets/js/checkin-formularios.js?v=1"></script>
-<script src="<?php echo base_url(); ?>assets/js/csrf.js?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
-<script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/assinatura-canvas.js?v=3"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/assinatura-fullscreen.js?v=1"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/checkin-fotos.js?v=3"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= asset_versao('assets/js/rascunho-form.js') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/checkin.js?v=7"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/checkin-formularios.js?v=1"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/csrf.js?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
+<script nonce="<?= csp_nonce() ?>">
     // Configuração do CheckinManager
     window.checkinConfig = {
         baseUrl: '<?php echo base_url(); ?>',
@@ -183,7 +183,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                             <span class="button__icon"><i class="bx bx-slider"></i></span>
                             <span class="button__text">Automação: <?= $automacaoNestaOs ? 'ON' : 'OFF' ?></span>
                         </a>
-                        <script>
+                        <script nonce="<?= csp_nonce() ?>">
                             document.addEventListener('DOMContentLoaded', function () {
                                 var btn = document.getElementById('btnToggleAutomacao');
                                 if (!btn) return;
@@ -213,6 +213,12 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                     if ($aceiteSuportado && in_array($result->status, ['Finalizado', 'Faturado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) { ?>
                         <a title="Solicitar aceite do serviço realizado ao cliente" href="#modal-aceite" role="button" data-toggle="modal" class="button btn btn-mini btn-success">
                             <span class="button__icon"><i class="bx bx-badge-check"></i></span> <span class="button__text">Link Aceite</span>
+                        </a>
+                    <?php } ?>
+
+                    <?php if ($this->db->field_exists('acompanhar_token', 'os') && $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) { ?>
+                        <a title="Abrir o link público de acompanhamento (para enviar ao cliente)" href="<?= site_url('os/acompanhamento/' . $result->idOs) ?>" target="_blank" rel="noopener" class="button btn btn-mini btn-info">
+                            <span class="button__icon"><i class="bx bx-map-pin"></i></span> <span class="button__text">Acompanhamento</span>
                         </a>
                     <?php } ?>
 
@@ -270,6 +276,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                 <h3><i class='bx bx-file'></i> Ordem de Serviço #<?php echo sprintf('%04d', $result->idOs) ?></h3>
                             </tbody>
                         </table>
+                        <?php $this->load->view('os/_projeto_selo', ['vinculoProjeto' => $vinculoProjeto, 'podeVerProjeto' => $podeVerProjeto, 'podeVincularProjeto' => $podeVincularProjeto, 'mostrarAcoes' => true, 'projetosVincular' => $projetosVincular, 'podeCriarProjeto' => $podeCriarProjeto, 'osElegivelConversao' => $osElegivelConversao, 'tiposProjeto' => $tiposProjeto, 'osIdProjeto' => $result->idOs, 'osNomeCliente' => $result->nomeCliente ?? '']); ?>
                         <table class="table table-condensend">
                             <tbody>
                                 <tr>
@@ -644,7 +651,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                         ?>
                                         <div class="span12" style="margin-top: 10px;">
                                             <input type="file" id="foto-durante-input" class="checkin-foto-input" data-etapa="durante" accept="image/*" style="display: none;">
-                                            <button type="button" class="btn btn-success" onclick="document.getElementById('foto-durante-input').click()">
+                                            <button type="button" class="btn btn-success" data-acao="clicar" data-alvo="#foto-durante-input">
                                                 <i class="bx bx-plus"></i> Adicionar Foto
                                             </button>
                                         </div>
@@ -1095,7 +1102,7 @@ if (isset($aprovacaoSuportada) && $aprovacaoSuportada && $this->permission->chec
         </div>
     </div>
 
-    <script type="text/javascript">
+    <script nonce="<?= csp_nonce() ?>" type="text/javascript">
         $(function() {
             var apIdOs = "<?php echo $result->idOs; ?>";
             var apZap = "<?php echo $zapAprov; ?>";
@@ -1193,7 +1200,7 @@ if (isset($aprovacaoSuportada) && $aprovacaoSuportada && $this->permission->chec
 <?php } ?>
 
 <?php if (! empty($whatsappApiAtivo)) { ?>
-    <script type="text/javascript">
+    <script nonce="<?= csp_nonce() ?>" type="text/javascript">
         $(function() {
             function enviarWhatsApp(url, botao, textoEnviando) {
                 var $btn = $(botao);
@@ -1288,7 +1295,7 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
         </div>
     </div>
 
-    <script type="text/javascript">
+    <script nonce="<?= csp_nonce() ?>" type="text/javascript">
         $(function() {
             var acIdOs = "<?php echo $result->idOs; ?>";
 
@@ -1356,8 +1363,8 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
     </script>
 <?php } ?>
 
-<script src="https://cdn.rawgit.com/cozmo/jsQR/master/dist/jsQR.js"></script>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" src="https://cdn.rawgit.com/cozmo/jsQR/master/dist/jsQR.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     // Função auxiliar para carregamento assíncrono de conteúdo
     function loadContentAsync(selector, url, targetSelector) {
         var $element = $(selector);
@@ -1783,7 +1790,7 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
                 <h6><i class="bx bx-camera"></i> Fotos de Entrada</h6>
                 <div class="upload-area">
                     <input type="file" id="fotos-entrada-input" class="checkin-foto-input" data-etapa="entrada" accept="image/*" style="display: none;">
-                    <button type="button" class="btn" onclick="document.getElementById('fotos-entrada-input').click()">
+                    <button type="button" class="btn" data-acao="clicar" data-alvo="#fotos-entrada-input">
                         <i class="bx bx-upload"></i> Selecionar Fotos
                     </button>
                     <button type="button" class="btn btn-info btn-capturar-foto" data-etapa="entrada">
@@ -2145,7 +2152,7 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
                 <h6><i class="bx bx-camera"></i> Fotos da Saída</h6>
                 <div class="upload-area">
                     <input type="file" id="fotos-saida-input" class="checkin-foto-input" data-etapa="saida" accept="image/*" style="display: none;">
-                    <button type="button" class="btn" onclick="document.getElementById('fotos-saida-input').click()">
+                    <button type="button" class="btn" data-acao="clicar" data-alvo="#fotos-saida-input">
                         <i class="bx bx-upload"></i> Selecionar Fotos
                     </button>
                     <button type="button" class="btn btn-info btn-capturar-foto" data-etapa="saida">
@@ -2189,7 +2196,7 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
 </div>
 
 <!-- Script para inicializar assinaturas nos modais -->
-<script>
+<script nonce="<?= csp_nonce() ?>">
 // Lazy loading para inicialização de assinaturas - só executa quando os modais são abertos
 (function() {
     'use strict';

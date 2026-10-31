@@ -17,7 +17,7 @@
     <div class="box">
         <div class="ic">🔗</div>
         <h1>Link indisponível</h1>
-        <p>Este link do RDO não existe ou expirou. Solicite um novo link a quem lhe enviou.</p>
+        <p>Este link de registro de execução não existe ou expirou. Solicite um novo link a quem lhe enviou.</p>
     </div>
 </body>
 </html>

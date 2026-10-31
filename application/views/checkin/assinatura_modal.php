@@ -114,7 +114,7 @@ $canvas_id = $modal_id . '-canvas';
     </div>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
 (function() {
     // Inicializa o canvas quando o modal for aberto
     var modalId = '<?php echo $modal_id; ?>';

@@ -111,3 +111,10 @@ Crie mais uma tarefa diária (por exemplo às 9h) com o argumento `index.php lem
 Ela avisa o cliente na véspera da visita agendada, quando o orçamento está sem resposta há alguns dias e quando o equipamento está pronto para retirada (e-mail e, se configurado, WhatsApp).
 Vem desligada: no `.env`, coloque `LEMBRETES_ATIVO=true` e ajuste `LEMBRETE_ORCAMENTO_DIAS` / `LEMBRETE_RETIRADA_DIAS` (0 desliga o tipo).
 Para conferir antes de ligar, rode no terminal `php index.php lembretes/executar simular`: mostra os lembretes que seriam enviados, sem enviar.
+
+
+## Alerta de ponto parado (projetos)
+
+Crie uma tarefa a cada 1 ou 2 horas com o argumento `index.php lembretes/pontos_parados`.
+Avisa por WhatsApp o técnico que tem ponto de projeto aguardando ação há mais de N horas e, passando de 2N horas, o responsável do projeto. Não repete o aviso do mesmo ponto antes de N horas.
+Vem desligado: no `.env`, `ALERTA_REPASSE_ATIVO=true` e `ALERTA_REPASSE_HORAS=24` (padrão). Teste com `php index.php lembretes/pontos_parados simular`.

@@ -1,16 +1,20 @@
-<div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon">
-            <i class="fas fa-envelope-open-text"></i>
-        </span>
-        <h5>Modelos de E-mail</h5>
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-envelope-open"></i> Modelos de E-mail</h1>
+        <p class="ui-subtitulo">Textos dos e-mails automáticos, com ativação e edição de cada modelo.</p>
     </div>
+</div>
+<div class="widget-box">
     <div class="widget-content nopadding">
-        <p style="padding: 14px 16px 0; color:#6b7191; margin:0;">
-            Configure quais e-mails são enviados, edite o texto/HTML de cada modelo e use as
-            <strong>tags</strong> para inserir dados do cliente, da OS e da cobrança automaticamente.
-        </p>
-        <table class="table table-bordered" style="margin-top: 10px">
+        <div class="ui-dica" style="margin:14px 16px 0">
+            <i class="bx bx-info-circle"></i>
+            <div>
+                Configure quais e-mails são enviados, edite o texto/HTML de cada modelo e use as
+                <strong>tags</strong> para inserir dados do cliente, da OS e da cobrança automaticamente.
+            </div>
+        </div>
+        <div class="ui-tabela-rolagem" style="margin-top: 10px">
+        <table class="table table-bordered">
             <thead>
                 <tr>
                     <th>Modelo</th>
@@ -22,7 +26,7 @@
             <tbody>
                 <?php if (empty($results)) { ?>
                     <tr>
-                        <td colspan="4">Nenhum modelo cadastrado. Rode a migration de e-mail.</td>
+                        <td colspan="4"><div class="ui-vazio"><i class="bx bx-envelope-open"></i><strong>Nenhum modelo cadastrado</strong>Rode a migration de e-mail para criar os modelos padrão.</div></td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($results as $r) { ?>
@@ -31,9 +35,9 @@
                         <td><?= html_escape($r->descricao) ?></td>
                         <td style="text-align:center">
                             <?php if ((int) $r->ativo === 1) { ?>
-                                <span class="badge badge-success">Ativo</span>
+                                <span class="ui-selo sucesso">Ativo</span>
                             <?php } else { ?>
-                                <span class="badge badge-warning">Desativado</span>
+                                <span class="ui-selo alerta">Desativado</span>
                             <?php } ?>
                         </td>
                         <td style="text-align:center">
@@ -45,15 +49,15 @@
                 <?php } ?>
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 
 <div class="widget-box">
-    <div class="widget-title">
-        <span class="icon"><i class="fas fa-palette"></i></span>
-        <h5>Layout &amp; CSS global</h5>
-    </div>
     <div class="widget-content" style="padding:16px">
+        <div class="ui-secao">
+            <h4><i class="bx bx-palette"></i> Layout &amp; CSS global</h4>
+        </div>
         <p style="color:#6b7191">
             O layout global define o cabeçalho, o rodapé e o CSS aplicados a <strong>todos</strong>
             os e-mails, deixando o envio com a identidade visual da empresa.

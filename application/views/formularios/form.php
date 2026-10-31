@@ -3,11 +3,16 @@ $isEdit = ! empty($formulario);
 $comOpcoes = $tiposComOpcoes ?? ['select', 'radio', 'checkbox'];
 ?>
 <div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="fas fa-clipboard-list"></i></span>
-        <h5><?= $isEdit ? 'Editar formulário' : 'Novo formulário' ?></h5>
-    </div>
     <div class="widget-content" style="padding:18px">
+        <div class="ui-cabecalho">
+            <div>
+                <h1 class="ui-titulo"><i class="bx bx-clipboard"></i> <?= $isEdit ? 'Editar formulário' : 'Novo formulário' ?></h1>
+                <p class="ui-subtitulo">Defina o nome, quando o formulário aparece e os campos que o técnico preenche.</p>
+            </div>
+            <div class="ui-acoes">
+                <a href="<?= site_url('formularios') ?>" class="button btn btn-mini btn-warning"><span class="button__icon"><i class="bx bx-undo"></i></span><span class="button__text2">Voltar</span></a>
+            </div>
+        </div>
 
         <form action="<?= site_url('formularios/salvar') ?>" method="post" id="form-formulario">
             <?php if ($isEdit) { ?>
@@ -80,7 +85,7 @@ $comOpcoes = $tiposComOpcoes ?? ['select', 'radio', 'checkbox'];
     </div>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     (function () {
         'use strict';
         var comOpcoes = <?= json_encode(array_values($comOpcoes)) ?>;

@@ -47,11 +47,11 @@ $this->load->view('tecnico/_topo', [
                 </div>
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
                     <button type="button" class="btn-tec warning" style="flex:1; justify-content:center;"
-                        onclick="abrirReagendar(<?= (int) $oc->idOcorrencia ?>)">
+                        data-chamar="abrirReagendar" data-args="[<?= (int) $oc->idOcorrencia ?>]">
                         <i class='bx bx-calendar-plus'></i> Reagendar
                     </button>
                     <button type="button" class="btn-tec neutral" style="flex:1; justify-content:center;"
-                        data-ocorrencia="<?= (int) $oc->idOcorrencia ?>" onclick="reabrirAtividade(this)">
+                        data-ocorrencia="<?= (int) $oc->idOcorrencia ?>" data-chamar="reabrirAtividade" data-args='["@this"]'>
                         <i class='bx bx-revision'></i> Reabrir
                     </button>
                 </div>
@@ -69,8 +69,8 @@ $this->load->view('tecnico/_topo', [
         <label class="nr-label">Nova data</label>
         <input type="date" id="reag-data" class="atv-input" min="<?= date('Y-m-d') ?>" value="<?= date('Y-m-d') ?>">
         <div class="nr-modal-actions">
-            <button type="button" class="btn-tec ghost" onclick="fecharReagendar()">Cancelar</button>
-            <button type="button" class="btn-tec warning" onclick="confirmarReagendar()"><i class='bx bx-check'></i> Reagendar</button>
+            <button type="button" class="btn-tec ghost" data-chamar="fecharReagendar">Cancelar</button>
+            <button type="button" class="btn-tec warning" data-chamar="confirmarReagendar"><i class='bx bx-check'></i> Reagendar</button>
         </div>
     </div>
 </div>
@@ -89,7 +89,7 @@ $this->load->view('tecnico/_topo', [
 
 <?php $this->load->view('tecnico/_nav', ['nav_ativo' => 'os', 'pode_ver_sistema' => isset($pode_ver_sistema) ? $pode_ver_sistema : false]); ?>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     var NR_BASE = '<?= site_url('tecnico') ?>';
 
     function abrirReagendar(ocorrenciaId) {

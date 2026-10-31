@@ -28,7 +28,16 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
         #modal-checkout .row-fluid .span6 { width: 100% !important; float: none !important; margin-left: 0 !important; margin-bottom: 14px; }
         .assinatura-canvas-wrapper canvas { width: 100% !important; height: auto !important; min-height: 200px !important; }
     }
+    /* Estado e proxima acao do atendimento */
+    .ui-acao-grande { display: flex; width: 100%; justify-content: center; align-items: center; gap: 8px; min-height: 52px; font-size: 16px; font-weight: 700; border-radius: 12px; box-sizing: border-box; }
+    #modal-checkin .modal-footer .ui-acao-grande, #modal-checkout .modal-footer .ui-acao-grande { width: auto; min-height: 44px; font-size: 15px; }
+    @media (max-width: 768px) {
+        .modal-footer .btn { float: none; display: block; width: 100%; box-sizing: border-box; margin: 6px 0 0; }
+        .modal-footer .ui-acao-grande { width: 100%; }
+        .upload-area .btn { width: 100%; margin: 4px 0; box-sizing: border-box; }
+    }
 </style>
+
 
 <!-- Modal Check-in -->
 <div id="modal-checkin" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
@@ -37,6 +46,7 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
         <h3><i class="bx bx-log-in"></i> Iniciar Atendimento</h3>
     </div>
     <div class="modal-body">
+        <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Assine, tire as fotos de entrada e confirme para iniciar o atendimento.</div></div>
         <form id="form-checkin">
             <div class="checkin-section">
                 <h6><i class="bx bx-pen"></i> Assinatura do Técnico</h6>
@@ -51,7 +61,7 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
                 <div class="upload-area">
                     <input type="file" id="fotos-entrada-input" class="checkin-foto-input" data-etapa="entrada" accept="image/*" style="display:none;">
                     <button type="button" class="btn btn-info btn-capturar-foto" data-etapa="entrada"><i class="bx bx-camera"></i> Tirar Foto</button>
-                    <button type="button" class="btn" onclick="document.getElementById('fotos-entrada-input').click()"><i class="bx bx-upload"></i> Escolher da Galeria</button>
+                    <button type="button" class="btn" data-acao="clicar" data-alvo="#fotos-entrada-input"><i class="bx bx-upload"></i> Escolher da Galeria</button>
                     <p class="text-muted" style="margin:10px 0 0;">Máximo 5MB por foto (JPG, PNG)</p>
                 </div>
                 <div id="preview-fotos-entrada" class="preview-fotos-container"></div>
@@ -71,7 +81,7 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
     </div>
     <div class="modal-footer">
         <button class="btn" data-dismiss="modal" aria-hidden="true">Cancelar</button>
-        <button class="btn btn-success" id="btn-confirmar-checkin"><i class="bx bx-log-in"></i> Iniciar Atendimento</button>
+        <button class="btn btn-success ui-acao-grande" id="btn-confirmar-checkin"><i class="bx bx-log-in"></i> Iniciar Atendimento</button>
     </div>
 </div>
 
@@ -82,6 +92,7 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
         <h3><i class="bx bx-log-out"></i> Finalizar Atendimento</h3>
     </div>
     <div class="modal-body">
+        <div class="ui-dica alerta"><i class="bx bx-info-circle"></i><div>Confira as assinaturas, fotos e observações. Ao finalizar, o atendimento é encerrado.</div></div>
         <form id="form-checkout">
             <div class="checkin-section">
                 <h6><i class="bx bx-pen"></i> Assinaturas</h6>
@@ -108,7 +119,7 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
                 <div class="upload-area">
                     <input type="file" id="fotos-saida-input" class="checkin-foto-input" data-etapa="saida" accept="image/*" style="display:none;">
                     <button type="button" class="btn btn-info btn-capturar-foto" data-etapa="saida"><i class="bx bx-camera"></i> Tirar Foto</button>
-                    <button type="button" class="btn" onclick="document.getElementById('fotos-saida-input').click()"><i class="bx bx-upload"></i> Escolher da Galeria</button>
+                    <button type="button" class="btn" data-acao="clicar" data-alvo="#fotos-saida-input"><i class="bx bx-upload"></i> Escolher da Galeria</button>
                     <p class="text-muted" style="margin:10px 0 0;">Máximo 5MB por foto (JPG, PNG)</p>
                 </div>
                 <div id="preview-fotos-saida" class="preview-fotos-container"></div>
@@ -133,7 +144,7 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
     </div>
     <div class="modal-footer">
         <button class="btn" data-dismiss="modal" aria-hidden="true">Cancelar</button>
-        <button class="btn btn-danger" id="btn-confirmar-checkout"><i class="bx bx-log-out"></i> Finalizar Atendimento</button>
+        <button class="btn btn-danger ui-acao-grande" id="btn-confirmar-checkout"><i class="bx bx-log-out"></i> Finalizar Atendimento</button>
     </div>
 </div>
 
@@ -147,7 +158,7 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
         <div class="checkin-section">
             <div class="upload-area">
                 <input type="file" id="fs-input" accept="image/*" capture="environment" style="display:none;">
-                <button type="button" class="btn btn-info" onclick="document.getElementById('fs-input').click()"><i class="bx bx-camera"></i> Tirar / Escolher Foto</button>
+                <button type="button" class="btn btn-info" data-acao="clicar" data-alvo="#fs-input"><i class="bx bx-camera"></i> Tirar / Escolher Foto</button>
                 <p class="text-muted" style="margin:10px 0 0;">Uma foto por vez (JPG, PNG). Máx. 10MB.</p>
             </div>
             <div id="fs-preview" style="text-align:center; margin-top:10px; display:none;"></div>
@@ -168,15 +179,15 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
 </div>
 
 <!-- Bibliotecas do fluxo de atendimento (mesmas da tela administrativa) -->
-<script src="<?= base_url('assets/js/assinatura-canvas.js?v=3') ?>"></script>
-<script src="<?= base_url('assets/js/assinatura-fullscreen.js?v=1') ?>"></script>
-<script src="<?= base_url('assets/js/checkin-fotos.js?v=3') ?>"></script>
-<script src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= asset_versao('assets/js/rascunho-form.js') ?>"></script>
-<script src="<?= base_url('assets/js/checkin.js?v=7') ?>"></script>
-<script src="<?= base_url('assets/js/checkin-formularios.js?v=1') ?>"></script>
-<script src="<?= base_url('assets/js/csrf.js') ?>?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
-<script src="<?= base_url('assets/js/tecnico-localizacao.js?v=1') ?>"></script>
-<script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/assinatura-canvas.js?v=3') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/assinatura-fullscreen.js?v=1') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/checkin-fotos.js?v=3') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= asset_versao('assets/js/rascunho-form.js') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/checkin.js?v=7') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/checkin-formularios.js?v=1') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/csrf.js') ?>?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/tecnico-localizacao.js?v=1') ?>"></script>
+<script nonce="<?= csp_nonce() ?>">
     window.checkinConfig = { baseUrl: '<?= base_url() ?>', osId: <?= $os_id ?>, debug: false };
 
     (function () {

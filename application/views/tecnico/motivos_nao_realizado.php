@@ -56,7 +56,7 @@ $this->load->view('tecnico/_topo', [
                 <?php else: ?>
                     <a href="<?= site_url('tecnico/remover_motivo_nao_realizado/' . (int) $m->idMotivo) ?>"
                         class="btn-tec danger" title="Remover"
-                        onclick="return confirm('Remover este motivo? Se já foi usado, ele apenas será desativado.');">
+                        data-confirmar="Remover este motivo? Se já foi usado, ele apenas será desativado.">
                         <i class='bx bx-trash'></i>
                     </a>
                 <?php endif; ?>

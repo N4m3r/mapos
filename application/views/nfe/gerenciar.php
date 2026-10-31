@@ -1,49 +1,49 @@
 <div class="new122">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="fas fa-file-invoice"></i></span>
-        <h5>Notas Fiscais</h5>
-    </div>
-
-    <div class="span12" style="margin-left: 0">
-        <form method="get" action="<?= site_url('nfe/gerenciar') ?>">
-            <div class="span3">
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'cNfe')) { ?>
-                    <a href="<?= site_url('nfe/configuracoes') ?>" class="button btn btn-mini btn-info" style="max-width: 200px">
-                        <span class="button__icon"><i class='bx bx-cog'></i></span>
-                        <span class="button__text2">Configurações Fiscais</span>
-                    </a>
-                    <a href="<?= site_url('cobrancas/configCora') ?>" class="button btn btn-mini btn-success" style="max-width: 220px; margin-top: 6px">
-                        <span class="button__icon"><i class='bx bx-dollar-circle'></i></span>
-                        <span class="button__text2">Configurar Cobrança Cora</span>
-                    </a>
-                <?php } ?>
+    <div class="ui-cabecalho">
+        <div>
+            <h1><i class="fas fa-file-invoice"></i> Notas Fiscais</h1>
+            <p>Acompanhe NF-e e NFS-e emitidas, baixe XML, imprima e corrija notas rejeitadas.</p>
+        </div>
+        <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'cNfe')) { ?>
+            <div class="ui-acoes">
+                <a href="<?= site_url('nfe/configuracoes') ?>" class="button btn btn-info" title="Configurações fiscais">
+                    <span class="button__icon"><i class='bx bx-cog'></i></span>
+                    <span class="button__text2">Configurações Fiscais</span>
+                </a>
+                <a href="<?= site_url('cobrancas/configCora') ?>" class="button btn btn-success" title="Configurar cobrança Cora">
+                    <span class="button__icon"><i class='bx bx-dollar-circle'></i></span>
+                    <span class="button__text2">Configurar Cobrança Cora</span>
+                </a>
             </div>
-            <div class="span2">
-                <select name="status" class="span12">
-                    <option value="">Todos os status</option>
-                    <?php foreach (['autorizada', 'rejeitada', 'cancelada', 'substituida', 'erro', 'pendente'] as $st) { ?>
-                        <option value="<?= $st ?>" <?= $this->input->get('status') == $st ? 'selected' : '' ?>><?= ucfirst($st) ?></option>
-                    <?php } ?>
-                </select>
-            </div>
-            <div class="span1">
-                <button class="button btn btn-mini btn-warning" style="min-width: 30px">
-                    <span class="button__icon"><i class='bx bx-search-alt'></i></span>
-                </button>
-            </div>
-        </form>
+        <?php } ?>
     </div>
 
     <?php if (isset($configNfe) && (int) $configNfe->ambiente === 2) { ?>
-        <div class="span12" style="margin-left: 0">
-            <div class="alert alert-warning" style="margin-bottom: 8px">
-                Ambiente de <strong>HOMOLOGAÇÃO</strong>: as notas emitidas não têm valor fiscal.
-            </div>
+        <div class="ui-dica">
+            <i class="bx bx-error"></i>
+            <div>Ambiente de <strong>HOMOLOGAÇÃO</strong>: as notas emitidas são apenas de teste e não têm valor fiscal. Mude para produção em Configurações Fiscais quando estiver pronto.</div>
         </div>
     <?php } ?>
 
+    <form method="get" action="<?= site_url('nfe/gerenciar') ?>" class="ui-filtros">
+        <div class="ui-campo">
+            <label for="status">Status</label>
+            <select id="status" name="status">
+                <option value="">Todos os status</option>
+                <?php foreach (['autorizada', 'rejeitada', 'cancelada', 'substituida', 'erro', 'pendente'] as $st) { ?>
+                    <option value="<?= $st ?>" <?= $this->input->get('status') == $st ? 'selected' : '' ?>><?= ucfirst($st) ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="ui-campo ui-campo-acao">
+            <button class="button btn btn-warning" title="Filtrar">
+                <span class="button__icon"><i class='bx bx-search-alt'></i></span><span class="button__text2">Filtrar</span>
+            </button>
+        </div>
+    </form>
+
     <div class="widget-box">
-        <div class="widget-content nopadding tab-content">
+        <div class="widget-content nopadding tab-content ui-tabela-rolagem">
             <table id="tabela" class="table table-bordered">
                 <thead>
                     <tr>
@@ -61,16 +61,14 @@
                 <tbody>
                     <?php
                     if (!$results) {
-                        echo '<tr><td colspan="9">Nenhuma nota fiscal emitida até o momento.</td></tr>';
+                        echo '<tr><td colspan="9"><div class="ui-vazio"><i class="bx bx-file"></i><strong>Nenhuma nota fiscal encontrada</strong>As notas emitidas a partir de uma OS ou venda aparecerão aqui.</div></td></tr>';
                     }
                     foreach ($results as $nota) {
-                        $corStatus = match ($nota->status) {
-                            'autorizada' => '#4d9c79',
-                            'rejeitada' => '#f24c6f',
-                            'cancelada' => '#CD0000',
-                            'substituida' => '#9b59b6',
-                            'erro' => '#FF7F00',
-                            default => '#AEB404',
+                        $classeStatus = match ($nota->status) {
+                            'autorizada' => 'sucesso',
+                            'rejeitada', 'cancelada', 'erro' => 'perigo',
+                            'substituida' => 'info',
+                            default => 'alerta',
                         };
                         $origem = $nota->tipo === 'nfe'
                             ? '<a href="' . site_url('vendas/visualizar/' . $nota->vendas_id) . '">Venda ' . $nota->vendas_id . '</a>'
@@ -78,25 +76,25 @@
 
                         echo '<tr>';
                         echo '<td>' . $nota->numero . ' / ' . $nota->serie . '</td>';
-                        echo '<td>' . ($nota->tipo === 'nfe' ? 'NF-e' : 'NFS-e') . ($nota->ambiente == 2 ? ' <span class="badge" style="background:#AEB404">Homolog.</span>' : '') . '</td>';
+                        echo '<td>' . ($nota->tipo === 'nfe' ? 'NF-e' : 'NFS-e') . ($nota->ambiente == 2 ? ' <span class="ui-selo alerta">Homolog.</span>' : '') . '</td>';
                         echo '<td>' . $origem . '</td>';
                         echo '<td>' . html_escape($nota->nomeCliente) . '</td>';
                         echo '<td>R$ ' . number_format($nota->valor_total, 2, ',', '.') . '</td>';
                         echo '<td>' . ($nota->data_emissao ? date('d/m/Y H:i', strtotime($nota->data_emissao)) : '-') . '</td>';
-                        echo '<td><span class="badge" style="background-color:' . $corStatus . ';border-color:' . $corStatus . '">' . ucfirst($nota->status) . '</span></td>';
+                        echo '<td><span class="ui-selo ' . $classeStatus . '">' . ucfirst($nota->status) . '</span></td>';
                         echo '<td style="max-width:260px;font-size:11px">' . html_escape(mb_substr((string) $nota->motivo, 0, 160)) . '</td>';
-                        echo '<td style="text-align:left;white-space:nowrap">';
+                        echo '<td><span class="ui-acoes-linha">';
 
                         if ($nota->status === 'autorizada' || $nota->status === 'cancelada') {
-                            echo '<a style="margin-right:1%" href="' . site_url('nfe/xml/' . $nota->idNota) . '" class="btn-nwe6" title="Baixar XML"><i class="bx bx-code-alt bx-xs"></i></a>';
+                            echo '<a href="' . site_url('nfe/xml/' . $nota->idNota) . '" class="btn-nwe6" title="Baixar XML" aria-label="Baixar XML"><i class="bx bx-code-alt bx-xs"></i></a>';
                             if ($nota->status === 'autorizada') {
-                                echo '<a style="margin-right:1%" href="' . site_url('nfe/danfe/' . $nota->idNota) . '" target="_blank" class="btn-nwe6" title="Imprimir ' . ($nota->tipo === 'nfe' ? 'DANFE' : 'DANFSe') . '"><i class="bx bx-printer bx-xs"></i></a>';
+                                echo '<a href="' . site_url('nfe/danfe/' . $nota->idNota) . '" target="_blank" class="btn-nwe6" title="Imprimir ' . ($nota->tipo === 'nfe' ? 'DANFE' : 'DANFSe') . '" aria-label="Imprimir ' . ($nota->tipo === 'nfe' ? 'DANFE' : 'DANFSe') . '"><i class="bx bx-printer bx-xs"></i></a>';
                                 // Substituir NFS-e (só Padrão Nacional / serviços)
                                 if ($nota->tipo === 'nfse' && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) {
-                                    echo '<a style="margin-right:1%" href="#modal-substituir-nota" role="button" data-toggle="modal" data-nota="' . $nota->idNota . '" data-numero="' . $nota->numero . '" class="btn-nwe3 btn-substituir-nota" title="Substituir NFS-e"><i class="bx bx-transfer bx-xs"></i></a>';
+                                    echo '<a href="#modal-substituir-nota" role="button" data-toggle="modal" data-nota="' . $nota->idNota . '" data-numero="' . $nota->numero . '" class="btn-nwe3 btn-substituir-nota" title="Substituir NFS-e" aria-label="Substituir NFS-e"><i class="bx bx-transfer bx-xs"></i></a>';
                                 }
                                 if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dNfe')) {
-                                    echo '<a href="#modal-cancelar-nota" role="button" data-toggle="modal" data-nota="' . $nota->idNota . '" data-numero="' . $nota->numero . '" class="btn-nwe4 btn-cancelar-nota" title="Cancelar Nota"><i class="bx bx-x-circle bx-xs"></i></a>';
+                                    echo '<a href="#modal-cancelar-nota" role="button" data-toggle="modal" data-nota="' . $nota->idNota . '" data-numero="' . $nota->numero . '" class="btn-nwe4 btn-cancelar-nota" title="Cancelar Nota" aria-label="Cancelar Nota"><i class="bx bx-x-circle bx-xs"></i></a>';
                                 }
                             }
                         } elseif (in_array($nota->status, ['rejeitada', 'erro'])) {
@@ -104,7 +102,7 @@
                             $editarUrl = ($nota->tipo === 'nfe' && !empty($nota->vendas_id))
                                 ? site_url('vendas/editar/' . $nota->vendas_id)
                                 : site_url('os/editar/' . $nota->os_id);
-                            echo '<a style="margin-right:1%" href="' . $editarUrl . '" class="btn-nwe3" title="Editar origem para corrigir os dados"><i class="bx bx-edit bx-xs"></i></a>';
+                            echo '<a href="' . $editarUrl . '" class="btn-nwe3" title="Editar origem para corrigir os dados" aria-label="Editar origem para corrigir os dados"><i class="bx bx-edit bx-xs"></i></a>';
 
                             // Retransmitir (mantém o mesmo número)
                             if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) {
@@ -115,10 +113,10 @@
                                 } else {
                                     $endpoint = site_url('nfe/emitirNfe/' . $nota->vendas_id);
                                 }
-                                echo '<a href="#modal-retransmitir" role="button" data-toggle="modal" data-endpoint="' . $endpoint . '" data-numero="' . $nota->numero . '" class="btn-nwe5 btn-retransmitir" title="Retransmitir (mantém o nº ' . $nota->numero . ')"><i class="bx bx-refresh bx-xs"></i></a>';
+                                echo '<a href="#modal-retransmitir" role="button" data-toggle="modal" data-endpoint="' . $endpoint . '" data-numero="' . $nota->numero . '" class="btn-nwe5 btn-retransmitir" title="Retransmitir (mantém o nº ' . $nota->numero . ')" aria-label="Retransmitir (mantém o nº ' . $nota->numero . ')"><i class="bx bx-refresh bx-xs"></i></a>';
                             }
                         }
-                        echo '</td>';
+                        echo '</span></td>';
                         echo '</tr>';
                     } ?>
                 </tbody>
@@ -209,7 +207,7 @@
     </div>
 </div>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         var retransmitirOk = false;
         var substituirOk = false;

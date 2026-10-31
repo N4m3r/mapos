@@ -1,3 +1,11 @@
+<div class="ui-cabecalho">
+    <div>
+        <h1><i class="fas fa-shopping-bag"></i> Relatórios de produtos</h1>
+        <p>Lista de produtos e posição de estoque.</p>
+    </div>
+</div>
+<div class="ui-dica"><i class="bx bx-info-circle"></i><div>Os relatórios abrem em uma nova aba. Use os rápidos para o caso comum ou os customizáveis para filtrar; escolha PDF para imprimir ou XLS para planilha.</div></div>
+
 <div class="row-fluid" style="margin-top: 0">
     <div class="span4">
         <div class="widget-box">
@@ -63,8 +71,8 @@
         </div>
     </div>
 </div>
-<script src="<?php echo base_url(); ?>assets/js/maskmoney.js"></script>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/maskmoney.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         $(".money").maskMoney();
     });

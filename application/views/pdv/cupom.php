@@ -15,6 +15,7 @@
         @media screen { body { margin-top: 10px; } .acoes { text-align: center; margin: 12px 0; } }
         @media print { .acoes { display: none; } }
     </style>
+    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
 </head>
 <body>
     <div class="c">
@@ -49,7 +50,7 @@
         <?php if (! empty($venda->observacoes)) { ?><?= html_escape($venda->observacoes) ?><br><?php } ?>
         Obrigado pela preferência!
     </div>
-    <div class="acoes"><button onclick="window.print()">Imprimir</button></div>
-    <script>window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 300); });</script>
+    <div class="acoes"><button data-acao="imprimir">Imprimir</button></div>
+    <script nonce="<?= csp_nonce() ?>">window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 300); });</script>
 </body>
 </html>

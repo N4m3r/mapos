@@ -227,8 +227,8 @@
     </div>
 </div>
 
-<script src="https://cdn.rawgit.com/cozmo/jsQR/master/dist/jsQR.js"></script>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" src="https://cdn.rawgit.com/cozmo/jsQR/master/dist/jsQR.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
 
     $('#copyButton').on('click', function() {
         var $qrCodeImage = $('#qrCodeImage');

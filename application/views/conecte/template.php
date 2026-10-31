@@ -15,12 +15,15 @@
     <link href="<?php echo base_url(); ?>assets/font-awesome/css/font-awesome.css" rel="stylesheet" />
     <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/fullcalendar.css" />
     <link href="<?php echo base_url(); ?>assets/css/bootstrap-responsive.min.css" rel="stylesheet">
-    <script type="text/javascript" src="<?php echo base_url(); ?>assets/js/jquery-1.12.4.min.js"></script>
-    <script type="text/javascript" src="<?= base_url(); ?>assets/js/sweetalert.min.js"></script>
+    <?= jquery_tags() ?>
+    <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/sweetalert.min.js"></script>
     <link rel="shortcut icon" href="<?php echo base_url(); ?>assets/img/favicon.png">
     <link href='<?= base_url('assets/boxicons/css/boxicons.min.css') ?>' rel='stylesheet'>
-    <script type="text/javascript" src="<?= base_url(); ?>assets/js/funcoesGlobal.js"></script>
-    <script type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
+    <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/funcoesGlobal.js"></script>
+    <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/csrf.js?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<?= base_url('assets/css/moderno.css') ?>?v=<?= asset_versao('assets/css/moderno.css', '1') ?>" />
 </head>
 
 <body>
@@ -114,10 +117,10 @@
             <div class="row-fluid">
 
                 <div class="span12">
-                    <?php if ($var = $this->session->flashdata('success')) : ?><script>
+                    <?php if ($var = $this->session->flashdata('success')) : ?><script nonce="<?= csp_nonce() ?>">
                             swal("Sucesso!", "<?php echo str_replace('"', '', $var); ?>", "success");
                         </script><?php endif; ?>
-                    <?php if ($var = $this->session->flashdata('error')) : ?><script>
+                    <?php if ($var = $this->session->flashdata('error')) : ?><script nonce="<?= csp_nonce() ?>">
                             swal("Falha!", "<?php echo str_replace('"', '', $var); ?>", "error");
                         </script><?php endif; ?>
                     <?php if (isset($output)) {
@@ -141,8 +144,8 @@
     <!-- javascript
 ================================================== -->
 
-    <script src="<?= base_url(); ?>assets/js/bootstrap.min.js"></script>
-    <script src="<?= base_url(); ?>assets/js/matrix.js"></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?= base_url(); ?>assets/js/bootstrap.min.js"></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?= base_url(); ?>assets/js/matrix.js"></script>
 </body>
 
 </html>

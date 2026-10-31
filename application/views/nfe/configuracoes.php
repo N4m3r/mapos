@@ -18,10 +18,25 @@
 
 <div class="row-fluid" style="margin-top:0">
     <div class="span12">
+        <div class="ui-cabecalho">
+            <div>
+                <h1><i class="fas fa-file-invoice"></i> Configurações Fiscais</h1>
+                <p>Certificado digital, ambiente e numeração para emitir NF-e e NFS-e (Simples Nacional).</p>
+            </div>
+            <div class="ui-acoes">
+                <a href="<?= site_url('nfe/gerenciar') ?>" class="button btn btn-info" title="Voltar para as notas fiscais">
+                    <span class="button__icon"><i class="bx bx-arrow-back"></i></span><span class="button__text2">Notas Fiscais</span>
+                </a>
+            </div>
+        </div>
+        <div class="ui-dica">
+            <i class="bx bx-info-circle"></i>
+            <div>Comece sempre no ambiente de <strong>Homologação</strong> (notas de teste, sem valor fiscal). Só mude para <strong>Produção</strong> depois de validar uma emissão completa.</div>
+        </div>
         <div class="widget-box">
             <div class="widget-title">
-                <span class="icon"><i class="fas fa-file-invoice"></i></span>
-                <h5>Configurações Fiscais - NF-e / NFS-e (Simples Nacional)</h5>
+                <span class="icon"><i class="fas fa-cog"></i></span>
+                <h5>Parâmetros de emissão</h5>
             </div>
             <div class="widget-content">
                 <?php if (!empty($custom_error)) { echo $custom_error; } ?>
@@ -321,7 +336,7 @@
     </div>
 </div>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         // Mostra/oculta os parâmetros de IBS/CBS conforme o checkbox mestre.
         $('#reforma_ativa').on('change', function() {

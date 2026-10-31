@@ -1,26 +1,33 @@
 <style>
-.tec-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;padding:12px}
-.tec-card{border:1px solid #e5e7eb;border-left:4px solid var(--cor,#ccc);border-radius:10px;padding:12px 14px;background:#fff;display:flex;flex-direction:column;gap:8px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
-.tec-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.tec-card-os{font-weight:600;color:#374151;font-size:14px}
-.tec-card-status{max-width:160px;padding:3px 6px;border-radius:6px;font-size:12px;margin:0}
-.tec-card-cliente{font-size:14px;color:#111827;font-weight:500}
-.tec-card-cliente small{display:block;color:#9ca3af;font-weight:400;font-size:12px}
-.tec-card-desc{font-size:12px;color:#6b7280;line-height:1.4;min-height:16px}
-.tec-card-meta{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:#6b7280}
-.tec-card-agenda{color:#2563eb;font-weight:500}
-.tec-badge{display:inline-flex;align-items:center;gap:4px;color:#fff;padding:3px 9px;border-radius:20px;font-size:11px;white-space:nowrap}
-.tec-badge-tec{background:#256}
-.tec-badge-semtec{background:#FF7F00}
-.tec-card-acoes{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
-.tec-vazio{padding:26px;text-align:center;color:#9ca3af}
+.ct-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;padding:12px}
+.ct-card{border:1px solid var(--ui-borda);border-left:4px solid var(--cor,#ccc);border-radius:var(--ui-raio);padding:12px 14px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--ui-sombra)}
+.ct-card.atrasado{background:rgba(229,72,77,.05)}
+.ct-topo{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ct-os{font-weight:700;font-size:14px}
+.ct-status{max-width:160px;padding:3px 6px;font-size:12px;margin:0;height:auto}
+.ct-cliente{font-size:14px;font-weight:600}
+.ct-cliente small{display:block;color:var(--ui-texto-2);font-weight:400;font-size:12px}
+.ct-desc{font-size:12px;color:var(--ui-texto-2);line-height:1.4;min-height:16px}
+.ct-meta{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px;color:var(--ui-texto-2);align-items:center}
+.ct-acoes{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.ct-acoes .btn{margin:0}
+a.ui-kpi{display:block;color:inherit;text-decoration:none}
+a.ui-kpi:hover{color:inherit;text-decoration:none;box-shadow:var(--ui-sombra-alta)}
+.ui-kpi.ativo{box-shadow:0 0 0 2px var(--ui-primaria) inset}
+.ct-carga{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:0 0 16px}
+.ct-tec{display:block;border:1px solid var(--ui-borda);border-radius:var(--ui-raio);padding:10px 12px;color:inherit;text-decoration:none}
+.ct-tec:hover,.ct-tec.ativo{border-color:var(--ui-primaria);color:inherit;text-decoration:none}
+.ct-tec.ativo{box-shadow:0 0 0 1px var(--ui-primaria) inset}
+.ct-tec-nome{font-weight:600;font-size:13px;display:flex;justify-content:space-between;gap:6px}
+.ct-tec-info{font-size:12px;color:var(--ui-texto-2);margin:2px 0 6px}
+.ct-carga-tit{font-size:14px;font-weight:600;margin:0 0 8px}
+.ui-campo-periodo{flex:2 1 300px}.ui-par{display:flex;gap:6px;align-items:center}.ui-par input{flex:1 1 0;min-width:0;width:auto!important}
+.ui-filtros .ui-campo label{font-size:12px;font-weight:600;margin:0 0 3px;color:var(--ui-texto-2)}
+.ui-filtros .ui-par{display:flex;gap:6px;align-items:center}
 @media (max-width:600px){
-    .tec-cards{grid-template-columns:1fr;padding:8px}
-    .tec-kpis{flex-wrap:wrap}
-    .tec-kpi{flex:1 1 45%}
-    .tec-filtros{flex-direction:column;align-items:stretch}
-    .tec-filtro{width:100%}
-    .tec-filtro-input,.tec-filtro-select,.tec-filtro-date{width:100%}
+    .ct-cards{grid-template-columns:1fr;padding:8px}
+    .ui-kpis{grid-template-columns:repeat(2,1fr)}
+    .ui-filtros .ui-campo{flex-basis:100%}
 }
 </style>
 
@@ -40,20 +47,22 @@
 
 <?php
 // Paleta de status padrão do sistema (mesma de os/os.php e do painel).
-function corStatusAtribuir($status)
-{
-    switch ($status) {
-        case 'Aberto': return '#00cd00';
-        case 'Em Andamento': return '#436eee';
-        case 'Orçamento': return '#CDB380';
-        case 'Negociação': return '#AEB404';
-        case 'Cancelado': return '#CD0000';
-        case 'Finalizado': return '#256';
-        case 'Faturado': return '#B266FF';
-        case 'Aguardando Peças': return '#FF7F00';
-        case 'Aprovado': return '#808080';
-        case 'Não Realizado': return '#CD0000';
-        default: return '#E0E4CC';
+if (! function_exists('corStatusAtribuir')) {
+    function corStatusAtribuir($status)
+    {
+        switch ($status) {
+            case 'Aberto': return '#00cd00';
+            case 'Em Andamento': return '#436eee';
+            case 'Orçamento': return '#CDB380';
+            case 'Negociação': return '#AEB404';
+            case 'Cancelado': return '#CD0000';
+            case 'Finalizado': return '#256';
+            case 'Faturado': return '#B266FF';
+            case 'Aguardando Peças': return '#FF7F00';
+            case 'Aprovado': return '#808080';
+            case 'Não Realizado': return '#CD0000';
+            default: return '#E0E4CC';
+        }
     }
 }
 $aba = isset($aba) ? $aba : 'todos';
@@ -63,91 +72,135 @@ if (!isset($ordens) || !is_array($ordens)) {
 if (!isset($naoRealizadas) || !is_array($naoRealizadas)) {
     $naoRealizadas = [];
 }
-$kpis = isset($kpis) ? $kpis : ['total' => 0, 'sem_tecnico' => 0, 'em_atendimento' => 0, 'aguardando' => 0, 'nao_realizadas' => 0, 'finalizados' => 0];
-$kpis['finalizados'] = isset($kpis['finalizados']) ? $kpis['finalizados'] : 0;
-// Rótulos das situações do atendimento (usado na lista suspensa de filtro).
+$kpis = isset($kpis) ? $kpis : [];
+$kpis += ['total' => 0, 'sem_tecnico' => 0, 'em_atendimento' => 0, 'aguardando' => 0, 'nao_realizadas' => 0, 'finalizados' => 0, 'atrasados' => 0, 'hoje' => 0];
 $abasDisponiveis = [
-    'todos'          => 'Todos',
+    'todos'          => 'Todos abertos',
     'sem_tecnico'    => 'Sem Técnico',
     'em_atendimento' => 'Em Atendimento',
+    'atrasados'      => 'Atrasados',
+    'hoje'           => 'Agendados hoje',
     'nao_realizadas' => 'Não Realizadas',
     'finalizados'    => 'Finalizados',
 ];
 $statusDisponiveis = isset($statusDisponiveis) ? $statusDisponiveis : [];
+$tecnicos = (isset($tecnicos) && is_array($tecnicos)) ? $tecnicos : [];
+$cargaTecnicos = isset($cargaTecnicos) ? $cargaTecnicos : [];
+$tecnicoFiltro = isset($tecnicoFiltro) ? (int) $tecnicoFiltro : 0;
+$busca    = isset($busca) ? $busca : '';
+$data_de  = isset($data_de) ? $data_de : '';
+$data_ate = isset($data_ate) ? $data_ate : '';
 $base = base_url() . 'index.php/os/atribuir';
+$temFiltro = ($busca !== '' || $data_de !== '' || $data_ate !== '' || $tecnicoFiltro > 0);
+$qTec = $tecnicoFiltro > 0 ? '&tecnico=' . $tecnicoFiltro : '';
+$podeAdicionar = $this->permission->checkPermission($this->session->userdata('permissao'), 'aOs');
+$agoraTs = time();
+$hojeIni = strtotime(date('Y-m-d') . ' 00:00:00');
+$hojeFim = strtotime(date('Y-m-d') . ' 23:59:59');
+$maxCarga = 1;
+foreach ($cargaTecnicos as $c) {
+    $maxCarga = max($maxCarga, (int) $c['abertas']);
+}
+$kpiLista = [
+    ['todos', 'Chamados abertos', 'bx-list-ul', '', (int) $kpis['total']],
+    ['sem_tecnico', 'Sem técnico', 'bx-user-x', 'alerta', (int) $kpis['sem_tecnico']],
+    ['atrasados', 'Atrasados', 'bx-error-circle', 'perigo', (int) $kpis['atrasados']],
+    ['hoje', 'Agendados hoje', 'bx-calendar-event', 'info', (int) $kpis['hoje']],
+    ['em_atendimento', 'Em atendimento', 'bx-user-check', 'sucesso', (int) $kpis['em_atendimento']],
+    ['nao_realizadas', 'Não realizadas', 'bx-x-circle', 'perigo', (int) $kpis['nao_realizadas']],
+    ['finalizados', 'Finalizados', 'bx-check-circle', 'sucesso', (int) $kpis['finalizados']],
+];
 ?>
 
 <div class="new122">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon">
-            <i class="fas fa-headset"></i>
-        </span>
-        <h5>Central de Atendimento</h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1><i class="fas fa-headset"></i> Central de Atendimento</h1>
+            <p>Distribua chamados entre os técnicos, agende visitas e acompanhe o que está atrasado ou marcado para hoje.</p>
+        </div>
+        <div class="ui-acoes">
+            <?php if ($podeAdicionar) { ?>
+                <a href="<?= base_url() ?>index.php/os/adicionar" class="btn btn-success"><i class='bx bx-plus'></i> Nova OS</a>
+            <?php } ?>
+            <a href="<?= base_url() ?>index.php/agenda" class="btn"><i class='bx bx-calendar'></i> Agenda</a>
+        </div>
     </div>
 
     <!-- ============ KPIs ============ -->
-    <div class="tec-kpis">
-        <a href="<?= $base ?>?aba=todos" class="tec-kpi <?= $aba === 'todos' ? 'ativo' : '' ?>" style="--kpi:#436eee">
-            <span class="tec-kpi-num"><?= (int) $kpis['total'] ?></span>
-            <span class="tec-kpi-lbl"><i class='bx bx-list-ul'></i> Chamados abertos</span>
-        </a>
-        <a href="<?= $base ?>?aba=sem_tecnico" class="tec-kpi <?= $aba === 'sem_tecnico' ? 'ativo' : '' ?>" style="--kpi:#FF7F00">
-            <span class="tec-kpi-num"><?= (int) $kpis['sem_tecnico'] ?></span>
-            <span class="tec-kpi-lbl"><i class='bx bx-user-x'></i> Sem técnico</span>
-        </a>
-        <a href="<?= $base ?>?aba=em_atendimento" class="tec-kpi <?= $aba === 'em_atendimento' ? 'ativo' : '' ?>" style="--kpi:#256">
-            <span class="tec-kpi-num"><?= (int) $kpis['em_atendimento'] ?></span>
-            <span class="tec-kpi-lbl"><i class='bx bx-user-check'></i> Em atendimento</span>
-        </a>
-        <span class="tec-kpi" style="--kpi:#B266FF; cursor:default">
-            <span class="tec-kpi-num"><?= (int) $kpis['aguardando'] ?></span>
-            <span class="tec-kpi-lbl"><i class='bx bx-time-five'></i> Aguardando</span>
-        </span>
-        <a href="<?= $base ?>?aba=nao_realizadas" class="tec-kpi <?= $aba === 'nao_realizadas' ? 'ativo' : '' ?>" style="--kpi:#CD0000">
-            <span class="tec-kpi-num"><?= (int) $kpis['nao_realizadas'] ?></span>
-            <span class="tec-kpi-lbl"><i class='bx bx-x-circle'></i> Não realizadas</span>
-        </a>
-        <a href="<?= $base ?>?aba=finalizados" class="tec-kpi <?= $aba === 'finalizados' ? 'ativo' : '' ?>" style="--kpi:#256">
-            <span class="tec-kpi-num"><?= (int) $kpis['finalizados'] ?></span>
-            <span class="tec-kpi-lbl"><i class='bx bx-check-circle'></i> Finalizados</span>
-        </a>
+    <div class="ui-kpis">
+        <?php foreach ($kpiLista as $k) { ?>
+            <a href="<?= $base ?>?aba=<?= $k[0] ?><?= $qTec ?>" class="ui-kpi <?= $k[3] ?> <?= $aba === $k[0] ? 'ativo' : '' ?>">
+                <div class="ui-kpi-rotulo"><i class='bx <?= $k[2] ?>'></i> <?= $k[1] ?></div>
+                <div class="ui-kpi-valor"><?= $k[4] ?></div>
+            </a>
+        <?php } ?>
+        <div class="ui-kpi" title="Orçamento, Negociação, Aprovado e Aguardando Peças">
+            <div class="ui-kpi-rotulo"><i class='bx bx-time-five'></i> Aguardando</div>
+            <div class="ui-kpi-valor"><?= (int) $kpis['aguardando'] ?></div>
+        </div>
     </div>
 
-    <!-- ============ Filtros (situação / busca / período) ============ -->
-    <?php
-    $busca    = isset($busca) ? $busca : '';
-    $data_de  = isset($data_de) ? $data_de : '';
-    $data_ate = isset($data_ate) ? $data_ate : '';
-    ?>
-    <form method="get" action="<?= $base ?>" class="tec-filtros" id="formFiltros">
-        <div class="tec-filtro">
-            <label for="filtroAba"><i class='bx bx-filter-alt'></i> Situação:</label>
-            <select name="aba" id="filtroAba" class="tec-filtro-select">
+    <!-- ============ Carga por técnico ============ -->
+    <?php if (! empty($tecnicos)) { ?>
+        <div>
+            <h4 class="ct-carga-tit"><i class='bx bx-group'></i> Carga por técnico</h4>
+            <div class="ct-carga">
+                <?php foreach ($tecnicos as $t) {
+                    if (! is_object($t)) { continue; }
+                    $tid = (int) $t->idUsuarios;
+                    $abertas = isset($cargaTecnicos[$tid]) ? $cargaTecnicos[$tid]['abertas'] : 0;
+                    $hojeT = isset($cargaTecnicos[$tid]) ? $cargaTecnicos[$tid]['hoje'] : 0;
+                    $pct = (int) round($abertas / $maxCarga * 100);
+                    $ativoT = $tecnicoFiltro === $tid;
+                    $hrefT = $ativoT ? $base . '?aba=' . $aba : $base . '?aba=' . $aba . '&tecnico=' . $tid;
+                ?>
+                    <a href="<?= html_escape($hrefT) ?>" class="ct-tec <?= $ativoT ? 'ativo' : '' ?>" title="<?= $ativoT ? 'Remover filtro deste técnico' : 'Ver chamados de ' . html_escape($t->nome) ?>">
+                        <div class="ct-tec-nome"><span><i class='bx bx-user'></i> <?= html_escape($t->nome) ?></span><strong><?= $abertas ?></strong></div>
+                        <div class="ct-tec-info"><?= $abertas ?> aberta(s) · <?= $hojeT ?> hoje</div>
+                        <div class="ui-barra"><span style="width:<?= $pct ?>%"></span></div>
+                    </a>
+                <?php } ?>
+            </div>
+        </div>
+    <?php } ?>
+
+    <!-- ============ Filtros (situação / técnico / busca / período) ============ -->
+    <form method="get" action="<?= $base ?>" class="ui-filtros" id="formFiltros">
+        <div class="ui-campo">
+            <label for="filtroAba">Situação</label>
+            <select name="aba" id="filtroAba">
                 <?php foreach ($abasDisponiveis as $valor => $rotulo) { ?>
                     <option value="<?= $valor ?>" <?= $aba === $valor ? 'selected' : '' ?>><?= $rotulo ?></option>
                 <?php } ?>
             </select>
         </div>
         <?php if ($aba !== 'nao_realizadas') { ?>
-            <div class="tec-filtro tec-filtro-busca">
-                <label for="filtroBusca"><i class='bx bx-search'></i> Busca:</label>
-                <input type="text" name="busca" id="filtroBusca" class="tec-filtro-input"
-                    value="<?= htmlspecialchars($busca) ?>" placeholder="Cliente, nº da OS ou descrição">
+            <div class="ui-campo">
+                <label for="filtroTecnico">Técnico</label>
+                <select name="tecnico" id="filtroTecnico">
+                    <option value="">Todos</option>
+                    <?php foreach ($tecnicos as $t) {
+                        if (! is_object($t)) { continue; } ?>
+                        <option value="<?= (int) $t->idUsuarios ?>" <?= $tecnicoFiltro === (int) $t->idUsuarios ? 'selected' : '' ?>><?= html_escape($t->nome) ?></option>
+                    <?php } ?>
+                </select>
             </div>
-            <div class="tec-filtro">
-                <label for="filtroDe">Período:</label>
-                <input type="date" name="data_de" id="filtroDe" class="tec-filtro-date" value="<?= htmlspecialchars($data_de) ?>" title="Data inicial (de)">
-                <span style="color:#999">até</span>
-                <input type="date" name="data_ate" id="filtroAte" class="tec-filtro-date" value="<?= htmlspecialchars($data_ate) ?>" title="Data final (até)">
+            <div class="ui-campo" style="flex-grow:2">
+                <label for="filtroBusca">Busca</label>
+                <input type="text" name="busca" id="filtroBusca" value="<?= html_escape($busca) ?>" placeholder="Cliente, nº da OS ou descrição">
             </div>
-            <div class="tec-filtro">
-                <button type="submit" class="button btn btn-mini btn-primary">
-                    <span class="button__icon"><i class='bx bx-filter'></i></span><span class="button__text2">Filtrar</span>
-                </button>
-                <?php if ($busca !== '' || $data_de !== '' || $data_ate !== '') { ?>
-                    <a href="<?= $base ?>?aba=<?= $aba ?>" class="button btn btn-mini btn-inverse" title="Limpar filtros">
-                        <span class="button__icon"><i class='bx bx-x'></i></span><span class="button__text2">Limpar</span>
-                    </a>
+            <div class="ui-campo ui-campo-periodo">
+                <label for="filtroDe">Período (data da OS)</label>
+                <div class="ui-par">
+                    <input type="date" name="data_de" id="filtroDe" value="<?= html_escape($data_de) ?>" title="Data inicial (de)" aria-label="Data inicial">
+                    <span>até</span>
+                    <input type="date" name="data_ate" id="filtroAte" value="<?= html_escape($data_ate) ?>" title="Data final (até)" aria-label="Data final">
+                </div>
+            </div>
+            <div class="ui-campo-acao">
+                <button type="submit" class="btn btn-primary"><i class='bx bx-filter'></i> Filtrar</button>
+                <?php if ($temFiltro) { ?>
+                    <a href="<?= $base ?>?aba=<?= $aba ?>" class="btn" title="Limpar filtros"><i class='bx bx-x'></i> Limpar</a>
                 <?php } ?>
             </div>
         <?php } ?>
@@ -171,36 +224,36 @@ $base = base_url() . 'index.php/os/atribuir';
                         </thead>
                         <tbody>
                             <?php if (empty($naoRealizadas)) { ?>
-                                <tr><td colspan="6">Nenhuma OS em espera (não realizada).</td></tr>
+                                <tr><td colspan="6"><div class="ui-vazio"><i class='bx bx-check-circle'></i><strong>Nenhuma OS em espera</strong>Não há visitas marcadas como não realizadas.</div></td></tr>
                             <?php } else {
                                 foreach ($naoRealizadas as $nr) { ?>
                                     <tr>
-                                        <td><?= $nr->os_id ?></td>
+                                        <td><?= (int) $nr->os_id ?></td>
                                         <td>
-                                            <?= htmlspecialchars($nr->nomeCliente ?? '') ?>
+                                            <?= html_escape($nr->nomeCliente ?? '') ?>
                                             <?php if (!empty($nr->telefone)) { ?><br><small><?= html_escape($nr->telefone) ?></small><?php } ?>
                                         </td>
                                         <td>
-                                            <?= htmlspecialchars($nr->motivo_texto ?? '—') ?>
+                                            <?= html_escape($nr->motivo_texto ?? '—') ?>
                                             <?php if (!empty($nr->observacao)) { ?>
-                                                <br><small style="color:#888"><?= htmlspecialchars($nr->observacao) ?></small>
+                                                <br><small class="help-block"><?= html_escape($nr->observacao) ?></small>
                                             <?php } ?>
                                         </td>
-                                        <td><?= htmlspecialchars($nr->nome_tecnico ?? '—') ?></td>
+                                        <td><?= html_escape($nr->nome_tecnico ?? '—') ?></td>
                                         <td><?= !empty($nr->data_registro) ? date('d/m/Y H:i', strtotime($nr->data_registro)) : '—' ?></td>
                                         <td>
                                             <button class="button btn btn-mini btn-success btn-reagendar"
-                                                data-ocorrencia="<?= $nr->idOcorrencia ?>" data-os="<?= $nr->os_id ?>">
+                                                data-ocorrencia="<?= (int) $nr->idOcorrencia ?>" data-os="<?= (int) $nr->os_id ?>">
                                                 <span class="button__icon"><i class='bx bx-calendar'></i></span>
                                                 <span class="button__text2">Reagendar</span>
                                             </button>
                                             <button class="button btn btn-mini btn-warning btn-reabrir"
-                                                data-ocorrencia="<?= $nr->idOcorrencia ?>" data-os="<?= $nr->os_id ?>">
+                                                data-ocorrencia="<?= (int) $nr->idOcorrencia ?>" data-os="<?= (int) $nr->os_id ?>">
                                                 <span class="button__icon"><i class='bx bx-revision'></i></span>
                                                 <span class="button__text2">Reabrir</span>
                                             </button>
-                                            <a href="<?= base_url() ?>index.php/os/visualizar/<?= $nr->os_id ?>" class="button btn btn-mini btn-inverse" title="Ver OS">
-                                                <span class="button__icon"><i class='bx bx-show'></i></span>
+                                            <a href="<?= base_url() ?>index.php/os/visualizar/<?= (int) $nr->os_id ?>" class="button btn btn-mini btn-inverse" title="Ver OS" aria-label="Ver OS">
+                                                <span class="button__icon"><i class='bx bx-show'></i></span><span class="button__text2">Ver OS</span>
                                             </a>
                                         </td>
                                     </tr>
@@ -212,66 +265,81 @@ $base = base_url() . 'index.php/os/atribuir';
             </div>
         </div>
     <?php } else { ?>
-        <!-- ============ Abas: Todos / Sem Técnico / Em Atendimento ============ -->
+        <!-- ============ Cartões de OS ============ -->
         <div class="widget-box" style="margin-top: 8px">
             <div class="widget-content nopadding">
                 <?php if (empty($ordens)) { ?>
-                    <div class="tec-vazio"><i class='bx bx-inbox'></i> Nenhuma OS encontrada</div>
+                    <div class="ui-vazio">
+                        <i class='bx bx-inbox'></i>
+                        <strong>Nenhuma OS encontrada</strong>
+                        <?php if ($temFiltro || $aba !== 'todos') { ?>
+                            Nada corresponde à situação "<?= html_escape($abasDisponiveis[$aba] ?? $aba) ?>"<?= $temFiltro ? ' com os filtros aplicados' : '' ?>.<br>
+                            <a href="<?= $base ?>?aba=todos" class="btn btn-small ui-mt"><i class='bx bx-x'></i> Limpar filtros</a>
+                        <?php } else { ?>
+                            Não há chamados abertos no momento.
+                        <?php } ?>
+                    </div>
                 <?php } else { ?>
-                    <div class="tec-cards">
+                    <div class="ct-cards">
                         <?php foreach ($ordens as $os) {
                             $cor = corStatusAtribuir($os->status);
                             $podeMudarStatus = in_array($os->status, $statusDisponiveis, true);
                             $chamadoConcluido = in_array($os->status, ['Finalizado', 'Faturado', 'Cancelado'], true);
-                            $ag = ! empty($os->data_agendamento) ? date('d/m/Y H:i', strtotime($os->data_agendamento)) : null;
-                            $agInput = ! empty($os->data_agendamento) ? date('Y-m-d\TH:i', strtotime($os->data_agendamento)) : '';
+                            $agTs = ! empty($os->data_agendamento) ? strtotime($os->data_agendamento) : false;
+                            $ag = $agTs ? date('d/m/Y H:i', $agTs) : null;
+                            $agInput = $agTs ? date('Y-m-d\TH:i', $agTs) : '';
+                            $atrasado = $agTs && $agTs < $agoraTs && ! $chamadoConcluido;
+                            $ehHoje = $agTs && $agTs >= $hojeIni && $agTs <= $hojeFim && ! $chamadoConcluido && ! $atrasado;
+                            $temTec = ! empty($os->tecnico_responsavel);
                         ?>
-                            <div class="tec-card" style="--cor:<?= $cor ?>">
-                                <div class="tec-card-top">
-                                    <span class="tec-card-os">OS #<?= sprintf('%04d', $os->idOs) ?></span>
+                            <div class="ct-card <?= $atrasado ? 'atrasado' : '' ?>" style="--cor:<?= $cor ?>">
+                                <div class="ct-topo">
+                                    <span class="ct-os">OS #<?= sprintf('%04d', $os->idOs) ?></span>
                                     <?php if ($podeMudarStatus) { ?>
-                                        <select class="status-inline tec-card-status" data-os="<?= $os->idOs ?>" data-atual="<?= htmlspecialchars($os->status) ?>" style="border-left:4px solid <?= $cor ?>">
+                                        <select class="status-inline ct-status" data-os="<?= (int) $os->idOs ?>" data-atual="<?= html_escape($os->status) ?>" style="border-left:4px solid <?= $cor ?>" aria-label="Status da OS <?= (int) $os->idOs ?>">
                                             <?php foreach ($statusDisponiveis as $st) { ?>
-                                                <option value="<?= htmlspecialchars($st) ?>" <?= $os->status === $st ? 'selected' : '' ?>><?= $st ?></option>
+                                                <option value="<?= html_escape($st) ?>" <?= $os->status === $st ? 'selected' : '' ?>><?= html_escape($st) ?></option>
                                             <?php } ?>
                                         </select>
                                     <?php } else { ?>
-                                        <span class="tec-badge" style="background:<?= $cor ?>"><?= $os->status ?></span>
+                                        <span class="ui-selo neutro" style="border-left:4px solid <?= $cor ?>"><?= html_escape($os->status) ?></span>
                                     <?php } ?>
                                 </div>
-                                <div class="tec-card-cliente"><i class='bx bxs-user'></i> <?= htmlspecialchars($os->nomeCliente) ?>
+                                <div class="ct-cliente"><i class='bx bxs-user'></i> <?= html_escape($os->nomeCliente) ?>
                                     <?php if (! empty($os->telefone)) { ?><small><?= html_escape($os->telefone) ?></small><?php } ?>
                                 </div>
-                                <div class="tec-card-desc"><?= character_limiter(strip_tags($os->descricaoProduto), 70) ?></div>
-                                <div class="tec-card-meta">
+                                <div class="ct-desc"><?= html_escape(character_limiter(strip_tags((string) $os->descricaoProduto), 70)) ?></div>
+                                <div class="ct-meta">
                                     <span><i class='bx bx-calendar'></i> <?= date('d/m/Y', strtotime($os->dataInicial)) ?></span>
-                                    <?php if ($ag) { ?><span class="tec-card-agenda"><i class='bx bx-calendar-event'></i> <?= $ag ?></span><?php } ?>
-                                </div>
-                                <div class="tec-card-tec">
-                                    <?php if ($os->tecnico_responsavel) { ?>
-                                        <span class="tec-badge tec-badge-tec"><i class='bx bx-user'></i> <?= htmlspecialchars($os->nome_tecnico) ?></span>
+                                    <?php if ($ag) { ?>
+                                        <span><i class='bx bx-calendar-event'></i> <?= $ag ?></span>
+                                        <?php if ($atrasado) { ?><span class="ui-selo perigo"><i class='bx bx-error-circle'></i> Atrasado</span><?php } ?>
+                                        <?php if ($ehHoje) { ?><span class="ui-selo info"><i class='bx bx-calendar-star'></i> Hoje</span><?php } ?>
+                                    <?php } ?>
+                                    <?php if ($temTec) { ?>
+                                        <span class="ui-selo sucesso"><i class='bx bx-user'></i> <?= html_escape($os->nome_tecnico) ?></span>
                                     <?php } else { ?>
-                                        <span class="tec-badge tec-badge-semtec"><i class='bx bx-user-x'></i> Sem técnico</span>
+                                        <span class="ui-selo laranja"><i class='bx bx-user-x'></i> Sem técnico</span>
                                     <?php } ?>
                                 </div>
-                                <div class="tec-card-acoes">
+                                <div class="ct-acoes">
                                     <?php if (! $chamadoConcluido) { ?>
                                         <button class="button btn btn-mini btn-success btn-atribuir"
-                                            data-os="<?= $os->idOs ?>"
-                                            data-cliente="<?= htmlspecialchars($os->nomeCliente) ?>"
+                                            data-os="<?= (int) $os->idOs ?>"
+                                            data-cliente="<?= html_escape($os->nomeCliente) ?>"
                                             data-tecnico-atual="<?= html_escape($os->tecnico_responsavel) ?>"
-                                            data-tecnico-nome="<?= htmlspecialchars($os->nome_tecnico ?? '') ?>"
+                                            data-tecnico-nome="<?= html_escape($os->nome_tecnico ?? '') ?>"
                                             data-agendamento="<?= $agInput ?>">
-                                            <span class="button__icon"><i class='bx <?= $os->tecnico_responsavel ? 'bx-calendar-edit' : 'bx-user-plus' ?>'></i></span>
-                                            <span class="button__text2"><?= $os->tecnico_responsavel ? 'Agendar / trocar' : 'Atribuir' ?></span>
+                                            <span class="button__icon"><i class='bx <?= $temTec ? 'bx-calendar-edit' : 'bx-user-plus' ?>'></i></span>
+                                            <span class="button__text2"><?= $temTec ? 'Agendar ou trocar' : 'Atribuir' ?></span>
                                         </button>
                                     <?php } ?>
-                                    <a href="<?= base_url() ?>index.php/os/visualizar/<?= $os->idOs ?>" class="button btn btn-mini btn-inverse" title="Ver OS">
-                                        <span class="button__icon"><i class='bx bx-show'></i></span>
+                                    <a href="<?= base_url() ?>index.php/os/visualizar/<?= (int) $os->idOs ?>" class="button btn btn-mini btn-inverse" title="Ver OS" aria-label="Ver OS <?= (int) $os->idOs ?>">
+                                        <span class="button__icon"><i class='bx bx-show'></i></span><span class="button__text2">Ver OS</span>
                                     </a>
-                                    <?php if (! $chamadoConcluido && $os->tecnico_responsavel) { ?>
-                                        <button class="button btn btn-mini btn-danger btn-remover" data-os="<?= $os->idOs ?>" data-cliente="<?= htmlspecialchars($os->nomeCliente) ?>" title="Remover técnico">
-                                            <span class="button__icon"><i class='bx bx-user-x'></i></span>
+                                    <?php if (! $chamadoConcluido && $temTec) { ?>
+                                        <button class="button btn btn-mini btn-danger btn-remover" data-os="<?= (int) $os->idOs ?>" data-cliente="<?= html_escape($os->nomeCliente) ?>" title="Remover técnico" aria-label="Remover técnico da OS <?= (int) $os->idOs ?>">
+                                            <span class="button__icon"><i class='bx bx-user-x'></i></span><span class="button__text2">Remover técnico</span>
                                         </button>
                                     <?php } ?>
                                 </div>
@@ -398,7 +466,7 @@ $base = base_url() . 'index.php/os/atribuir';
     </div>
 </div>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         var BASE = '<?= base_url() ?>index.php/os/';
 
@@ -530,28 +598,3 @@ $base = base_url() . 'index.php/os/atribuir';
         });
     });
 </script>
-
-<style>
-.tec-kpis { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
-.tec-kpi { flex:1 1 150px; min-width:140px; display:flex; flex-direction:column; gap:4px;
-    padding:12px 14px; border-radius:8px; background:#fff; border:1px solid #e5e5e5;
-    border-top:3px solid var(--kpi,#436eee); text-decoration:none; color:#333;
-    box-shadow:0 1px 2px rgba(0,0,0,.05); transition:transform .1s ease, box-shadow .1s ease; }
-.tec-kpi:hover { transform:translateY(-2px); box-shadow:0 3px 8px rgba(0,0,0,.12); color:#333; text-decoration:none; }
-.tec-kpi.ativo { box-shadow:0 0 0 2px var(--kpi,#436eee) inset; }
-.tec-kpi-num { font-size:26px; font-weight:700; line-height:1; color:var(--kpi,#436eee); }
-.tec-kpi-lbl { font-size:12px; color:#666; }
-.tec-kpi-lbl i { vertical-align:middle; }
-.status-inline { height:auto; }
-.tec-filtros { display:flex; align-items:flex-end; gap:14px; margin:14px 0 0; flex-wrap:wrap; }
-.tec-filtro { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-.tec-filtro label { margin:0; font-size:13px; color:#666; font-weight:600; white-space:nowrap; }
-.tec-filtro label i { vertical-align:middle; }
-.tec-filtro-select, .tec-filtro-input, .tec-filtro-date {
-    height:auto; margin:0; padding:6px 10px; border:1px solid #ccc; border-radius:6px;
-    background:#fff; font-size:13px; box-sizing:border-box; }
-.tec-filtro-select { min-width:180px; max-width:260px; }
-.tec-filtro-busca { flex:1 1 240px; }
-.tec-filtro-input { flex:1 1 auto; min-width:200px; }
-.tec-filtro-date { width:150px; }
-</style>

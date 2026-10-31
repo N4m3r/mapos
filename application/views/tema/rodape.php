@@ -6,11 +6,11 @@
     </div>
 </div>
 <!--end-Footer-part-->
-<script src="<?= base_url() ?>assets/js/bootstrap.min.js"></script>
-<script src="<?= base_url() ?>assets/js/matrix.js"></script>
-<script src="<?= base_url('assets/js/paleta-comandos.js') ?>?v=<?= asset_versao('assets/js/paleta-comandos.js') ?>" data-url-pesquisa="<?= site_url('mapos/pesquisar') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/bootstrap.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/matrix.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/paleta-comandos.js') ?>?v=<?= asset_versao('assets/js/paleta-comandos.js') ?>" data-url-pesquisa="<?= site_url('mapos/pesquisar') ?>"></script>
 </body>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         var dataTableEnabled = '<?= $configuration['control_datatable'] ?>';
         if(dataTableEnabled == '1') {

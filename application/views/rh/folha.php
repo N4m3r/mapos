@@ -5,9 +5,11 @@ $brl = function ($v) { return 'R$ ' . number_format($v, 2, ',', '.'); };
 $compLabel = date('m/Y', strtotime($competencia . '-01'));
 ?>
 <div class="new122">
-    <div class="widget-title" style="margin:0 0 10px">
-        <span class="icon"><i class="fas fa-file-invoice-dollar"></i></span>
-        <h5>Folha de Pagamento — <?= $compLabel ?></h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-file"></i> Folha de pagamento</h1>
+            <p class="ui-subtitulo">Competência: <?= $compLabel ?></p>
+        </div>
     </div>
 
     <div class="span12" style="margin-left:0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
@@ -16,7 +18,7 @@ $compLabel = date('m/Y', strtotime($competencia . '-01'));
             <span class="button__icon"><i class='bx bx-printer'></i></span><span class="button__text2"> Folha em PDF</span></a>
     </div>
 
-    <div class="widget-box"><div class="widget-content nopadding">
+    <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
         <table class="table table-bordered">
             <thead><tr>
                 <th>Colaborador</th><th>Trab.</th><th>Extras</th><th>Faltas</th>
@@ -37,9 +39,9 @@ $compLabel = date('m/Y', strtotime($competencia . '-01'));
                     <td style="color:#dc2626"><?= $brl($l['descontos']) ?></td>
                     <td><strong><?= $brl($l['liquido']) ?></strong></td>
                     <td style="white-space:nowrap">
-                        <a href="<?= site_url("rh/holeritePdf/{$c->id}/{$competencia}") ?>" target="_blank" class="btn-nwe3" title="Holerite em PDF"><i class="bx bx-receipt bx-xs"></i></a>
-                        <a href="<?= site_url("rh/holerite/{$c->id}/{$competencia}") ?>" class="btn-nwe3" title="Gerenciar holerite"><i class="bx bx-edit bx-xs"></i></a>
-                        <a href="<?= site_url("rh/espelho/{$c->id}/{$competencia}") ?>" class="btn-nwe3" title="Espelho"><i class="bx bx-calendar-check bx-xs"></i></a>
+                        <a href="<?= site_url("rh/holeritePdf/{$c->id}/{$competencia}") ?>" target="_blank" class="btn-nwe3" title="Holerite em PDF" aria-label="Holerite em PDF"><i class="bx bx-receipt bx-xs"></i></a>
+                        <a href="<?= site_url("rh/holerite/{$c->id}/{$competencia}") ?>" class="btn-nwe3" title="Gerenciar holerite" aria-label="Gerenciar holerite"><i class="bx bx-edit bx-xs"></i></a>
+                        <a href="<?= site_url("rh/espelho/{$c->id}/{$competencia}") ?>" class="btn-nwe3" title="Espelho" aria-label="Espelho"><i class="bx bx-calendar-check bx-xs"></i></a>
                     </td>
                 </tr>
             <?php endforeach; endif; ?>
@@ -64,7 +66,7 @@ $compLabel = date('m/Y', strtotime($competencia . '-01'));
         Relatório gerencial. Proventos = salário base + lançamentos aprovados; não inclui encargos fiscais (INSS/IRRF/FGTS), que ficam com a contabilidade.
     </p>
 </div>
-<script>
+<script nonce="<?= csp_nonce() ?>">
 document.getElementById('competencia').addEventListener('change', function(){
     window.location = '<?= site_url('rh/folha') ?>/' + this.value;
 });

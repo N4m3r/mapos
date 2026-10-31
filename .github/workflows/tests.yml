@@ -7,8 +7,11 @@ on:
 
 jobs:
   unidade:
-    name: Sintaxe, auditoria e PHPUnit
+    name: Sintaxe, auditoria e PHPUnit (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.2', '8.3']
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -16,7 +19,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: ${{ matrix.php }}
           extensions: bcmath, curl, gd, mbstring, soap, zip, intl
           coverage: none
 
@@ -93,6 +96,55 @@ jobs:
         run: |
           mysql --protocol=TCP -h127.0.0.1 -uroot -proot mapos_ci -e "INSERT INTO produtos (idProdutos, descricao, unidade, precoCompra, precoVenda, estoque, estoqueMinimo) VALUES (1, 'Produto smoke', 'UN', 5, 25, 100, 0)"
           sh tests/smoke/pdv.sh
+
+      - name: Node para os testes de navegador
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Testes de navegador (Chrome; CSP bloqueando, data-*, PDV)
+        env:
+          BASE_URL: http://localhost:8099/
+          EMAIL: admin@mapos.test
+          SENHA: admin123
+        run: |
+          cd tests/navegador
+          npm install --no-audit --no-fund
+          CHROME="$(command -v google-chrome || command -v chromium)" node telas.mjs
+
+      - name: Acompanhamento publico da OS + NPS (Chrome)
+        env:
+          BASE_URL: http://localhost:8099/
+          EMAIL: admin@mapos.test
+          SENHA: admin123
+        run: |
+          Q="mysql --protocol=TCP -h127.0.0.1 -uroot -proot -N mapos_ci"
+          $Q -e "INSERT INTO clientes (nomeCliente, documento, telefone, email, senha) VALUES ('Cliente smoke', '', '', '', ''); INSERT INTO os (dataInicial, dataFinal, status, clientes_id, usuarios_id, faturado, descricaoProduto) VALUES (CURDATE(), CURDATE(), 'Finalizado', LAST_INSERT_ID(), 1, 0, 'Teste')"
+          export OS_ID=$($Q -e "SELECT MAX(idOs) FROM os")
+          cd tests/navegador
+          CHROME="$(command -v google-chrome || command -v chromium)" node acompanhar.mjs
+
+      - name: Relatorio de cobranca (Chrome)
+        env:
+          BASE_URL: http://localhost:8099/
+          EMAIL: admin@mapos.test
+          SENHA: admin123
+        run: |
+          cd tests/navegador
+          CHROME="$(command -v google-chrome || command -v chromium)" node cobranca.mjs
+
+      - name: Acompanhamento de projetos (Chrome)
+        env:
+          BASE_URL: http://localhost:8099/
+          EMAIL: admin@mapos.test
+          SENHA: admin123
+        run: |
+          Q="mysql --protocol=TCP -h127.0.0.1 -uroot -proot -N mapos_ci"
+          $Q -e "INSERT INTO obras (nome, responsavel_id, status, data_inicio_prevista, data_fim_prevista, data_cadastro) VALUES ('Projeto smoke', 1, 'em_execucao', CURDATE() - INTERVAL 10 DAY, CURDATE() + INTERVAL 20 DAY, NOW()); INSERT INTO obra_rdo (obra_id, numero, data, responsavel_id, atividades, ocorrencias, status, data_registro) VALUES (LAST_INSERT_ID(), 1, CURDATE(), 1, 'Teste', 'Ocorrencia teste', 'finalizado', NOW())"
+          export OBRA_ID=$($Q -e "SELECT MAX(idObra) FROM obras")
+          $Q -e "INSERT INTO obra_pontos (obra_id, tipo, identificacao, status, data_cadastro) VALUES ($OBRA_ID, 'camera', 'CAM-01', 'cabeado', NOW()), ($OBRA_ID, 'ponto_rede', 'PR-01', 'previsto', NOW())"
+          cd tests/navegador
+          CHROME="$(command -v google-chrome || command -v chromium)" node projetos.mjs
 
       - name: Backup automatico (linha de comando)
         run: |

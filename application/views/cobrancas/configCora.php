@@ -18,10 +18,21 @@ $pronto = $ativo && $clientId && $certPath && $chavePath;
 
 <div class="row-fluid" style="margin-top:0">
     <div class="span12">
+        <div class="ui-cabecalho">
+            <div>
+                <h1><i class="bx bx-dollar-circle"></i> Cobrança Cora (Boleto + PIX)</h1>
+                <p>Credenciais e certificado para gerar boletos e PIX direto das OS e vendas.</p>
+            </div>
+            <div class="ui-acoes">
+                <a href="<?= site_url('cobrancas') ?>" class="button btn btn-info" title="Voltar para as cobranças">
+                    <span class="button__icon"><i class="bx bx-arrow-back"></i></span><span class="button__text2">Cobranças</span>
+                </a>
+            </div>
+        </div>
         <div class="widget-box">
             <div class="widget-title">
-                <span class="icon"><i class="bx bx-dollar-circle"></i></span>
-                <h5>Configuração da Cobrança - Cora (Boleto + PIX)</h5>
+                <span class="icon"><i class="bx bx-cog"></i></span>
+                <h5>Configuração</h5>
             </div>
             <div class="widget-content">
                 <?php if (! empty($custom_error)) { echo $custom_error; } ?>
@@ -168,7 +179,7 @@ $pronto = $ativo && $clientId && $certPath && $chavePath;
     </div>
 </div>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
 $(document).on('click', '#btn-testar-cora', function () {
     var $btn = $(this);
     var $res = $('#resultado-teste-cora');

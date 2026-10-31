@@ -24,6 +24,7 @@ $waNumero = function ($fone) {
 ?>
 
 <div class="tec-container">
+<div class="ui-dica"><i class="bx bx-info-circle"></i><div>Toque em <strong>Abrir</strong> na OS para fazer o check-in, registrar fotos e finalizar. Use os filtros para achar OS de outros status.</div></div>
 
     <?php if (!empty($pode_criar_atividade)): ?>
         <a href="<?= site_url('tecnico/nova_atividade') ?>" class="btn-tec primary block lg" style="margin-bottom:14px;">
@@ -120,7 +121,7 @@ $waNumero = function ($fone) {
 
 <?php $this->load->view('tecnico/_nav', ['nav_ativo' => 'os', 'pode_ver_sistema' => isset($pode_ver_sistema) ? $pode_ver_sistema : false]); ?>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
 (function () {
     var input = document.getElementById('buscaOs');
     if (!input) return;

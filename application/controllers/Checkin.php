@@ -260,6 +260,9 @@ class Checkin extends MY_Controller
                     'status' => 'Finalizado'
                 ]);
                 log_info('Auto-finalizado checkin preso da OS: ' . $os_id);
+                // Projeto (ADR-015): lanca a mao de obra desse checkin fechado.
+                $this->load->library('projeto_sync');
+                $this->projeto_sync->lancarHorasDoCheckin((int) $ultimo_checkin->idCheckin);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Existe um atendimento iniciado recentemente. Finalize-o ou aguarde 24h para iniciar um novo.']);
                 return;
@@ -319,7 +322,7 @@ class Checkin extends MY_Controller
         }
 
         // Atualiza status da OS para "Em Andamento"
-        $this->os_model->edit('os', ['status' => 'Em Andamento'], 'idOs', $os_id);
+        $this->os_model->alterarStatus((int) $os_id, 'Em Andamento');
 
         // Log
         log_info('Iniciou atendimento da OS. ID: ' . $os_id);
@@ -360,7 +363,17 @@ class Checkin extends MY_Controller
         log_info('Checkin::finalizar - Assinatura cliente recebida (primeiros 100 chars): ' . substr($assinatura_cliente ?? '', 0, 100));
         $nome_cliente = $this->input->post('nome_cliente');
         $documento_cliente = $this->input->post('documento_cliente');
-        $fotos = $this->input->post('fotos');
+        // Sem o filtro de XSS (ele corrompe o data URL); cada foto é validada aqui.
+        $fotos = [];
+        foreach ((array) $this->input->post('fotos', false) as $f) {
+            $f = preg_replace('/\s+/', '', (string) $f);
+            if (preg_match('#^[A-Za-z0-9+/]+={0,2}$#', $f)) {
+                $f = 'data:image/jpeg;base64,' . $f;
+            }
+            if (($f = dataurl_imagem($f)) !== null) {
+                $fotos[] = $f;
+            }
+        }
         $latitude = $this->input->post('latitude');
         $longitude = $this->input->post('longitude');
 
@@ -386,6 +399,14 @@ class Checkin extends MY_Controller
 
         // Obtém check-in ativo (com auto-finalização de checkins expirados)
         $checkin = $this->checkin_model->getCheckinAtivoComAutoFinalizacao($os_id);
+
+        // getCheckinAtivoComAutoFinalizacao pode ter fechado um checkin preso (>24h)
+        // por dentro do model; se foi o caso, lanca a mao de obra dele agora (idempotente).
+        $possoAuto = $this->checkin_model->getUltimoCheckin($os_id);
+        if ($possoAuto && !empty($possoAuto->data_saida) && (!$checkin || (int) $possoAuto->idCheckin !== (int) $checkin->idCheckin)) {
+            $this->load->library('projeto_sync');
+            $this->projeto_sync->lancarHorasDoCheckin((int) $possoAuto->idCheckin);
+        }
 
         if (!$checkin) {
             // Verifica se existe checkin mais antigo sem data de saída ("preso")
@@ -441,6 +462,10 @@ class Checkin extends MY_Controller
             echo json_encode(['success' => false, 'message' => 'Erro ao finalizar atendimento']);
             return;
         }
+
+        // Projeto (ADR-015): lanca a mao de obra desse checkin na obra vinculada a OS (se houver).
+        $this->load->library('projeto_sync');
+        $this->projeto_sync->lancarHorasDoCheckin((int) $checkin->idCheckin);
 
         // Salva assinatura do técnico na saída.
         // salvarImagem já grava a linha em os_assinaturas quando cai no modo
@@ -517,7 +542,7 @@ class Checkin extends MY_Controller
         }
 
         // Atualiza status da OS para "Finalizado"
-        $this->os_model->edit('os', ['status' => 'Finalizado'], 'idOs', $os_id);
+        $this->os_model->alterarStatus((int) $os_id, 'Finalizado');
 
         // Log
         log_info('Finalizou atendimento da OS. ID: ' . $os_id);

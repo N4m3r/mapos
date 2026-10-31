@@ -45,3 +45,11 @@ application/arquivos_fiscais/xml/
 
 # Backups automaticos do banco
 /application/backups/
+
+# Testes de navegador
+/tests/navegador/node_modules/
+/tests/navegador/package-lock.json
+
+# Memoria do ruflo/claude-flow (ADRs indexados)
+/.swarm/
+/.claude/memory.db

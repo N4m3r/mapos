@@ -1,6 +1,6 @@
-<script src="<?php echo base_url() ?>assets/js/jquery.mask.min.js"></script>
-<script src="<?php echo base_url() ?>assets/js/sweetalert2.all.min.js"></script>
-<script src="<?php echo base_url() ?>assets/js/funcoes.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/jquery.mask.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/sweetalert2.all.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/funcoes.js"></script>
 <style>
     #imgSenha {
         width: 18px;
@@ -79,11 +79,11 @@
 <div class="row-fluid" style="margin-top:0">
     <div class="span12">
         <div class="widget-box">
-            <div class="widget-title" style="margin: -20px 0 0">
-                <span class="icon">
-                    <i class="fas fa-user"></i>
-                </span>
-                <h5>Editar Cliente</h5>
+            <div class="ui-cabecalho" style="padding: 16px 16px 0">
+                <div>
+                    <h1 class="ui-titulo"><i class="fas fa-user"></i> Editar cliente ou fornecedor</h1>
+                    <p class="ui-subtitulo">Altere os dados do cadastro. Os campos marcados com * são obrigatórios.</p>
+                </div>
             </div>
             <?php if ($custom_error != '') {
                 echo '<div class="alert alert-danger">' . $custom_error . '</div>';
@@ -91,6 +91,8 @@
             <form action="<?php echo current_url(); ?>" id="formCliente" method="post" class="form-horizontal">
                 <div class="widget-content nopadding tab-content">
                     <div class="span6">
+                        <div class="ui-secao">
+                        <h4 class="ui-secao-titulo">Dados gerais</h4>
                         <div class="control-group">
                             <label for="documento" class="control-label">CPF/CNPJ</label>
                             <div class="controls">
@@ -218,9 +220,12 @@
                                 </label>
                             </div>
                         </div>
+                        </div>
                     </div>
 
                     <div class="span6">
+                        <div class="ui-secao">
+                        <h4 class="ui-secao-titulo">Endereço</h4>
                         <div class="control-group" class="control-label">
                             <label for="cep" class="control-label">CEP</label>
                             <div class="controls">
@@ -265,6 +270,7 @@
                                 </select>
                             </div>
                         </div>
+                        </div>
                     </div>
                 </div>
 
@@ -293,7 +299,7 @@
                         </div>
                     </div>
 
-                    <script>
+                    <script nonce="<?= csp_nonce() ?>">
                         (function () {
                             var busca = document.getElementById('buscaCnpjVinculo');
                             var lista = document.getElementById('listaCnpjVinculo');
@@ -330,21 +336,17 @@
                     </script>
                 <?php } ?>
 
-                <div class="form-actions">
-                    <div class="span12">
-                        <div class="span6 offset3" style="display:flex;justify-content: center">
-                            <button type="submit" class="button btn btn-primary" style="max-width: 160px">
-                                <span class="button__icon"><i class="bx bx-sync"></i></span><span class="button__text2">Atualizar</span></button>
-                            <a title="Voltar" class="button btn btn-warning" href="<?php echo site_url() ?>/clientes"><span class="button__icon"><i class="bx bx-undo"></i></span> <span class="button__text2">Voltar</span></a>
-                        </div>
-                    </div>
+                <div class="ui-rodape-form">
+                    <button type="submit" class="button btn btn-primary">
+                        <span class="button__icon"><i class="bx bx-sync"></i></span><span class="button__text2">Atualizar</span></button>
+                    <a title="Voltar" class="button btn btn-warning" href="<?php echo site_url() ?>/clientes"><span class="button__icon"><i class="bx bx-undo"></i></span> <span class="button__text2">Voltar</span></a>
                 </div>
             </form>
         </div>
     </div>
 </div>
-<script src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         let container = document.querySelector('div');
         let input = document.querySelector('#senha');

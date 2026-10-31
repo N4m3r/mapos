@@ -250,7 +250,7 @@ $chaveFmt = trim(chunk_split($d['chave'], 4, ' '));
     </div>
     </div><!-- /folha-a4 -->
 
-    <script>window.onload = function () { window.print(); };</script>
+    <script nonce="<?= csp_nonce() ?>">window.onload = function () { window.print(); };</script>
 </body>
 
 </html>

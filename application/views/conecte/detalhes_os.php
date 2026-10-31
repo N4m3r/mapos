@@ -1,6 +1,6 @@
 <link rel="stylesheet" href="<?php echo base_url() ?>assets/trumbowyg/ui/trumbowyg.css">
-<script type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/trumbowyg.js"></script>
-<script type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/langs/pt_br.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/trumbowyg.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/langs/pt_br.js"></script>
 
 <style>
     .ui-datepicker {
@@ -183,7 +183,7 @@ foreach ($servicos as $s) {
 
                                 <?php if ($this->session->userdata('cliente_anexa')) { ?>
                                     <div class="span12 well" style="padding: 1%; margin-left: 0" id="form-anexos">
-                                        <form id="formAnexos" enctype="multipart/form-data" action="javascript:;" accept-charset="utf-8" s method="post">
+                                        <form id="formAnexos" enctype="multipart/form-data" action="#" data-bloquear-envio accept-charset="utf-8" s method="post">
                                             <div class="span10">
 
                                                 <input type="hidden" name="idOsServico" id="idOsServico" value="<?php echo $result->idOs ?>" />
@@ -335,7 +335,7 @@ foreach ($servicos as $s) {
     </form>
 </div>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         $('.editor').trumbowyg({
             lang: 'pt_br',

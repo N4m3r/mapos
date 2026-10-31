@@ -1,11 +1,11 @@
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
-<script type="text/javascript" src="<?php echo base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
-<script type="text/javascript" src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
-<script src="<?php echo base_url() ?>assets/js/sweetalert2.all.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/sweetalert2.all.min.js"></script>
 <link rel="stylesheet" href="<?php echo base_url() ?>assets/trumbowyg/ui/trumbowyg.css">
-<script type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/trumbowyg.js"></script>
-<script type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/langs/pt_br.js"></script>
-<script src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= asset_versao('assets/js/rascunho-form.js') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/trumbowyg.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/langs/pt_br.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= asset_versao('assets/js/rascunho-form.js') ?>"></script>
 
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/custom.css" />
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/assinatura.css" />
@@ -17,7 +17,7 @@
                 <span class="icon"><i class="fas fa-diagnoses"></i></span>
                 <h5>Editar Ordem de Serviço</h5>
                 <div class="buttons">
-                    <?php if ($result->faturado == 0) { ?>
+                    <?php if ($result->faturado == 0 && (! isset($podeFaturarOs) || $podeFaturarOs)) { ?>
                         <a href="#modal-faturar" id="btn-faturar" role="button" data-toggle="modal" class="button btn btn-mini btn-danger">
                             <span class="button__icon"><i class='bx bx-dollar'></i></span> <span class="button__text">Faturar</span>
                         </a>
@@ -120,6 +120,7 @@
                                     <?php echo form_hidden('idOs', $result->idOs) ?>
                                     <div class="span12" style="padding: 1%; margin-left: 0">
                                         <h3>N° OS: <?php echo $result->idOs; ?></h3>
+                                        <?php $this->load->view('os/_projeto_selo', ['vinculoProjeto' => $vinculoProjeto, 'podeVerProjeto' => $podeVerProjeto, 'mostrarAcoes' => false, 'osIdProjeto' => $result->idOs]); ?>
                                         <div class="span6" style="margin-left: 0">
                                             <label for="cliente">Cliente<span class="required">*</span></label>
                                             <input id="cliente" class="span12" type="text" name="cliente" value="<?php echo html_escape($result->nomeCliente); ?>" />
@@ -485,7 +486,7 @@
                         <div class="tab-pane" id="tab5">
                             <div class="span12" style="padding: 1%; margin-left: 0">
                                 <div class="span12 well" style="padding: 1%; margin-left: 0" id="form-anexos">
-                                    <form id="formAnexos" enctype="multipart/form-data" action="javascript:;"
+                                    <form id="formAnexos" enctype="multipart/form-data" action="#" data-bloquear-envio
                                         accept-charset="utf-8" s method="post">
                                         <div class="span10">
                                             <input type="hidden" name="idOsServico" id="idOsServico"
@@ -875,9 +876,9 @@
     </form>
 </div>
 
-<script src="<?php echo base_url(); ?>assets/js/maskmoney.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/maskmoney.js"></script>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     function calcDesconto(valor, desconto, tipoDesconto) {
         var resultado = 0;
         if (tipoDesconto == 'real') {
@@ -1049,7 +1050,7 @@
                                 Swal.fire({
                                     type: "error",
                                     title: "Atenção",
-                                    text: "Ocorreu um erro ao tentar faturar OS."
+                                    text: data.mensagem || "Ocorreu um erro ao tentar faturar OS."
                                 });
                                 $('#progress-fatura').hide();
                             }
@@ -1153,7 +1154,7 @@
                             Swal.fire({
                                 type: "error",
                                 title: "Atenção",
-                                text: "Ocorreu um erro ao tentar  OS."
+                                text: data.mensagem || "Ocorreu um erro ao tentar faturar OS."
                             });
                             $('#progress-fatura').hide();
                         }
@@ -2289,7 +2290,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     // ============================================
     // EDIÇÃO DE PRODUTOS E SERVIÇOS
     // ============================================
@@ -2462,11 +2463,11 @@
 </script>
 
 <!-- Scripts do Sistema de Check-in -->
-<script src="<?php echo base_url(); ?>assets/js/assinatura-canvas.js"></script>
-<script src="<?php echo base_url(); ?>assets/js/checkin-fotos.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/assinatura-canvas.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/checkin-fotos.js"></script>
 
 <?php if (! empty($whatsappApiAtivo)) { ?>
-    <script type="text/javascript">
+    <script nonce="<?= csp_nonce() ?>" type="text/javascript">
         $(function() {
             $('#enviarWhatsAppApi').on('click', function(e) {
                 e.preventDefault();

@@ -1,7 +1,7 @@
 /* Módulo de Projetos (rede estruturada / CFTV IP) */
-.obra-progress { background:#e5e7eb; border-radius:6px; height:14px; overflow:hidden; width:100%; }
+.obra-progress { background:var(--ui-suave); border-radius:6px; height:14px; overflow:hidden; width:100%; }
 .obra-progress.mini { height:8px; }
-.obra-progress-bar { background:linear-gradient(90deg,#2e7d32,#66bb6a); height:100%; }
+.obra-progress-bar { background:var(--ui-sucesso); height:100%; }
 
 .obra-header { margin-bottom:10px; }
 .obra-header .label { margin-top:6px; display:inline-block; }
@@ -34,15 +34,20 @@
 
 /* KPIs do painel */
 .obra-kpis { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:10px; margin:10px 0 16px; }
-.obra-kpi { display:flex; align-items:center; gap:10px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:12px; }
-.obra-kpi .k-icon { width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:22px; flex:0 0 auto; }
-.obra-kpi .k-num { font-size:20px; font-weight:700; line-height:1.1; color:#111827; }
-.obra-kpi .k-lbl { font-size:12px; color:#6b7280; }
+.obra-kpi { display:flex; align-items:center; gap:10px; border:1px solid var(--ui-borda); border-radius:var(--ui-raio); padding:12px; }
+.obra-kpi .k-icon { width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:22px; flex:0 0 auto; background:var(--ui-suave); }
+.obra-kpi .k-icon.sucesso { background:rgba(18,164,84,.14); color:var(--ui-sucesso); }
+.obra-kpi .k-icon.alerta { background:rgba(232,163,23,.16); color:var(--ui-alerta); }
+.obra-kpi .k-icon.perigo { background:rgba(229,72,77,.14); color:var(--ui-perigo); }
+.obra-kpi .k-icon.info { background:rgba(11,139,217,.14); color:var(--ui-info); }
+.obra-kpi .k-icon.primaria { background:rgba(79,107,237,.14); color:var(--ui-primaria); }
+.obra-kpi .k-num { font-size:20px; font-weight:700; line-height:1.1; font-variant-numeric:tabular-nums; }
+.obra-kpi .k-lbl { font-size:12px; color:var(--ui-texto-2); }
 
 /* Resumo de compras da empresa (aba Material) */
 .obra-compras { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-.obra-compras .c-total { font-size:22px; font-weight:700; color:#2e7d32; }
-.obra-compras .c-lbl { font-size:12px; color:#6b7280; }
+.obra-compras .c-total { font-size:22px; font-weight:700; color:var(--ui-sucesso); }
+.obra-compras .c-lbl { font-size:12px; color:var(--ui-texto-2); }
 
 /* ==========================================================================
    Conformidade com temas escuros — quando o fundo é escuro, a letra fica clara.
@@ -148,4 +153,105 @@ body[data-theme="darkorange"] .qtd-stepper button { background:var(--dark-0); bo
     body[data-theme="puredark"] .obra-actionbar,
     body[data-theme="darkviolet"] .obra-actionbar,
     body[data-theme="darkorange"] .obra-actionbar { background:var(--dark-2); border-color:rgba(255,255,255,.12); }
+}
+
+/* Painel de Projetos: saúde, atividade e ocorrências (ADR-012) */
+.acomp-chips { display:flex; flex-wrap:wrap; gap:8px; padding:12px 14px 0; }
+.acomp-chips .ui-selo strong { font-size:14px; margin-left:2px; }
+.acomp-prog { position:relative; min-width:120px; }
+.acomp-marca { position:absolute; top:-4px; bottom:-4px; width:2px; background:#1f2937; border-radius:1px; transform:translateX(-1px); }
+.acomp-motivos { margin:0; padding-left:16px; font-size:12px; }
+.acomp-motivos li { margin:0; }
+.acomp-lista { margin:0; padding:0; list-style:none; }
+.acomp-tec { display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-bottom:1px solid var(--ui-borda); }
+.acomp-tec:last-child { border-bottom:0; }
+.acomp-ico { font-size:22px; margin-top:2px; }
+.acomp-ico.sucesso { color:var(--ui-sucesso); }
+.acomp-ico.alerta { color:var(--ui-alerta); }
+.acomp-barras { display:flex; align-items:flex-end; gap:8px; height:170px; padding:12px 8px 0; }
+.acomp-barra-col { flex:1 1 0; min-width:0; height:100%; display:flex; flex-direction:column; align-items:center; }
+.acomp-barra-num { font-size:12px; font-weight:600; margin-bottom:4px; }
+.acomp-barra-area { flex:1 1 auto; width:100%; min-height:0; display:flex; align-items:flex-end; justify-content:center; }
+.acomp-barra { width:70%; max-width:40px; background:var(--ui-primaria); border-radius:6px 6px 0 0; }
+.acomp-barra-dia { font-size:12px; color:var(--ui-texto-2); margin-top:6px; }
+body[data-theme="puredark"] .acomp-marca,
+body[data-theme="darkviolet"] .acomp-marca,
+body[data-theme="darkorange"] .acomp-marca { background:#fff; }
+body[data-theme="puredark"] .acomp-tec,
+body[data-theme="darkviolet"] .acomp-tec,
+body[data-theme="darkorange"] .acomp-tec { border-color:rgba(255,255,255,.12); }
+body[data-theme="puredark"] .acomp-barra-dia,
+body[data-theme="darkviolet"] .acomp-barra-dia,
+body[data-theme="darkorange"] .acomp-barra-dia { color:#9ca3af; }
+
+@media (max-width: 640px) {
+    .acomp-tabela thead { display:none; }
+    .acomp-tabela,
+    .acomp-tabela tbody,
+    .acomp-tabela tr,
+    .acomp-tabela td { display:block; width:100%; }
+    .acomp-tabela tr { border-bottom:1px solid #e5e7eb; padding:8px 0; }
+    .acomp-tabela td { border:0 !important; padding:4px 12px; text-align:left; }
+    .acomp-tabela td[data-label]::before { content:attr(data-label); display:block; font-size:11px; font-weight:600; color:#6b7280; text-transform:uppercase; }
+    .acomp-tabela td .btn { min-height:40px; }
+    .acomp-barras { height:150px; gap:4px; }
+    .acomp-chips .ui-selo { font-size:11px; }
+}
+
+/* ===== Pontos do projeto (ADR-013) ===== */
+.pt-barra { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+.pt-cartoes { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:10px; margin-bottom:8px; }
+.pt-cartao { border:1px solid var(--ui-borda); border-radius:var(--ui-raio); padding:10px 12px; }
+.pt-cartao-titulo { font-weight:600; font-size:13px; margin-bottom:2px; }
+.pt-cartao-num { font-size:12px; color:var(--ui-texto-2); margin-bottom:6px; }
+.pt-resumo-linha { margin:0 0 10px; color:#4b5563; }
+.pt-filtros { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+.pt-filtros select { margin:0; width:auto; min-width:150px; }
+.pt-status-form { display:inline-flex; gap:4px; align-items:center; margin:0 6px 0 0; }
+.pt-status-form select { margin:0; width:auto; min-width:0; max-width:150px; height:28px; padding:2px 4px; font-size:12px; }
+.pt-status-form input[type=number] { margin:0; width:56px; height:28px; padding:2px 4px; box-sizing:border-box; }
+.pt-status-form .btn { height:28px; padding:2px 10px; }
+.pt-acoes > a { vertical-align:middle; }
+.pt-acoes { white-space:nowrap; }
+@media (max-width:640px) {
+    .pt-tabela td[data-label]::before { content:attr(data-label); display:block; font-size:11px; font-weight:600; color:#6b7280; text-transform:uppercase; }
+    .pt-acoes { white-space:normal; }
+}
+
+/* ===== Pontos: fotos, com quem, repasse em lote (ADR-014) ===== */
+.pt-col-sel { width:34px; text-align:center; }
+.pt-col-sel input[type=checkbox] { margin:0; }
+.pt-col-foto { width:62px; }
+.pt-col-com { min-width:150px; }
+.pt-foto-wrap { position:relative; display:inline-block; width:48px; height:48px; }
+.pt-foto { display:block; width:48px; height:48px; object-fit:cover; border-radius:6px; border:1px solid #ccc; background:#f3f4f6; }
+.pt-foto-mais { position:absolute; right:-6px; bottom:-6px; background:var(--ui-sucesso); color:#fff; font-size:10px; font-weight:600; line-height:1; padding:2px 4px; border-radius:8px; }
+.pt-foto-links { display:flex; gap:4px; margin-top:4px; font-size:11px; }
+.pt-foto-links a { color:var(--ui-sucesso); text-decoration:underline; }
+.pt-sem-foto { color:#9ca3af; }
+.pt-com-nome { font-weight:600; font-size:12px; }
+.pt-com-equipe { color:var(--ui-alerta); }
+.pt-aguard { font-size:11px; color:var(--ui-texto-2); margin-top:2px; line-height:1.3; }
+.pt-lote { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:0 0 10px; padding:8px 10px; background:var(--ui-suave); border:1px dashed var(--ui-borda); border-radius:8px; }
+.pt-lote-rotulo { font-size:12px; color:#374151; font-weight:600; }
+.pt-lote select { margin:0; width:auto; min-width:160px; height:28px; padding:2px 4px; font-size:12px; }
+.pt-lote-instrucao { margin:0; width:260px; max-width:100%; height:28px; padding:2px 6px; font-size:12px; box-sizing:border-box; }
+.pt-lote .btn { height:28px; padding:2px 10px; }
+.pt-modal-fotos input[type=file] { margin:4px 0 0; }
+.pt-modal-fotos small { display:block; color:#6b7280; margin-top:4px; }
+.pt-foto-preview { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+.pt-foto-preview:empty { display:none; }
+.pt-foto-preview img { width:64px; height:64px; object-fit:cover; border-radius:6px; border:1px solid #ccc; }
+.pt-foto-preview button { margin-top:-4px; }
+@media (max-width:640px) {
+    .pt-lote { flex-direction:column; align-items:stretch; }
+    .pt-lote select,
+    .pt-lote-instrucao,
+    .pt-lote .btn { width:100%; min-width:0; max-width:none; }
+    .pt-foto-wrap { width:56px; height:56px; }
+    .pt-foto { width:56px; height:56px; }
+    .pt-filtros select { width:100%; min-width:0; }
+    .pt-tabela td.pt-col-foto,
+    .pt-tabela td.pt-col-sel { width:auto; text-align:left; }
+    .pt-tabela td.pt-col-sel { border-bottom:0; }
 }

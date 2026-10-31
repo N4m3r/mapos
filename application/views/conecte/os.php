@@ -30,6 +30,9 @@ if (!$results) {
             <div class="widget-content nopadding tab-content">
 
 
+                <div class="ui-tabela-rolagem">
+
+
                 <table id="tabela" class="table table-bordered ">
                     <thead>
                         <tr>
@@ -45,10 +48,10 @@ if (!$results) {
                     <tbody>
 
                         <tr>
-                            <td colspan="6"><?php echo $temFiltro ? 'Nenhuma OS encontrada para o filtro selecionado' : 'Nenhuma OS Cadastrada'; ?></td>
+                            <td colspan="7"><div class="ui-vazio"><i class="bx bx-clipboard"></i><strong><?php echo $temFiltro ? 'Nenhuma OS encontrada para o filtro selecionado' : 'Nenhuma OS cadastrada'; ?></strong></div></td>
                         </tr>
                     </tbody>
-                </table>
+                </table></div>
             </div>
         </div>
 
@@ -68,6 +71,9 @@ if (!$results) {
             </div>
 
             <div class="widget-content nopadding tab-content">
+
+
+                <div class="ui-tabela-rolagem">
 
 
                 <table class="table table-bordered ">
@@ -145,17 +151,17 @@ if (!$results) {
                             echo '<td>' . $r->nome . '</td>';
                             echo '<td>' . $dataInicial . '</td>';
                             echo '<td>' . $dataFinal . '</td>';
-                            echo '<td><span class="badge" style="background-color: ' . $corGarantia . '; border-color: ' . $corGarantia . '">' . $vencGarantia . '</span> </td>';
-                            echo '<td><span class="badge" style="background-color: ' . $cor . '; border-color: ' . $cor . '">' . $r->status . '</span> </td>';
+                            echo '<td><span class="ui-selo ' . ($corGarantia === "#4d9c79" ? "sucesso" : ($corGarantia === "#f24c6f" ? "perigo" : "")) . '">' . $vencGarantia . '</span> </td>';
+                            echo '<td><span class="ui-selo ' . (["Aberto"=>"sucesso","Finalizado"=>"sucesso","Faturado"=>"sucesso","Aprovado"=>"sucesso","Em Andamento"=>"info","Orçamento"=>"info","Negociação"=>"info","Aguardando Peças"=>"alerta","Cancelado"=>"perigo"][$r->status] ?? "") . '">' . $r->status . '</span> </td>';
 
                             echo '<td><a href="' . base_url() . 'index.php/mine/visualizarOs/' . $r->idOs . '" class="btn-nwe" title="Visualizar e Imprimir"><i class="bx bx-show-alt"></i></a>
-                                  <a href="' . base_url() . 'index.php/mine/imprimirOs/' . $r->idOs . '" class="btn-nwe3" title="Imprimir" target="_blank"><i class="bx bx-printer"></i></a>
-                                  <a href="' . base_url() . 'index.php/mine/detalhesOs/' . $r->idOs . '" class="btn-nwe4" title="Ver mais detalhes"><i class="bx bx-detail"></i></a>
+                                  <a href="' . base_url() . 'index.php/mine/imprimirOs/' . $r->idOs . '" class="btn-nwe3" title="Imprimir" target="_blank"><i class="bx bx-printer"></i> Imprimir</a>
+                                  <a href="' . base_url() . 'index.php/mine/detalhesOs/' . $r->idOs . '" class="btn-nwe4" title="Ver mais detalhes"><i class="bx bx-detail"></i> Detalhes</a>
                                   </td>';
                             echo '</tr>';
                         } ?>
                     </tbody>
-                </table>
+                </table></div>
             </div>
         </div>
     </div>

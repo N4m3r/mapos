@@ -1,21 +1,16 @@
-<style>
-  select {
-    width: 70px;
-  }
-</style>
 <div class="new122" style="margin-top: 0; min-height: 100vh">
-<div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon">
-            <i class="fas fa-clock"></i>
-        </span>
-        <h5>Logs</h5>
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-history"></i> Logs de auditoria</h1>
+        <p class="ui-subtitulo">Registro das ações feitas no sistema por usuário, data, hora e IP.</p>
+    </div>
+    <div class="ui-acoes">
+        <a href="#modal-excluir" role="button" data-toggle="modal" class="button btn btn-danger tip-top" title="Remover logs com 30 dias ou mais"><span class="button__icon"><i class='bx bx-trash'></i></span> <span class="button__text2">Remover Logs - 30 dias ou mais</span></a>
+    </div>
 </div>
-  <a href="#modal-excluir" role="button" data-toggle="modal" class="button btn btn-danger tip-top" style="max-width: 250px" title="Excluir Logs">
-  <span class="button__icon"><i class='bx bx-trash'></i></span> <span class="button__text2">Remover Logs - 30 dias ou mais</span></a>
 
 <div class="widget-box">
-    <h5 style="padding: 3px 0"></h5>
-    <div class="widget-content nopadding tab-content">
+    <div class="widget-content nopadding tab-content ui-tabela-rolagem">
         <table id="tabela" class="table table-bordered ">
             <thead>
                 <tr>
@@ -38,7 +33,7 @@
                 } ?>
                 <?php if (!$results) { ?>
                     <tr>
-                        <td colspan="5">Nenhum registro encontrado.</td>
+                        <td colspan="5"><div class="ui-vazio"><i class="bx bx-history"></i><strong>Nenhum registro encontrado</strong>As ações feitas no sistema aparecem aqui.</div></td>
                     </tr>
                 <?php } ?>
             </tbody>

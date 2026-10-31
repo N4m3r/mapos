@@ -37,6 +37,7 @@ $emailCliente = !empty($cliente->email) ? $cliente->email : '';
 </style>
 
 <div class="tec-container">
+<div class="ui-dica"><i class="bx bx-info-circle"></i><div>Peça ao solicitante para assinar no quadro abaixo e confirme para concluir.</div></div>
 
     <div class="asg-msg" id="asg-msg"></div>
 
@@ -146,9 +147,9 @@ $emailCliente = !empty($cliente->email) ? $cliente->email : '';
 
 <?php $this->load->view('tecnico/_nav', ['nav_ativo' => 'os', 'pode_ver_sistema' => isset($pode_ver_sistema) ? $pode_ver_sistema : false]); ?>
 
-<script src="<?= base_url('assets/js/assinatura-canvas.js') ?>"></script>
-<script src="<?= base_url('assets/js/csrf.js') ?>?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
-<script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/assinatura-canvas.js') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/csrf.js') ?>?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
+<script nonce="<?= csp_nonce() ?>">
 (function () {
     var OS_ID = <?= (int) $os->idOs ?>;
     var BASE = '<?= site_url('tecnico') ?>/';

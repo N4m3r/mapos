@@ -1,10 +1,10 @@
-<!--[if lt IE 9]><script language="javascript" type="text/javascript" src="<?php echo base_url(); ?>js/dist/excanvas.min.js"></script><![endif]-->
+<!--[if lt IE 9]><script nonce="<?= csp_nonce() ?>" language="javascript" type="text/javascript" src="<?php echo base_url(); ?>js/dist/excanvas.min.js"></script><![endif]-->
 
-<script language="javascript" type="text/javascript" src="<?= base_url(); ?>assets/js/dist/jquery.jqplot.min.js"></script>
-<script type="text/javascript" src="<?= base_url(); ?>assets/js/dist/plugins/jqplot.pieRenderer.min.js"></script>
-<script type="text/javascript" src="<?= base_url(); ?>assets/js/dist/plugins/jqplot.donutRenderer.min.js"></script>
-<script src='<?= base_url(); ?>assets/js/fullcalendar.min.js'></script>
-<script src='<?= base_url(); ?>assets/js/fullcalendar/locales/pt-br.js'></script>
+<script nonce="<?= csp_nonce() ?>" language="javascript" type="text/javascript" src="<?= base_url(); ?>assets/js/dist/jquery.jqplot.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/dist/plugins/jqplot.pieRenderer.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/dist/plugins/jqplot.donutRenderer.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src='<?= base_url(); ?>assets/js/fullcalendar.min.js'></script>
+<script nonce="<?= csp_nonce() ?>" src='<?= base_url(); ?>assets/js/fullcalendar/locales/pt-br.js'></script>
 
 <link href='<?= base_url(); ?>assets/css/fullcalendar.min.css' rel='stylesheet' />
 <link rel="stylesheet" type="text/css" href="<?= base_url(); ?>assets/js/dist/jquery.jqplot.min.css" />
@@ -15,12 +15,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
 
 <!-- New Bem-vindos -->
-<div id="content-bemv">
-    <div class="bemv">Dashboard</div>
-    <div></div>
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-home-alt"></i> Painel</h1>
+        <p class="ui-subtitulo">Resumo da operação: OS, vendas, lançamentos e estoque. Clique num atalho para abrir a tela.</p>
+    </div>
 </div>
 
 <!--Action boxes-->
@@ -274,7 +276,7 @@
             </div>
         <?php endif ?>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     if (window.outerWidth > 2000) {
         Chart.defaults.font.size = 15;
     };
@@ -559,7 +561,7 @@
                                 } ?></td>
 
                                 <td>
-                                    <span class="badge" style="background-color: <?= $cor ?>; border-color: <?= $cor ?>;"><?= $o->status ?></span>
+                                    <span class="ui-selo" style="background-color: <?= $cor ?>; border-color: <?= $cor ?>; color:#fff;"><?= $o->status ?></span>
                                 </td>
 
                                 <td>
@@ -572,7 +574,7 @@
                         <?php endforeach ?>
                     <?php else : ?>
                         <tr>
-                            <td colspan="5">Nenhuma OS em Orçamento.</td>
+                            <td colspan="5"><div class="ui-vazio"><strong>Nenhuma OS em Orçamento.</strong></div></td>
                         </tr>
                     <?php endif ?>
                 </tbody>
@@ -648,7 +650,7 @@
                                 } ?></td>
                                 
                                 <td>
-                                    <span class="badge" style="background-color: <?= $cor ?>; border-color: <?= $cor ?>;"><?= $o->status ?></span>
+                                    <span class="ui-selo" style="background-color: <?= $cor ?>; border-color: <?= $cor ?>; color:#fff;"><?= $o->status ?></span>
                                 </td>
 
                                 <td>
@@ -661,7 +663,7 @@
                         <?php endforeach ?>
                     <?php else : ?>
                         <tr>
-                            <td colspan="5">Nenhuma OS em aberto.</td>
+                            <td colspan="5"><div class="ui-vazio"><strong>Nenhuma OS em aberto.</strong></div></td>
                         </tr>
                     <?php endif ?>
                 </tbody>
@@ -738,7 +740,7 @@
                                 } ?></td>
                                 
                                 <td>
-                                    <span class="badge" style="background-color: <?= $cor ?>; border-color: <?= $cor ?>;"><?= $o->status ?></span>
+                                    <span class="ui-selo" style="background-color: <?= $cor ?>; border-color: <?= $cor ?>; color:#fff;"><?= $o->status ?></span>
                                 </td>
 
                                 <td>
@@ -751,7 +753,7 @@
                         <?php endforeach ?>
                     <?php else : ?>
                         <tr>
-                            <td colspan="5">Nenhuma OS Aprovada.</td>
+                            <td colspan="5"><div class="ui-vazio"><strong>Nenhuma OS Aprovada.</strong></div></td>
                         </tr>
                     <?php endif ?>
                 </tbody>
@@ -827,7 +829,7 @@
                                 } ?></td>
                                 
                                 <td>
-                                    <span class="badge" style="background-color: <?= $cor ?>; border-color: <?= $cor ?>;"><?= $o->status ?></span>
+                                    <span class="ui-selo" style="background-color: <?= $cor ?>; border-color: <?= $cor ?>; color:#fff;"><?= $o->status ?></span>
                                 </td>
 
                                 <td>
@@ -840,7 +842,7 @@
                         <?php endforeach ?>
                     <?php else : ?>
                         <tr>
-                            <td colspan="5">Nenhuma OS Finalizada.</td>
+                            <td colspan="5"><div class="ui-vazio"><strong>Nenhuma OS Finalizada.</strong></div></td>
                         </tr>
                     <?php endif ?>
                 </tbody>
@@ -915,7 +917,7 @@
                                 } ?></td>
 
                                     <td>
-                                        <span class="badge" style="background-color: <?= $cor ?>; border-color: <?= $cor ?>;"><?= $o->status ?></span>
+                                        <span class="ui-selo" style="background-color: <?= $cor ?>; border-color: <?= $cor ?>; color:#fff;"><?= $o->status ?></span>
                                     </td>
                                 <td>
                                     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) : ?>
@@ -927,7 +929,7 @@
                         <?php endforeach ?>
                     <?php else : ?>
                         <tr>
-                            <td colspan="5">Nenhuma OS em Orçamento.</td>
+                            <td colspan="5"><div class="ui-vazio"><strong>Nenhuma OS em Orçamento.</strong></div></td>
                         </tr>
                     <?php endif ?>
                 </tbody>
@@ -1000,7 +1002,7 @@
                                 </td>
                                 
                                     <td>
-                                        <span class="badge" style="background-color: <?= $cor ?>; border-color: <?= $cor ?>;"><?= $v->status ?></span>
+                                        <span class="ui-selo" style="background-color: <?= $cor ?>; border-color: <?= $cor ?>; color:#fff;"><?= $v->status ?></span>
                                     </td>
                                 <td>
                                     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vVenda')) : ?>
@@ -1013,7 +1015,7 @@
                         <?php endforeach ?>
                     <?php else : ?>
                         <tr>
-                            <td colspan="5">Nenhuma Venda.</td>
+                            <td colspan="5"><div class="ui-vazio"><strong>Nenhuma Venda.</strong></div></td>
                         </tr>
                     <?php endif ?>
                 </tbody>
@@ -1042,9 +1044,9 @@
                             <tr>
                                 <td>
                                     <?php if ($lancamento->tipo == 'receita'): ?>
-                                        <span class="label label-success"><b><?php echo ucfirst($lancamento->tipo); ?></b></span>
+                                        <span class="ui-selo sucesso"><b><?php echo ucfirst($lancamento->tipo); ?></b></span>
                                     <?php elseif ($lancamento->tipo == 'despesa'): ?>
-                                        <span class="label label-important"><b><?php echo ucfirst($lancamento->tipo); ?></b></span>
+                                        <span class="ui-selo perigo"><b><?php echo ucfirst($lancamento->tipo); ?></b></span>
                                     <?php else: ?>
                                         <?php echo ucfirst($lancamento->tipo); ?>
                                     <?php endif; ?>
@@ -1057,7 +1059,7 @@
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="5">Nenhum lançamento encontrado.</td>
+                            <td colspan="5"><div class="ui-vazio"><strong>Nenhum lançamento encontrado.</strong></div></td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -1114,7 +1116,7 @@
                             <?php endforeach ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="6">Nenhum produto com estoque baixo.</td>
+                                <td colspan="6"><div class="ui-vazio"><strong>Nenhum produto com estoque baixo.</strong></div></td>
                             </tr>
                         <?php endif ?>
                     </tbody>
@@ -1211,9 +1213,9 @@
     </form>
 </div>
 
-<script src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
 <!-- Modal Estoque-->
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         $(document).on('click', 'a', function(event) {
             var produto = $(this).attr('produto');

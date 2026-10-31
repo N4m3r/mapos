@@ -90,6 +90,16 @@ class Obra_material_model extends CI_Model
         }
     }
 
+    /**
+     * Ajusta o saldo da obra a partir de um produto lancado numa OS vinculada
+     * (ADR-015 fase 4). Delta negativo consome, positivo devolve. Nao bloqueia:
+     * se nao houver saldo suficiente, fica negativo (visivel pra quem olhar).
+     */
+    public function ajustarSaldoPorOs($obra_id, $produto_id, $descricao, $delta)
+    {
+        $this->ajustarSaldo($obra_id, ['produto_id' => $produto_id, 'descricao' => $descricao], (float) $delta);
+    }
+
     public function saldoDisponivel($obra_id, $produto_id, $descricao)
     {
         if (! $this->db->table_exists('obra_material_saldo')) {

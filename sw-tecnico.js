@@ -8,7 +8,7 @@
  * - POST nunca passa por cache: a fila offline (assets/js/fila-offline.js) cuida dos envios.
  * - A tela de login apaga estes caches (aparelho compartilhado).
  */
-var VERSAO = 'v1';
+var VERSAO = 'v5';
 var CACHE_ESTATICOS = 'mapos-tecnico-estaticos-' + VERSAO;
 var CACHE_PAGINAS = 'mapos-tecnico-paginas-' + VERSAO;
 var BASE = new URL('./', self.location).pathname;          // raiz do Map-OS (aceita subpasta)
@@ -20,7 +20,12 @@ var PRE_CACHE = [
     BASE + 'assets/css/bootstrap.min.css',
     BASE + 'assets/boxicons/css/boxicons.min.css',
     BASE + 'assets/css/tecnico.css',
-    BASE + 'assets/js/jquery-1.12.4.min.js',
+    BASE + 'assets/js/jquery-3.7.1.min.js',
+    BASE + 'assets/js/jquery-migrate-3.4.1.min.js',
+    BASE + 'assets/js/acoes.js',
+    BASE + 'assets/js/foto-compacta.js',
+    BASE + 'assets/js/etiqueta-camera.js',
+    BASE + 'assets/js/jsQR.js',
     BASE + 'assets/js/fila-offline.js',
     BASE + 'assets/js/pwa-tecnico.js',
     BASE + 'assets/js/checkin.js',
@@ -29,7 +34,9 @@ var PRE_CACHE = [
     BASE + 'assets/js/assinatura-fullscreen.js',
     BASE + 'assets/js/csrf.js',
     BASE + 'assets/img/favicon.png',
-    BASE + 'assets/pwa/icone-192.png'
+    BASE + 'assets/pwa/icone-192.png',
+    BASE + 'assets/pwa/icone-512.png',
+    BASE + 'assets/pwa/manifest.json'
 ];
 
 self.addEventListener('install', function (evento) {

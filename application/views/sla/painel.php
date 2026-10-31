@@ -1,18 +1,21 @@
 <?php
 $rotulos = [
-    'estourado' => ['Estourado', '#c0392b'],
-    'risco' => ['Em risco', '#e67e22'],
-    'no_prazo' => ['No prazo', '#27ae60'],
-    'cumprido' => ['Cumprido', '#7f8c8d'],
-    'atrasado' => ['Cumprido com atraso', '#8e44ad'],
+    'estourado' => ['Estourado', 'perigo'],
+    'risco' => ['Em risco', 'alerta'],
+    'no_prazo' => ['No prazo', 'sucesso'],
+    'cumprido' => ['Cumprido', 'neutro'],
+    'atrasado' => ['Cumprido com atraso', 'roxo'],
 ];
 $selo = static function ($situacao) use ($rotulos) {
     if ($situacao === null) {
         return '<span style="color:#aaa">-</span>';
     }
-    [$texto, $cor] = $rotulos[$situacao];
+    [$texto, $tom] = $rotulos[$situacao];
 
-    return '<span class="badge" style="background:' . $cor . '">' . $texto . '</span>';
+    return '<span class="ui-selo ' . $tom . '">' . $texto . '</span>';
+};
+$classeLinha = static function ($situacao) {
+    return $situacao === 'estourado' ? 'ui-linha-perigo' : ($situacao === 'risco' ? 'ui-linha-alerta' : '');
 };
 $falta = static function ($ts) {
     if ($ts === null) {
@@ -22,58 +25,63 @@ $falta = static function ($ts) {
     $abs = abs($seg);
     $txt = $abs >= 86400 ? floor($abs / 86400) . 'd ' . floor(($abs % 86400) / 3600) . 'h' : floor($abs / 3600) . 'h ' . floor(($abs % 3600) / 60) . 'min';
 
-    return $seg < 0 ? '<span style="color:#c0392b">há ' . $txt . '</span>' : 'em ' . $txt;
+    return $seg < 0 ? '<span class="ui-negativo">há ' . $txt . '</span>' : 'em ' . $txt;
 };
 $link = static function ($situacao) use ($filtros) {
     return site_url('sla') . '?' . http_build_query(array_filter(array_merge($filtros, ['situacao' => $situacao])));
 };
 ?>
-<div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="bx bx-timer"></i></span>
-        <h5>Painel de SLA</h5>
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-timer"></i> Painel de SLA</h1>
+        <p class="ui-subtitulo">Prazos de resposta e solução das OS com contrato. Clique num indicador para filtrar a lista.</p>
     </div>
+    <div class="ui-acoes">
+        <a href="<?= site_url('agenda') ?>" class="button btn btn-info"><span class="button__icon"><i class="bx bx-calendar"></i></span><span class="button__text2">Agenda da equipe</span></a>
+    </div>
+</div>
+<div class="widget-box">
     <div class="widget-content">
         <?php if (! $disponivel) { ?>
-            <div class="alert">Os campos de SLA ainda não existem no banco. Rode as migrations (Configurações &gt; Atualizar banco de dados).</div>
+            <div class="ui-dica"><i class="bx bx-error-circle"></i><div>Os campos de SLA ainda não existem no banco. Rode as migrations (Configurações &gt; Atualizar banco de dados).</div></div>
         <?php } ?>
 
-        <div class="row-fluid" style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px">
+        <div class="ui-kpis">
             <?php foreach ([
-                [null, 'OS abertas com SLA', $kpis['abertas'], '#34495e'],
-                ['estourado', 'Estourados', $kpis['estourado'], '#c0392b'],
-                ['risco', 'Vencem em até ' . Sla_model::HORAS_RISCO . 'h', $kpis['risco'], '#e67e22'],
-            ] as [$sit, $titulo, $valor, $cor]) { ?>
-                <a href="<?= $link($sit) ?>" style="flex:1; min-width:170px; text-decoration:none; border:1px solid #e2e6f0; border-left:4px solid <?= $cor ?>; border-radius:8px; padding:12px 14px; background:<?= $filtros['situacao'] === $sit ? '#f4f6fb' : '#fff' ?>">
-                    <div style="color:#777; font-size:12px"><?= $titulo ?></div>
-                    <div style="font-size:26px; font-weight:700; color:<?= $cor ?>"><?= (int) $valor ?></div>
+                [null, 'OS abertas com SLA', $kpis['abertas'], ''],
+                ['estourado', 'Estourados', $kpis['estourado'], 'perigo'],
+                ['risco', 'Vencem em até ' . Sla_model::HORAS_RISCO . 'h', $kpis['risco'], 'alerta'],
+            ] as [$sit, $titulo, $valor, $tom]) { ?>
+                <a href="<?= $link($sit) ?>" class="ui-kpi <?= $tom ?>" style="text-decoration:none; color:inherit; background:<?= $filtros['situacao'] === $sit ? 'var(--ui-suave)' : 'transparent' ?>">
+                    <div class="ui-kpi-rotulo"><?= $titulo ?></div>
+                    <div class="ui-kpi-valor"><?= (int) $valor ?></div>
                 </a>
             <?php } ?>
-            <div style="flex:1; min-width:170px; border:1px solid #e2e6f0; border-left:4px solid #27ae60; border-radius:8px; padding:12px 14px">
-                <div style="color:#777; font-size:12px">Solução no prazo (mês)</div>
-                <div style="font-size:26px; font-weight:700; color:#27ae60"><?= $kpis['percentual_mes'] === null ? '-' : $kpis['percentual_mes'] . '%' ?></div>
-                <div style="color:#999; font-size:11px"><?= (int) $kpis['cumpridas_mes'] ?> de <?= (int) $kpis['solucionadas_mes'] ?> OS solucionadas</div>
+            <div class="ui-kpi sucesso">
+                <div class="ui-kpi-rotulo">Solução no prazo (mês)</div>
+                <div class="ui-kpi-valor"><?= $kpis['percentual_mes'] === null ? '-' : $kpis['percentual_mes'] . '%' ?></div>
+                <div class="ui-kpi-extra"><?= (int) $kpis['cumpridas_mes'] ?> de <?= (int) $kpis['solucionadas_mes'] ?> OS solucionadas</div>
             </div>
         </div>
 
-        <form method="get" action="<?= site_url('sla') ?>" style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:10px">
-            <div><label>Técnico</label>
-                <select name="tecnico" style="width:180px"><option value="">Todos</option>
+        <form method="get" action="<?= site_url('sla') ?>" class="ui-filtros">
+            <div class="ui-campo"><label>Técnico</label>
+                <select name="tecnico"><option value="">Todos</option>
                     <?php foreach ($tecnicos as $t) { ?><option value="<?= (int) $t->idUsuarios ?>" <?= (int) $filtros['tecnico'] === (int) $t->idUsuarios ? 'selected' : '' ?>><?= html_escape($t->nome) ?></option><?php } ?>
                 </select></div>
-            <div><label>Contrato</label>
-                <select name="contrato" style="width:200px"><option value="">Todos</option>
+            <div class="ui-campo"><label>Contrato</label>
+                <select name="contrato"><option value="">Todos</option>
                     <?php foreach ($contratos as $c) { ?><option value="<?= (int) $c->id ?>" <?= (int) $filtros['contrato'] === (int) $c->id ? 'selected' : '' ?>><?= html_escape(trim(($c->codigo ? $c->codigo . ' - ' : '') . $c->descricao)) ?></option><?php } ?>
                 </select></div>
-            <div><label>Prioridade</label>
-                <select name="prioridade" style="width:130px"><option value="">Todas</option>
+            <div class="ui-campo"><label>Prioridade</label>
+                <select name="prioridade"><option value="">Todas</option>
                     <?php foreach ($prioridades as $p) { ?><option <?= $filtros['prioridade'] === $p ? 'selected' : '' ?>><?= html_escape($p) ?></option><?php } ?>
                 </select></div>
             <?php if ($filtros['situacao']) { ?><input type="hidden" name="situacao" value="<?= html_escape($filtros['situacao']) ?>"><?php } ?>
-            <div><button class="button btn btn-mini btn-warning" type="submit"><span class="button__icon"><i class="bx bx-search-alt"></i></span><span class="button__text2">Filtrar</span></button></div>
-            <div><a href="<?= site_url('agenda') ?>" class="button btn btn-mini btn-info"><span class="button__icon"><i class="bx bx-calendar"></i></span><span class="button__text2">Agenda da equipe</span></a></div>
+            <div class="ui-campo-acao"><button class="button btn btn-warning" type="submit"><span class="button__icon"><i class="bx bx-search-alt"></i></span><span class="button__text2">Filtrar</span></button></div>
         </form>
 
+        <div class="ui-tabela-rolagem">
         <table class="table table-bordered table-condensed">
             <thead>
                 <tr>
@@ -90,10 +98,10 @@ $link = static function ($situacao) use ($filtros) {
             </thead>
             <tbody>
                 <?php if (empty($lista)) { ?>
-                    <tr><td colspan="9">Nenhuma OS aberta com SLA <?= $filtros['situacao'] ? 'nesta situação' : '' ?>. O SLA é calculado quando a OS tem contrato e prioridade.</td></tr>
+                    <tr><td colspan="9"><div class="ui-vazio"><i class="bx bx-check-shield"></i><strong>Nenhuma OS aberta com SLA<?= $filtros['situacao'] ? ' nesta situação' : '' ?></strong>O SLA é calculado quando a OS tem contrato e prioridade.</div></td></tr>
                 <?php }
                 foreach ($lista as $os) { ?>
-                    <tr>
+                    <tr class="<?= $classeLinha($os->situacao) ?>">
                         <td><a href="<?= site_url('os/visualizar/' . (int) $os->idOs) ?>">#<?= (int) $os->idOs ?></a></td>
                         <td><?= html_escape($os->nomeCliente) ?><br><small style="color:#999"><?= html_escape($os->status) ?></small></td>
                         <td><?= html_escape($os->prioridade ?: '-') ?></td>
@@ -107,5 +115,6 @@ $link = static function ($situacao) use ($filtros) {
                 <?php } ?>
             </tbody>
         </table>
+        </div>
     </div>
 </div>

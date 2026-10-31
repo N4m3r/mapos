@@ -26,6 +26,7 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
 ?>
 
 <div class="tec-container">
+<div class="ui-dica"><i class="bx bx-info-circle"></i><div>Siga a ordem: <strong>check-in</strong> ao chegar, registre o atendimento e fotos, depois <strong>finalize</strong> e colete a assinatura.</div></div>
 
     <!-- Banner: OS aberta pelo projeto (somente leitura) -->
     <?php if (!empty($somente_leitura)): ?>
@@ -56,8 +57,8 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
             <?php endif; ?>
             <div class="info-row"><span class="info-label">Registrado</span><span class="info-value"><?= !empty($nr_pendente->data_registro) ? date('d/m/Y H:i', strtotime($nr_pendente->data_registro)) : '--' ?></span></div>
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
-                <button type="button" class="btn-tec warning" onclick="abrirReagendar(<?= (int) $nr_pendente->idOcorrencia ?>)"><i class='bx bx-calendar-plus'></i> Reagendar</button>
-                <button type="button" class="btn-tec neutral" data-ocorrencia="<?= (int) $nr_pendente->idOcorrencia ?>" onclick="reabrirAtividade(this)"><i class='bx bx-revision'></i> Reabrir p/ refazer</button>
+                <button type="button" class="btn-tec warning" data-chamar="abrirReagendar" data-args="[<?= (int) $nr_pendente->idOcorrencia ?>]"><i class='bx bx-calendar-plus'></i> Reagendar</button>
+                <button type="button" class="btn-tec neutral" data-ocorrencia="<?= (int) $nr_pendente->idOcorrencia ?>" data-chamar="reabrirAtividade" data-args='["@this"]'><i class='bx bx-revision'></i> Reabrir p/ refazer</button>
             </div>
         </div>
     <?php endif; ?>
@@ -90,6 +91,8 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
         <div class="info-row"><span class="info-label">Garantia</span><span class="info-value"><?= html_escape(formatar_garantia($os->garantia, 'N/A')) ?></span></div>
     </div>
 
+    <?php $this->load->view('tecnico/_projeto_selo', ['vinculo_projeto' => $vinculo_projeto ?? null, 'pode_ver_projeto' => $pode_ver_projeto ?? false]); ?>
+
     <!-- Dados do Cliente -->
     <div class="info-card">
         <h3><i class='bx bx-user'></i> Cliente</h3>
@@ -121,7 +124,7 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
                     <?php foreach ($fotos_etapa[$et] as $foto):
                         $imgUrl = !empty($foto->imagem_base64) ? base_url('index.php/checkin/verFotoDB/' . $foto->idFoto) : $foto->url; ?>
                         <div class="foto-item">
-                            <img src="<?= $imgUrl ?>" alt="Foto <?= $meta[1] ?>" onclick="abrirFoto('<?= $imgUrl ?>')">
+                            <img src="<?= $imgUrl ?>" alt="Foto <?= $meta[1] ?>" data-chamar="abrirFoto" data-args="<?= html_escape(json_encode([$imgUrl])) ?>">
                             <?php if (!empty($foto->descricao)): ?><div class="cap"><?= html_escape($foto->descricao) ?></div><?php endif; ?>
                         </div>
                     <?php endforeach; ?>
@@ -238,7 +241,7 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
         </button>
     <?php endif; ?>
     <?php if ($mostrar_nao_realizado): ?>
-        <button type="button" id="btn-nao-realizado-bar" class="btn-tec lg btn-nr-outline <?= $checkin_ativo ? 'hidden' : '' ?>" onclick="abrirNaoRealizado()">
+        <button type="button" id="btn-nao-realizado-bar" class="btn-tec lg btn-nr-outline <?= $checkin_ativo ? 'hidden' : '' ?>" data-chamar="abrirNaoRealizado">
             <i class='bx bx-x-circle'></i> Não realizado
         </button>
     <?php endif; ?>
@@ -256,7 +259,7 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
 <?php endif; ?>
 
 <!-- Modal de foto ampliada -->
-<div id="fotoModal" onclick="this.style.display='none'" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:2000; align-items:center; justify-content:center; padding:20px;">
+<div id="fotoModal" data-acao="esconder" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:2000; align-items:center; justify-content:center; padding:20px;">
     <img id="fotoModalImg" src="" alt="Foto" style="max-width:100%; max-height:100%; border-radius:8px;">
 </div>
 
@@ -279,8 +282,8 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
         <textarea id="nr-obs" class="atv-input" rows="3" placeholder="Descreva o que aconteceu (opcional se escolheu um motivo)"></textarea>
 
         <div class="nr-modal-actions">
-            <button type="button" class="btn-tec ghost" onclick="fecharNaoRealizado()">Cancelar</button>
-            <button type="button" id="nr-confirmar" class="btn-tec danger" onclick="confirmarNaoRealizado()"><i class='bx bx-check'></i> Confirmar</button>
+            <button type="button" class="btn-tec ghost" data-chamar="fecharNaoRealizado">Cancelar</button>
+            <button type="button" id="nr-confirmar" class="btn-tec danger" data-chamar="confirmarNaoRealizado"><i class='bx bx-check'></i> Confirmar</button>
         </div>
     </div>
 </div>
@@ -296,8 +299,8 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
         <label class="nr-label">Nova data</label>
         <input type="date" id="reag-data" class="atv-input" min="<?= date('Y-m-d') ?>" value="<?= date('Y-m-d') ?>">
         <div class="nr-modal-actions">
-            <button type="button" class="btn-tec ghost" onclick="fecharReagendar()">Cancelar</button>
-            <button type="button" class="btn-tec warning" onclick="confirmarReagendar()"><i class='bx bx-check'></i> Reagendar</button>
+            <button type="button" class="btn-tec ghost" data-chamar="fecharReagendar">Cancelar</button>
+            <button type="button" class="btn-tec warning" data-chamar="confirmarReagendar"><i class='bx bx-check'></i> Reagendar</button>
         </div>
     </div>
 </div>
@@ -328,7 +331,7 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
     'documento_cliente' => $documentoCliente,
 ]); ?>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     function abrirFoto(url) {
         document.getElementById('fotoModalImg').src = url;
         document.getElementById('fotoModal').style.display = 'flex';

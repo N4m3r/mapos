@@ -55,6 +55,7 @@ $this->load->view('tecnico/_topo', [
 </style>
 
 <div class="tec-container">
+<div class="ui-dica"><i class="bx bx-info-circle"></i><div>Use para registrar um atendimento que não estava na agenda. Preencha cliente e descrição.</div></div>
 
     <?php if ($this->session->flashdata('error')): ?>
         <div class="info-card" style="border-left:4px solid var(--tec-danger); color:var(--tec-danger);">
@@ -129,8 +130,8 @@ $this->load->view('tecnico/_topo', [
 
 <?php $this->load->view('tecnico/_nav', ['nav_ativo' => '', 'pode_ver_sistema' => isset($pode_ver_sistema) ? $pode_ver_sistema : false]); ?>
 
-<script src="<?= base_url('assets/js/csrf.js') ?>?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
-<script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/csrf.js') ?>?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
+<script nonce="<?= csp_nonce() ?>">
 (function () {
     var BASE = '<?= site_url('tecnico') ?>/';
 

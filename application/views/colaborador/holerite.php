@@ -61,7 +61,7 @@ $labelTipo = [
         Demonstrativo com descontos legais (CLT). O PDF oficial é liberado pelo RH.
     </div>
 </div>
-<script>
+<script nonce="<?= csp_nonce() ?>">
 document.getElementById('competencia').addEventListener('change', function(){
     window.location = '<?= site_url('colaborador/holerite') ?>/' + this.value;
 });

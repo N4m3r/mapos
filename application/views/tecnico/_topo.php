@@ -25,23 +25,45 @@ $voltar_url   = isset($voltar_url) ? $voltar_url : null;
     <meta name="usuario-id" content="<?= (int) $this->session->userdata('id_admin') ?>">
     <link rel="manifest" href="<?= base_url('assets/pwa/manifest.json') ?>">
     <link rel="apple-touch-icon" href="<?= base_url('assets/pwa/icone-192.png') ?>">
-    <script src="<?= base_url('assets/js/fila-offline.js') ?>?v=<?= asset_versao('assets/js/fila-offline.js') ?>" defer></script>
-    <script src="<?= base_url('assets/js/pwa-tecnico.js') ?>?v=<?= asset_versao('assets/js/pwa-tecnico.js') ?>"></script>
-    <title><?= isset($titulo) ? $titulo : 'Área do Técnico' ?></title>
+    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/fila-offline.js') ?>?v=<?= asset_versao('assets/js/fila-offline.js') ?>" defer></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/pwa-tecnico.js') ?>?v=<?= asset_versao('assets/js/pwa-tecnico.js') ?>"></script>
+    <title><?= html_escape(isset($titulo) ? (string) $titulo : 'Área do Técnico') ?></title>
     <link rel="shortcut icon" type="image/png" href="<?= base_url('assets/img/favicon.png') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/bootstrap.min.css') ?>">
     <link href="<?= base_url('assets/boxicons/css/boxicons.min.css') ?>" rel="stylesheet">
     <link rel="stylesheet" href="<?= base_url('assets/css/tecnico.css') ?>?v=4">
+    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<?= base_url('assets/css/moderno.css') ?>?v=<?= asset_versao('assets/css/moderno.css', '1') ?>" />
 </head>
 <body class="tec-body">
     <header class="tec-header">
         <div class="tec-header-row">
             <div>
-                <h1><i class='bx <?= $header_icone ?>'></i> <?= isset($titulo) ? $titulo : 'Área do Técnico' ?></h1>
-                <?php if ($header_sub): ?><p><?= $header_sub ?></p><?php endif; ?>
+                <h1><i class='bx <?= $header_icone ?>'></i> <?= html_escape(isset($titulo) ? (string) $titulo : 'Área do Técnico') ?></h1>
+                <?php if ($header_sub): ?><p><?= html_escape((string) $header_sub) ?></p><?php endif; ?>
             </div>
-            <?php if ($voltar_url): ?>
-                <a href="<?= $voltar_url ?>" class="tec-back"><i class='bx bx-arrow-back'></i> Voltar</a>
-            <?php endif; ?>
+            <div class="tec-header-acoes" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+                <button type="button" id="install-btn" class="tec-back" style="display:none;border:0"><i class='bx bx-download'></i> Instalar app</button>
+                <button type="button" id="toggle-offline" class="tec-back" style="border:0"></button>
+                <?php if ($voltar_url): ?>
+                    <a href="<?= $voltar_url ?>" class="tec-back"><i class='bx bx-arrow-back'></i> Voltar</a>
+                <?php endif; ?>
+            </div>
         </div>
     </header>
+    <script nonce="<?= csp_nonce() ?>">
+        (function () {
+            var btn = document.getElementById('toggle-offline');
+            if (!btn) { return; }
+            var key = 'offlineEnabled';
+            function ligado() { return localStorage.getItem(key) !== 'false'; }
+            function rotulo() { btn.textContent = ligado() ? 'Desativar modo offline' : 'Ativar modo offline'; }
+            rotulo();
+            btn.addEventListener('click', function () {
+                localStorage.setItem(key, ligado() ? 'false' : 'true');
+                rotulo();
+                window.dispatchEvent(new Event('offlineToggle'));
+            });
+        })();
+    </script>

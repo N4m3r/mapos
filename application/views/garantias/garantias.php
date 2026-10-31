@@ -4,19 +4,21 @@
   }
 </style>
 <div class="new122">
-    <div class="widget-title"  style="margin: -20px 0 0">
-        <span class="icon">
-            <i class="fas fa-book"></i>
-        </span>
-        <h5>Termo de Garantia</h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="fas fa-book"></i> Termo de Garantia</h1>
+            <p class="ui-subtitulo">Termos de garantia emitidos para as ordens de serviço.</p>
+        </div>
+        <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'aGarantia')) { ?>
+            <div class="ui-acoes">
+                <a href="<?php echo base_url(); ?>index.php/garantias/adicionar" class="button btn btn-mini btn-success">
+                    <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Termo Garantia</span></a>
+            </div>
+        <?php } ?>
     </div>
-    <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'aGarantia')) { ?>
-    <a href="<?php echo base_url(); ?>index.php/garantias/adicionar" class="button btn btn-mini btn-success" style="max-width: 160px">
-      <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Termo Garantia</span></a>
-<?php } ?>
 
 <div class="widget-box">
-    <div class="widget-content nopadding tab-content">
+    <div class="widget-content nopadding tab-content ui-tabela-rolagem">
         <table id="tabela" class="table table-bordered ">
             <thead>
                 <tr>
@@ -32,7 +34,7 @@
                 <?php
                     if (!$results) {
                         echo '<tr>
-                                <td colspan="6">Nenhum Termo de Garantia Cadastrada</td>
+                                <td colspan="6"><div class="ui-vazio"><i class="bx bx-book"></i><strong>Nenhum termo de garantia cadastrado</strong>Os termos são criados pelo botão "Termo Garantia" ou a partir de uma OS.</div></td>
                                 </tr>';
                     }
                     foreach ($results as $r) {
@@ -47,14 +49,14 @@
                         echo '<td><a href="' . base_url() . 'index.php/usuarios/editar/' . $r->idUsuarios . '">' . $r->nome . '</a></td>';
                         echo '<td>';
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vGarantia')) {
-                            echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/garantias/visualizar/' . $r->idGarantias . '" class="btn-nwe" title="Ver mais detalhes"><i class="bx bx-show bx-xs"></i></a>';
-                            echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/garantias/imprimir/' . $r->idGarantias . '" target="_blank" class="btn-nwe6" title="Imprimir"><i class="bx bx-printer bx-xs"></i></a>';
+                            echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/garantias/visualizar/' . $r->idGarantias . '" class="btn-nwe" title="Ver mais detalhes" aria-label="Ver mais detalhes"><i class="bx bx-show bx-xs"></i></a>';
+                            echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/garantias/imprimir/' . $r->idGarantias . '" target="_blank" class="btn-nwe6" title="Imprimir" aria-label="Imprimir"><i class="bx bx-printer bx-xs"></i></a>';
                         }
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eGarantia')) {
-                            echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/garantias/editar/' . $r->idGarantias . '" class="btn-nwe3" title="Editar"><i class="bx bx-edit bx-xs"></i></a>';
+                            echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/garantias/editar/' . $r->idGarantias . '" class="btn-nwe3" title="Editar" aria-label="Editar"><i class="bx bx-edit bx-xs"></i></a>';
                         }
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dGarantia')) {
-                            echo '<a href="#modal-excluir" role="button" data-toggle="modal" garantia="' . $r->idGarantias . '" class="btn-nwe4" title="Excluir"><i class="bx bx-trash-alt bx-xs"></a>';
+                            echo '<a href="#modal-excluir" role="button" data-toggle="modal" garantia="' . $r->idGarantias . '" class="btn-nwe4" title="Excluir" aria-label="Excluir"><i class="bx bx-trash-alt bx-xs"></a>';
                         }
                         echo '</td>';
                         echo '</tr>';
@@ -84,7 +86,7 @@
     </form>
 </div>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         $(document).on('click', 'a', function(event) {
             var garantia = $(this).attr('garantia');

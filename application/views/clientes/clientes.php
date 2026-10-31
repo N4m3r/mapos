@@ -4,40 +4,37 @@
     }
 </style>
 <div class="new122">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon">
-            <i class="fas fa-user"></i>
-        </span>
-        <h5>Clientes</h5>
-    </div>
-    <div class="span12" style="margin-left: 0">
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="fas fa-user"></i> Clientes</h1>
+            <p class="ui-subtitulo">Clientes e fornecedores cadastrados. Busque, visualize ou edite um registro.</p>
+        </div>
         <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'aCliente')) { ?>
-            <div class="span3">
-                <a href="<?= base_url() ?>index.php/clientes/adicionar" class="button btn btn-mini btn-success"
-                    style="max-width: 165px">
+            <div class="ui-acoes">
+                <a href="<?= base_url() ?>index.php/clientes/adicionar" class="button btn btn-mini btn-success">
                     <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">
                         Cliente / Fornecedor
                     </span>
                 </a>
             </div>
         <?php } ?>
-        <form class="span9" method="get" action="<?= base_url() ?>index.php/clientes"
-            style="display: flex; justify-content: flex-end;">
-            <div class="span3">
-                <input type="text" name="pesquisa" id="pesquisa"
-                    placeholder="Buscar por Nome, Doc, Email ou Telefone..." class="span12"
-                    value="<?= $this->input->get('pesquisa') ?>">
-            </div>
-            <div class="span1">
-                <button class="button btn btn-mini btn-warning" style="min-width: 30px">
-                    <span class="button__icon"><i class='bx bx-search-alt'></i></span></button>
-            </div>
-        </form>
     </div>
+
+    <form class="ui-filtros" method="get" action="<?= base_url() ?>index.php/clientes">
+        <div class="ui-campo">
+            <label for="pesquisa">Buscar</label>
+            <input type="text" name="pesquisa" id="pesquisa"
+                placeholder="Nome, documento, e-mail ou telefone" value="<?= $this->input->get('pesquisa') ?>">
+        </div>
+        <div class="ui-campo ui-campo-acao">
+            <button class="button btn btn-mini btn-warning" title="Buscar" aria-label="Buscar">
+                <span class="button__icon"><i class='bx bx-search-alt'></i></span><span class="button__text2">Buscar</span></button>
+        </div>
+    </form>
 
     <div class="widget-box">
         <h5 style="padding: 3px 0"></h5>
-        <div class="widget-content nopadding tab-content">
+        <div class="widget-content nopadding tab-content ui-tabela-rolagem">
             <table id="tabela" class="table table-bordered ">
                 <thead>
                     <tr>
@@ -56,7 +53,7 @@
                     <?php
                     if (!$results) {
                         echo '<tr>
-                    <td colspan="9">Nenhum Cliente Cadastrado</td>
+                    <td colspan="9"><div class="ui-vazio"><i class="bx bx-user"></i><strong>Nenhum cliente ou fornecedor cadastrado</strong>Use o botão "Cliente / Fornecedor" para cadastrar o primeiro.</div></td>
                   </tr>';
                     }
                     foreach ($results as $r) {
@@ -78,14 +75,14 @@
 
                         echo '<td>';
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vCliente')) {
-                            echo '<a href="' . base_url() . 'index.php/clientes/visualizar/' . $r->idClientes . '" style="margin-right: 1%" class="btn-nwe" title="Ver mais detalhes"><i class="bx bx-show bx-xs"></i></a>';
-                            echo '<a href="' . base_url() . 'index.php/mine?e=' . $r->email . '" target="new" style="margin-right: 1%" class="btn-nwe2" title="Área do cliente"><i class="bx bx-key bx-xs"></i></a>';
+                            echo '<a href="' . base_url() . 'index.php/clientes/visualizar/' . $r->idClientes . '" style="margin-right: 1%" class="btn-nwe" title="Ver mais detalhes" aria-label="Ver mais detalhes"><i class="bx bx-show bx-xs"></i></a>';
+                            echo '<a href="' . base_url() . 'index.php/mine?e=' . $r->email . '" target="new" style="margin-right: 1%" class="btn-nwe2" title="Área do cliente" aria-label="Área do cliente"><i class="bx bx-key bx-xs"></i></a>';
                         }
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eCliente')) {
-                            echo '<a href="' . base_url() . 'index.php/clientes/editar/' . $r->idClientes . '" style="margin-right: 1%" class="btn-nwe3" title="Editar Cliente"><i class="bx bx-edit bx-xs"></i></a>';
+                            echo '<a href="' . base_url() . 'index.php/clientes/editar/' . $r->idClientes . '" style="margin-right: 1%" class="btn-nwe3" title="Editar Cliente" aria-label="Editar Cliente"><i class="bx bx-edit bx-xs"></i></a>';
                         }
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dCliente')) {
-                            echo '<a href="#modal-excluir" role="button" data-toggle="modal" cliente="' . $r->idClientes . '" style="margin-right: 1%" class="btn-nwe4" title="Excluir Cliente"><i class="bx bx-trash-alt bx-xs"></i></a>';
+                            echo '<a href="#modal-excluir" role="button" data-toggle="modal" cliente="' . $r->idClientes . '" style="margin-right: 1%" class="btn-nwe4" title="Excluir Cliente" aria-label="Excluir Cliente"><i class="bx bx-trash-alt bx-xs"></i></a>';
                         }
                         echo '</td>';
                         echo '</tr>';
@@ -120,7 +117,7 @@
     </form>
 </div>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function () {
         $(document).on('click', 'a', function (event) {
             var cliente = $(this).attr('cliente');

@@ -5,35 +5,37 @@
 </style>
 
 <div class="new122">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon">
-            <i class="fas fa-cash-register"></i>
-        </span>
-        <h5>Vendas</h5>
-    </div>
-    <div class="span12" style="margin-left: 0">
-        <form method="get" action="<?php echo base_url(); ?>index.php/vendas/gerenciar">
-            <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'aVenda')) { ?>
-                <div class="span3">
-                    <a href="<?php echo base_url(); ?>index.php/vendas/adicionar" class="button btn btn-mini btn-success" style="max-width: 160px">
-                        <span class="button__icon"><i class='bx bx-plus-circle'></i></span>
-                        <span class="button__text2">Nova Venda</span>
-                    </a>
-                    <a href="<?= site_url('pdv') ?>" class="button btn btn-mini btn-info" style="max-width: 160px" title="Frente de caixa">
-                        <span class="button__icon"><i class='bx bx-store'></i></span>
-                        <span class="button__text2">PDV</span>
-                    </a>
-                    <a href="<?= site_url('caixa') ?>" class="button btn btn-mini btn-warning" style="max-width: 160px" title="Caixas do PDV">
-                        <span class="button__icon"><i class='bx bx-wallet'></i></span>
-                        <span class="button__text2">Caixa</span>
-                    </a>
-                </div>
-            <?php } ?>
-            <div class="span3">
-                <input type="text" name="pesquisa" id="pesquisa" placeholder="Nome do cliente a pesquisar" class="span12" value="">
+    <div class="ui-cabecalho">
+        <div>
+            <h1><i class="fas fa-cash-register"></i> Vendas</h1>
+            <p>Consulte as vendas realizadas, filtre por cliente, status ou período e acompanhe o que já foi faturado.</p>
+        </div>
+        <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'aVenda')) { ?>
+            <div class="ui-acoes">
+                <a href="<?php echo base_url(); ?>index.php/vendas/adicionar" class="button btn btn-success">
+                    <span class="button__icon"><i class='bx bx-plus-circle'></i></span>
+                    <span class="button__text2">Nova Venda</span>
+                </a>
+                <a href="<?= site_url('pdv') ?>" class="button btn btn-info" title="Frente de caixa">
+                    <span class="button__icon"><i class='bx bx-store'></i></span>
+                    <span class="button__text2">PDV</span>
+                </a>
+                <a href="<?= site_url('caixa') ?>" class="button btn btn-warning" title="Caixas do PDV">
+                    <span class="button__icon"><i class='bx bx-wallet'></i></span>
+                    <span class="button__text2">Caixa</span>
+                </a>
             </div>
-            <div class="span2">
-                <select name="status" class="span12">
+        <?php } ?>
+    </div>
+
+    <form method="get" action="<?php echo base_url(); ?>index.php/vendas/gerenciar" class="ui-filtros">
+        <div class="ui-campo" style="flex-grow: 2">
+            <label for="pesquisa">Cliente</label>
+            <input type="text" name="pesquisa" id="pesquisa" placeholder="Nome do cliente a pesquisar" class="span12" value="">
+        </div>
+        <div class="ui-campo">
+            <label for="status">Status</label>
+            <select name="status" id="status" class="span12">
                     <option value="">Selecione status</option>
                     <option value="Aberto">Aberto</option>
                     <option value="Faturado">Faturado</option>
@@ -45,21 +47,25 @@
                     <option value="Aguardando Peças">Aguardando Peças</option>
                     <option value="Aprovado">Aprovado</option>
                 </select>
-            </div>
-            <div class="span3">
-                <input type="date" name="data" id="data" placeholder="De" class="span6 datepicker" autocomplete="off" value="">
-                <input type="date" name="data2" id="data2" placeholder="Até" class="span6 datepicker" autocomplete="off" value="">
-            </div>
-            <div class="span1">
-                <button class="button btn btn-mini btn-warning" style="min-width: 30px">
-                    <span class="button__icon"><i class='bx bx-search-alt'></i></span>
-                </button>
-            </div>
-        </form>
-    </div>
+        </div>
+        <div class="ui-campo">
+            <label for="data">De</label>
+            <input type="date" name="data" id="data" placeholder="De" class="span12 datepicker" autocomplete="off" value="">
+        </div>
+        <div class="ui-campo">
+            <label for="data2">Até</label>
+            <input type="date" name="data2" id="data2" placeholder="Até" class="span12 datepicker" autocomplete="off" value="">
+        </div>
+        <div class="ui-campo-acao">
+            <button class="button btn btn-warning" title="Filtrar" aria-label="Filtrar">
+                <span class="button__icon"><i class='bx bx-search-alt'></i></span><span class="button__text2">Filtrar</span>
+            </button>
+        </div>
+    </form>
 
     <div class="widget-box">
         <div class="widget-content nopadding tab-content">
+            <div class="ui-tabela-rolagem">
             <table id="tabela" class="table table-bordered">
                 <thead>
                     <tr>
@@ -81,7 +87,7 @@
                     <?php
                         if (!$results) {
                             echo '<tr>
-                                    <td colspan="12">Nenhuma Venda Cadastrada</td>
+                                    <td colspan="12"><div class="ui-vazio"><i class="bx bx-receipt"></i><strong>Nenhuma venda encontrada</strong>Ajuste os filtros' . ($this->permission->checkPermission($this->session->userdata('permissao'), 'aVenda') ? ' ou <a href="' . base_url() . 'index.php/vendas/adicionar">registre uma nova venda</a>' : '') . '.</div></td>
                                 </tr>';
                         }
                         foreach ($results as $r) {
@@ -139,7 +145,7 @@
 
                             echo '<td><span class="badge" style="background-color: ' . $corStatus . '; border-color: ' . $corStatus . '">' . $r->status . '</span> </td>';
                             echo '<td>' . $faturado . '</td>';
-                            echo '<td style="text-align:left">';
+                            echo '<td style="text-align:left"><span class="ui-acoes-linha">';
 
                             if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vVenda')) {
                                 echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/vendas/visualizar/' . $r->idVendas . '" class="btn-nwe" title="Ver mais detalhes"><i class="bx bx-show bx-xs"></i></a>';
@@ -161,11 +167,12 @@
                                     echo '<a href="#modal-excluir" role="button" data-toggle="modal" venda="' . $r->idVendas . '" class="btn-nwe4" title="Excluir Venda"><i class="bx bx-trash-alt bx-xs"></i></a>';
                                 }
                             }
-                            echo '</td>';
+                            echo '</span></td>';
                             echo '</tr>';
                     } ?>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
     <?php echo $this->pagination->create_links(); ?>
@@ -221,7 +228,7 @@
     </div>
 </div>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         $(document).on('click', 'a', function(event) {
             var venda = $(this).attr('venda');

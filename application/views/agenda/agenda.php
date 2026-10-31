@@ -1,5 +1,5 @@
-<script src="<?= base_url() ?>assets/js/fullcalendar.min.js"></script>
-<script src="<?= base_url() ?>assets/js/fullcalendar/locales/pt-br.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/fullcalendar.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/fullcalendar/locales/pt-br.js"></script>
 <link href="<?= base_url() ?>assets/css/fullcalendar.min.css" rel="stylesheet" />
 <style>
     #agendaEquipe { background:#fff; padding:10px; border-radius:8px; }
@@ -9,25 +9,30 @@
     #agendaAviso { display:none; position:fixed; right:20px; bottom:20px; z-index:2000; padding:10px 14px; border-radius:8px; color:#fff; }
 </style>
 
-<div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="bx bx-calendar"></i></span>
-        <h5>Agenda da equipe</h5>
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-calendar"></i> Agenda da equipe</h1>
+        <p class="ui-subtitulo">Visão semanal das OS de cada técnico. Arraste uma OS para outro horário, quando permitido.</p>
     </div>
+    <div class="ui-acoes">
+        <a href="<?= site_url('os/atribuir') ?>" class="button btn btn-success"><span class="button__icon"><i class="bx bx-user-plus"></i></span><span class="button__text2">Atribuir / agendar OS</span></a>
+        <a href="<?= site_url('sla') ?>" class="button btn btn-info"><span class="button__icon"><i class="bx bx-timer"></i></span><span class="button__text2">Painel de SLA</span></a>
+    </div>
+</div>
+<div class="widget-box">
     <div class="widget-content">
         <?php if (! $disponivel) { ?>
-            <div class="alert">O campo de agendamento ainda não existe no banco. Rode as migrations.</div>
+            <div class="ui-dica"><i class="bx bx-error-circle"></i><div>O campo de agendamento ainda não existe no banco. Rode as migrations.</div></div>
         <?php } ?>
-        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:10px">
-            <label style="margin:0">Técnico
-                <select id="filtroTecnico" style="margin:0 0 0 6px; width:200px">
+        <div class="ui-filtros">
+            <div class="ui-campo">
+                <label for="filtroTecnico">Técnico</label>
+                <select id="filtroTecnico">
                     <option value="">Todos</option>
                     <?php foreach ($tecnicos as $t) { ?><option value="<?= (int) $t->idUsuarios ?>"><?= html_escape($t->nome) ?></option><?php } ?>
                 </select>
-            </label>
-            <a href="<?= site_url('os/atribuir') ?>" class="button btn btn-mini btn-success"><span class="button__icon"><i class="bx bx-user-plus"></i></span><span class="button__text2">Atribuir / agendar OS</span></a>
-            <a href="<?= site_url('sla') ?>" class="button btn btn-mini btn-info"><span class="button__icon"><i class="bx bx-timer"></i></span><span class="button__text2">Painel de SLA</span></a>
-            <?php if ($podeEditar) { ?><span style="color:#777; font-size:12px">Arraste uma OS para reagendar.</span><?php } ?>
+            </div>
+            <?php if ($podeEditar) { ?><div class="ui-campo-acao"><span class="ui-selo info"><i class="bx bx-move"></i> Arraste uma OS para reagendar</span></div><?php } ?>
         </div>
         <div class="agenda-legenda">
             <?php foreach ($tecnicos as $t) { ?><span><i style="background:<?= $t->cor ?>"></i><?= html_escape($t->nome) ?></span><?php } ?>
@@ -37,9 +42,9 @@
         <div class="row-fluid">
             <div class="span9"><div id="agendaEquipe"></div></div>
             <div class="span3">
-                <h5 style="margin-top:0">Com técnico e sem data</h5>
+                <div class="ui-secao"><h4 style="margin-top:0">Com técnico e sem data</h4></div>
                 <?php if (empty($semData)) { ?>
-                    <p style="color:#999">Nenhuma.</p>
+                    <div class="ui-vazio" style="padding:16px 8px"><i class="bx bx-check-circle"></i><strong>Nenhuma OS</strong>Todas as OS com técnico já têm data.</div>
                 <?php } else { ?>
                     <ul class="unstyled">
                         <?php foreach ($semData as $os) { ?>
@@ -56,7 +61,7 @@
 </div>
 <div id="agendaAviso"></div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
 document.addEventListener('DOMContentLoaded', function () {
     var aviso = function (texto, ok) {
         var el = document.getElementById('agendaAviso');

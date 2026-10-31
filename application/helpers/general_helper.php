@@ -255,3 +255,59 @@ if (! function_exists('formatar_chave_pix')) {
         return $chave;
     }
 }
+
+if (! function_exists('csp_nonce')) {
+    /**
+     * Nonce da Content-Security-Policy desta requisicao (hooks/csp.php).
+     * Todo <script> das views leva nonce="<?= csp_nonce() ?>"; script injetado (XSS) nao tem e e bloqueado.
+     */
+    function csp_nonce()
+    {
+        static $nonce = null;
+        if ($nonce === null) {
+            $nonce = rtrim(strtr(base64_encode(random_bytes(18)), '+/', '-_'), '=');
+        }
+
+        return $nonce;
+    }
+}
+
+if (! function_exists('jquery_tags')) {
+    /**
+     * Tags <script> do jQuery: 3.7.1 + Migrate (padrao) ou 1.12.4 com APP_JQUERY3=false no .env.
+     * Uma regra so para painel, area do tecnico, colaborador, area do cliente e paginas publicas.
+     */
+    function jquery_tags()
+    {
+        $base = base_url('assets/js/');
+        $nonce = csp_nonce();
+        $arquivos = filter_var($_ENV['APP_JQUERY3'] ?? true, FILTER_VALIDATE_BOOLEAN)
+            ? ['jquery-3.7.1.min.js', 'jquery-migrate-3.4.1.min.js']
+            : ['jquery-1.12.4.min.js'];
+        $tags = '';
+        foreach ($arquivos as $arquivo) {
+            $tags .= '<script nonce="' . $nonce . '" src="' . $base . $arquivo . '"></script>' . "\n";
+        }
+
+        return $tags;
+    }
+}
+
+if (! function_exists('dataurl_imagem')) {
+    /**
+     * Valida uma imagem em data URL (assinatura/foto do canvas) e devolve a string limpa,
+     * ou null. Campos assim precisam ser lidos com $this->input->post($campo, false): o
+     * filtro global de XSS troca "data:image/...;base64," por "[removed]" e corrompe a
+     * imagem. Como o filtro fica desligado nesse campo, o formato é conferido aqui antes
+     * de gravar ou exibir em <img src>.
+     */
+    function dataurl_imagem($valor)
+    {
+        $valor = preg_replace('/\s+/', '', (string) $valor);
+        if (! preg_match('#^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$#', $valor)) {
+            return null;
+        }
+
+        return $valor;
+    }
+}

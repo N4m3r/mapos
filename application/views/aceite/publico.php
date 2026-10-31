@@ -74,6 +74,8 @@ $totalFotos = count($fotos_etapa['entrada']) + count($fotos_etapa['durante']) + 
         #obsBox { display:none; margin-top:12px; }
         .ac-assinaturas img { max-height:90px; border:1px solid #e2e6ee; border-radius:6px; background:#fff; margin:4px 8px 4px 0; }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<?= base_url('assets/css/moderno.css') ?>?v=<?= asset_versao('assets/css/moderno.css', '1') ?>" />
 </head>
 
 <body>
@@ -227,6 +229,7 @@ $totalFotos = count($fotos_etapa['entrada']) + count($fotos_etapa['durante']) + 
 
                     <?php if ($situacao === 'pendente') { ?>
                         <div class="ac-actions">
+                            <div class="ui-dica"><i class="bx bx-info-circle"></i><div><strong>Falta só 1 passo:</strong> confira o serviço, assine no quadro e toque em confirmar.</div></div>
                             <h4 style="margin-top:0">Confirme o aceite do serviço</h4>
                             <p class="muted">Confirme que o serviço foi realizado a contento. Ao aceitar, assine no quadro abaixo.</p>
 
@@ -278,10 +281,10 @@ $totalFotos = count($fotos_etapa['entrada']) + count($fotos_etapa['durante']) + 
         </div>
     </div>
 
-    <script src="<?= base_url() ?>assets/js/jquery-1.12.4.min.js"></script>
+    <?= jquery_tags() ?>
     <?php if ($situacao === 'pendente') { ?>
-        <script src="<?= base_url() ?>assets/js/assinatura-canvas.js"></script>
-        <script>
+        <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/assinatura-canvas.js"></script>
+        <script nonce="<?= csp_nonce() ?>">
             $(function() {
                 var $form = $('#formAceite');
                 var assinatura = new AssinaturaCanvas('canvasAssinatura', { altura: 180 });

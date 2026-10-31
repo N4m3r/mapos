@@ -5,15 +5,17 @@ $numero = static function ($valor) {
 $aberto = $inventario->status === 'aberto';
 ?>
 <div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="bx bx-list-check"></i></span>
-        <h5>Inventário #<?= (int) $inventario->id ?> - <?= html_escape($inventario->descricao) ?></h5>
-    </div>
     <div class="widget-content nopadding">
+        <div class="ui-cabecalho" style="padding: 16px 16px 0; margin-bottom: 0">
+            <div>
+                <h1 class="ui-titulo"><i class="bx bx-list-check"></i> Inventário #<?= (int) $inventario->id ?> - <?= html_escape($inventario->descricao) ?></h1>
+                <p class="ui-subtitulo">Digite as quantidades contadas. Você pode salvar e continuar depois.</p>
+            </div>
+        </div>
         <div style="padding:12px 14px 0; display:flex; gap:12px; flex-wrap:wrap; align-items:center">
             <a href="<?= site_url('inventarios') ?>" class="btn btn-mini"><i class="bx bx-arrow-back"></i> Inventários</a>
             <span class="badge <?= $aberto ? 'badge-warning' : ($inventario->status === 'finalizado' ? 'badge-success' : '') ?>"><?= html_escape(ucfirst($inventario->status)) ?></span>
-            <input type="search" id="filtroInventario" placeholder="Filtrar por nome ou código..." style="margin:0; width:260px">
+            <input type="search" id="filtroInventario" placeholder="Filtrar por nome ou código..." aria-label="Filtrar por nome ou código" style="margin:0; width:260px">
             <label style="margin:0"><input type="checkbox" id="soDiferencas"> Só diferenças</label>
             <?php if ($aberto) { ?>
                 <span style="color:#777; font-size:12px">"Sistema" é o estoque na abertura; a diferença é calculada sobre o estoque atual ao finalizar.</span>
@@ -67,7 +69,7 @@ $aberto = $inventario->status === 'aberto';
                 <div style="padding:0 14px 14px; display:flex; gap:10px; flex-wrap:wrap">
                     <button type="submit" class="button btn btn-primary"><span class="button__icon"><i class="bx bx-save"></i></span><span class="button__text2">Salvar contagem</span></button>
                     <button type="submit" name="finalizar" value="1" class="button btn btn-success"
-                            onclick="return confirm('Finalizar o inventário? O estoque dos produtos contados será ajustado para o valor contado.');">
+                            data-confirmar="Finalizar o inventário? O estoque dos produtos contados será ajustado para o valor contado.">
                         <span class="button__icon"><i class="bx bx-check-double"></i></span><span class="button__text2">Finalizar e ajustar estoque</span></button>
                 </div>
             <?php } ?>
@@ -75,14 +77,14 @@ $aberto = $inventario->status === 'aberto';
 
         <?php if ($podeEditar) { ?>
             <form action="<?= site_url('inventarios/cancelar/' . (int) $inventario->id) ?>" method="post" style="padding:0 14px 14px"
-                  onsubmit="return confirm('Cancelar este inventário? Nenhum estoque será alterado.');">
+                  data-confirmar="Cancelar este inventário? Nenhum estoque será alterado.">
                 <button type="submit" class="btn btn-mini btn-danger">Cancelar inventário</button>
             </form>
         <?php } ?>
     </div>
 </div>
 
-<script>
+<script nonce="<?= csp_nonce() ?>">
     (function () {
         var filtro = document.getElementById('filtroInventario');
         var soDiferencas = document.getElementById('soDiferencas');

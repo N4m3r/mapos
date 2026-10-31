@@ -1,33 +1,19 @@
-<style>
-    select {
-        width: 70px;
-    }
-    .situacao-ativo {
-        background-color: #00cd00;
-        color: white;
-    }
-    .situacao-inativo {
-        background-color: #ff0000;
-        color: white;
-    }
-</style>
 
 <div class="new122">
-    <div class="widget-title" style="margin:-15px -10px 0">
-        <h5>Usuários</h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-user"></i> Usuários</h1>
+            <p class="ui-subtitulo">Quem acessa o sistema, com o nível de permissão e a validade de cada conta.</p>
+        </div>
+        <div class="ui-acoes">
+            <a href="<?= base_url('index.php/usuarios/adicionar') ?>" class="button btn btn-success">
+                <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Adicionar Usuário</span>
+            </a>
+        </div>
     </div>
-    <a href="<?= base_url('index.php/usuarios/adicionar') ?>" class="button btn btn-success" style="max-width: 160px">
-        <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Adicionar Usuário</span>
-    </a>
 
     <div class="widget-box">
-        <div class="widget-title" style="margin: -20px 0 0">
-            <span class="icon">
-                <i class="fas fa-cash-register"></i>
-            </span>
-            <h5 style="padding: 3px 0"></h5>
-        </div>
-        <div class="widget-content nopadding tab-content">
+        <div class="widget-content nopadding tab-content ui-tabela-rolagem">
             <table id="tabela" class="table table-bordered ">
                 <thead>
                     <tr>
@@ -44,7 +30,9 @@
                 <tbody>
                     <?php if (empty($results)): ?>
                         <tr>
-                            <td colspan="8">Nenhum Usuário Cadastrado</td>
+                            <td colspan="8">
+                                <div class="ui-vazio"><i class="bx bx-user"></i><strong>Nenhum usuário cadastrado</strong>Use o botão "Adicionar Usuário" para criar o primeiro acesso.</div>
+                            </td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($results as $r): ?>
@@ -58,10 +46,10 @@
                                 $situacao = ($r->situacao == 1) ? 'Ativo' : 'Inativo';
                                 $situacaoClasse = ($r->situacao == 1) ? 'situacao-ativo' : 'situacao-inativo';
                                 ?>
-                                <td><span class="badge <?= $situacaoClasse ?>"><?= ucfirst($situacao) ?></span></td>
+                                <td><span class="ui-selo <?= $r->situacao == 1 ? 'sucesso' : 'perigo' ?>"><?= ucfirst($situacao) ?></span></td>
                                 <td><?= $r->dataExpiracao ?></td>
                                 <td>
-                                    <a href="<?= base_url('index.php/usuarios/editar/' . $r->idUsuarios) ?>" class="btn-nwe3" title="Editar OS"><i class="bx bx-edit"></i></a>
+                                    <div class="ui-acoes-linha"><a href="<?= base_url('index.php/usuarios/editar/' . $r->idUsuarios) ?>" class="btn-nwe3" title="Editar usuário" aria-label="Editar usuário"><i class="bx bx-edit"></i></a></div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

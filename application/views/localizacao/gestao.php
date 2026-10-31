@@ -86,9 +86,11 @@
 </style>
 
 <div class="widget-box">
-    <div class="widget-title">
-        <span class="icon"><i class="bx bx-map-alt"></i></span>
-        <h5>Gestão do Técnico no Mapa</h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-map-alt"></i> Gestão do Técnico no Mapa</h1>
+            <p class="ui-subtitulo">Acompanhe a localização dos técnicos em tempo real e o histórico de deslocamento.</p>
+        </div>
     </div>
     <div class="widget-content">
 
@@ -201,8 +203,8 @@
     </div>
 </div>
 
-<script src="<?= base_url('assets/plugins/leaflet/leaflet.js') ?>"></script>
-<script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/plugins/leaflet/leaflet.js') ?>"></script>
+<script nonce="<?= csp_nonce() ?>">
 (function () {
     'use strict';
 
@@ -288,7 +290,7 @@
                 html += '<a class="btn btn-mini" href="' + BASE +
                         'index.php/os/visualizar/' + t.os_id + '" target="_blank">Abrir OS</a>';
             }
-            html += '<a class="btn btn-mini" href="#" onclick="return locVerPercursoHoje(' + t.usuarios_id + ');">Percurso de hoje</a>';
+            html += '<a class="btn btn-mini" href="#" data-chamar="locVerPercursoHoje" data-args="[' + parseInt(t.usuarios_id, 10) + ']">Percurso de hoje</a>';
             html += '</div>';
             return html;
         }

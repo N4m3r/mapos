@@ -73,8 +73,10 @@ Grupo 2 (24/10/2026):
 
 | Q2 | 56aaca0, 2e45f62, b5287bc, 2063151 | 72 supressoes `@` resolvidas (11 mantidas com motivo); validacao de CPF/CNPJ/chave PIX e helpers de obras/contratos sem duplicacao; metodos public de controller que viravam URL (validarCPF, layout) |
 
-Scripts inline (148 blocos em 125 telas) ficaram de fora: tirar exige testes de navegador
-cobrindo as telas; e pre-requisito para uma CSP rigida.
+CSP (f865af0): em vez de mover os scripts inline para arquivos, a politica usa nonce
+por requisicao (as 380 tags <script> levam o nonce no codigo-fonte); os 91 handlers
+inline viraram atributos data-* (assets/js/acoes.js). APP_CSP=relatorio por padrao;
+mudar para "bloquear" depois de conferir application/logs/csp-violacoes.log em producao.
 
 Grupo 3 (24/10/2026):
 

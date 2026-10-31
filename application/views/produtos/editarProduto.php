@@ -28,15 +28,18 @@
 <div class="row-fluid" style="margin-top:0">
     <div class="span12">
         <div class="widget-box">
-            <div class="widget-title" style="margin: -20px 0 0">
-                <span class="icon">
-                    <i class="fas fa-shopping-bag"></i>
-                </span>
-                <h5>Editar Produto</h5>
-            </div>
-            <div class="widget-content nopadding tab-content">
+            <div class="widget-content nopadding tab-content" style="padding: 16px">
+                <div class="ui-cabecalho">
+                    <div>
+                        <h1 class="ui-titulo"><i class="fas fa-shopping-bag"></i> Editar produto</h1>
+                        <p class="ui-subtitulo">Altere os dados, o preço ou o estoque deste item. Campos com * são obrigatórios.</p>
+                    </div>
+                </div>
                 <?php echo $custom_error; ?>
-                <form action="<?php echo current_url(); ?>" id="formProduto" method="post" class="form-horizontal">
+                <form action="<?php echo current_url(); ?>" id="formProduto" method="post">
+                    <div class="ui-secao">
+                    <h4 class="ui-secao-titulo">Identificação</h4>
+                    <div class="ui-grade">
                     <div class="control-group">
                         <?php echo form_hidden('idProdutos', $result->idProdutos) ?>
                         <label for="codDeBarra" class="control-label">Código de Barra<span class=""></span></label>
@@ -83,6 +86,11 @@
                         </div>
                     </div>
 
+                    </div>
+                    </div>
+                    <div class="ui-secao">
+                    <h4 class="ui-secao-titulo">Preço</h4>
+                    <div class="ui-grade">
                     <div class="control-group">
                         <label for="precoCompra" class="control-label">Preço de Compra<span class="required">*</span></label>
                         <div class="controls">
@@ -109,6 +117,11 @@
                         </div>
                     </div>
 
+                    </div>
+                    </div>
+                    <div class="ui-secao">
+                    <h4 class="ui-secao-titulo">Estoque</h4>
+                    <div class="ui-grade">
                     <div class="control-group">
                         <label for="unidade" class="control-label">Unidade<span class="required">*</span></label>
                         <div class="controls">
@@ -130,15 +143,13 @@
                         </div>
                     </div>
 
-                    <div class="form-actions">
-                        <div class="span12">
-                            <div class="span6 offset3" style="display: flex;justify-content: center">
-                                <button type="submit" class="button btn btn-primary" style="max-width: 160px">
-                                  <span class="button__icon"><i class="bx bx-sync"></i></span><span class="button__text2">Atualizar</span></button>
-                                <a href="<?php echo base_url() ?>index.php/produtos" id="" class="button btn btn-mini btn-warning">
-                                  <span class="button__icon"><i class="bx bx-undo"></i></span><span class="button__text2">Voltar</span></a>
-                            </div>
-                        </div>
+                    </div>
+                    </div>
+                    <div class="ui-rodape-form">
+                        <button type="submit" class="button btn btn-primary">
+                          <span class="button__icon"><i class="bx bx-sync"></i></span><span class="button__text2">Atualizar</span></button>
+                        <a href="<?php echo base_url() ?>index.php/produtos" id="" class="button btn btn-mini btn-warning">
+                          <span class="button__icon"><i class="bx bx-undo"></i></span><span class="button__text2">Voltar</span></a>
                     </div>
 
 
@@ -150,9 +161,9 @@
 </div>
 
 
-<script src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
-<script src="<?php echo base_url(); ?>assets/js/maskmoney.js"></script>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/maskmoney.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     function calcLucro(precoCompra, Lucro) {
         var lucroTipo = $('#selectLucro').val();
         var precoVenda;

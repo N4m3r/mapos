@@ -1,5 +1,11 @@
 <?php
 
+// Sistema ja instalado (existe application/.env): o instalador nao fica exposto (ADR-006)
+if (is_file(__DIR__ . '/../application/.env')) {
+    http_response_code(404);
+    exit('Not Found');
+}
+
 ini_set('max_execution_time', 300); //300 seconds
 
 $settings_file = __DIR__ . DIRECTORY_SEPARATOR . 'settings.json';

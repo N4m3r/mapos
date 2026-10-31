@@ -201,7 +201,7 @@
         </div>
         </div>
     </div>
-    <script type="text/javascript">
+    <script nonce="<?= csp_nonce() ?>" type="text/javascript">
         // Aguarda o carregamento completo de todas as imagens antes de imprimir
         document.addEventListener('DOMContentLoaded', function() {
             var imagens = document.querySelectorAll('img');

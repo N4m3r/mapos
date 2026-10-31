@@ -3,18 +3,22 @@ $moeda = static fn ($v) => 'R$ ' . number_format((float) $v, 2, ',', '.');
 $tipos = ['venda' => 'Venda', 'troco' => 'Troco', 'sangria' => 'Sangria', 'suprimento' => 'Suprimento'];
 $resumo = $caixa->resumo_fechamento ? json_decode($caixa->resumo_fechamento, true) : null;
 ?>
-<div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="bx bx-wallet"></i></span>
-        <h5>Caixa #<?= (int) $caixa->id ?> - <?= html_escape($caixa->operador ?: '') ?></h5>
+<div class="ui-cabecalho">
+    <div>
+        <h1><i class="bx bx-wallet"></i> Caixa #<?= (int) $caixa->id ?> - <?= html_escape($caixa->operador ?: '') ?></h1>
+        <p>
+            <span class="ui-selo <?= $caixa->status === 'aberto' ? 'alerta' : 'sucesso' ?>"><?= ucfirst(html_escape($caixa->status)) ?></span>
+            Aberto em <?= date('d/m/Y H:i', strtotime($caixa->aberto_em)) ?><?= $caixa->fechado_em ? ' · fechado em ' . date('d/m/Y H:i', strtotime($caixa->fechado_em)) : '' ?>.
+            Confira os totais, registre sangria ou suprimento e feche o caixa no fim do turno.
+        </p>
     </div>
+    <div class="ui-acoes">
+        <a href="<?= site_url('caixa') ?>" class="button btn btn-info"><span class="button__icon"><i class="bx bx-arrow-back"></i></span><span class="button__text2">Voltar aos caixas</span></a>
+        <?php if ($meu) { ?><a href="<?= site_url('pdv') ?>" class="button btn btn-success"><span class="button__icon"><i class="bx bx-store"></i></span><span class="button__text2">Voltar ao PDV</span></a><?php } ?>
+    </div>
+</div>
+<div class="widget-box">
     <div class="widget-content">
-        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px">
-            <a href="<?= site_url('caixa') ?>" class="btn btn-mini"><i class="bx bx-arrow-back"></i> Caixas</a>
-            <span class="badge <?= $caixa->status === 'aberto' ? 'badge-warning' : 'badge-success' ?>"><?= ucfirst(html_escape($caixa->status)) ?></span>
-            <span>Aberto em <?= date('d/m/Y H:i', strtotime($caixa->aberto_em)) ?><?= $caixa->fechado_em ? ' · fechado em ' . date('d/m/Y H:i', strtotime($caixa->fechado_em)) : '' ?></span>
-            <?php if ($meu) { ?><a href="<?= site_url('pdv') ?>" class="button btn btn-mini btn-success" style="margin-left:auto"><span class="button__icon"><i class="bx bx-store"></i></span><span class="button__text2">Voltar ao PDV</span></a><?php } ?>
-        </div>
 
         <div class="row-fluid">
             <div class="span5">
@@ -37,6 +41,7 @@ $resumo = $caixa->resumo_fechamento ? json_decode($caixa->resumo_fechamento, tru
 
                 <?php if ($meu) { ?>
                     <h5>Sangria / suprimento</h5>
+                    <p class="help-block">Sangria é retirada de dinheiro da gaveta; suprimento é reforço de troco.</p>
                     <form action="<?= site_url('caixa/movimentar') ?>" method="post" style="display:flex; gap:6px; flex-wrap:wrap; align-items:center">
                         <input type="hidden" name="caixa_id" value="<?= (int) $caixa->id ?>">
                         <select name="tipo" style="width:130px; margin:0"><option value="sangria">Sangria (retirada)</option><option value="suprimento">Suprimento (reforço)</option></select>
@@ -46,7 +51,7 @@ $resumo = $caixa->resumo_fechamento ? json_decode($caixa->resumo_fechamento, tru
                     </form>
 
                     <h5 style="margin-top:18px">Fechar caixa</h5>
-                    <form action="<?= site_url('caixa/fechar') ?>" method="post" onsubmit="return confirm('Fechar o caixa? Depois disso não é possível vender com ele.');">
+                    <form action="<?= site_url('caixa/fechar') ?>" method="post" data-confirmar="Fechar o caixa? Depois disso não é possível vender com ele.">
                         <input type="hidden" name="caixa_id" value="<?= (int) $caixa->id ?>">
                         <label>Dinheiro contado na gaveta (R$)</label>
                         <input type="text" name="contado_dinheiro" inputmode="decimal" required style="width:140px; text-align:right">
@@ -58,10 +63,10 @@ $resumo = $caixa->resumo_fechamento ? json_decode($caixa->resumo_fechamento, tru
             </div>
             <div class="span7">
                 <h5 style="margin-top:0">Movimentos</h5>
-                <table class="table table-bordered table-condensed">
+                <div class="ui-tabela-rolagem"><table class="table table-bordered table-condensed">
                     <thead><tr><th style="width:110px">Hora</th><th style="width:90px">Tipo</th><th>Forma</th><th>Descrição</th><th style="width:100px; text-align:right">Valor</th></tr></thead>
                     <tbody>
-                        <?php if (empty($movimentos)) { ?><tr><td colspan="5">Nenhum movimento.</td></tr><?php }
+                        <?php if (empty($movimentos)) { ?><tr><td colspan="5"><div class="ui-vazio"><i class="bx bx-transfer"></i><strong>Nenhum movimento ainda</strong>As vendas e retiradas deste caixa aparecem aqui.</div></td></tr><?php }
                         foreach ($movimentos as $m) { ?>
                             <tr>
                                 <td><?= date('d/m H:i', strtotime($m->criado_em)) ?></td>
@@ -72,7 +77,7 @@ $resumo = $caixa->resumo_fechamento ? json_decode($caixa->resumo_fechamento, tru
                             </tr>
                         <?php } ?>
                     </tbody>
-                </table>
+                </table></div>
             </div>
         </div>
     </div>

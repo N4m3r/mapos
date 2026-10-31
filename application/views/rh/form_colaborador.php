@@ -7,9 +7,11 @@ $val = function ($campo, $default = '') use ($c) {
 $action = $edit ? site_url('rh/editarColaborador/' . $c->id) : site_url('rh/adicionarColaborador');
 ?>
 <div class="new122">
-    <div class="widget-title" style="margin:-20px 0 10px">
-        <span class="icon"><i class="fas fa-user"></i></span>
-        <h5><?= $edit ? 'Editar' : 'Novo' ?> Colaborador</h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-user"></i> <?= $edit ? 'Editar colaborador' : 'Novo colaborador' ?></h1>
+            <p class="ui-subtitulo">Dados cadastrais e vínculo do colaborador.</p>
+        </div>
     </div>
     <?= $custom_error ?? '' ?>
     <form method="post" action="<?= $action ?>" class="form-horizontal" enctype="multipart/form-data">
@@ -117,7 +119,7 @@ $action = $edit ? site_url('rh/editarColaborador/' . $c->id) : site_url('rh/adic
                 <?php if ($c->situacao): ?>
                     <a href="#modal-desligar" role="button" data-toggle="modal" class="button btn btn-danger"><span class="button__icon"><i class='bx bx-user-x'></i></span><span class="button__text2"> Desligar</span></a>
                 <?php else: ?>
-                    <form method="post" action="<?= site_url('rh/reativarColaborador') ?>" style="display:inline" onsubmit="return confirm('Reativar este colaborador?')">
+                    <form method="post" action="<?= site_url('rh/reativarColaborador') ?>" style="display:inline" data-confirmar="Reativar este colaborador?">
                         <input type="hidden" name="id" value="<?= $c->id ?>">
                         <button type="submit" class="button btn btn-success"><span class="button__text2">Reativar</span></button>
                     </form>
@@ -155,7 +157,7 @@ $action = $edit ? site_url('rh/editarColaborador/' . $c->id) : site_url('rh/adic
     </div>
     <?php endif; ?>
 </div>
-<script>
+<script nonce="<?= csp_nonce() ?>">
 document.getElementById('foto-input').addEventListener('change', function(e){
     var f = e.target.files[0];
     if (!f) return;

@@ -16,6 +16,10 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
         <div class="info-card" style="border-left:4px solid var(--tec-danger, #e74c3c); color:var(--tec-danger, #e74c3c);"><i class='bx bx-error-circle'></i> <?= html_escape($this->session->flashdata('error')) ?></div>
     <?php endif; ?>
 
+    <a href="<?= site_url('tecnico/meu_relatorio') ?>" class="btn-tec primary" style="display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;margin-bottom:12px;text-decoration:none;">
+        <i class='bx bx-bar-chart-alt-2'></i> Meu relatório
+    </a>
+
     <h2 class="tec-section-title">
         <i class='bx bx-network-chart'></i> Projetos
         <?php if (!empty($projetos)): ?><span class="count"><?= count($projetos) ?></span><?php endif; ?>

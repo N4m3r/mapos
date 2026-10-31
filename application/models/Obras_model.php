@@ -10,6 +10,12 @@ defined('BASEPATH') or exit('No direct script access allowed');
  */
 class Obras_model extends CI_Model
 {
+    public function __construct()
+    {
+        parent::__construct();
+        require_once APPPATH . 'libraries/Projeto_csv.php';
+    }
+
     public function disponivel()
     {
         return $this->db->table_exists('obras');
@@ -28,15 +34,44 @@ class Obras_model extends CI_Model
         return $this->db->count_all_results('obras');
     }
 
-    public function getObras($perpage = 0, $start = 0, $filtros = [])
+    /** Tipos de projeto distintos (para o filtro da lista). */
+    public function getTiposProjeto()
     {
         if (! $this->db->table_exists('obras')) {
             return [];
         }
-        $this->db->select('obras.*, clientes.nomeCliente, usuarios.nome as responsavel');
+        $rows = $this->db->distinct()->select('tipo_obra')->where("tipo_obra IS NOT NULL AND tipo_obra <> ''", null, false)
+            ->order_by('tipo_obra')->get('obras')->result();
+        return array_map(function ($r) {
+            return $r->tipo_obra;
+        }, $rows);
+    }
+
+    /** Responsaveis (usuarios) que aparecem em algum projeto. */
+    public function getResponsaveisProjeto()
+    {
+        if (! $this->db->table_exists('obras')) {
+            return [];
+        }
+        return $this->db->distinct()->select('usuarios.idUsuarios, usuarios.nome')
+            ->from('obras')->join('usuarios', 'usuarios.idUsuarios = obras.responsavel_id')
+            ->order_by('usuarios.nome')->get()->result();
+    }
+
+    /** Total de projetos respeitando os mesmos filtros da listagem. */
+    public function countObras($filtros = [])
+    {
+        if (! $this->db->table_exists('obras')) {
+            return 0;
+        }
         $this->db->from('obras');
         $this->db->join('clientes', 'clientes.idClientes = obras.clientes_id', 'left');
-        $this->db->join('usuarios', 'usuarios.idUsuarios = obras.responsavel_id', 'left');
+        $this->aplicarFiltros($filtros);
+        return (int) $this->db->count_all_results();
+    }
+
+    private function aplicarFiltros($filtros)
+    {
         if (! empty($filtros['pesquisa'])) {
             $this->db->group_start()
                 ->like('obras.nome', $filtros['pesquisa'])
@@ -47,7 +82,34 @@ class Obras_model extends CI_Model
         if (! empty($filtros['status'])) {
             $this->db->where('obras.status', $filtros['status']);
         }
-        $this->db->order_by('obras.idObra', 'desc');
+        if (isset($filtros['tipo']) && $filtros['tipo'] !== '') {
+            $this->db->where('obras.tipo_obra', $filtros['tipo']);
+        }
+        if (! empty($filtros['responsavel'])) {
+            $this->db->where('obras.responsavel_id', (int) $filtros['responsavel']);
+        }
+        if (! empty($filtros['atrasados'])) {
+            $this->db->where('obras.data_fim_prevista <', date('Y-m-d'));
+            $this->db->where('obras.data_fim_prevista IS NOT NULL', null, false);
+            $this->db->where_not_in('obras.status', ['concluida', 'entregue', 'cancelada']);
+        }
+    }
+
+    public function getObras($perpage = 0, $start = 0, $filtros = [])
+    {
+        if (! $this->db->table_exists('obras')) {
+            return [];
+        }
+        $this->db->select('obras.*, clientes.nomeCliente, usuarios.nome as responsavel');
+        $this->db->from('obras');
+        $this->db->join('clientes', 'clientes.idClientes = obras.clientes_id', 'left');
+        $this->db->join('usuarios', 'usuarios.idUsuarios = obras.responsavel_id', 'left');
+        $this->aplicarFiltros($filtros);
+        [$col, $dir] = Projeto_csv::colunaOrdem($filtros['ordem'] ?? '', $filtros['dir'] ?? 'asc');
+        $this->db->order_by($col, $dir);
+        if ($col !== 'obras.idObra') {
+            $this->db->order_by('obras.idObra', 'desc');
+        }
         if ($perpage) {
             $this->db->limit($perpage, $start);
         }
@@ -80,17 +142,77 @@ class Obras_model extends CI_Model
         return true;
     }
 
+    /** O projeto tem medicao aprovada ou faturada (nao pode ser excluido). */
+    public function temMedicaoFechada($id)
+    {
+        if (! $this->db->table_exists('obra_medicao')) {
+            return false;
+        }
+        return $this->db->where('obra_id', (int) $id)->where_in('status', ['aprovada', 'faturada'])
+            ->count_all_results('obra_medicao') > 0;
+    }
+
+    /**
+     * Exclui o projeto e tudo o que pende dele, numa transacao.
+     * Projeto com medicao aprovada/faturada nao e excluido (retorna false).
+     */
     public function delete($id)
     {
         $id = (int) $id;
-        foreach (['obra_etapas', 'obra_os', 'obra_usuario', 'obra_consumo', 'obra_rdo', 'obra_medicao', 'obra_custo',
-            'obra_material_saldo', 'obra_apontamento', 'obra_equipe_alocacao'] as $t) {
+        if (! $id || $this->temMedicaoFechada($id)) {
+            return false;
+        }
+
+        // tabela neta => [coluna, tabela filha do projeto, chave da filha]
+        $netos = [
+            'obra_medicao_item' => ['medicao_id', 'obra_medicao', 'idMedicao'],
+            'obra_medicao_os' => ['medicao_id', 'obra_medicao', 'idMedicao'],
+            'obra_rdo_foto' => ['rdo_id', 'obra_rdo', 'idRdo'],
+            'obra_ponto_os' => ['ponto_id', 'obra_pontos', 'idPonto'],
+            'obra_material_recebimento_item' => ['recebimento_id', 'obra_material_recebimento', 'idRecebimento'],
+            'obra_material_entrega_item' => ['entrega_id', 'obra_material_entrega', 'idEntrega'],
+        ];
+        $fotosMaterial = [
+            'recebimento' => ['obra_material_recebimento', 'idRecebimento'],
+            'entrega' => ['obra_material_entrega', 'idEntrega'],
+        ];
+
+        $this->db->trans_start();
+        foreach ($netos as $neta => [$coluna, $filha, $chave]) {
+            $ids = $this->idsDoProjeto($filha, $chave, $id);
+            if ($ids && $this->db->table_exists($neta)) {
+                $this->db->where_in($coluna, $ids)->delete($neta);
+            }
+        }
+        if ($this->db->table_exists('obra_material_foto')) {
+            foreach ($fotosMaterial as $tipo => [$filha, $chave]) {
+                $ids = $this->idsDoProjeto($filha, $chave, $id);
+                if ($ids) {
+                    $this->db->where('ref_tipo', $tipo)->where_in('ref_id', $ids)->delete('obra_material_foto');
+                }
+            }
+        }
+        foreach (['obra_etapa_itens', 'obra_ponto_teste', 'obra_ponto_foto', 'obra_ponto_historico', 'obra_pontos', 'obra_etapas', 'obra_os',
+            'obra_usuario', 'obra_consumo', 'obra_rdo', 'obra_medicao', 'obra_custo', 'obra_material_saldo',
+            'obra_material_recebimento', 'obra_material_entrega', 'obra_apontamento', 'obra_equipe_alocacao'] as $t) {
             if ($this->db->table_exists($t)) {
                 $this->db->where('obra_id', $id)->delete($t);
             }
         }
         $this->db->where('idObra', $id)->delete('obras');
-        return true;
+        $this->db->trans_complete();
+
+        return $this->db->trans_status() !== false;
+    }
+
+    /** Ids das linhas de uma tabela filha do projeto (vazio se a tabela nao existe). */
+    private function idsDoProjeto($tabela, $chave, $obra_id)
+    {
+        if (! $this->db->table_exists($tabela)) {
+            return [];
+        }
+        $rows = $this->db->select($chave)->where('obra_id', (int) $obra_id)->get($tabela)->result_array();
+        return array_map('intval', array_column($rows, $chave));
     }
 
     /* ======================= Consumo (baixa) ===================== */
@@ -265,7 +387,11 @@ class Obras_model extends CI_Model
         return $this->db->get()->result();
     }
 
-    public function vincularOs($obra_id, $os_id, $etapa_id = null)
+    /**
+     * Liga uma OS a um projeto. Uma OS so pode estar em um projeto (unicidade global).
+     * Retorna o id do vinculo ou false (OS ja vinculada, dados invalidos).
+     */
+    public function vincularOs($obra_id, $os_id, $etapa_id = null, $tipo = 'execucao', $faturaNoProjeto = 1)
     {
         if (! $this->db->table_exists('obra_os')) {
             return false;
@@ -275,16 +401,81 @@ class Obras_model extends CI_Model
         if (! $obra_id || ! $os_id) {
             return false;
         }
-        // não duplica o mesmo vínculo
-        if ($this->db->where(['obra_id' => $obra_id, 'os_id' => $os_id])->count_all_results('obra_os')) {
+        // uma OS em um unico projeto
+        if ($this->db->where('os_id', $os_id)->count_all_results('obra_os')) {
             return false;
         }
-        $this->db->insert('obra_os', [
+        // projeto e OS existem; a etapa (se informada) precisa ser deste projeto
+        if (! $this->db->where('idObra', $obra_id)->count_all_results('obras')
+            || ! $this->db->where('idOs', $os_id)->count_all_results('os')) {
+            return false;
+        }
+        if ($etapa_id && ! $this->db->where('idEtapa', (int) $etapa_id)->where('obra_id', $obra_id)->count_all_results('obra_etapas')) {
+            return false;
+        }
+        if (! in_array($tipo, ['origem', 'execucao', 'adicional', 'corretiva'], true)) {
+            $tipo = 'execucao';
+        }
+        $dados = [
             'obra_id' => $obra_id,
             'os_id' => $os_id,
             'etapa_id' => $etapa_id ? (int) $etapa_id : null,
-        ]);
+        ];
+        if ($this->db->field_exists('tipo_vinculo', 'obra_os')) {
+            $dados['tipo_vinculo'] = $tipo;
+        }
+        if ($this->db->field_exists('fatura_no_projeto', 'obra_os')) {
+            $dados['fatura_no_projeto'] = $faturaNoProjeto ? 1 : 0;
+        }
+        if ($this->db->field_exists('data_vinculo', 'obra_os')) {
+            $dados['data_vinculo'] = date('Y-m-d H:i:s');
+        }
+        $this->db->insert('obra_os', $dados);
         return $this->db->insert_id();
+    }
+
+    /** Vinculo da OS com o projeto (e etapa), ou null se a OS nao pertence a projeto. */
+    public function getVinculoDaOs($os_id)
+    {
+        if (! $this->db->table_exists('obra_os')) {
+            return null;
+        }
+        $this->db->select('obra_os.*, obras.idObra, obras.nome as obra_nome, obras.status as obra_status, etapa.codigo_eap, etapa.nome as etapa_nome, etapa.status as etapa_status');
+        $this->db->from('obra_os');
+        $this->db->join('obras', 'obras.idObra = obra_os.obra_id');
+        $this->db->join('obra_etapas etapa', 'etapa.idEtapa = obra_os.etapa_id', 'left');
+        $this->db->where('obra_os.os_id', (int) $os_id);
+        $this->db->limit(1);
+        return $this->db->get()->row() ?: null;
+    }
+
+    /** Projetos em aberto (nao concluidos/entregues/cancelados), opcionalmente de um cliente. */
+    public function getProjetosParaVincular($clienteId = null)
+    {
+        if (! $this->db->table_exists('obras')) {
+            return [];
+        }
+        $this->db->select('obras.idObra, obras.nome, obras.status, obras.clientes_id');
+        $this->db->from('obras');
+        $this->db->where_not_in('obras.status', ['concluida', 'entregue', 'cancelada']);
+        if ($clienteId) {
+            $this->db->where('obras.clientes_id', (int) $clienteId);
+        }
+        $this->db->order_by('obras.nome', 'ASC');
+        return $this->db->get()->result();
+    }
+
+    /** Etapas do projeto para <select> (id, codigo EAP, nome). */
+    public function getEtapasSelect($obra_id)
+    {
+        if (! $this->db->table_exists('obra_etapas')) {
+            return [];
+        }
+        return $this->db->select('idEtapa, codigo_eap, nome')
+            ->where('obra_id', (int) $obra_id)
+            ->order_by('ordem', 'ASC')
+            ->order_by('idEtapa', 'ASC')
+            ->get('obra_etapas')->result();
     }
 
     public function desvincularOs($idVinculo, $obra_id)
@@ -355,16 +546,22 @@ class Obras_model extends CI_Model
         return $this->db->insert_id();
     }
 
-    public function editEtapa($id, $data)
+    /** Edita a etapa; com $obra_id, so altera se a etapa for desse projeto. A etapa nunca troca de projeto. */
+    public function editEtapa($id, $data, $obra_id = null)
     {
-        $this->db->where('idEtapa', (int) $id)->update('obra_etapas', $data);
+        unset($data['obra_id'], $data['idEtapa']);
+        $this->db->where('idEtapa', (int) $id);
+        if ($obra_id !== null) {
+            $this->db->where('obra_id', (int) $obra_id);
+        }
+        $this->db->update('obra_etapas', $data);
         return true;
     }
 
-    public function deleteEtapa($id)
+    public function deleteEtapa($id, $obra_id)
     {
-        $this->db->where('idEtapa', (int) $id)->delete('obra_etapas');
-        return true;
+        $this->db->where('idEtapa', (int) $id)->where('obra_id', (int) $obra_id)->delete('obra_etapas');
+        return $this->db->affected_rows() > 0;
     }
 
     /**
@@ -557,15 +754,16 @@ class Obras_model extends CI_Model
         return $id;
     }
 
+    /** Aprova a medicao em aberto; false se ela ja estava aprovada/faturada (dois cliques, duas abas). */
     public function aprovarMedicao($id, $usuario_id, $assinatura = null)
     {
-        $this->db->where('idMedicao', (int) $id)->update('obra_medicao', [
+        $this->db->where('idMedicao', (int) $id)->where('status', 'aberta')->update('obra_medicao', [
             'status' => 'aprovada',
             'aprovado_por' => (int) $usuario_id ?: null,
             'data_aprovacao' => date('Y-m-d H:i:s'),
             'assinatura_cliente' => $assinatura,
         ]);
-        return true;
+        return $this->db->affected_rows() > 0;
     }
 
     /* =========================== Custo =========================== */
@@ -659,6 +857,42 @@ class Obras_model extends CI_Model
         }
     }
 
+    /**
+     * Mantém uma linha única de custo "Material (consumo via OS)" com o total
+     * realizado a partir do obra_consumo de material (inclui o que a OS vinculada
+     * baixou do almoxarifame do projeto). Idempotente (ADR-015 fase 4).
+     */
+    public function recalcularCustoMaterialConsumo($obra_id)
+    {
+        if (! $this->db->table_exists('obra_custo')
+            || ! $this->db->table_exists('obra_consumo')
+            || ! $this->db->table_exists('produtos')) {
+            return;
+        }
+        $obra_id = (int) $obra_id;
+        $r = $this->db->select('SUM(c.quantidade * COALESCE(p.precoCompra, 0)) t', false)
+            ->from('obra_consumo c')
+            ->join('produtos p', 'p.idProdutos = c.referencia_id', 'left')
+            ->where('c.obra_id', $obra_id)
+            ->where('c.tipo', 'material')
+            ->get()->row();
+        $total = $r ? (float) $r->t : 0;
+
+        $desc = 'Material (consumo via OS)';
+        $ex = $this->db->where('obra_id', $obra_id)->where('categoria', 'material')
+            ->where('descricao', $desc)->get('obra_custo')->row();
+        if ($ex) {
+            $this->db->where('idCusto', $ex->idCusto)->update('obra_custo', [
+                'valor_realizado' => $total, 'data' => date('Y-m-d'),
+            ]);
+        } else {
+            $this->db->insert('obra_custo', [
+                'obra_id' => $obra_id, 'categoria' => 'material', 'descricao' => $desc,
+                'valor_previsto' => 0, 'valor_realizado' => $total, 'data' => date('Y-m-d'),
+            ]);
+        }
+    }
+
     /* ========================= Apontamento (efetivo) ========================= */
 
     public function getApontamentos($obra_id, $limite = 200)
@@ -699,7 +933,10 @@ class Obras_model extends CI_Model
         if (! $this->db->table_exists('obra_apontamento')) {
             return false;
         }
-        $this->db->where('idApontamento', (int) $id)->delete('obra_apontamento');
+        $this->db->where('idApontamento', (int) $id)->where('obra_id', (int) $obra_id)->delete('obra_apontamento');
+        if ($this->db->affected_rows() < 1) {
+            return false;
+        }
         $this->recalcularCustoMaoObra($obra_id);
         return true;
     }
@@ -724,7 +961,8 @@ class Obras_model extends CI_Model
 
         $this->db->select('colaborador_id, MIN(data_hora) ent, MAX(data_hora) sai, COUNT(*) n', false);
         $this->db->where('obra_id', $obra_id);
-        $this->db->where('DATE(data_hora) = ' . $this->db->escape($dataDia), null, false);
+        $this->db->where('data_hora >=', $dataDia . ' 00:00:00');
+        $this->db->where('data_hora <', date('Y-m-d', strtotime($dataDia . ' +1 day')) . ' 00:00:00');
         $this->db->group_by('colaborador_id');
         $rows = $this->db->get('rh_ponto_registros')->result();
         if (! $rows) {
@@ -737,6 +975,39 @@ class Obras_model extends CI_Model
             ->where('origem', 'ponto_facial')
             ->delete('obra_apontamento');
 
+        // Carrega colaboradores e membros de equipe em lote
+        $colabIds = array_map(static function ($r) {
+            return (int) $r->colaborador_id;
+        }, $rows);
+        $colabs = [];
+        if ($this->db->table_exists('rh_colaboradores')) {
+            foreach ($this->db->where_in('id', $colabIds)->get('rh_colaboradores')->result() as $c) {
+                $colabs[(int) $c->id] = $c;
+            }
+        }
+        $usuarioIds = [];
+        foreach ($colabs as $c) {
+            if (! empty($c->usuarios_id)) {
+                $usuarioIds[] = (int) $c->usuarios_id;
+            }
+        }
+        $membros = [];
+        if ($usuarioIds && $this->db->table_exists('equipe_membros')) {
+            $this->db->select('em.colaborador_id, em.funcao, em.valor_diaria, em.valor_hora');
+            $this->db->from('equipe_membros em');
+            if ($this->db->table_exists('obra_equipe_alocacao')) {
+                $this->db->join('obra_equipe_alocacao a', 'a.equipe_id = em.equipe_id');
+                $this->db->where('a.obra_id', $obra_id);
+            }
+            $this->db->where_in('em.colaborador_id', array_values(array_unique($usuarioIds)));
+            foreach ($this->db->get()->result() as $m) {
+                // Mantem o primeiro membro encontrado por usuario
+                if (! isset($membros[(int) $m->colaborador_id])) {
+                    $membros[(int) $m->colaborador_id] = $m;
+                }
+            }
+        }
+
         $count = 0;
         foreach ($rows as $r) {
             $horas = (strtotime($r->sai) - strtotime($r->ent)) / 3600;
@@ -744,32 +1015,20 @@ class Obras_model extends CI_Model
 
             $nome = null;
             $usuarioId = null;
-            if ($this->db->table_exists('rh_colaboradores')) {
-                $c = $this->db->where('id', (int) $r->colaborador_id)->get('rh_colaboradores')->row();
-                if ($c) {
-                    $nome = $c->nome ?? null;
-                    $usuarioId = $c->usuarios_id ?? null;
-                }
+            $c = $colabs[(int) $r->colaborador_id] ?? null;
+            if ($c) {
+                $nome = $c->nome ?? null;
+                $usuarioId = $c->usuarios_id ?? null;
             }
 
             $funcao = null;
             $diaria = 0;
             $hora = 0;
-            if ($usuarioId && $this->db->table_exists('equipe_membros')) {
-                $this->db->select('em.funcao, em.valor_diaria, em.valor_hora');
-                $this->db->from('equipe_membros em');
-                if ($this->db->table_exists('obra_equipe_alocacao')) {
-                    $this->db->join('obra_equipe_alocacao a', 'a.equipe_id = em.equipe_id');
-                    $this->db->where('a.obra_id', $obra_id);
-                }
-                $this->db->where('em.colaborador_id', (int) $usuarioId);
-                $this->db->limit(1);
-                $m = $this->db->get()->row();
-                if ($m) {
-                    $funcao = $m->funcao;
-                    $diaria = (float) $m->valor_diaria;
-                    $hora = (float) $m->valor_hora;
-                }
+            $m = $usuarioId ? ($membros[(int) $usuarioId] ?? null) : null;
+            if ($m) {
+                $funcao = $m->funcao;
+                $diaria = (float) $m->valor_diaria;
+                $hora = (float) $m->valor_hora;
             }
 
             $usaDiaria = $diaria > 0;

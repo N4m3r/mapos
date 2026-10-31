@@ -61,6 +61,10 @@ class Tecnico extends MY_Controller
         $data['nao_realizadas_pendentes'] = $this->naorealizada_model->contarPendentes($tecnico_id);
         $data['nao_realizadas'] = $this->naorealizada_model->getPendentes($tecnico_id, 3);
 
+        // Fila de pontos repassados (ADR-014)
+        $this->load->model('obra_pontos_model');
+        $data['fila_qtd'] = $this->obra_pontos_model->contarFila((int) $tecnico_id);
+
         // Titulo da pagina
         $data['titulo'] = 'Área do Técnico - Dashboard';
 
@@ -144,9 +148,68 @@ class Tecnico extends MY_Controller
         $data['os_produtos'] = $this->obras_model->getProdutosDasOs($id);
         $data['rdos'] = $this->obras_model->getRdos($id);
         $data['consumo'] = $this->obras_model->getConsumo($id);
+        $this->load->model('obra_pontos_model');
+        $data['pontos'] = $this->obra_pontos_model->getPontos($id);
+        $data['pontos_resumo'] = Obra_pontos_model::resumo($data['pontos']);
+        $data['tipos'] = Obra_pontos_model::tipos();
+        $data['status_lista'] = Obra_pontos_model::statusLista();
+        $data['executores'] = $this->obra_pontos_model->executores($id);
+        $data['fotos_pontos'] = $this->obra_pontos_model->getFotosObra($id);
+        $data['uid'] = (int) $uid;
         $data['pode_ver_sistema'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs');
         $data['titulo'] = $obra->nome;
         $this->load->view('tecnico/projeto', $data);
+    }
+
+    /** Fila do tecnico: pontos com ele (Comigo) e pontos da equipe livres para assumir (ADR-014). */
+    public function fila()
+    {
+        $this->load->model('obra_pontos_model');
+        $uid = (int) $this->session->userdata('id_admin');
+        $fila = $this->obra_pontos_model->getFila($uid);
+
+        // Executores de cada obra da fila (select de repasse), uma consulta por obra.
+        $executores = [];
+        foreach ($fila as $item) {
+            $oid = (int) $item->obra_id;
+            if (!isset($executores[$oid])) {
+                $executores[$oid] = $this->obra_pontos_model->executores($oid);
+            }
+        }
+
+        $data['fila'] = $fila;
+        $data['com_etiqueta'] = array_flip($this->obra_pontos_model->pontosComEtiqueta(array_column((array) $fila, 'idPonto')));
+        $data['executores'] = $executores;
+        $data['uid'] = $uid;
+        $data['status_lista'] = Obra_pontos_model::statusLista();
+        $data['tipos'] = Obra_pontos_model::tipos();
+        $data['pode_ver_sistema'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs');
+        $data['titulo'] = 'Minha fila';
+        $this->load->view('tecnico/fila', $data);
+    }
+
+    /** Relatorio do proprio tecnico (diario, semanal ou mensal): o que ele registrou nos projetos. */
+    public function meu_relatorio()
+    {
+        $this->load->model('projeto_acompanhamento_model');
+        $uid = (int) $this->session->userdata('id_admin');
+
+        $tipo = (string) $this->input->get('tipo');
+        if (!in_array($tipo, ['diario', 'semanal', 'mensal'], true)) {
+            $tipo = 'diario';
+        }
+        $dataRef = (string) $this->input->get('data');
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dataRef) || !strtotime($dataRef)) {
+            $dataRef = date('Y-m-d');
+        }
+
+        $periodo = Projeto_acompanhamento_model::periodo($tipo, $dataRef);
+        $data['periodo'] = $periodo;
+        $data['relatorio'] = $this->projeto_acompanhamento_model->relatorio($periodo['inicio'], $periodo['fim'], ['usuario_id' => $uid]);
+        $data['tipo'] = $periodo['tipo'];
+        $data['pode_ver_sistema'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs');
+        $data['titulo'] = 'Meu relatório';
+        $this->load->view('tecnico/meu_relatorio', $data);
     }
 
     /** Registro rapido (one-click) do que foi feito no projeto — grava um RDO. */
@@ -185,8 +248,8 @@ class Tecnico extends MY_Controller
         }
 
         // Assinatura do cliente (opcional, só quando o checkbox foi marcado).
-        $assinatura = (string) $this->input->post('assinatura');
-        $assinatura = (strpos($assinatura, 'base64') !== false) ? $assinatura : null;
+        // Lida sem o filtro de XSS (ele corrompe o data URL) e validada por dataurl_imagem().
+        $assinatura = dataurl_imagem($this->input->post('assinatura', false));
 
         $rdoId = $this->obras_model->addRdo([
             'obra_id' => $obra_id,
@@ -200,7 +263,7 @@ class Tecnico extends MY_Controller
             'data_registro' => date('Y-m-d H:i:s'),
         ]);
 
-        foreach ((array) $this->input->post('fotos') as $b64) {
+        foreach ((array) $this->input->post('fotos', false) as $b64) {
             if (!$b64 || strpos($b64, 'base64,') === false) {
                 continue;
             }
@@ -232,7 +295,7 @@ class Tecnico extends MY_Controller
                     'usuario_id' => $uid,
                     'data' => $agora,
                 ]);
-                $this->produtos_model->updateEstoque($produtoId, $qtd, '-', ['tipo' => 'tecnico', 'referencia' => $idOs]);
+                $this->produtos_model->updateEstoque($produtoId, $qtd, '-', ['tipo' => 'projeto', 'referencia' => $obra_id]);
             }
         }
 
@@ -271,6 +334,292 @@ class Tecnico extends MY_Controller
 
         $this->session->set_flashdata('success', 'Execução registrada!');
         redirect('tecnico/projeto/' . $obra_id);
+    }
+
+    /**
+     * Avanca o status de um ponto do projeto (CAM-07: cabo passado, instalado, configurado, testado...), no celular.
+     * Ordem (ADR-014): valida -> mudarStatus -> ultimoHistoricoId -> addFoto (fotos[]) -> repassar (se pedido).
+     */
+    public function ponto_status()
+    {
+        $obra_id = (int) $this->input->post('obra_id');
+        $ponto_id = (int) $this->input->post('ponto_id');
+        $uid = $this->session->userdata('id_admin') ? (int) $this->session->userdata('id_admin') : null;
+
+        // Valida acesso ao projeto e se o ponto pertence a ele (redireciona se nao)
+        $ponto = $this->pontoAcessivel($obra_id, $ponto_id);
+        $destino = $this->destinoPonto($obra_id, $ponto_id);
+
+        $statusLista = Obra_pontos_model::statusLista();
+        $status = (string) $this->input->post('status');
+        if (!isset($statusLista[$status])) {
+            $this->session->set_flashdata('error', 'Status inválido.');
+            redirect($destino);
+        }
+
+        // Metros de cabo: aceita virgula decimal; vazio conta como 0.
+        $metragemTxt = str_replace(',', '.', trim((string) $this->input->post('metragem_cabo')));
+        if ($metragemTxt !== '' && (!is_numeric($metragemTxt) || (float) $metragemTxt < 0)) {
+            $this->session->set_flashdata('error', 'Metros de cabo inválidos.');
+            redirect($destino);
+        }
+        $metragem = $metragemTxt === '' ? 0.0 : (float) $metragemTxt;
+
+        // Repasse: '' = eu mesmo, 'equipe' ou id de executor do projeto
+        $repasse = $this->resolverRepasse($obra_id, $this->input->post('repassar_para'));
+        if (!$repasse['valido']) {
+            $this->session->set_flashdata('error', 'Destinatário inválido.');
+            redirect($destino);
+        }
+        if ($repasse['pede'] && $status === 'testado') {
+            $this->session->set_flashdata('error', 'Ponto testado não pode ser repassado.');
+            redirect($destino);
+        }
+
+        // Foto obrigatoria para "Instalado": nova (imagem valida), ou alguma ja salva na etapa instalado
+        $valida = function ($bin) {
+            return Obra_pontos_model::fotoValida($bin) !== null;
+        };
+        // Foto da etiqueta vem em fotos_etiqueta[] (legenda "etiqueta"); no total, ate 6 fotos
+        $etiquetas = array_values(array_filter($this->fotosDoPost('fotos_etiqueta'), $valida));
+        $fotos = array_slice(array_values(array_filter($this->fotosDoPost(), $valida)), 0, max(0, 6 - count($etiquetas)));
+        $exigeTeste = $this->obra_pontos_model->precisaTeste($ponto, $status);
+        if (Obra_pontos_model::exigeEtiqueta($status, $ponto->tipo) && empty($etiquetas)
+            && !$this->obra_pontos_model->temFotoEtiqueta($ponto_id)) {
+            $this->session->set_flashdata('error', 'Tire a foto da etiqueta da câmera (modelo e número de série).');
+            redirect($destino);
+        }
+        if ((Obra_pontos_model::exigeFoto($status) || $exigeTeste) && empty($fotos) && empty($etiquetas)) {
+            $temEtapa = false;
+            foreach ($this->obra_pontos_model->getFotos($ponto_id) as $foto) {
+                if ($foto->etapa === $status) {
+                    $temEtapa = true;
+                    break;
+                }
+            }
+            if (!$temEtapa) {
+                $this->session->set_flashdata('error', $status === 'testado'
+                    ? 'Tire ao menos uma foto da imagem da câmera testada.'
+                    : 'Tire ao menos uma foto do equipamento instalado.');
+                redirect($destino);
+            }
+        }
+
+        // Camera -> testado: checklist de imagem obrigatorio (itens que faltam voltam na mensagem)
+        $teste = null;
+        if ($exigeTeste) {
+            $teste = ['itens' => $this->input->post('teste_itens'), 'retencao_dias' => $this->input->post('retencao_dias')];
+            $v = Obra_pontos_model::validarTeste($teste);
+            if (!$v['ok']) {
+                $this->session->set_flashdata('error', Obra_pontos_model::mensagemTesteFaltando($v['faltando']));
+                redirect($destino);
+            }
+        }
+
+        $local = $this->cortar($this->input->post('local'), 150);
+        $instrucao = $this->cortar($this->input->post('instrucao'), 255);
+
+        $extras = [
+            'ip' => trim((string) $this->input->post('ip')),
+            'canal' => trim((string) $this->input->post('canal')),
+            'porta' => trim((string) $this->input->post('porta')),
+            'modelo' => $this->cortar($this->input->post('modelo'), 80),
+            'serie' => $this->cortar($this->input->post('serie'), 60),
+            'local' => $local,
+            'metragem_cabo' => $metragem,
+            'observacao' => $this->cortar($this->input->post('observacao'), 255),
+            'teste' => $teste,
+        ];
+
+        // 2. Muda o status (grava tambem responsavel e aguardando)
+        $ok = $this->obra_pontos_model->mudarStatus($ponto_id, $obra_id, $status, $uid, $extras);
+        if (!$ok) {
+            $this->session->set_flashdata('error', 'Não foi possível atualizar o ponto.');
+            redirect($destino);
+        }
+
+        // O mudarStatus nao grava 'local': grava aqui se mudou
+        if ($local !== '' && $local !== (string) $ponto->local) {
+            $this->obra_pontos_model->editPonto($ponto_id, $obra_id, ['local' => $local]);
+        }
+
+        // 3. Historico desta mudanca -> 4. fotos ligadas a ele, na etapa do novo status
+        $historicoId = $this->obra_pontos_model->ultimoHistoricoId($ponto_id);
+        $fotosSalvas = 0;
+        foreach ($fotos as $bin) {
+            if ($this->obra_pontos_model->addFoto($ponto_id, $obra_id, $bin, $uid, $status, $historicoId) > 0) {
+                $fotosSalvas++;
+            }
+        }
+        foreach ($etiquetas as $bin) {
+            if ($this->obra_pontos_model->addFoto($ponto_id, $obra_id, $bin, $uid, $status, $historicoId, Obra_pontos_model::LEGENDA_ETIQUETA) > 0) {
+                $fotosSalvas++;
+            }
+        }
+
+        // 5. Repasse, se pedido
+        $textoRepasse = '';
+        $erroRepasse = null;
+        if ($repasse['pede']) {
+            if ($this->obra_pontos_model->repassar($ponto_id, $obra_id, $repasse['destinatario_id'], $uid, $instrucao !== '' ? $instrucao : null)) {
+                $textoRepasse = $this->textoRepasse($repasse);
+            } else {
+                $erroRepasse = 'Status salvo, mas não foi possível repassar o ponto.';
+            }
+        }
+
+        log_info('Técnico atualizou ponto ' . $ponto_id . ' (' . $status . ') no projeto ' . $obra_id);
+        $this->session->set_flashdata('success', $ponto->identificacao . ': ' . $statusLista[$status]['rotulo'] . $textoRepasse);
+        if (($fotos || $etiquetas) && $fotosSalvas === 0) {
+            $this->session->set_flashdata('error', 'Foto não salva (use JPEG, PNG ou WebP até 4 MB).');
+        }
+        if ($erroRepasse) {
+            $this->session->set_flashdata('error', $erroRepasse);
+        }
+        redirect($destino);
+    }
+
+    /** Assume um ponto da equipe (ou ja seu) (ADR-014). */
+    public function assumir_ponto()
+    {
+        $obra_id = (int) $this->input->post('obra_id');
+        $ponto_id = (int) $this->input->post('ponto_id');
+        $uid = (int) $this->session->userdata('id_admin');
+        $ponto = $this->pontoAcessivel($obra_id, $ponto_id);
+        $destino = $this->destinoPonto($obra_id, $ponto_id);
+
+        if ($this->obra_pontos_model->assumir($ponto_id, $obra_id, $uid)) {
+            $this->session->set_flashdata('success', $ponto->identificacao . ': assumido por você');
+        } else {
+            $this->session->set_flashdata('error', 'Não foi possível assumir este ponto.');
+        }
+        redirect($destino);
+    }
+
+    /** Repassa um ponto para a equipe ou para outro executor do projeto (ADR-014). */
+    public function repassar_ponto()
+    {
+        $obra_id = (int) $this->input->post('obra_id');
+        $ponto_id = (int) $this->input->post('ponto_id');
+        $uid = (int) $this->session->userdata('id_admin');
+        $ponto = $this->pontoAcessivel($obra_id, $ponto_id);
+        $destino = $this->destinoPonto($obra_id, $ponto_id);
+
+        $repasse = $this->resolverRepasse($obra_id, $this->input->post('repassar_para'));
+        if (!$repasse['valido']) {
+            $this->session->set_flashdata('error', 'Destinatário inválido.');
+            redirect($destino);
+        }
+        if (!$repasse['pede']) {
+            $this->session->set_flashdata('error', 'Escolha quem vai receber o ponto.');
+            redirect($destino);
+        }
+        if ($ponto->status === 'testado') {
+            $this->session->set_flashdata('error', 'Ponto testado não pode ser repassado.');
+            redirect($destino);
+        }
+
+        $instrucao = $this->cortar($this->input->post('instrucao'), 255);
+        if ($this->obra_pontos_model->repassar($ponto_id, $obra_id, $repasse['destinatario_id'], $uid, $instrucao !== '' ? $instrucao : null)) {
+            $this->session->set_flashdata('success', $ponto->identificacao . $this->textoRepasse($repasse));
+        } else {
+            $this->session->set_flashdata('error', 'Não foi possível repassar este ponto.');
+        }
+        redirect($destino);
+    }
+
+    /**
+     * Confere acesso ao projeto e se o ponto pertence a ele.
+     * Redireciona (nao retorna) se nao; devolve o ponto se ok.
+     */
+    private function pontoAcessivel($obra_id, $ponto_id)
+    {
+        $this->load->model('obras_model');
+        $this->load->model('obra_pontos_model');
+        $uid = $this->session->userdata('id_admin');
+        $obra = $obra_id ? $this->obras_model->getObra($obra_id) : null;
+        if (!$obra || !$this->obras_model->usuarioTemAcesso($obra_id, $uid)) {
+            $this->session->set_flashdata('error', 'Você não tem acesso a este projeto.');
+            redirect('tecnico/projetos');
+        }
+
+        $ponto = $ponto_id ? $this->obra_pontos_model->getPonto($ponto_id) : null;
+        if (!$ponto || (int) $ponto->obra_id !== $obra_id) {
+            $this->session->set_flashdata('error', 'Ponto não encontrado neste projeto.');
+            redirect($this->destinoPonto($obra_id));
+        }
+        return $ponto;
+    }
+
+    /** Para onde voltar: a fila (voltar=fila) ou o cartao do ponto no projeto. */
+    private function destinoPonto($obra_id, $ponto_id = 0)
+    {
+        if ((string) $this->input->post('voltar') === 'fila') {
+            return site_url('tecnico/fila');
+        }
+        $url = site_url('tecnico/projeto/' . (int) $obra_id);
+        return $ponto_id ? $url . '#ponto-' . (int) $ponto_id : $url . '#pontos';
+    }
+
+    /**
+     * Interpreta repassar_para: '' = nao repassa; 'equipe' = equipe (sem destinatario);
+     * id = executor do projeto.
+     */
+    private function resolverRepasse($obra_id, $valor)
+    {
+        $valor = trim((string) $valor);
+        if ($valor === '') {
+            return ['pede' => false, 'destinatario_id' => null, 'nome' => '', 'valido' => true];
+        }
+        if ($valor === 'equipe') {
+            return ['pede' => true, 'destinatario_id' => null, 'nome' => '', 'valido' => true];
+        }
+        $id = ctype_digit($valor) ? (int) $valor : 0;
+        foreach ($this->obra_pontos_model->executores((int) $obra_id) as $ex) {
+            if ((int) $ex['idUsuarios'] === $id) {
+                $partes = preg_split('/\s+/', trim((string) $ex['nome']));
+                return ['pede' => true, 'destinatario_id' => $id, 'nome' => $partes[0] ?? '', 'valido' => true];
+            }
+        }
+        return ['pede' => true, 'destinatario_id' => null, 'nome' => '', 'valido' => false];
+    }
+
+    /** Texto do flash apos repassar: " · repassado para Maria" ou " · deixado para a equipe". */
+    private function textoRepasse(array $repasse)
+    {
+        if ($repasse['destinatario_id']) {
+            return ' · repassado para ' . ($repasse['nome'] !== '' ? $repasse['nome'] : 'outro técnico');
+        }
+        return ' · deixado para a equipe';
+    }
+
+    /** Fotos enviadas em $campo[] (data URL base64), decodificadas. No maximo 6. */
+    private function fotosDoPost($campo = 'fotos')
+    {
+        $bins = [];
+        // Sem o filtro de XSS: ele troca "data:image/...;base64," por "[removed]".
+        // O binário é validado por Obra_pontos_model::fotoValida() antes de gravar.
+        $enviadas = $this->input->post($campo, false);
+        if (!is_array($enviadas)) {
+            return $bins;
+        }
+        foreach (array_slice($enviadas, 0, 6) as $dataUrl) {
+            if (!is_string($dataUrl) || strpos($dataUrl, 'base64,') === false) {
+                continue;
+            }
+            $bin = base64_decode(explode('base64,', $dataUrl, 2)[1], true);
+            if ($bin !== false && $bin !== '') {
+                $bins[] = $bin;
+            }
+        }
+        return $bins;
+    }
+
+    /** Corta texto no tamanho da coluna (sem quebrar caracteres acentuados). */
+    private function cortar($texto, $max)
+    {
+        $texto = trim((string) $texto);
+        return function_exists('mb_substr') ? mb_substr($texto, 0, $max) : substr($texto, 0, $max);
     }
 
     /**
@@ -369,6 +718,11 @@ class Tecnico extends MY_Controller
         $data['nao_realizada_pendente'] = $this->naorealizada_model->getPendentePorOs($os_id);
         $data['nao_realizada_historico'] = $this->naorealizada_model->getHistoricoPorOs($os_id);
 
+        // Projeto/etapa da OS (ADR-015), somente leitura
+        $this->load->model('obras_model');
+        $data['vinculo_projeto'] = $this->obras_model->getVinculoDaOs($os_id);
+        $data['pode_ver_projeto'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vObras');
+
         // Atalho para o painel principal (se tiver acesso)
         $data['pode_ver_sistema'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs');
 
@@ -466,6 +820,9 @@ class Tecnico extends MY_Controller
                     'status' => 'Finalizado'
                 ]);
                 log_info('Auto-finalizado checkin preso da OS: ' . $os_id);
+                // Projeto (ADR-015): lanca a mao de obra desse checkin fechado.
+                $this->load->library('projeto_sync');
+                $this->projeto_sync->lancarHorasDoCheckin((int) $ultimo_checkin->idCheckin);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Existe um atendimento iniciado recentemente. Finalize-o ou aguarde 24h para iniciar um novo.']);
                 return;
@@ -642,6 +999,9 @@ class Tecnico extends MY_Controller
                 'observacao_saida' => 'Serviço não realizado' . ($observacao !== '' ? ': ' . $observacao : ''),
                 'status' => 'Finalizado',
             ]);
+            // Projeto (ADR-015): o tempo em campo conta mesmo quando o servico nao foi feito.
+            $this->load->library('projeto_sync');
+            $this->projeto_sync->lancarHorasDoCheckin((int) $checkin->idCheckin);
         }
 
         $id = $this->naorealizada_model->registrar(
@@ -1159,7 +1519,7 @@ class Tecnico extends MY_Controller
             return;
         }
 
-        $assinaturaBase64 = (string) $this->input->post('assinatura');
+        $assinaturaBase64 = (string) dataurl_imagem($this->input->post('assinatura', false));
         if (empty($assinaturaBase64) || strlen($assinaturaBase64) < 100) {
             echo json_encode(['success' => false, 'message' => 'Assinatura em branco. Peça para o solicitante assinar no quadro.']);
             return;

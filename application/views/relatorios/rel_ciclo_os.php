@@ -19,11 +19,13 @@ $money = function ($v) {
 
 <div class="row-fluid" style="margin-top: 0">
     <div class="span12">
-        <div class="widget-box">
-            <div class="widget-title">
-                <span class="icon"><i class="fas fa-funnel-dollar"></i></span>
-                <h5>Ciclo / Faturamento das OS — orçamentos por período</h5>
+        <div class="ui-cabecalho">
+            <div>
+                <h1><i class="fas fa-funnel-dollar"></i> Ciclo / Faturamento das OS</h1>
+                <p>Orçamentos por período: veja quanto tempo leva da abertura à aprovação, aceite e nota fiscal.</p>
             </div>
+        </div>
+        <div class="widget-box">
             <div class="widget-content">
                 <form action="<?php echo site_url('relatorios/cicloFaturamento'); ?>" method="get">
                     <div class="span12 well" style="margin-left:0">
@@ -55,7 +57,7 @@ $money = function ($v) {
                             <span class="button__text">Gerar</span>
                         </button>
                         <?php if ($resultados !== null): ?>
-                            <button class="button btn btn-primary" type="button" onclick="window.print()">
+                            <button class="button btn btn-primary" type="button" data-acao="imprimir">
                                 <span class="button__icon"><i class="bx bx-printer"></i></span>
                                 <span class="button__text">Imprimir</span>
                             </button>
@@ -169,8 +171,8 @@ $money = function ($v) {
 <?php endif; ?>
 
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
-<script type="text/javascript" src="<?php echo base_url(); ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url(); ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function () {
         $("#cliente").autocomplete({
             source: "<?php echo base_url(); ?>index.php/os/autoCompleteCliente",

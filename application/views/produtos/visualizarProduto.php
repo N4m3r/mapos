@@ -1,3 +1,9 @@
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-package"></i> <?= html_escape($result->descricao) ?></h1>
+        <p class="ui-subtitulo">Dados do produto e últimas movimentações de estoque.</p>
+    </div>
+</div>
 <div class="accordion" id="collapse-group">
     <div class="accordion-group widget-box">
         <div class="accordion-heading">

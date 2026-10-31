@@ -1,0 +1,207 @@
+/*
+ * Camada visual moderna do Map-OS (ADR-009).
+ *
+ * Carregada DEPOIS do tema escolhido (tema-*.css): as cores continuam vindo do tema;
+ * aqui so forma, espaco, tipografia, foco e componentes de interface (ui-*).
+ * Usa rgba neutro para funcionar nos temas claros e escuros.
+ */
+:root {
+    --ui-raio: 10px;
+    --ui-raio-p: 6px;
+    --ui-sombra: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .10);
+    --ui-sombra-alta: 0 8px 24px rgba(16, 24, 40, .12);
+    --ui-borda: rgba(127, 127, 127, .22);
+    --ui-suave: rgba(127, 127, 127, .07);
+    --ui-texto-2: rgba(127, 127, 127, .95);
+    --ui-primaria: #4f6bed;
+    --ui-sucesso: #12a454;
+    --ui-alerta: #e8a317;
+    --ui-perigo: #e5484d;
+    --ui-info: #0b8bd9;
+    --ui-fonte: 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --ui-transicao: .15s ease;
+}
+
+/* ---------- Base ---------- */
+body, input, select, textarea, button, .btn, h1, h2, h3, h4, h5, h6 {
+    font-family: var(--ui-fonte);
+}
+body { -webkit-font-smoothing: antialiased; }
+a, .btn, .button, input, select, textarea { transition: background-color var(--ui-transicao), border-color var(--ui-transicao), box-shadow var(--ui-transicao), color var(--ui-transicao); }
+
+/* ---------- Cartoes (widget-box do tema) ---------- */
+.widget-box {
+    border: 1px solid var(--ui-borda) !important;
+    border-radius: var(--ui-raio);
+    box-shadow: var(--ui-sombra);
+    overflow: hidden;
+}
+.widget-title {
+    border-bottom: 1px solid var(--ui-borda) !important;
+    background-image: none !important;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+}
+.widget-title h5 { font-size: 15px; font-weight: 600; letter-spacing: .1px; }
+.widget-title .icon { border-right: 0 !important; opacity: .85; }
+.widget-content { padding: 16px; }
+.widget-content.nopadding { padding: 0; }
+.new122 > .widget-title { border: 0 !important; box-shadow: none; }
+
+/* ---------- Botoes ---------- */
+.btn, .button {
+    border-radius: var(--ui-raio-p) !important;
+    background-image: none !important;
+    text-shadow: none !important;
+    box-shadow: none;
+    font-weight: 500;
+}
+.btn:hover, .button:hover { box-shadow: var(--ui-sombra); transform: translateY(-1px); }
+.btn:active, .button:active { transform: none; box-shadow: none; }
+.btn:focus-visible, .button:focus-visible, a:focus-visible { outline: 2px solid var(--ui-primaria); outline-offset: 2px; }
+
+/* ---------- Formularios ---------- */
+input[type="text"], input[type="password"], input[type="email"], input[type="number"], input[type="date"],
+input[type="datetime-local"], input[type="search"], input[type="tel"], input[type="url"], input[type="time"],
+select, textarea {
+    border-radius: var(--ui-raio-p) !important;
+    box-shadow: none !important;
+    min-height: 32px;
+    box-sizing: border-box;
+}
+input[type="text"], input[type="password"], input[type="email"], input[type="number"], input[type="date"],
+input[type="datetime-local"], input[type="search"], input[type="tel"], input[type="url"], input[type="time"] {
+    height: 34px;
+}
+input:focus, select:focus, textarea:focus {
+    border-color: var(--ui-primaria) !important;
+    box-shadow: 0 0 0 3px rgba(79, 107, 237, .18) !important;
+    outline: 0;
+}
+label { font-weight: 500; margin-bottom: 4px; }
+.control-group { margin-bottom: 14px; }
+.help-block, .help-inline { color: var(--ui-texto-2); font-size: 12px; }
+.well { border-radius: var(--ui-raio); box-shadow: none; border: 1px solid var(--ui-borda); background-image: none; }
+
+/* ---------- Tabelas ---------- */
+.table { border-collapse: separate; border-spacing: 0; }
+.table-bordered { border-radius: var(--ui-raio); border-color: var(--ui-borda); }
+.table th {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    background-image: none !important;
+    white-space: nowrap;
+}
+.table td, .table th { padding: 10px 12px; vertical-align: middle; border-color: var(--ui-borda) !important; }
+.table tbody tr:hover > td { background-color: var(--ui-suave); }
+
+/* ---------- Rotulos, alertas, modais, abas ---------- */
+.label, .badge { border-radius: 999px; padding: 3px 9px; font-weight: 600; text-shadow: none; }
+.alert { border-radius: var(--ui-raio); text-shadow: none; }
+.modal { border-radius: var(--ui-raio); box-shadow: var(--ui-sombra-alta); border: 0; overflow: hidden; }
+.modal-header { border-bottom: 1px solid var(--ui-borda); }
+.modal-footer { border-top: 1px solid var(--ui-borda); box-shadow: none; border-radius: 0; }
+.nav-tabs > li > a { border-radius: var(--ui-raio-p) var(--ui-raio-p) 0 0; }
+.pagination ul { box-shadow: none; border-radius: var(--ui-raio-p); }
+.pagination ul > li > a, .pagination ul > li > span { border-color: var(--ui-borda); }
+
+/* ---------- Menu lateral ---------- */
+#sidebar > ul > li > a { border-radius: 8px; margin: 2px 8px; }
+#sidebar > ul > li > a:hover { background-color: var(--ui-suave); }
+
+/* =================================================================
+ * Componentes ui-* (usar nas telas; nao dependem de JavaScript)
+ * ================================================================= */
+
+/* Cabecalho da pagina: titulo + descricao a esquerda, acoes a direita */
+.ui-cabecalho { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 16px; }
+.ui-cabecalho h1, .ui-cabecalho .ui-titulo { font-size: 22px; line-height: 1.25; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; }
+.ui-cabecalho p, .ui-cabecalho .ui-subtitulo { margin: 4px 0 0; color: var(--ui-texto-2); font-size: 13px; }
+.ui-acoes { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* Barra de filtros/busca */
+.ui-filtros { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; padding: 12px; margin: 0 0 16px; border: 1px solid var(--ui-borda); border-radius: var(--ui-raio); background: var(--ui-suave); }
+.ui-filtros .ui-campo { display: flex; flex-direction: column; min-width: 160px; flex: 1 1 160px; }
+.ui-filtros .ui-campo input, .ui-filtros .ui-campo select { width: 100%; margin: 0; }
+.ui-filtros .ui-campo-acao { flex: 0 0 auto; }
+
+/* Cartoes de indicador (KPI) */
+.ui-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 0 0 16px; }
+.ui-kpi { border: 1px solid var(--ui-borda); border-radius: var(--ui-raio); padding: 14px 16px; box-shadow: var(--ui-sombra); }
+.ui-kpi .ui-kpi-rotulo { font-size: 12px; color: var(--ui-texto-2); text-transform: uppercase; letter-spacing: .4px; }
+.ui-kpi .ui-kpi-valor { font-size: 24px; font-weight: 700; margin-top: 4px; line-height: 1.2; }
+.ui-kpi .ui-kpi-extra { font-size: 12px; color: var(--ui-texto-2); margin-top: 2px; }
+.ui-kpi.sucesso .ui-kpi-valor { color: var(--ui-sucesso); }
+.ui-kpi.alerta .ui-kpi-valor { color: var(--ui-alerta); }
+.ui-kpi.perigo .ui-kpi-valor { color: var(--ui-perigo); }
+.ui-kpi.info .ui-kpi-valor { color: var(--ui-info); }
+
+/* Estado vazio */
+.ui-vazio { text-align: center; padding: 36px 16px; color: var(--ui-texto-2); }
+.ui-vazio i { font-size: 40px; display: block; margin-bottom: 8px; opacity: .6; }
+.ui-vazio strong { display: block; font-size: 15px; margin-bottom: 4px; }
+
+/* Caixa de ajuda/explicacao curta */
+.ui-dica { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; margin: 0 0 16px; border-radius: var(--ui-raio); border: 1px solid rgba(11, 139, 217, .3); background: rgba(11, 139, 217, .07); font-size: 13px; }
+.ui-dica i { font-size: 18px; color: var(--ui-info); }
+
+.ui-dica.alerta { border-color: rgba(232, 163, 23, .4); background: rgba(232, 163, 23, .09); }
+.ui-dica.alerta i { color: var(--ui-alerta); }
+.ui-dica.perigo { border-color: rgba(229, 72, 77, .35); background: rgba(229, 72, 77, .07); }
+.ui-dica.perigo i { color: var(--ui-perigo); }
+
+/* Linhas de tabela em destaque */
+.table tr.ui-linha-alerta > td { background: rgba(232, 163, 23, .10); }
+.table tr.ui-linha-perigo > td { background: rgba(229, 72, 77, .08); }
+.ui-positivo { color: var(--ui-sucesso); }
+.ui-negativo { color: var(--ui-perigo); }
+
+/* Selos de status (use .ui-selo + cor) */
+.ui-selo { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--ui-suave); white-space: nowrap; }
+.ui-selo.sucesso { background: rgba(18, 164, 84, .14); color: var(--ui-sucesso); }
+.ui-selo.alerta { background: rgba(232, 163, 23, .16); color: #b07800; }
+.ui-selo.perigo { background: rgba(229, 72, 77, .14); color: var(--ui-perigo); }
+.ui-selo.info { background: rgba(11, 139, 217, .14); color: var(--ui-info); }
+.ui-selo.neutro { background: rgba(127, 127, 127, .14); }
+.ui-selo.roxo { background: rgba(124, 58, 237, .14); color: #7c3aed; }
+.ui-selo.laranja { background: rgba(234, 88, 12, .14); color: #ea580c; }
+
+/* Espacamento */
+.ui-mt { margin-top: 12px !important; }
+.ui-mb { margin-bottom: 12px !important; }
+.ui-m0 { margin: 0 !important; }
+
+/* Secao de formulario: titulo + grade responsiva de campos */
+.ui-secao { margin: 0 0 20px; }
+.ui-secao > h4, .ui-secao > .ui-secao-titulo { font-size: 14px; font-weight: 600; margin: 0 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--ui-borda); }
+.ui-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 16px; }
+.ui-grade .control-group { margin: 0; }
+.ui-grade input, .ui-grade select, .ui-grade textarea { width: 100%; }
+.ui-rodape-form { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; padding-top: 12px; border-top: 1px solid var(--ui-borda); margin-top: 8px; }
+
+/* Acoes por linha de tabela (icones) */
+.ui-acoes-linha { display: inline-flex; gap: 4px; white-space: nowrap; }
+.ui-acoes-linha .btn, .ui-acoes-linha .btn-nwe, .ui-acoes-linha a { padding: 4px 6px; }
+
+/* Tabela com rolagem horizontal no celular */
+.ui-tabela-rolagem { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* Barra de progresso simples */
+.ui-barra { height: 8px; border-radius: 999px; background: var(--ui-suave); overflow: hidden; }
+.ui-barra > span { display: block; height: 100%; background: var(--ui-primaria); border-radius: 999px; }
+
+/* ---------- Celular ---------- */
+@media (max-width: 767px) {
+    .ui-cabecalho h1, .ui-cabecalho .ui-titulo { font-size: 19px; }
+    .ui-acoes { width: 100%; }
+    .ui-acoes .btn, .ui-acoes .button { flex: 1 1 auto; justify-content: center; }
+    .widget-content { padding: 12px; }
+    .table td, .table th { padding: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+    .btn:hover, .button:hover { transform: none; }
+}

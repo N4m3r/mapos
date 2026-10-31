@@ -100,7 +100,7 @@
     </div>
 </div>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         var nfseEmitida = false;
         var nfseDados = { itens: [], produtos: [], total: 0, totalProdutos: 0 };

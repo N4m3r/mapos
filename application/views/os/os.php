@@ -1,38 +1,38 @@
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/table-custom.css" />
-<script type="text/javascript" src="<?php echo base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
-<script src="<?php echo base_url() ?>assets/js/sweetalert2.all.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/sweetalert2.all.min.js"></script>
 <style>
   select {
     width: 70px;
   }
 </style>
 <div class="new122">
-    <div class="widget-title" style="margin: -20px 0 0">
-            <span class="icon">
-                <i class="fas fa-diagnoses"></i>
-            </span>
-            <h5>Ordens de Serviço</h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1><i class="fas fa-diagnoses"></i> Ordens de Serviço</h1>
+            <p>Acompanhe os serviços em andamento, filtre por cliente, status ou período e abra uma OS para ver os detalhes.</p>
         </div>
-    <div class="span12" style="margin-left: 0">
-        <form method="get" action="<?php echo base_url(); ?>index.php/os/gerenciar">
-            <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'aOs')) { ?>
-                <div class="span3">
-                    <a href="<?php echo base_url(); ?>index.php/os/adicionar" class="button btn btn-mini btn-success" style="max-width: 160px">
-                        <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Ordem de Serviço</span></a>
-                    <a href="<?= site_url('agenda') ?>" class="button btn btn-mini btn-info" style="max-width: 160px" title="Agenda da equipe">
-                        <span class="button__icon"><i class='bx bx-calendar'></i></span><span class="button__text2">Agenda</span></a>
-                    <a href="<?= site_url('sla') ?>" class="button btn btn-mini btn-warning" style="max-width: 160px" title="Painel de SLA">
-                        <span class="button__icon"><i class='bx bx-timer'></i></span><span class="button__text2">SLA</span></a>
-                </div>
-            <?php
-            } ?>
-
-            <div class="span3">
-                <input type="text" name="pesquisa" id="pesquisa" placeholder="Nome do cliente a pesquisar" class="span12" value="<?=set_value('pesquisa')?>">
+        <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'aOs')) { ?>
+            <div class="ui-acoes">
+                <a href="<?php echo base_url(); ?>index.php/os/adicionar" class="button btn btn-success">
+                    <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova Ordem de Serviço</span></a>
+                <a href="<?= site_url('agenda') ?>" class="button btn btn-info" title="Agenda da equipe">
+                    <span class="button__icon"><i class='bx bx-calendar'></i></span><span class="button__text2">Agenda</span></a>
+                <a href="<?= site_url('sla') ?>" class="button btn btn-warning" title="Painel de SLA">
+                    <span class="button__icon"><i class='bx bx-timer'></i></span><span class="button__text2">SLA</span></a>
             </div>
-            <div class="span2">
-                <select name="status" id="" class="span12">
+        <?php } ?>
+    </div>
+
+    <form method="get" action="<?php echo base_url(); ?>index.php/os/gerenciar" class="ui-filtros">
+        <div class="ui-campo" style="flex-grow: 2">
+            <label for="pesquisa">Cliente</label>
+            <input type="text" name="pesquisa" id="pesquisa" placeholder="Nome do cliente a pesquisar" class="span12" value="<?=set_value('pesquisa')?>">
+        </div>
+        <div class="ui-campo">
+            <label for="status">Status</label>
+            <select name="status" id="status" class="span12">
                     <option value="">Selecione status</option>
                     <option value="Aberto" <?=$this->input->get('status') == 'Aberto' ? 'selected' : ''?>>Aberto</option>
                     <option value="Faturado" <?=$this->input->get('status') == 'Faturado' ? 'selected' : ''?>>Faturado</option>
@@ -44,23 +44,33 @@
                     <option value="Aguardando Peças" <?=$this->input->get('status') == 'Aguardando Peças' ? 'selected' : ''?>>Aguardando Peças</option>
                     <option value="Aprovado" <?=$this->input->get('status') == 'Aprovado' ? 'selected' : ''?>>Aprovado</option>
                 </select>
+        </div>
+        <div class="ui-campo">
+            <label for="obra_id">Projeto</label>
+            <select name="obra_id" id="obra_id" class="span12">
+                <option value="">Todos</option>
+                <?php foreach (($projetosFiltro ?? []) as $pj): ?>
+                    <option value="<?= (int) $pj->idObra ?>" <?= (int) $this->input->get('obra_id') === (int) $pj->idObra ? 'selected' : '' ?>><?= html_escape($pj->nome) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="ui-campo">
+            <label for="data">De</label>
+            <input type="text" name="data" autocomplete="off" id="data" placeholder="Data inicial" class="span12 datepicker" value="<?=$this->input->get('data')?>">
+        </div>
+        <div class="ui-campo">
+            <label for="data2">Até</label>
+            <input type="text" name="data2" autocomplete="off" id="data2" placeholder="Data final" class="span12 datepicker" value="<?=$this->input->get('data2')?>">
+        </div>
+        <div class="ui-campo-acao">
+            <button class="button btn btn-warning" title="Filtrar" aria-label="Filtrar">
+                <span class="button__icon"><i class='bx bx-search-alt'></i></span><span class="button__text2">Filtrar</span></button>
+        </div>
+    </form>
 
-            </div>
-
-            <div class="span3">
-                <input type="text" name="data" autocomplete="off" id="data" placeholder="Data Inicial" class="span6 datepicker" value="<?=$this->input->get('data')?>">
-                <input type="text" name="data2" autocomplete="off" id="data2" placeholder="Data Final" class="span6 datepicker" value="<?=$this->input->get('data2')?>">
-            </div>
-            <div class="span1">
-                <button class="button btn btn-mini btn-warning" style="min-width: 30px">
-                    <span class="button__icon"><i class='bx bx-search-alt'></i></span></button>
-            </div>
-        </form>
-    </div>
-
-    <div class="widget-box" style="margin-top: 8px">
+    <div class="widget-box">
         <div class="widget-content nopadding">
-            <div class="table-responsive">
+            <div class="table-responsive ui-tabela-rolagem">
                 <table class="table table-bordered ">
                     <thead>
                         <tr>
@@ -85,7 +95,7 @@
                         $colspan = $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs') ? 11 : 7;
                         if (!$results) {
                             echo '<tr>
-                            <td colspan="' . $colspan . '">Nenhuma OS Cadastrada</td>
+                            <td colspan="' . $colspan . '"><div class="ui-vazio"><i class="bx bx-clipboard"></i><strong>Nenhuma OS encontrada</strong>Ajuste os filtros' . ($this->permission->checkPermission($this->session->userdata('permissao'), 'aOs') ? ' ou <a href="' . base_url() . 'index.php/os/adicionar">crie uma nova OS</a>' : '') . '.</div></td>
                             </tr>';
                         }
 
@@ -157,7 +167,9 @@
                                 }
 
                                 echo '<tr>';
-                                echo '<td>' . $r->idOs . '</td>';
+                                $vp = $vinculosPorOs[(int) $r->idOs] ?? null;
+                                $seloProjeto = $vp ? ' <span title="Projeto: ' . html_escape($vp->obra_nome . ($vp->etapa_nome ? ' › ' . $vp->etapa_nome : '')) . '" style="color:#436eee"><i class="bx bx-buildings"></i></span>' : '';
+                                echo '<td>' . $r->idOs . $seloProjeto . '</td>';
                                 echo '<td class="cli1"><a href="' . base_url() . 'index.php/clientes/visualizar/' . $r->idClientes . '" style="margin-right: 1%">' . $r->nomeCliente . '</a></td>';
                                 echo '<td class="ph1">' . $r->nome . '</td>';
                                 echo '<td>' . $dataInicial . '</td>';
@@ -179,7 +191,7 @@
                                 } else {
                                     echo '<td><span class="badge" style="background-color: ' . $cor . '; border-color: ' . $cor . '">' . $r->status . '</span> </td>';
                                 }
-                                echo '<td>';
+                                echo '<td><span class="ui-acoes-linha">';
 
                                 $editavel = $this->os_model->isEditable($r->idOs);
 
@@ -208,7 +220,7 @@
                                     echo '<a style="margin-right: 1%" href="#modal-nfse" role="button" data-toggle="modal" data-os="' . $r->idOs . '" class="btn-nwe5 btn-transmitir-nfse" title="Transmitir NFS-e (serviços)"><i class="bx bx-receipt bx-xs"></i></a>';
                                     echo '<a style="margin-right: 1%" href="#modal-nfe" role="button" data-toggle="modal" data-os="' . $r->idOs . '" class="btn-nwe5 btn-transmitir-nfe" title="Transmitir NF-e (produtos)"><i class="bx bx-box bx-xs"></i></a>';
                                 }
-                                echo '</td>';
+                                echo '</span></td>';
                                 echo '</tr>';
                             } ?>
                     </tbody>
@@ -268,7 +280,7 @@
     echo $this->load->view('os/_modal_emissao_nfe', ['configNfe' => (isset($configNfe) ? $configNfe : null)], true);
 } ?>
 
-<script type="text/javascript">
+<script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
         // ---- Acao rapida: mudar status pela listagem (mesmo endpoint da Central de Atendimento) ----
         var statusRapidos = <?= json_encode(isset($statusRapidos) ? $statusRapidos : []) ?>;

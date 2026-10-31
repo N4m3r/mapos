@@ -1,19 +1,24 @@
-<div class="widget-box">
-    <div class="widget-title" style="margin: -20px 0 0">
-        <span class="icon"><i class="fas fa-envelope-open-text"></i></span>
-        <h5>Log de e-mails enviados</h5>
+<div class="ui-cabecalho">
+    <div>
+        <h1 class="ui-titulo"><i class="bx bx-envelope"></i> Log de e-mails enviados</h1>
+        <p class="ui-subtitulo">Histórico dos envios automáticos. Use os filtros para ver só os que falharam.</p>
     </div>
+    <div class="ui-acoes">
+        <a href="<?= site_url('mapos/emails') ?>" class="button btn"><span class="button__icon"><i class="bx bx-list-ul"></i></span><span class="button__text2">Fila de e-mails</span></a>
+    </div>
+</div>
+<div class="widget-box">
     <div class="widget-content nopadding">
-        <div style="padding:14px 16px 0; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
-            <div>
+        <div class="ui-filtros" style="margin:14px 16px 0">
+            <div class="ui-acoes">
                 <a href="<?= site_url('mapos/emailsLog') ?>" class="btn btn-mini <?= $statusFiltro === null ? 'btn-primary' : '' ?>">Todos</a>
                 <a href="<?= site_url('mapos/emailsLog?status=enviado') ?>" class="btn btn-mini <?= $statusFiltro === 'enviado' ? 'btn-success' : '' ?>">Enviados (<?= (int) $totalEnviados ?>)</a>
                 <a href="<?= site_url('mapos/emailsLog?status=falha') ?>" class="btn btn-mini <?= $statusFiltro === 'falha' ? 'btn-danger' : '' ?>">Falhas (<?= (int) $totalFalhas ?>)</a>
             </div>
-            <a href="<?= site_url('mapos/emails') ?>" class="btn btn-mini"><i class="bx bx-list-ul"></i> Fila de e-mails</a>
         </div>
 
-        <table class="table table-bordered" style="margin-top:10px">
+        <div class="ui-tabela-rolagem" style="margin-top:10px">
+        <table class="table table-bordered">
             <thead>
                 <tr>
                     <th style="width:140px">Data/Hora</th>
@@ -51,7 +56,7 @@
                                     <a href="<?= site_url('mapos/reenviarEmail/' . (int) $e->id) ?>"
                                        class="btn btn-mini btn-inverse"
                                        title="Reenviar este e-mail com os mesmos anexos"
-                                       onclick="return confirm('Reenviar este e-mail para <?= html_escape($e->destino) ?> com os mesmos anexos?');">
+                                       data-confirmar="Reenviar este e-mail para <?= html_escape($e->destino) ?> com os mesmos anexos?">
                                         <i class="bx bx-mail-send"></i> Reenviar
                                     </a>
                                 <?php } else { ?>
@@ -63,6 +68,7 @@
                 } ?>
             </tbody>
         </table>
+        </div>
         <p style="padding:0 16px 14px; color:#8a90a6; font-size:12px; margin:0">
             Mostrando os 100 envios mais recentes. "Enviado" = aceito pelo servidor SMTP.
         </p>

@@ -53,11 +53,12 @@ $tomaEndereco = trim(($os->rua ?? '') . ', ' . ($os->numero ?? '') . ' - ' . ($o
         .btn { background: #0b5394; color: #fff; border: 0; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; }
         @media print { body { background: #fff; padding: 0; } .toolbar { display: none; } .folha { border: 0; } }
     </style>
+    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
 </head>
 <body>
     <div class="toolbar">
-        <button class="btn" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
-        <button class="btn" style="background:#888" onclick="window.close()">Fechar</button>
+        <button class="btn" data-acao="imprimir">🖨️ Imprimir / Salvar PDF</button>
+        <button class="btn" style="background:#888" data-acao="fechar">Fechar</button>
     </div>
 
     <div class="folha">

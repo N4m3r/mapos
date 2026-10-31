@@ -1,4 +1,10 @@
  <div class="span12" style="margin-left: 0; margin-top: 0">
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-search-alt"></i> Pesquisa</h1>
+            <p class="ui-subtitulo">Procure produtos, clientes, serviços e OS pelo mesmo termo.</p>
+        </div>
+    </div>
     <div class="span12" style="margin-left: 0">
         <form action="<?php echo current_url() ?>">
             <div class="span10" style="margin-left: 0">

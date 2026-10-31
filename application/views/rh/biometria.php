@@ -1,7 +1,9 @@
 <div class="new122">
-    <div class="widget-title" style="margin:-20px 0 10px">
-        <span class="icon"><i class="fas fa-user-shield"></i></span>
-        <h5>Biometria facial — <?= htmlspecialchars($colaborador->nome) ?></h5>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-user-check"></i> Biometria facial</h1>
+            <p class="ui-subtitulo">Colaborador: <?= htmlspecialchars($colaborador->nome) ?>.</p>
+        </div>
     </div>
 
     <div class="widget-box"><div class="widget-content" style="padding:18px">
@@ -27,9 +29,9 @@
     </div></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
-<script src="<?= base_url('assets/js/rh-facial.js') ?>"></script>
-<script>
+<script nonce="<?= csp_nonce() ?>" src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/rh-facial.js') ?>"></script>
+<script nonce="<?= csp_nonce() ?>">
 (function(){
     var MODELS = '<?= base_url('assets/models/face') ?>';
     var MODELS_CDN = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';

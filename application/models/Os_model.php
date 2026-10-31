@@ -74,6 +74,10 @@ class Os_model extends CI_Model
         if (array_key_exists('ate', $where)) {
             $this->db->where('dataFinal <=', $where['ate']);
         }
+        // condicional projeto (ADR-015)
+        if (array_key_exists('obra_id', $where)) {
+            $this->db->where('os.idOs IN (SELECT os_id FROM obra_os WHERE obra_id = ' . (int) $where['obra_id'] . ')', null, false);
+        }
         // condicional técnico responsável
         if (array_key_exists('tecnico_responsavel', $where)) {
             $this->db->where('os.tecnico_responsavel', $where['tecnico_responsavel']);
@@ -542,6 +546,12 @@ class Os_model extends CI_Model
             formatar_garantia($os->garantia),
         ];
 
+        // {LINK_ACOMPANHAR}: link público da OS (gera o token só quando a tag é usada)
+        if (strpos($textoBase, '{LINK_ACOMPANHAR}') !== false) {
+            $this->load->model('acompanhamento_model');
+            $textoBase = str_replace('{LINK_ACOMPANHAR}', $this->acompanhamento_model->link($idOs), $textoBase);
+        }
+
         return $this->montarTextoWhats($textoBase, $troca);
     }
 
@@ -658,9 +668,24 @@ class Os_model extends CI_Model
             case 'finalizados':
                 $this->db->where_in('os.status', ['Finalizado', 'Faturado']);
                 break;
+            case 'atrasados':
+                $this->db->where('os.data_agendamento IS NOT NULL');
+                $this->db->where('os.data_agendamento <', date('Y-m-d H:i:s'));
+                $this->db->where_not_in('os.status', ['Finalizado', 'Cancelado', 'Faturado']);
+                break;
+            case 'hoje':
+                $this->db->where('os.data_agendamento >=', date('Y-m-d') . ' 00:00:00');
+                $this->db->where('os.data_agendamento <=', date('Y-m-d') . ' 23:59:59');
+                $this->db->where_not_in('os.status', ['Finalizado', 'Cancelado', 'Faturado']);
+                break;
             default: // todos
                 $this->db->where_not_in('os.status', ['Finalizado', 'Cancelado', 'Faturado']);
                 break;
+        }
+
+        // Filtro por tecnico responsavel
+        if (! empty($filtros['tecnico'])) {
+            $this->db->where('os.tecnico_responsavel', (int) $filtros['tecnico']);
         }
 
         // Busca por cliente, nº da OS ou descrição
@@ -725,5 +750,38 @@ class Os_model extends CI_Model
         $r = $this->db->count_all_results('os');
 
         return ($r !== false) ? $r : 0;
+    }
+
+    /**
+     * Avisa o modulo de projetos que o status da OS mudou (ADR-015).
+     * Nunca propaga erro: a OS nao pode quebrar por causa do projeto.
+     */
+    public function notificarMudancaStatus(int $idOs, ?string $anterior, string $novo): void
+    {
+        if ($anterior === $novo) {
+            return;
+        }
+        try {
+            $this->load->library('projeto_sync');
+            $this->projeto_sync->aposMudarStatusOs($idOs, $anterior, $novo);
+        } catch (\Throwable $e) {
+            log_message('error', 'projeto_sync falhou na OS ' . $idOs . ': ' . $e->getMessage());
+        }
+    }
+
+    /** Altera o status da OS (com campos extras) e sincroniza o projeto vinculado. */
+    public function alterarStatus(int $idOs, string $novoStatus, array $extra = []): bool
+    {
+        $atual = $this->db->select('status')->where('idOs', $idOs)->get('os')->row();
+        $anterior = $atual ? $atual->status : null;
+
+        $this->db->where('idOs', $idOs);
+        $ok = (bool) $this->db->update('os', array_merge($extra, ['status' => $novoStatus]));
+
+        if ($ok) {
+            $this->notificarMudancaStatus($idOs, $anterior, $novoStatus);
+        }
+
+        return $ok;
     }
 }
