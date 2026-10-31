@@ -180,3 +180,34 @@
 .espelho-tot .box { flex:1;min-width:120px;background:#fff;border:1px solid #eef0f4;border-radius:12px;padding:10px 12px; }
 .espelho-tot .box .k { color:#6b7280;font-size:12px; }
 .espelho-tot .box .v { font-size:18px;font-weight:700; }
+
+/* ====================================================================
+   Administrativo de RH: navegacao, secoes de formulario, paineis
+   (cores via variaveis --ui-* do moderno.css: valem nos temas claro e escuro)
+   ==================================================================== */
+.rh-migalha { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; margin: 0 0 10px; color: var(--ui-texto-2); }
+.rh-migalha a { text-decoration: none; }
+.rh-migalha a:hover { text-decoration: underline; }
+.rh-migalha [aria-current="page"] { font-weight: 600; color: inherit; }
+
+.rh-secao { border: 1px solid var(--ui-borda); border-radius: var(--ui-raio); padding: 12px 16px 8px; margin: 0 0 14px; box-shadow: var(--ui-sombra); }
+.rh-secao legend { display: inline-block; width: auto; margin: 0; padding: 0 8px; border: 0; font-size: 15px; font-weight: 700; line-height: 1.6; color: inherit; }
+.rh-secao legend i { vertical-align: -2px; margin-right: 4px; }
+.rh-obrigatorio { color: var(--ui-perigo); font-weight: 700; }
+.rh-ajuda { display: block; color: var(--ui-texto-2); margin-top: 2px; }
+
+.ui-kpi.rh-kpi-link { display: block; color: inherit; text-decoration: none; cursor: pointer; }
+.ui-kpi.rh-kpi-link:hover, .ui-kpi.rh-kpi-link:focus { box-shadow: var(--ui-sombra-alta); text-decoration: none; transform: translateY(-1px); }
+.rh-atalhos .btn { text-align: left; margin-bottom: 6px; }
+.rh-linha-lista { padding: 5px 0; border-bottom: 1px solid var(--ui-borda); }
+.rh-linha-lista-dir { float: right; color: var(--ui-texto-2); }
+
+.rh-resumo-solicitacao { border: 1px solid var(--ui-borda); border-radius: var(--ui-raio-p); background: var(--ui-suave); padding: 8px 12px; margin: 0 0 10px; }
+.rh-resumo-solicitacao > div { padding: 3px 0; }
+.rh-resumo-solicitacao span { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .3px; color: var(--ui-texto-2); }
+.rh-texto-livre { white-space: pre-wrap; word-break: break-word; font-weight: 400; }
+.rh-erro-campo { color: var(--ui-perigo); font-weight: 600; }
+
+/* Linhas de total e rotulos (antes com cor fixa no HTML; o tema escuro sobrescreve) */
+.rh-linha-total { background: #f3f4f6; }
+.rh-rotulo { color: #6b7280; }

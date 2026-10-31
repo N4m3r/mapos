@@ -2,8 +2,8 @@
     <?php $this->load->view('rh/_subnav', ['ativo' => 'unidades']); ?>
     <div class="ui-cabecalho">
         <div>
-            <h1 class="ui-titulo"><i class="bx bx-building"></i> Unidades (geofence)</h1>
-            <p class="ui-subtitulo">Locais permitidos para registro de ponto por GPS.</p>
+            <h1 class="ui-titulo"><i class="bx bx-building"></i> Unidades e área permitida para o ponto</h1>
+            <p class="ui-subtitulo">Locais onde o colaborador pode bater o ponto. O GPS do celular precisa estar dentro do raio definido.</p>
         </div>
     </div>
     <div class="span12" style="margin-left:0">
@@ -13,10 +13,10 @@
     </div>
     <div class="widget-box"><div class="widget-content nopadding ui-tabela-rolagem">
         <table class="table table-bordered">
-            <thead><tr><th>Nome</th><th>Endereço</th><th>Coordenadas</th><th>Raio</th><th>Situação</th><th>Ações</th></tr></thead>
+            <thead><tr><th>Nome</th><th>Endereço</th><th>Localização (GPS)</th><th>Raio da área</th><th>Situação</th><th>Ações</th></tr></thead>
             <tbody>
             <?php if (empty($unidades)): ?>
-                <tr><td colspan="6">Nenhuma unidade cadastrada.</td></tr>
+                <tr><td colspan="6"><div class="ui-vazio"><i class='bx bx-buildings'></i><strong>Nenhuma unidade cadastrada</strong>Cadastre os locais de trabalho e marque no mapa a área permitida para o ponto.<div style="margin-top:10px"><a href="#modal-unidade" role="button" data-toggle="modal" class="button btn btn-success" data-chamar="novaUnidade"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2"> Nova unidade</span></a></div></div></td></tr>
             <?php else: foreach ($unidades as $u): ?>
                 <tr>
                     <td><?= htmlspecialchars($u->nome) ?></td>
@@ -24,13 +24,13 @@
                     <td><?php if ($u->latitude): ?>
                             <a href="https://www.google.com/maps?q=<?= $u->latitude ?>,<?= $u->longitude ?>" target="_blank" rel="noopener">
                                 <?= $u->latitude ?>, <?= $u->longitude ?> <i class='bx bx-map'></i></a>
-                        <?php else: ?><span style="color:#dc2626">sem geofence</span><?php endif; ?></td>
+                        <?php else: ?><span class="ui-selo perigo">sem área definida</span><?php endif; ?></td>
                     <td><?= (int) $u->raio_metros ?>m</td>
-                    <td><?= $u->situacao ? 'Ativa' : 'Inativa' ?></td>
+                    <td><?= $u->situacao ? '<span class="ui-selo sucesso">Ativa</span>' : '<span class="ui-selo neutro">Inativa</span>' ?></td>
                     <td>
                         <a href="#modal-unidade" role="button" data-toggle="modal" class="btn-nwe3" title="Editar" aria-label="Editar"
                            data-chamar="editarUnidade" data-args="<?= html_escape(json_encode([$u])) ?>"><i class="bx bx-edit bx-xs"></i></a>
-                        <a href="#modal-excluir-u" role="button" data-toggle="modal" reg="<?= $u->id ?>" class="btn-nwe4" title="Excluir" aria-label="Excluir"><i class="bx bx-trash-alt bx-xs"></i></a>
+                        <a href="#modal-excluir-u" role="button" data-toggle="modal" reg="<?= (int) $u->id ?>" data-nome="<?= html_escape($u->nome) ?>" class="btn-nwe4" title="Excluir" aria-label="Excluir"><i class="bx bx-trash-alt bx-xs"></i></a>
                     </td>
                 </tr>
             <?php endforeach; endif; ?>
@@ -60,7 +60,7 @@
                         <div style="flex:1"><label>Latitude</label><input type="text" name="latitude" id="u-lat" class="span12"></div>
                         <div style="flex:1"><label>Longitude</label><input type="text" name="longitude" id="u-lng" class="span12"></div>
                     </div>
-                    <label>Raio do geofence (metros)</label>
+                    <label>Raio da área permitida (metros)</label>
                     <input type="number" name="raio_metros" id="u-raio" class="span12" value="150" min="20" step="10">
                     <button type="button" class="btn btn-mini" data-chamar="minhaLoc" style="margin-top:6px"><i class='bx bx-current-location'></i> Usar minha localização</button>
                     <div style="margin-top:8px"><label>Situação</label>
@@ -79,8 +79,8 @@
 
 <div id="modal-excluir-u" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
     <form action="<?= site_url('rh/excluirUnidade') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Excluir Unidade</h5></div>
-        <div class="modal-body"><input type="hidden" id="u-del-id" name="id"><h5 style="text-align:center">Confirma exclusão?</h5></div>
+        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Excluir unidade</h5></div>
+        <div class="modal-body"><input type="hidden" id="u-del-id" name="id"><h5 style="text-align:center">Deseja excluir a unidade <strong id="u-del-nome"></strong>?</h5></div>
         <div class="modal-footer"><button class="button btn btn-danger"><span class="button__text2">Excluir</span></button></div>
     </form>
 </div>
@@ -153,5 +153,5 @@ function abrirMapaUnidade(){
 $('#modal-unidade').on('shown', abrirMapaUnidade);
 $(document).on('click', 'a[href="#modal-unidade"][data-toggle="modal"]', function(){ setTimeout(abrirMapaUnidade, 350); });
 
-$(document).on('click','a[reg]',function(){ $('#u-del-id').val($(this).attr('reg')); });
+$(document).on('click','a[reg]',function(){ $('#u-del-id').val($(this).attr('reg')); $('#u-del-nome').text($(this).attr('data-nome') || ''); });
 </script>

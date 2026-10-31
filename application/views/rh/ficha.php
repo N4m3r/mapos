@@ -1,12 +1,14 @@
 <?php
-$this->load->view('rh/_subnav', ['ativo' => 'colaboradores']);
+$this->load->view('rh/_subnav', ['ativo' => $rh_ativo ?? 'colaboradores']);
 $fmt = function ($min) { return $this->rh_calculo->minParaHoras($min); };
 $lblTipo = ['entrada'=>'Entrada','saida'=>'Saída','inicio_intervalo'=>'Início int.','fim_intervalo'=>'Fim int.'];
 $lblAus = ['ferias'=>'Férias','folga'=>'Folga','atestado'=>'Atestado','licenca'=>'Licença'];
 $lblLan = ['hora_extra'=>'Hora extra','adicional'=>'Adicional','comissao'=>'Comissão','bonus'=>'Bônus','adiantamento'=>'Adiantamento','desconto'=>'Desconto','falta'=>'Falta','vale'=>'Vale'];
 $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90"><rect width="90" height="90" rx="12" fill="#eef0f4"/><circle cx="45" cy="34" r="18" fill="#c3c9d4"/><path d="M16 82c0-16 13-24 29-24s29 8 29 24z" fill="#c3c9d4"/></svg>');
 ?>
+<?php $voltarFicha = '?voltar=' . rawurlencode('rh/ficha/' . (int) $colaborador->id); ?>
 <div class="new122">
+    <?php $this->load->view('rh/_migalha', ['atual' => $colaborador->nome]); ?>
     <!-- Cabeçalho do colaborador -->
     <div class="widget-box"><div class="widget-content" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
         <img src="<?= ! empty($colaborador->foto_base64) ? site_url('rh/fotoColaborador/'.$colaborador->id) : $ph ?>"
@@ -15,25 +17,25 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
             <h4 style="margin:0"><?= htmlspecialchars($colaborador->nome) ?>
                 <?= $colaborador->situacao ? '<span style="font-size:12px;color:#16a34a">● Ativo</span>' : '<span style="font-size:12px;color:#888">● Inativo</span>' ?>
             </h4>
-            <div style="color:#6b7280"><?= htmlspecialchars($colaborador->cargo ?: 'Sem cargo') ?><?= $colaborador->departamento ? ' · '.htmlspecialchars($colaborador->departamento) : '' ?></div>
+            <div class="rh-rotulo"><?= htmlspecialchars($colaborador->cargo ?: 'Sem cargo') ?><?= $colaborador->departamento ? ' · '.htmlspecialchars($colaborador->departamento) : '' ?></div>
             <div style="color:#9ca3af;font-size:13px;margin-top:2px">
                 <?= $unidade ? '<i class="bx bx-buildings"></i> '.htmlspecialchars($unidade->nome).' &nbsp; ' : '' ?>
                 <?= $jornada ? '<i class="bx bx-time"></i> '.htmlspecialchars($jornada->nome) : '' ?>
             </div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <a href="<?= site_url('rh/espelho/'.$colaborador->id.'/'.$competencia) ?>" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-calendar-check'></i></span><span class="button__text2"> Espelho</span></a>
+            <a href="<?= site_url('rh/espelho/'.$colaborador->id.'/'.$competencia) . $voltarFicha ?>" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-calendar-check'></i></span><span class="button__text2"> Espelho</span></a>
             <?php if ($pode_editar): ?>
                 <a href="<?= site_url('rh/ajustarPonto/'.$colaborador->id.'/'.$competencia) ?>" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-edit-alt'></i></span><span class="button__text2"> Ajustar ponto</span></a>
             <?php endif; ?>
             <?php if ($pode_financeiro): ?>
-                <a href="<?= site_url('rh/holerite/'.$colaborador->id.'/'.$competencia) ?>" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2"> Holerite</span></a>
+                <a href="<?= site_url('rh/holerite/'.$colaborador->id.'/'.$competencia) . $voltarFicha ?>" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2"> Holerite</span></a>
             <?php endif; ?>
-            <a href="<?= site_url('rh/fichaCadastralPdf/'.$colaborador->id) ?>" target="_blank" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-file'></i></span><span class="button__text2"> Ficha p/ cliente</span></a>
+            <a href="<?= site_url('rh/fichaCadastralPdf/'.$colaborador->id) ?>" target="_blank" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-file'></i></span><span class="button__text2"> Ficha para o cliente</span></a>
             <a href="<?= site_url('rh/crachaPdf/'.$colaborador->id) ?>" target="_blank" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-id-card'></i></span><span class="button__text2"> Crachá</span></a>
             <?php if ($pode_editar): ?>
                 <a href="<?= site_url('rh/biometria/'.$colaborador->id) ?>" class="button btn btn-mini <?= $tem_biometria ? 'btn-success':'btn-warning' ?>"><span class="button__icon"><i class='bx bx-face'></i></span><span class="button__text2"> Facial <?= $tem_biometria?'✓':'' ?></span></a>
-                <a href="<?= site_url('rh/editarColaborador/'.$colaborador->id) ?>" class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-edit'></i></span><span class="button__text2"> Editar</span></a>
+                <a href="<?= site_url('rh/editarColaborador/'.$colaborador->id) . $voltarFicha ?>" class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-edit'></i></span><span class="button__text2"> Editar</span></a>
             <?php endif; ?>
         </div>
     </div></div>
@@ -87,24 +89,24 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
                 <div class="widget-content">
                     <table style="width:100%;font-size:13px">
                         <tr><td style="color:#6b7280;padding:3px 0">Contrato</td><td><?= htmlspecialchars($colaborador->tipo_contrato) ?></td></tr>
-                        <tr><td style="color:#6b7280">Admissão</td><td><?= $colaborador->admissao ? date('d/m/Y', strtotime($colaborador->admissao)) : '-' ?></td></tr>
+                        <tr><td class="rh-rotulo">Admissão</td><td><?= $colaborador->admissao ? date('d/m/Y', strtotime($colaborador->admissao)) : '-' ?></td></tr>
                         <?php if (! empty($colaborador->demissao)): ?>
-                        <tr><td style="color:#6b7280">Demissão</td><td style="color:#dc2626"><?= date('d/m/Y', strtotime($colaborador->demissao)) ?>
+                        <tr><td class="rh-rotulo">Demissão</td><td style="color:#dc2626"><?= date('d/m/Y', strtotime($colaborador->demissao)) ?>
                             <?= ! empty($colaborador->tipo_desligamento) ? ' · '.htmlspecialchars($colaborador->tipo_desligamento) : '' ?></td></tr>
                         <?php endif; ?>
-                        <tr><td style="color:#6b7280">CPF</td><td><?= htmlspecialchars($colaborador->cpf ?: '-') ?></td></tr>
-                        <tr><td style="color:#6b7280">CTPS</td><td><?php
+                        <tr><td class="rh-rotulo">CPF</td><td><?= htmlspecialchars($colaborador->cpf ?: '-') ?></td></tr>
+                        <tr><td class="rh-rotulo">CTPS</td><td><?php
                             $ctps = trim(($colaborador->ctps_numero ?? '') . ' / ' . ($colaborador->ctps_serie ?? '') . ' ' . ($colaborador->ctps_uf ?? ''));
                             echo htmlspecialchars(trim($ctps, ' /') ?: '-');
                         ?></td></tr>
-                        <tr><td style="color:#6b7280">PIS/PASEP</td><td><?= htmlspecialchars($colaborador->pis_pasep ?? '-') ?></td></tr>
-                        <tr><td style="color:#6b7280">Celular</td><td><?= htmlspecialchars($colaborador->celular ?: '-') ?></td></tr>
-                        <tr><td style="color:#6b7280">E-mail</td><td><?= htmlspecialchars($colaborador->email ?: '-') ?></td></tr>
+                        <tr><td class="rh-rotulo">PIS/PASEP</td><td><?= htmlspecialchars($colaborador->pis_pasep ?? '-') ?></td></tr>
+                        <tr><td class="rh-rotulo">Celular</td><td><?= htmlspecialchars($colaborador->celular ?: '-') ?></td></tr>
+                        <tr><td class="rh-rotulo">E-mail</td><td><?= htmlspecialchars($colaborador->email ?: '-') ?></td></tr>
                         <?php if ($pode_financeiro): ?>
-                        <tr><td style="color:#6b7280">Salário base</td><td><?= $colaborador->salario_base ? 'R$ '.number_format($colaborador->salario_base,2,',','.') : '-' ?></td></tr>
-                        <tr><td style="color:#6b7280">PIX</td><td><?= htmlspecialchars(($colaborador->pix_tipo?$colaborador->pix_tipo.': ':'').($colaborador->pix_chave ?: '-')) ?></td></tr>
+                        <tr><td class="rh-rotulo">Salário base</td><td><?= $colaborador->salario_base ? 'R$ '.number_format($colaborador->salario_base,2,',','.') : '-' ?></td></tr>
+                        <tr><td class="rh-rotulo">PIX</td><td><?= htmlspecialchars(($colaborador->pix_tipo?$colaborador->pix_tipo.': ':'').($colaborador->pix_chave ?: '-')) ?></td></tr>
                         <?php endif; ?>
-                        <tr><td style="color:#6b7280">Acesso/login</td><td><?= $colaborador->usuarios_id ? 'Vinculado (bate ponto)' : '<span style="color:#d97706">sem acesso</span>' ?></td></tr>
+                        <tr><td class="rh-rotulo">Acesso/login</td><td><?= $colaborador->usuarios_id ? 'Vinculado (bate ponto)' : '<span style="color:#d97706">sem acesso</span>' ?></td></tr>
                     </table>
                 </div>
             </div>
@@ -123,7 +125,7 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
                                     <?php if (! empty($b->latitude) && ! empty($b->longitude)): ?>
                                         <a href="https://www.google.com/maps?q=<?= $b->latitude ?>,<?= $b->longitude ?>" target="_blank" rel="noopener" title="Ver no mapa"><i class='bx bx-map-pin'></i></a>
                                     <?php endif; ?>
-                                    <?php if (! empty($b->os_id)): ?><small style="color:#6b7280"> OS #<?= sprintf('%04d', $b->os_id) ?></small><?php endif; ?>
+                                    <?php if (! empty($b->os_id)): ?><small class="rh-rotulo"> OS #<?= sprintf('%04d', $b->os_id) ?></small><?php endif; ?>
                                 </td>
                                 <td style="text-align:right"><?= date('d/m H:i', strtotime($b->data_hora)) ?>
                                     <?php if ($b->dentro_geofence === '0'): ?><i class='bx bx-error' style="color:#dc2626" title="Fora da área"></i><?php endif; ?>
@@ -164,7 +166,7 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
                             <tr><td><?= $lblLan[$l->tipo] ?? $l->tipo ?> <?= $l->aprovado?'':'<small style="color:#d97706">(pendente)</small>' ?></td>
                                 <td style="text-align:right;color:<?= $l->natureza==='desconto'?'#dc2626':'#16a34a' ?>"><?= $l->natureza==='desconto'?'-':'+' ?> R$ <?= number_format($l->valor,2,',','.') ?></td></tr>
                         <?php endforeach; endif; ?>
-                        <tr style="background:#f9fafb"><td><strong>Líquido</strong></td><td style="text-align:right"><strong>R$ <?= number_format($resumo_financeiro['liquido'] ?? 0,2,',','.') ?></strong></td></tr>
+                        <tr class="rh-linha-total"><td><strong>Líquido</strong></td><td style="text-align:right"><strong>R$ <?= number_format($resumo_financeiro['liquido'] ?? 0,2,',','.') ?></strong></td></tr>
                     </table>
                 </div>
             </div>
@@ -184,7 +186,7 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
             </div>
         </div>
     </div>
-    <a href="<?= site_url('rh/colaboradores') ?>" class="button btn btn-warning"><span class="button__text2">Voltar</span></a>
+    <a href="<?= html_escape($rh_voltar_url ?? site_url('rh/colaboradores')) ?>" class="button btn btn-warning"><span class="button__text2"><?= html_escape($rh_voltar_rotulo ?? 'Voltar') ?></span></a>
 </div>
 
 <?php if ($pode_editar): ?>

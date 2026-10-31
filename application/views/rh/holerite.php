@@ -1,13 +1,16 @@
 <?php
-$this->load->view('rh/_subnav', ['ativo' => 'lancamentos']);
+$this->load->view('rh/_subnav', ['ativo' => $rh_ativo ?? 'folha']);
 $lblTipo = ['hora_extra'=>'Horas extras','adicional'=>'Adicional','comissao'=>'Comissão','bonus'=>'Bônus','adiantamento'=>'Adiantamento','desconto'=>'Desconto','falta'=>'Falta','vale'=>'Vale','inss'=>'INSS','irrf'=>'IRRF','vale_transporte'=>'Vale-transporte','salario'=>'Salário base'];
 $liberado = $holerite && ! empty($holerite->liberado_colaborador);
 $temArquivo = $holerite && ! empty($holerite->arquivo_base64);
 ?>
 <div class="new122">
-    <div class="widget-title" style="margin:0 0 10px">
-        <span class="icon"><i class="fas fa-receipt"></i></span>
-        <h5>Holerite — <?= htmlspecialchars($colaborador->nome) ?></h5>
+    <?php $this->load->view('rh/_migalha', ['atual' => 'Holerite de ' . $colaborador->nome]); ?>
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx bx-receipt"></i> Holerite — <?= html_escape($colaborador->nome) ?></h1>
+            <p class="ui-subtitulo">Competência <?= html_escape(date('m/Y', strtotime($competencia . '-01'))) ?>. Gere o holerite pelo sistema ou anexe o PDF da contabilidade e libere para o colaborador.</p>
+        </div>
     </div>
 
     <div style="margin-bottom:10px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center">
@@ -20,7 +23,7 @@ $temArquivo = $holerite && ! empty($holerite->arquivo_base64);
                 <span class="button__icon"><i class='bx bx-printer'></i></span><span class="button__text2"> Pré-visualizar PDF</span></a>
             <a href="<?= site_url("rh/holeritePdf/{$colaborador->id}/{$competencia}?liberar=1") ?>" class="button btn btn-mini btn-success"
                data-confirmar="Gerar o holerite e liberar para o colaborador ver na área dele?">
-                <span class="button__icon"><i class='bx bx-send'></i></span><span class="button__text2"> Gerar e liberar p/ colaborador</span></a>
+                <span class="button__icon"><i class='bx bx-send'></i></span><span class="button__text2"> Gerar e liberar para o colaborador</span></a>
         </div>
     </div>
 
@@ -98,9 +101,10 @@ $temArquivo = $holerite && ! empty($holerite->arquivo_base64);
                         <label style="margin-top:8px">Observação</label>
                         <textarea name="observacao" rows="2" class="span12"><?= $holerite ? htmlspecialchars($holerite->observacao) : '' ?></textarea>
                         <label style="font-weight:normal;margin-top:8px">
-                            <input type="checkbox" name="liberar_colaborador" value="1" <?= $liberado ? 'checked' : 'checked' ?>>
+                            <input type="checkbox" name="liberar_colaborador" value="1" <?= $liberado ? 'checked' : '' ?>>
                             Liberar para o colaborador ao salvar
                         </label>
+                        <small style="display:block;color:#6b7280;margin-top:2px">Marcado: o colaborador passa a ver este holerite na área dele. Desmarcado: fica guardado só para o RH.</small>
                         <div style="margin-top:10px;display:flex;gap:8px">
                             <button class="button btn btn-success"><span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2"> Salvar</span></button>
                             <?php if ($holerite): ?>
@@ -112,5 +116,5 @@ $temArquivo = $holerite && ! empty($holerite->arquivo_base64);
             </div>
         </div>
     </div>
-    <a href="<?= site_url('rh/ficha/'.$colaborador->id) ?>" class="button btn btn-warning"><span class="button__text2">Voltar à ficha</span></a>
+    <a href="<?= html_escape($rh_voltar_url ?? site_url('rh/ficha/'.$colaborador->id)) ?>" class="button btn btn-warning"><span class="button__text2"><?= html_escape($rh_voltar_rotulo ?? 'Voltar à ficha') ?></span></a>
 </div>

@@ -159,4 +159,26 @@ class Obra_equipe_model extends CI_Model
         $this->db->order_by('nome', 'ASC');
         return $this->db->get('obras')->result();
     }
+
+    /** Equipes ativas de que o usuario participa hoje (membro vigente ou encarregado). */
+    public function getEquipesDoUsuario($usuarioId)
+    {
+        if (! $this->db->table_exists('equipes')) {
+            return [];
+        }
+        $usuarioId = (int) $usuarioId;
+        $hoje = $this->db->escape(date('Y-m-d'));
+        $sub = '';
+        if ($this->db->table_exists('equipe_membros')) {
+            $sub = "OR equipes.idEquipe IN (SELECT equipe_id FROM equipe_membros WHERE colaborador_id = {$usuarioId} "
+                . "AND (data_saida IS NULL OR data_saida >= {$hoje}))";
+        }
+        $this->db->select('equipes.idEquipe, equipes.nome, (equipes.encarregado_id = ' . $usuarioId . ') AS encarregado', false);
+        $this->db->from('equipes');
+        $this->db->where('equipes.ativo', 1);
+        $this->db->where('(equipes.encarregado_id = ' . $usuarioId . ' ' . $sub . ')', null, false);
+        $this->db->order_by('equipes.nome', 'ASC');
+
+        return $this->db->get()->result();
+    }
 }

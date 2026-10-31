@@ -375,6 +375,36 @@ class Colaborador extends MY_Controller
     // Meus dados (edição limitada: contato/PIX)
     // ------------------------------------------------------------------
 
+    /** Foto do proprio colaborador (usada pelo menu lateral). */
+    public function foto()
+    {
+        $c = $this->rh_colaboradores_model->getById($this->colaborador->id);
+        if (! $c || empty($c->foto_base64)) {
+            show_404();
+            return;
+        }
+        $mime = $c->foto_mime ?: 'image/jpeg';
+        $dados = $c->foto_base64;
+        if (preg_match('/^data:(image\/\w+);base64,/', $dados, $m)) {
+            $mime = $m[1];
+            $dados = substr($dados, strlen($m[0]));
+        }
+        $bin = base64_decode($dados, true);
+        if ($bin === false) {
+            show_404();
+            return;
+        }
+        if (! in_array($mime, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true)) {
+            $mime = 'image/jpeg';
+        }
+        header('Content-Type: ' . $mime);
+        header('Content-Length: ' . strlen($bin));
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, max-age=3600');
+        echo $bin;
+        exit;
+    }
+
     public function meusDados()
     {
         if ($this->input->post('salvar')) {

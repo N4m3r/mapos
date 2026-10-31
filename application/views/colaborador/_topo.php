@@ -21,7 +21,7 @@ $voltar_url   = isset($voltar_url) ? $voltar_url : null;
     <link rel="shortcut icon" type="image/png" href="<?= base_url('assets/img/favicon.png') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/bootstrap.min.css') ?>">
     <link href="<?= base_url('assets/boxicons/css/boxicons.min.css') ?>" rel="stylesheet">
-    <link rel="stylesheet" href="<?= base_url('assets/css/tecnico.css') ?>?v=4">
+    <link rel="stylesheet" href="<?= base_url('assets/css/tecnico.css') ?>?v=<?= asset_versao('assets/css/tecnico.css', '4') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/rh.css') ?>?v=<?= asset_versao('assets/css/rh.css', '3') ?>">
     <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -30,12 +30,16 @@ $voltar_url   = isset($voltar_url) ? $voltar_url : null;
 <body class="tec-body">
     <header class="tec-header">
         <div class="tec-header-row">
+            <div class="tec-header-esq">
+                <button type="button" id="tec-menu-btn" class="tec-menu-btn" aria-label="Abrir menu" aria-haspopup="dialog" aria-controls="tec-menu" aria-expanded="false"><i class='bx bx-menu' aria-hidden="true"></i></button>
             <div>
                 <h1><i class='bx <?= $header_icone ?>'></i> <?= isset($titulo) ? $titulo : 'Área do Colaborador' ?></h1>
                 <?php if ($header_sub): ?><p><?= $header_sub ?></p><?php endif; ?>
+            </div>
             </div>
             <?php if ($voltar_url): ?>
                 <a href="<?= $voltar_url ?>" class="tec-back"><i class='bx bx-arrow-back'></i> Voltar</a>
             <?php endif; ?>
         </div>
     </header>
+<?php $this->load->view('tecnico/_menu_lateral'); ?>

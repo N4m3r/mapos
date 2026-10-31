@@ -14,6 +14,7 @@ class Rh extends MY_Controller
     {
         parent::__construct();
         $this->load->helper('form');
+        $this->load->library('rh_admin');
         $this->load->model('rh_colaboradores_model');
         $this->load->model('rh_ponto_model');
         $this->load->model('rh_extras_model');
@@ -38,6 +39,28 @@ class Rh extends MY_Controller
         }
     }
 
+    /**
+     * Prepara a navegação das telas de detalhe: destino do "Voltar" (?voltar=
+     * validado), aba ativa do menu e trilha "RH › Seção › Nome".
+     * $padraoRota: para onde voltar quando não veio ?voltar=.
+     * $padraoSecao: [aba, rótulo, url] usado quando não veio ?voltar=.
+     */
+    private function prepararNavegacao($padraoRota, array $padraoSecao)
+    {
+        $informado = ltrim(trim((string) $this->input->get('voltar')), '/');
+        $rota = Rh_admin::voltarSeguro($informado, $padraoRota);
+        $valido = $informado !== '' && $rota === $informado;
+        $secao = $valido ? Rh_admin::secaoDe($rota) : $padraoSecao;
+
+        $this->data['rh_voltar_rota'] = $rota;
+        $this->data['rh_voltar_url'] = site_url($rota);
+        $this->data['rh_voltar_rotulo'] = Rh_admin::rotuloVoltar($rota);
+        $this->data['rh_voltar_qs'] = $valido ? '?voltar=' . rawurlencode($rota) : '';
+        $this->data['rh_ativo'] = $secao[0];
+        $this->data['rh_secao_rotulo'] = $secao[1];
+        $this->data['rh_secao_url'] = site_url($secao[2]);
+    }
+
     // =====================================================================
     // Dashboard
     // =====================================================================
@@ -47,6 +70,24 @@ class Rh extends MY_Controller
         $this->data['total_colaboradores'] = $this->rh_colaboradores_model->contarAtivos();
         $this->data['presentes_hoje'] = $this->rh_ponto_model->contarPresentesHoje();
         $this->data['pendencias'] = $this->rh_extras_model->contarPendencias();
+        $this->data['pend_tipo'] = $this->rh_extras_model->contarPendenciasPorTipo();
+        $this->data['sem_batida_hoje'] = $this->rh_ponto_model->contarAtivosSemBatidaHoje();
+        $this->data['pode_financeiro'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vRhFinanceiro');
+        $this->data['competencia'] = date('Y-m');
+        $this->data['holerites_pendentes'] = null;
+        if ($this->data['pode_financeiro']) {
+            $idsAtivos = array_map(function ($c) {
+                return (int) $c->id;
+            }, $this->rh_colaboradores_model->listarAtivosFolha());
+            $situacao = $this->rh_extras_model->situacaoHoleritesCompetencia($this->data['competencia']);
+            $liberados = 0;
+            foreach ($idsAtivos as $idAtivo) {
+                if (($situacao[$idAtivo] ?? '') === 'liberado') {
+                    $liberados++;
+                }
+            }
+            $this->data['holerites_pendentes'] = count($idsAtivos) - $liberados;
+        }
         $this->data['ultimos_registros'] = $this->rh_ponto_model->ultimosRegistros(12);
         $this->data['aniversariantes'] = $this->rh_colaboradores_model->aniversariantesDoMes();
 
@@ -60,7 +101,8 @@ class Rh extends MY_Controller
 
     public function colaboradores()
     {
-        $this->data['filtro_situacao'] = $this->input->get('situacao');
+        $situacao = $this->input->get('situacao');
+        $this->data['filtro_situacao'] = in_array($situacao, ['0', '1'], true) ? $situacao : '';
         $this->data['busca'] = $this->input->get('busca');
         $this->data['colaboradores'] = $this->rh_colaboradores_model->listar([
             'situacao' => $this->data['filtro_situacao'],
@@ -96,6 +138,7 @@ class Rh extends MY_Controller
 
         $this->data['unidades'] = $this->rh_colaboradores_model->listarUnidades();
         $this->data['jornadas'] = $this->rh_colaboradores_model->listarJornadas();
+        $this->prepararNavegacao('rh/colaboradores', ['colaboradores', 'Colaboradores', 'rh/colaboradores']);
         $this->data['usuarios'] = $this->usuariosDisponiveis();
         $this->data['view'] = 'rh/form_colaborador';
         return $this->layout();
@@ -133,6 +176,7 @@ class Rh extends MY_Controller
         $this->data['jornadas'] = $this->rh_colaboradores_model->listarJornadas();
         $this->data['usuarios'] = $this->usuariosDisponiveis($colaborador->usuarios_id);
         $this->data['tem_biometria'] = $this->rh_colaboradores_model->temBiometria($id);
+        $this->prepararNavegacao('rh/ficha/' . (int) $id, ['colaboradores', 'Colaboradores', 'rh/colaboradores']);
         $this->data['view'] = 'rh/form_colaborador';
         return $this->layout();
     }
@@ -162,6 +206,7 @@ class Rh extends MY_Controller
         }
         $competencia = $this->input->get('competencia') ?: date('Y-m');
         $this->load->library('rh_calculo');
+        $this->prepararNavegacao('rh/colaboradores', ['colaboradores', 'Colaboradores', 'rh/colaboradores']);
 
         $this->data['colaborador'] = $colaborador;
         $this->data['unidade'] = $colaborador->unidade_id ? $this->rh_colaboradores_model->getUnidade($colaborador->unidade_id) : null;
@@ -547,9 +592,15 @@ class Rh extends MY_Controller
     {
         $this->exigir('eRh', 'Sem permissão.');
         $dias = $this->input->post('dias_semana');
+        $cargaTxt = trim((string) $this->input->post('carga_diaria_min'));
+        $carga = $cargaTxt === '' ? 480 : Rh_admin::horasParaMinutos($cargaTxt);
+        if ($carga === null) {
+            $this->session->set_flashdata('error', 'Carga diária inválida. Use horas e minutos, por exemplo 08:48.');
+            redirect(site_url('rh/jornadas'));
+        }
         $dados = [
             'nome' => trim($this->input->post('nome')),
-            'carga_diaria_min' => (int) ($this->input->post('carga_diaria_min') ?: 480),
+            'carga_diaria_min' => $carga,
             'tolerancia_min' => (int) ($this->input->post('tolerancia_min') ?: 10),
             'dias_semana' => is_array($dias) ? implode(',', $dias) : ($dias ?: '1,2,3,4,5'),
             'hora_entrada' => $this->input->post('hora_entrada') ?: null,
@@ -591,6 +642,7 @@ class Rh extends MY_Controller
         }
         $competencia = $competencia ?: date('Y-m');
         $this->prepararEspelho($colaborador, $competencia);
+        $this->prepararNavegacao('rh/ficha/' . (int) $colaborador->id, ['colaboradores', 'Colaboradores', 'rh/colaboradores']);
         $this->data['imprimir'] = false;
         $this->data['view'] = 'rh/espelho';
         return $this->layout();
@@ -707,7 +759,9 @@ class Rh extends MY_Controller
             $msg .= ' ' . (int) $n . ' lançamento(s) de extra gerado(s).';
         }
         $this->session->set_flashdata('success', $msg);
-        redirect(site_url("rh/espelho/$colaborador_id/$competencia"));
+        $informado = ltrim(trim((string) $this->input->get('voltar')), '/');
+        $qs = ($informado !== '' && Rh_admin::voltarSeguro($informado, '') === $informado) ? '?voltar=' . rawurlencode($informado) : '';
+        redirect(site_url("rh/espelho/$colaborador_id/$competencia") . $qs);
     }
 
     // =====================================================================
@@ -721,7 +775,19 @@ class Rh extends MY_Controller
         $colaboradorId = $this->input->get('colaborador_id') ?: null;
         $this->data['competencia'] = $competencia;
         $this->data['colaborador_id'] = $colaboradorId;
-        $this->data['lancamentos'] = $this->rh_extras_model->listarLancamentos($colaboradorId, $competencia);
+        $somentePendentes = $this->input->get('pendentes') === '1';
+        $this->data['somente_pendentes'] = $somentePendentes;
+        if ($somentePendentes) {
+            // Horas extras aguardando aprovação, de qualquer competência
+            $this->data['lancamentos'] = array_values(array_filter(
+                $this->rh_extras_model->listarLancamentos($colaboradorId, null),
+                function ($l) {
+                    return (int) $l->aprovado === 0 && $l->tipo === 'hora_extra';
+                }
+            ));
+        } else {
+            $this->data['lancamentos'] = $this->rh_extras_model->listarLancamentos($colaboradorId, $competencia);
+        }
         $this->data['colaboradores'] = $this->rh_colaboradores_model->listar(['situacao' => 1]);
         $this->data['view'] = 'rh/lancamentos';
         return $this->layout();
@@ -831,6 +897,7 @@ class Rh extends MY_Controller
             $this->data['resumo']['liquido'] = $folha['liquido'];
         }
         $this->data['holerite'] = $this->rh_extras_model->getHolerite($colaborador_id, $competencia);
+        $this->prepararNavegacao('rh/ficha/' . (int) $colaborador->id, ['folha', 'Folha', 'rh/folha']);
         $this->data['view'] = 'rh/holerite';
         return $this->layout();
     }
@@ -991,8 +1058,9 @@ class Rh extends MY_Controller
             $tot['faltas'] += $d['horas']['minutos_faltas'] ?? 0;
         }
         $this->data['competencia'] = $competencia;
-        $this->data['linhas'] = $linhas;
         $this->data['tot'] = $tot;
+        $this->data['holerites'] = $this->rh_extras_model->situacaoHoleritesCompetencia($competencia);
+        $this->data['linhas'] = $linhas;
     }
 
     /** Folha de pagamento — relatório consolidado da competência (tela). */
@@ -1280,7 +1348,8 @@ class Rh extends MY_Controller
 
     public function ocorrencias()
     {
-        $this->data['status'] = $this->input->get('status') ?: '';
+        $status = $this->input->get('status');
+        $this->data['status'] = $status === null ? 'pendente' : (in_array($status, ['pendente', 'aprovado', 'recusado'], true) ? $status : '');
         $this->data['ocorrencias'] = $this->rh_extras_model->listarOcorrencias(['status' => $this->data['status']]);
         $this->data['view'] = 'rh/ocorrencias';
         return $this->layout();
@@ -1291,7 +1360,11 @@ class Rh extends MY_Controller
         $this->exigir('aprovarRh', 'Você não tem permissão para aprovar.');
         $id = $this->input->post('id');
         $status = $this->input->post('status'); // aprovado|recusado
-        $resposta = $this->input->post('resposta');
+        $resposta = trim((string) $this->input->post('resposta'));
+        if ($status === 'recusado' && $resposta === '') {
+            $this->session->set_flashdata('error', 'Informe a justificativa para recusar a ocorrência.');
+            redirect(site_url('rh/ocorrencias'));
+        }
         if ($id && in_array($status, ['aprovado', 'recusado'], true)) {
             $this->rh_extras_model->analisarOcorrencia($id, $status, $this->session->userdata('id_admin'), $resposta);
             $oc = $this->rh_extras_model->getOcorrencia($id);
@@ -1378,7 +1451,8 @@ class Rh extends MY_Controller
 
     public function ausencias()
     {
-        $this->data['status'] = $this->input->get('status') ?: '';
+        $status = $this->input->get('status');
+        $this->data['status'] = $status === null ? 'pendente' : (in_array($status, ['pendente', 'aprovado', 'recusado'], true) ? $status : '');
         $this->data['ausencias'] = $this->rh_extras_model->listarAusencias(['status' => $this->data['status']]);
         $this->data['view'] = 'rh/ausencias';
         return $this->layout();
@@ -1389,7 +1463,11 @@ class Rh extends MY_Controller
         $this->exigir('aprovarRh', 'Você não tem permissão para aprovar.');
         $id = $this->input->post('id');
         $status = $this->input->post('status');
-        $resposta = $this->input->post('resposta');
+        $resposta = trim((string) $this->input->post('resposta'));
+        if ($status === 'recusado' && $resposta === '') {
+            $this->session->set_flashdata('error', 'Informe a justificativa para recusar a solicitação.');
+            redirect(site_url('rh/ausencias'));
+        }
         if ($id && in_array($status, ['aprovado', 'recusado'], true)) {
             $aus = $this->rh_extras_model->getAusencia($id);
             $this->rh_extras_model->analisarAusencia($id, $status, $this->session->userdata('id_admin'), $resposta);

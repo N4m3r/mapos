@@ -165,6 +165,29 @@ class Rh_ponto_model extends CI_Model
     }
 
     /** Registros mais recentes de todos os colaboradores (feed do dashboard). */
+    /** Colaboradores ativos sem nenhuma batida hoje (exclui quem tem ausência aprovada hoje). */
+    public function contarAtivosSemBatidaHoje()
+    {
+        if (! $this->suportado() || ! $this->db->table_exists('rh_colaboradores')) {
+            return 0;
+        }
+        $hoje = date('Y-m-d');
+        $sql = "SELECT COUNT(*) AS total FROM rh_colaboradores c
+                WHERE c.situacao = 1
+                AND NOT EXISTS (SELECT 1 FROM rh_ponto_registros r
+                    WHERE r.colaborador_id = c.id AND DATE(r.data_hora) = ? AND r.status != 'rejeitado')";
+        $binds = [$hoje];
+        if ($this->db->table_exists('rh_ausencias')) {
+            $sql .= " AND NOT EXISTS (SELECT 1 FROM rh_ausencias a
+                    WHERE a.colaborador_id = c.id AND a.status = 'aprovado' AND ? BETWEEN a.data_inicio AND a.data_fim)";
+            $binds[] = $hoje;
+        }
+        $query = $this->db->query($sql, $binds);
+        $row = $query ? $query->row() : null;
+
+        return $row ? (int) $row->total : 0;
+    }
+
     public function ultimosRegistros($limite = 15)
     {
         if (! $this->suportado()) {

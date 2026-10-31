@@ -377,17 +377,51 @@ class Rh_extras_model extends CI_Model
     /** Pendências de aprovação (ocorrências + ausências + HE) para o dashboard. */
     public function contarPendencias()
     {
-        $total = 0;
+        $c = $this->contarPendenciasPorTipo();
+
+        return $c['total'];
+    }
+
+    /** Pendências separadas por tipo (ocorrências, ausências, horas extras) + total. */
+    public function contarPendenciasPorTipo()
+    {
+        $r = ['ocorrencias' => 0, 'ausencias' => 0, 'lancamentos' => 0, 'total' => 0];
         if ($this->db->table_exists('rh_ocorrencias')) {
-            $total += $this->db->where('status', 'pendente')->count_all_results('rh_ocorrencias');
+            $r['ocorrencias'] = (int) $this->db->where('status', 'pendente')->count_all_results('rh_ocorrencias');
         }
         if ($this->db->table_exists('rh_ausencias')) {
-            $total += $this->db->where('status', 'pendente')->count_all_results('rh_ausencias');
+            $r['ausencias'] = (int) $this->db->where('status', 'pendente')->count_all_results('rh_ausencias');
         }
         // Horas extras / lançamentos aguardando aprovação
         if ($this->db->table_exists('rh_lancamentos')) {
-            $total += $this->db->where('aprovado', 0)->where('tipo', 'hora_extra')->count_all_results('rh_lancamentos');
+            $r['lancamentos'] = (int) $this->db->where('aprovado', 0)->where('tipo', 'hora_extra')->count_all_results('rh_lancamentos');
         }
-        return $total;
+        $r['total'] = $r['ocorrencias'] + $r['ausencias'] + $r['lancamentos'];
+
+        return $r;
+    }
+
+    /**
+     * Situação dos holerites da competência: [colaborador_id => 'anexado'|'liberado'].
+     * Quem não aparece não tem holerite. Não carrega o arquivo (LONGTEXT).
+     */
+    public function situacaoHoleritesCompetencia($competencia)
+    {
+        $mapa = [];
+        if (! $this->db->table_exists('rh_holerites')) {
+            return $mapa;
+        }
+        $temLiberacao = $this->db->field_exists('liberado_colaborador', 'rh_holerites');
+        $this->db->select("colaborador_id, (arquivo_base64 IS NOT NULL AND arquivo_base64 <> '') AS tem_arquivo"
+            . ($temLiberacao ? ', liberado_colaborador' : ''), false);
+        $query = $this->db->get_where('rh_holerites', ['competencia' => $competencia]);
+        foreach ($query ? $query->result() : [] as $h) {
+            if (! (int) $h->tem_arquivo) {
+                continue;
+            }
+            $mapa[(int) $h->colaborador_id] = ($temLiberacao && (int) $h->liberado_colaborador === 1) ? 'liberado' : 'anexado';
+        }
+
+        return $mapa;
     }
 }
