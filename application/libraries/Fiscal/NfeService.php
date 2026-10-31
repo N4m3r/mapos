@@ -12,6 +12,12 @@ use NFePHP\NFe\Make;
 use NFePHP\NFe\Tools;
 use stdClass;
 
+require_once APPPATH . 'helpers/tributacao_helper.php';
+require_once APPPATH . 'helpers/classificacao_fiscal_helper.php';
+require_once APPPATH . 'helpers/cliente_fiscal_helper.php';
+require_once APPPATH . 'helpers/regime_normal_helper.php';
+require_once APPPATH . 'helpers/cobranca_helper.php';
+
 /**
  * Emissão de NF-e (modelo 55) e NFC-e (modelo 65, via comoNfce()) para empresas
  * do Simples Nacional (CRT=1), a partir das Vendas do Mapos, usando nfephp-org/sped-nfe.
@@ -103,7 +109,18 @@ class NfeService
         // Reforma Tributária (Fase 2): quando ligada, o Make é montado no layout
         // PL_010 (schema > 9), que habilita o grupo IBS/CBS por item e o
         // totalizador. Desligada, mantém o PL_009 (comportamento atual, sem risco).
-        $reforma = !empty($this->config->reforma_ativa);
+        // Regime normal (op_simp_nac = 1, CRT 3): o grupo IBS/CBS e obrigatorio na
+        // NT 2025.002 (v1.40+); sem ele a SEFAZ rejeita (1115). Por isso vai SEMPRE,
+        // independente de reforma_ativa. Simples (3) e MEI (2) seguem opcionais em
+        // 2026 e dependem do interruptor reforma_ativa.
+        $reforma = !empty($this->config->reforma_ativa) || (int) ($this->config->op_simp_nac ?? 0) === 1;
+        if ($reforma) {
+            // pre-validacao local por item (classificacao propria ou padrao): pega 1023/1024/1025 sem gastar numero
+            $errosIbs = fiscal_prevalidar_itens($itens, $this->config, $this->modelo, 'produto');
+            if ($errosIbs) {
+                throw new Exception(implode(' ', $errosIbs));
+            }
+        }
         $make = $reforma ? new Make('PL_010') : new Make();
 
         $std = new stdClass();
@@ -142,7 +159,14 @@ class NfeService
         $std->xNome = $this->emitente->nome;
         $std->CNPJ = $this->somenteNumeros($this->emitente->cnpj);
         $std->IE = $this->somenteNumeros($this->emitente->ie);
-        $std->CRT = 1;
+        // CRT: 1 Simples, 3 regime normal. rn_crt devolve 4 para MEI, mas o leiaute da
+        // NF-e so aceita CRT 1, 2 ou 3; MEI emite como Simples (CRT 1).
+        $crt = rn_crt((int) ($this->config->op_simp_nac ?? 3));
+        if ($crt === 4) {
+            $crt = 1;
+        }
+        $normal = $crt === 3;
+        $std->CRT = $crt;
         $make->tagemit($std);
 
         $std = new stdClass();
@@ -172,8 +196,8 @@ class NfeService
                 : $venda->nomeCliente;
             if (strlen($documento) === 14) {
                 $std->CNPJ = $documento;
-                $std->indIEDest = !empty($venda->ie) ? 1 : 9;
-                if (!empty($venda->ie)) {
+                $std->indIEDest = cliente_ind_ie_dest($venda);
+                if ($std->indIEDest === 1 && !empty($venda->ie)) {
                     $std->IE = $this->somenteNumeros($venda->ie);
                 }
             } else {
@@ -183,6 +207,10 @@ class NfeService
             if ($nfce) {
                 $std->indIEDest = 9;
                 unset($std->IE);
+            }
+            // Zona Franca de Manaus: inscricao SUFRAMA valida vai na tag ISUF (so informativa)
+            if (! $nfce && ! empty($venda->inscricao_suframa) && cliente_suframa_valida((string) $venda->inscricao_suframa)) {
+                $std->ISUF = trim((string) $venda->inscricao_suframa);
             }
             $make->tagdest($std);
         }
@@ -207,9 +235,25 @@ class NfeService
             $make->tagenderDest($std);
         }
 
+        // Regime normal: DIFAL (destinatario nao contribuinte em outra UF) ainda nao suportado
+        if ($normal && $interestadual && $documento !== '' && (strlen($documento) === 11 || cliente_ind_ie_dest($venda) === 9)) {
+            throw new Exception('DIFAL ainda não suportado; consulte o contador.');
+        }
+
+        // desconto total rateado entre os itens, proporcional ao subtotal e fechando no centavo
+        $subtotais = [];
+        foreach ($itens as $it) {
+            $subtotais[] = round((float) $it->quantidade * (float) $it->preco, 2);
+        }
+        $descontoTotal = max(0.0, min((float) ($venda->desconto ?? 0), array_sum($subtotais)));
+        $descontosItem = cobranca_ratear_centavos($subtotais, (int) round($descontoTotal * 100));
+
         // itens
         $nItem = 0;
+        $totDesc = 0.0;
         $totalProdutos = 0.0;
+        $totBcIcms = 0.0;
+        $totIcms = 0.0;
         foreach ($itens as $item) {
             $nItem++;
             $ncm = $this->somenteNumeros($item->ncm ?? '');
@@ -225,6 +269,9 @@ class NfeService
             $valorUnitario = (float) $item->preco;
             $subTotal = round($quantidade * $valorUnitario, 2);
             $totalProdutos += $subTotal;
+            $vDescItem = ($descontosItem[$nItem - 1] ?? 0) / 100;
+            $baseItem = round($subTotal - $vDescItem, 2);
+            $totDesc += $vDescItem;
 
             $std = new stdClass();
             $std->item = $nItem;
@@ -246,6 +293,9 @@ class NfeService
             $std->uTrib = $item->unidade ?: 'UN';
             $std->qTrib = number_format($quantidade, 4, '.', '');
             $std->vUnTrib = number_format($valorUnitario, 10, '.', '');
+            if ($vDescItem > 0) {
+                $std->vDesc = number_format($vDescItem, 2, '.', '');
+            }
             $std->indTot = 1;
             $make->tagprod($std);
 
@@ -254,46 +304,97 @@ class NfeService
             $std->vTotTrib = 0.00;
             $make->tagimposto($std);
 
-            // ICMS Simples Nacional
-            $std = new stdClass();
-            $std->item = $nItem;
-            $std->orig = 0;
-            $std->CSOSN = $this->config->csosn_padrao;
-            $make->tagICMSSN($std);
+            if ($normal) {
+                // Regime normal: ICMS normal + PIS/COFINS com aliquota (a lib soma os totais)
+                $icms = rn_icms_item([
+                    'icms_cst' => $item->icms_cst ?? null,
+                    'icms_aliquota' => $item->icms_aliquota ?? null,
+                    'vProd' => $subTotal,
+                    'vDesc' => $vDescItem,
+                ], $this->config, $interestadual);
+                $std = new stdClass();
+                $std->item = $nItem;
+                $std->orig = classificacao_efetiva($item, $this->config, 'produto')['origem'];
+                $std->CST = $icms['cst'];
+                if ($icms['cst'] === '00') {
+                    $std->modBC = 3;
+                    $std->vBC = number_format($icms['vBC'], 2, '.', '');
+                    $std->pICMS = number_format($icms['pICMS'], 4, '.', '');
+                    $std->vICMS = number_format($icms['vICMS'], 2, '.', '');
+                }
+                $totBcIcms += $icms['vBC'];
+                $totIcms += $icms['vICMS'];
+                $make->tagICMS($std);
 
-            // PIS/COFINS - outras operações (sem destaque no Simples Nacional)
-            $std = new stdClass();
-            $std->item = $nItem;
-            $std->CST = '49';
-            $std->vBC = 0.00;
-            $std->pPIS = 0.0000;
-            $std->vPIS = 0.00;
-            $make->tagPIS($std);
+                $pc = rn_pis_cofins_item($baseItem, $this->config);
+                $semValor = in_array($pc['cst'], ['04', '05', '06', '07', '08', '09'], true);
+                $std = new stdClass();
+                $std->item = $nItem;
+                $std->CST = $pc['cst'];
+                if (! $semValor) {
+                    $std->vBC = number_format($pc['vBC'], 2, '.', '');
+                    $std->pPIS = number_format($pc['pPIS'], 4, '.', '');
+                    $std->vPIS = number_format($pc['vPIS'], 2, '.', '');
+                }
+                $make->tagPIS($std);
 
-            $std = new stdClass();
-            $std->item = $nItem;
-            $std->CST = '49';
-            $std->vBC = 0.00;
-            $std->pCOFINS = 0.0000;
-            $std->vCOFINS = 0.00;
-            $make->tagCOFINS($std);
+                $std = new stdClass();
+                $std->item = $nItem;
+                $std->CST = $pc['cst'];
+                if (! $semValor) {
+                    $std->vBC = number_format($pc['vBC'], 2, '.', '');
+                    $std->pCOFINS = number_format($pc['pCOFINS'], 4, '.', '');
+                    $std->vCOFINS = number_format($pc['vCOFINS'], 2, '.', '');
+                }
+                $make->tagCOFINS($std);
+            } else {
+                // ICMS Simples Nacional
+                $std = new stdClass();
+                $std->item = $nItem;
+                $std->orig = classificacao_efetiva($item, $this->config, 'produto')['origem'];
+                $std->CSOSN = $this->config->csosn_padrao;
+                $make->tagICMSSN($std);
+
+                // PIS/COFINS - outras operações (sem destaque no Simples Nacional)
+                $std = new stdClass();
+                $std->item = $nItem;
+                $std->CST = '49';
+                $std->vBC = 0.00;
+                $std->pPIS = 0.0000;
+                $std->vPIS = 0.00;
+                $make->tagPIS($std);
+
+                $std = new stdClass();
+                $std->item = $nItem;
+                $std->CST = '49';
+                $std->vBC = 0.00;
+                $std->pCOFINS = 0.0000;
+                $std->vCOFINS = 0.00;
+                $make->tagCOFINS($std);
+            }
 
             // Grupo IBS/CBS (reforma tributária) — só quando ativado nas
             // configurações. Alíquotas/CST/cClassTrib são parametrizáveis; a
             // base é o valor do item. O totalizador é montado pela lib.
             if ($reforma) {
-                $pIBSUF = (float) ($this->config->reforma_ibs_uf ?? 0);
-                $pIBSMun = (float) ($this->config->reforma_ibs_mun ?? 0);
-                $pCBS = (float) ($this->config->reforma_cbs ?? 0);
-                $vIBSUF = round($subTotal * $pIBSUF / 100, 2);
-                $vIBSMun = round($subTotal * $pIBSMun / 100, 2);
-                $vCBS = round($subTotal * $pCBS / 100, 2);
+                $cls = classificacao_efetiva($item, $this->config, 'produto');
+                $pRed = (float) ($item->p_red_ibscbs ?? 0);
+                $fator = 1 - max(0.0, min(100.0, $pRed)) / 100;
+                $pIBSUFBase = (float) ($this->config->reforma_ibs_uf ?? 0);
+                $pIBSMunBase = (float) ($this->config->reforma_ibs_mun ?? 0);
+                $pCBSBase = (float) ($this->config->reforma_cbs ?? 0);
+                $pIBSUF = round($pIBSUFBase * $fator, 4);
+                $pIBSMun = round($pIBSMunBase * $fator, 4);
+                $pCBS = round($pCBSBase * $fator, 4);
+                $vIBSUF = round($baseItem * $pIBSUF / 100, 2);
+                $vIBSMun = round($baseItem * $pIBSMun / 100, 2);
+                $vCBS = round($baseItem * $pCBS / 100, 2);
 
                 $std = new stdClass();
                 $std->item = $nItem;
-                $std->CST = $this->config->reforma_cst ?: '000';
-                $std->cClassTrib = $this->config->reforma_cclasstrib ?: '000001';
-                $std->vBC = number_format($subTotal, 2, '.', '');
+                $std->CST = $cls['cst'] ?: '000';
+                $std->cClassTrib = $cls['cclasstrib'] ?: '000001';
+                $std->vBC = number_format($baseItem, 2, '.', '');
                 $std->gIBSUF_pIBSUF = $pIBSUF;
                 $std->gIBSUF_vIBSUF = number_format($vIBSUF, 2, '.', '');
                 $std->gIBSMun_pIBSMun = $pIBSMun;
@@ -301,17 +402,26 @@ class NfeService
                 $std->vIBS = number_format($vIBSUF + $vIBSMun, 2, '.', '');
                 $std->gCBS_pCBS = $pCBS;
                 $std->gCBS_vCBS = number_format($vCBS, 2, '.', '');
+                if ($pRed > 0) {
+                    $std->gIBSUF_pRedAliq = $pRed;
+                    $std->gIBSUF_pAliqEfet = $pIBSUF;
+                    $std->gIBSMun_pRedAliq = $pRed;
+                    $std->gIBSMun_pAliqEfet = $pIBSMun;
+                    $std->gCBS_pRedAliq = $pRed;
+                    $std->gCBS_pAliqEfet = $pCBS;
+                }
                 $make->tagIBSCBS($std);
             }
         }
 
-        // desconto aplicado sobre o total (rateado pela lib no ICMSTot)
-        $desconto = (float) ($venda->desconto ?? 0);
+        // desconto ja rateado nos itens (vDesc em det/prod); total = soma dos itens
+        $desconto = round($totDesc, 2);
 
         // totais - a lib soma os itens automaticamente quando os campos vêm zerados
         $std = new stdClass();
-        $std->vBC = 0.00;
-        $std->vICMS = 0.00;
+        // a lib NAO soma vBC/vICMS dos itens: no regime normal vao acumulados aqui (PIS/COFINS ela soma)
+        $std->vBC = number_format($totBcIcms, 2, '.', '');
+        $std->vICMS = number_format($totIcms, 2, '.', '');
         $std->vICMSDeson = 0.00;
         $std->vBCST = 0.00;
         $std->vST = 0.00;
@@ -377,8 +487,8 @@ class NfeService
         }
         $infComplementar = trim((string) ($opcoes['info_complementar'] ?? ''));
         $std = new stdClass();
-        $std->infCpl = 'DOCUMENTO EMITIDO POR ME OU EPP OPTANTE PELO SIMPLES NACIONAL. '
-            . 'NAO GERA DIREITO A CREDITO FISCAL DE IPI.' . ($refDoc !== '' ? ' ' . $refDoc . '.' : '')
+        $std->infCpl = ($normal ? '' : 'DOCUMENTO EMITIDO POR ME OU EPP OPTANTE PELO SIMPLES NACIONAL. '
+            . 'NAO GERA DIREITO A CREDITO FISCAL DE IPI.') . ($refDoc !== '' ? ' ' . $refDoc . '.' : '')
             . ($infComplementar !== '' ? ' ' . $infComplementar : '');
         $make->taginfAdic($std);
 

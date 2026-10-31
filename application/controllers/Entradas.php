@@ -43,6 +43,7 @@ class Entradas extends MY_Controller
         $this->data['competencia'] = $competencia;
         $this->data['results'] = $this->entradas_model->getEntradas($competencia, 300);
         $this->data['credito'] = $competencia ? $this->entradas_model->creditoDoPeriodo($competencia) : null;
+        $this->data['pendente'] = $competencia ? $this->entradas_model->creditoPendente($competencia) : null;
         $this->data['competencias'] = $this->entradas_model->competenciasComEntrada();
         $this->data['menuEntradas'] = 'Entradas';
         $this->data['view'] = 'entradas/gerenciar';
@@ -146,6 +147,7 @@ class Entradas extends MY_Controller
             'v_cbs' => $this->numero($this->input->post('v_cbs')),
             'v_cred_pres_zfm' => $this->numero($this->input->post('v_cred_pres_zfm')),
             'credita' => $this->input->post('credita') ? 1 : 0,
+            'data_pagamento' => $this->dataOuNull($this->input->post('data_pagamento')),
             'observacao' => $this->input->post('observacao'),
             'usuarios_id' => $this->session->userdata('id_admin'),
             'data_cadastro' => date('Y-m-d H:i:s'),
@@ -166,6 +168,22 @@ class Entradas extends MY_Controller
         $entrada = $this->entradas_model->getById($id);
         if ($entrada) {
             $this->entradas_model->update($id, ['credita' => $entrada->credita ? 0 : 1]);
+        }
+        redirect(site_url('entradas?competencia=' . urlencode((string) ($entrada->competencia ?? ''))));
+    }
+
+    /** Informa/edita a data de pagamento da nota (base do crédito financeiro). */
+    public function pagamento($id = null)
+    {
+        if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'cEntrada')) {
+            $this->session->set_flashdata('error', 'Sem permissão.');
+            redirect(base_url());
+        }
+        $entrada = $this->entradas_model->getById($id);
+        if ($entrada && $this->input->method() === 'post') {
+            $data = $this->dataOuNull($this->input->post('data_pagamento'));
+            $this->entradas_model->setDataPagamento($id, $data);
+            $this->session->set_flashdata('success', $data ? 'Data de pagamento salva.' : 'Data de pagamento removida.');
         }
         redirect(site_url('entradas?competencia=' . urlencode((string) ($entrada->competencia ?? ''))));
     }
@@ -195,13 +213,47 @@ class Entradas extends MY_Controller
         $competencia = $this->competenciaValida($this->input->get('competencia')) ?: date('Y-m');
 
         $this->data['competencia'] = $competencia;
-        $this->data['debito'] = $this->entradas_model->debitoDoPeriodo($competencia);
-        $this->data['credito'] = $this->entradas_model->creditoDoPeriodo($competencia);
+        $this->data = array_merge($this->data, $this->montarApuracao($competencia));
         $this->data['competencias'] = $this->entradas_model->competenciasComEntrada();
         $this->data['menuEntradas'] = 'Entradas';
         $this->data['view'] = 'entradas/apuracao';
 
         return $this->layout();
+    }
+
+    /** Baixa a apuração do mês em CSV. */
+    public function apuracaoCsv()
+    {
+        if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'vEntrada')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para visualizar a apuração.');
+            redirect(base_url());
+        }
+
+        $competencia = $this->competenciaValida($this->input->get('competencia')) ?: date('Y-m');
+        $d = $this->montarApuracao($competencia);
+        $linhas = array_merge($d['debito']['linhas'], $d['linhasCred'], $d['linhasPend']);
+        $csv = "\xEF\xBB\xBF" . apuracao_csv($d['apuracao'], $linhas);
+
+        $this->output
+            ->set_content_type('text/csv', 'UTF-8')
+            ->set_header('Content-Disposition: attachment; filename="apuracao-ibs-cbs-' . $competencia . '.csv"')
+            ->set_output($csv);
+    }
+
+    /** Monta a apuração assistida da competência (débitos x créditos). */
+    private function montarApuracao($competencia)
+    {
+        $this->load->helper('apuracao');
+        $debito = $this->entradas_model->debitoDoPeriodo($competencia);
+        $linhasCred = $this->entradas_model->linhasCredito($competencia, true);
+        $linhasPend = $this->entradas_model->linhasCredito($competencia, false);
+
+        return [
+            'debito' => $debito,
+            'linhasCred' => $linhasCred,
+            'linhasPend' => $linhasPend,
+            'apuracao' => apuracao_montar($debito['linhas'], $linhasCred, $linhasPend),
+        ];
     }
 
     /* -------------------------------------------------- helpers */
@@ -212,6 +264,18 @@ class Entradas extends MY_Controller
         $valor = trim((string) $valor);
 
         return preg_match('/^\d{4}-\d{2}$/', $valor) ? $valor : null;
+    }
+
+    /**
+     * Data Y-m-d válida ou null. Usa a conversão da base (aceita dd/mm/aaaa)
+     * e descarta o que não for data, para não gravar lixo em data_pagamento.
+     */
+    protected function dataOuNull($v)
+    {
+        $d = parent::dataOuNull($v);
+        $ts = $d === null ? false : strtotime($d);
+
+        return $ts ? date('Y-m-d', $ts) : null;
     }
 
     /** Converte "1.234,56" ou "1234.56" em float. */

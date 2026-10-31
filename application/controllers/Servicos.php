@@ -11,6 +11,7 @@ class Servicos extends MY_Controller
         parent::__construct();
 
         $this->load->helper('form');
+        $this->load->helper('classificacao_fiscal');
         $this->load->model('servicos_model');
         $this->data['menuServicos'] = 'Serviços';
     }
@@ -71,6 +72,8 @@ class Servicos extends MY_Controller
                 'codigo_tributacao_municipal' => preg_replace('/\D/', '', (string) $this->input->post('codigo_tributacao_municipal')),
             ];
 
+            $data = classificacao_aplicar_post($data, 'servico', 'servicos');
+
             if ($this->servicos_model->add('servicos', $data) == true) {
                 $this->session->set_flashdata('success', 'Serviço adicionado com sucesso!');
                 log_info('Adicionou um serviço');
@@ -105,6 +108,8 @@ class Servicos extends MY_Controller
                 'codigo_servico_municipio' => preg_replace('/\D/', '', (string) $this->input->post('codigo_servico_municipio')),
                 'codigo_tributacao_municipal' => preg_replace('/\D/', '', (string) $this->input->post('codigo_tributacao_municipal')),
             ];
+
+            $data = classificacao_aplicar_post($data, 'servico', 'servicos');
 
             if ($this->servicos_model->edit('servicos', $data, 'idServicos', $this->input->post('idServicos')) == true) {
                 $this->session->set_flashdata('success', 'Serviço editado com sucesso!');

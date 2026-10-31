@@ -151,6 +151,41 @@ class Nfe extends MY_Controller
                         $data['reforma_cclasstrib'] = $cct !== '' ? substr(str_pad($cct, 6, '0', STR_PAD_LEFT), 0, 6) : '000001';
                     }
 
+                    // NFS-e (DPS): indicador da operação e consumidor final do grupo IBSCBS.
+                    if ($this->db->field_exists('reforma_cindop', 'configuracoes_nfe')) {
+                        $cIndOp = preg_replace('/\D/', '', (string) $this->input->post('reforma_cindop'));
+                        $data['reforma_cindop'] = strlen($cIndOp) === 6 ? $cIndOp : null;
+                        $data['reforma_indfinal'] = $this->input->post('reforma_indfinal') ? 1 : 0;
+                    }
+
+                    // IVA-T17: regime normal (ICMS e PIS/COFINS). Guardado por field_exists.
+                    if ($this->db->field_exists('icms_cst_padrao', 'configuracoes_nfe')) {
+                        $cstIcms = (string) $this->input->post('icms_cst_padrao');
+                        $data['icms_cst_padrao'] = in_array($cstIcms, ['00', '40', '41', '50', '60'], true) ? $cstIcms : '00';
+                        foreach (['icms_aliquota_interna', 'icms_aliquota_interestadual'] as $campoAliq) {
+                            $data[$campoAliq] = max(0, min(100, (float) str_replace(',', '.', (string) $this->input->post($campoAliq))));
+                        }
+                        $data['pis_cofins_regime'] = $this->input->post('pis_cofins_regime') === 'nao_cumulativo' ? 'nao_cumulativo' : 'cumulativo';
+                        $cstPc = preg_replace('/\D/', '', (string) $this->input->post('pis_cofins_cst'));
+                        $data['pis_cofins_cst'] = $cstPc !== '' ? str_pad(substr($cstPc, 0, 2), 2, '0', STR_PAD_LEFT) : '01';
+                    }
+
+                    // % efetivo do DAS (Simples) — usado na cobrança. Guardado por field_exists.
+                    if ($this->db->field_exists('simples_aliquota_efetiva', 'configuracoes_nfe')) {
+                        $aliq = (float) str_replace(',', '.', (string) $this->input->post('simples_aliquota_efetiva'));
+                        $data['simples_aliquota_efetiva'] = max(0, min(100, $aliq));
+                    }
+
+                    // IVA-T9: opcao semestral IBS/CBS (DAS x regular) para MEI/Simples
+                    if ($this->db->table_exists('simples_opcao_ibscbs')) {
+                        $this->load->model('simples_opcao_model');
+                        foreach ((array) $this->input->post('opcao_ibscbs') as $chave => $regime) {
+                            if (preg_match('/^(20\d\d)-([12])$/', (string) $chave, $m)) {
+                                $this->simples_opcao_model->salvar((int) $m[1], (int) $m[2], (string) $regime);
+                            }
+                        }
+                    }
+
                     $this->nfe_model->saveConfig($data);
 
                     // valida o certificado imediatamente para dar retorno claro ao usuário
@@ -174,9 +209,15 @@ class Nfe extends MY_Controller
             }
         }
 
+        $this->load->helper('tributacao');
         $this->data['menuNfe'] = 'Notas Fiscais';
         $this->data['configNfe'] = $this->nfe_model->getConfig();
         $this->data['emitente'] = $this->mapos_model->getEmitente();
+        $this->load->model('simples_opcao_model');
+        $this->data['opcoesIbscbs'] = $this->simples_opcao_model->listar();
+        $this->data['opcaoTabelaOk'] = $this->db->table_exists('simples_opcao_ibscbs');
+        $this->load->model('tributos_parametros_model');
+        $this->data['parametrosAno'] = $this->tributos_parametros_model->doAno((int) date('Y'));
         $this->data['view'] = 'nfe/configuracoes';
 
         return $this->layout();
@@ -800,6 +841,10 @@ class Nfe extends MY_Controller
         $itens = [];
         $avisos = [];
         $defaults = [];
+        $this->load->helper('cliente_fiscal');
+        if (cliente_suframa_valida((string) ($os->inscricao_suframa ?? ''))) {
+            $avisos[] = 'Cliente com inscrição SUFRAMA (Zona Franca): IBS/CBS, ICMS e IPI podem ter tratamento próprio (LC 214, arts. 444-457). Confirme o CST/cClassTrib com seu contador antes de transmitir.';
+        }
         $total = 0.0;
         $produtos = [];
         $totalProdutos = 0.0;
@@ -818,6 +863,11 @@ class Nfe extends MY_Controller
                     'preco' => (float) $p->preco,
                     'subtotal' => $sub,
                 ];
+            }
+            $reformaOn = !empty($config->reforma_ativa) || (int) ($config->op_simp_nac ?? 0) === 1;
+            if ($reformaOn) {
+                $this->load->helper('classificacao_fiscal');
+                $avisos = array_merge($avisos, fiscal_prevalidar_itens($this->os_model->getProdutos($idOs), $config, 55, 'produto'));
             }
             if (empty($itens)) {
                 $avisos[] = 'Esta OS não possui produtos. Use "Emitir NFS-e" para os serviços.';
@@ -841,6 +891,19 @@ class Nfe extends MY_Controller
                     'preco' => $preco,
                     'subtotal' => $sub,
                 ];
+            }
+            if (!empty($config->reforma_ativa)) {
+                $this->load->helper('classificacao_fiscal');
+                $servPrev = $this->os_model->getServicos($idOs);
+                $avisos = array_merge($avisos, fiscal_prevalidar_itens($servPrev, $config, 55, 'servico'));
+                $chaves = [];
+                foreach ($servPrev as $sv) {
+                    $c = classificacao_efetiva($sv, $config, 'servico');
+                    $chaves[$c['cst'] . '|' . $c['cclasstrib'] . '|' . $c['cindop']] = 1;
+                }
+                if (count($chaves) > 1) {
+                    $avisos[] = 'Serviços com classificação IBS/CBS diferente precisam ir em notas separadas.';
+                }
             }
             if (empty($itens)) {
                 $avisos[] = 'Esta OS não possui serviços lançados.';

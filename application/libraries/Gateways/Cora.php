@@ -23,6 +23,7 @@ class Cora extends BasePaymentGateway
         $this->ci = &get_instance();
         $this->ci->load->config('payment_gateways');
         $this->ci->load->helper('general');
+        $this->ci->load->helper('cobranca');
         $this->ci->load->model('Os_model');
         $this->ci->load->model('vendas_model');
         $this->ci->load->model('cobrancas_model');
@@ -402,31 +403,10 @@ class Cora extends BasePaymentGateway
             $issRetido = round(((float) $nota->valor_total) * ((float) $config->aliquota_iss) / 100, 2);
         }
         $valorBoleto = round(((float) $nota->valor_total) - $issRetido, 2);
-
-        // Parcelamento: como a Cora não emite boleto parcelado nativo, cada parcela
-        // vira um boleto próprio. O valor é dividido em N (a 1ª parcela absorve as
-        // diferenças de centavos) e vence mensalmente a partir do 1º vencimento.
-        $parcelas = max(1, min(12, (int) ($opcoes['parcelas'] ?? 1)));
         $totalCents = getMoneyAsCents($valorBoleto);
-        $baseCents = intdiv($totalCents, $parcelas);
-        $restoCents = $totalCents - ($baseCents * $parcelas);
-        // A Cora exige valor mínimo de R$ 5,00 por boleto.
-        if ($baseCents < 500) {
-            if ($parcelas === 1) {
-                throw new \Exception('Valor do boleto abaixo do mínimo da Cora (R$ 5,00)' . ($issRetido > 0 ? ' após abater o ISS retido' : '') . '.');
-            }
-            throw new \Exception('Cada parcela ficaria abaixo do mínimo da Cora (R$ 5,00). Reduza o número de parcelas.');
-        }
 
         // Data do 1º vencimento: informada no modal (Y-m-d) ou prazo padrão da Cora.
-        $vencInformado = trim((string) ($opcoes['vencimento'] ?? ''));
-        try {
-            $primeiroVenc = ($vencInformado !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $vencInformado))
-                ? new DateTime($vencInformado)
-                : (new DateTime())->add(new DateInterval($this->coraConfig['boleto_expiration']));
-        } catch (\Throwable $e) {
-            $primeiroVenc = (new DateTime())->add(new DateInterval($this->coraConfig['boleto_expiration']));
-        }
+        $primeiroVenc = $this->primeiroVencimento($opcoes['vencimento'] ?? '');
 
         // Intervalo da 2ª parcela em diante: mensal (mesmo dia) ou a cada N dias.
         $intervaloTipo = (($opcoes['intervalo_tipo'] ?? 'mensal') === 'dias') ? 'dias' : 'mensal';
@@ -439,49 +419,80 @@ class Cora extends BasePaymentGateway
         $descricaoNota = ! empty($nota->descricao_servico) ? trim((string) $nota->descricao_servico) : '';
         $descricaoBase = $descricaoNota !== '' ? $descricaoNota : $descricaoDoc;
 
-        $documento = preg_replace('/[^0-9]/', '', $entity->documento);
-        // A Cora limita name/description; truncamos para não rejeitar.
-        $customer = [
-            'name' => mb_substr((string) $entity->nomeCliente, 0, 60),
-            'email' => mb_substr((string) $entity->email, 0, 60),
-            'document' => [
-                'identity' => $documento,
-                'type' => strlen($documento) > 11 ? 'CNPJ' : 'CPF',
-            ],
-            'address' => [
-                'street' => $entity->rua,
-                'number' => (string) $entity->numero,
-                'district' => $entity->bairro,
-                'city' => $entity->cidade,
-                'state' => $entity->estado,
-                'complement' => $entity->complemento ?: '',
-                'zip_code' => preg_replace('/[^0-9]/', '', $entity->cep),
-            ],
-        ];
+        $itensNota = $this->itensDaNota($nota, $tipoOrigem, $origemId);
+        $chavesNota = $itensNota ? implode(',', array_column($itensNota, 'chave')) : null;
 
+        // Lista de boletos a gerar: um por item da nota OU parcelas do valor total.
+        $boletos = [];
+        if (! empty($opcoes['por_item'])) {
+            if (count($itensNota) < 2) {
+                throw new \Exception('Esta nota tem só um item; gere um boleto único.');
+            }
+            // O valor da nota (já sem ISS retido) é rateado pelos itens, fechando no centavo.
+            $partes = cobranca_ratear_centavos(array_column($itensNota, 'valor'), $totalCents);
+            $issPartes = cobranca_ratear_centavos(array_column($itensNota, 'valor'), getMoneyAsCents($issRetido));
+            foreach ($itensNota as $n => $item) {
+                if ($partes[$n] < 500) {
+                    throw new \Exception('O item "' . $item['nome'] . '" ficaria abaixo do mínimo da Cora (R$ 5,00). Gere um boleto único.');
+                }
+                $boletos[] = [
+                    'cents' => $partes[$n],
+                    'iss' => $issPartes[$n] / 100,
+                    'due' => clone $primeiroVenc,
+                    'sufixo' => ' - ' . $item['nome'],
+                    'chave' => 'i' . ($n + 1),
+                    'itens_ref' => $item['chave'],
+                ];
+            }
+        } else {
+            // Parcelamento: como a Cora não emite boleto parcelado nativo, cada parcela
+            // vira um boleto próprio. O valor é dividido em N (a 1ª parcela absorve as
+            // diferenças de centavos) e vence a partir do 1º vencimento.
+            $parcelas = max(1, min(12, (int) ($opcoes['parcelas'] ?? 1)));
+            $baseCents = intdiv($totalCents, $parcelas);
+            $restoCents = $totalCents - ($baseCents * $parcelas);
+            // A Cora exige valor mínimo de R$ 5,00 por boleto.
+            if ($baseCents < 500) {
+                if ($parcelas === 1) {
+                    throw new \Exception('Valor do boleto abaixo do mínimo da Cora (R$ 5,00)' . ($issRetido > 0 ? ' após abater o ISS retido' : '') . '.');
+                }
+                throw new \Exception('Cada parcela ficaria abaixo do mínimo da Cora (R$ 5,00). Reduza o número de parcelas.');
+            }
+            for ($i = 0; $i < $parcelas; $i++) {
+                $modificador = $intervaloTipo === 'dias'
+                    ? '+' . ($i * $intervaloDias) . ' day'
+                    : '+' . $i . ' month';
+                $boletos[] = [
+                    'cents' => $baseCents + ($i === 0 ? $restoCents : 0),
+                    // Registra o ISS retido só na 1ª parcela para não somar em dobro.
+                    'iss' => $i === 0 ? $issRetido : 0.0,
+                    'due' => (clone $primeiroVenc)->modify($modificador),
+                    'sufixo' => $parcelas > 1 ? ' (' . ($i + 1) . '/' . $parcelas . ')' : '',
+                    // Mantém code/Idempotency-Key de antes: NOTA-<id>[-<n>] / nota-<id>-p<n>.
+                    'chave' => $parcelas > 1 ? (string) ($i + 1) : '',
+                    'idem' => 'p' . ($i + 1),
+                    'itens_ref' => $chavesNota,
+                ];
+            }
+        }
+
+        $customer = $this->montarCustomer($entity);
+        $total = count($boletos);
         $criadas = [];
-        for ($i = 0; $i < $parcelas; $i++) {
-            $parcelaCents = $baseCents + ($i === 0 ? $restoCents : 0);
-            $modificador = $intervaloTipo === 'dias'
-                ? '+' . ($i * $intervaloDias) . ' day'
-                : '+' . $i . ' month';
-            $dueDate = (clone $primeiroVenc)->modify($modificador)->format('Y-m-d');
-            $sufixoParcela = $parcelas > 1 ? ' (' . ($i + 1) . '/' . $parcelas . ')' : '';
-            // Registra o ISS retido só na 1ª parcela para não somar em dobro.
-            $issRetParcela = $i === 0 ? $issRetido : 0.0;
-
+        foreach ($boletos as $i => $b) {
+            $dueDate = $b['due']->format('Y-m-d');
             $descricaoServico = $descricaoBase
-                . ($issRetido > 0 ? ' (líquido de ISS retido R$ ' . number_format($issRetido, 2, ',', '.') . ')' : '')
-                . $sufixoParcela;
+                . ($b['iss'] > 0 ? ' (líquido de ISS retido R$ ' . number_format($b['iss'], 2, ',', '.') . ')' : '')
+                . $b['sufixo'];
 
             $body = [
-                'code' => 'NOTA-' . $idNota . ($parcelas > 1 ? '-' . ($i + 1) : ''),
+                'code' => 'NOTA-' . $idNota . ($b['chave'] !== '' ? '-' . $b['chave'] : ''),
                 'customer' => $customer,
                 'services' => [
                     [
-                        'name' => mb_substr($descricaoDoc . $sufixoParcela, 0, 60),
+                        'name' => mb_substr($descricaoDoc . $b['sufixo'], 0, 60),
                         'description' => mb_substr($descricaoServico, 0, 100),
-                        'amount' => $parcelaCents,
+                        'amount' => $b['cents'],
                     ],
                 ],
                 'payment_terms' => [
@@ -492,51 +503,23 @@ class Cora extends BasePaymentGateway
                 'payment_forms' => ['BANK_SLIP', 'PIX'],
             ];
 
-            // Idempotency-Key estável por nota+parcela evita duplicidade em reenvio.
+            // Idempotency-Key estável por nota+parcela/item evita duplicidade em reenvio.
             $result = $this->request('POST', '/v2/invoices/', $body, [
-                'Idempotency-Key: ' . $this->idempotencyKey('nota-' . $idNota . '-p' . ($i + 1)),
+                'Idempotency-Key: ' . $this->idempotencyKey('nota-' . $idNota . '-' . ($b['idem'] ?? $b['chave'])),
             ]);
 
-            $bankSlip = $result['payment_options']['bank_slip'] ?? [];
-            $pixEmv = $result['pix']['emv'] ?? '';
-            $urlBoleto = $bankSlip['url'] ?? '';
+            $data = $this->dadosCobranca($result, $dueDate, $b['cents'], $entity, $tipoOrigem, $origemId);
+            $data['valor_iss_retido'] = $b['iss'];
+            $data['nota_id'] = $idNota;
+            $data['message'] = 'Pagamento referente a ' . $descricaoBase . $b['sufixo'];
 
-            $data = [
-                'charge_id' => $result['id'] ?? '',
-                'status' => $result['status'] ?? 'OPEN',
-                'barcode' => $bankSlip['barcode'] ?? '',
-                'link' => $urlBoleto,
-                'payment_url' => $urlBoleto,
-                'pdf' => $urlBoleto,
-                'pix' => $pixEmv,
-                'expire_at' => $dueDate,
-                'conditional_discount_date' => $dueDate,
-                'created_at' => date('Y-m-d H:i:s'),
-                'total' => $parcelaCents,
-                'valor_iss_retido' => $issRetParcela,
-                'payment' => 'BANK_SLIP',
-                'payment_method' => 'boleto',
-                'payment_gateway' => 'Cora',
-                'clientes_id' => $entity->idClientes,
-                'nota_id' => $idNota,
-                'message' => 'Pagamento referente a ' . $descricaoBase . $sufixoParcela,
-            ];
-            if ($tipoOrigem === PaymentGateway::PAYMENT_TYPE_OS) {
-                $data['os_id'] = $origemId;
-            } else {
-                $data['vendas_id'] = $origemId;
-            }
-
-            $novoId = $this->ci->cobrancas_model->add('cobrancas', $data, true);
-            if (! $novoId) {
-                throw new \Exception('Erro ao salvar cobrança!');
-            }
+            $novoId = $this->salvarCobranca($data, $b['itens_ref']);
             $data['idCobranca'] = $novoId;
             $criadas[] = $data;
-            log_info('Boleto Cora criado. Nota ' . $idNota . ' parcela ' . ($i + 1) . '/' . $parcelas . ' / Invoice: ' . $data['charge_id']);
+            log_info('Boleto Cora criado. Nota ' . $idNota . ' boleto ' . ($i + 1) . '/' . $total . ' / Invoice: ' . $data['charge_id']);
 
             // Envio automático do boleto por e-mail (gatilho "cobranca_gerada"),
-            // apenas na 1ª parcela para não spamar o cliente. Nunca bloqueia a geração.
+            // apenas no 1º boleto para não spamar o cliente. Nunca bloqueia a geração.
             if ($i === 0) {
                 try {
                     $this->enviarPorEmail($novoId, 'cobranca_gerada');
@@ -860,14 +843,211 @@ class Cora extends BasePaymentGateway
     /* Contrato base: Cora é emitido por nota fiscal, não pelo total       */
     /* ------------------------------------------------------------------ */
 
+    /**
+     * Boleto + PIX Cora SEM nota fiscal, pela janela "Gerar cobrança"
+     * (aceita a escolha de itens: só serviços, só produtos, item a item).
+     * Com nota fiscal, use gerarBoletoParaNota (aba Notas Fiscais da OS).
+     */
     protected function gerarCobrancaBoleto($id, $tipo)
     {
-        throw new \Exception('O boleto Cora deve ser gerado a partir de uma nota fiscal emitida (aba Notas Fiscais da OS).');
+        $this->garantirAtiva();
+
+        $entity = $this->findEntity($id, $tipo);
+        if (empty($entity)) {
+            throw new \Exception('OS ou venda não existe!');
+        }
+        if ($err = $this->errosCadastro($entity)) {
+            throw new \Exception($err);
+        }
+
+        $ehOs = $tipo === PaymentGateway::PAYMENT_TYPE_OS;
+        $produtos = $ehOs ? $this->ci->Os_model->getProdutos($id) : $this->ci->vendas_model->getProdutos($id);
+        $servicos = $ehOs ? $this->ci->Os_model->getServicos($id) : [];
+        [$produtos, $servicos] = $this->aplicarSelecao($produtos, $servicos);
+
+        $soma = static function (array $itens) {
+            return array_reduce($itens, static function ($t, $i) {
+                return $t + floatval($i->preco) * intval($i->quantidade);
+            }, 0);
+        };
+        $bruto = $soma($produtos) + $soma($servicos);
+        if ($entity->tipo_desconto == 'porcento') {
+            $desconto = $entity->desconto * $bruto / 100;
+        } elseif ($entity->tipo_desconto == 'real') {
+            $desconto = $entity->desconto * $this->fatorDescontoReal;
+        } else {
+            $desconto = 0;
+        }
+        $cents = getMoneyAsCents(round($bruto - $desconto, 2));
+        if ($cents < 500) {
+            throw new \Exception('Valor do boleto abaixo do mínimo da Cora (R$ 5,00).');
+        }
+
+        $titulo = ($ehOs ? "OS #$id" : "Venda #$id") . $this->rotuloSelecao;
+        $vencimento = $this->primeiroVencimento('');
+        $dueDate = $vencimento->format('Y-m-d');
+
+        // Chave estável por documento + itens + nº de cobranças já feitas:
+        // reenvio do mesmo pedido não duplica, e cobrar de novo após cancelar gera outra.
+        $jaFeitas = count($ehOs ? $this->ci->Os_model->getCobrancas($id) : $this->ci->vendas_model->getCobrancas($id));
+        $seed = 'avulso-' . $tipo . '-' . $id . '-' . md5(json_encode($this->selecao)) . '-' . $jaFeitas;
+
+        $result = $this->request('POST', '/v2/invoices/', [
+            'code' => strtoupper($tipo) . '-' . $id . '-' . substr(md5($seed), 0, 6),
+            'customer' => $this->montarCustomer($entity),
+            'services' => [
+                [
+                    'name' => mb_substr($titulo, 0, 60),
+                    'description' => mb_substr('Pagamento referente a ' . $titulo, 0, 100),
+                    'amount' => $cents,
+                ],
+            ],
+            'payment_terms' => [
+                'due_date' => $dueDate,
+                'interest' => ['rate' => 0],
+            ],
+            'payment_forms' => ['BANK_SLIP', 'PIX'],
+        ], ['Idempotency-Key: ' . $this->idempotencyKey($seed)]);
+
+        $data = $this->dadosCobranca($result, $dueDate, $cents, $entity, $tipo, $id);
+        $data['message'] = 'Pagamento referente a ' . $titulo;
+        // itens_ref é gravado pelo controller (Cobrancas::adicionar), como nos demais gateways.
+        $data['idCobranca'] = $this->salvarCobranca($data, null);
+        log_info('Boleto Cora avulso criado. ' . $titulo . ' / Invoice: ' . $data['charge_id']);
+
+        try {
+            $this->enviarPorEmail($data['idCobranca'], 'cobranca_gerada');
+        } catch (\Throwable $e) {
+            log_info('Falha no envio automático do boleto (cobrança ' . $data['idCobranca'] . '): ' . $e->getMessage());
+        }
+
+        return $data;
+    }
+
+    /** 1º vencimento: data informada (Y-m-d) ou o prazo padrão configurado na Cora. */
+    private function primeiroVencimento($informado)
+    {
+        $informado = trim((string) $informado);
+        try {
+            if ($informado !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $informado)) {
+                return new DateTime($informado);
+            }
+        } catch (\Throwable $e) {
+        }
+
+        return (new DateTime())->add(new DateInterval($this->coraConfig['boleto_expiration']));
+    }
+
+    /** Cliente no formato da Cora (name/description têm limite; truncamos). */
+    private function montarCustomer($entity)
+    {
+        $documento = preg_replace('/[^0-9]/', '', $entity->documento);
+
+        return [
+            'name' => mb_substr((string) $entity->nomeCliente, 0, 60),
+            'email' => mb_substr((string) $entity->email, 0, 60),
+            'document' => [
+                'identity' => $documento,
+                'type' => strlen($documento) > 11 ? 'CNPJ' : 'CPF',
+            ],
+            'address' => [
+                'street' => $entity->rua,
+                'number' => (string) $entity->numero,
+                'district' => $entity->bairro,
+                'city' => $entity->cidade,
+                'state' => $entity->estado,
+                'complement' => $entity->complemento ?: '',
+                'zip_code' => preg_replace('/[^0-9]/', '', $entity->cep),
+            ],
+        ];
+    }
+
+    /** Linha da tabela cobrancas a partir da resposta da Cora. */
+    private function dadosCobranca(array $result, $dueDate, $cents, $entity, $tipoOrigem, $origemId)
+    {
+        $bankSlip = $result['payment_options']['bank_slip'] ?? [];
+        $urlBoleto = $bankSlip['url'] ?? '';
+        $data = [
+            'charge_id' => $result['id'] ?? '',
+            'status' => $result['status'] ?? 'OPEN',
+            'barcode' => $bankSlip['barcode'] ?? '',
+            'link' => $urlBoleto,
+            'payment_url' => $urlBoleto,
+            'pdf' => $urlBoleto,
+            'pix' => $result['pix']['emv'] ?? '',
+            'expire_at' => $dueDate,
+            'conditional_discount_date' => $dueDate,
+            'created_at' => date('Y-m-d H:i:s'),
+            'total' => $cents,
+            'payment' => 'BANK_SLIP',
+            'payment_method' => 'boleto',
+            'payment_gateway' => 'Cora',
+            'clientes_id' => $entity->idClientes,
+        ];
+        if ($tipoOrigem === PaymentGateway::PAYMENT_TYPE_OS) {
+            $data['os_id'] = $origemId;
+        } else {
+            $data['vendas_id'] = $origemId;
+        }
+
+        return $data;
+    }
+
+    /** Grava a cobrança (com os itens cobertos, se a coluna existir) e devolve o id. */
+    private function salvarCobranca(array $data, $itensRef)
+    {
+        if ($itensRef && $this->ci->db->field_exists('itens_ref', 'cobrancas')) {
+            $data['itens_ref'] = $itensRef;
+        }
+        $novoId = $this->ci->cobrancas_model->add('cobrancas', $data, true);
+        if (! $novoId) {
+            throw new \Exception('Erro ao salvar cobrança!');
+        }
+
+        return $novoId;
+    }
+
+    /**
+     * Itens cobertos pela nota, com chave ('p:'/'s:'), nome e valor bruto.
+     * A nota não guarda os itens: NF-e = produtos; NFS-e = serviços, mais os
+     * produtos quando foram incluídos nela (o valor da nota bate com a soma).
+     */
+    private function itensDaNota($nota, $tipoOrigem, $origemId)
+    {
+        $ehOs = $tipoOrigem === PaymentGateway::PAYMENT_TYPE_OS;
+        $produtos = [];
+        foreach ($ehOs ? $this->ci->Os_model->getProdutos($origemId) : $this->ci->vendas_model->getProdutos($origemId) as $p) {
+            $produtos[] = [
+                'chave' => cobranca_chave_item('produto', $p->idProdutos_os ?? $p->idItens ?? 0),
+                'nome' => (string) $p->descricao,
+                'valor' => round((float) $p->preco * (float) $p->quantidade, 2),
+            ];
+        }
+        if ($nota->tipo === 'nfe') {
+            return $produtos;
+        }
+
+        $servicos = [];
+        foreach ($ehOs ? $this->ci->Os_model->getServicos($origemId) : [] as $s) {
+            $servicos[] = [
+                'chave' => cobranca_chave_item('servico', $s->idServicos_os ?? 0),
+                'nome' => (string) $s->nome,
+                'valor' => round((float) ($s->preco ?: $s->precoVenda) * ((float) $s->quantidade ?: 1), 2),
+            ];
+        }
+        $valorNota = (float) $nota->valor_total;
+        $soServicos = array_sum(array_column($servicos, 'valor'));
+        $comProdutos = $soServicos + array_sum(array_column($produtos, 'valor'));
+
+        return $produtos && abs($comProdutos - $valorNota) < abs($soServicos - $valorNota)
+            ? array_merge($servicos, $produtos)
+            : $servicos;
     }
 
     protected function gerarCobrancaLink($id, $tipo)
     {
-        throw new \Exception('A Cora não emite link de pagamento avulso; gere o boleto/PIX a partir da nota fiscal.');
+        // A Cora sempre emite boleto + PIX juntos; "link" é o mesmo documento.
+        return $this->gerarCobrancaBoleto($id, $tipo);
     }
 
     /* ------------------------------------------------------------------ */

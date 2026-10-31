@@ -11,6 +11,7 @@ class Produtos extends MY_Controller
         parent::__construct();
 
         $this->load->helper('form');
+        $this->load->helper('classificacao_fiscal');
         $this->load->model('produtos_model');
         $this->data['menuProdutos'] = 'Produtos';
     }
@@ -79,6 +80,8 @@ class Produtos extends MY_Controller
                 'entrada' => set_value('entrada'),
             ];
 
+            $data = classificacao_aplicar_post($data, 'produto', 'produtos');
+
             if ($this->produtos_model->add('produtos', $data) == true) {
                 if ((float) $data['estoque'] != 0) {
                     $this->produtos_model->registrarMovimentacao($this->db->insert_id(), (float) $data['estoque'], 0, (float) $data['estoque'], ['tipo' => 'cadastro', 'observacao' => 'Estoque inicial']);
@@ -129,6 +132,8 @@ class Produtos extends MY_Controller
                 'saida' => set_value('saida'),
                 'entrada' => set_value('entrada'),
             ];
+
+            $data = classificacao_aplicar_post($data, 'produto', 'produtos');
 
             if ($this->produtos_model->edit('produtos', $data, 'idProdutos', $this->input->post('idProdutos')) == true) {
                 // Estoque alterado na edicao fica registrado no historico como ajuste manual

@@ -1,0 +1,7 @@
+SUBCONJUNTO MINIMO (nao e a tabela oficial completa).
+Contem apenas CST 000 / cClassTrib 000001 (tributacao integral pela aliquota padrao).
+Tabelas completas: Portal Nacional da NF-e (nfe.fazenda.gov.br > Documentos > Diversos, tabela CST/cClassTrib,
+Informe Tecnico 2025.002), espelho SVRS dfe-portal.svrs.rs.gov.br/DFE/TabelaClassificacaoTributaria, e Anexo VIII em gov.br/nfse.
+Exporte para CSV (separador ; ou ,) e importe em Tributacao > Tabelas da Reforma.
+Cabecalhos reconhecidos: ver application/helpers/tributacao_tabelas_helper.php (trib_normaliza_coluna).
+Data de obtencao: 2026-10-31 (nao foi possivel baixar o arquivo oficial automaticamente).

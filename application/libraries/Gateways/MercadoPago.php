@@ -187,6 +187,7 @@ class MercadoPago extends BasePaymentGateway
         $servicos = $tipo === PaymentGateway::PAYMENT_TYPE_OS
             ? $this->ci->Os_model->getServicos($id)
             : [];
+        [$produtos, $servicos] = $this->aplicarSelecao($produtos, $servicos);
         $desconto = [$tipo === PaymentGateway::PAYMENT_TYPE_OS
             ? $this->ci->Os_model->getById($id)
             : $this->ci->vendas_model->getById($id)];
@@ -242,7 +243,7 @@ class MercadoPago extends BasePaymentGateway
 
         $request = [
             'transaction_amount' => floatval($this->valorTotal($totalProdutos, $totalServicos, $totalDesconto, $tipoDesconto)),
-            'description' => $tipo === PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id",
+            'description' => ($tipo === PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id") . $this->rotuloSelecao,
             'payment_method_id' => 'bolbradesco',
             'date_of_expiration' => $expirationDate,
             'payer' => [
@@ -307,7 +308,7 @@ class MercadoPago extends BasePaymentGateway
         if ($tipo_desconto == 'porcento') {
             $def_desconto = $desconto * ($produtosValor + $servicosValor) / 100;
         } elseif ($tipo_desconto == 'real') {
-            $def_desconto = $desconto;
+            $def_desconto = $desconto * $this->fatorDescontoReal;
         } else {
             $def_desconto = 0;
         }

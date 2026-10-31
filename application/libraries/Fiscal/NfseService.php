@@ -2,6 +2,12 @@
 
 namespace Libraries\Fiscal;
 
+require_once APPPATH . 'helpers/classificacao_fiscal_helper.php';
+require_once APPPATH . 'helpers/cliente_fiscal_helper.php';
+require_once APPPATH . 'helpers/tributacao_helper.php';
+
+use DOMDocument;
+use DOMElement;
 use Exception;
 use Hadder\NfseNacional\Dps;
 use Hadder\NfseNacional\Tools;
@@ -67,78 +73,93 @@ class NfseService
     }
 
     /**
-     * Reforma Tributária na NFS-e — DETECÇÃO DE SUPORTE.
+     * Reforma Tributária na NFS-e — grupo IBSCBS da DPS (injeção no XML).
      *
-     * A biblioteca hadder/nfse-nacional 1.0.22 ainda NÃO gera o grupo IBS/CBS na
-     * DPS (o bloco está comentado no Dps.php) e os schemas embarcados vão só até
-     * DPS_v1.01, que não têm o grupo. Enquanto isso não muda, anexar os campos
-     * geraria rejeição por schema no SEFIN Nacional.
+     * Fonte do leiaute: pacote oficial de esquemas XSD v1.01 (NFS-e Padrão
+     * Nacional, gov.br/nfse > documentação atual, nfse-esquemas_xsd-v1-01-20260209),
+     * tipo TCRTCInfoIBSCBS (NT 004/005/007/009, Anexo VI v1.04.00). Cópia dos XSDs
+     * em application/libraries/Fiscal/xsd/nfse/.
      *
-     * Esta função detecta, de forma segura, se a versão instalada já traz o
-     * layout: procura o termo "IBSCBS" em algum schema DPS embarcado. Só quando
-     * um schema com IBS/CBS existir é que os campos passam a ser anexados —
-     * até lá a emissão sai idêntica à de hoje. Assim, ao atualizar o hadder para
-     * uma versão com a reforma, a NFS-e passa a levar IBS/CBS automaticamente.
+     * A lib hadder/nfse-nacional 1.0.22 (última versão do Packagist) tem o bloco
+     * comentado em Dps.php, embora os XSDs embarcados já aceitem o grupo. Por
+     * isso o grupo é injetado aqui, no XML renderizado e ANTES da assinatura
+     * (Tools::enviaDps assina). O IBSCBS é o último filho de infDPS, depois de
+     * valores. Na DPS o emitente declara só a classificação (finNFSe, indFinal,
+     * cIndOp, indDest, valores/trib/gIBSCBS CST+cClassTrib); alíquotas e valores
+     * de IBS/CBS são calculados pelo ambiente nacional (ficam na NFS-e).
+     *
+     * Retorna o XML original se $p['cIndOp'] estiver vazio ou o XML for inválido.
+     *
+     * @param array $p finNFSe, indFinal, cIndOp, indDest, CST, cClassTrib
      */
-    private function nfseSuportaIbsCbs(): bool
+    public static function injetarIbsCbsXml(string $xml, array $p): string
     {
-        $dir = APPPATH . 'vendor/hadder/nfse-nacional/storage/schemes';
-        foreach (glob($dir . '/DPS_*.xsd') ?: [] as $xsd) {
-            $conteudo = file_get_contents($xsd);
-            if ($conteudo !== false && stripos($conteudo, 'IBSCBS') !== false) {
-                return true;
-            }
+        $cIndOp = preg_replace('/\D/', '', (string) ($p['cIndOp'] ?? ''));
+        if (strlen($cIndOp) !== 6) {
+            return $xml;
         }
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        $dom->preserveWhiteSpace = false;
+        $dom->formatOutput = false;
+        if (!@$dom->loadXML($xml)) {
+            return $xml;
+        }
+        $inf = $dom->getElementsByTagName('infDPS')->item(0);
+        if (!$inf || $dom->getElementsByTagName('IBSCBS')->length > 0) {
+            return $xml;
+        }
+        $ns = $inf->namespaceURI;
+        $add = function (DOMElement $pai, string $tag, ?string $val = null) use ($dom, $ns) {
+            $el = $val === null ? $dom->createElementNS($ns, $tag) : $dom->createElementNS($ns, $tag, $val);
+            $pai->appendChild($el);
 
-        return false;
+            return $el;
+        };
+
+        $g = $add($inf, 'IBSCBS');
+        $add($g, 'finNFSe', (string) ($p['finNFSe'] ?? '0'));
+        $add($g, 'indFinal', (string) ($p['indFinal'] ?? '0'));
+        $add($g, 'cIndOp', $cIndOp);
+        $add($g, 'indDest', (string) ($p['indDest'] ?? '0'));
+        $trib = $add($add($g, 'valores'), 'trib');
+        $gc = $add($trib, 'gIBSCBS');
+        $add($gc, 'CST', str_pad(preg_replace('/\D/', '', (string) ($p['CST'] ?? '000')), 3, '0', STR_PAD_LEFT));
+        $add($gc, 'cClassTrib', str_pad(preg_replace('/\D/', '', (string) ($p['cClassTrib'] ?? '000001')), 6, '0', STR_PAD_LEFT));
+
+        // Mantém o formato de entrada: só devolve a declaração XML se ela já existia.
+        return strncmp(ltrim($xml), '<?xml', 5) === 0 ? $dom->saveXML() : $dom->saveXML($dom->documentElement);
     }
 
-    /**
-     * Reforma Tributária na NFS-e — MONTAGEM DO GRUPO IBS/CBS (provisório).
-     *
-     * Preenche em $std->infDPS->valores->trib->ibscbs os valores de IBS/CBS a
-     * partir das alíquotas configuráveis (as mesmas da NF-e: reforma_ibs_uf,
-     * reforma_ibs_mun, reforma_cbs), espelhando a estrutura do grupo da NF-e.
-     *
-     * IMPORTANTE: os nomes exatos dos nós da DPS de IBS/CBS devem ser conferidos
-     * contra a versão do hadder que liberar o layout (NT 004 do padrão nacional).
-     * Como o método só é chamado quando nfseSuportaIbsCbs() é verdadeiro (schema
-     * com IBS/CBS presente), hoje ele NÃO executa — fica de scaffold pronto.
-     */
-    private function anexarIbsCbsDps(stdClass $std, float $total): void
+    /** Parâmetros do grupo IBSCBS a partir de configuracoes_nfe. */
+    private function paramsIbsCbs(array $servicos = [], $tomador = null, string $documento = ''): array
     {
-        $pIBSUF = (float) ($this->config->reforma_ibs_uf ?? 0);
-        $pIBSMun = (float) ($this->config->reforma_ibs_mun ?? 0);
-        $pCBS = (float) ($this->config->reforma_cbs ?? 0);
-        $vIBSUF = round($total * $pIBSUF / 100, 2);
-        $vIBSMun = round($total * $pIBSMun / 100, 2);
-        $vCBS = round($total * $pCBS / 100, 2);
-
-        $ibscbs = new stdClass();
-        $ibscbs->CST = $this->config->reforma_cst ?? '000';
-        $ibscbs->cClassTrib = $this->config->reforma_cclasstrib ?? '000001';
-
-        $ibscbs->gIBSCBS = new stdClass();
-        $ibscbs->gIBSCBS->vBC = number_format($total, 2, '.', '');
-
-        $ibscbs->gIBSCBS->gIBS = new stdClass();
-        $ibscbs->gIBSCBS->gIBS->gIBSUF = new stdClass();
-        $ibscbs->gIBSCBS->gIBS->gIBSUF->pIBSUF = number_format($pIBSUF, 4, '.', '');
-        $ibscbs->gIBSCBS->gIBS->gIBSUF->vIBSUF = number_format($vIBSUF, 2, '.', '');
-        $ibscbs->gIBSCBS->gIBS->gIBSMun = new stdClass();
-        $ibscbs->gIBSCBS->gIBS->gIBSMun->pIBSMun = number_format($pIBSMun, 4, '.', '');
-        $ibscbs->gIBSCBS->gIBS->gIBSMun->vIBSMun = number_format($vIBSMun, 2, '.', '');
-        $ibscbs->gIBSCBS->gIBS->vIBS = number_format($vIBSUF + $vIBSMun, 2, '.', '');
-
-        $ibscbs->gIBSCBS->gCBS = new stdClass();
-        $ibscbs->gIBSCBS->gCBS->pCBS = number_format($pCBS, 4, '.', '');
-        $ibscbs->gIBSCBS->gCBS->vCBS = number_format($vCBS, 2, '.', '');
-
-        // Anexa ao grupo de tributos da DPS (estrutura a confirmar na release).
-        if (!isset($std->infDPS->valores->trib)) {
-            $std->infDPS->valores->trib = new stdClass();
+        // A DPS tem um unico grupo IBSCBS: todos os servicos da nota precisam ter a mesma classificacao.
+        $cls = null;
+        foreach ($servicos as $servico) {
+            $c = classificacao_efetiva($servico, $this->config, 'servico');
+            $chave = $c['cst'] . '|' . $c['cclasstrib'] . '|' . $c['cindop'];
+            if ($cls === null) {
+                $cls = $c;
+                $chaveRef = $chave;
+            } elseif ($chave !== $chaveRef) {
+                throw new Exception('Serviços com classificação IBS/CBS diferente precisam ir em notas separadas.');
+            }
         }
-        $std->infDPS->valores->trib->ibscbs = $ibscbs;
+        $cls = $cls ?? classificacao_efetiva([], $this->config, 'servico');
+        $erro = tributacao_validar_ibscbs($cls['cst'] ?: '000', $cls['cclasstrib'] ?: '000001', 55);
+        if ($erro !== null) {
+            throw new Exception($erro);
+        }
+
+        return [
+            'finNFSe' => '0',
+            'indFinal' => fiscal_ind_final_nfse($tomador ?? [], $this->config, $documento),
+            // [CONFIRMAR] código do Anexo VIII (LC 116 x NBS x cIndOp) do serviço prestado.
+            'cIndOp' => $cls['cindop'],
+            'indDest' => '0',
+            'CST' => $cls['cst'] ?: '000',
+            'cClassTrib' => $cls['cclasstrib'] ?: '000001',
+        ];
     }
 
     /**
@@ -483,16 +504,14 @@ class NfseService
             $std->infDPS->valores->trib->totTrib->indTotTrib = 0;
         }
 
-        // Reforma Tributária: anexa o grupo IBS/CBS à DPS SOMENTE quando o
-        // checkbox estiver ligado E a lib/schema do hadder já suportarem o layout
-        // (senão a DPS seria rejeitada por schema). Hoje nfseSuportaIbsCbs() é
-        // falso → nada muda; ao atualizar o hadder, passa a valer automaticamente.
-        if (!empty($this->config->reforma_ativa) && $this->nfseSuportaIbsCbs()) {
-            $this->anexarIbsCbsDps($std, $total);
-        }
-
         $dps = new Dps($std);
-        $resposta = $this->tools->enviaDps($dps->render());
+        $xmlDps = $dps->render();
+        // Reforma Tributária: com reforma_ativa, injeta o grupo IBSCBS antes da assinatura
+        // (desligado = XML idêntico ao de antes). Vale também p/ Simples (opcional em 2026).
+        if (!empty($this->config->reforma_ativa)) {
+            $xmlDps = self::injetarIbsCbsXml($xmlDps, $this->paramsIbsCbs($servicos, $os, $documento));
+        }
+        $resposta = $this->tools->enviaDps($xmlDps);
 
         if (!is_array($resposta)) {
             throw new Exception('Retorno inesperado do Sefin Nacional: ' . json_encode($resposta));

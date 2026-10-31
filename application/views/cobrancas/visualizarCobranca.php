@@ -74,6 +74,18 @@
                             </td>
                         </tr>
 
+                        <?php if (isset($result->v_ibs_estimado, $result->v_cbs_estimado, $result->v_liquido_estimado) && $result->v_liquido_estimado !== null) { ?>
+                        <tr>
+                            <td style="text-align: right"><strong>Tributo estimado (IBS/CBS)</strong></td>
+                            <td>R$
+                                <?php echo number_format((float) $result->v_ibs_estimado + (float) $result->v_cbs_estimado, 2, ',', '.'); ?>
+                                · Líquido estimado: R$
+                                <?php echo number_format((float) $result->v_liquido_estimado, 2, ',', '.'); ?>
+                                <br><small class="muted">informativo — preparação para o split payment</small>
+                            </td>
+                        </tr>
+                        <?php } ?>
+
                         <tr>
                             <td style="text-align: right"><strong>Status atual</strong></td>
                             <td>

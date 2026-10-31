@@ -17,6 +17,13 @@
 
 <script nonce="<?= csp_nonce() ?>" src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
 
+<?php if (!empty($avisoJanelaIbscbs)) { $jn = $avisoJanelaIbscbs; ?>
+<div class="alert alert-info" style="margin:8px 0">
+    <i class="bx bx-calendar-exclamation"></i> <?= html_escape($jn['rotulo']) ?>:
+    <?= $jn['aberta'] ? 'aberta até ' . date('d/m/Y', strtotime($jn['fim'])) : 'abre em ' . date('d/m/Y', strtotime($jn['inicio'])) ?>.
+    <a href="<?= site_url("nfe/configuracoes") ?>">Ver em Configurações Fiscais</a>
+</div>
+<?php } ?>
 <!-- New Bem-vindos -->
 <div class="ui-cabecalho">
     <div>

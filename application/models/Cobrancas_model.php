@@ -27,6 +27,100 @@ class Cobrancas_model extends CI_Model
         return $result;
     }
 
+    /**
+     * Todas as cobrancas com nome do cliente (classificacao/filtro de status
+     * e feita em PHP pelo cobranca_helper, pois o status depende do gateway).
+     */
+    public function listarComCliente($busca = '')
+    {
+        $this->db->select('cobrancas.*, clientes.nomeCliente');
+        $this->db->from('cobrancas');
+        $this->db->join('clientes', 'clientes.idClientes = cobrancas.clientes_id', 'left');
+        if ($busca !== '') {
+            $this->db->like('clientes.nomeCliente', $busca);
+        }
+        $this->db->order_by('cobrancas.idCobranca', 'desc');
+
+        return $this->db->get()->result();
+    }
+
+    /**
+     * OS (Finalizado/Faturado) e vendas faturadas com algo ainda a cobrar,
+     * com cliente e valor (em reais, já com desconto). Documento cobrado só em
+     * parte (cobrança por item) aparece com o valor do que falta.
+     * Cobranças canceladas não contam. Ordenadas das mais antigas.
+     */
+    public function aCobrar($busca = '')
+    {
+        get_instance()->load->helper('cobranca');
+
+        $like = '';
+        $binds = [];
+        if ($busca !== '') {
+            $like = ' AND c.nomeCliente LIKE ?';
+            $binds[] = '%' . $this->db->escape_like_str($busca) . '%';
+        }
+
+        // Cobrança ativa (não cancelada) que cobre o documento inteiro / só alguns itens.
+        $ativa = 'LOWER(cb.status) NOT IN (' . implode(',', array_map([$this->db, 'escape'], cobranca_status_cancelados())) . ')';
+        $porItem = $this->db->field_exists('itens_ref', 'cobrancas');
+        $inteira = $porItem ? "$ativa AND (cb.itens_ref IS NULL OR cb.itens_ref = '')" : $ativa;
+        $parcial = $porItem ? "$ativa AND cb.itens_ref <> ''" : '0';
+
+        $osTotal = '(COALESCE((SELECT SUM(po.subTotal) FROM produtos_os po WHERE po.os_id = os.idOs),0)'
+            . ' + COALESCE((SELECT SUM(so.preco * so.quantidade) FROM servicos_os so WHERE so.os_id = os.idOs),0))';
+        $sqlOs = "SELECT 'os' AS tipo, os.idOs AS ref_id, c.nomeCliente, os.dataFinal AS data_ref,
+                CASE WHEN os.desconto <> 0 AND os.valor_desconto <> 0 THEN os.valor_desconto ELSE $osTotal END AS valor,
+                $osTotal AS bruto,
+                (SELECT GROUP_CONCAT(cb.itens_ref) FROM cobrancas cb WHERE cb.os_id = os.idOs AND $parcial) AS cobrados
+            FROM os JOIN clientes c ON c.idClientes = os.clientes_id
+            WHERE (os.status IN ('Finalizado','Faturado') OR os.faturado = 1)
+              AND os.status <> 'Cancelado'
+              AND NOT EXISTS (SELECT 1 FROM cobrancas cb WHERE cb.os_id = os.idOs AND $inteira)$like";
+
+        $vTotal = 'COALESCE((SELECT SUM(iv.subTotal) FROM itens_de_vendas iv WHERE iv.vendas_id = vendas.idVendas),0)';
+        $sqlV = "SELECT 'venda' AS tipo, vendas.idVendas AS ref_id, c.nomeCliente, vendas.dataVenda AS data_ref,
+                CASE WHEN vendas.valor_desconto <> 0 THEN vendas.valor_desconto ELSE $vTotal END AS valor,
+                $vTotal AS bruto,
+                (SELECT GROUP_CONCAT(cb.itens_ref) FROM cobrancas cb WHERE cb.vendas_id = vendas.idVendas AND $parcial) AS cobrados
+            FROM vendas JOIN clientes c ON c.idClientes = vendas.clientes_id
+            WHERE vendas.faturado = 1
+              AND NOT EXISTS (SELECT 1 FROM cobrancas cb WHERE cb.vendas_id = vendas.idVendas AND $inteira)$like";
+
+        $rows = $this->db->query("($sqlOs) UNION ALL ($sqlV) ORDER BY data_ref ASC", array_merge($binds, $binds))->result();
+
+        foreach ($rows as $r) {
+            if ($r->cobrados) {
+                $r->valor = $this->valorRestante($r);
+                $r->parcial = true;
+            }
+        }
+
+        return array_values(array_filter($rows, static function ($r) {
+            return (float) $r->valor > 0;
+        }));
+    }
+
+    /** Valor (com desconto proporcional) dos itens ainda não cobrados de um documento. */
+    private function valorRestante($r)
+    {
+        $cobrados = array_flip(array_filter(explode(',', (string) $r->cobrados)));
+        $itens = $r->tipo === 'os'
+            ? $this->db->query("SELECT CONCAT('p:', idProdutos_os) AS chave, subTotal AS valor FROM produtos_os WHERE os_id = ?
+                UNION ALL SELECT CONCAT('s:', idServicos_os), preco * quantidade FROM servicos_os WHERE os_id = ?", [$r->ref_id, $r->ref_id])->result()
+            : $this->db->query("SELECT CONCAT('p:', idItens) AS chave, subTotal AS valor FROM itens_de_vendas WHERE vendas_id = ?", [$r->ref_id])->result();
+
+        $resta = 0.0;
+        foreach ($itens as $i) {
+            if (! isset($cobrados[$i->chave])) {
+                $resta += (float) $i->valor;
+            }
+        }
+        $fator = (float) $r->bruto > 0 ? (float) $r->valor / (float) $r->bruto : 1.0;
+
+        return round($resta * $fator, 2);
+    }
+
     public function getById($id)
     {
         $this->db->select('cobrancas.*, clientes.*');

@@ -165,6 +165,12 @@ $configNfeBoleto = $this->nfe_model->getConfig();
             <div>Valor líquido cobrado no boleto: <strong id="boletoLiquido">—</strong></div>
         </div>
         <div class="control-group">
+            <label><strong>Como cobrar esta nota</strong></label>
+            <label class="radio" style="margin:2px 0"><input type="radio" name="boletoModo" value="unico" checked /> <strong>Um boleto com o valor da nota</strong> (à vista ou parcelado)</label>
+            <label class="radio" style="margin:2px 0"><input type="radio" name="boletoModo" value="por_item" /> <strong>Um boleto para cada item da nota</strong> (cada serviço/produto separado)</label>
+            <span style="color:#999;font-size:11px">Por item: o valor da nota é dividido entre os itens, cada um no seu boleto, todos com o mesmo vencimento. Mínimo de R$ 5,00 por boleto.</span>
+        </div>
+        <div class="control-group" id="boletoParcelasBox">
             <label for="boletoParcelas"><strong>Parcelas</strong></label>
             <select id="boletoParcelas" class="span12">
                 <?php for ($p = 1; $p <= 12; $p++) { ?>
@@ -225,6 +231,13 @@ $configNfeBoleto = $this->nfe_model->getConfig();
     function boletoAtualizarResumo() {
         var valor = parseFloat($('#boletoNotaId').data('liquido'));
         if (isNaN(valor)) { valor = parseFloat($('#boletoNotaId').data('valor')) || 0; }
+        var porItem = $('input[name=boletoModo]:checked').val() === 'por_item';
+        $('#boletoParcelasBox').toggle(!porItem);
+        if (porItem) {
+            $('#boletoIntervaloBox').hide();
+            $('#boletoResumoParcela').html('Um boleto para cada item da nota, somando <strong>' + boletoMoney(valor) + '</strong>.');
+            return;
+        }
         var parcelas = parseInt($('#boletoParcelas').val(), 10) || 1;
         // O intervalo só faz sentido a partir de 2 parcelas.
         $('#boletoIntervaloBox').toggle(parcelas > 1);
@@ -255,6 +268,7 @@ $configNfeBoleto = $this->nfe_model->getConfig();
             $('#boletoIssBox').hide();
         }
         $('#boletoParcelas').val('1');
+        $('input[name=boletoModo][value=unico]').prop('checked', true);
         $('#boletoVencimento').val('');
         $('#boletoIntervaloTipo').val('mensal');
         $('#boletoIntervaloDias').val('30');
@@ -265,6 +279,7 @@ $configNfeBoleto = $this->nfe_model->getConfig();
     });
 
     $('#boletoParcelas').on('change', boletoAtualizarResumo);
+    $(document).on('change', 'input[name=boletoModo]', boletoAtualizarResumo);
     $('#boletoIntervaloTipo').on('change', function () {
         $('#boletoIntervaloDiasBox').toggle($(this).val() === 'dias');
         boletoAtualizarResumo();
@@ -300,7 +315,8 @@ $configNfeBoleto = $this->nfe_model->getConfig();
                 parcelas: $('#boletoParcelas').val(),
                 vencimento: $('#boletoVencimento').val(),
                 intervalo_tipo: $('#boletoIntervaloTipo').val(),
-                intervalo_dias: $('#boletoIntervaloDias').val()
+                intervalo_dias: $('#boletoIntervaloDias').val(),
+                por_item: $('input[name=boletoModo]:checked').val() === 'por_item' ? 1 : 0
             },
             success: function (resp) {
                 console.log('[boleto] success', resp);
@@ -311,7 +327,8 @@ $configNfeBoleto = $this->nfe_model->getConfig();
                     return;
                 }
                 $('#modal-gerar-boleto').modal('hide');
-                boletoAlerta('success', 'Boleto gerado!', 'Boleto híbrido (boleto + PIX) criado com sucesso.',
+                var qtd = (resp && resp.parcelas_geradas) || 1;
+                boletoAlerta('success', qtd > 1 ? qtd + ' boletos gerados!' : 'Boleto gerado!', 'Boleto híbrido (boleto + PIX) criado com sucesso.',
                     function () { location.reload(); });
             },
             error: function (xhr, textStatus) {

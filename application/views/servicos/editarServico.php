@@ -52,6 +52,7 @@
                     </div>
                     </div>
                     </div>
+                    <?php $this->load->view('tributacao/_classificacao_item', ['tipo' => 'servico', 'item' => $result]); ?>
                     <div class="ui-rodape-form">
                         <button type="submit" class="button btn btn-primary"><span class="button__icon"><i class="bx bx-sync"></i></span><span class="button__text2">Atualizar</span></button>
                         <a href="<?php echo base_url() ?>index.php/servicos" id="btnAdicionar" class="button btn btn-mini btn-warning">

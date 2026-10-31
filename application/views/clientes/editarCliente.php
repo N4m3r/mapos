@@ -220,6 +220,47 @@
                                 </label>
                             </div>
                         </div>
+                        <div class="ui-secao">
+                        <h4 class="ui-secao-titulo">Dados fiscais (opcional)</h4>
+                        <div class="control-group">
+                            <label for="ind_ie_dest" class="control-label">Indicador de IE (NF-e)</label>
+                            <div class="controls">
+                                <select id="ind_ie_dest" name="ind_ie_dest">
+                                    <option value="" <?php echo (string) ((isset($result->ind_ie_dest) ? (string) $result->ind_ie_dest : '')) === '' ? 'selected' : ''; ?>>— deduzir da Inscrição Estadual (padrão) —</option>
+                                    <option value="1" <?php echo (string) ((isset($result->ind_ie_dest) ? (string) $result->ind_ie_dest : '')) === '1' ? 'selected' : ''; ?>>Contribuinte de ICMS (tem IE)</option>
+                                    <option value="2" <?php echo (string) ((isset($result->ind_ie_dest) ? (string) $result->ind_ie_dest : '')) === '2' ? 'selected' : ''; ?>>Isento de Inscrição Estadual</option>
+                                    <option value="9" <?php echo (string) ((isset($result->ind_ie_dest) ? (string) $result->ind_ie_dest : '')) === '9' ? 'selected' : ''; ?>>Não contribuinte</option>
+                                </select>
+                                <span class="help-inline">Se não souber, deixe no padrão. Define como a nota identifica o destinatário.</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="regime_tributario" class="control-label">Regime tributário</label>
+                            <div class="controls">
+                                <select id="regime_tributario" name="regime_tributario">
+                                    <option value="" <?php echo (string) ((isset($result->regime_tributario) ? (string) $result->regime_tributario : '')) === '' ? 'selected' : ''; ?>>— não informado —</option>
+                                    <option value="mei" <?php echo (string) ((isset($result->regime_tributario) ? (string) $result->regime_tributario : '')) === 'mei' ? 'selected' : ''; ?>>MEI</option>
+                                    <option value="simples" <?php echo (string) ((isset($result->regime_tributario) ? (string) $result->regime_tributario : '')) === 'simples' ? 'selected' : ''; ?>>Simples Nacional</option>
+                                    <option value="normal" <?php echo (string) ((isset($result->regime_tributario) ? (string) $result->regime_tributario : '')) === 'normal' ? 'selected' : ''; ?>>Regime normal (Lucro Presumido/Real)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Órgão público</label>
+                            <div class="controls">
+                                <label for="orgao_publico" style="display:flex; align-items:center; gap:8px;">
+                                    <input id="orgao_publico" type="checkbox" name="orgao_publico" value="1" <?php echo (!empty($result->orgao_publico)) ? 'checked' : ''; ?> />
+                                    Prefeitura, governo, autarquia ou outro órgão público
+                                </label>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="inscricao_suframa" class="control-label">Inscrição SUFRAMA</label>
+                            <div class="controls">
+                                <input id="inscricao_suframa" type="text" name="inscricao_suframa" maxlength="9" inputmode="numeric" value="<?php echo htmlspecialchars((string) ((isset($result->inscricao_suframa) ? (string) $result->inscricao_suframa : '')), ENT_QUOTES, 'UTF-8'); ?>" />
+                                <span class="help-inline">Só para quem tem benefício da Zona Franca de Manaus. São 9 números, ou deixe em branco.</span>
+                            </div>
+                        </div>
                         </div>
                     </div>
 

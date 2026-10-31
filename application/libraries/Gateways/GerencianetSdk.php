@@ -162,7 +162,7 @@ class GerencianetSdk extends BasePaymentGateway
         if ($tipo_desconto == 'porcento') {
             $def_desconto = $desconto * ($produtosValor + $servicosValor) / 100;
         } elseif ($tipo_desconto == 'real') {
-            $def_desconto = $desconto;
+            $def_desconto = $desconto * $this->fatorDescontoReal;
         } else {
             $def_desconto = 0;
         }
@@ -179,6 +179,7 @@ class GerencianetSdk extends BasePaymentGateway
         $servicos = $tipo === PaymentGateway::PAYMENT_TYPE_OS
             ? $this->ci->Os_model->getServicos($id)
             : [];
+        [$produtos, $servicos] = $this->aplicarSelecao($produtos, $servicos);
 
         $desconto = [$tipo === PaymentGateway::PAYMENT_TYPE_OS
             ? $this->ci->Os_model->getById($id)
@@ -266,7 +267,7 @@ class GerencianetSdk extends BasePaymentGateway
         $body = [
             'items' => [
                 [
-                    'name' => $tipo === PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id",
+                    'name' => ($tipo === PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id") . $this->rotuloSelecao,
                     'amount' => 1,
                     'value' => getMoneyAsCents($this->valorTotal($totalProdutos, $totalServicos, $totalDesconto, $tipoDesconto)),
                 ],
@@ -327,6 +328,7 @@ class GerencianetSdk extends BasePaymentGateway
         $servicos = $tipo === PaymentGateway::PAYMENT_TYPE_OS
             ? $this->ci->Os_model->getServicos($id)
             : [];
+        [$produtos, $servicos] = $this->aplicarSelecao($produtos, $servicos);
         $desconto = [$tipo === PaymentGateway::PAYMENT_TYPE_OS
             ? $this->ci->Os_model->getById($id)
             : $this->ci->vendas_model->getById($id)];
@@ -380,11 +382,11 @@ class GerencianetSdk extends BasePaymentGateway
 
         $expirationDate = (new DateTime())->add(new DateInterval('P3D'));
         $expirationDate = ($expirationDate->format('Y-m-d'));
-        $title = $tipo === PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id";
+        $title = ($tipo === PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id") . $this->rotuloSelecao;
 
         $items = [
             [
-                'name' => $tipo === PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id",
+                'name' => ($tipo === PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id") . $this->rotuloSelecao,
                 'amount' => 1,
                 'value' => getMoneyAsCents($this->valorTotal($totalProdutos, $totalServicos, $totalDesconto, $tipoDesconto)),
             ],

@@ -88,6 +88,7 @@
 
                     </div>
                     </div>
+                    <?php $this->load->view('tributacao/_classificacao_item', ['tipo' => 'produto', 'item' => $result]); ?>
                     <div class="ui-secao">
                     <h4 class="ui-secao-titulo">Preço</h4>
                     <div class="ui-grade">

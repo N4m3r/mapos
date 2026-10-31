@@ -150,6 +150,66 @@ $retencao = match ((string) ($d['tpRet'] ?? '')) {
                     </table>
                 </div>
 
+                <?php
+                $ib = $d['ibscbs'] ?? [];
+                $aliq = fn ($v) => $v !== '' ? preg_replace('/(,\d\d)0+$/', '$1', number_format((float) $v, 4, ',', '.')) . '%' : '-';
+                $valor = fn ($v) => $v !== '' ? $fmt($v) : '-';
+                ?>
+                <?php if (!empty($ib)) : ?>
+                    <div class="subtitle">TRIBUTAÇÃO IBS/CBS (REFORMA TRIBUTÁRIA)</div>
+                    <div class="tabela">
+                        <table class="table table-bordered">
+                            <tbody>
+                                <tr>
+                                    <td style="width:50%"><b>CST IBS/CBS:</b> <?= html_escape($ib['cst'] ?: '-') ?></td>
+                                    <td><b>cClassTrib:</b> <?= html_escape($ib['cClassTrib'] ?: '-') ?></td>
+                                </tr>
+                                <tr>
+                                    <td><b>Indicador de operação (cIndOp):</b> <?= html_escape($ib['cIndOp'] ?: '-') ?></td>
+                                    <td><b>Município de incidência:</b> <?= html_escape($ib['cLocIncid'] ?: '-') ?></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="subtitle">VALORES IBS/CBS</div>
+                    <div class="tabela">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr class="table-secondary">
+                                    <th class="text-center">TRIBUTO</th>
+                                    <th class="text-center">ALÍQUOTA</th>
+                                    <th class="text-center">VALOR</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="text-center">IBS - Estado (UF)</td>
+                                    <td class="text-center"><?= $aliq($ib['pIBSUF']) ?></td>
+                                    <td class="text-center"><?= $valor($ib['vIBSUF']) ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">IBS - Município</td>
+                                    <td class="text-center"><?= $aliq($ib['pIBSMun']) ?></td>
+                                    <td class="text-center"><?= $valor($ib['vIBSMun']) ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">CBS</td>
+                                    <td class="text-center"><?= $aliq($ib['pCBS']) ?></td>
+                                    <td class="text-center"><?= $valor($ib['vCBS']) ?></td>
+                                </tr>
+                                <?php if ($ib['vIBS'] !== '') : ?>
+                                    <tr>
+                                        <td class="text-center"><b>IBS - Total</b></td>
+                                        <td class="text-center">-</td>
+                                        <td class="text-center"><b><?= $fmt($ib['vIBS']) ?></b></td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+
                 <div class="subtitle">VALORES</div>
                 <div class="tabela">
                     <table class="table table-bordered">

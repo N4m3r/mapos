@@ -51,6 +51,7 @@
                     </div>
                     </div>
                     </div>
+                    <?php $this->load->view('tributacao/_classificacao_item', ['tipo' => 'servico', 'item' => null]); ?>
                     <div class="ui-rodape-form">
                         <button type="submit" class="button btn btn-mini btn-success">
                           <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Adicionar</span></button>

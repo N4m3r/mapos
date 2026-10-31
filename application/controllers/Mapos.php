@@ -36,6 +36,15 @@ class Mapos extends MY_Controller {
         $this->data['financeiro_mes_dia'] = $financeiroAno ? $financeiroAno['dia'] : false;
         $this->data['financeiro_mes'] = $financeiroAno ? $financeiroAno['mes'] : false;
         $this->data['financeiro_mesinadipl'] = $financeiroAno ? $financeiroAno['inadimplencia'] : false;
+        // IVA-T9: lembrete da janela de opcao IBS/CBS do Simples (so para quem emite nota)
+        $this->data['avisoJanelaIbscbs'] = null;
+        if ($this->permission->checkPermission($this->session->userdata('permissao'), 'cNfe')) {
+            $this->load->helper('tributacao');
+            $j = tributacao_janela_opcao(date('Y-m-d'));
+            if ($j && ($j['aberta'] || $j['dias_para_abrir'] <= 30)) {
+                $this->data['avisoJanelaIbscbs'] = $j;
+            }
+        }
         $this->data['menuPainel'] = 'Painel';
         $this->data['view'] = 'mapos/painel';
 

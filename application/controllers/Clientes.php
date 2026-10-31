@@ -11,6 +11,7 @@ class Clientes extends MY_Controller
         parent::__construct();
 
         $this->load->model('clientes_model');
+        $this->load->helper('cliente_fiscal');
         $this->data['menuClientes'] = 'clientes';
     }
 
@@ -66,8 +67,11 @@ class Clientes extends MY_Controller
             $pessoa_fisica = false;
         }
 
+        $fiscal = $this->dadosFiscaisPost();
         if ($this->form_validation->run('clientes') == false) {
             $this->data['custom_error'] = (validation_errors() ? '<div class="form_error">' . validation_errors() . '</div>' : false);
+        } elseif ($fiscal === null) {
+            $this->data['custom_error'] = '<div class="form_error"><p>Inscrição SUFRAMA inválida: informe 9 números ou deixe em branco.</p></div>';
         } else {
             $data = [
                 'nomeCliente' => set_value('nomeCliente'),
@@ -110,6 +114,8 @@ class Clientes extends MY_Controller
                 $data['aprovacao_token_numeros'] = trim((string) $this->input->post('aprovacao_token_numeros')) ?: null;
             }
 
+            $data = array_merge($data, $fiscal);
+
             if ($this->clientes_model->add('clientes', $data) == true) {
                 $this->session->set_flashdata('success', 'Cliente adicionado com sucesso!');
                 log_info('Adicionou um cliente.');
@@ -139,8 +145,11 @@ class Clientes extends MY_Controller
         $this->load->library('form_validation');
         $this->data['custom_error'] = '';
 
+        $fiscal = $this->dadosFiscaisPost();
         if ($this->form_validation->run('clientes') == false) {
             $this->data['custom_error'] = (validation_errors() ? '<div class="form_error">' . validation_errors() . '</div>' : false);
+        } elseif ($fiscal === null) {
+            $this->data['custom_error'] = '<div class="form_error"><p>Inscrição SUFRAMA inválida: informe 9 números ou deixe em branco.</p></div>';
         } else {
             $senha = $this->input->post('senha');
             if ($senha != null) {
@@ -208,6 +217,8 @@ class Clientes extends MY_Controller
                 $data['aprovacao_token_numeros'] = trim((string) $this->input->post('aprovacao_token_numeros')) ?: null;
             }
 
+            $data = array_merge($data, $fiscal);
+
             if ($this->clientes_model->edit('clientes', $data, 'idClientes', $this->input->post('idClientes')) == true) {
                 // Vínculos multi-CNPJ do portal (clientes que este login acessa).
                 $this->clientes_model->setVinculos(
@@ -230,6 +241,38 @@ class Clientes extends MY_Controller
         $this->data['view'] = 'clientes/editarCliente';
 
         return $this->layout();
+    }
+
+    /**
+     * Campos fiscais do POST (só os que existem na tabela, para não quebrar antes da migration).
+     * Retorna null se a SUFRAMA informada for inválida.
+     */
+    private function dadosFiscaisPost(): ?array
+    {
+        $dados = [];
+
+        $suframa = trim((string) $this->input->post('inscricao_suframa'));
+        if ($suframa !== '' && ! cliente_suframa_valida($suframa)) {
+            return null;
+        }
+
+        $ind = (string) $this->input->post('ind_ie_dest');
+        $regime = (string) $this->input->post('regime_tributario');
+
+        if ($this->db->field_exists('ind_ie_dest', 'clientes')) {
+            $dados['ind_ie_dest'] = in_array($ind, ['1', '2', '9'], true) ? (int) $ind : null;
+        }
+        if ($this->db->field_exists('regime_tributario', 'clientes')) {
+            $dados['regime_tributario'] = in_array($regime, ['mei', 'simples', 'normal'], true) ? $regime : null;
+        }
+        if ($this->db->field_exists('orgao_publico', 'clientes')) {
+            $dados['orgao_publico'] = $this->input->post('orgao_publico') ? 1 : 0;
+        }
+        if ($this->db->field_exists('inscricao_suframa', 'clientes')) {
+            $dados['inscricao_suframa'] = $suframa !== '' ? $suframa : null;
+        }
+
+        return $dados;
     }
 
     public function visualizar()

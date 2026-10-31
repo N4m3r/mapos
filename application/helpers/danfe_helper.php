@@ -271,6 +271,62 @@ if (! function_exists('danfe_nfse_data')) {
             'opSimpNac' => $g('//n:DPS//n:prest/n:regTrib/n:opSimpNac'),
             'tpRet' => $g('//n:DPS//n:tribMun/n:tpRetISSQN'),
             'pTotTribSN' => $g('//n:DPS//n:totTrib/n:pTotTribSN'),
+            // Reforma Tributária (IBS/CBS); [] quando o grupo não existe no XML
+            'ibscbs' => danfse_dados_ibscbs($xml),
         ];
+    }
+}
+
+if (! function_exists('danfse_dados_ibscbs')) {
+    /**
+     * Extrai o grupo IBSCBS (Reforma Tributária, NT 008/2026) do XML da NFS-e.
+     *
+     * Busca as tags pelo nome local (sem depender de namespace). Retorna [] se
+     * o grupo não existir, o XML for inválido ou nenhum campo estiver preenchido
+     * (notas antigas ou grupo desligado) — nesse caso o bloco não é exibido.
+     *
+     * @return array<string,string>
+     */
+    function danfse_dados_ibscbs(string $xml): array
+    {
+        if (trim($xml) === '') {
+            return [];
+        }
+        $dom = new \DOMDocument();
+        $antes = libxml_use_internal_errors(true);
+        $ok = $dom->loadXML($xml);
+        libxml_clear_errors();
+        libxml_use_internal_errors($antes);
+        if (! $ok) {
+            return [];
+        }
+
+        $xp = new \DOMXPath($dom);
+        $grupo = $xp->query("//*[local-name()='IBSCBS']")->item(0);
+        if (! $grupo instanceof \DOMElement) {
+            return [];
+        }
+
+        $campo = function (string $nome) use ($xp, $grupo): string {
+            $node = $xp->query(".//*[local-name()='" . $nome . "']", $grupo)->item(0);
+
+            return $node ? trim((string) $node->nodeValue) : '';
+        };
+
+        $dados = [
+            'cst' => $campo('CST'),
+            'cClassTrib' => $campo('cClassTrib'),
+            'cIndOp' => $campo('cIndOp'),
+            'cLocIncid' => $campo('cLocIncid'),
+            'pIBSUF' => $campo('pIBSUF'),
+            'vIBSUF' => $campo('vIBSUF'),
+            'pIBSMun' => $campo('pIBSMun'),
+            'vIBSMun' => $campo('vIBSMun'),
+            'vIBS' => $campo('vIBS'),
+            'pCBS' => $campo('pCBS'),
+            'vCBS' => $campo('vCBS'),
+        ];
+
+        return array_filter($dados, fn ($v) => $v !== '') === [] ? [] : $dados;
     }
 }

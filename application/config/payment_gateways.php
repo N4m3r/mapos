@@ -76,9 +76,11 @@ $config['payment_gateways'] = [
     'Cora' => [
         'name' => 'Cora (Boleto + PIX)',
         'library_name' => 'Cora',
-        // Emitido exclusivamente a partir de uma nota fiscal (NF-e/NFS-e);
-        // fica fora do seletor genérico "Gerar Pagamento".
+        // Com nota fiscal: aba Notas Fiscais da OS (gerarBoletoParaNota).
+        // Sem nota: também aparece na janela "Gerar cobrança" (avulso).
         'fiscal_only' => true,
+        'avulso' => true,
+        'aviso_avulso' => 'Boleto + PIX Cora SEM nota fiscal. Para cobrar junto com a nota, use a aba Notas Fiscais da OS.',
         'production' => isset($_ENV['PAYMENT_GATEWAYS_CORA_PRODUCTION']) ? filter_var($_ENV['PAYMENT_GATEWAYS_CORA_PRODUCTION'], FILTER_VALIDATE_BOOLEAN) : false,
         'credentials' => [
             'client_id' => $_ENV['PAYMENT_GATEWAYS_CORA_CLIENT_ID'] ?? '',

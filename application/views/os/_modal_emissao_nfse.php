@@ -20,13 +20,11 @@
                     <tbody id="nfseItens"></tbody>
                     <tfoot><tr><th colspan="3" style="text-align:right">Total</th><th id="nfseTotal"></th></tr></tfoot>
                 </table>
-                <div id="nfseProdutosBox" style="display:none;margin:6px 0;padding:8px;border:1px solid #e0e0e0;border-radius:4px;background:#fafafa">
-                    <label class="checkbox" style="margin:0;font-weight:bold">
-                        <input type="checkbox" id="nfseIncluirProdutos" /> Incluir os produtos da OS nesta NFS-e (nota de serviço única com o valor total da OS)
-                    </label>
-                    <span style="color:#999;font-size:11px;display:block;margin-top:2px">
-                        Ao marcar, os produtos (<span id="nfseProdutosTotal"></span>) entram no valor e na descrição da nota de serviço. Não emita NF-e de produtos separada para a mesma OS, para não duplicar.
-                    </span>
+                <div id="nfseProdutosBox" style="display:none;margin:6px 0;padding:8px;border:1px solid rgba(128,128,128,.35);border-radius:4px">
+                    <strong>Esta OS também tem produtos (<span id="nfseProdutosTotal"></span>). O que entra nesta nota?</strong>
+                    <label class="radio" style="margin:4px 0 0"><input type="radio" name="nfseEscopo" value="servicos" checked /> <strong>Só os serviços</strong> &mdash; os produtos ficam para a NF-e (botão "Emitir NF-e") ou para cobrar à parte.</label>
+                    <label class="radio" style="margin:2px 0 0"><input type="radio" name="nfseEscopo" value="tudo" /> <strong>Serviços + produtos numa nota só</strong> &mdash; nota de serviço única com o valor total da OS. Não emita NF-e dos produtos depois, para não duplicar.</label>
+                    <input type="checkbox" id="nfseIncluirProdutos" style="display:none" />
                 </div>
                 <div id="nfseAvisos"></div>
                 <div style="text-align:center;margin:8px 0">
@@ -166,6 +164,7 @@
                 };
                 // Oferece incluir produtos apenas quando a OS tiver produtos.
                 $('#nfseIncluirProdutos').prop('checked', false);
+                $('input[name=nfseEscopo][value=servicos]').prop('checked', true);
                 if (nfseDados.produtos.length > 0) {
                     $('#nfseProdutosTotal').text(nfseMoney(nfseDados.totalProdutos));
                     $('#nfseProdutosBox').show();
@@ -197,6 +196,10 @@
         });
 
         $('#nfseIncluirProdutos').on('change', nfseRenderItens);
+        // A escolha explícita (só serviços / tudo junto) liga o checkbox interno.
+        $(document).on('change', 'input[name=nfseEscopo]', function () {
+            $('#nfseIncluirProdutos').prop('checked', $('input[name=nfseEscopo]:checked').val() === 'tudo').trigger('change');
+        });
 
         $('#nfseBtnAvancar').on('click', function() { nfseMostrarPasso(2); });
         $('#nfseBtnVoltar').on('click', function() { nfseMostrarPasso(1); });

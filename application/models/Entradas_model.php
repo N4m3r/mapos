@@ -16,9 +16,19 @@ class Entradas_model extends CI_Model
 
     public function add(array $data)
     {
+        $itens = $data['itens'] ?? [];
+        unset($data['itens']);
         $this->db->insert('notas_entrada', $this->filtrarColunas($data));
+        $id = $this->db->insert_id();
 
-        return $this->db->insert_id();
+        if ($id && $itens && $this->db->table_exists('notas_entrada_itens')) {
+            $cols = array_flip($this->db->list_fields('notas_entrada_itens'));
+            foreach ($itens as $it) {
+                $this->db->insert('notas_entrada_itens', array_intersect_key(['nota_entrada_id' => $id] + $it, $cols));
+            }
+        }
+
+        return $id;
     }
 
     public function update($id, array $data)
@@ -30,6 +40,9 @@ class Entradas_model extends CI_Model
 
     public function delete($id)
     {
+        if ($this->db->table_exists('notas_entrada_itens')) {
+            $this->db->delete('notas_entrada_itens', ['nota_entrada_id' => $id]);
+        }
         $this->db->where('idEntrada', $id);
 
         return $this->db->delete('notas_entrada');
@@ -61,7 +74,7 @@ class Entradas_model extends CI_Model
             $this->db->limit($limit, $offset);
         }
         // Não traz o XML (LONGTEXT) na listagem.
-        $this->db->select('idEntrada, chave, modelo, numero, serie, emitente_cnpj, emitente_nome, data_emissao, competencia, valor_total, v_bc_ibscbs, v_ibs, v_cbs, v_cred_pres_zfm, credita, observacao');
+        $this->db->select('idEntrada, chave, modelo, numero, serie, emitente_cnpj, emitente_nome, emitente_crt, data_pagamento, data_emissao, competencia, valor_total, v_bc_ibscbs, v_ibs, v_cbs, v_cred_pres_zfm, credita, observacao');
 
         return $this->db->get('notas_entrada')->result();
     }
@@ -75,6 +88,15 @@ class Entradas_model extends CI_Model
         return $this->db->count_all_results('notas_entrada');
     }
 
+    public function getItens($idEntrada)
+    {
+        if (!$this->db->table_exists('notas_entrada_itens')) {
+            return [];
+        }
+
+        return $this->db->order_by('n_item')->get_where('notas_entrada_itens', ['nota_entrada_id' => $idEntrada])->result();
+    }
+
     /** Mantém só as chaves que existem como coluna (tolerante a schema antigo). */
     private function filtrarColunas(array $data)
     {
@@ -85,15 +107,31 @@ class Entradas_model extends CI_Model
 
     /* -------------------------------------------------- Apuração */
 
-    /**
-     * Total de crédito das entradas de uma competência (só o que credita).
-     * Retorna ['v_ibs','v_cbs','v_cred_pres_zfm','total'].
-     */
-    public function creditoDoPeriodo($competencia)
+    /** Define (ou limpa, com null) a data de pagamento da nota. */
+    public function setDataPagamento($id, $data)
     {
-        $this->db->select('COALESCE(SUM(v_ibs),0) AS v_ibs, COALESCE(SUM(v_cbs),0) AS v_cbs, COALESCE(SUM(v_cred_pres_zfm),0) AS v_zfm', false);
+        return $this->update($id, ['data_pagamento' => $data ?: null]);
+    }
+
+    /** Último dia da competência AAAA-MM. */
+    private static function fimCompetencia($competencia)
+    {
+        return date('Y-m-t', strtotime($competencia . '-01'));
+    }
+
+    private function somaCredito($competencia, $pago)
+    {
+        $this->db->select('COALESCE(SUM(v_ibs),0) AS v_ibs, COALESCE(SUM(v_cbs),0) AS v_cbs, COALESCE(SUM(v_cred_pres_zfm),0) AS v_zfm, COUNT(*) AS qtd', false);
         $this->db->where('competencia', $competencia);
         $this->db->where('credita', 1);
+        if ($pago) {
+            // Crédito financeiro (art. 47 LC 214): só após o pagamento, até o fim da competência.
+            $this->db->where('data_pagamento IS NOT NULL', null, false);
+            $this->db->where('data_pagamento <=', self::fimCompetencia($competencia));
+        } else {
+            $this->db->group_start()->where('data_pagamento IS NULL', null, false)
+                ->or_where('data_pagamento >', self::fimCompetencia($competencia))->group_end();
+        }
         $row = $this->db->get('notas_entrada')->row();
 
         $vIbs = (float) ($row->v_ibs ?? 0);
@@ -105,43 +143,103 @@ class Entradas_model extends CI_Model
             'v_cbs' => $vCbs,
             'v_cred_pres_zfm' => $vZfm,
             'total' => $vIbs + $vCbs + $vZfm,
+            'qtd' => (int) ($row->qtd ?? 0),
         ];
     }
 
     /**
-     * Total de débito das saídas (NF-e autorizadas) de uma competência, obtido
-     * lendo o grupo IBSCBSTot do XML de cada nota. Notas anteriores à reforma
-     * (sem o grupo) contribuem com zero. Retorna ['v_ibs','v_cbs','total','qtd'].
+     * Crédito aproveitável da competência: notas com credita=1 e pagamento
+     * informado até o fim do período. Retorna ['v_ibs','v_cbs','v_cred_pres_zfm','total','qtd'].
+     */
+    public function creditoDoPeriodo($competencia)
+    {
+        return $this->somaCredito($competencia, true);
+    }
+
+    /** Crédito marcado, mas pendente de pagamento (sem data ou paga depois do período). */
+    public function creditoPendente($competencia)
+    {
+        return $this->somaCredito($competencia, false);
+    }
+
+    /**
+     * Débito das saídas autorizadas (NF-e, NFC-e e NFS-e) da competência, lido do XML.
+     * Retorna ['v_ibs','v_cbs','total','qtd','linhas'] (linhas = detalhe por documento).
      */
     public function debitoDoPeriodo($competencia)
     {
-        // competencia = 'AAAA-MM'
+        $vazio = ['v_ibs' => 0, 'v_cbs' => 0, 'total' => 0, 'qtd' => 0, 'linhas' => []];
         [$ano, $mes] = array_pad(explode('-', (string) $competencia), 2, '');
         if (!ctype_digit((string) $ano) || !ctype_digit((string) $mes)) {
-            return ['v_ibs' => 0, 'v_cbs' => 0, 'total' => 0, 'qtd' => 0];
+            return $vazio;
+        }
+        foreach (['apuracao_totais_xml_nfe' => 'apuracao_helper', 'danfse_dados_ibscbs' => 'danfe_helper'] as $fn => $h) {
+            if (!function_exists($fn)) {
+                require_once APPPATH . 'helpers/' . $h . '.php';
+            }
         }
 
-        $this->db->select('xml');
-        $this->db->where('tipo', 'nfe');
-        $this->db->where('status', 'autorizada');
-        $this->db->where("DATE_FORMAT(data_emissao, '%Y-%m')", "{$ano}-{$mes}");
+        $this->db->select('tipo, numero, data_emissao, xml');
+        $this->db->where_in('tipo', ['nfe', 'nfce', 'nfse']);
+        $this->db->where('status', 'autorizada'); // canceladas ficam de fora
+        // Intervalo do mês (o query builder não monta bem DATE_FORMAT(...) = ?).
+        $inicio = sprintf('%04d-%02d-01', $ano, $mes);
+        $this->db->where('data_emissao >=', $inicio);
+        $this->db->where('data_emissao <', date('Y-m-d', strtotime($inicio . ' +1 month')));
         $this->db->where('xml IS NOT NULL', null, false);
+        $this->db->order_by('data_emissao');
         $notas = $this->db->get('notas_fiscais')->result();
 
-        $vIbs = 0.0;
-        $vCbs = 0.0;
+        $nomes = ['nfe' => 'NF-e', 'nfce' => 'NFC-e', 'nfse' => 'NFS-e'];
+        $linhas = [];
         foreach ($notas as $n) {
-            $tot = self::extrairTotalIbsCbs($n->xml);
-            $vIbs += $tot['v_ibs'];
-            $vCbs += $tot['v_cbs'];
+            if ($n->tipo === 'nfse') {
+                $d = danfse_dados_ibscbs((string) $n->xml);
+                $t = ['v_ibs_uf' => (float) ($d['vIBSUF'] ?? 0), 'v_ibs_mun' => (float) ($d['vIBSMun'] ?? 0), 'v_cbs' => (float) ($d['vCBS'] ?? 0)];
+                if ($t['v_ibs_uf'] == 0.0 && $t['v_ibs_mun'] == 0.0) {
+                    $t['v_ibs_uf'] = (float) ($d['vIBS'] ?? 0);
+                }
+            } else {
+                $t = apuracao_totais_xml_nfe((string) $n->xml);
+            }
+            $linhas[] = ['tipo' => 'Débito', 'documento' => $nomes[$n->tipo], 'numero' => $n->numero,
+                'data' => $n->data_emissao ? date('d/m/Y', strtotime($n->data_emissao)) : ''] + $t;
         }
 
-        return [
-            'v_ibs' => $vIbs,
-            'v_cbs' => $vCbs,
-            'total' => $vIbs + $vCbs,
-            'qtd' => count($notas),
-        ];
+        $vIbs = array_sum(array_map(fn ($l) => $l['v_ibs_uf'] + $l['v_ibs_mun'], $linhas));
+        $vCbs = array_sum(array_column($linhas, 'v_cbs'));
+
+        return ['v_ibs' => $vIbs, 'v_cbs' => $vCbs, 'total' => $vIbs + $vCbs, 'qtd' => count($linhas), 'linhas' => $linhas];
+    }
+
+    /** Notas de entrada com crédito da competência (pagas ou pendentes), para detalhe. UF/Município vêm do XML; ZFM em linha própria. */
+    public function linhasCredito($competencia, $pago)
+    {
+        if (!function_exists('apuracao_credito_nota')) {
+            require_once APPPATH . 'helpers/apuracao_helper.php';
+        }
+        $this->db->select('numero, emitente_nome, data_emissao, v_ibs, v_cbs, v_cred_pres_zfm, xml');
+        $this->db->where('competencia', $competencia)->where('credita', 1);
+        $fim = self::fimCompetencia($competencia);
+        if ($pago) {
+            $this->db->where('data_pagamento IS NOT NULL', null, false)->where('data_pagamento <=', $fim);
+        } else {
+            $this->db->group_start()->where('data_pagamento IS NULL', null, false)->or_where('data_pagamento >', $fim)->group_end();
+        }
+        $linhas = [];
+        foreach ($this->db->get('notas_entrada')->result() as $r) {
+            $c = apuracao_credito_nota((array) $r);
+            $base = ['tipo' => $pago ? 'Crédito' : 'Crédito pendente', 'numero' => $r->numero ?? '',
+                'data' => !empty($r->data_emissao) ? date('d/m/Y', strtotime($r->data_emissao)) : ''];
+            $nome = (string) ($r->emitente_nome ?? 'Compra');
+            $linhas[] = $base + ['documento' => $nome . ($c['origem'] === 'manual' ? ' (manual)' : ''),
+                'v_ibs_uf' => $c['v_ibs_uf'], 'v_ibs_mun' => $c['v_ibs_mun'], 'v_cbs' => $c['v_cbs']];
+            if ($c['v_zfm'] > 0) {
+                $linhas[] = $base + ['documento' => 'Crédito presumido ZFM — ' . $nome, 'v_zfm' => $c['v_zfm']];
+            }
+        }
+
+        return $linhas;
     }
 
     /**
@@ -159,68 +257,15 @@ class Entradas_model extends CI_Model
 
     /* -------------------------------------------------- Parser de XML */
 
-    /**
-     * Extrai os campos de uma NF-e (modelo 55/65) a partir do XML de compra.
-     * Namespace é removido para permitir XPath simples. Retorna null se inválido.
-     */
+    /** Extrai os campos de uma NF-e (e itens, em 'itens') via entradas_xml_helper. Null se inválido. */
     public static function parseNfe($xmlString)
     {
-        $xmlString = trim((string) $xmlString);
-        if ($xmlString === '') {
-            return null;
+        if (!function_exists('entradas_parse_nfe')) {
+            require_once APPPATH . 'helpers/entradas_xml_helper.php';
         }
-        // Remove os namespaces (default e prefixados) para XPath sem prefixo.
-        $limpo = preg_replace('#\sxmlns(:\w+)?="[^"]*"#', '', $xmlString);
+        $dados = entradas_parse_nfe((string) $xmlString);
 
-        libxml_use_internal_errors(true);
-        $sx = simplexml_load_string($limpo);
-        libxml_clear_errors();
-        if ($sx === false) {
-            return null;
-        }
-
-        $inf = $sx->xpath('//infNFe');
-        if (empty($inf)) {
-            return null; // não é uma NF-e
-        }
-
-        $get = function ($xpath) use ($sx) {
-            $r = $sx->xpath($xpath);
-
-            return !empty($r) ? trim((string) $r[0]) : null;
-        };
-
-        $chaveRaw = (string) $inf[0]['Id'];
-        $chave = preg_replace('/\D/', '', $chaveRaw); // 44 dígitos
-
-        $dh = $get('//ide/dhEmi') ?: $get('//ide/dEmi');
-        $dataEmissao = null;
-        $competencia = null;
-        if ($dh) {
-            $ts = strtotime($dh);
-            if ($ts) {
-                $dataEmissao = date('Y-m-d', $ts);
-                $competencia = date('Y-m', $ts);
-            }
-        }
-
-        return [
-            'chave' => strlen($chave) === 44 ? $chave : null,
-            'modelo' => $get('//ide/mod') ?: '55',
-            'numero' => $get('//ide/nNF'),
-            'serie' => $get('//ide/serie'),
-            'emitente_cnpj' => $get('//emit/CNPJ') ?: $get('//emit/CPF'),
-            'emitente_nome' => $get('//emit/xNome'),
-            'data_emissao' => $dataEmissao,
-            'competencia' => $competencia,
-            'valor_total' => (float) ($get('//total/ICMSTot/vNF') ?: 0),
-            // No totalizador IBSCBSTot os valores ficam aninhados:
-            //   IBSCBSTot/vBCIBSCBS, IBSCBSTot/gIBS/vIBS, IBSCBSTot/gCBS/vCBS
-            'v_bc_ibscbs' => (float) ($get('//total/IBSCBSTot/vBCIBSCBS') ?: 0),
-            'v_ibs' => (float) ($get('//total/IBSCBSTot/gIBS/vIBS') ?: $get('//IBSCBSTot/gIBS/vIBS') ?: 0),
-            'v_cbs' => (float) ($get('//total/IBSCBSTot/gCBS/vCBS') ?: $get('//IBSCBSTot/gCBS/vCBS') ?: 0),
-            'v_cred_pres_zfm' => (float) ($get('//IBSCBSTot//vCredPresIBSZFM') ?: 0),
-        ];
+        return $dados === [] ? null : $dados;
     }
 
     /** Soma vIBS + vCBS do totalizador IBSCBSTot de um XML de NF-e (ou zero). */

@@ -236,6 +236,11 @@ class Os_model extends CI_Model
         if ($this->db->field_exists('codigo_tributacao_municipal', 'servicos')) {
             $select .= ', servicos.codigo_tributacao_municipal';
         }
+        foreach (['nbs', 'cindop', 'ibscbs_cst', 'ibscbs_cclasstrib'] as $col) {
+            if ($this->db->field_exists($col, 'servicos')) {
+                $select .= ', servicos.' . $col;
+            }
+        }
         $this->db->select($select);
         $this->db->from('servicos_os');
         $this->db->join('servicos', 'servicos.idServicos = servicos_os.servicos_id');

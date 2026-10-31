@@ -183,6 +183,7 @@ class Asaas extends BasePaymentGateway
         $servicos = $tipo === PaymentGateway::PAYMENT_TYPE_OS
             ? $this->ci->Os_model->getServicos($id)
             : [];
+        [$produtos, $servicos] = $this->aplicarSelecao($produtos, $servicos);
 
         $desconto = [$tipo === PaymentGateway::PAYMENT_TYPE_OS
             ? $this->ci->Os_model->getById($id)
@@ -240,7 +241,7 @@ class Asaas extends BasePaymentGateway
             'billingType' => 'BOLETO',
             'dueDate' => $expirationDate,
             'value' => $this->valorTotal($totalProdutos, $totalServicos, $totalDesconto, $tipoDesconto),
-            'description' => $tipo === PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id",
+            'description' => ($tipo === PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id") . $this->rotuloSelecao,
             'externalReference' => $id,
             'postalService' => false,
         ];
@@ -257,7 +258,7 @@ class Asaas extends BasePaymentGateway
             throw new \Exception('Falha na chamada para a API Asaas');
         }
 
-        $title = $tipo === PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id";
+        $title = ($tipo === PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id") . $this->rotuloSelecao;
         $data = [
             'barcode' => '',
             'link' => $result->invoiceUrl,
@@ -299,6 +300,7 @@ class Asaas extends BasePaymentGateway
         $servicos = $tipo === PaymentGateway::PAYMENT_TYPE_OS
             ? $this->ci->Os_model->getServicos($id)
             : [];
+        [$produtos, $servicos] = $this->aplicarSelecao($produtos, $servicos);
         $tipo_desconto = [$tipo === PaymentGateway::PAYMENT_TYPE_OS
             ? $this->ci->Os_model->getById($id)
             : $this->ci->vendas_model->getById($id)];
@@ -351,8 +353,8 @@ class Asaas extends BasePaymentGateway
         $expirationDate = (new DateTime())->add(new DateInterval($this->asaasConfig['boleto_expiration']));
         $expirationDate = ($expirationDate->format('Y-m-d'));
         $body = [
-            'name' => $tipo === PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id",
-            'description' => $tipo === PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id",
+            'name' => ($tipo === PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id") . $this->rotuloSelecao,
+            'description' => ($tipo === PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id") . $this->rotuloSelecao,
             'endDate' => $expirationDate,
             'value' => $this->valorTotal($totalProdutos, $totalServicos, $totalDesconto, $tipoDesconto),
             'billingType' => 'UNDEFINED',
@@ -373,7 +375,7 @@ class Asaas extends BasePaymentGateway
             throw new \Exception('Falha na chamada para a API Asaas');
         }
 
-        $title = $tipo === PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id";
+        $title = ($tipo === PaymentGateway::PAYMENT_TYPE_OS ? "OS #$id" : "Venda #$id") . $this->rotuloSelecao;
         $data = [
             'expire_at' => $result->endDate,
             'charge_id' => $result->id,
@@ -409,7 +411,7 @@ class Asaas extends BasePaymentGateway
         if ($tipo_desconto == 'porcento') {
             $def_desconto = $desconto * ($produtosValor + $servicosValor) / 100;
         } elseif ($tipo_desconto == 'real') {
-            $def_desconto = $desconto;
+            $def_desconto = $desconto * $this->fatorDescontoReal;
         } else {
             $def_desconto = 0;
         }

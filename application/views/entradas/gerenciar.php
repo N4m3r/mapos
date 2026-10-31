@@ -72,6 +72,7 @@ $fmt = fn ($v) => number_format((float) $v, 2, ',', '.');
                             <label>Crédito IBS<input type="text" name="v_ibs" placeholder="0,00" /></label>
                             <label>Crédito CBS<input type="text" name="v_cbs" placeholder="0,00" /></label>
                             <label>Créd. presumido ZFM<input type="text" name="v_cred_pres_zfm" placeholder="0,00" /></label>
+                            <label>Data de pagamento<input type="date" name="data_pagamento" /></label>
                         </div>
                         <label style="display:inline-flex;align-items:center;gap:6px;margin-top:8px">
                             <input type="checkbox" name="credita" value="1" checked /> Aproveitar este crédito
@@ -92,6 +93,9 @@ $fmt = fn ($v) => number_format((float) $v, 2, ',', '.');
                         IBS R$ <?= $fmt($credito['v_ibs']) ?> + CBS R$ <?= $fmt($credito['v_cbs']) ?>
                         <?php if ($credito['v_cred_pres_zfm'] > 0) { ?> + ZFM R$ <?= $fmt($credito['v_cred_pres_zfm']) ?><?php } ?>
                         = <strong>R$ <?= $fmt($credito['total']) ?></strong>
+                        <?php if (!empty($pendente['qtd'])) { ?>
+                            <br><span style="color:#b36b00">Crédito pendente de pagamento: R$ <?= $fmt($pendente['total']) ?> (<?= (int) $pendente['qtd'] ?> nota(s)). Só entra no crédito depois de informada a data de pagamento.</span>
+                        <?php } ?>
                     </div>
                 <?php } ?>
 
@@ -106,13 +110,15 @@ $fmt = fn ($v) => number_format((float) $v, 2, ',', '.');
                             <th style="text-align:right">IBS</th>
                             <th style="text-align:right">CBS</th>
                             <th style="text-align:right">ZFM</th>
+                            <th style="text-align:center">Fornecedor do Simples</th>
+                            <th style="text-align:center">Pago em</th>
                             <th style="text-align:center">Credita?</th>
                             <th style="text-align:center">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($results)) { ?>
-                            <tr><td colspan="9"><div class="ui-vazio"><i class="bx bx-file-blank"></i><strong>Nenhuma entrada registrada<?= $competencia ? ' nesta competência' : '' ?></strong>Importe o XML de uma nota de compra ou use "Lançar manual".</div></td></tr>
+                            <tr><td colspan="11"><div class="ui-vazio"><i class="bx bx-file-blank"></i><strong>Nenhuma entrada registrada<?= $competencia ? ' nesta competência' : '' ?></strong>Importe o XML de uma nota de compra ou use "Lançar manual".</div></td></tr>
                         <?php } else { ?>
                             <?php foreach ($results as $e) { ?>
                                 <tr<?= $e->credita ? '' : ' style="opacity:.5"' ?>>
@@ -123,6 +129,20 @@ $fmt = fn ($v) => number_format((float) $v, 2, ',', '.');
                                     <td style="text-align:right"><?= $fmt($e->v_ibs) ?></td>
                                     <td style="text-align:right"><?= $fmt($e->v_cbs) ?></td>
                                     <td style="text-align:right"><?= $fmt($e->v_cred_pres_zfm) ?></td>
+                                    <td style="text-align:center">
+                                        <?php if (in_array((int) $e->emitente_crt, [1, 2, 4], true)) { ?>
+                                            <span style="color:#b36b00">Sim</span><br>
+                                            <small style="color:#b36b00">crédito limitado ao que o fornecedor recolheu</small>
+                                        <?php } else { ?>
+                                            <span style="color:#999"><?= $e->emitente_crt ? 'Não' : '—' ?></span>
+                                        <?php } ?>
+                                    </td>
+                                    <td style="text-align:center">
+                                        <?= form_open('entradas/pagamento/' . $e->idEntrada, ['style' => 'margin:0']) ?>
+                                            <input type="date" name="data_pagamento" value="<?= html_escape($e->data_pagamento) ?>" data-ao-mudar="enviar" aria-label="Data de pagamento" style="width:130px;margin:0" />
+                                        <?= form_close() ?>
+                                        <?php if ($e->credita && !$e->data_pagamento) { ?><small style="color:#b36b00">crédito pendente de pagamento</small><?php } ?>
+                                    </td>
                                     <td style="text-align:center">
                                         <a href="<?= site_url('entradas/toggleCredita/' . $e->idEntrada) ?>" title="Alternar aproveitamento do crédito" aria-label="Alternar aproveitamento do crédito">
                                             <?= $e->credita ? '<span style="color:#3a3">Sim</span>' : '<span style="color:#999">Não</span>' ?>
