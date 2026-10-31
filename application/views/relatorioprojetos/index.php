@@ -703,3 +703,30 @@ $link = function (array $over = []) use ($base) {
         <?php endforeach; ?>
     </div>
 </div>
+<script nonce="<?= csp_nonce() ?>">
+(function () {
+    if (new URLSearchParams(window.location.search).get('imprimir') !== '1') {
+        return;
+    }
+    window.addEventListener('load', function () {
+        var pendentes = Array.prototype.filter.call(document.images, function (img) {
+            return !img.complete;
+        });
+        if (pendentes.length === 0) {
+            window.print();
+            return;
+        }
+        var restantes = pendentes.length;
+        var pronto = function () {
+            restantes--;
+            if (restantes === 0) {
+                window.print();
+            }
+        };
+        pendentes.forEach(function (img) {
+            img.addEventListener('load', pronto);
+            img.addEventListener('error', pronto);
+        });
+    });
+})();
+</script>

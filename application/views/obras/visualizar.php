@@ -94,6 +94,9 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
             <ul class="pj-mais-menu">
                 <?php if ($perm('eObras')): ?><li><a href="<?= site_url('obras/editar/' . $obra->idObra) ?>"><i class="bx bx-edit"></i> Editar projeto</a></li><?php endif; ?>
                 <li><a href="<?= site_url('obras/asbuilt/' . (int) $obra->idObra) ?>" target="_blank" rel="noopener"><i class="bx bx-printer"></i> Documentação final (as-built)</a></li>
+                <?php if ($perm('vObras')): ?><li><a href="<?= site_url('relatorioprojetos') . '?tipo=semanal&obra_id=' . (int) $obra->idObra . '&imprimir=1' ?>" target="_blank" rel="noopener"><i class="bx bx-printer"></i> Imprimir relatório da semana</a></li>
+                <li><a href="<?= site_url('relatorioprojetos') . '?tipo=mensal&obra_id=' . (int) $obra->idObra . '&imprimir=1' ?>" target="_blank" rel="noopener"><i class="bx bx-printer"></i> Imprimir relatório do mês</a></li>
+                <?php endif; ?>
                 <?php if ($perm('rObraMaterial')): ?><li><a href="<?= site_url('obramaterial/receber/' . $obra->idObra) ?>"><i class="bx bx-down-arrow-circle"></i> Receber material</a></li><?php endif; ?>
                 <?php if ($perm('sObraMaterial')): ?><li><a href="<?= site_url('obramaterial/entregar/' . $obra->idObra) ?>"><i class="bx bx-up-arrow-circle"></i> Entregar material</a></li><?php endif; ?>
                 <?php if ($ptEdita): ?><li><a href="#modal-vincular-os" data-toggle="modal"><i class="bx bx-link"></i> Vincular OS existente</a></li><?php endif; ?>

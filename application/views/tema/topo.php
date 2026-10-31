@@ -102,6 +102,9 @@
             <li><a href="<?= site_url('relatorios/produtos') ?>">Produtos</a></li>
             <li><a href="<?= site_url('relatorios/servicos') ?>">Serviços</a></li>
             <li><a href="<?= site_url('relatorios/os') ?>">Ordens de Serviço</a></li>
+            <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'rOs')) { ?>
+              <li><a href="<?= site_url('relatorioos') ?>">OS realizadas (diário/semanal/mensal)</a></li>
+            <?php } ?>
             <li><a href="<?= site_url('relatorios/cicloFaturamento') ?>">Ciclo / Faturamento das OS</a></li>
             <li><a href="<?= site_url('relatorios/nps') ?>">Satisfação (NPS)</a></li>
             <li class="divider"></li>

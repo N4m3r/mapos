@@ -236,6 +236,17 @@
                         </a>
                     </li>
                 <?php } ?>
+
+                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'rOs')) { ?>
+                    <li class="<?php if (isset($menuRelatorioOs)) {
+                        echo 'active';
+                    }; ?>">
+                        <a class="tip-bottom" title="" href="<?= site_url('relatorioos') ?>"><i class='bx bx-check-square iconX'></i>
+                            <span class="title">OS realizadas</span>
+                            <span class="title-tooltip">OS realizadas</span>
+                        </a>
+                    </li>
+                <?php } ?>
             </ul>
         </div>
 

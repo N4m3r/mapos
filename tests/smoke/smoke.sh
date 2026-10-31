@@ -36,6 +36,8 @@ financeiro/lancamentos|html
 cobrancas/cobrancas|html
 contratos|html
 obras|html
+relatorioprojetos|html
+relatorioos|html
 usuarios|html
 permissoes|html
 mapos/emitente|html
