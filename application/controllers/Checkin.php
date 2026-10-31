@@ -987,7 +987,7 @@ class Checkin extends MY_Controller
             $foto_id = $this->input->get('id');
         }
 
-        if (!$foto_id) {
+        if (!$foto_id || !$this->podeVerFoto($foto_id)) {
             show_404();
             return;
         }
@@ -1020,12 +1020,56 @@ class Checkin extends MY_Controller
             return;
         }
 
-        // Envia headers e imagem
+        // So tipos de imagem; o navegador nao deve adivinhar o tipo (foto de cliente: cache privado)
+        if (!in_array($mime_type, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true)) {
+            $mime_type = 'image/jpeg';
+        }
         header('Content-Type: ' . $mime_type);
         header('Content-Length: ' . strlen($image_data));
-        header('Cache-Control: public, max-age=86400');
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, max-age=86400');
         echo $image_data;
         exit;
+    }
+
+    /**
+     * Quem pode ver/baixar uma foto de atendimento: quem ve OS (vOs) ou relatorio de OS (rOs),
+     * quem tirou a foto, o tecnico responsavel pela OS, quem fez check-in nela ou quem
+     * acessa o projeto em que a OS esta. Sem acesso, a rota responde 404.
+     */
+    private function podeVerFoto($foto_id)
+    {
+        $permissao = $this->session->userdata('permissao');
+        if ($this->permission->checkPermission($permissao, 'vOs') || $this->permission->checkPermission($permissao, 'rOs')) {
+            return true;
+        }
+        if (!$this->db->table_exists('os_fotos_atendimento')) {
+            return false;
+        }
+        $foto = $this->db->select('os_id, usuarios_id')->where('idFoto', (int) $foto_id)
+            ->get('os_fotos_atendimento')->row();
+        if (!$foto) {
+            return false;
+        }
+        $uid = (int) $this->session->userdata('id_admin');
+        $osId = (int) $foto->os_id;
+        if (!$uid) {
+            return false;
+        }
+        if ((int) $foto->usuarios_id === $uid) {
+            return true;
+        }
+        if ($this->db->field_exists('tecnico_responsavel', 'os')
+            && $this->db->where('idOs', $osId)->where('tecnico_responsavel', $uid)->count_all_results('os') > 0) {
+            return true;
+        }
+        if ($this->db->table_exists('os_checkin')
+            && $this->db->where('os_id', $osId)->where('usuarios_id', $uid)->count_all_results('os_checkin') > 0) {
+            return true;
+        }
+        $this->load->model('obras_model');
+
+        return (bool) $this->obras_model->osEmProjetoDoUsuario($osId, $uid);
     }
 
     /**
@@ -1042,7 +1086,7 @@ class Checkin extends MY_Controller
             return;
         }
 
-        $foto = $this->fotosatendimento_model->getById($foto_id);
+        $foto = $this->podeVerFoto($foto_id) ? $this->fotosatendimento_model->getById($foto_id) : null;
 
         if (!$foto) {
             show_error('Foto não encontrada', 404);
