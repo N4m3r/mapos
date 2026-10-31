@@ -83,6 +83,8 @@ class Localizacao extends MY_Controller
         }
 
         $this->output
+            ->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
+            ->set_header('Pragma: no-cache')
             ->set_content_type('application/json')
             ->set_output(json_encode([
                 'success'  => true,

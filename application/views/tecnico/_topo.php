@@ -22,6 +22,7 @@ $voltar_url   = isset($voltar_url) ? $voltar_url : null;
     <meta name="apple-mobile-web-app-title" content="Área do Técnico">
     <meta name="csrf-token-name" content="<?= config_item('csrf_token_name') ?>">
     <meta name="csrf-cookie-name" content="<?= config_item('csrf_cookie_name') ?>">
+    <meta name="base-url" content="<?= base_url() ?>">
     <meta name="usuario-id" content="<?= (int) $this->session->userdata('id_admin') ?>">
     <link rel="manifest" href="<?= base_url('assets/pwa/manifest.json') ?>">
     <link rel="apple-touch-icon" href="<?= base_url('assets/pwa/icone-192.png') ?>">

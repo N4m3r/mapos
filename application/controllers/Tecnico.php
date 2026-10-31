@@ -1040,6 +1040,51 @@ class Tecnico extends MY_Controller
     }
 
     /**
+     * Ping de posição "de presença": enviado enquanto a Área do Técnico está
+     * aberta (assets/js/tecnico-posicao.js), mesmo fora de um atendimento.
+     * Vincula ao check-in ativo do técnico, se houver. Sessão + CSRF (global).
+     */
+    public function registrar_posicao()
+    {
+        $this->output->set_content_type('application/json')->set_header('Cache-Control: no-store');
+
+        $tecnico_id = (int) $this->session->userdata('id_admin');
+        $lat = $this->input->post('latitude');
+        $lng = $this->input->post('longitude');
+
+        if (!$this->input->is_ajax_request() || !$tecnico_id || !is_numeric($lat) || !is_numeric($lng)
+            || abs((float) $lat) > 90 || abs((float) $lng) > 180) {
+            return $this->output->set_status_header(400)->set_output(json_encode(['success' => false]));
+        }
+
+        $checkin = null;
+        if ($this->db->table_exists('os_checkin')) {
+            $checkin = $this->db->where('usuarios_id', $tecnico_id)
+                ->where('data_saida IS NULL')
+                ->where('data_entrada >', date('Y-m-d H:i:s', strtotime('-24 hours')))
+                ->order_by('idCheckin', 'DESC')->limit(1)->get('os_checkin')->row();
+        }
+
+        $precisao   = $this->input->post('precisao');
+        $velocidade = $this->input->post('velocidade');
+        $bateria    = $this->input->post('bateria');
+
+        $id = $this->localizacao_model->registrarPing([
+            'usuarios_id' => $tecnico_id,
+            'os_id'       => $checkin ? $checkin->os_id : null,
+            'checkin_id'  => $checkin ? $checkin->idCheckin : null,
+            'latitude'    => (float) $lat,
+            'longitude'   => (float) $lng,
+            'precisao'    => is_numeric($precisao) ? $precisao : null,
+            'velocidade'  => is_numeric($velocidade) ? $velocidade : null,
+            'bateria'     => is_numeric($bateria) ? (int) $bateria : null,
+            'data_hora'   => date('Y-m-d H:i:s'),
+        ]);
+
+        $this->output->set_output(json_encode(['success' => (bool) $id]));
+    }
+
+    /**
      * Avisa o cliente por WhatsApp (gatilho de atendimento em campo). Roda
      * sempre DEPOIS da ação principal e nunca derruba a ação.
      */

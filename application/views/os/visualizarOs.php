@@ -938,7 +938,9 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
 <?= $modalGerarPagamento ?>
 
 <!-- Modal visualizar anexo -->
-<div id="modal-anexo" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+<link rel="stylesheet" href="<?= base_url('assets/css/anexo-viewer.css') ?>?v=<?= asset_versao('assets/css/anexo-viewer.css') ?>">
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/anexo-viewer.js') ?>?v=<?= asset_versao('assets/js/anexo-viewer.js') ?>"></script>
+<div id="modal-anexo" class="modal hide fade" data-excluir-url="<?php echo base_url(); ?>index.php/os/excluirAnexo/" data-download-url="<?php echo base_url(); ?>index.php/os/downloadanexo/" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
     aria-hidden="true">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
@@ -1390,16 +1392,7 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
     }
 
     // Usa event delegation para melhor performance - registra uma única vez
-    $(document).on('click', '.anexo', function(event) {
-        event.preventDefault();
-        var link = $(this).attr('link');
-        var id = $(this).attr('imagem');
-        var url = '<?php echo base_url(); ?>index.php/os/excluirAnexo/';
-        $("#div-visualizar-anexo").html('<img src="' + link + '" alt="">');
-        $("#excluir-anexo").attr('link', url + id);
-        $("#download").attr('href', "<?php echo base_url(); ?>index.php/os/downloadanexo/" + id);
-    });
-
+    
     $(document).on('click', '#excluir-anexo', function(event) {
         event.preventDefault();
 

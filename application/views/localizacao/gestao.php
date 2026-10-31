@@ -234,7 +234,8 @@
     /* ===================== ABA TEMPO REAL ===================== */
     var TempoReal = (function () {
         var ENDPOINT = BASE + 'index.php/localizacao/tecnicos_ativos?minutos=30';
-        var REFRESH_MS = 15000;
+        var REFRESH_MS = 10000;
+        var ultimaOk = 0, emVoo = false, tickTimer = null;
 
         var mapa = null;
         var marcadores = {}; // usuarios_id -> L.marker
@@ -348,23 +349,42 @@
             }
         }
 
+        function textoAtualizado() {
+            var el = document.getElementById('loc-atualizado');
+            if (!el || !ultimaOk) { return; }
+            var s = Math.max(0, Math.round((Date.now() - ultimaOk) / 1000));
+            el.textContent = 'atualizado há ' + (s < 60 ? s + 's' : Math.floor(s / 60) + ' min');
+        }
+
         function carregar() {
-            $.ajax({ url: ENDPOINT, method: 'GET', dataType: 'json' })
+            if (emVoo) { return; }
+            emVoo = true;
+            $.ajax({ url: ENDPOINT + '&_=' + Date.now(), method: 'GET', dataType: 'json', cache: false })
                 .done(function (r) {
                     if (r && r.success) {
                         ultimaLista = r.tecnicos || [];
                         atualizarMapa(ultimaLista);
-                        document.getElementById('loc-atualizado').textContent = r.servidor || '';
+                        ultimaOk = Date.now();
+                        textoAtualizado();
                     }
-                });
+                })
+                .always(function () { emVoo = false; });
         }
 
         function agendar() {
-            if (timer) { clearInterval(timer); }
-            if (document.getElementById('loc-auto').checked) {
+            if (timer) { clearInterval(timer); timer = null; }
+            if (tickTimer) { clearInterval(tickTimer); tickTimer = null; }
+            if (document.getElementById('loc-auto').checked && !document.hidden) {
                 timer = setInterval(carregar, REFRESH_MS);
+                tickTimer = setInterval(textoAtualizado, 1000);
             }
         }
+
+        document.addEventListener('visibilitychange', function () {
+            if (!mapa) { return; }
+            agendar();
+            if (!document.hidden) { carregar(); }
+        });
 
         function init() {
             if (mapa) { return; }

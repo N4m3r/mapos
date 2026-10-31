@@ -383,8 +383,11 @@ $statusSimples = function ($st) {
 <?php endif; ?>
 
 <!-- Modal de foto ampliada -->
-<div id="fotoModal" data-acao="esconder" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:2000; align-items:center; justify-content:center; padding:20px;">
-    <img id="fotoModalImg" src="" alt="Foto" style="max-width:100%; max-height:100%; border-radius:8px;">
+<div id="fotoModal" data-acao="esconder" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100%; height:100vh; height:100dvh; background:rgba(0,0,0,.95); z-index:2000; align-items:center; justify-content:center; overflow:hidden;">
+    <img id="fotoModalImg" src="" alt="Foto" style="max-width:100%; max-height:100vh; max-height:100dvh; object-fit:contain; touch-action:manipulation;">
+    <button type="button" id="fotoPrev" aria-label="Anterior" style="position:absolute; left:0; top:50%; margin-top:-28px; min-width:48px; min-height:56px; font-size:30px; background:rgba(0,0,0,.45); color:#fff; border:0;">&#8249;</button>
+    <button type="button" id="fotoNext" aria-label="Pr&oacute;xima" style="position:absolute; right:0; top:50%; margin-top:-28px; min-width:48px; min-height:56px; font-size:30px; background:rgba(0,0,0,.45); color:#fff; border:0;">&#8250;</button>
+    <button type="button" id="fotoClose" aria-label="Fechar" style="position:absolute; top:8px; right:8px; min-width:48px; min-height:48px; font-size:30px; background:rgba(0,0,0,.6); color:#fff; border:0; border-radius:24px;">&times;</button>
 </div>
 
 <!-- Modal: registrar "não foi possível realizar" -->
@@ -461,10 +464,42 @@ $statusSimples = function ($st) {
         if (window.CheckinManager && CheckinManager.aviso) { CheckinManager.aviso(msg, tipo || 'info'); }
         else { var d = document.createElement('div'); d.setAttribute('role', 'alert'); d.textContent = msg; document.body.appendChild(d); }
     }
+    var fotoLista = [], fotoIdx = 0, fotoZoom = false, fotoSx = 0, fotoSy = 0, fotoTap = 0;
+    function mostrarFoto(i) {
+        if (i < 0 || i >= fotoLista.length) { return; }
+        fotoIdx = i; fotoZoom = false;
+        var im = document.getElementById('fotoModalImg');
+        im.src = fotoLista[i]; im.style.transform = '';
+        document.getElementById('fotoPrev').style.display = i > 0 ? '' : 'none';
+        document.getElementById('fotoNext').style.display = i < fotoLista.length - 1 ? '' : 'none';
+    }
     function abrirFoto(url) {
-        document.getElementById('fotoModalImg').src = url;
+        fotoLista = [];
+        document.querySelectorAll('img[data-chamar="abrirFoto"]').forEach(function (el) { fotoLista.push(el.src); });
+        var i = fotoLista.indexOf(url); if (i < 0) { fotoLista = [url]; i = 0; }
+        mostrarFoto(i);
         document.getElementById('fotoModal').style.display = 'flex';
     }
+    (function () {
+        var m = document.getElementById('fotoModal'), im = document.getElementById('fotoModalImg');
+        document.getElementById('fotoPrev').addEventListener('click', function (e) { e.stopPropagation(); mostrarFoto(fotoIdx - 1); });
+        document.getElementById('fotoNext').addEventListener('click', function (e) { e.stopPropagation(); mostrarFoto(fotoIdx + 1); });
+        document.getElementById('fotoClose').addEventListener('click', function (e) { e.stopPropagation(); m.style.display = 'none'; });
+        im.addEventListener('click', function (e) { e.stopPropagation(); });
+        m.addEventListener('touchstart', function (e) { fotoSx = e.touches[0].clientX; fotoSy = e.touches[0].clientY; }, { passive: true });
+        m.addEventListener('touchend', function (e) {
+            var t = e.changedTouches[0], dx = t.clientX - fotoSx, dy = t.clientY - fotoSy, now = Date.now();
+            if (Math.abs(dx) < 10 && Math.abs(dy) < 10 && e.target === im) {
+                if (now - fotoTap < 300) { fotoZoom = !fotoZoom; im.style.transform = fotoZoom ? 'scale(2.5)' : ''; fotoTap = 0; } else { fotoTap = now; }
+                return;
+            }
+            if (!fotoZoom && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) { mostrarFoto(fotoIdx + (dx < 0 ? 1 : -1)); }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (m.style.display !== 'flex') { return; }
+            if (e.key === 'ArrowLeft') { mostrarFoto(fotoIdx - 1); } else if (e.key === 'ArrowRight') { mostrarFoto(fotoIdx + 1); } else if (e.key === 'Escape') { m.style.display = 'none'; }
+        });
+    })();
 
     // ---- Serviço não realizado -------------------------------------
     var NR_OS_ID = <?= (int) $os->idOs ?>;

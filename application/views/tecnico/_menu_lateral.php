@@ -52,3 +52,6 @@ $m = menu_tecnico_dados(!empty($menu_offline));
     </nav>
 </aside>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/menu-tecnico.js') ?>?v=<?= asset_versao('assets/js/menu-tecnico.js') ?>"></script>
+<?php if (!empty($menu_offline)): ?>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/tecnico-posicao.js') ?>?v=<?= asset_versao('assets/js/tecnico-posicao.js') ?>" defer></script>
+<?php endif; ?>
