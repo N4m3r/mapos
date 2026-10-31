@@ -280,4 +280,35 @@ class ObraPontosTest extends TestCase
         $this->assertFalse(Obra_pontos_model::exigeEtiqueta('testado', 'camera'));
         $this->assertSame('etiqueta', Obra_pontos_model::LEGENDA_ETIQUETA);
     }
+
+    public function testAgruparFotosPorEtapaNaOrdemDosStatus(): void
+    {
+        $fotos = [
+            (object) ['idFoto' => 1, 'etapa' => 'testado'],
+            ['idFoto' => 2, 'etapa' => 'instalado'],
+            (object) ['idFoto' => 3, 'etapa' => 'instalado'],
+            (object) ['idFoto' => 4, 'etapa' => 'legado'],
+            (object) ['idFoto' => 5, 'etapa' => 'previsto'],
+        ];
+        $g = Obra_pontos_model::agruparFotosPorEtapa($fotos);
+        $this->assertSame(['previsto', 'instalado', 'testado', 'legado'], array_keys($g));
+        $this->assertCount(2, $g['instalado']);
+        $this->assertSame([], Obra_pontos_model::agruparFotosPorEtapa([]));
+    }
+
+    public function testLinhaHistorico(): void
+    {
+        $l = Obra_pontos_model::linhaHistorico((object) [
+            'status_anterior' => 'cabeado', 'status_novo' => 'instalado', 'usuario' => 'Ana',
+            'data' => '2026-10-31 14:05:00', 'observacao' => ' ok ', 'evento' => 'status',
+        ]);
+        $this->assertSame('Cabo passado → Instalado', $l['titulo']);
+        $this->assertSame('Ana', $l['usuario']);
+        $this->assertSame('31/10/2026 14:05', $l['quando']);
+        $this->assertSame('ok', $l['texto']);
+
+        $r = Obra_pontos_model::linhaHistorico(['status_novo' => 'infra', 'status_anterior' => 'infra', 'evento' => 'repasse', 'destinatario' => 'Bia']);
+        $this->assertSame('Repassado para Bia', $r['titulo']);
+        $this->assertSame('', $r['quando']);
+    }
 }

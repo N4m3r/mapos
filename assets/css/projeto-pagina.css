@@ -295,3 +295,29 @@
 
 /* Atividade vinda de OS vinculada, junto com os registros do dia (ADR-012/ADR-015 fase 4) */
 .pj-pagina .pj-linha-os { background: var(--ui-suave); }
+
+/* Popup de detalhes do ponto */
+#modal-ponto-detalhes { width: 760px; margin-left: -380px; }
+#modal-ponto-detalhes .modal-body { max-height: 70vh; }
+.ptd-cab { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 6px; }
+.ptd-ident { margin: 0; }
+.ptd-tipo, .ptd-local { color: #5b6574; }
+.ptd-sec { margin: 16px 0 6px; padding-bottom: 3px; border-bottom: 1px solid #d9dde3; }
+.ptd-dl { display: grid; grid-template-columns: 150px 1fr; gap: 4px 12px; margin: 0; }
+.ptd-dl dt { font-weight: 700; margin: 0; }
+.ptd-dl dd { margin: 0; word-break: break-word; }
+.ptd-vazio, .ptd-meta { color: #5b6574; margin: 4px 0; }
+.ptd-etapa { margin-top: 8px; }
+.ptd-fotos, .ptd-teste, .ptd-hist, .ptd-os { list-style: none; margin: 4px 0; padding: 0; }
+.ptd-fotos { display: flex; flex-wrap: wrap; gap: 10px; }
+.ptd-fotos li { width: 100px; text-align: center; }
+.ptd-fotos img { width: 96px; height: 96px; object-fit: cover; border-radius: 4px; border: 1px solid #c9ced6; }
+.ptd-foto-etq img { border: 2px solid #1f7ae0; }
+.ptd-fotos small { display: block; font-size: 10px; line-height: 1.2; color: #5b6574; }
+.ptd-ok { color: #1c7a3c; }
+.ptd-nok { color: #b3261e; }
+.ptd-sr { position: absolute; left: -9999px; }
+.ptd-hist li { padding: 4px 0; border-bottom: 1px dashed #d9dde3; }
+.ptd-hist-q { display: inline-block; min-width: 112px; color: #5b6574; font-size: 12px; }
+.ptd-hist-obs { margin-left: 112px; font-size: 12px; color: #5b6574; }
+@media (max-width: 800px) { #modal-ponto-detalhes { width: auto; margin-left: 0; left: 2%; right: 2%; } .ptd-dl { grid-template-columns: 110px 1fr; } }

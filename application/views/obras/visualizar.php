@@ -185,11 +185,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                                                     'modelo' => $pt->modelo ?? '', 'serie' => $pt->serie ?? '', 'observacao' => $pt->observacao ?? '',
                                                 ]];
                                             } ?>
-                                            <?php if ($ptEdita): ?>
-                                                <a href="#" class="pj-porta st-<?= html_escape($pt->status) ?>" title="<?= html_escape($dica) ?>" aria-label="<?= html_escape($dica) ?>" data-chamar="editarPonto" data-args="<?= html_escape(json_encode($argsPt)) ?>" data-cancelar><?= html_escape($pt->identificacao) ?></a>
-                                            <?php else: ?>
-                                                <a href="#pt-linha-<?= (int) $pt->idPonto ?>" class="pj-porta st-<?= html_escape($pt->status) ?> js-ir-ponto" data-ponto="<?= (int) $pt->idPonto ?>" title="<?= html_escape($dica) ?>" aria-label="<?= html_escape($dica) ?>"><?= html_escape($pt->identificacao) ?></a>
-                                            <?php endif; ?>
+                                            <a href="#" class="pj-porta st-<?= html_escape($pt->status) ?> js-ponto-detalhes" data-ponto="<?= (int) $pt->idPonto ?>"<?= $ptEdita ? ' data-edit-args="' . html_escape(json_encode($argsPt)) . '"' : '' ?> title="<?= html_escape($dica) ?>" aria-label="Detalhes de <?= html_escape($dica) ?>"><?= html_escape($pt->identificacao) ?></a>
                                         <?php endforeach; ?>
                                     </div>
                                 </div>
@@ -202,7 +198,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                         </ul>
                         <p class="pj-nota">
                             <?php if ((float) $pontos_resumo['cabo_m'] > 0): ?>Cabo passado: <b><?= $fmt($pontos_resumo['cabo_m']) ?> m</b>. <?php endif; ?>
-                            Clique em um ponto para <?= $ptEdita ? 'editar' : 'ver na lista' ?>. O status é atualizado na aba <a href="#pontos" class="js-ir-aba" data-aba="pontos">Pontos</a>.
+                            Clique em um ponto para ver os detalhes. O status é atualizado na aba <a href="#pontos" class="js-ir-aba" data-aba="pontos">Pontos</a>.
                         </p>
                     <?php else: ?>
                         <div class="ui-vazio">
@@ -436,7 +432,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                                     <span class="pt-sem-foto">—</span>
                                 <?php endif; ?>
                             </td>
-                            <td data-label="Ponto" class="pj-col-ponto"><strong><?= html_escape($pt->identificacao) ?></strong><small><?= html_escape($pontos_tipos[$pt->tipo]['rotulo'] ?? $pt->tipo) ?></small></td>
+                            <td data-label="Ponto" class="pj-col-ponto"><a href="#" class="js-ponto-detalhes" data-ponto="<?= (int) $pt->idPonto ?>"<?= $ptEdita ? ' data-edit-args="' . html_escape(json_encode([$pt])) . '"' : '' ?> title="Ver detalhes" aria-label="Detalhes de <?= html_escape($pt->identificacao) ?>"><strong><?= html_escape($pt->identificacao) ?></strong> <i class="bx bx-show bx-xs" aria-hidden="true"></i></a><small><?= html_escape($pontos_tipos[$pt->tipo]['rotulo'] ?? $pt->tipo) ?></small></td>
                             <td data-label="Local"><?= html_escape($pt->local ?: '—') ?></td>
                             <td data-label="Rede" class="pj-col-rede">
                                 <?php if ($pt->ip || $pt->canal || $pt->porta): ?>
@@ -1155,6 +1151,46 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
     function excluirApont(id){ if(confirm('Remover apontamento?')){ document.getElementById('del_apont').value=id; document.getElementById('formExcluirApont').submit(); } }
 </script>
 <?php endif; ?>
+
+<!-- Modal Detalhes do ponto -->
+<div id="modal-ponto-detalhes" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="ptd-titulo" aria-hidden="true">
+    <div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Fechar">×</button><h5 id="ptd-titulo" tabindex="-1">Detalhes do ponto</h5></div>
+    <div class="modal-body" id="ptd-corpo" aria-live="polite"></div>
+    <div class="modal-footer">
+        <?php if ($ptEdita): ?><button type="button" class="button btn btn-primary" id="ptd-editar" style="display:none"><span class="button__icon"><i class="bx bx-edit"></i></span><span class="button__text2">Editar ponto</span></button><?php endif; ?>
+        <button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Fechar</span></button>
+    </div>
+</div>
+<script nonce="<?= csp_nonce() ?>">
+    (function () {
+        var editArgs = null, req = 0;
+        $(document).on('click', '.js-ponto-detalhes', function (e) {
+            e.preventDefault();
+            var $a = $(this), id = $a.data('ponto'), n = ++req, raw = $a.attr('data-edit-args');
+            try { editArgs = raw ? JSON.parse(raw) : null; } catch (err) { editArgs = null; }
+            $('#ptd-editar').toggle(!!editArgs);
+            $('#ptd-titulo').text('Detalhes do ponto');
+            $('#ptd-corpo').html('<p>Carregando...</p>');
+            // dois modais abertos no Bootstrap 2 disputam o foco sem fim: fecha os outros antes
+            $('.modal.in').not('#modal-ponto-detalhes').modal('hide');
+            $('#modal-ponto-detalhes').modal('show');
+            $.get('<?= site_url('obras/pontoDetalhes') ?>', { obra_id: <?= (int) $obra->idObra ?>, ponto_id: id })
+                .done(function (html) {
+                    if (n !== req) { return; }
+                    $('#ptd-corpo').html(html);
+                    var nome = $('#ptd-corpo .ptd-ident').text().trim();
+                    if (nome) { $('#ptd-titulo').text('Detalhes de ' + nome); }
+                })
+                .fail(function () { if (n === req) { $('#ptd-corpo').html('<p>Não foi possível carregar os detalhes. Verifique a conexão e tente novamente.</p>'); } });
+        });
+        // foco nativo: trigger('focus') do jQuery 3 entra em laco com o controle de foco do modal do Bootstrap 2
+        $('#modal-ponto-detalhes').on('shown', function (e) { if (e.target === this) { var t = document.getElementById('ptd-titulo'); if (t) { t.focus(); } } });
+        $(document).on('click', '#ptd-editar', function () {
+            var args = editArgs;
+            $('#modal-ponto-detalhes').one('hidden', function () { if (args) { editarPonto.apply(null, args); } }).modal('hide');
+        });
+    })();
+</script>
 
 <?php if ($perm('eObras')): ?>
 <!-- Modal Ponto -->

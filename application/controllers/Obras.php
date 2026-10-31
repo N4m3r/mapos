@@ -1096,6 +1096,36 @@ class Obras extends MY_Controller
         return;
     }
 
+    /** Fragmento HTML com os detalhes de instalacao de um ponto (popup da pagina do projeto). */
+    public function pontoDetalhes()
+    {
+        $this->load->model('obra_pontos_model');
+        $obra_id = (int) $this->input->get('obra_id');
+        $ponto_id = (int) $this->input->get('ponto_id');
+        $podeVer = $obra_id && $ponto_id && ($this->permission->checkPermission($this->session->userdata('permissao'), 'vObras')
+            || $this->obras_model->usuarioTemAcesso($obra_id, $this->session->userdata('id_admin')));
+        $ponto = $podeVer ? $this->obra_pontos_model->getPonto($ponto_id) : null;
+        if (! $ponto || (int) $ponto->obra_id !== $obra_id) {
+            show_404();
+        }
+        $atualizadoPor = '';
+        if (! empty($ponto->atualizado_por)) {
+            $u = $this->db->select('nome')->where('idUsuarios', (int) $ponto->atualizado_por)->get('usuarios')->row();
+            $atualizadoPor = $u ? (string) $u->nome : '';
+        }
+        $html = $this->load->view('obras/_ponto_detalhes', [
+            'ponto' => $ponto,
+            'atualizado_por_nome' => $atualizadoPor,
+            'tipos' => Obra_pontos_model::tipos(),
+            'status_lista' => Obra_pontos_model::statusLista(),
+            'fotos_por_etapa' => Obra_pontos_model::agruparFotosPorEtapa($this->obra_pontos_model->getFotos($ponto_id)),
+            'teste' => $ponto->tipo === 'camera' ? $this->obra_pontos_model->getUltimoTestePonto($ponto_id) : null,
+            'historico' => array_map(['Obra_pontos_model', 'linhaHistorico'], $this->obra_pontos_model->getHistoricoPonto($ponto_id)),
+            'oss' => $this->obra_pontos_model->getOsDoPonto($ponto_id),
+        ], true);
+        $this->output->set_content_type('text/html', 'UTF-8')->set_header('Cache-Control: private, no-store')->set_output($html);
+    }
+
     /** Repassa os pontos marcados para um executor do projeto, ou para a equipe (destinatario vazio). */
     public function repassarPontos()
     {

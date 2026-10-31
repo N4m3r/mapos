@@ -273,6 +273,54 @@ class Obra_pontos_model extends CI_Model
         return $mapa[(string) $aguardando] ?? '';
     }
 
+    /** Agrupa fotos por etapa na ordem de statusLista(); etapas sem foto ficam de fora, etapas desconhecidas vao no fim. */
+    public static function agruparFotosPorEtapa(array $fotos)
+    {
+        $grupos = [];
+        foreach ($fotos as $f) {
+            $etapa = (string) self::campo($f, 'etapa', '');
+            $grupos[$etapa][] = $f;
+        }
+        $saida = [];
+        foreach (array_keys(self::statusLista()) as $chave) {
+            if (isset($grupos[$chave])) {
+                $saida[$chave] = $grupos[$chave];
+                unset($grupos[$chave]);
+            }
+        }
+        foreach ($grupos as $chave => $lista) {
+            $saida[$chave] = $lista;
+        }
+        return $saida;
+    }
+
+    /** Linha de historico pronta para exibir: evento, de/para (rotulos), quem, quando e texto. */
+    public static function linhaHistorico($h)
+    {
+        $lista = self::statusLista();
+        $rot = function ($k) use ($lista) {
+            $k = (string) $k;
+            return $k === '' ? '' : ($lista[$k]['rotulo'] ?? $k);
+        };
+        $evento = (string) self::campo($h, 'evento', 'status');
+        $de = $rot(self::campo($h, 'status_anterior'));
+        $para = $rot(self::campo($h, 'status_novo'));
+        $dest = (string) self::campo($h, 'destinatario', '');
+        if ($evento === 'status' || $evento === '') {
+            $titulo = ($de !== '' && $de !== $para) ? $de . ' → ' . $para : $para;
+        } else {
+            $titulo = $evento === 'assumiu' ? 'Assumiu o ponto' : 'Repassado' . ($dest !== '' ? ' para ' . $dest : ' para a equipe');
+        }
+        $quando = self::campo($h, 'data');
+        $ts = $quando ? strtotime((string) $quando) : false;
+        return [
+            'titulo' => $titulo,
+            'usuario' => (string) self::campo($h, 'usuario', ''),
+            'quando' => $ts ? date('d/m/Y H:i', $ts) : '',
+            'texto' => trim((string) self::campo($h, 'observacao', '')),
+        ];
+    }
+
     /** Itens do checklist de teste de imagem das cameras (chave => rotulo). */
     const TESTE_ITENS = [
         'imagem_ok' => 'Imagem ok',
@@ -711,6 +759,53 @@ class Obra_pontos_model extends CI_Model
             $out[(int) $t->ponto_id] = $t;
         }
         return $out;
+    }
+
+    /** Ultimo teste de imagem de um ponto (itens decodificados) com o nome de quem testou; null se nao houver. */
+    public function getUltimoTestePonto($ponto_id)
+    {
+        if (! $this->testeDisponivel()) {
+            return null;
+        }
+        $t = $this->db->select('t.*, u.nome as usuario', false)->from('obra_ponto_teste t')
+            ->join('usuarios u', 'u.idUsuarios = t.usuario_id', 'left')
+            ->where('t.ponto_id', (int) $ponto_id)->order_by('t.idTeste', 'desc')->limit(1)->get()->row();
+        if (! $t) {
+            return null;
+        }
+        $t->itens = json_decode((string) $t->itens, true) ?: [];
+        return $t;
+    }
+
+    /** Historico de um ponto, mais recente primeiro, com nomes (um unico SELECT). */
+    public function getHistoricoPonto($ponto_id)
+    {
+        if (! $this->db->table_exists('obra_ponto_historico')) {
+            return [];
+        }
+        $comEvento = $this->db->field_exists('evento', 'obra_ponto_historico');
+        $this->db->select('h.idHistorico, h.status_anterior, h.status_novo, h.metragem_cabo, h.data, h.observacao, u.nome as usuario'
+            . ($comEvento ? ', h.evento, ud.nome as destinatario' : ", 'status' as evento, NULL as destinatario"), false);
+        $this->db->from('obra_ponto_historico h');
+        $this->db->join('usuarios u', 'u.idUsuarios = h.usuario_id', 'left');
+        if ($comEvento) {
+            $this->db->join('usuarios ud', 'ud.idUsuarios = h.destinatario_id', 'left');
+        }
+        $this->db->where('h.ponto_id', (int) $ponto_id);
+        $this->db->order_by('h.data', 'desc');
+        $this->db->order_by('h.idHistorico', 'desc');
+        return $this->db->get()->result();
+    }
+
+    /** OS ligadas a um ponto (obra_ponto_os), com o status da OS. */
+    public function getOsDoPonto($ponto_id)
+    {
+        if (! $this->db->table_exists('obra_ponto_os') || ! $this->db->table_exists('os')) {
+            return [];
+        }
+        return $this->db->select('os.idOs, os.status')->from('obra_ponto_os po')
+            ->join('os', 'os.idOs = po.os_id')->where('po.ponto_id', (int) $ponto_id)
+            ->order_by('os.idOs', 'desc')->get()->result();
     }
 
     public function ultimoHistoricoId($ponto_id)
