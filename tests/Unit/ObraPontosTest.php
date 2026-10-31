@@ -271,4 +271,13 @@ class ObraPontosTest extends TestCase
         $this->assertFalse(Obra_pontos_model::fotoOpcional('instalado'));
         $this->assertTrue(Obra_pontos_model::exigeFoto('instalado'));
     }
+
+    public function testEtiquetaObrigatoriaSoNaCameraInstalada(): void
+    {
+        $this->assertTrue(Obra_pontos_model::exigeEtiqueta('instalado', 'camera'));
+        $this->assertFalse(Obra_pontos_model::exigeEtiqueta('instalado', 'ponto_rede'));
+        $this->assertFalse(Obra_pontos_model::exigeEtiqueta('configurado', 'camera'));
+        $this->assertFalse(Obra_pontos_model::exigeEtiqueta('testado', 'camera'));
+        $this->assertSame('etiqueta', Obra_pontos_model::LEGENDA_ETIQUETA);
+    }
 }

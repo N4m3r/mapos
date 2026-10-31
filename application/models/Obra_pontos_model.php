@@ -325,6 +325,37 @@ class Obra_pontos_model extends CI_Model
         return 'Teste de imagem incompleto. Falta: ' . implode('; ', $faltando) . '.';
     }
 
+    /** Legenda gravada na foto da etiqueta (modelo/serie) do equipamento. */
+    const LEGENDA_ETIQUETA = 'etiqueta';
+
+    /** Camera indo para "Instalado" precisa da foto da etiqueta (ADR-019). */
+    public static function exigeEtiqueta($status, $tipo)
+    {
+        return (string) $status === 'instalado' && (string) $tipo === 'camera';
+    }
+
+    /** O ponto ja tem foto da etiqueta salva. */
+    public function temFotoEtiqueta($ponto_id)
+    {
+        if (! $this->temFotos()) {
+            return false;
+        }
+        return $this->db->where('ponto_id', (int) $ponto_id)->where('legenda', self::LEGENDA_ETIQUETA)
+            ->count_all_results('obra_ponto_foto') > 0;
+    }
+
+    /** Ids, dentre $ids, dos pontos que ja tem foto da etiqueta. */
+    public function pontosComEtiqueta(array $ids)
+    {
+        $ids = array_values(array_filter(array_map('intval', $ids)));
+        if (! $ids || ! $this->temFotos()) {
+            return [];
+        }
+        $rows = $this->db->distinct()->select('ponto_id')->where_in('ponto_id', $ids)
+            ->where('legenda', self::LEGENDA_ETIQUETA)->get('obra_ponto_foto')->result_array();
+        return array_map('intval', array_column($rows, 'ponto_id'));
+    }
+
     /** Status em que o tecnico pode anexar foto sem ser obrigado (ex.: eletroduto/eletrocalha da infra). */
     public static function fotoOpcional($status)
     {

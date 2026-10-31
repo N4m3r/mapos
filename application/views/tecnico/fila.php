@@ -33,7 +33,7 @@ $blocoFoto = function ($rotulo, $etiqueta = false) {
     ?>
     <label class="btn-tec ghost block" style="cursor:pointer;margin-top:8px;">
         <i class='bx <?= $etiqueta ? 'bx-barcode-reader' : 'bx-camera' ?>'></i> <?= html_escape($rotulo) ?>
-        <input type="file" accept="image/*" capture="environment" multiple data-foto-compacta<?= $etiqueta ? ' data-etiqueta' : '' ?> style="display:none;">
+        <input type="file" accept="image/*" capture="environment" multiple data-foto-compacta<?= $etiqueta ? ' data-etiqueta data-foto-nome="fotos_etiqueta[]"' : '' ?> style="display:none;">
     </label>
     <div data-foto-preview style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
     <div data-foto-erro role="alert" style="display:none;color:#e74c3c;font-weight:600;margin-top:6px;"></div>
@@ -41,7 +41,8 @@ $blocoFoto = function ($rotulo, $etiqueta = false) {
 };
 
 // Um cartao da fila. $minha = true: o ponto esta comigo (acoes); false: da equipe (assumir).
-$cartao = function ($it, $minha) use ($executores, $uidAtual, $status_lista, $tipos, $haQuanto, $blocoFoto) {
+$com_etiqueta = $com_etiqueta ?? [];
+$cartao = function ($it, $minha) use ($executores, $uidAtual, $status_lista, $tipos, $haQuanto, $blocoFoto, $com_etiqueta) {
     $pid = (int) $it->idPonto;
     $oid = (int) $it->obra_id;
     $aguardando = (string) ($it->aguardando ?? '');
@@ -132,13 +133,14 @@ $cartao = function ($it, $minha) use ($executores, $uidAtual, $status_lista, $ti
                     <button type="submit" class="btn-tec success block lg ponto-acao">Testei ✓</button>
                 </form>
             <?php elseif ($aguardando === 'instalado'): ?>
-                <form action="<?= site_url('tecnico/ponto_status') ?>" method="post" style="margin-top:10px;" data-exige-foto="Tire ao menos uma foto do equipamento instalado">
+                <?php $exigeEtiqueta = Obra_pontos_model::exigeEtiqueta('instalado', $it->tipo) && !isset($com_etiqueta[$pid]); ?>
+                <form action="<?= site_url('tecnico/ponto_status') ?>" method="post" style="margin-top:10px;" data-exige-foto="Tire ao menos uma foto do equipamento instalado"<?= $exigeEtiqueta ? ' data-exige-etiqueta="Tire a foto da etiqueta da câmera (modelo e número de série)."' : '' ?>>
                     <input type="hidden" name="obra_id" value="<?= $oid ?>">
                     <input type="hidden" name="ponto_id" value="<?= $pid ?>">
                     <input type="hidden" name="status" value="instalado">
                     <input type="hidden" name="voltar" value="fila">
-                    <?php $blocoFoto('Foto do equipamento e etiqueta (obrigatória)'); ?>
-                    <?php $blocoFoto('Foto da etiqueta (preenche modelo e série)', true); ?>
+                    <?php $blocoFoto(Obra_pontos_model::exigeEtiqueta('instalado', $it->tipo) ? 'Foto do equipamento instalado (opcional)' : 'Foto do equipamento e etiqueta (obrigatória)'); ?>
+                    <?php $blocoFoto($exigeEtiqueta ? 'Foto da etiqueta (obrigatória, preenche modelo e série)' : 'Foto da etiqueta (preenche modelo e série)', true); ?>
                     <label class="ponto-campo">Modelo
                         <input type="text" name="modelo" value="<?= html_escape((string) ($it->modelo ?? '')) ?>" maxlength="80" class="ponto-input">
                     </label>

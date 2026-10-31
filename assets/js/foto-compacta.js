@@ -8,6 +8,10 @@
  * - Enquanto comprime, os botoes de envio do form ficam desabilitados.
  * - form[data-exige-foto]: bloqueia o envio sem foto e mostra o texto do atributo
  *   em [data-foto-erro] (ou alert). Nao bloqueia se o form tiver data-ja-tem-foto="1".
+ * - input[data-foto-nome="fotos_etiqueta[]"]: a foto vai nesse campo (foto da etiqueta)
+ *   e conta para o limite e para data-exige-foto.
+ * - form[data-exige-etiqueta]: bloqueia o envio sem foto da etiqueta, salvo
+ *   data-ja-tem-etiqueta="1".
  */
 (function () {
     'use strict';
@@ -32,7 +36,11 @@
     }
 
     function totalFotos(form) {
-        return form.querySelectorAll('input[type="hidden"][name="fotos[]"]').length;
+        return form.querySelectorAll('input[type="hidden"][name="fotos[]"], input[type="hidden"][name="fotos_etiqueta[]"]').length;
+    }
+
+    function totalEtiquetas(form) {
+        return form.querySelectorAll('input[type="hidden"][name="fotos_etiqueta[]"]').length;
     }
 
     function mostrarErro(form, mensagem) {
@@ -92,10 +100,10 @@
         });
     }
 
-    function adicionarFoto(form, preview, dataUrl) {
+    function adicionarFoto(form, preview, dataUrl, nome) {
         var hidden = document.createElement('input');
         hidden.type = 'hidden';
-        hidden.name = 'fotos[]';
+        hidden.name = nome || 'fotos[]';
         hidden.value = dataUrl;
         form.appendChild(hidden);
 
@@ -136,7 +144,11 @@
         if (!form) {
             return;
         }
-        var preview = form.querySelector('[data-foto-preview]');
+        // Miniatura no bloco do proprio botao (label + [data-foto-preview] logo depois), senao a do form
+        var rotulo = input.closest ? input.closest('label') : null;
+        var vizinho = rotulo ? rotulo.nextElementSibling : null;
+        var preview = (vizinho && vizinho.hasAttribute('data-foto-preview')) ? vizinho : form.querySelector('[data-foto-preview]');
+        var nome = input.getAttribute('data-foto-nome') || 'fotos[]';
 
         input.addEventListener('change', function () {
             var arquivos = Array.prototype.slice.call(input.files || []);
@@ -164,7 +176,7 @@
                             limite();
                             return;
                         }
-                        adicionarFoto(form, preview, dataUrl);
+                        adicionarFoto(form, preview, dataUrl, nome);
                     }, function () {
                         mostrarErro(form, 'Não foi possível usar esta imagem. Tente outra foto (JPEG ou PNG).');
                     });
@@ -185,6 +197,12 @@
             if (estadoDo(form).n > 0) {
                 evento.preventDefault();
                 mostrarErro(form, 'Aguarde: a foto ainda está sendo preparada.');
+                return;
+            }
+            if (form.hasAttribute('data-exige-etiqueta') && form.getAttribute('data-ja-tem-etiqueta') !== '1'
+                && totalEtiquetas(form) === 0) {
+                evento.preventDefault();
+                mostrarErro(form, form.getAttribute('data-exige-etiqueta') || 'Tire a foto da etiqueta.');
                 return;
             }
             if (!form.hasAttribute('data-exige-foto') || form.getAttribute('data-ja-tem-foto') === '1') {
@@ -210,7 +228,7 @@
             ligarInput(input);
             adicionarForm(input.form);
         });
-        Array.prototype.forEach.call(document.querySelectorAll('form[data-exige-foto]'), adicionarForm);
+        Array.prototype.forEach.call(document.querySelectorAll('form[data-exige-foto], form[data-exige-etiqueta]'), adicionarForm);
 
         forms.forEach(ligarForm);
     }

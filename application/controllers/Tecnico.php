@@ -178,6 +178,7 @@ class Tecnico extends MY_Controller
         }
 
         $data['fila'] = $fila;
+        $data['com_etiqueta'] = array_flip($this->obra_pontos_model->pontosComEtiqueta(array_column((array) $fila, 'idPonto')));
         $data['executores'] = $executores;
         $data['uid'] = $uid;
         $data['status_lista'] = Obra_pontos_model::statusLista();
@@ -376,11 +377,19 @@ class Tecnico extends MY_Controller
         }
 
         // Foto obrigatoria para "Instalado": nova (imagem valida), ou alguma ja salva na etapa instalado
-        $fotos = array_values(array_filter($this->fotosDoPost(), function ($bin) {
+        $valida = function ($bin) {
             return Obra_pontos_model::fotoValida($bin) !== null;
-        }));
+        };
+        // Foto da etiqueta vem em fotos_etiqueta[] (legenda "etiqueta"); no total, ate 6 fotos
+        $etiquetas = array_values(array_filter($this->fotosDoPost('fotos_etiqueta'), $valida));
+        $fotos = array_slice(array_values(array_filter($this->fotosDoPost(), $valida)), 0, max(0, 6 - count($etiquetas)));
         $exigeTeste = $this->obra_pontos_model->precisaTeste($ponto, $status);
-        if ((Obra_pontos_model::exigeFoto($status) || $exigeTeste) && empty($fotos)) {
+        if (Obra_pontos_model::exigeEtiqueta($status, $ponto->tipo) && empty($etiquetas)
+            && !$this->obra_pontos_model->temFotoEtiqueta($ponto_id)) {
+            $this->session->set_flashdata('error', 'Tire a foto da etiqueta da câmera (modelo e número de série).');
+            redirect($destino);
+        }
+        if ((Obra_pontos_model::exigeFoto($status) || $exigeTeste) && empty($fotos) && empty($etiquetas)) {
             $temEtapa = false;
             foreach ($this->obra_pontos_model->getFotos($ponto_id) as $foto) {
                 if ($foto->etapa === $status) {
@@ -442,6 +451,11 @@ class Tecnico extends MY_Controller
                 $fotosSalvas++;
             }
         }
+        foreach ($etiquetas as $bin) {
+            if ($this->obra_pontos_model->addFoto($ponto_id, $obra_id, $bin, $uid, $status, $historicoId, Obra_pontos_model::LEGENDA_ETIQUETA) > 0) {
+                $fotosSalvas++;
+            }
+        }
 
         // 5. Repasse, se pedido
         $textoRepasse = '';
@@ -456,7 +470,7 @@ class Tecnico extends MY_Controller
 
         log_info('Técnico atualizou ponto ' . $ponto_id . ' (' . $status . ') no projeto ' . $obra_id);
         $this->session->set_flashdata('success', $ponto->identificacao . ': ' . $statusLista[$status]['rotulo'] . $textoRepasse);
-        if ($fotos && $fotosSalvas === 0) {
+        if (($fotos || $etiquetas) && $fotosSalvas === 0) {
             $this->session->set_flashdata('error', 'Foto não salva (use JPEG, PNG ou WebP até 4 MB).');
         }
         if ($erroRepasse) {
@@ -579,13 +593,13 @@ class Tecnico extends MY_Controller
         return ' · deixado para a equipe';
     }
 
-    /** Fotos enviadas em fotos[] (data URL base64), decodificadas. No maximo 6. */
-    private function fotosDoPost()
+    /** Fotos enviadas em $campo[] (data URL base64), decodificadas. No maximo 6. */
+    private function fotosDoPost($campo = 'fotos')
     {
         $bins = [];
         // Sem o filtro de XSS: ele troca "data:image/...;base64," por "[removed]".
         // O binário é validado por Obra_pontos_model::fotoValida() antes de gravar.
-        $enviadas = $this->input->post('fotos', false);
+        $enviadas = $this->input->post($campo, false);
         if (!is_array($enviadas)) {
             return $bins;
         }

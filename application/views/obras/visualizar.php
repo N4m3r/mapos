@@ -1172,7 +1172,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
             <div class="span3"><label>Canal</label><input type="text" class="span12" name="canal" id="pt_canal" maxlength="10" pattern="[A-Za-z]{0,3} ?[0-9]{1,4}" title="Número do canal, ex.: 5 ou D5"></div>
             <div class="span3"><label>Porta</label><input type="text" class="span12" name="porta" id="pt_porta" maxlength="30"></div>
             <div class="span12" style="margin-left:0"><label for="pt_etiqueta">Foto da etiqueta (preenche modelo e série)</label>
-                <input type="file" id="pt_etiqueta" accept="image/*" capture="environment" data-foto-compacta data-etiqueta data-etiqueta-modelo="#pt_modelo" data-etiqueta-serie="#pt_serie">
+                <input type="file" id="pt_etiqueta" accept="image/*" capture="environment" data-foto-compacta data-foto-nome="fotos_etiqueta[]" data-etiqueta data-etiqueta-modelo="#pt_modelo" data-etiqueta-serie="#pt_serie">
             </div>
             <div class="span6" style="margin-left:0"><label>Modelo</label><input type="text" class="span12" name="modelo" id="pt_modelo" maxlength="80"></div>
             <div class="span6"><label>Série / MAC</label><input type="text" class="span12" name="serie" id="pt_serie" maxlength="60"></div>
@@ -1378,7 +1378,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
     function limparFotosPonto() {
         $('#modal-ponto input[type=file][data-foto-compacta]').val('');
         $('#modal-ponto [data-foto-preview]').empty();
-        $('#modal-ponto input[name="fotos[]"]').remove();
+        $('#modal-ponto input[name="fotos[]"], #modal-ponto input[name="fotos_etiqueta[]"]').remove();
     }
     function novoPonto() {
         $('#pt_id,#pt_ident,#pt_local,#pt_ip,#pt_canal,#pt_porta,#pt_modelo,#pt_serie,#pt_obs').val('');

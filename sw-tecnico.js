@@ -8,7 +8,7 @@
  * - POST nunca passa por cache: a fila offline (assets/js/fila-offline.js) cuida dos envios.
  * - A tela de login apaga estes caches (aparelho compartilhado).
  */
-var VERSAO = 'v4';
+var VERSAO = 'v5';
 var CACHE_ESTATICOS = 'mapos-tecnico-estaticos-' + VERSAO;
 var CACHE_PAGINAS = 'mapos-tecnico-paginas-' + VERSAO;
 var BASE = new URL('./', self.location).pathname;          // raiz do Map-OS (aceita subpasta)

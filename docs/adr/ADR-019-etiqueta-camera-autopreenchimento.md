@@ -31,8 +31,14 @@ como foto do equipamento instalado.
      diferente e mostra o status ao lado. Nunca bloqueia o envio.
 2. Botão "Foto da etiqueta (preenche modelo e série)" no formulário "Instalado" da área do técnico
    (`tecnico/projeto.php`, `tecnico/fila.php`) e no modal de ponto da gestão (`obras/visualizar.php`).
-3. `sw-tecnico.js` (VERSAO `v4`) guarda `etiqueta-camera.js` e `jsQR.js` para funcionar offline.
+3. `sw-tecnico.js` (VERSAO `v5`) guarda `etiqueta-camera.js` e `jsQR.js` para funcionar offline.
 4. Testes: `node --test tests/js/`.
+5. **Foto da etiqueta obrigatória na câmera instalada.** A foto da etiqueta vai em `fotos_etiqueta[]` e é gravada
+   com `legenda = 'etiqueta'` (`Obra_pontos_model::LEGENDA_ETIQUETA`). Câmera indo para "Instalado" pela área do
+   técnico só passa com a foto da etiqueta, nova ou já salva no ponto (`exigeEtiqueta`, `temFotoEtiqueta`);
+   o navegador bloqueia antes (`form[data-exige-etiqueta]` em `foto-compacta.js`) e o servidor confere de novo
+   (`Tecnico::ponto_status`). A foto da etiqueta também cumpre a foto obrigatória do equipamento instalado.
+   Na gestão a foto da etiqueta é opcional, mas é gravada como etiqueta e vale para a regra.
 
 ## Consequences
 

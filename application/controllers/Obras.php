@@ -1037,13 +1037,21 @@ class Obras extends MY_Controller
         $pontoSalvo = $idPonto ? $this->obra_pontos_model->getPonto($idPonto) : null;
         if ($pontoSalvo) {
             $uid = (int) $this->session->userdata('id_admin');
-            foreach (array_slice((array) $this->input->post('fotos', false), 0, 6) as $b64) {
+            // fotos_etiqueta[] = foto da etiqueta (legenda "etiqueta", vale para a exigencia da camera instalada)
+            $enviadas = [];
+            foreach ((array) $this->input->post('fotos_etiqueta', false) as $b64) {
+                $enviadas[] = [$b64, Obra_pontos_model::LEGENDA_ETIQUETA];
+            }
+            foreach ((array) $this->input->post('fotos', false) as $b64) {
+                $enviadas[] = [$b64, null];
+            }
+            foreach (array_slice($enviadas, 0, 6) as [$b64, $legenda]) {
                 $bin = $this->base64ParaBlob($b64);
                 if ($bin === null) {
                     $fotosRecusadas++;
                     continue;
                 }
-                if ($this->obra_pontos_model->addFoto($idPonto, $obra_id, $bin, $uid ?: null, (string) $pontoSalvo->status) > 0) {
+                if ($this->obra_pontos_model->addFoto($idPonto, $obra_id, $bin, $uid ?: null, (string) $pontoSalvo->status, null, $legenda) > 0) {
                     $fotosSalvas++;
                 } else {
                     $fotosRecusadas++;
