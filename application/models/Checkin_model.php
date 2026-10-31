@@ -16,6 +16,27 @@ class Checkin_model extends CI_Model
     }
 
     /**
+     * O usuario e o tecnico responsavel da OS ou tem check-in nela?
+     */
+    public function usuarioVinculadoOs($os_id, $usuario_id)
+    {
+        $os_id = (int) $os_id;
+        $usuario_id = (int) $usuario_id;
+        if ($os_id <= 0 || $usuario_id <= 0) {
+            return false;
+        }
+        if ($this->db->where('idOs', $os_id)->where('tecnico_responsavel', $usuario_id)->count_all_results('os') > 0) {
+            return true;
+        }
+        if ($this->tabelaExiste()
+            && $this->db->where('os_id', $os_id)->where('usuarios_id', $usuario_id)->count_all_results('os_checkin') > 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Obtém check-in por ID
      */
     public function getById($id)

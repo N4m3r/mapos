@@ -82,14 +82,24 @@ class Formularios_atendimento_model extends CI_Model
     }
 
     /** Formulários ativos de uma etapa, já com os campos carregados. */
-    public function getByEtapa($etapa)
+    public function getByEtapa($etapa, $tipoServico = null)
     {
         if (! $this->db->table_exists($this->table)) {
             return [];
         }
 
-        $formularios = $this->db->where('etapa', $etapa)
-            ->where('ativo', 1)
+        $this->db->where('etapa', $etapa)->where('ativo', 1);
+        if ($this->db->field_exists('tipo_servico', $this->table)) {
+            // Gerais (NULL/vazio) + os do tipo da OS.
+            $this->db->group_start()
+                ->where('tipo_servico IS NULL', null, false)
+                ->or_where('tipo_servico', '');
+            if ($tipoServico !== null && $tipoServico !== '') {
+                $this->db->or_where('tipo_servico', $tipoServico);
+            }
+            $this->db->group_end();
+        }
+        $formularios = $this->db
             ->order_by('ordem', 'ASC')
             ->order_by('idFormulario', 'ASC')
             ->get($this->table)

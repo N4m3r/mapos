@@ -130,8 +130,20 @@ window.CheckinFormularios = (function () {
                 $c.html(html);
                 if (cb) cb();
             })
-            .fail(function () { $c.empty(); if (cb) cb(); });
+            .fail(function () {
+                // Avisa o tecnico e deixa tentar de novo (antes ficava vazio, sem aviso)
+                $c.html('<div class="fa-erro-carregar" role="alert" style="margin:6px 0">'
+                    + '<p style="margin:0 0 8px">Não consegui abrir o checklist. Verifique a internet.</p>'
+                    + '<button type="button" class="btn fa-recarregar"><i class="bx bx-refresh"></i> Tentar de novo</button></div>');
+                $c.data('faRecarregar', function () { carregar(etapa, container, osId, cb); });
+                if (cb) cb(true);
+            });
     }
+
+    $(document).on('click', '.fa-recarregar', function () {
+        var fn = $(this).closest('.fa-erro-carregar').parent().data('faRecarregar');
+        if (fn) { fn(); }
+    });
 
     function coletarValores($form) {
         var valores = {};

@@ -146,6 +146,10 @@ class Os extends MY_Controller
                 'laudoTecnico' => $this->input->post('laudoTecnico'),
                 'faturado' => 0,
             ];
+            if ($this->db->field_exists('tipo_servico', 'os')) {
+                $this->load->helper('tipo_servico');
+                $data['tipo_servico'] = tipo_servico_normalizar($this->input->post('tipo_servico'));
+            }
 
             if (is_numeric($id = $this->os_model->add('os', $data, true))) {
                 $this->load->model('mapos_model');
@@ -279,6 +283,10 @@ class Os extends MY_Controller
                 'usuarios_id' => $this->input->post('usuarios_id'),
                 'clientes_id' => $this->input->post('clientes_id'),
             ];
+            if ($this->db->field_exists('tipo_servico', 'os')) {
+                $this->load->helper('tipo_servico');
+                $data['tipo_servico'] = tipo_servico_normalizar($this->input->post('tipo_servico'));
+            }
             $os = $this->os_model->getById($this->input->post('idOs'));
 
             //Verifica para poder fazer a devolução do produto para o estoque caso OS seja cancelada.

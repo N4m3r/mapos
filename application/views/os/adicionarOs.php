@@ -76,6 +76,15 @@
                                         </div>
                                     </div>
                                     <div class="span6" style="padding: 1%; margin-left: 0">
+                                        <label for="tipo_servico"><h4>Tipo de serviço</h4></label>
+                                        <select class="span12" name="tipo_servico" id="tipo_servico">
+                                            <option value="">Não informado</option>
+                                            <?php $this->load->helper('tipo_servico'); foreach (tipos_servico() as $k => $t) { ?>
+                                                <option value="<?= $k ?>"><?= html_escape($t['rotulo']) ?></option>
+                                            <?php } ?>
+                                        </select>
+                                    </div>
+                                    <div class="span6" style="padding: 1%; margin-left: 0">
                                         <label for="descricaoProduto">
                                             <h4>Descrição Produto/Serviço</h4>
                                         </label>

@@ -16,6 +16,7 @@ class Formularios extends MY_Controller
         parent::__construct();
         $this->load->model('formularios_atendimento_model', 'formularios');
         $this->load->helper('date');
+        $this->load->helper('tipo_servico');
     }
 
     /** Permissão de gestão dos formulários. */
@@ -126,6 +127,9 @@ class Formularios extends MY_Controller
             'ativo' => $this->input->post('ativo') ? 1 : 0,
             'ordem' => (int) $this->input->post('ordem'),
         ];
+        if ($this->db->field_exists('tipo_servico', 'formularios_atendimento')) {
+            $dados['tipo_servico'] = tipo_servico_normalizar($this->input->post('tipo_servico'));
+        }
 
         if ($id) {
             $this->formularios->update($id, $dados);
@@ -267,7 +271,12 @@ class Formularios extends MY_Controller
             return;
         }
 
-        $formularios = $this->formularios->getByEtapa($etapa);
+        $tipoOs = null;
+        if ($osId && $this->db->field_exists('tipo_servico', 'os')) {
+            $rowOs = $this->db->select('tipo_servico')->where('idOs', $osId)->get('os')->row();
+            $tipoOs = $rowOs ? tipo_servico_normalizar($rowOs->tipo_servico) : null;
+        }
+        $formularios = $this->formularios->getByEtapa($etapa, $tipoOs);
         $saida = [];
 
         foreach ($formularios as $f) {

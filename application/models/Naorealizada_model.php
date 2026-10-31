@@ -258,8 +258,16 @@ class Naorealizada_model extends CI_Model
         ]);
 
         // Devolve a OS à agenda na nova data.
+        // Agenda, KPI de atrasados e lembrete de visita usam data_agendamento: grava junto.
+        $extra = ['dataInicial' => $data];
+        if ($this->db->field_exists('data_agendamento', 'os')) {
+            require_once APPPATH . 'helpers/atendimento_regras_helper.php';
+            $atual = $this->db->select('data_agendamento')->where('idOs', (int) $oc->os_id)->get('os')->row();
+            $extra['data_agendamento'] = AtendimentoRegras::dataAgendamentoReagendada($data, $atual->data_agendamento ?? null);
+        }
+
         get_instance()->load->model('os_model');
-        get_instance()->os_model->alterarStatus((int) $oc->os_id, 'Aberto', ['dataInicial' => $data]);
+        get_instance()->os_model->alterarStatus((int) $oc->os_id, 'Aberto', $extra);
 
         return true;
     }

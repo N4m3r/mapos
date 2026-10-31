@@ -1,165 +1,126 @@
 <?php
-$hora = date('H');
+$this->load->helper('tecnico_inicio');
+$hora = (int) date('H');
 $saud = ($hora < 12) ? 'Bom dia' : (($hora < 18) ? 'Boa tarde' : 'Boa noite');
 $nome = isset($nome_tecnico) ? $nome_tecnico : $this->session->userdata('nome_admin');
+$primeiro = trim(explode(' ', trim((string) $nome))[0]);
+$dias = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+$dataExtenso = ucfirst($dias[(int) date('w')]) . ', ' . date('d/m/Y');
+
 $this->load->view('tecnico/_topo', [
     'titulo'       => 'Área do Técnico',
     'header_icone' => 'bxs-user-circle',
-    'header_sub'   => $saud . ', ' . $nome . '!',
+    'header_sub'   => $saud . ', ' . $primeiro . '!',
 ]);
+
+$filaQtd = (int) ($fila_qtd ?? 0);
+$nrQtd = (int) ($nao_realizadas_pendentes ?? 0);
+$atrQtd = (int) ($qtd_atrasadas ?? 0);
+$prox = $proxima ?? null;
 ?>
+<link rel="stylesheet" href="<?= base_url('assets/css/tecnico-inicio.css') ?>?v=<?= asset_versao('assets/css/tecnico-inicio.css', '1') ?>">
 
-<div class="tec-container">
+<div class="tec-container ti">
 
-    <?php if (!empty($pode_criar_atividade)): ?>
-        <a href="<?= site_url('tecnico/nova_atividade') ?>" class="btn-tec primary block lg" style="margin-bottom:18px;">
-            <i class='bx bx-plus-circle'></i> Nova Atividade não programada
-        </a>
-    <?php endif; ?>
-
-    <!-- Minha fila (pontos repassados, ADR-014) -->
-    <?php $filaQtd = (int) ($fila_qtd ?? 0); ?>
-    <a href="<?= site_url('tecnico/fila') ?>" class="info-card" style="display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;margin-bottom:18px;<?= $filaQtd > 0 ? 'border-left:4px solid #e67e22;' : '' ?>">
-        <i class='bx bx-transfer-alt' style="font-size:1.8em;"></i>
-        <div style="flex:1;">
-            <strong>Minha fila</strong>
-            <div style="color:#666;font-size:13px;">Pontos para você configurar ou testar</div>
-        </div>
-        <span style="min-width:32px;text-align:center;padding:4px 10px;border-radius:999px;font-weight:700;color:#fff;background:<?= $filaQtd > 0 ? '#e67e22' : '#999' ?>;"><?= $filaQtd ?></span>
-    </a>
-
-    <!-- Estatisticas -->
-    <div class="tec-stats">
-        <div class="tec-stat">
-            <div class="ic primary"><i class='bx bx-calendar-check'></i></div>
-            <div class="val"><?= count($os_hoje) ?></div>
-            <div class="lbl">OS de hoje</div>
-        </div>
-        <div class="tec-stat">
-            <div class="ic warning"><i class='bx bx-time'></i></div>
-            <div class="val"><?= count($os_pendentes) ?></div>
-            <div class="lbl">Pendentes</div>
-        </div>
-        <div class="tec-stat">
-            <div class="ic danger"><i class='bx bx-loader-alt bx-spin'></i></div>
-            <div class="val"><?= count($os_em_andamento) ?></div>
-            <div class="lbl">Em andamento</div>
-        </div>
-        <div class="tec-stat">
-            <div class="ic success"><i class='bx bx-check-circle'></i></div>
-            <div class="val"><?= isset($estatisticas['os_finalizadas_mes']) ? $estatisticas['os_finalizadas_mes'] : 0 ?></div>
-            <div class="lbl">Finalizadas (mês)</div>
-        </div>
+    <div class="ti-saud">
+        <h1><?= html_escape($saud . ', ' . $primeiro) ?>!</h1>
+        <p><i class='bx bx-calendar'></i> <?= html_escape($dataExtenso) ?></p>
     </div>
 
-    <!-- OS em Andamento -->
-    <h2 class="tec-section-title">
-        <i class='bx bx-play-circle'></i> Em andamento
-        <?php if (!empty($os_em_andamento)): ?><span class="count"><?= count($os_em_andamento) ?></span><?php endif; ?>
-    </h2>
-
-    <?php if (!empty($os_em_andamento)): ?>
-        <?php foreach ($os_em_andamento as $os): ?>
-            <a href="<?= site_url('tecnico/visualizar/' . $os->idOs) ?>" style="text-decoration:none; color:inherit; display:block;">
-                <div class="os-card andamento">
-                    <div class="os-head">
-                        <span class="os-num">#OS <?= sprintf('%04d', $os->idOs) ?></span>
-                        <span class="badge-status andamento">Em Andamento</span>
-                    </div>
-                    <div class="os-cliente"><i class='bx bx-user'></i> <?= html_escape($os->nomeCliente) ?></div>
-                    <div class="os-desc"><?= character_limiter(strip_tags($os->descricaoProduto), 80) ?></div>
-                    <div class="os-foot">
-                        <span class="os-meta">
-                            <span><i class='bx bx-time'></i> Iniciada <?= !empty($os->data_entrada) ? date('H:i', strtotime($os->data_entrada)) : '--:--' ?></span>
-                        </span>
-                        <span class="btn-tec primary">Continuar <i class='bx bx-right-arrow-alt'></i></span>
-                    </div>
-                </div>
-            </a>
-        <?php endforeach; ?>
+    <?php if ($prox):
+        $os = $prox['os'];
+        $continuar = !empty($prox['continuar']);
+        $hr = TecnicoInicio::horaVisita($os);
+        $dEf = (string) TecnicoInicio::dataEfetiva($os);
+        $ehHoje = substr($dEf, 0, 10) === $hoje;
+        $quando = $ehHoje ? 'hoje' : date('d/m/Y', strtotime($dEf));
+        $quando = $hr ? ($quando === 'hoje' ? 'Hoje às ' . $hr : $quando . ' às ' . $hr) : ($ehHoje ? 'Hoje' : $quando);
+        $end = TecnicoInicio::enderecoCurto($os);
+        $rota = TecnicoInicio::urlRota($os);
+        $tipo = trim((string) ($os->tipo_servico ?? ''));
+        if ($tipo !== '') { $this->load->helper('tipo_servico'); if (function_exists('tipo_servico_valido') && tipo_servico_valido($tipo)) { $tipo = tipo_servico_rotulo($tipo); } }
+    ?>
+        <section class="ti-prox <?= $continuar ? 'andamento' : '' ?>" aria-label="Próxima visita">
+            <div class="ti-prox-tit">
+                <i class='bx <?= $continuar ? 'bx-play-circle' : 'bx-navigation' ?>'></i>
+                <?= $continuar ? 'Atendimento em andamento' : 'Próxima visita' ?>
+            </div>
+            <h2 class="ti-prox-cli"><?= html_escape($os->nomeCliente ?: 'Cliente') ?></h2>
+            <div class="ti-prox-info"><i class='bx bx-time-five'></i> <span><?= html_escape($quando) ?> &middot; OS <?= sprintf('%04d', (int) $os->idOs) ?></span></div>
+            <?php if ($end !== ''): ?>
+                <div class="ti-prox-info"><i class='bx bx-map'></i> <span><?= html_escape($end) ?></span></div>
+            <?php endif; ?>
+            <?php if ($tipo !== ''): ?>
+                <div class="ti-prox-info"><i class='bx bx-wrench'></i> <span><?= html_escape($tipo) ?></span></div>
+            <?php endif; ?>
+            <div class="ti-prox-acoes">
+                <a class="ti-btn <?= $continuar ? 'ok' : 'main' ?>" href="<?= site_url('tecnico/visualizar/' . (int) $os->idOs) ?>">
+                    <i class='bx <?= $continuar ? 'bx-play' : 'bx-right-arrow-circle' ?>'></i>
+                    <?= $continuar ? 'Continuar atendimento' : 'Abrir atendimento' ?>
+                </a>
+                <?php if ($rota !== ''): ?>
+                    <a class="ti-btn alt" href="<?= html_escape($rota) ?>" target="_blank" rel="noopener">
+                        <i class='bx bx-map-pin'></i> Ir até lá
+                    </a>
+                <?php endif; ?>
+            </div>
+        </section>
     <?php else: ?>
-        <div class="empty-state">
+        <section class="ti-vazio-prox">
             <i class='bx bx-check-circle'></i>
-            <p>Nenhuma OS em andamento</p>
-        </div>
+            <p>Nenhuma visita marcada para você agora.</p>
+            <a class="ti-btn soft" href="<?= site_url('tecnico/os?aba=proximos') ?>"><i class='bx bx-calendar'></i> Ver próximos dias</a>
+        </section>
     <?php endif; ?>
 
-    <!-- Serviços não realizados (aguardando reagendar/refazer) -->
-    <?php if (!empty($nao_realizadas_pendentes)): ?>
-        <h2 class="tec-section-title">
-            <i class='bx bx-x-circle'></i> Não realizados
-            <span class="count" style="background:var(--tec-danger); color:#fff;"><?= (int) $nao_realizadas_pendentes ?></span>
-        </h2>
-
-        <?php foreach ($nao_realizadas as $nr): ?>
-            <a href="<?= site_url('tecnico/visualizar/' . $nr->idOs) ?>" style="text-decoration:none; color:inherit; display:block;">
-                <div class="os-card nao-realizado">
-                    <div class="os-head">
-                        <span class="os-num">#OS <?= sprintf('%04d', $nr->idOs) ?></span>
-                        <span class="badge-status nao-realizado">Não Realizado</span>
-                    </div>
-                    <div class="os-cliente"><i class='bx bx-user'></i> <?= html_escape($nr->nomeCliente ?: 'Cliente') ?></div>
-                    <?php if (!empty($nr->motivo_texto)): ?>
-                        <div class="os-desc"><strong>Motivo:</strong> <?= html_escape($nr->motivo_texto) ?></div>
-                    <?php endif; ?>
-                    <div class="os-foot">
-                        <span class="os-meta">
-                            <span><i class='bx bx-time'></i> <?= !empty($nr->data_registro) ? date('d/m/Y H:i', strtotime($nr->data_registro)) : '--' ?></span>
-                        </span>
-                        <span class="btn-tec danger">Resolver <i class='bx bx-right-arrow-alt'></i></span>
-                    </div>
-                </div>
+    <?php if ($atrQtd > 0 || $nrQtd > 0 || $filaQtd > 0): ?>
+        <h2 class="ti-sec"><i class='bx bx-bell'></i> Precisa da sua atenção</h2>
+        <?php if ($atrQtd > 0): ?>
+            <a class="ti-aviso bad" href="<?= site_url('tecnico/os?aba=atrasadas') ?>">
+                <i class='bx bx-error'></i><span class="txt">Visitas atrasadas</span><b class="n"><?= $atrQtd ?></b>
             </a>
-        <?php endforeach; ?>
-
-        <?php if ($nao_realizadas_pendentes > count($nao_realizadas)): ?>
-            <a href="<?= site_url('tecnico/nao_realizadas') ?>" class="btn-tec ghost block" style="margin-top:4px;">
-                Ver todos os não realizados (<?= (int) $nao_realizadas_pendentes ?>)
+        <?php endif; ?>
+        <?php if ($nrQtd > 0): ?>
+            <a class="ti-aviso bad" href="<?= site_url('tecnico/nao_realizadas') ?>">
+                <i class='bx bx-calendar-x'></i><span class="txt">Não deu para fazer: reagendar</span><b class="n"><?= $nrQtd ?></b>
+            </a>
+        <?php endif; ?>
+        <?php if ($filaQtd > 0): ?>
+            <a class="ti-aviso" href="<?= site_url('tecnico/fila') ?>">
+                <i class='bx bx-transfer-alt'></i><span class="txt">Pontos de projeto esperando você</span><b class="n"><?= $filaQtd ?></b>
             </a>
         <?php endif; ?>
     <?php endif; ?>
 
-    <!-- OS Pendentes -->
-    <h2 class="tec-section-title">
-        <i class='bx bx-time'></i> Pendentes
-        <?php if (!empty($os_pendentes)): ?><span class="count"><?= count($os_pendentes) ?></span><?php endif; ?>
-    </h2>
-
-    <?php if (!empty($os_pendentes)): ?>
-        <?php foreach (array_slice($os_pendentes, 0, 3) as $os): ?>
-            <a href="<?= site_url('tecnico/visualizar/' . $os->idOs) ?>" style="text-decoration:none; color:inherit; display:block;">
-                <div class="os-card pendente">
-                    <div class="os-head">
-                        <span class="os-num">#OS <?= sprintf('%04d', $os->idOs) ?></span>
-                        <span class="badge-status pendente"><?= $os->status ?></span>
-                    </div>
-                    <div class="os-cliente"><i class='bx bx-user'></i> <?= html_escape($os->nomeCliente) ?></div>
-                    <div class="os-desc"><?= character_limiter(strip_tags($os->descricaoProduto), 80) ?></div>
-                    <div class="os-foot">
-                        <span class="os-meta">
-                            <span><i class='bx bx-calendar'></i> <?= date('d/m/Y', strtotime($os->dataInicial)) ?></span>
-                        </span>
-                        <span class="btn-tec warning">Iniciar <i class='bx bx-play'></i></span>
-                    </div>
-                </div>
-            </a>
-        <?php endforeach; ?>
-
-        <?php if (count($os_pendentes) > 3): ?>
-            <a href="<?= site_url('tecnico/os?status=pendente') ?>" class="btn-tec ghost block" style="margin-top:4px;">
-                Ver todas as pendentes (<?= count($os_pendentes) ?>)
-            </a>
-        <?php endif; ?>
+    <h2 class="ti-sec"><i class='bx bx-list-check'></i> Hoje</h2>
+    <?php if (!empty($do_dia)): ?>
+        <ul class="ti-tempo">
+            <?php foreach ($do_dia as $o):
+                [$rotTxt, $rotCls, $rotIco] = TecnicoInicio::rotuloOs($o, $hoje);
+                $h = TecnicoInicio::horaVisita($o);
+            ?>
+                <li>
+                    <a class="ti-linha" href="<?= site_url('tecnico/visualizar/' . (int) $o->idOs) ?>">
+                        <span class="ti-hora"><?= $h ? html_escape($h) : '--:--' ?></span>
+                        <span class="ti-linha-cli"><?= html_escape($o->nomeCliente ?: 'Cliente') ?></span>
+                        <span class="ti-selo <?= html_escape($rotCls) ?>"><i class='bx <?= html_escape($rotIco) ?>'></i> <?= html_escape($rotTxt) ?></span>
+                    </a>
+                </li>
+            <?php endforeach; ?>
+        </ul>
     <?php else: ?>
-        <div class="empty-state">
-            <i class='bx bx-inbox'></i>
-            <p>Nenhuma OS pendente</p>
-        </div>
+        <p class="ti-dica">Nenhuma visita hoje.</p>
     <?php endif; ?>
 
-    <a href="<?= site_url('tecnico/os') ?>" class="btn-tec primary block lg" style="margin-top:22px;">
-        <i class='bx bx-list-ul'></i> Ver todas as minhas OS
-    </a>
+    <div class="ti-nums" aria-label="Números do dia">
+        <span><b><?= count($do_dia ?? []) ?></b> visitas hoje</span>
+        <span><b><?= (int) ($qtd_concluidas_hoje ?? 0) ?></b> concluídas</span>
+    </div>
+
+    <?php if (!empty($pode_criar_atividade)): ?>
+        <a href="<?= site_url('tecnico/nova_atividade') ?>" class="ti-btn soft ti-mais"><i class='bx bx-plus-circle'></i> Nova atividade não programada</a>
+    <?php endif; ?>
+    <a href="<?= site_url('tecnico/os') ?>" class="ti-btn soft ti-mais"><i class='bx bx-list-ul'></i> Ver todas as minhas OS</a>
 </div>
 
 <?php $this->load->view('tecnico/_nav', ['nav_ativo' => 'home', 'pode_ver_sistema' => isset($pode_ver_sistema) ? $pode_ver_sistema : false]); ?>

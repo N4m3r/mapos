@@ -21,6 +21,7 @@
                 <tr>
                     <th>Formulário</th>
                     <th style="width:200px">Etapa</th>
+                    <th style="width:170px">Tipo de serviço</th>
                     <th style="width:90px; text-align:center">Campos</th>
                     <th style="width:110px; text-align:center">Status</th>
                     <th style="width:220px; text-align:center">Ações</th>
@@ -29,7 +30,7 @@
             <tbody>
                 <?php if (empty($results)) { ?>
                     <tr>
-                        <td colspan="5">Nenhum formulário cadastrado ainda. Clique em <strong>Novo formulário</strong> para começar.</td>
+                        <td colspan="6">Nenhum formulário cadastrado ainda. Clique em <strong>Novo formulário</strong> para começar.</td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($results as $r) { ?>
@@ -44,6 +45,7 @@
                             <?php } ?>
                         </td>
                         <td><?= html_escape($etapas[$r->etapa] ?? $r->etapa) ?></td>
+                        <td><?= ! empty($r->tipo_servico) ? '<i class="bx ' . tipo_servico_icone($r->tipo_servico) . '"></i> ' . html_escape(tipo_servico_rotulo($r->tipo_servico)) : '<span class="text-muted">Todos</span>' ?></td>
                         <td style="text-align:center"><?= (int) ($camposCount[$r->idFormulario] ?? 0) ?></td>
                         <td style="text-align:center">
                             <?php if ((int) $r->ativo === 1) { ?>

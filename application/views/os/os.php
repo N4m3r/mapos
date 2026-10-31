@@ -169,7 +169,8 @@
                                 echo '<tr>';
                                 $vp = $vinculosPorOs[(int) $r->idOs] ?? null;
                                 $seloProjeto = $vp ? ' <span title="Projeto: ' . html_escape($vp->obra_nome . ($vp->etapa_nome ? ' › ' . $vp->etapa_nome : '')) . '" style="color:#436eee"><i class="bx bx-buildings"></i></span>' : '';
-                                echo '<td>' . $r->idOs . $seloProjeto . '</td>';
+                                $this->load->helper('tipo_servico');
+                                echo '<td>' . $r->idOs . $seloProjeto . tipo_servico_selo($r->tipo_servico ?? '') . '</td>';
                                 echo '<td class="cli1"><a href="' . base_url() . 'index.php/clientes/visualizar/' . $r->idClientes . '" style="margin-right: 1%">' . $r->nomeCliente . '</a></td>';
                                 echo '<td class="ph1">' . $r->nome . '</td>';
                                 echo '<td>' . $dataInicial . '</td>';

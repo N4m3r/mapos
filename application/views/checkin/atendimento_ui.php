@@ -43,10 +43,10 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
 <div id="modal-checkin" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h3><i class="bx bx-log-in"></i> Iniciar Atendimento</h3>
+        <h3><i class="bx bx-log-in"></i> Cheguei no local</h3>
     </div>
     <div class="modal-body">
-        <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Assine, tire as fotos de entrada e confirme para iniciar o atendimento.</div></div>
+        <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Assine no quadro e toque em "Cheguei" para registrar sua chegada.</div></div>
         <form id="form-checkin">
             <div class="checkin-section">
                 <h6><i class="bx bx-pen"></i> Assinatura do Técnico</h6>
@@ -56,8 +56,8 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
                     'mostrar_campos' => false,
                 ]); ?>
             </div>
-            <div class="checkin-section">
-                <h6><i class="bx bx-camera"></i> Fotos de Entrada</h6>
+            <div class="checkin-section secao-foto-entrada">
+                <h6><i class="bx bx-camera"></i> Fotos de antes</h6>
                 <div class="upload-area">
                     <input type="file" id="fotos-entrada-input" class="checkin-foto-input" data-etapa="entrada" accept="image/*" style="display:none;">
                     <button type="button" class="btn btn-info btn-capturar-foto" data-etapa="entrada"><i class="bx bx-camera"></i> Tirar Foto</button>
@@ -81,7 +81,7 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
     </div>
     <div class="modal-footer">
         <button class="btn" data-dismiss="modal" aria-hidden="true">Cancelar</button>
-        <button class="btn btn-success ui-acao-grande" id="btn-confirmar-checkin"><i class="bx bx-log-in"></i> Iniciar Atendimento</button>
+        <button class="btn btn-success ui-acao-grande" id="btn-confirmar-checkin"><i class="bx bx-log-in"></i> Cheguei</button>
     </div>
 </div>
 
@@ -89,10 +89,10 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
 <div id="modal-checkout" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h3><i class="bx bx-log-out"></i> Finalizar Atendimento</h3>
+        <h3><i class="bx bx-log-out"></i> Concluir atendimento</h3>
     </div>
     <div class="modal-body">
-        <div class="ui-dica alerta"><i class="bx bx-info-circle"></i><div>Confira as assinaturas, fotos e observações. Ao finalizar, o atendimento é encerrado.</div></div>
+        <div class="ui-dica alerta"><i class="bx bx-info-circle"></i><div>Peça a assinatura do cliente, confira e toque em "Concluir". Depois disso o atendimento é encerrado.</div></div>
         <form id="form-checkout">
             <div class="checkin-section">
                 <h6><i class="bx bx-pen"></i> Assinaturas</h6>
@@ -114,8 +114,8 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
                     </div>
                 </div>
             </div>
-            <div class="checkin-section">
-                <h6><i class="bx bx-camera"></i> Fotos da Saída</h6>
+            <div class="checkin-section secao-foto-saida">
+                <h6><i class="bx bx-camera"></i> Fotos de depois</h6>
                 <div class="upload-area">
                     <input type="file" id="fotos-saida-input" class="checkin-foto-input" data-etapa="saida" accept="image/*" style="display:none;">
                     <button type="button" class="btn btn-info btn-capturar-foto" data-etapa="saida"><i class="bx bx-camera"></i> Tirar Foto</button>
@@ -124,8 +124,8 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
                 </div>
                 <div id="preview-fotos-saida" class="preview-fotos-container"></div>
             </div>
-            <div class="checkin-section">
-                <h6><i class="bx bx-images"></i> Fotos do Atendimento</h6>
+            <div class="checkin-section secao-foto-saida">
+                <h6><i class="bx bx-images"></i> Fotos do atendimento</h6>
                 <div id="lista-fotos-durante"><p class="text-muted">Carregando fotos...</p></div>
             </div>
             <div class="checkin-section">
@@ -144,7 +144,23 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
     </div>
     <div class="modal-footer">
         <button class="btn" data-dismiss="modal" aria-hidden="true">Cancelar</button>
-        <button class="btn btn-danger ui-acao-grande" id="btn-confirmar-checkout"><i class="bx bx-log-out"></i> Finalizar Atendimento</button>
+        <button class="btn btn-danger ui-acao-grande" id="btn-confirmar-checkout"><i class="bx bx-log-out"></i> Concluir atendimento</button>
+    </div>
+</div>
+
+<!-- Modal: Checklist do serviço (passo 3 do assistente) -->
+<div id="modal-checklist" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">&times;</button>
+        <h3><i class="bx bx-list-check"></i> Checklist do serviço</h3>
+    </div>
+    <div class="modal-body">
+        <div id="formularios-checklist" class="checkin-section"></div>
+        <div id="checklist-erro" class="tec-aviso-msg tec-aviso-error" role="alert" style="display:none;"></div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn" data-dismiss="modal" aria-hidden="true">Fechar</button>
+        <button class="btn btn-success ui-acao-grande" id="btn-salvar-checklist"><i class="bx bx-check"></i> Salvar checklist</button>
     </div>
 </div>
 
@@ -152,7 +168,7 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
 <div id="modal-foto-servico" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h3><i class="bx bx-camera"></i> Enviar Foto do Serviço</h3>
+        <h3><i class="bx bx-camera"></i> Foto do serviço</h3>
     </div>
     <div class="modal-body">
         <div class="checkin-section">
@@ -183,8 +199,8 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/assinatura-fullscreen.js?v=1') ?>"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/checkin-fotos.js?v=3') ?>"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= asset_versao('assets/js/rascunho-form.js') ?>"></script>
-<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/checkin.js?v=7') ?>"></script>
-<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/checkin-formularios.js?v=1') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/checkin.js?v=8') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/checkin-formularios.js?v=2') ?>"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/csrf.js') ?>?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/tecnico-localizacao.js?v=1') ?>"></script>
 <script nonce="<?= csp_nonce() ?>">
@@ -215,23 +231,52 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
         });
 
         // Salva as respostas dos formulários ao confirmar cada etapa (independente do check-in).
-        $(document).on('click', '#btn-confirmar-checkin', function () {
+        // Falha ao salvar NAO fica so no console: avisa o tecnico e deixa tentar de novo.
+        function avisar(mensagem, tipo, acao) {
+            if (window.CheckinManager) { CheckinManager.aviso(mensagem, tipo, acao ? { acao: acao } : {}); }
+        }
+        function salvarForm(etapa, container) {
             if (!faReady()) { return; }
-            FA.salvar('iniciar', '#formularios-iniciar', window.checkinConfig.osId, '')
-                .fail(function (msg) { if (msg) { console.warn(msg); } });
+            var checkinId = (window.CheckinManager && CheckinManager.config.checkinId) || '';
+            FA.salvar(etapa, container, window.checkinConfig.osId, checkinId)
+                .fail(function (msg) {
+                    avisar((msg || 'Não foi possível salvar o formulário.') + ' Seus dados continuam na tela.', 'error',
+                        { texto: 'Tentar de novo', fn: function () { salvarForm(etapa, container); } });
+                });
+        }
+
+        $(document).on('click', '#btn-confirmar-checkin', function () {
+            salvarForm('iniciar', '#formularios-iniciar');
         });
 
         $(document).on('click', '#btn-confirmar-checkout', function () {
+            // Com o assistente, o checklist ("durante") ja foi salvo no passo 3
+            if (!document.getElementById('tec-assistente')) { salvarForm('durante', '#formularios-durante'); }
+            salvarForm('finalizar', '#formularios-finalizar');
+        });
+
+        // Passo 3 do assistente: checklist
+        $(document).on('click', '#btn-salvar-checklist', function () {
             if (!faReady()) { return; }
-            FA.salvar('durante', '#formularios-durante', window.checkinConfig.osId, '')
-                .fail(function (msg) { if (msg) { console.warn(msg); } });
-            FA.salvar('finalizar', '#formularios-finalizar', window.checkinConfig.osId, '')
-                .fail(function (msg) { if (msg) { console.warn(msg); } });
+            var $b = $(this).prop('disabled', true);
+            var $erro = $('#checklist-erro').hide().text('');
+            var checkinId = (window.CheckinManager && CheckinManager.config.checkinId) || '';
+            FA.salvar('durante', '#formularios-checklist', window.checkinConfig.osId, checkinId)
+                .done(function () {
+                    $b.prop('disabled', false);
+                    $('#modal-checklist').modal('hide');
+                    $(document).trigger('tec:checklistSalvo');
+                    avisar('Checklist salvo.', 'success');
+                })
+                .fail(function (msg) {
+                    $b.prop('disabled', false).html('<i class="bx bx-refresh"></i> Tentar de novo');
+                    $erro.text((msg || 'Não foi possível salvar.') + ' Verifique a internet e toque em "Tentar de novo".').show();
+                });
         });
 
         $(document).on('shown.bs.modal', '#modal-checkout', function () {
             if (faReady()) {
-                FA.carregar('durante', '#formularios-durante', window.checkinConfig.osId);
+                if (!document.getElementById('tec-assistente')) { FA.carregar('durante', '#formularios-durante', window.checkinConfig.osId); }
                 FA.carregar('finalizar', '#formularios-finalizar', window.checkinConfig.osId);
             }
             var nome = <?= json_encode($nome_cliente) ?>;
@@ -273,7 +318,7 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
             if (!file) { return; }
             if (typeof CheckinFotos !== 'undefined') {
                 var v = CheckinFotos.validarArquivo(file);
-                if (!v.valido) { alert(v.erro); this.value = ''; return; }
+                if (!v.valido) { avisar(v.erro, 'error'); this.value = ''; return; }
             }
             fsArquivo = file;
             var reader = new FileReader();
@@ -289,23 +334,24 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
             var $btn = $(this).prop('disabled', true);
             var descricao = $('#fs-descricao').val();
             CheckinFotos.processarImagem(fsArquivo, function (imgBase64) {
-                if (!imgBase64) { alert('Não foi possível processar a imagem.'); $btn.prop('disabled', false); return; }
+                if (!imgBase64) { avisar('Não consegui preparar a foto. Tire de novo.', 'error'); $btn.prop('disabled', false); return; }
                 CheckinFotos.uploadFoto(
                     { os_id: window.checkinConfig.osId, foto: imgBase64, descricao: descricao },
                     {
                         success: function (resp) {
                             if (resp && resp.success) {
                                 fsEnviadas++;
+                                if (resp.offline) { avisar('Sem internet — guardado no aparelho, enviaremos quando voltar.', 'warning'); }
                                 $('#fs-enviadas-wrap').show();
                                 $('#fs-enviadas').append('<img src="' + (resp.url || '') + '" style="width:70px; height:70px; object-fit:cover; border-radius:6px; border:1px solid #ddd; margin:4px;">');
                                 fsReset();
                                 if (typeof swal !== 'undefined') { swal('Enviada!', 'Foto do serviço enviada.', 'success'); }
                             } else {
-                                alert('Erro: ' + ((resp && resp.message) || 'falha ao enviar a foto'));
+                                avisar('Não consegui enviar a foto: ' + ((resp && resp.message) || 'falha ao enviar') + '. Toque em Enviar de novo.', 'error');
                                 $btn.prop('disabled', false);
                             }
                         },
-                        error: function () { alert('Erro ao enviar foto. Verifique sua conexão.'); $btn.prop('disabled', false); }
+                        error: function () { avisar('A foto não foi enviada. Verifique a internet e toque em Enviar de novo.', 'error'); $btn.prop('disabled', false); }
                     }
                 );
             });

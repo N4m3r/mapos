@@ -207,3 +207,38 @@
     body[data-theme="darkviolet"] .ptd-nok,
     body[data-theme="darkorange"] .ptd-nok { color: #ff8a80; }
 }
+
+/* RH administrativo: cartao clicavel do painel e legenda das secoes do formulario */
+@media screen {
+    body[data-theme="puredark"] .ui-kpi.rh-kpi-link,
+    body[data-theme="darkviolet"] .ui-kpi.rh-kpi-link,
+    body[data-theme="darkorange"] .ui-kpi.rh-kpi-link { color: #e6e6e6; }
+
+    body[data-theme="puredark"] .rh-secao legend,
+    body[data-theme="darkviolet"] .rh-secao legend,
+    body[data-theme="darkorange"] .rh-secao legend { color: #e6e6e6; }
+}
+
+@media screen {
+    /* RH: linhas de total e rotulos da ficha e da folha */
+    body[data-theme="puredark"] .rh-linha-total,
+    body[data-theme="darkviolet"] .rh-linha-total,
+    body[data-theme="darkorange"] .rh-linha-total { background: rgba(255,255,255,.06); color: #f0efec; }
+    body[data-theme="puredark"] .rh-linha-total strong,
+    body[data-theme="darkviolet"] .rh-linha-total strong,
+    body[data-theme="darkorange"] .rh-linha-total strong,
+    body[data-theme="puredark"] .rh-linha-total td,
+    body[data-theme="darkviolet"] .rh-linha-total td,
+    body[data-theme="darkorange"] .rh-linha-total td { color: #f0efec; }
+    body[data-theme="puredark"] .rh-rotulo,
+    body[data-theme="darkviolet"] .rh-rotulo,
+    body[data-theme="darkorange"] .rh-rotulo { color: #c3c2b7; }
+}
+
+@media screen {
+    /* o tema escuro pinta a ultima linha de toda tabela com um cinza quase invisivel
+       (table tr:last-child { color: var(--white-blak-tit) }); volta a herdar a cor da tabela */
+    body[data-theme="puredark"] table tr:last-child,
+    body[data-theme="darkviolet"] table tr:last-child,
+    body[data-theme="darkorange"] table tr:last-child { color: inherit; }
+}

@@ -1,0 +1,171 @@
+/* Assistente de atendimento do tecnico (tecnico/visualizar/ID)
+ * Mobile primeiro (360px), botoes >= 48px, texto >= 16px, contraste AA.
+ * Cores proprias dos componentes: claro por padrao e escuro conforme o aparelho. */
+
+.tec-cab, .tec-visita, .tec-assist, .tec-hist, .tec-concluido, .tec-btn, .tec-aviso {
+  --a-card: #ffffff;
+  --a-ink: #1b1d2e;
+  --a-muted: #4a4f66;
+  --a-line: #d5d8e6;
+  --a-azul: #0b5cad;
+  --a-verde: #1b6b2f;
+  --a-laranja: #8a4600;
+  --a-vermelho: #b3261e;
+  --a-cinza: #3b3f55;
+  --a-foco: #0b5cad;
+  --a-suave: #eef1fb;
+}
+@media (prefers-color-scheme: dark) {
+  .tec-cab, .tec-visita, .tec-assist, .tec-hist, .tec-concluido, .tec-btn, .tec-aviso {
+    --a-card: #1c1f2e;
+    --a-ink: #f2f3fa;
+    --a-muted: #c3c7da;
+    --a-line: #3a3f58;
+    --a-azul: #7db8ff;
+    --a-verde: #7be495;
+    --a-laranja: #ffc27a;
+    --a-vermelho: #ff9f98;
+    --a-cinza: #c3c7da;
+    --a-foco: #ffd54f;
+    --a-suave: #272b40;
+  }
+}
+
+.tec-cab, .tec-visita, .tec-assist, .tec-hist {
+  background: var(--a-card);
+  color: var(--a-ink);
+  border: 1px solid var(--a-line);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 14px;
+  font-size: 16px;
+  line-height: 1.5;
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.tec-cab h2, .tec-visita h3, .tec-hist h3 { margin: 0 0 8px; font-size: 18px; color: var(--a-ink); display: flex; gap: 8px; align-items: center; }
+.tec-visita h4 { margin: 14px 0 4px; font-size: 16px; color: var(--a-muted); font-weight: 700; }
+.tec-visita p, .tec-cab p { margin: 0 0 6px; font-size: 16px; color: var(--a-ink); }
+
+/* Cabecalho */
+.tec-cab-topo { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.tec-cab-cliente { font-size: 20px !important; }
+.tec-cab-end { color: var(--a-ink); display: flex; gap: 8px; align-items: flex-start; }
+.tec-status, .tec-selo-tipo {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 12px;
+  border-radius: 999px; font-size: 16px; font-weight: 700; border: 2px solid currentColor;
+}
+.tec-selo-tipo { color: var(--a-azul); }
+.tec-status-agendada { color: var(--a-azul); }
+.tec-status-andando { color: var(--a-laranja); }
+.tec-status-ok { color: var(--a-verde); }
+.tec-status-nao { color: var(--a-vermelho); }
+.tec-status-espera { color: var(--a-laranja); }
+
+/* Botoes */
+.tec-cab-botoes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.tec-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 52px; padding: 10px 12px; box-sizing: border-box; width: 100%;
+  font-size: 16px; font-weight: 700; line-height: 1.25; text-align: center; text-decoration: none;
+  border-radius: 12px; border: 2px solid transparent; cursor: pointer;
+  background: var(--a-cinza); color: #fff;
+  font-family: inherit;
+}
+.tec-btn i { font-size: 24px; flex: none; }
+.tec-btn:active { transform: scale(.98); }
+.tec-btn:disabled { opacity: .55; cursor: not-allowed; }
+.tec-btn:focus-visible, .tec-aviso button:focus-visible { outline: 3px solid var(--a-foco); outline-offset: 2px; }
+.tec-btn-azul { background: var(--a-azul); }
+.tec-btn-verde { background: var(--a-verde); }
+.tec-btn-laranja { background: var(--a-laranja); }
+.tec-btn-cinza { background: transparent; color: var(--a-ink); border-color: var(--a-cinza); }
+.tec-btn-vermelho { background: transparent; color: var(--a-vermelho); border-color: var(--a-vermelho); }
+.tec-btn-link { background: transparent; color: var(--a-muted); text-decoration: underline; min-height: 48px; font-weight: 600; }
+@media (prefers-color-scheme: dark) {
+  .tec-btn-azul, .tec-btn-verde, .tec-btn-laranja { color: #0d1020; }
+}
+.tec-linha-botoes { display: grid; gap: 10px; margin-top: 12px; }
+.tec-btn-principal { min-height: 64px; font-size: 19px; background: var(--a-verde); }
+.tec-btn-principal i { font-size: 28px; }
+
+/* Listas */
+.tec-lista { list-style: none; margin: 0; padding: 0; }
+.tec-lista li { display: flex; gap: 8px; align-items: baseline; padding: 8px 0; border-top: 1px solid var(--a-line); font-size: 16px; }
+.tec-lista li:first-child { border-top: 0; }
+.tec-lista li span { flex: 1; min-width: 0; }
+.tec-hist-item { display: block !important; }
+.tec-hist-def { color: var(--a-muted); }
+
+/* Progresso */
+.tec-prog-txt { font-weight: 800; font-size: 18px; margin-bottom: 6px; }
+.tec-prog-barra { height: 14px; border-radius: 999px; background: var(--a-suave); border: 1px solid var(--a-line); overflow: hidden; }
+.tec-prog-barra span { display: block; height: 100%; width: 0; background: var(--a-verde); transition: width .3s; }
+
+/* Passos */
+.tec-passos { list-style: none; margin: 14px 0; padding: 0; display: grid; gap: 6px; }
+.tec-passo { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 6px 10px; border-radius: 10px; border: 2px solid var(--a-line); font-size: 16px; }
+.tec-passo-num { flex: none; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; border: 2px solid var(--a-muted); color: var(--a-ink); }
+.tec-passo-nome { flex: 1; min-width: 0; font-weight: 700; }
+.tec-passo-sit { flex: none; max-width: 40%; text-align: right; color: var(--a-muted); font-size: 16px; }
+.tec-passo-atual { border-color: var(--a-azul); background: var(--a-suave); }
+.tec-passo-atual .tec-passo-num { background: var(--a-azul); border-color: var(--a-azul); color: #fff; }
+.tec-passo-feito .tec-passo-num { background: var(--a-verde); border-color: var(--a-verde); color: #fff; }
+.tec-passo-feito .tec-passo-sit { color: var(--a-verde); font-weight: 700; }
+@media (prefers-color-scheme: dark) {
+  .tec-passo-atual .tec-passo-num, .tec-passo-feito .tec-passo-num { color: #0d1020; }
+}
+.tec-acao { margin-top: 8px; display: grid; gap: 8px; }
+.tec-acao-dica { margin: 0; color: var(--a-muted); }
+.tec-extras { display: grid; gap: 10px; margin-top: 14px; }
+
+/* Concluido */
+.tec-concluido {
+  background: var(--a-card); color: var(--a-verde); border: 2px solid var(--a-verde); border-radius: 14px;
+  padding: 14px 16px; margin-bottom: 14px; font-size: 18px; font-weight: 800; display: flex; gap: 8px; align-items: center;
+}
+.tec-concluido i { font-size: 28px; }
+
+/* Com o assistente, a barra antiga e as secoes de foto repetidas dos modais saem de cena */
+.tec-bar-oculta { display: none !important; }
+body.tec-assist-ativo .secao-foto-entrada,
+body.tec-assist-ativo .secao-foto-saida { display: none; }
+
+/* Avisos na tela (substituem alert) */
+.tec-aviso { bottom: 12px !important; }
+.tec-aviso-msg {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 14px; margin-top: 6px;
+  border-radius: 12px; font-size: 16px; font-weight: 600; line-height: 1.4; box-shadow: 0 4px 18px rgba(0,0,0,.3);
+  background: #1b1d2e; color: #fff; border: 2px solid #fff; box-sizing: border-box;
+}
+.tec-aviso-msg .tec-aviso-txt { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+.tec-aviso-success { background: #14532d; }
+.tec-aviso-error { background: #7f1d1d; }
+.tec-aviso-warning { background: #78350f; }
+.tec-aviso-info { background: #0b3a6e; }
+.tec-aviso-btn, .tec-aviso-fechar {
+  min-height: 48px; min-width: 48px; border-radius: 10px; border: 2px solid #fff; background: transparent; color: #fff;
+  font-size: 16px; font-weight: 700; cursor: pointer; padding: 0 14px;
+}
+.tec-aviso-fechar { font-size: 24px; padding: 0; }
+#checklist-erro.tec-aviso-msg { margin-top: 10px; box-shadow: none; }
+
+/* Modais do atendimento: toque confortavel */
+#modal-checkin .btn, #modal-checkout .btn, #modal-checklist .btn, #modal-foto-servico .btn { min-height: 48px; font-size: 16px; }
+#modal-checkin textarea, #modal-checkout textarea, #modal-checklist textarea, #modal-checklist input, #modal-checklist select, #modal-foto-servico textarea { font-size: 16px; }
+
+@media (max-width: 380px) {
+  .tec-cab-botoes { grid-template-columns: 1fr; }
+  .tec-passo-sit { max-width: 36%; }
+}
+@media (min-width: 600px) {
+  .tec-linha-botoes { grid-template-columns: 1fr 1fr; }
+}
+
+/* Modo escuro: os botoes cheios ficam com fundo claro, entao o texto passa a ser escuro (AA).
+   Os de contorno (cinza, vermelho, link) mantem a propria cor. */
+@media (prefers-color-scheme: dark) {
+  .tec-btn-azul, .tec-btn-verde, .tec-btn-laranja, .tec-btn-principal,
+  .tec-btn-azul i, .tec-btn-verde i, .tec-btn-laranja i, .tec-btn-principal i { color: #10121c; }
+}

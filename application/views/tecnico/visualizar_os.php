@@ -11,7 +11,7 @@ $foneTel = preg_replace('/[^\d+]/', '', $fone);
 $wa = preg_replace('/\D/', '', $fone);
 if ($wa !== '' && strlen($wa) <= 11) { $wa = '55' . $wa; }
 
-// Endereco para o mapa
+// Endereco para navegacao
 $endParts = array_filter([
     isset($cliente->rua) ? $cliente->rua : '',
     isset($cliente->numero) ? $cliente->numero : '',
@@ -20,35 +20,118 @@ $endParts = array_filter([
     isset($cliente->estado) ? $cliente->estado : '',
 ]);
 $enderecoStr = trim(implode(', ', $endParts));
-$mapUrl = $enderecoStr !== '' ? 'https://www.google.com/maps/search/?api=1&query=' . urlencode($enderecoStr) : '';
+$mapUrl  = $enderecoStr !== '' ? 'https://www.google.com/maps/dir/?api=1&destination=' . rawurlencode($enderecoStr) : '';
+$wazeUrl = $enderecoStr !== '' ? 'https://waze.com/ul?q=' . rawurlencode($enderecoStr) . '&navigate=yes' : '';
 
 $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($cliente->cpf) ? $cliente->cpf : '');
+
+// Estado da OS (usado no cabecalho, no assistente e na barra de acao)
+$nr_pendente = isset($nao_realizada_pendente) ? $nao_realizada_pendente : null;
+$os_concluida = in_array($os->status, ['Finalizado', 'Faturado', 'Cancelado'], true);
+$tem_assinatura = !empty($assinaturas);
+$atendimento_encerrado = $os_concluida || (!$checkin_ativo && $tem_assinatura);
+
+// Status em palavras simples
+if ($nr_pendente) {
+    $statusTxt = 'Não deu para fazer'; $statusCls = 'nao';
+} elseif ($atendimento_encerrado) {
+    $statusTxt = $os->status === 'Cancelado' ? 'Cancelada' : 'Concluída'; $statusCls = 'ok';
+} elseif ($checkin_ativo || $os->status === 'Em Andamento') {
+    $statusTxt = 'Em atendimento'; $statusCls = 'andando';
+} elseif ($os->status === 'Aguardando Peças') {
+    $statusTxt = 'Aguardando peças'; $statusCls = 'espera';
+} else {
+    $statusTxt = 'Agendada'; $statusCls = 'agendada';
+}
+
+// Tipo de servico (campo opcional, criado em outra tarefa)
+$tipoServico = isset($os->tipo_servico) && !is_numeric($os->tipo_servico) ? trim((string) $os->tipo_servico) : '';
+$tipoIcone = 'bx-wrench';
+if ($tipoServico !== '') {
+    $t = function_exists('mb_strtolower') ? mb_strtolower($tipoServico, 'UTF-8') : strtolower($tipoServico);
+    $mapaIcones = [
+        'cftv' => 'bx-cctv', 'câmera' => 'bx-cctv', 'camera' => 'bx-cctv',
+        'alarme' => 'bx-bell', 'acesso' => 'bx-lock-alt', 'interfon' => 'bx-phone-call',
+        'cerca' => 'bx-bolt-circle', 'portão' => 'bx-door-open', 'portao' => 'bx-door-open',
+        'rede' => 'bx-network-chart', 'wifi' => 'bx-wifi',
+    ];
+    foreach ($mapaIcones as $chave => $ic) {
+        if (strpos($t, $chave) !== false) { $tipoIcone = $ic; break; }
+    }
+}
+
+// Descricao / defeito em texto simples
+$limpar = function ($txt) {
+    return trim(strip_tags(html_entity_decode((string) $txt, ENT_QUOTES, 'UTF-8')));
+};
+$descricaoTxt = $limpar($os->descricaoProduto);
+$defeitoTxt = $limpar($os->defeito);
+$servicos_previstos = isset($servicos_previstos) ? $servicos_previstos : [];
+$produtos_previstos = isset($produtos_previstos) ? $produtos_previstos : [];
+$historico_cliente = isset($historico_cliente) ? $historico_cliente : [];
+$fmtQtd = function ($q) {
+    $f = (float) $q;
+    return $f == (int) $f ? (string) (int) $f : rtrim(rtrim(number_format($f, 2, ',', ''), '0'), ',');
+};
+$statusSimples = function ($st) {
+    $m = ['Aberto' => 'Agendada', 'Em Andamento' => 'Em atendimento', 'Finalizado' => 'Concluída', 'Faturado' => 'Concluída', 'Cancelado' => 'Cancelada', 'Orçamento' => 'Orçamento', 'Aguardando Peças' => 'Aguardando peças'];
+    return isset($m[$st]) ? $m[$st] : $st;
+};
 ?>
+<link rel="stylesheet" href="<?= base_url('assets/css/tecnico-atendimento.css') ?>?v=<?= asset_versao('assets/css/tecnico-atendimento.css', '1') ?>">
 
 <div class="tec-container">
-<div class="ui-dica"><i class="bx bx-info-circle"></i><div>Siga a ordem: <strong>check-in</strong> ao chegar, registre o atendimento e fotos, depois <strong>finalize</strong> e colete a assinatura.</div></div>
 
     <!-- Banner: OS aberta pelo projeto (somente leitura) -->
     <?php if (!empty($somente_leitura)): ?>
         <div class="info-card" style="border-left:4px solid var(--tec-grad-1, #667eea);">
             <h3 style="color:var(--tec-grad-1, #667eea);"><i class='bx bx-show'></i> Visualização pelo projeto</h3>
-            <p style="margin:0;color:#666;">Esta OS está vinculada a um projeto seu. Você pode consultar os detalhes, mas o atendimento (check-in) é feito pelo técnico responsável pela OS.</p>
+            <p style="margin:0;color:#666;">Esta OS está vinculada a um projeto seu. Você pode consultar os detalhes, mas o atendimento é feito pelo técnico responsável pela OS.</p>
         </div>
     <?php endif; ?>
 
-    <!-- Banner de atendimento em andamento -->
-    <?php if ($checkin_ativo): ?>
-        <div class="checkin-banner">
-            <h4><i class='bx bx-play-circle'></i> Atendimento em andamento</h4>
-            <p>Iniciado em <?= date('d/m/Y \à\s H:i', strtotime($checkin_ativo->data_entrada)) ?></p>
+    <!-- Cabecalho da visita -->
+    <section class="tec-cab" aria-label="Cliente e endereço">
+        <div class="tec-cab-topo">
+            <span class="tec-status tec-status-<?= $statusCls ?>" role="status"><?= html_escape($statusTxt) ?></span>
+            <?php
+    // rotulo e icone oficiais do tipo de servico (tipo_servico_helper)
+    if ($tipoServico !== '') {
+        $this->load->helper('tipo_servico');
+        if (function_exists('tipo_servico_valido') && tipo_servico_valido($tipoServico)) {
+            $tipoIcone = tipo_servico_icone($tipoServico);
+            $tipoServico = tipo_servico_rotulo($tipoServico);
+        }
+    }
+?>
+<?php if ($tipoServico !== ''): ?>
+                <span class="tec-selo-tipo"><i class='bx <?= $tipoIcone ?>' aria-hidden="true"></i> <?= html_escape($tipoServico) ?></span>
+            <?php endif; ?>
+            <?php if (!empty($os->nao_programada)): ?>
+                <span class="tec-selo-tipo"><i class='bx bx-bolt-circle' aria-hidden="true"></i> Não programada</span>
+            <?php endif; ?>
         </div>
-    <?php endif; ?>
+        <h2 class="tec-cab-cliente"><i class='bx bx-user' aria-hidden="true"></i> <?= html_escape($cliente->nomeCliente) ?></h2>
+        <p class="tec-cab-end"><i class='bx bx-map' aria-hidden="true"></i> <?= $enderecoStr !== '' ? html_escape($enderecoStr) : 'Endereço não informado' ?></p>
+        <?php if ($fone): ?><p class="tec-cab-end"><i class='bx bx-phone' aria-hidden="true"></i> <?= html_escape($fone) ?></p><?php endif; ?>
+        <div class="tec-cab-botoes">
+            <?php if ($mapUrl): ?>
+                <a href="<?= html_escape($mapUrl) ?>" target="_blank" rel="noopener" class="tec-btn tec-btn-azul"><i class='bx bxs-navigation' aria-hidden="true"></i> Ir até lá (Google Maps)</a>
+                <a href="<?= html_escape($wazeUrl) ?>" target="_blank" rel="noopener" class="tec-btn tec-btn-azul"><i class='bx bx-navigation' aria-hidden="true"></i> Ir até lá (Waze)</a>
+            <?php endif; ?>
+            <?php if ($foneTel): ?>
+                <a href="tel:<?= html_escape($foneTel) ?>" class="tec-btn tec-btn-verde"><i class='bx bx-phone' aria-hidden="true"></i> Ligar</a>
+                <?php if ($wa): ?>
+                    <a href="https://wa.me/<?= html_escape($wa) ?>" target="_blank" rel="noopener" class="tec-btn tec-btn-verde"><i class='bx bxl-whatsapp' aria-hidden="true"></i> WhatsApp</a>
+                <?php endif; ?>
+            <?php endif; ?>
+        </div>
+    </section>
 
     <!-- Banner: serviço não realizado (em espera) -->
-    <?php $nr_pendente = isset($nao_realizada_pendente) ? $nao_realizada_pendente : null; ?>
     <?php if ($nr_pendente): ?>
         <div class="info-card" style="border-left:4px solid var(--tec-danger, #e74c3c);">
-            <h3 style="color:var(--tec-danger, #e74c3c);"><i class='bx bx-x-circle'></i> Serviço não realizado</h3>
+            <h3 style="color:var(--tec-danger, #e74c3c);"><i class='bx bx-x-circle'></i> Não deu para fazer o serviço</h3>
             <?php if (!empty($nr_pendente->motivo_texto)): ?>
                 <div class="info-row"><span class="info-label">Motivo</span><span class="info-value"><?= html_escape($nr_pendente->motivo_texto) ?></span></div>
             <?php endif; ?>
@@ -56,67 +139,107 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
                 <div class="info-row"><span class="info-label">Observação</span><span class="info-value"><?= nl2br(html_escape($nr_pendente->observacao)) ?></span></div>
             <?php endif; ?>
             <div class="info-row"><span class="info-label">Registrado</span><span class="info-value"><?= !empty($nr_pendente->data_registro) ? date('d/m/Y H:i', strtotime($nr_pendente->data_registro)) : '--' ?></span></div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
-                <button type="button" class="btn-tec warning" data-chamar="abrirReagendar" data-args="[<?= (int) $nr_pendente->idOcorrencia ?>]"><i class='bx bx-calendar-plus'></i> Reagendar</button>
-                <button type="button" class="btn-tec neutral" data-ocorrencia="<?= (int) $nr_pendente->idOcorrencia ?>" data-chamar="reabrirAtividade" data-args='["@this"]'><i class='bx bx-revision'></i> Reabrir p/ refazer</button>
+            <div class="tec-linha-botoes">
+                <button type="button" class="tec-btn tec-btn-laranja" data-chamar="abrirReagendar" data-args="[<?= (int) $nr_pendente->idOcorrencia ?>]"><i class='bx bx-calendar-plus' aria-hidden="true"></i> Reagendar</button>
+                <button type="button" class="tec-btn tec-btn-cinza" data-ocorrencia="<?= (int) $nr_pendente->idOcorrencia ?>" data-chamar="reabrirAtividade" data-args='["@this"]'><i class='bx bx-revision' aria-hidden="true"></i> Reabrir para refazer</button>
             </div>
         </div>
     <?php endif; ?>
 
-    <!-- Atalhos de contato -->
-    <?php if ($foneTel || $mapUrl): ?>
-        <div class="quick-actions" style="margin-bottom:16px;">
-            <?php if ($foneTel): ?>
-                <a href="tel:<?= $foneTel ?>" class="btn-tec qa-call"><i class='bx bx-phone'></i> Ligar</a>
-                <?php if ($wa): ?>
-                    <a href="https://wa.me/<?= $wa ?>" target="_blank" rel="noopener" class="btn-tec qa-whats"><i class='bx bxl-whatsapp'></i> WhatsApp</a>
-                <?php endif; ?>
-            <?php endif; ?>
-            <?php if ($mapUrl): ?>
-                <a href="<?= $mapUrl ?>" target="_blank" rel="noopener" class="btn-tec qa-map"><i class='bx bx-map'></i> Ver no mapa</a>
-            <?php endif; ?>
-        </div>
+    <!-- O que fazer nesta visita -->
+    <section class="tec-visita" aria-labelledby="tec-visita-t">
+        <h3 id="tec-visita-t"><i class='bx bx-task' aria-hidden="true"></i> O que fazer nesta visita</h3>
+        <?php if ($defeitoTxt !== ''): ?>
+            <h4>Problema informado</h4>
+            <p><?= nl2br(html_escape($defeitoTxt)) ?></p>
+        <?php endif; ?>
+        <?php if ($descricaoTxt !== ''): ?>
+            <h4>Detalhes do serviço</h4>
+            <p><?= nl2br(html_escape($descricaoTxt)) ?></p>
+        <?php endif; ?>
+        <?php if ($defeitoTxt === '' && $descricaoTxt === ''): ?>
+            <p>Nenhuma descrição informada. Fale com o escritório se precisar.</p>
+        <?php endif; ?>
+        <?php if (!empty($servicos_previstos)): ?>
+            <h4>Serviços previstos</h4>
+            <ul class="tec-lista">
+                <?php foreach ($servicos_previstos as $sv): ?>
+                    <li><i class='bx bx-wrench' aria-hidden="true"></i> <span><?= html_escape($sv['nome']) ?></span> <b>x<?= html_escape($fmtQtd($sv['quantidade'])) ?></b></li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
+        <?php if (!empty($produtos_previstos)): ?>
+            <h4>Materiais previstos</h4>
+            <ul class="tec-lista">
+                <?php foreach ($produtos_previstos as $pv): ?>
+                    <li><i class='bx bx-package' aria-hidden="true"></i> <span><?= html_escape($pv['nome']) ?></span> <b>x<?= html_escape($fmtQtd($pv['quantidade'])) ?></b></li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
+    </section>
+
+    <?php
+    // Assistente passo a passo: so quando o tecnico pode atender e a OS esta em andamento
+    $assistente_ativo = empty($somente_leitura)
+        && !$nr_pendente
+        && !$atendimento_encerrado
+        && (($checkin_ativo) || in_array($os->status, ['Aberto', 'Em Andamento'], true))
+        && (!empty($permissao_checkin) || $checkin_ativo);
+    $assistente_cfg = [
+        'osId'     => (int) $os->idOs,
+        'chegou'   => (bool) $checkin_ativo,
+        'antes'    => count($fotos_etapa['entrada'] ?? []),
+        'depois'   => count($fotos_etapa['saida'] ?? []),
+        'permFotos'  => !empty($permissao_fotos),
+        'permCheckin' => !empty($permissao_checkin),
+        'permCheckout' => !empty($permissao_checkout),
+        'naoRealizado' => !empty($permissao_nao_realizado) && empty($nr_pendente) && !$os_concluida,
+    ];
+    ?>
+    <?php if ($atendimento_encerrado && empty($somente_leitura)): ?>
+        <div class="tec-concluido" role="status"><i class='bx bx-check-circle' aria-hidden="true"></i> Atendimento concluído. Bom trabalho!</div>
+    <?php endif; ?>
+    <?php if ($assistente_ativo): ?>
+        <section id="tec-assistente" class="tec-assist" aria-label="Passo a passo do atendimento" data-config="<?= html_escape(json_encode($assistente_cfg)) ?>">
+            <noscript><p>Ative o JavaScript para usar o passo a passo.</p></noscript>
+        </section>
+    <?php endif; ?>
+
+    <!-- Historico deste cliente -->
+    <?php if (!empty($historico_cliente)): ?>
+        <section class="tec-hist" aria-labelledby="tec-hist-t">
+            <h3 id="tec-hist-t"><i class='bx bx-history' aria-hidden="true"></i> Histórico deste cliente</h3>
+            <ul class="tec-lista">
+                <?php foreach ($historico_cliente as $h): ?>
+                    <li class="tec-hist-item">
+                        <div><b>OS #<?= sprintf('%04d', $h->idOs) ?></b> &middot; <?= !empty($h->dataInicial) ? date('d/m/Y', strtotime($h->dataInicial)) : '--' ?> &middot; <?= html_escape($statusSimples($h->status)) ?></div>
+                        <?php $dh = trim(strip_tags((string) $h->defeito)); ?>
+                        <?php if ($dh !== ''): ?><div class="tec-hist-def"><?= html_escape(mb_strlen($dh) > 90 ? mb_substr($dh, 0, 90) . '…' : $dh) ?></div><?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </section>
     <?php endif; ?>
 
     <!-- Dados da OS -->
     <div class="info-card">
         <h3><i class='bx bx-file'></i> Dados da OS</h3>
-        <div class="info-row"><span class="info-label">Número</span><span class="info-value">#<?= sprintf('%04d', $os->idOs) ?>
-            <?php if (!empty($os->nao_programada)): ?>
-                <span class="badge-status andamento" style="font-size:10px;"><i class='bx bx-bolt-circle'></i> Não programada</span>
-            <?php endif; ?>
-        </span></div>
-        <div class="info-row"><span class="info-label">Status</span><span class="info-value"><span class="badge-status <?= in_array($os->status, ['Finalizado','Faturado']) ? 'finalizado' : ($os->status == 'Em Andamento' ? 'andamento' : 'pendente') ?>"><?= $os->status ?></span></span></div>
+        <div class="info-row"><span class="info-label">Número</span><span class="info-value">#<?= sprintf('%04d', $os->idOs) ?></span></div>
         <div class="info-row"><span class="info-label">Data</span><span class="info-value"><?= date('d/m/Y', strtotime($os->dataInicial)) ?></span></div>
         <div class="info-row"><span class="info-label">Garantia</span><span class="info-value"><?= html_escape(formatar_garantia($os->garantia, 'N/A')) ?></span></div>
+        <?php if ($checkin_ativo): ?>
+            <div class="info-row"><span class="info-label">Chegada</span><span class="info-value"><?= date('d/m/Y \à\s H:i', strtotime($checkin_ativo->data_entrada)) ?></span></div>
+        <?php endif; ?>
     </div>
 
     <?php $this->load->view('tecnico/_projeto_selo', ['vinculo_projeto' => $vinculo_projeto ?? null, 'pode_ver_projeto' => $pode_ver_projeto ?? false]); ?>
 
-    <!-- Dados do Cliente -->
-    <div class="info-card">
-        <h3><i class='bx bx-user'></i> Cliente</h3>
-        <div class="info-row"><span class="info-label">Nome</span><span class="info-value"><?= html_escape($cliente->nomeCliente) ?></span></div>
-        <div class="info-row"><span class="info-label">Telefone</span><span class="info-value"><?= $fone ?: 'N/A' ?></span></div>
-        <div class="info-row"><span class="info-label">Endereço</span><span class="info-value"><?= $enderecoStr !== '' ? html_escape($enderecoStr) : 'N/A' ?></span></div>
-    </div>
-
-    <!-- Descricao / Defeito -->
-    <div class="info-card">
-        <h3><i class='bx bx-detail'></i> Descrição do Serviço</h3>
-        <p style="margin:0; font-size:14px; line-height:1.6;"><?= nl2br($os->descricaoProduto) ?: 'Nenhuma descrição informada.' ?></p>
-    </div>
-    <div class="info-card">
-        <h3><i class='bx bx-error-circle'></i> Defeito</h3>
-        <p style="margin:0; font-size:14px; line-height:1.6;"><?= nl2br($os->defeito) ?: 'Nenhum defeito informado.' ?></p>
-    </div>
-
     <!-- Fotos -->
     <?php if (!empty($fotos)): ?>
         <div class="info-card">
-            <h3><i class='bx bx-camera'></i> Fotos do Atendimento</h3>
+            <h3><i class='bx bx-camera'></i> Fotos já enviadas</h3>
             <?php
-            $etapasLabels = ['entrada' => ['bx-log-in-circle', 'Entrada'], 'durante' => ['bx-time', 'Durante'], 'saida' => ['bx-log-out-circle', 'Saída']];
+            $etapasLabels = ['entrada' => ['bx-log-in-circle', 'antes'], 'durante' => ['bx-time', 'durante o serviço'], 'saida' => ['bx-log-out-circle', 'depois']];
             foreach ($etapasLabels as $et => $meta):
                 if (empty($fotos_etapa[$et])) continue; ?>
                 <div class="timeline-title"><i class='bx <?= $meta[0] ?>'></i> Fotos de <?= $meta[1] ?></div>
@@ -200,7 +323,7 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
         </a>
 
         <a href="<?= site_url('checkin/imprimir/' . $os->idOs) ?>" target="_blank" class="btn-tec neutral block">
-            <i class='bx bx-time'></i> Relatório de Atendimento
+            <i class='bx bx-time'></i> Relatório do atendimento
         </a>
     <?php endif; ?>
 
@@ -228,31 +351,31 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
     ?>
 
     <?php if ($tem_acao_barra): ?>
-        <div style="height:76px;"></div><!-- espaco para a barra de acao fixa -->
+        <?php if (!$assistente_ativo): ?><div style="height:76px;"></div><!-- espaco para a barra de acao fixa --><?php endif; ?>
     <?php endif; ?>
 </div>
 
 <!-- Barra de acao fixa: iniciar / nao realizado / finalizar -->
 <?php if ($tem_acao_barra): ?>
-<div class="action-bar">
+<div class="action-bar<?= $assistente_ativo ? ' tec-bar-oculta' : '' ?>">
     <?php if ($pode_iniciar): ?>
         <button type="button" id="btn-iniciar-atendimento" class="btn-tec success lg <?= $checkin_ativo ? 'hidden' : '' ?>">
-            <i class='bx bx-log-in'></i> Iniciar Atendimento
+            <i class='bx bx-log-in'></i> Cheguei no local
         </button>
     <?php endif; ?>
     <?php if ($mostrar_nao_realizado): ?>
         <button type="button" id="btn-nao-realizado-bar" class="btn-tec lg btn-nr-outline <?= $checkin_ativo ? 'hidden' : '' ?>" data-chamar="abrirNaoRealizado">
-            <i class='bx bx-x-circle'></i> Não realizado
+            <i class='bx bx-x-circle'></i> Não deu para fazer
         </button>
     <?php endif; ?>
     <?php if ($permissao_fotos): ?>
         <button type="button" id="btn-foto-servico" class="btn-tec info lg <?= $checkin_ativo ? '' : 'hidden' ?>">
-            <i class='bx bx-camera'></i> Enviar Foto
+            <i class='bx bx-camera'></i> Foto do serviço
         </button>
     <?php endif; ?>
     <?php if ($permissao_checkout): ?>
         <button type="button" id="btn-finalizar-atendimento" class="btn-tec danger lg <?= $checkin_ativo ? '' : 'hidden' ?>">
-            <i class='bx bx-log-out'></i> Finalizar Atendimento
+            <i class='bx bx-log-out'></i> Concluir atendimento
         </button>
     <?php endif; ?>
 </div>
@@ -267,8 +390,8 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
 <?php if ($mostrar_nao_realizado): ?>
 <div id="naoRealizadoModal" class="nr-modal" style="display:none;">
     <div class="nr-modal-box">
-        <h3><i class='bx bx-x-circle'></i> Serviço não realizado</h3>
-        <p class="nr-modal-sub">Registre o motivo para a OS ficar em espera e poder ser reagendada depois.</p>
+        <h3><i class='bx bx-x-circle'></i> Não deu para fazer o serviço</h3>
+        <p class="nr-modal-sub">Conte o motivo. A OS fica em espera para ser reagendada depois.</p>
 
         <label class="nr-label">Motivo</label>
         <select id="nr-motivo" class="atv-input">
@@ -332,6 +455,11 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
 ]); ?>
 
 <script nonce="<?= csp_nonce() ?>">
+    // Aviso na tela (sem alert); usa o aviso do check-in
+    function avisoTec(msg, tipo) {
+        if (window.CheckinManager && CheckinManager.aviso) { CheckinManager.aviso(msg, tipo || 'info'); }
+        else { var d = document.createElement('div'); d.setAttribute('role', 'alert'); d.textContent = msg; document.body.appendChild(d); }
+    }
     function abrirFoto(url) {
         document.getElementById('fotoModalImg').src = url;
         document.getElementById('fotoModal').style.display = 'flex';
@@ -353,7 +481,7 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
         var motivo = document.getElementById('nr-motivo').value;
         var obs = document.getElementById('nr-obs').value.trim();
         if (!motivo && obs === '') {
-            alert('Selecione um motivo ou descreva o que aconteceu.');
+            avisoTec('Escolha um motivo ou escreva o que aconteceu.', 'warning');
             return;
         }
         var btn = document.getElementById('nr-confirmar');
@@ -365,14 +493,14 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
             data: { os_id: NR_OS_ID, motivo_id: motivo, observacao: obs }
         }).done(function (r) {
             if (r && r.success) {
-                alert(r.message || 'Registrado.');
-                window.location.href = NR_BASE + '/nao_realizadas';
+                avisoTec(r.message || 'Registrado.', 'success');
+                setTimeout(function () { window.location.href = NR_BASE + '/nao_realizadas'; }, 1200);
             } else {
-                alert((r && r.message) || 'Falha ao registrar.');
+                avisoTec((r && r.message) || 'Não consegui registrar. Tente de novo.', 'error');
                 btn.disabled = false;
             }
         }).fail(function () {
-            alert('Erro de conexão. Tente novamente.');
+            avisoTec('Sem conexão com a internet. Tente de novo.', 'error');
             btn.disabled = false;
         });
     }
@@ -391,16 +519,16 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
     function confirmarReagendar() {
         var oc = document.getElementById('reag-ocorrencia').value;
         var data = document.getElementById('reag-data').value;
-        if (!data) { alert('Escolha uma data.'); return; }
+        if (!data) { avisoTec('Escolha uma data.', 'warning'); return; }
         $.ajax({
             url: NR_BASE + '/reagendar_atividade',
             type: 'POST',
             dataType: 'json',
             data: { ocorrencia_id: oc, nova_data: data }
         }).done(function (r) {
-            alert((r && r.message) || (r && r.success ? 'Reagendado.' : 'Falha.'));
-            if (r && r.success) { window.location.reload(); }
-        }).fail(function () { alert('Erro de conexão.'); });
+            avisoTec((r && r.message) || (r && r.success ? 'Reagendado.' : 'Não consegui reagendar.'), r && r.success ? 'success' : 'error');
+            if (r && r.success) { setTimeout(function () { window.location.reload(); }, 1200); }
+        }).fail(function () { avisoTec('Sem conexão com a internet. Tente de novo.', 'error'); });
     }
     function reabrirAtividade(btn) {
         if (!confirm('Reabrir esta OS para refazer o serviço?')) { return; }
@@ -412,10 +540,170 @@ $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($c
             dataType: 'json',
             data: { ocorrencia_id: oc }
         }).done(function (r) {
-            alert((r && r.message) || (r && r.success ? 'Reaberta.' : 'Falha.'));
-            if (r && r.success) { window.location.reload(); } else { btn.disabled = false; }
-        }).fail(function () { alert('Erro de conexão.'); btn.disabled = false; });
+            avisoTec((r && r.message) || (r && r.success ? 'Reaberta.' : 'Não consegui reabrir.'), r && r.success ? 'success' : 'error');
+            if (r && r.success) { setTimeout(function () { window.location.reload(); }, 1200); } else { btn.disabled = false; }
+        }).fail(function () { avisoTec('Sem conexão com a internet. Tente de novo.', 'error'); btn.disabled = false; });
     }
+</script>
+<script nonce="<?= csp_nonce() ?>">
+// ---- Assistente de atendimento (camada de interface sobre check-in / fotos / checklist / check-out) ----
+(function () {
+    'use strict';
+    var root = document.getElementById('tec-assistente');
+    if (!root) { return; }
+    var cfg = {};
+    try { cfg = JSON.parse(root.getAttribute('data-config') || '{}'); } catch (e) { cfg = {}; }
+
+    var KEY = 'tecAss:' + cfg.osId;
+    var loc = {};
+    try { loc = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { loc = {}; }
+    if (!loc.pulou) { loc.pulou = {}; }
+    function gravar() { try { localStorage.setItem(KEY, JSON.stringify(loc)); } catch (e) { /* sem espaco/privado */ } }
+
+    var st = {
+        chegou: !!cfg.chegou,
+        nAntes: cfg.antes || 0,
+        nDepois: cfg.depois || 0,
+        checklist: !!loc.checklist,
+        semChecklist: false,
+        encerrado: false
+    };
+
+    var PASSOS = [
+        { id: 'chegou',    nome: 'Cheguei',          icone: 'bx-log-in',      botao: 'Cheguei no local',      dica: 'Registre sua chegada e assine no quadro.' },
+        { id: 'antes',     nome: 'Fotos de antes',   icone: 'bx-camera',      botao: 'Tirar foto do antes',   dica: 'Fotografe o local e os equipamentos antes de mexer em qualquer coisa.', pulavel: true },
+        { id: 'checklist', nome: 'Checklist',        icone: 'bx-list-check',  botao: 'Preencher checklist',   dica: 'Responda as perguntas do serviço.', pulavel: true },
+        { id: 'depois',    nome: 'Fotos de depois',  icone: 'bx-camera',      botao: 'Tirar foto do depois',  dica: 'Fotografe como ficou o serviço pronto.', pulavel: true },
+        { id: 'concluir',  nome: 'Assinatura e conclusão', icone: 'bx-check-double', botao: 'Concluir atendimento', dica: 'Peça a assinatura do cliente e conclua.' }
+    ];
+
+    function feito(id) {
+        switch (id) {
+            case 'chegou': return st.chegou;
+            case 'antes': return st.nAntes > 0 || !!loc.pulou.antes || !cfg.permFotos;
+            case 'checklist': return st.checklist || st.semChecklist || !!loc.pulou.checklist;
+            case 'depois': return st.nDepois > 0 || !!loc.pulou.depois || !cfg.permFotos;
+            case 'concluir': return st.encerrado;
+        }
+        return false;
+    }
+    function textoFeito(id) {
+        if (id === 'antes' && st.nAntes > 0) { return st.nAntes + (st.nAntes > 1 ? ' fotos enviadas' : ' foto enviada'); }
+        if (id === 'depois' && st.nDepois > 0) { return st.nDepois + (st.nDepois > 1 ? ' fotos enviadas' : ' foto enviada'); }
+        if (id === 'checklist' && st.semChecklist && !st.checklist) { return 'Sem checklist neste serviço'; }
+        if (loc.pulou[id]) { return 'Pulado'; }
+        if (id === 'antes' || id === 'depois') { return cfg.permFotos ? 'Feito' : 'Sem permissão de fotos'; }
+        return 'Feito';
+    }
+
+    function atual() {
+        for (var i = 0; i < PASSOS.length; i++) { if (!feito(PASSOS[i].id)) { return i; } }
+        return PASSOS.length;
+    }
+
+    function render() {
+        var cur = atual();
+        var qtdFeitos = 0;
+        PASSOS.forEach(function (p) { if (feito(p.id)) { qtdFeitos++; } });
+        var pct = Math.round(qtdFeitos * 100 / PASSOS.length);
+        var h = '<div class="tec-prog" role="progressbar" aria-valuemin="0" aria-valuemax="' + PASSOS.length + '" aria-valuenow="' + qtdFeitos + '" aria-label="Progresso do atendimento">'
+            + '<div class="tec-prog-txt">' + (cur < PASSOS.length ? 'Passo ' + (cur + 1) + ' de ' + PASSOS.length : 'Tudo pronto') + '</div>'
+            + '<div class="tec-prog-barra"><span></span></div></div>';
+
+        h += '<ol class="tec-passos">';
+        PASSOS.forEach(function (p, i) {
+            var ok = feito(p.id);
+            var cls = ok ? 'feito' : (i === cur ? 'atual' : 'espera');
+            h += '<li class="tec-passo tec-passo-' + cls + '"' + (i === cur ? ' aria-current="step"' : '') + '>'
+                + '<span class="tec-passo-num" aria-hidden="true">' + (ok ? '&#10003;' : (i + 1)) + '</span>'
+                + '<span class="tec-passo-nome">' + p.nome + '</span>'
+                + '<span class="tec-passo-sit">' + (ok ? textoFeito(p.id) : (i === cur ? 'Agora' : 'Falta')) + '</span></li>';
+        });
+        h += '</ol>';
+
+        if (cur < PASSOS.length) {
+            var p = PASSOS[cur];
+            var bloqueado = (p.id === 'chegou' && !cfg.permCheckin) || (p.id === 'concluir' && !cfg.permCheckout);
+            h += '<div class="tec-acao">'
+                + '<p class="tec-acao-dica">' + p.dica + '</p>'
+                + '<button type="button" class="tec-btn tec-btn-principal" data-passo="' + p.id + '"' + (bloqueado ? ' disabled' : '') + '><i class="bx ' + p.icone + '" aria-hidden="true"></i> ' + p.botao + '</button>';
+            if (bloqueado) { h += '<p class="tec-acao-dica">Você não tem permissão para este passo. Fale com o escritório.</p>'; }
+            if (p.pulavel) { h += '<button type="button" class="tec-btn tec-btn-link" data-pular="' + p.id + '">Pular este passo</button>'; }
+            h += '</div>';
+        }
+
+        // Atalhos sempre visiveis
+        h += '<div class="tec-extras">';
+        if (st.chegou && cfg.permFotos) {
+            h += '<button type="button" class="tec-btn tec-btn-cinza" data-passo="extra"><i class="bx bx-image-add" aria-hidden="true"></i> Enviar foto extra</button>';
+        }
+        if (cfg.naoRealizado) {
+            h += '<button type="button" class="tec-btn tec-btn-vermelho" data-passo="nao"><i class="bx bx-x-circle" aria-hidden="true"></i> Não deu para fazer o serviço</button>';
+        }
+        h += '</div>';
+
+        root.innerHTML = h;
+        var barra = root.querySelector('.tec-prog-barra span');
+        if (barra) { barra.style.width = pct + '%'; }
+        document.body.classList.add('tec-assist-ativo');
+    }
+
+    function acao(id) {
+        var CM = window.CheckinManager;
+        if (!CM && id !== 'nao') { return; }
+        switch (id) {
+            case 'chegou': CM.abrirModalCheckin(); break;
+            case 'antes': CM.abrirCamera('entrada'); break;
+            case 'checklist': $('#modal-checklist').modal('show'); break;
+            case 'depois': CM.abrirCamera('saida'); break;
+            case 'concluir': CM.abrirModalCheckout(); break;
+            case 'extra': $('#btn-foto-servico').trigger('click'); break;
+            case 'nao': if (typeof window.abrirNaoRealizado === 'function') { window.abrirNaoRealizado(); } break;
+        }
+    }
+
+    $(root).on('click', '[data-passo]', function () { acao(this.getAttribute('data-passo')); });
+    $(root).on('click', '[data-pular]', function () {
+        loc.pulou[this.getAttribute('data-pular')] = true;
+        gravar();
+        render();
+    });
+
+    // Eventos do fluxo existente (checkin.js / atendimento_ui.php)
+    $(document).on('checkin:iniciado', function () { st.chegou = true; render(); });
+    $(document).on('checkin:fotoEnviada', function (e, d) {
+        d = d || {};
+        if (d.etapa === 'entrada') { st.nAntes++; }
+        if (d.etapa === 'saida') { st.nDepois++; }
+        render();
+    });
+    $(document).on('tec:checklistSalvo', function () { st.checklist = true; loc.checklist = true; gravar(); render(); });
+    $(document).on('checkin:finalizado', function () {
+        st.encerrado = true;
+        try { localStorage.removeItem(KEY); } catch (e) { /* ignora */ }
+        render();
+        setTimeout(function () { window.location.reload(); }, 2500);
+    });
+
+    $(function () {
+        // Mantem o passo 1 em dia se o status do servidor (ou outro aparelho) disser que ja ha atendimento
+        if (window.CheckinManager) {
+            var orig = CheckinManager.atualizarUI;
+            CheckinManager.atualizarUI = function () {
+                orig.apply(this, arguments);
+                if (this.estado.emAtendimento && !st.chegou) { st.chegou = true; render(); }
+            };
+        }
+        // Descobre se existe checklist para este servico (se nao houver, o passo some sozinho)
+        if (window.CheckinFormularios && $('#formularios-checklist').length) {
+            CheckinFormularios.carregar('durante', '#formularios-checklist', cfg.osId, function (erro) {
+                if (!erro && !$('#formularios-checklist .form-atendimento').length) { st.semChecklist = true; render(); }
+            });
+        }
+    });
+
+    render();
+})();
 </script>
 </body>
 </html>

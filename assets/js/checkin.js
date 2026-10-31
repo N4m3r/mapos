@@ -145,8 +145,44 @@ const CheckinManager = {
         if (typeof swal !== 'undefined') {
             swal(titulo || '', mensagem || '', tipo || 'info');
         } else {
-            alert((titulo ? titulo + ': ' : '') + (mensagem || ''));
+            this.aviso((titulo ? titulo + ': ' : '') + (mensagem || ''), tipo || 'info');
         }
+    },
+
+    /**
+     * Aviso na propria tela (sem alert()), acessivel por leitor de tela.
+     * tipo: success | error | warning | info. opcoes.acao = {texto, fn} cria
+     * um botao (ex.: "Tentar de novo"). Erros ficam ate serem fechados.
+     */
+    aviso: function(mensagem, tipo, opcoes) {
+        opcoes = opcoes || {};
+        tipo = tipo || 'info';
+        var $box = $('#tec-aviso');
+        if (!$box.length) {
+            $box = $('<div id="tec-aviso" class="tec-aviso" aria-live="polite"></div>').css({
+                position: 'fixed', left: '8px', right: '8px', bottom: '84px', zIndex: 5000,
+                maxWidth: '560px', margin: '0 auto'
+            }).appendTo('body');
+        }
+        $box.attr('role', (tipo === 'error' || tipo === 'warning') ? 'alert' : 'status');
+        var $msg = $('<div class="tec-aviso-msg"></div>').addClass('tec-aviso-' + tipo);
+        $msg.append($('<span class="tec-aviso-txt"></span>').text(mensagem || ''));
+        if (opcoes.acao && opcoes.acao.fn) {
+            $msg.append($('<button type="button" class="tec-aviso-btn"></button>').text(opcoes.acao.texto || 'Tentar de novo').on('click', function() {
+                $msg.remove();
+                opcoes.acao.fn();
+            }));
+        }
+        $msg.append($('<button type="button" class="tec-aviso-fechar" aria-label="Fechar aviso">&times;</button>').on('click', function() { $msg.remove(); }));
+        $box.empty().append($msg);
+        if (tipo === 'success' || tipo === 'info') {
+            setTimeout(function() { $msg.remove(); }, 6000);
+        }
+    },
+
+    // Avisa outros scripts (assistente de atendimento) que algo mudou
+    emitir: function(evento, dados) {
+        $(document).trigger(evento, [dados || {}]);
     },
 
     /**
@@ -273,25 +309,25 @@ const CheckinManager = {
         const osId = this.config.osId;
 
         if (!osId) {
-            alert('OS não identificada');
+            self.aviso('OS não identificada. Volte à lista e abra a OS de novo.', 'error');
             return;
         }
 
         // Verifica se a assinatura foi inicializada
         if (typeof AssinaturaManager === 'undefined') {
-            alert('Sistema de assinaturas não carregado. Recarregue a página.');
+            self.aviso('A assinatura não carregou. Atualize a página e tente de novo.', 'error');
             return;
         }
 
         const assinatura = AssinaturaManager.obter('assinatura-tecnico-entrada');
         if (!assinatura) {
-            alert('Canvas de assinatura não inicializado. Feche e reabra o modal.');
+            self.aviso('O quadro de assinatura não abriu. Feche esta janela e abra de novo.', 'error');
             return;
         }
 
         // Assinatura do técnico é obrigatória para iniciar o atendimento
         if (assinatura.estaVazio()) {
-            self.notificar('Atenção', 'Faça a assinatura do técnico para iniciar o atendimento.', 'warning');
+            self.notificar('Falta a sua assinatura', 'Assine no quadro para registrar a chegada.', 'warning');
             return;
         }
 
@@ -331,7 +367,8 @@ const CheckinManager = {
                     self.config.checkinId = response.checkin_id;
                     self.estado.emAtendimento = true;
                     self.atualizarUI();
-                    self.notificar('Sucesso!', 'Atendimento iniciado com sucesso!', 'success');
+                    self.emitir('checkin:iniciado', {});
+                    self.notificar('Pronto!', 'Chegada registrada.', 'success');
                 } else {
                     self.notificar('Erro', response.message || 'Erro ao iniciar atendimento', 'error');
                 }
@@ -344,7 +381,8 @@ const CheckinManager = {
                         if (window.Rascunho) Rascunho.apagar('checkin_obs_' + osId);
                         self.estado.emAtendimento = true;
                         self.atualizarUI();
-                        self.notificar('Sem internet', 'Início do atendimento guardado no aparelho. Será enviado quando a conexão voltar.', 'warning');
+                        self.emitir('checkin:iniciado', { offline: true });
+                        self.aviso('Sem internet — guardado no aparelho, enviaremos quando voltar.', 'warning');
                     });
                     return;
                 }
@@ -370,13 +408,13 @@ const CheckinManager = {
         const osId = this.config.osId;
 
         if (!osId) {
-            alert('OS não identificada');
+            self.aviso('OS não identificada. Volte à lista e abra a OS de novo.', 'error');
             return;
         }
 
         // Verifica se o sistema de assinaturas está carregado
         if (typeof AssinaturaManager === 'undefined') {
-            alert('Sistema de assinaturas não carregado. Recarregue a página.');
+            self.aviso('A assinatura não carregou. Atualize a página e tente de novo.', 'error');
             return;
         }
 
@@ -385,18 +423,18 @@ const CheckinManager = {
         const assinaturaCliente = AssinaturaManager.obter('assinatura-cliente-saida');
 
         if (!assinaturaTecnico || !assinaturaCliente) {
-            alert('Canvas de assinatura não inicializado. Feche e reabra o modal.');
+            self.aviso('O quadro de assinatura não abriu. Feche esta janela e abra de novo.', 'error');
             return;
         }
 
         // Verifica se as assinaturas foram preenchidas
         if (assinaturaTecnico.estaVazio()) {
-            self.notificar('Atenção', 'Por favor, faça a assinatura do técnico.', 'warning');
+            self.notificar('Falta a sua assinatura', 'Assine no quadro "Assinatura do Técnico".', 'warning');
             return;
         }
 
         if (assinaturaCliente.estaVazio()) {
-            self.notificar('Atenção', 'Por favor, faça a assinatura do cliente.', 'warning');
+            self.notificar('Falta a assinatura do cliente', 'Peça para o cliente assinar no quadro "Assinatura do Cliente".', 'warning');
             return;
         }
 
@@ -462,7 +500,8 @@ const CheckinManager = {
                     self.config.checkinId = null;
                     self.estado.emAtendimento = false;
                     self.atualizarUI();
-                    self.notificar('Sucesso!', 'Atendimento finalizado com sucesso!', 'success');
+                    self.emitir('checkin:finalizado', {});
+                    self.notificar('Pronto!', 'Atendimento concluído.', 'success');
                 } else {
                     self.notificar('Erro', response.message || 'Erro ao finalizar atendimento', 'error');
                 }
@@ -476,7 +515,8 @@ const CheckinManager = {
                         self.config.checkinId = null;
                         self.estado.emAtendimento = false;
                         self.atualizarUI();
-                        self.notificar('Sem internet', 'Finalização e assinaturas guardadas no aparelho. Serão enviadas quando a conexão voltar.', 'warning');
+                        self.emitir('checkin:finalizado', { offline: true });
+                        self.aviso('Sem internet — guardado no aparelho, enviaremos quando voltar.', 'warning');
                     });
                     return;
                 }
@@ -516,7 +556,7 @@ const CheckinManager = {
 
             // Valida tamanho máximo (10MB antes da compressão)
             if (arquivo.size > 10 * 1024 * 1024) {
-                alert('Arquivo "' + arquivo.name + '" muito grande. Tamanho máximo: 10MB');
+                self.aviso('A foto é muito grande (máximo 10MB). Tire outra foto.', 'error');
                 continue;
             }
 
@@ -527,7 +567,7 @@ const CheckinManager = {
 
             if (tiposPermitidos.indexOf(arquivo.type.toLowerCase()) === -1 &&
                 extensoesPermitidas.indexOf(extensao) === -1) {
-                alert('Arquivo "' + arquivo.name + '" não é uma imagem válida. Use JPG, PNG, GIF ou HEIC.');
+                self.aviso('Esse arquivo não é uma foto. Use uma imagem JPG, PNG ou HEIC.', 'error');
                 continue;
             }
 
@@ -574,7 +614,7 @@ const CheckinManager = {
                         // Quando todos estiverem processados, faz o upload
                         if (processadosCount === arquivosValidos.length) {
                             if (arquivosProcessados.length === 0) {
-                                alert('Nenhuma imagem pôde ser processada.');
+                                self.aviso('Não consegui preparar a foto. Tire a foto de novo.', 'error');
                                 self._processandoUpload = false;
                                 return;
                             }
@@ -605,7 +645,7 @@ const CheckinManager = {
         // Pega apenas a primeira foto
         var fotoBase64 = fotosBase64[0];
         if (!fotoBase64) {
-            alert('Nenhuma foto válida para enviar.');
+            self.aviso('Não há foto válida para enviar. Tire a foto de novo.', 'error');
             this._processandoUpload = false;
             return;
         }
@@ -639,11 +679,10 @@ const CheckinManager = {
                     // Recarrega apenas as fotos via AJAX sem fechar o modal
                     self.recarregarFotos(etapa);
                     // Mostra mensagem de sucesso
-                    if (typeof swal !== 'undefined') {
-                        swal('Sucesso!', 'Foto enviada com sucesso!', 'success');
-                    }
+                    self.emitir('checkin:fotoEnviada', { etapa: etapa });
+                    self.notificar('Pronto!', 'Foto enviada.', 'success');
                 } else {
-                    alert('Erro ao enviar foto: ' + (response.message || 'Erro desconhecido'));
+                    self.aviso('Não consegui enviar a foto: ' + (response.message || 'erro desconhecido') + '. Tire a foto de novo.', 'error');
                 }
             },
             error: function(xhr, status, error) {
@@ -653,12 +692,13 @@ const CheckinManager = {
                 if (window.FilaOffline && FilaOffline.semConexao(xhr)) {
                     FilaOffline.guardar(self.config.baseUrl + 'index.php/checkin/adicionarFoto', self.camposParaFila(dados), 'Foto da OS ' + self.config.osId).then(function() {
                         $('#preview-fotos-entrada, #preview-fotos-saida').empty();
-                        alert('Sem internet: a foto ficou guardada no aparelho e será enviada quando a conexão voltar.');
+                        self.emitir('checkin:fotoEnviada', { etapa: etapa, offline: true });
+                        self.aviso('Sem internet — guardado no aparelho, enviaremos quando voltar.', 'warning');
                     });
                     return;
                 }
                 console.error('Erro ao enviar foto:', error);
-                alert('Erro ao enviar foto. Verifique sua conexão.');
+                self.aviso('A foto não foi enviada. Verifique a internet e tire a foto de novo.', 'error');
                 // Limpa o preview mesmo em caso de erro
                 $('#preview-fotos-entrada, #preview-fotos-saida').empty();
             }
@@ -753,7 +793,7 @@ const CheckinManager = {
                     if (typeof swal !== 'undefined') {
                         swal('Erro!', response.message || 'Erro ao remover foto.', 'error');
                     } else {
-                        alert(response.message || 'Erro ao remover foto.');
+                        self.aviso(response.message || 'Erro ao remover foto.', 'error');
                     }
                 }
             },
@@ -762,7 +802,7 @@ const CheckinManager = {
                 if (typeof swal !== 'undefined') {
                     swal('Erro!', 'Erro ao comunicar com o servidor.', 'error');
                 } else {
-                    alert('Erro ao comunicar com o servidor.');
+                    self.aviso('Sem conexão com o servidor. Tente de novo.', 'error');
                 }
             }
         });
@@ -794,7 +834,7 @@ const CheckinManager = {
                     if (typeof swal !== 'undefined') {
                         swal('Erro!', response.message || 'Erro ao remover assinatura.', 'error');
                     } else {
-                        alert(response.message || 'Erro ao remover assinatura.');
+                        self.aviso(response.message || 'Erro ao remover assinatura.', 'error');
                     }
                 }
             },
@@ -803,7 +843,7 @@ const CheckinManager = {
                 if (typeof swal !== 'undefined') {
                     swal('Erro!', 'Erro ao comunicar com o servidor.', 'error');
                 } else {
-                    alert('Erro ao comunicar com o servidor.');
+                    self.aviso('Sem conexão com o servidor. Tente de novo.', 'error');
                 }
             }
         });

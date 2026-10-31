@@ -1,0 +1,104 @@
+/* Tela inicial, Minhas OS e Nao realizadas da area do tecnico (uso leigo, celular) */
+.ti { --ti-ink:#1f2233; --ti-muted:#4d5166; --ti-card:#fff; --ti-line:#d5d8e5; --ti-main:#3b4cc0; --ti-ok:#1b6e2f; --ti-ok-bg:#e3f4e7; --ti-warn:#8a4b00; --ti-warn-bg:#fff0d9; --ti-bad:#a31515; --ti-bad-bg:#fde6e6; --ti-info:#0d5aa7; --ti-info-bg:#e0eefc; font-size:16px; color:var(--ti-ink); }
+.ti *, .ti *::before, .ti *::after { box-sizing:border-box; }
+.ti a { text-decoration:none; }
+.ti-saud { margin:2px 0 14px; }
+.ti-saud h1 { font-size:22px; line-height:1.25; margin:0; font-weight:700; }
+.ti-saud p { margin:2px 0 0; color:var(--ti-muted); font-size:16px; }
+
+.ti-btn { display:flex; align-items:center; justify-content:center; gap:8px; min-height:52px; padding:10px 14px; border-radius:12px; font-size:17px; font-weight:700; border:2px solid transparent; cursor:pointer; text-align:center; line-height:1.2; width:100%; }
+.ti-btn i { font-size:24px; }
+.ti-btn.main { background:var(--ti-main); color:#fff; }
+.ti-btn.alt { background:#fff; color:var(--ti-main); border-color:var(--ti-main); }
+.ti-btn.ok { background:var(--ti-ok); color:#fff; }
+.ti-btn.warn { background:var(--ti-warn); color:#fff; }
+.ti-btn.soft { background:#eef0fa; color:var(--ti-ink); border-color:var(--ti-line); }
+.ti-btn:focus-visible, .ti-aba:focus-visible, .ti-linha:focus-visible, .ti-aviso:focus-visible { outline:3px solid #ffb300; outline-offset:2px; }
+
+/* Proxima visita */
+.ti-prox { background:var(--ti-card); border:2px solid var(--ti-main); border-radius:16px; padding:16px; margin-bottom:18px; box-shadow:0 4px 14px rgba(30,40,110,.14); }
+.ti-prox.andamento { border-color:var(--ti-ok); }
+.ti-prox-tit { display:flex; align-items:center; gap:6px; font-size:14px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--ti-main); margin-bottom:8px; }
+.ti-prox.andamento .ti-prox-tit { color:var(--ti-ok); }
+.ti-prox-cli { font-size:22px; font-weight:800; line-height:1.25; margin:0 0 6px; word-break:break-word; }
+.ti-prox-info { display:flex; align-items:flex-start; gap:8px; font-size:16px; margin:4px 0; color:var(--ti-ink); }
+.ti-prox-info i { font-size:20px; margin-top:1px; color:var(--ti-muted); flex:none; }
+.ti-prox-acoes { display:grid; gap:10px; margin-top:14px; }
+.ti-vazio-prox { background:var(--ti-card); border:2px dashed var(--ti-line); border-radius:16px; padding:20px 16px; text-align:center; margin-bottom:18px; }
+.ti-vazio-prox i { font-size:40px; color:var(--ti-ok); }
+.ti-vazio-prox p { margin:6px 0 12px; font-size:17px; font-weight:600; }
+
+/* Secoes */
+.ti-sec { display:flex; align-items:center; gap:8px; font-size:18px; font-weight:800; margin:20px 0 10px; }
+.ti-sec i { font-size:22px; color:var(--ti-main); }
+
+/* Linha do tempo do dia */
+.ti-tempo { list-style:none; margin:0; padding:0; }
+.ti-linha { display:flex; align-items:center; gap:10px; min-height:56px; padding:10px 12px; margin-bottom:8px; background:var(--ti-card); border:1px solid var(--ti-line); border-radius:12px; color:var(--ti-ink); }
+.ti-hora { flex:none; min-width:54px; font-size:18px; font-weight:800; }
+.ti-linha-cli { flex:1; min-width:0; font-size:16px; font-weight:600; overflow-wrap:anywhere; }
+
+/* Selos de status (icone + texto) */
+.ti-selo { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:999px; font-size:14px; font-weight:700; flex:none; }
+.ti-selo i { font-size:18px; }
+.ti-selo.agendada { background:var(--ti-info-bg); color:var(--ti-info); }
+.ti-selo.andamento { background:var(--ti-warn-bg); color:var(--ti-warn); }
+.ti-selo.concluida { background:var(--ti-ok-bg); color:var(--ti-ok); }
+.ti-selo.nao-feita, .ti-selo.atrasada { background:var(--ti-bad-bg); color:var(--ti-bad); }
+
+/* Avisos */
+.ti-aviso { display:flex; align-items:center; gap:12px; min-height:60px; padding:12px; margin-bottom:8px; border-radius:12px; border:2px solid var(--ti-warn); background:var(--ti-warn-bg); color:var(--ti-ink); font-size:16px; font-weight:600; }
+.ti-aviso i { font-size:28px; color:var(--ti-warn); flex:none; }
+.ti-aviso .txt { flex:1; }
+.ti-aviso b.n { flex:none; min-width:34px; text-align:center; padding:2px 10px; border-radius:999px; background:var(--ti-warn); color:#fff; font-size:17px; }
+.ti-aviso.bad { border-color:var(--ti-bad); background:var(--ti-bad-bg); }
+.ti-aviso.bad i { color:var(--ti-bad); }
+.ti-aviso.bad b.n { background:var(--ti-bad); }
+
+/* Numeros do dia (discretos) */
+.ti-nums { display:flex; flex-wrap:wrap; gap:6px 16px; margin:18px 0 6px; font-size:16px; color:var(--ti-muted); }
+.ti-nums b { color:var(--ti-ink); }
+.ti-mais { margin-top:16px; }
+
+/* Abas */
+.ti-abas { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin:0 0 12px; }
+.ti-aba { display:flex; align-items:center; justify-content:center; gap:6px; min-height:52px; padding:6px 8px; border-radius:12px; border:2px solid var(--ti-line); background:var(--ti-card); color:var(--ti-ink); font-size:16px; font-weight:700; text-align:center; line-height:1.15; }
+.ti-aba .n { min-width:26px; padding:1px 8px; border-radius:999px; background:#e6e9f5; color:var(--ti-ink); font-size:15px; }
+.ti-aba.on { background:var(--ti-main); border-color:var(--ti-main); color:#fff; }
+.ti-aba.on .n { background:#fff; color:var(--ti-main); }
+.ti-aba.alerta:not(.on) .n { background:var(--ti-bad); color:#fff; }
+.ti-busca { width:100%; min-height:52px; padding:10px 14px; font-size:16px; border:2px solid var(--ti-line); border-radius:12px; background:var(--ti-card); color:var(--ti-ink); margin-bottom:12px; }
+
+/* Cartao de OS */
+.ti-os { background:var(--ti-card); border:1px solid var(--ti-line); border-left:6px solid var(--ti-info); border-radius:14px; padding:14px; margin-bottom:12px; }
+.ti-os.andamento { border-left-color:var(--ti-warn); }
+.ti-os.concluida { border-left-color:var(--ti-ok); }
+.ti-os.nao-feita, .ti-os.atrasada { border-left-color:var(--ti-bad); }
+.ti-os-topo { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+.ti-os-hora { font-size:18px; font-weight:800; }
+.ti-os-cli { font-size:19px; font-weight:800; margin:0 0 4px; overflow-wrap:anywhere; }
+.ti-os-lin { display:flex; align-items:flex-start; gap:6px; margin:3px 0; font-size:16px; color:var(--ti-muted); overflow-wrap:anywhere; }
+.ti-os-lin i { font-size:20px; flex:none; }
+.ti-os-acoes { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+.ti-os-acoes .abrir { grid-column:1 / -1; }
+.ti-vazio { text-align:center; padding:28px 12px; background:var(--ti-card); border:2px dashed var(--ti-line); border-radius:14px; }
+.ti-vazio i { font-size:44px; color:var(--ti-muted); }
+.ti-vazio p { font-size:17px; margin:6px 0 14px; }
+.ti-dica { font-size:16px; color:var(--ti-muted); margin:0 0 14px; }
+.ti-nr-motivo { font-size:16px; margin:4px 0; }
+
+@media (min-width:560px) { .ti-abas { grid-template-columns:repeat(4,1fr); } .ti-prox-acoes { grid-template-columns:1fr 1fr; } }
+
+@media (prefers-color-scheme: dark) {
+  .ti { --ti-ink:#eef0fa; --ti-muted:#b9bed6; --ti-card:#1e2133; --ti-line:#3b4060; --ti-main:#9db0ff; --ti-ok:#7be08f; --ti-ok-bg:#173a21; --ti-warn:#ffc266; --ti-warn-bg:#40290a; --ti-bad:#ff9a9a; --ti-bad-bg:#44181b; --ti-info:#8ec5ff; --ti-info-bg:#14304f; }
+  .ti-btn.main { background:#4a5ee0; color:#fff; }
+  .ti-btn.ok { background:#2e8f45; color:#fff; }
+  .ti-btn.warn { background:#b86a00; color:#fff; }
+  .ti-btn.alt { background:transparent; }
+  .ti-btn.soft { background:#2a2e47; }
+  .ti-aba .n { background:#323756; }
+  .ti-aba.on { background:#4a5ee0; border-color:#4a5ee0; color:#fff; }
+  .ti-aba.on .n { background:#fff; color:#2a3aa8; }
+  .ti-aviso b.n, .ti-aviso.bad b.n { color:#1b1b1b; }
+}
+.ti-os-cli small { color: var(--ti-muted); font-weight: 600; }

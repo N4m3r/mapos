@@ -440,6 +440,18 @@ class Checkin extends MY_Controller
             }
         }
 
+        // Assinaturas obrigatórias (mesma exigência do JS): técnico e cliente, como imagem válida.
+        $assinatura_tecnico = dataurl_imagem($assinatura_tecnico);
+        $assinatura_cliente = dataurl_imagem($assinatura_cliente);
+        if ($assinatura_tecnico === null) {
+            echo json_encode(['success' => false, 'message' => 'Assinatura do técnico obrigatória para finalizar o atendimento.']);
+            return;
+        }
+        if ($assinatura_cliente === null) {
+            echo json_encode(['success' => false, 'message' => 'Assinatura do cliente obrigatória para finalizar o atendimento.']);
+            return;
+        }
+
         // Dados do check-out
         $data_checkout = [
             'data_saida' => $momento,
@@ -455,94 +467,92 @@ class Checkin extends MY_Controller
             $data_checkout['dentro_geofence_saida'] = $geoSaida['dentro'];
         }
 
-        // Atualiza check-in
-        $resultado = $this->checkin_model->finalizarAtendimento($checkin->idCheckin, $data_checkout);
+        // Check-out, assinaturas, fotos e status da OS: tudo ou nada.
+        $falha = null;
+        $this->db->trans_begin();
 
-        if (!$resultado) {
-            echo json_encode(['success' => false, 'message' => 'Erro ao finalizar atendimento']);
+        if (!$this->checkin_model->finalizarAtendimento($checkin->idCheckin, $data_checkout)) {
+            $falha = 'Erro ao finalizar atendimento.';
+        }
+
+        // salvarImagem já grava a linha em os_assinaturas no modo "banco" (base64);
+        // só inserimos aqui no modo "arquivo", senão duplicaria a linha.
+        $assinaturas = [
+            ['tipo' => 'tecnico_saida', 'img' => $assinatura_tecnico, 'nome' => $this->session->userdata('nome'), 'doc' => null],
+            ['tipo' => 'cliente_saida', 'img' => $assinatura_cliente, 'nome' => $nome_cliente, 'doc' => $documento_cliente],
+        ];
+        foreach ($assinaturas as $a) {
+            if ($falha) {
+                break;
+            }
+            $imagem = $this->assinaturas_model->salvarImagem($a['img'], $os_id, $a['tipo']);
+            if (!$imagem) {
+                $falha = 'Não foi possível salvar a assinatura (' . ($a['tipo'] === 'cliente_saida' ? 'cliente' : 'técnico') . ').';
+                break;
+            }
+            if (isset($imagem['modo']) && $imagem['modo'] === 'arquivo') {
+                $ok = $this->assinaturas_model->add([
+                    'os_id' => $os_id,
+                    'checkin_id' => $checkin->idCheckin,
+                    'tipo' => $a['tipo'],
+                    'assinatura' => $imagem['path'],
+                    'nome_assinante' => $a['nome'],
+                    'documento_assinante' => $a['doc'],
+                    'data_assinatura' => $momento,
+                    'ip_address' => $this->input->ip_address()
+                ]);
+                if (!$ok) {
+                    $falha = 'Não foi possível registrar a assinatura.';
+                }
+            }
+        }
+
+        // Fotos de saída
+        foreach ($fotos as $foto_base64) {
+            if ($falha) {
+                break;
+            }
+            $resultado = $this->fotosatendimento_model->salvarFotoBase64($foto_base64, $os_id, $usuario_id, $checkin->idCheckin, 'saida');
+            if (isset($resultado['error'])) {
+                $falha = 'Não foi possível salvar uma foto: ' . $resultado['error'];
+                break;
+            }
+            $ok = $this->fotosatendimento_model->add([
+                'os_id' => $os_id,
+                'checkin_id' => $checkin->idCheckin,
+                'usuarios_id' => $usuario_id,
+                'arquivo' => $resultado['arquivo'],
+                'path' => $resultado['path'],
+                'url' => $resultado['url'],
+                'etapa' => 'saida',
+                'tamanho' => $resultado['tamanho'],
+                'tipo_arquivo' => $resultado['tipo'],
+                'imagem_base64' => $resultado['imagem_base64'],
+                'mime_type' => $resultado['mime_type']
+            ]);
+            if (!$ok) {
+                $falha = 'Não foi possível registrar uma foto.';
+            }
+        }
+
+        // Status da OS para "Finalizado"
+        if (!$falha && !$this->os_model->alterarStatus((int) $os_id, 'Finalizado')) {
+            $falha = 'Não foi possível atualizar o status da OS.';
+        }
+
+        if (!$falha && ($this->db->trans_status() === false || !$this->db->trans_commit())) {
+            $falha = 'Falha ao gravar no banco.';
+        }
+        if ($falha) {
+            $this->db->trans_rollback();
+            log_info('Checkin::finalizar falhou (OS ' . $os_id . '): ' . $falha);
+            echo json_encode(['success' => false, 'message' => $falha . ' Nada foi gravado; tente novamente.']);
             return;
         }
 
         // Projeto (ADR-015): lanca a mao de obra desse checkin na obra vinculada a OS (se houver).
         $this->load->library('projeto_sync');
         $this->projeto_sync->lancarHorasDoCheckin((int) $checkin->idCheckin);
-
-        // Salva assinatura do técnico na saída.
-        // salvarImagem já grava a linha em os_assinaturas quando cai no modo
-        // "banco" (base64). Só inserimos aqui quando salvou em "arquivo", senão
-        // duplicaríamos a linha (a 2ª com um path 'BASE64:<id>' inválido/quebrado).
-        if ($assinatura_tecnico) {
-            $imagem = $this->assinaturas_model->salvarImagem($assinatura_tecnico, $os_id, 'tecnico_saida');
-            log_info('Checkout - Imagem técnico salva: ' . print_r($imagem, true));
-
-            if ($imagem && isset($imagem['modo']) && $imagem['modo'] === 'arquivo') {
-                $data_assinatura = [
-                    'os_id' => $os_id,
-                    'checkin_id' => $checkin->idCheckin,
-                    'tipo' => 'tecnico_saida',
-                    'assinatura' => $imagem['path'],
-                    'nome_assinante' => $this->session->userdata('nome'),
-                    'data_assinatura' => $momento,
-                    'ip_address' => $this->input->ip_address()
-                ];
-                $result = $this->assinaturas_model->add($data_assinatura);
-                log_info('Checkout - Assinatura técnico salva no BD: ' . ($result ? 'Sim' : 'Não'));
-            }
-        }
-
-        // Salva assinatura do cliente (mesma lógica: só insere no modo "arquivo").
-        if ($assinatura_cliente) {
-            $imagem = $this->assinaturas_model->salvarImagem($assinatura_cliente, $os_id, 'cliente_saida');
-            log_info('Checkout - Imagem cliente salva: ' . print_r($imagem, true));
-
-            if ($imagem && isset($imagem['modo']) && $imagem['modo'] === 'arquivo') {
-                $data_assinatura = [
-                    'os_id' => $os_id,
-                    'checkin_id' => $checkin->idCheckin,
-                    'tipo' => 'cliente_saida',
-                    'assinatura' => $imagem['path'],
-                    'nome_assinante' => $nome_cliente,
-                    'documento_assinante' => $documento_cliente,
-                    'data_assinatura' => $momento,
-                    'ip_address' => $this->input->ip_address()
-                ];
-                $result = $this->assinaturas_model->add($data_assinatura);
-                log_info('Checkout - Assinatura cliente salva no BD: ' . ($result ? 'Sim' : 'Não'));
-            }
-        }
-
-        // Salva fotos de saída
-        if ($fotos && is_array($fotos)) {
-            foreach ($fotos as $foto_base64) {
-                $resultado = $this->fotosatendimento_model->salvarFotoBase64(
-                    $foto_base64,
-                    $os_id,
-                    $usuario_id,
-                    $checkin->idCheckin,
-                    'saida'
-                );
-
-                if (!isset($resultado['error'])) {
-                    $data_foto = [
-                        'os_id' => $os_id,
-                        'checkin_id' => $checkin->idCheckin,
-                        'usuarios_id' => $usuario_id,
-                        'arquivo' => $resultado['arquivo'],
-                        'path' => $resultado['path'],
-                        'url' => $resultado['url'],
-                        'etapa' => 'saida',
-                        'tamanho' => $resultado['tamanho'],
-                        'tipo_arquivo' => $resultado['tipo'],
-                        'imagem_base64' => $resultado['imagem_base64'],
-                        'mime_type' => $resultado['mime_type']
-                    ];
-                    $this->fotosatendimento_model->add($data_foto);
-                }
-            }
-        }
-
-        // Atualiza status da OS para "Finalizado"
-        $this->os_model->alterarStatus((int) $os_id, 'Finalizado');
 
         // Log
         log_info('Finalizou atendimento da OS. ID: ' . $os_id);
@@ -659,6 +669,24 @@ class Checkin extends MY_Controller
 
         $usuario_id = $this->session->userdata('id_admin');
 
+        // checkin_id precisa ser da mesma OS (e do tecnico, se nao for gestor).
+        if ($checkin_id) {
+            require_once APPPATH . 'helpers/atendimento_regras_helper.php';
+            $ck = $this->checkin_model->getById((int) $checkin_id);
+            if (!AtendimentoRegras::checkinValidoParaFoto(
+                $ck->os_id ?? null,
+                $ck->usuarios_id ?? null,
+                (int) $os_id,
+                (int) $usuario_id,
+                (bool) $this->permission->checkPermission($permissao, 'eOs')
+            )) {
+                echo json_encode(['success' => false, 'message' => 'Check-in inválido para esta OS']);
+                return;
+            }
+        } else {
+            $checkin_id = null;
+        }
+
         // Salva foto
         $resultado = $this->fotosatendimento_model->salvarFotoBase64(
             $foto_base64,
@@ -743,6 +771,22 @@ class Checkin extends MY_Controller
 
         if (!$foto_id) {
             echo json_encode(['success' => false, 'message' => 'Foto não informada']);
+            return;
+        }
+
+        $foto = $this->fotosatendimento_model->getById((int) $foto_id);
+        require_once APPPATH . 'helpers/atendimento_regras_helper.php';
+        $uid = (int) $this->session->userdata('id_admin');
+        $pode = $foto && AtendimentoRegras::podeRemoverFoto(
+            (bool) $this->permission->checkPermission($permissao, 'eOs'),
+            (bool) $this->permission->checkPermission($permissao, 'eTecnicoFotos'),
+            $uid,
+            (int) ($foto->usuarios_id ?? 0),
+            $this->checkin_model->usuarioVinculadoOs($foto->os_id, $uid)
+        );
+        if (!$pode) {
+            // Mesma resposta de falha: nao revela se a foto existe.
+            echo json_encode(['success' => false, 'message' => 'Erro ao remover foto']);
             return;
         }
 

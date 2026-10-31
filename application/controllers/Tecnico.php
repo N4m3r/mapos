@@ -42,12 +42,20 @@ class Tecnico extends MY_Controller
     {
         $tecnico_id = $this->session->userdata('id_admin');
 
-        // Dados para o dashboard
-        $data['os_hoje'] = $this->tecnico_model->getOsHoje($tecnico_id);
-        $data['os_pendentes'] = $this->tecnico_model->getOsPendentes($tecnico_id);
-        $data['os_em_andamento'] = $this->tecnico_model->getOsEmAndamento($tecnico_id);
-        $data['os_finalizadas_hoje'] = $this->tecnico_model->getOsFinalizadasHoje($tecnico_id);
-        $data['estatisticas'] = $this->tecnico_model->getEstatisticas($tecnico_id);
+        // Agenda: proxima visita, linha do tempo do dia e avisos (logica em TecnicoInicio)
+        $this->load->helper('tecnico_inicio');
+        $agenda = $this->tecnico_model->getAgendaTecnico($tecnico_id);
+        $data['hoje'] = date('Y-m-d');
+        $data['proxima'] = TecnicoInicio::proximaVisita($agenda, date('Y-m-d H:i:s'));
+        $data['do_dia'] = TecnicoInicio::doDia($agenda, $data['hoje']);
+        $grupos = TecnicoInicio::agrupar($agenda, $data['hoje']);
+        $data['qtd_atrasadas'] = count(array_filter($grupos['atrasadas'], static function ($o) {
+            return $o->status !== 'Não Realizado';
+        }));
+        $hojeStr = $data['hoje'];
+        $data['qtd_concluidas_hoje'] = count(array_filter($grupos['concluidas'], static function ($o) use ($hojeStr) {
+            return substr((string) TecnicoInicio::dataEfetiva($o), 0, 10) === $hojeStr;
+        }));
 
         // Dados do emitente
         $data['emitente'] = $this->mapos_model->getEmitente();
@@ -84,22 +92,18 @@ class Tecnico extends MY_Controller
 
         $tecnico_id = $this->session->userdata('id_admin');
 
-        // Parametros de filtro
-        $status = $this->input->get('status') ?: 'todos';
-        $data_inicio = $this->input->get('data_inicio');
-        $data_fim = $this->input->get('data_fim');
-
-        $data['status'] = $status;
-        $data['data_inicio'] = $data_inicio;
-        $data['data_fim'] = $data_fim;
-
-        // Buscar OS
-        $data['ordens'] = $this->tecnico_model->getMinhasOs(
-            $tecnico_id,
-            $status,
-            $data_inicio,
-            $data_fim
-        );
+        // Abas: hoje (padrao) / proximos / atrasadas / concluidas
+        $this->load->helper('tecnico_inicio');
+        $hoje = date('Y-m-d');
+        $grupos = TecnicoInicio::agrupar($this->tecnico_model->getAgendaTecnico($tecnico_id), $hoje);
+        $aba = (string) $this->input->get('aba');
+        if (!isset($grupos[$aba])) {
+            $aba = 'hoje';
+        }
+        $data['hoje'] = $hoje;
+        $data['aba'] = $aba;
+        $data['contagens'] = array_map('count', $grupos);
+        $data['ordens'] = $grupos[$aba];
 
         // Dados do emitente
         $data['emitente'] = $this->mapos_model->getEmitente();
@@ -210,6 +214,67 @@ class Tecnico extends MY_Controller
         $data['pode_ver_sistema'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs');
         $data['titulo'] = 'Meu relatório';
         $this->load->view('tecnico/meu_relatorio', $data);
+    }
+
+    /** Perfil do proprio tecnico: dados da conta, vinculo de RH, equipes e numeros do mes. */
+    public function perfil()
+    {
+        $this->load->helper('menu_tecnico');
+        $uid = (int) $this->session->userdata('id_admin');
+        $usuario = $this->mapos_model->getById($uid);
+        $colab = menu_tecnico_colaborador($uid);
+
+        $equipes = [];
+        $this->load->model('obra_equipe_model');
+        if ($this->obra_equipe_model->disponivel()) {
+            $equipes = $this->obra_equipe_model->getEquipesDoUsuario($uid);
+        }
+
+        // Numeros do mes: OS atendidas (check-ins) e pontos avancados nos projetos
+        $ini = date('Y-m-01');
+        $fim = date('Y-m-t');
+        $osAtendidas = 0;
+        if ($this->db->table_exists('os_checkin')) {
+            $osAtendidas = (int) $this->db->select('COUNT(DISTINCT os_id) AS n', false)
+                ->where('usuarios_id', $uid)
+                ->where('data_entrada >=', $ini . ' 00:00:00')
+                ->where('data_entrada <=', $fim . ' 23:59:59')
+                ->get('os_checkin')->row()->n;
+        }
+        $this->load->model('projeto_acompanhamento_model');
+        $rel = $this->projeto_acompanhamento_model->relatorio($ini, $fim, ['usuario_id' => $uid]);
+
+        $data['usuario'] = $usuario;
+        $data['colab'] = $colab;
+        $data['equipes'] = $equipes;
+        $data['os_mes'] = $osAtendidas;
+        $data['pontos_mes'] = (int) ($rel['totais']['avancos'] ?? 0);
+        $data['mes_ref'] = date('m/Y');
+        $data['pode_ver_sistema'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs');
+        $data['titulo'] = 'Meu perfil';
+        $this->load->view('tecnico/perfil', $data);
+    }
+
+    /** Salva SOMENTE telefone/celular do proprio usuario (nada de permissao, e-mail ou dados de RH). */
+    public function salvar_perfil()
+    {
+        if ($this->input->method() !== 'post') {
+            redirect('tecnico/perfil');
+        }
+        $this->load->helper('menu_tecnico');
+        $tel = menu_tecnico_telefone($this->input->post('telefone'));
+        $cel = menu_tecnico_telefone($this->input->post('celular'));
+        if (!$tel['ok'] || !$cel['ok']) {
+            // diz qual campo esta errado (telefone antigo invalido no cadastro nao pode travar o celular)
+            $campo = !$tel['ok'] ? 'Telefone' : 'Celular';
+            $this->session->set_flashdata('error', $campo . ' inválido. Use DDD + número, ex.: (11) 91234-5678.');
+            redirect('tecnico/perfil');
+        }
+        $uid = (int) $this->session->userdata('id_admin');
+        $this->mapos_model->edit('usuarios', ['telefone' => $tel['valor'], 'celular' => $cel['valor']], 'idUsuarios', $uid);
+        log_info('Tecnico atualizou o proprio telefone/celular');
+        $this->session->set_flashdata('success', 'Contato atualizado.');
+        redirect('tecnico/perfil');
     }
 
     /** Registro rapido (one-click) do que foi feito no projeto — grava um RDO. */
@@ -689,6 +754,33 @@ class Tecnico extends MY_Controller
 
         // Dados da OS
         $data['os'] = $os;
+
+        // O que fazer nesta visita: servicos e produtos previstos (SEM valores)
+        $this->load->model('os_model');
+        $data['servicos_previstos'] = [];
+        foreach ((array) $this->os_model->getServicos($os_id) as $s) {
+            $data['servicos_previstos'][] = [
+                'nome' => (string) ($s->nome ?? ''),
+                'quantidade' => isset($s->quantidade) ? $s->quantidade : 1,
+            ];
+        }
+        $data['produtos_previstos'] = [];
+        foreach ((array) $this->os_model->getProdutos($os_id) as $p) {
+            $data['produtos_previstos'][] = [
+                'nome' => (string) ($p->descricao ?? ''),
+                'quantidade' => isset($p->quantidade) ? $p->quantidade : 1,
+            ];
+        }
+
+        // Historico leve do cliente: ultimas 3 OS (sem valores)
+        $data['historico_cliente'] = $this->db
+            ->select('idOs, dataInicial, status, defeito')
+            ->from('os')
+            ->where('clientes_id', $os->clientes_id)
+            ->where('idOs !=', (int) $os_id)
+            ->order_by('idOs', 'DESC')
+            ->limit(3)
+            ->get()->result();
 
         // Verificar permissoes. Em modo somente-leitura (OS aberta pelo
         // projeto, sem ser designada ao tecnico) nenhuma acao de campo e

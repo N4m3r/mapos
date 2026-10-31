@@ -49,6 +49,28 @@ class Tecnico_model extends CI_Model
     }
 
     /**
+     * Agenda do tecnico para a tela inicial e "Minhas OS": abertas (qualquer data)
+     * + o que tem data nos ultimos 30 dias. Traz endereco do cliente; data_agendamento
+     * e tipo_servico vem de os.* quando as colunas existem.
+     */
+    public function getAgendaTecnico($tecnico_id)
+    {
+        $this->db->select('os.*, clientes.nomeCliente, clientes.telefone, clientes.celular, clientes.rua, clientes.numero, clientes.bairro, clientes.cidade, clientes.estado');
+        $this->db->from('os');
+        $this->db->join('clientes', 'clientes.idClientes = os.clientes_id', 'left');
+        $this->db->where('os.tecnico_responsavel', $tecnico_id);
+        $this->db->where('os.status !=', 'Cancelado');
+        $this->db->group_start()
+            ->where_in('os.status', ['Aberto', 'Orçamento', 'Em Andamento', 'Agendado'])
+            ->or_where('os.dataInicial >=', date('Y-m-d', strtotime('-30 days')))
+            ->group_end();
+        $this->db->order_by('os.dataInicial', 'ASC');
+        $query = $this->db->get();
+
+        return $query ? $query->result() : [];
+    }
+
+    /**
      * Obtem uma OS especifica verificando se pertence ao tecnico
      */
     public function getOsById($os_id, $tecnico_id = null)

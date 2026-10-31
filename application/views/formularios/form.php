@@ -39,7 +39,16 @@ $comOpcoes = $tiposComOpcoes ?? ['select', 'radio', 'checkbox'];
             </div>
 
             <div class="row-fluid" style="margin-top:10px">
-                <div class="span8">
+                <div class="span4">
+                    <label>Tipo de serviço</label>
+                    <select name="tipo_servico" class="span12">
+                        <option value="">Todos</option>
+                        <?php foreach (tipos_servico() as $k => $t) { ?>
+                            <option value="<?= $k ?>" <?= ($isEdit && ($formulario->tipo_servico ?? '') === $k) ? 'selected' : '' ?>><?= html_escape($t['rotulo']) ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
+                <div class="span4">
                     <label>Descrição (opcional)</label>
                     <input type="text" name="descricao" class="span12" maxlength="255"
                            placeholder="Uma breve explicação exibida ao técnico"

@@ -31,7 +31,7 @@ $voltar_url   = isset($voltar_url) ? $voltar_url : null;
     <link rel="shortcut icon" type="image/png" href="<?= base_url('assets/img/favicon.png') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/bootstrap.min.css') ?>">
     <link href="<?= base_url('assets/boxicons/css/boxicons.min.css') ?>" rel="stylesheet">
-    <link rel="stylesheet" href="<?= base_url('assets/css/tecnico.css') ?>?v=4">
+    <link rel="stylesheet" href="<?= base_url('assets/css/tecnico.css') ?>?v=<?= asset_versao('assets/css/tecnico.css', '4') ?>">
     <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= base_url('assets/css/moderno.css') ?>?v=<?= asset_versao('assets/css/moderno.css', '1') ?>" />
@@ -39,26 +39,29 @@ $voltar_url   = isset($voltar_url) ? $voltar_url : null;
 <body class="tec-body">
     <header class="tec-header">
         <div class="tec-header-row">
+            <div class="tec-header-esq">
+                <button type="button" id="tec-menu-btn" class="tec-menu-btn" aria-label="Abrir menu" aria-haspopup="dialog" aria-controls="tec-menu" aria-expanded="false"><i class='bx bx-menu' aria-hidden="true"></i></button>
             <div>
                 <h1><i class='bx <?= $header_icone ?>'></i> <?= html_escape(isset($titulo) ? (string) $titulo : 'Área do Técnico') ?></h1>
                 <?php if ($header_sub): ?><p><?= html_escape((string) $header_sub) ?></p><?php endif; ?>
             </div>
+            </div>
             <div class="tec-header-acoes" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
-                <button type="button" id="install-btn" class="tec-back" style="display:none;border:0"><i class='bx bx-download'></i> Instalar app</button>
-                <button type="button" id="toggle-offline" class="tec-back" style="border:0"></button>
                 <?php if ($voltar_url): ?>
                     <a href="<?= $voltar_url ?>" class="tec-back"><i class='bx bx-arrow-back'></i> Voltar</a>
                 <?php endif; ?>
             </div>
         </div>
     </header>
+<?php $this->load->view('tecnico/_menu_lateral', ['menu_offline' => true]); ?>
     <script nonce="<?= csp_nonce() ?>">
         (function () {
             var btn = document.getElementById('toggle-offline');
             if (!btn) { return; }
             var key = 'offlineEnabled';
             function ligado() { return localStorage.getItem(key) !== 'false'; }
-            function rotulo() { btn.textContent = ligado() ? 'Desativar modo offline' : 'Ativar modo offline'; }
+            var txt = document.getElementById('toggle-offline-texto') || btn;
+            function rotulo() { txt.textContent = ligado() ? 'Desativar modo offline' : 'Ativar modo offline'; }
             rotulo();
             btn.addEventListener('click', function () {
                 localStorage.setItem(key, ligado() ? 'false' : 'true');
