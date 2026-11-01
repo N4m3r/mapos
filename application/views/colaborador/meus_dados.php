@@ -11,9 +11,9 @@ $csrf_h = $this->security->get_csrf_hash();
     <?php if ($var = $this->session->flashdata('success')): ?><div class="tec-alert success"><?= $var ?></div><?php endif; ?>
 
     <div class="rh-card" style="margin-bottom:12px">
-        <div style="font-size:13px;color:#6b7280">Nome</div><div style="font-weight:600"><?= htmlspecialchars($colaborador->nome) ?></div>
-        <div style="font-size:13px;color:#6b7280;margin-top:6px">Cargo</div><div><?= htmlspecialchars($colaborador->cargo ?: '-') ?></div>
-        <div style="font-size:13px;color:#6b7280;margin-top:6px">Admissão</div><div><?= $colaborador->admissao ? date('d/m/Y', strtotime($colaborador->admissao)) : '-' ?></div>
+        <div style="font-size:13px;color:var(--tec-muted, #6b7280)">Nome</div><div style="font-weight:600"><?= htmlspecialchars($colaborador->nome) ?></div>
+        <div style="font-size:13px;color:var(--tec-muted, #6b7280);margin-top:6px">Cargo</div><div><?= htmlspecialchars($colaborador->cargo ?: '-') ?></div>
+        <div style="font-size:13px;color:var(--tec-muted, #6b7280);margin-top:6px">Admissão</div><div><?= $colaborador->admissao ? date('d/m/Y', strtotime($colaborador->admissao)) : '-' ?></div>
     </div>
 
     <form method="post" action="<?= site_url('colaborador/meusDados') ?>" class="rh-card">

@@ -12,7 +12,8 @@ $voltar_url   = isset($voltar_url) ? $voltar_url : null;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#667eea">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#667eea">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#12141f">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="csrf-token-name" content="<?= config_item('csrf_token_name') ?>">

@@ -15,9 +15,9 @@ echo $this->load->view('colaborador/_topo', ['titulo' => $titulo, 'header_icone'
 ?>
     <main class="tec-main">
         <div class="rh-card" style="max-width:520px;margin:24px auto;text-align:center;">
-            <i class='bx bxs-error-circle' style="font-size:56px;color:#e0a800;"></i>
+            <i class='bx bxs-error-circle' style="font-size:56px;color:var(--tec-warning, #e0a800);"></i>
             <h2 style="margin:12px 0 8px;">Acesso indisponível</h2>
-            <p style="color:#555;line-height:1.5;"><?= html_escape($mensagem) ?></p>
+            <p style="color:var(--tec-ink, #555);line-height:1.5;"><?= html_escape($mensagem) ?></p>
             <a href="<?= site_url('login/sair') ?>" class="btn btn-primary" style="margin-top:16px;">
                 <i class='bx bx-log-out'></i> Sair
             </a>

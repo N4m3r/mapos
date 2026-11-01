@@ -42,7 +42,7 @@ $batidasRef = $batidas_ref ?? [];
                 <option value="<?= $k ?>"><?= $v ?></option>
             <?php endforeach; ?>
         </select>
-        <small style="color:#9ca3af">Escolha se é entrada, intervalo ou saída.</small>
+        <small style="color:var(--tec-muted, #9ca3af)">Escolha se é entrada, intervalo ou saída.</small>
 
         <label style="margin-top:8px">Batida registrada neste dia <small>(opcional)</small></label>
         <select name="registro_id" id="oc-registro" class="span12" style="width:100%">
@@ -54,7 +54,7 @@ $batidasRef = $batidas_ref ?? [];
                 </option>
             <?php endforeach; ?>
         </select>
-        <small style="color:#9ca3af">Selecione a batida que quer justificar (carrega ao escolher a data).</small>
+        <small style="color:var(--tec-muted, #9ca3af)">Selecione a batida que quer justificar (carrega ao escolher a data).</small>
 
         <div id="bloco-correcao" style="display:none">
             <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
@@ -69,7 +69,7 @@ $batidasRef = $batidas_ref ?? [];
                     <input type="datetime-local" name="correcao_data_hora" id="oc-correcao-dh" class="span12" style="width:100%">
                 </div>
             </div>
-            <small style="color:#9ca3af">Se o RH aprovar, essa batida é lançada/corrigida automaticamente no seu ponto.</small>
+            <small style="color:var(--tec-muted, #9ca3af)">Se o RH aprovar, essa batida é lançada/corrigida automaticamente no seu ponto.</small>
         </div>
 
         <label style="margin-top:8px">Descrição</label>
@@ -79,18 +79,18 @@ $batidasRef = $batidas_ref ?? [];
         <button type="submit" class="btn-bater" style="margin-top:12px"><i class='bx bx-send'></i> Enviar ao RH</button>
     </form>
 
-    <h4 style="color:#374151"><i class='bx bx-history'></i> Minhas solicitações</h4>
+    <h4 style="color:var(--tec-ink, #374151)"><i class='bx bx-history'></i> Minhas solicitações</h4>
     <?php if (empty($ocorrencias)): ?>
-        <div style="color:#9ca3af;font-size:13px">Nenhuma solicitação ainda.</div>
+        <div style="color:var(--tec-muted, #9ca3af);font-size:13px">Nenhuma solicitação ainda.</div>
     <?php else: foreach ($ocorrencias as $o): ?>
         <div class="rh-list-item">
             <div style="display:flex;justify-content:space-between;align-items:center">
                 <strong><?= $tipos[$o->tipo] ?? $o->tipo ?></strong>
                 <span class="rh-badge <?= $o->status ?>"><?= ucfirst($o->status) ?></span>
             </div>
-            <?php if ($o->data_referencia): ?><small style="color:#6b7280">Ref: <?= date('d/m/Y', strtotime($o->data_referencia)) ?></small><?php endif; ?>
+            <?php if ($o->data_referencia): ?><small style="color:var(--tec-muted, #6b7280)">Ref: <?= date('d/m/Y', strtotime($o->data_referencia)) ?></small><?php endif; ?>
             <?php if (! empty($o->correcao_tipo)): ?>
-                <small style="color:#6b7280;display:block">Batida: <?= $lblBat[$o->correcao_tipo] ?? $o->correcao_tipo ?>
+                <small style="color:var(--tec-muted, #6b7280);display:block">Batida: <?= $lblBat[$o->correcao_tipo] ?? $o->correcao_tipo ?>
                     <?= ! empty($o->correcao_data_hora) ? ' → ' . date('d/m/Y H:i', strtotime($o->correcao_data_hora)) : '' ?>
                 </small>
             <?php endif; ?>
@@ -98,7 +98,7 @@ $batidasRef = $batidas_ref ?? [];
             <?php if (! empty($o->anexo_base64)): ?>
                 <a href="<?= site_url('colaborador/anexo/ocorrencia/'.$o->id) ?>" target="_blank" style="font-size:12px">Ver anexo</a>
             <?php endif; ?>
-            <?php if ($o->resposta): ?><div style="font-size:12px;color:#065f46;margin-top:4px">RH: <?= htmlspecialchars($o->resposta) ?></div><?php endif; ?>
+            <?php if ($o->resposta): ?><div style="font-size:12px;color:var(--tec-success, #065f46);margin-top:4px">RH: <?= htmlspecialchars($o->resposta) ?></div><?php endif; ?>
         </div>
     <?php endforeach; endif; ?>
 </div>

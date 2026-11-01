@@ -32,19 +32,19 @@ $csrf_h = $this->security->get_csrf_hash();
         <button type="submit" class="btn-bater" style="margin-top:12px"><i class='bx bx-send'></i> Enviar ao RH</button>
     </form>
 
-    <h4 style="color:#374151"><i class='bx bx-history'></i> Minhas solicitações</h4>
+    <h4 style="color:var(--tec-ink, #374151)"><i class='bx bx-history'></i> Minhas solicitações</h4>
     <?php if (empty($ausencias)): ?>
-        <div style="color:#9ca3af;font-size:13px">Nenhuma solicitação ainda.</div>
+        <div style="color:var(--tec-muted, #9ca3af);font-size:13px">Nenhuma solicitação ainda.</div>
     <?php else: foreach ($ausencias as $a): ?>
         <div class="rh-list-item">
             <div style="display:flex;justify-content:space-between;align-items:center">
                 <strong><?= $tipos[$a->tipo] ?? $a->tipo ?></strong>
                 <span class="rh-badge <?= $a->status ?>"><?= ucfirst($a->status) ?></span>
             </div>
-            <small style="color:#6b7280"><?= date('d/m/Y', strtotime($a->data_inicio)) ?> a <?= date('d/m/Y', strtotime($a->data_fim)) ?> (<?= (int)$a->dias ?> dia<?= $a->dias > 1 ? 's':'' ?>)</small>
+            <small style="color:var(--tec-muted, #6b7280)"><?= date('d/m/Y', strtotime($a->data_inicio)) ?> a <?= date('d/m/Y', strtotime($a->data_fim)) ?> (<?= (int)$a->dias ?> dia<?= $a->dias > 1 ? 's':'' ?>)</small>
             <?php if ($a->motivo): ?><div style="font-size:13px;margin-top:4px"><?= nl2br(htmlspecialchars($a->motivo)) ?></div><?php endif; ?>
             <?php if (! empty($a->anexo_base64)): ?><a href="<?= site_url('colaborador/anexo/ausencia/'.$a->id) ?>" target="_blank" style="font-size:12px">Ver anexo</a><?php endif; ?>
-            <?php if ($a->resposta): ?><div style="font-size:12px;color:#065f46;margin-top:4px">RH: <?= htmlspecialchars($a->resposta) ?></div><?php endif; ?>
+            <?php if ($a->resposta): ?><div style="font-size:12px;color:var(--tec-success, #065f46);margin-top:4px">RH: <?= htmlspecialchars($a->resposta) ?></div><?php endif; ?>
         </div>
     <?php endforeach; endif; ?>
 </div>

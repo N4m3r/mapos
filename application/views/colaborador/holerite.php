@@ -19,12 +19,12 @@ $labelTipo = [
             <i class='bx bx-download'></i> Ver / baixar holerite (PDF)
         </a>
         <?php if (! empty($holerite->liberado_em)): ?>
-            <div style="font-size:12px;color:#065f46;text-align:center;margin-bottom:10px">
+            <div style="font-size:12px;color:var(--tec-success, #065f46);text-align:center;margin-bottom:10px">
                 Liberado em <?= date('d/m/Y H:i', strtotime($holerite->liberado_em)) ?>
             </div>
         <?php endif; ?>
     <?php else: ?>
-        <div class="rh-card" style="margin-bottom:12px;text-align:center;color:#6b7280;font-size:13px">
+        <div class="rh-card" style="margin-bottom:12px;text-align:center;color:var(--tec-muted, #6b7280);font-size:13px">
             <i class='bx bx-lock-alt' style="font-size:22px;display:block;margin-bottom:4px"></i>
             O holerite oficial desta competência ainda não foi liberado pelo RH.
         </div>
@@ -33,31 +33,31 @@ $labelTipo = [
     <div class="rh-card">
         <h4 style="margin:0 0 10px"><i class='bx bx-money'></i> Demonstrativo</h4>
         <?php if (empty($resumo['itens'])): ?>
-            <div style="color:#9ca3af;font-size:13px">Nenhum lançamento aprovado nesta competência.</div>
+            <div style="color:var(--tec-muted, #9ca3af);font-size:13px">Nenhum lançamento aprovado nesta competência.</div>
         <?php else: ?>
             <table style="width:100%;font-size:13px">
                 <?php foreach ($resumo['itens'] as $it): ?>
                 <tr>
                     <td style="padding:4px 0"><?= htmlspecialchars($it->descricao ?: ($labelTipo[$it->tipo] ?? $it->tipo)) ?></td>
-                    <td style="text-align:right;color:<?= $it->natureza==='desconto' ? '#ef4444':'#065f46' ?>">
+                    <td style="text-align:right;color:<?= $it->natureza==='desconto' ? 'var(--tec-danger, #ef4444)':'var(--tec-success, #065f46)' ?>">
                         <?= $it->natureza==='desconto' ? '-' : '+' ?> R$ <?= number_format($it->valor, 2, ',', '.') ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>
             </table>
             <hr style="margin:10px 0">
-            <div style="display:flex;justify-content:space-between;font-size:13px"><span>Proventos</span><strong style="color:#065f46">R$ <?= number_format($resumo['proventos'],2,',','.') ?></strong></div>
-            <div style="display:flex;justify-content:space-between;font-size:13px"><span>Descontos</span><strong style="color:#ef4444">R$ <?= number_format($resumo['descontos'],2,',','.') ?></strong></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px"><span>Proventos</span><strong style="color:var(--tec-success, #065f46)">R$ <?= number_format($resumo['proventos'],2,',','.') ?></strong></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px"><span>Descontos</span><strong style="color:var(--tec-danger, #ef4444)">R$ <?= number_format($resumo['descontos'],2,',','.') ?></strong></div>
             <div style="display:flex;justify-content:space-between;font-size:16px;margin-top:6px"><span><strong>Líquido</strong></span><strong>R$ <?= number_format($resumo['liquido'],2,',','.') ?></strong></div>
             <?php if (! empty($resumo['fgts']) && $resumo['fgts'] > 0): ?>
-                <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:8px;color:#6b7280">
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:8px;color:var(--tec-muted, #6b7280)">
                     <span>FGTS (informativo)</span><span>R$ <?= number_format($resumo['fgts'],2,',','.') ?></span>
                 </div>
             <?php endif; ?>
         <?php endif; ?>
     </div>
 
-    <div style="font-size:12px;color:#9ca3af;margin-top:12px;text-align:center">
+    <div style="font-size:12px;color:var(--tec-muted, #9ca3af);margin-top:12px;text-align:center">
         Demonstrativo com descontos legais (CLT). O PDF oficial é liberado pelo RH.
     </div>
 </div>

@@ -13,10 +13,10 @@ $lblBat = [
     'fim_intervalo' => 'Fim int.',
 ];
 $corBat = [
-    'entrada' => '#166534',
-    'saida' => '#991b1b',
-    'inicio_intervalo' => '#92400e',
-    'fim_intervalo' => '#1e40af',
+    'entrada' => 'var(--tec-success, #166534)',
+    'saida' => 'var(--tec-danger, #991b1b)',
+    'inicio_intervalo' => 'var(--tec-warning, #92400e)',
+    'fim_intervalo' => 'var(--tec-info, #1e40af)',
 ];
 ?>
 <div class="ponto-wrap">
@@ -26,7 +26,7 @@ $corBat = [
     </form>
 
     <?php if (empty($ponto_inicio)): ?>
-        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#1e40af">
+        <div style="background:var(--tec-info-bg, #eff6ff);border:1px solid var(--tec-info, #bfdbfe);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--tec-info, #1e40af)">
             Sem data de início do controle: dias sem batida não geram dívida no banco.
         </div>
     <?php endif; ?>
@@ -34,9 +34,9 @@ $corBat = [
     <?php $sem = $totais_semana ?? []; ?>
     <div class="espelho-tot" style="margin-bottom:8px">
         <div class="box"><div class="k">Semana trab.</div><div class="v"><?= $calc->minParaHoras($sem['minutos_trabalhados'] ?? 0) ?></div></div>
-        <div class="box"><div class="k">Semana deve</div><div class="v" style="color:#ef4444"><?= $calc->minParaHoras($sem['minutos_faltas'] ?? 0) ?></div></div>
+        <div class="box"><div class="k">Semana deve</div><div class="v" style="color:var(--tec-danger, #ef4444)"><?= $calc->minParaHoras($sem['minutos_faltas'] ?? 0) ?></div></div>
         <div class="box"><div class="k">Banco (mês)</div>
-            <div class="v" style="color:<?= ($totais['saldo_banco_min'] ?? 0) < 0 ? '#ef4444':'#10b981' ?>"><?= $calc->minParaHoras($totais['saldo_banco_min'] ?? 0) ?></div></div>
+            <div class="v" style="color:<?= ($totais['saldo_banco_min'] ?? 0) < 0 ? 'var(--tec-danger, #ef4444)':'var(--tec-success, #10b981)' ?>"><?= $calc->minParaHoras($totais['saldo_banco_min'] ?? 0) ?></div></div>
         <div class="box"><div class="k">Extras 50%</div><div class="v"><?= $calc->minParaHoras($totais['minutos_extras_50'] ?? 0) ?></div></div>
         <div class="box"><div class="k">Extras 100%</div><div class="v"><?= $calc->minParaHoras($totais['minutos_extras_100'] ?? 0) ?></div></div>
         <div class="box"><div class="k">Faltas (mês)</div><div class="v"><?= $calc->minParaHoras($totais['minutos_faltas'] ?? 0) ?></div></div>
@@ -46,7 +46,7 @@ $corBat = [
         <div class="box"><div class="k">Previstas</div><div class="v"><?= $calc->minParaHoras($totais['minutos_previstos'] ?? 0) ?></div></div>
     </div>
 
-    <div style="font-size:11px;color:#9ca3af;margin-bottom:8px;text-align:center">
+    <div style="font-size:11px;color:var(--tec-muted, #9ca3af);margin-bottom:8px;text-align:center">
         <span style="color:<?= $corBat['entrada'] ?>">E</span> Entrada ·
         <span style="color:<?= $corBat['inicio_intervalo'] ?>">II</span> Início int. ·
         <span style="color:<?= $corBat['fim_intervalo'] ?>">FI</span> Fim int. ·
@@ -64,28 +64,28 @@ $corBat = [
                 <td><?= sprintf('%02d', $d) ?><br><small><?= $diasSemana[$l['dia_semana']] ?></small></td>
                 <td style="text-align:left;font-size:12px">
                     <?php if (! empty($l['abonado'])): ?>
-                        <span style="color:#0369a1;font-size:11px">Abono</span>
+                        <span style="color:var(--tec-info, #0369a1);font-size:11px">Abono</span>
                     <?php elseif (empty($l['batidas']) && empty($l['cobra_falta']) && ! empty($l['eh_util'])): ?>
-                        <span style="color:#9ca3af">—</span>
+                        <span style="color:var(--tec-muted, #9ca3af)">—</span>
                     <?php elseif (empty($l['batidas'])): ?>—
                     <?php else: foreach ($l['batidas'] as $b):
-                        $cor = $corBat[$b->tipo] ?? '#374151';
+                        $cor = $corBat[$b->tipo] ?? 'var(--tec-ink, #374151)';
                         $lab = $lblBat[$b->tipo] ?? $b->tipo; ?>
                         <div style="margin:3px 0;padding:2px 0;border-left:3px solid <?= $cor ?>;padding-left:6px">
                             <strong style="color:<?= $cor ?>"><?= $lab ?></strong>
                             <?= date('H:i', strtotime($b->data_hora)) ?>
                             <?php if (! empty($b->latitude) && ! empty($b->longitude)): ?>
                                 <a href="https://www.google.com/maps?q=<?= rawurlencode($b->latitude . ',' . $b->longitude) ?>"
-                                   target="_blank" rel="noopener" style="color:#2563eb;margin-left:2px" title="Ver local">📍</a>
+                                   target="_blank" rel="noopener" style="color:var(--tec-primary, #2563eb);margin-left:2px" title="Ver local">📍</a>
                             <?php endif; ?>
                         </div>
                     <?php endforeach; endif; ?>
                     <?php if (strtotime($l['data']) <= strtotime(date('Y-m-d'))): ?>
-                        <a href="<?= site_url('colaborador/ocorrencias') ?>?ref=<?= $l['data'] ?>" title="Justificar/corrigir este dia" style="color:#c3c9d4;font-size:12px"><i class='bx bx-edit'></i> justificar</a>
+                        <a href="<?= site_url('colaborador/ocorrencias') ?>?ref=<?= $l['data'] ?>" title="Justificar/corrigir este dia" style="color:var(--tec-muted, #c3c9d4);font-size:12px"><i class='bx bx-edit'></i> justificar</a>
                     <?php endif; ?>
                 </td>
                 <td><?= $calc->minParaHoras($l['calc']['trabalhado']) ?></td>
-                <td style="color:<?= $l['calc']['saldo'] < 0 ? '#ef4444':'#111827' ?>"><?= $calc->minParaHoras($l['calc']['saldo']) ?></td>
+                <td style="color:<?= $l['calc']['saldo'] < 0 ? 'var(--tec-danger, #ef4444)':'var(--tec-ink, #111827)' ?>"><?= $calc->minParaHoras($l['calc']['saldo']) ?></td>
             </tr>
         <?php endforeach; ?>
         </tbody>
