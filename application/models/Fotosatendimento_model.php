@@ -174,7 +174,7 @@ class Fotosatendimento_model extends CI_Model
     {
         // Extensão permitida
         $extensao = strtolower(pathinfo($arquivo['name'], PATHINFO_EXTENSION));
-        $extensoes_permitidas = ['jpg', 'jpeg', 'png', 'gif'];
+        $extensoes_permitidas = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
         if (!in_array($extensao, $extensoes_permitidas)) {
             return ['error' => 'Tipo de arquivo não permitido. Use JPG, PNG ou GIF.'];
@@ -192,12 +192,14 @@ class Fotosatendimento_model extends CI_Model
             return ['error' => 'Erro ao ler arquivo.'];
         }
 
-        // Determina o mime type
+        // Mime real do conteudo (nao confia na extensao nem no tipo informado pelo cliente)
         $finfo = new finfo(FILEINFO_MIME_TYPE);
-        $mime = $finfo->buffer($conteudo);
-        if (!$mime) {
-            $mime = 'image/jpeg';
+        $mime = (string) $finfo->buffer($conteudo);
+        $mapa = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
+        if (!isset($mapa[$mime])) {
+            return ['error' => 'O arquivo não é uma imagem válida (use JPG, PNG, GIF ou WEBP).'];
         }
+        $extensao = $mapa[$mime];
 
         // Converte para base64
         $base64 = 'data:' . $mime . ';base64,' . base64_encode($conteudo);
@@ -264,17 +266,21 @@ class Fotosatendimento_model extends CI_Model
             return ['error' => 'Imagem está vazia.'];
         }
 
-        // Valida tipo de imagem permitido
-        $tipos_permitidos = ['jpg', 'jpeg', 'png', 'gif'];
-        if (!in_array(strtolower($tipo_imagem), $tipos_permitidos)) {
-            $tipo_imagem = 'jpg'; // Converte para jpg por padrão
+        // Tamanho maximo (a foto ja chega comprimida do app)
+        if (strlen($image_data) > 8 * 1024 * 1024) {
+            return ['error' => 'Foto muito grande. Tire novamente com menor resolução.'];
         }
 
-        // Determina MIME type
-        $mime = 'image/' . $tipo_imagem;
-        if ($tipo_imagem === 'jpg') {
-            $mime = 'image/jpeg';
+        // Mime real pelo conteudo; ignora o tipo declarado no prefixo
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime = (string) $finfo->buffer($image_data);
+        $mapa = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
+        if (!isset($mapa[$mime])) {
+            return ['error' => 'O arquivo enviado não é uma imagem válida.'];
         }
+        $tipo_imagem = $mapa[$mime];
+        // Remonta o data URL canonico (descarta qualquer prefixo/lixo enviado)
+        $base64_data = 'data:' . $mime . ';base64,' . base64_encode($image_data);
 
         // Nome do arquivo para referência
         $nome_arquivo = 'os_' . $os_id . '_' . $etapa . '_' . time() . '_' . rand(1000, 9999) . '.' . $tipo_imagem;

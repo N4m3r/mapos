@@ -264,6 +264,7 @@
                     </div>
                 <?php endif; ?>
 
+                <?php $this->load->view('os/_observacoes_tecnico', ['observacoes_tecnico' => $observacoes_tecnico ?? []]); ?>
                 <?php $this->load->view('os/_aprovacao_info', ['result' => $result]); ?>
             </section>
             <footer>

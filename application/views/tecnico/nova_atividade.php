@@ -9,10 +9,10 @@ $this->load->view('tecnico/_topo', [
 
 <style>
     .atv-field { margin-bottom: 16px; }
-    .atv-field > label { display:block; font-size:13px; font-weight:700; color:#55596e; margin-bottom:6px; }
+    .atv-field > label { display:block; font-size:13px; font-weight:700; color:var(--tec-ink, #55596e); margin-bottom:6px; }
     .atv-input {
         width:100%; box-sizing:border-box; padding:12px 14px; font-size:15px;
-        border:1.5px solid #e2e5f0; border-radius:12px; background:#fff; color:var(--tec-ink);
+        border:1.5px solid var(--tec-input-line, #e2e5f0); border-radius:12px; background:var(--tec-input-bg, #fff); color:var(--tec-ink);
         -webkit-appearance:none; appearance:none;
     }
     .atv-input:focus { outline:none; border-color:var(--tec-grad-1); }
@@ -20,27 +20,27 @@ $this->load->view('tecnico/_topo', [
     .atv-ac { position:relative; }
     .atv-ac-list {
         position:absolute; z-index:50; left:0; right:0; top:calc(100% + 4px);
-        background:#fff; border:1px solid #e2e5f0; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.10);
+        background:var(--tec-card, #fff); border:1px solid var(--tec-line, #e2e5f0); border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.10);
         max-height:240px; overflow-y:auto; display:none;
     }
-    .atv-ac-list div { padding:11px 14px; font-size:14px; cursor:pointer; border-bottom:1px solid #f2f3f8; }
+    .atv-ac-list div { padding:11px 14px; font-size:14px; cursor:pointer; border-bottom:1px solid var(--tec-line, #f2f3f8); }
     .atv-ac-list div:last-child { border-bottom:0; }
-    .atv-ac-list div:hover, .atv-ac-list div.active { background:#f4f5fb; }
+    .atv-ac-list div:hover, .atv-ac-list div.active { background:var(--tec-surface-2, #f4f5fb); }
     .atv-chip {
-        display:flex; align-items:center; gap:8px; background:#eef0f7; border-radius:12px;
+        display:flex; align-items:center; gap:8px; background:var(--tec-surface-2, #eef0f7); border-radius:12px;
         padding:10px 12px; margin-bottom:8px;
     }
     .atv-chip .nome { flex:1; font-size:14px; color:var(--tec-ink); }
-    .atv-stepper { display:flex; align-items:center; gap:0; background:#fff; border:1.5px solid #e2e5f0; border-radius:10px; overflow:hidden; }
+    .atv-stepper { display:flex; align-items:center; gap:0; background:var(--tec-card, #fff); border:1.5px solid var(--tec-input-line, #e2e5f0); border-radius:10px; overflow:hidden; }
     .atv-stepper button {
-        width:34px; height:36px; border:0; background:#fff; color:var(--tec-grad-1);
+        width:34px; height:36px; border:0; background:var(--tec-card, #fff); color:var(--tec-grad-1);
         font-size:20px; line-height:1; cursor:pointer; -webkit-appearance:none; appearance:none;
         display:flex; align-items:center; justify-content:center;
     }
-    .atv-stepper button:active { background:#eef0f7; }
+    .atv-stepper button:active { background:var(--tec-surface-2, #eef0f7); }
     .atv-chip input.qtd {
-        width:44px; height:36px; text-align:center; padding:0; border:0; border-left:1.5px solid #e2e5f0;
-        border-right:1.5px solid #e2e5f0; font-size:15px; background:#fff; -moz-appearance:textfield;
+        width:44px; height:36px; text-align:center; padding:0; border:0; border-left:1.5px solid var(--tec-input-line, #e2e5f0);
+        border-right:1.5px solid var(--tec-input-line, #e2e5f0); font-size:15px; background:var(--tec-input-bg, #fff); -moz-appearance:textfield;
     }
     .atv-chip input.qtd::-webkit-outer-spin-button,
     .atv-chip input.qtd::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
@@ -93,6 +93,10 @@ $this->load->view('tecnico/_topo', [
                 <label>Defeito / Motivo (opcional)</label>
                 <textarea class="atv-input" name="defeito" placeholder="Defeito relatado ou motivo do atendimento..."></textarea>
             </div>
+            <div class="atv-field" style="border:2px solid var(--tec-primary, #667eea);border-radius:12px;padding:10px;">
+                <label><strong>Atividade realizada / observações do técnico</strong></label>
+                <textarea class="atv-input" name="atividade_realizada" rows="4" maxlength="2000" placeholder="Descreva o que foi feito..."></textarea>
+            </div>
             <div class="atv-field" style="margin-bottom:0;">
                 <label>Observações (opcional)</label>
                 <textarea class="atv-input" name="observacoes" placeholder="Anotações internas..."></textarea>
@@ -119,6 +123,38 @@ $this->load->view('tecnico/_topo', [
             <div id="produtos-lista"><div class="atv-empty" id="produtos-vazio">Nenhum produto adicionado.</div></div>
         </div>
 
+        <!-- Fotos -->
+        <div class="info-card">
+            <h3><i class='bx bx-camera'></i> Fotos (opcional)</h3>
+            <label class="btn-tec ghost block" style="cursor:pointer;">
+                <i class='bx bx-camera'></i> Tirar ou escolher fotos
+                <input type="file" accept="image/*" multiple data-foto-compacta style="display:none;">
+            </label>
+            <div data-foto-preview style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
+            <div data-foto-erro role="alert" style="display:none;color:var(--tec-danger, #e74c3c);font-weight:600;margin-top:6px;"></div>
+            <div class="atv-hint">Até 6 fotos. São reduzidas automaticamente antes do envio.</div>
+        </div>
+
+        <!-- Assinatura do solicitante (opcional) -->
+        <div class="info-card">
+            <h3><i class='bx bx-pen'></i> Assinatura do solicitante (opcional)</h3>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                <input type="checkbox" id="atv-quer-assinatura" style="width:20px;height:20px;">
+                <span style="font-weight:600;">Coletar assinatura agora</span>
+            </label>
+            <div id="atv-assinatura-box" style="display:none;margin-top:8px;">
+                <p class="atv-hint">Entregue o aparelho ao solicitante para assinar abaixo.</p>
+                <div style="border:2px dashed var(--tec-line, #c7ccdd);border-radius:12px;background:#fff;touch-action:none;">
+                    <canvas id="atv-assinatura-canvas" style="display:block;width:100%;touch-action:none;border-radius:10px;"></canvas>
+                </div>
+                <div class="atv-field" style="margin-top:8px;">
+                    <input type="text" class="atv-input" name="assinatura_nome" maxlength="100" placeholder="Nome de quem assinou (opcional)">
+                </div>
+                <button type="button" class="btn-tec neutral" id="atv-assinatura-limpar"><i class='bx bx-eraser'></i> Limpar assinatura</button>
+            </div>
+            <input type="hidden" name="assinatura" id="atv-assinatura-hidden">
+        </div>
+
         <button type="submit" class="btn-tec success block lg" id="btn-salvar-atividade" style="margin-bottom:8px;">
             <i class='bx bx-check'></i> Abrir Atividade
         </button>
@@ -131,6 +167,8 @@ $this->load->view('tecnico/_topo', [
 <?php $this->load->view('tecnico/_nav', ['nav_ativo' => '', 'pode_ver_sistema' => isset($pode_ver_sistema) ? $pode_ver_sistema : false]); ?>
 
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/csrf.js') ?>?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/assinatura-canvas.js') ?>?v=<?= asset_versao('assets/js/assinatura-canvas.js', '3') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/foto-compacta.js') ?>?v=<?= asset_versao('assets/js/foto-compacta.js', '2') ?>"></script>
 <script nonce="<?= csp_nonce() ?>">
 (function () {
     var BASE = '<?= site_url('tecnico') ?>/';
@@ -255,6 +293,20 @@ $this->load->view('tecnico/_topo', [
         listaId: 'produtos-lista', vazioId: 'produtos-vazio', campo: 'produtos'
     });
 
+    // ---- Assinatura do solicitante (componente assinatura-canvas.js) ----
+    var assinaturaMgr = null;
+    var chkAss = document.getElementById('atv-quer-assinatura');
+    chkAss.addEventListener('change', function () {
+        document.getElementById('atv-assinatura-box').style.display = this.checked ? 'block' : 'none';
+        if (this.checked && !assinaturaMgr && typeof AssinaturaManager !== 'undefined') {
+            // Cria depois de exibir para o canvas medir a largura certa.
+            assinaturaMgr = AssinaturaManager.criar('solicitante', 'atv-assinatura-canvas');
+        }
+    });
+    document.getElementById('atv-assinatura-limpar').addEventListener('click', function () {
+        if (assinaturaMgr) { assinaturaMgr.limpar(); }
+    });
+
     // ---- Validação no submit ---------------------------------------
     document.getElementById('form-atividade').addEventListener('submit', function (e) {
         if (!document.getElementById('clientes_id').value) {
@@ -262,6 +314,8 @@ $this->load->view('tecnico/_topo', [
             alert('Selecione um cliente para abrir a atividade.');
             return false;
         }
+        document.getElementById('atv-assinatura-hidden').value =
+            (chkAss.checked && assinaturaMgr && !assinaturaMgr.estaVazio()) ? assinaturaMgr.obterImagem() : '';
         document.getElementById('btn-salvar-atividade').setAttribute('disabled', 'disabled');
     });
 })();

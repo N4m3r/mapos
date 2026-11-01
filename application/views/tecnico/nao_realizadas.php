@@ -74,9 +74,9 @@ $this->load->view('tecnico/_topo', [
 .nr-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2100;display:flex;align-items:flex-end;justify-content:center;padding:0;}
 .nr-modal-box{background:var(--tec-card,#fff);width:100%;max-width:520px;border-radius:16px 16px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.25);}
 .nr-modal-box h3{margin:0 0 4px;font-size:17px;display:flex;align-items:center;gap:8px;}
-.nr-modal-sub{margin:0 0 14px;font-size:16px;color:#4d5166;}
-.nr-label{display:block;font-size:16px;font-weight:600;color:#4d5166;margin:10px 0 5px;}
-.nr-modal-box .atv-input{width:100%;padding:11px 12px;min-height:48px;border:1px solid rgba(0,0,0,.3);border-radius:10px;font-size:16px;background:transparent;color:inherit;box-sizing:border-box;}
+.nr-modal-sub{margin:0 0 14px;font-size:16px;color:var(--tec-muted, #4d5166);}
+.nr-label{display:block;font-size:16px;font-weight:600;color:var(--tec-muted, #4d5166);margin:10px 0 5px;}
+.nr-modal-box .atv-input{width:100%;padding:11px 12px;min-height:48px;border:1px solid var(--tec-input-line,rgba(0,0,0,.3));border-radius:10px;font-size:16px;background:var(--tec-input-bg,transparent);color:inherit;box-sizing:border-box;}
 .nr-modal-actions{display:flex;gap:10px;margin-top:18px;}
 .nr-modal-actions .btn-tec{flex:1;justify-content:center;}
 @media (min-width:600px){.nr-modal{align-items:center;}.nr-modal-box{border-radius:16px;}}

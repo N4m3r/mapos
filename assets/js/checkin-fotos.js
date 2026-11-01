@@ -39,8 +39,8 @@ var CheckinFotos = {
         html += '<div style="position: relative; width: 120px; height: 120px;">';
         // Círculo de fundo
         html += '<svg width="120" height="120" style="transform: rotate(-90deg);">';
-        html += '<circle cx="60" cy="60" r="50" stroke="#333" stroke-width="8" fill="none"/>';
-        html += '<circle id="' + id + '-circle" cx="60" cy="60" r="50" stroke="#28a745" stroke-width="8" fill="none" ';
+        html += '<circle cx="60" cy="60" r="50" stroke="var(--tec-line, #333)" stroke-width="8" fill="none"/>';
+        html += '<circle id="' + id + '-circle" cx="60" cy="60" r="50" stroke="var(--tec-success, #28a745)" stroke-width="8" fill="none" ';
         html += 'stroke-dasharray="314" stroke-dashoffset="314" stroke-linecap="round" ';
         html += 'style="transition: stroke-dashoffset 0.3s ease;"/>';
         html += '</svg>';
@@ -201,6 +201,11 @@ var CheckinFotos = {
      */
     processarImagem: function(arquivo, callback) {
         var self = this;
+        // Preferencia: helper compartilhado (foto-compacta.js) - corrige orientacao EXIF, lado maior 1600px
+        if (window.FotoCompacta && typeof window.FotoCompacta.comprimir === 'function') {
+            window.FotoCompacta.comprimir(arquivo).then(callback, function() { callback(null); });
+            return;
+        }
         var reader = new FileReader();
 
         reader.onload = function(e) {
@@ -339,6 +344,16 @@ var CheckinFotos = {
             type: 'POST',
             data: data,
             dataType: 'json',
+            timeout: 120000,
+            xhr: function() {
+                var x = $.ajaxSettings.xhr();
+                if (callbacks.progress && x.upload) {
+                    x.upload.addEventListener('progress', function(e) {
+                        if (e.lengthComputable) callbacks.progress(e.loaded / e.total);
+                    });
+                }
+                return x;
+            },
             beforeSend: function() {
                 if (callbacks.beforeSend) callbacks.beforeSend();
             },

@@ -86,7 +86,7 @@ $statusSimples = function ($st) {
     <?php if (!empty($somente_leitura)): ?>
         <div class="info-card" style="border-left:4px solid var(--tec-grad-1, #667eea);">
             <h3 style="color:var(--tec-grad-1, #667eea);"><i class='bx bx-show'></i> Visualização pelo projeto</h3>
-            <p style="margin:0;color:#666;">Esta OS está vinculada a um projeto seu. Você pode consultar os detalhes, mas o atendimento é feito pelo técnico responsável pela OS.</p>
+            <p style="margin:0;color:var(--tec-muted, #666);">Esta OS está vinculada a um projeto seu. Você pode consultar os detalhes, mas o atendimento é feito pelo técnico responsável pela OS.</p>
         </div>
     <?php endif; ?>
 
@@ -284,7 +284,7 @@ $statusSimples = function ($st) {
             <div class="row" style="display:flex; flex-wrap:wrap; gap:14px;">
                 <?php foreach ($assinaturas_exibicao as $assinatura): ?>
                     <div style="flex:1 1 140px; text-align:center;">
-                        <h5 style="font-size:12px; color:#8a8fa3; margin:0 0 8px;"><?= in_array($assinatura->tipo, ['solicitante', 'cliente_aceite'], true) ? 'Solicitante' : ucfirst(str_replace('_', ' ', $assinatura->tipo)) ?></h5>
+                        <h5 style="font-size:12px; color:var(--tec-muted, #8a8fa3); margin:0 0 8px;"><?= in_array($assinatura->tipo, ['solicitante', 'cliente_aceite'], true) ? 'Solicitante' : ucfirst(str_replace('_', ' ', $assinatura->tipo)) ?></h5>
                         <div class="assinatura-box">
                             <?php if (!empty($assinatura->is_base64)): ?>
                                 <img src="<?= $assinatura->url_visualizacao ?>" alt="Assinatura">
@@ -294,7 +294,7 @@ $statusSimples = function ($st) {
                                 <span class="vazia">Indisponível</span>
                             <?php endif; ?>
                         </div>
-                        <small style="color:#8a8fa3;"><?= date('d/m/Y H:i', strtotime($assinatura->data_assinatura)) ?></small>
+                        <small style="color:var(--tec-muted, #8a8fa3);"><?= date('d/m/Y H:i', strtotime($assinatura->data_assinatura)) ?></small>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -437,14 +437,14 @@ $statusSimples = function ($st) {
 .nr-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2100;display:flex;align-items:flex-end;justify-content:center;padding:0;}
 .nr-modal-box{background:var(--tec-card,#fff);width:100%;max-width:520px;border-radius:16px 16px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.25);}
 .nr-modal-box h3{margin:0 0 4px;font-size:17px;display:flex;align-items:center;gap:8px;}
-.nr-modal-sub{margin:0 0 14px;font-size:13px;color:#8a8fa3;}
-.nr-label{display:block;font-size:12px;font-weight:600;color:#8a8fa3;margin:10px 0 5px;}
+.nr-modal-sub{margin:0 0 14px;font-size:13px;color:var(--tec-muted, #8a8fa3);}
+.nr-label{display:block;font-size:12px;font-weight:600;color:var(--tec-muted, #8a8fa3);margin:10px 0 5px;}
 .nr-modal-box .atv-input{width:100%;padding:11px 12px;border:1px solid rgba(0,0,0,.15);border-radius:10px;font-size:15px;background:transparent;color:inherit;box-sizing:border-box;}
 .nr-modal-actions{display:flex;gap:10px;margin-top:18px;}
 .nr-modal-actions .btn-tec{flex:1;justify-content:center;}
 @media (min-width:600px){.nr-modal{align-items:center;}.nr-modal-box{border-radius:16px;}}
 /* Botão "Não realizado" na barra de ação: destaque secundário (contorno). */
-.btn-nr-outline{background:#fff;color:#f5576c;border:1.5px solid #f5576c;}
+.btn-nr-outline{background:var(--tec-card, #fff);color:var(--tec-danger, #f5576c);border:1.5px solid var(--tec-danger, #f5576c);}
 /* Garante o toggle de visibilidade dos botões da barra (iniciar/finalizar/nao-realizado). */
 .action-bar .hidden{display:none !important;}
 </style>
@@ -456,7 +456,60 @@ $statusSimples = function ($st) {
     'os_id' => $os->idOs,
     'nome_cliente' => $cliente->nomeCliente,
     'documento_cliente' => $documentoCliente,
+    'nao_programada' => !empty($os->nao_programada),
 ]); ?>
+
+<?php if (empty($somente_leitura)): ?>
+<style>
+.obs-tec-card{margin:12px;padding:14px;border-radius:14px;background:var(--tec-card, #fff);box-shadow:0 1px 4px rgba(0,0,0,.1);}
+.obs-tec-card h3{margin:0 0 10px;font-size:16px;}
+.obs-tec-card textarea{width:100%;box-sizing:border-box;min-height:90px;padding:11px 12px;border:1px solid rgba(0,0,0,.2);border-radius:10px;font-size:16px;}
+.obs-tec-card .obs-tec-btn{display:block;width:100%;min-height:52px;margin-top:8px;border:0;border-radius:12px;background:var(--tec-primary, #667eea);color:var(--tec-on-primary, #fff);font-size:16px;font-weight:700;}
+.obs-tec-card .obs-tec-btn[disabled]{opacity:.6;}
+.obs-tec-item{padding:8px 0;border-bottom:1px solid var(--tec-line, #eee);font-size:14px;word-wrap:break-word;}
+.obs-tec-item small{display:block;color:var(--tec-muted, #777);}
+.obs-tec-msg{font-size:13px;margin-top:6px;color:var(--tec-danger, #c0392b);}
+</style>
+<div class="obs-tec-card<?= empty($checkin_ativo) ? ' hidden' : '' ?>" id="obs-tec-card">
+    <h3><i class="bx bx-note"></i> Observações do técnico</h3>
+    <textarea id="obs-tec-texto" maxlength="2000" placeholder="O que você fez / constatou neste atendimento..."></textarea>
+    <button type="button" class="obs-tec-btn" id="obs-tec-add"><i class="bx bx-plus"></i> Adicionar</button>
+    <div class="obs-tec-msg" id="obs-tec-msg" role="alert"></div>
+    <div id="obs-tec-lista"></div>
+</div>
+<script nonce="<?= csp_nonce() ?>">
+(function () {
+    var OSID = <?= (int) $os->idOs ?>, BASE = '<?= site_url('tecnico') ?>';
+    var $card = $('#obs-tec-card'), $txt = $('#obs-tec-texto'), $msg = $('#obs-tec-msg'), $btn = $('#obs-tec-add');
+    function render(itens) {
+        var $l = $('#obs-tec-lista').empty();
+        $.each(itens || [], function (i, o) {
+            var $d = $('<div class="obs-tec-item"></div>');
+            $d.append($('<small></small>').text(o.hora + ' · ' + o.autor));
+            $d.append($('<span></span>').css('white-space', 'pre-wrap').text(o.texto));
+            $l.append($d);
+        });
+    }
+    function listar() {
+        $.getJSON(BASE + '/listar_observacoes/' + OSID).done(function (r) { if (r && r.success) { render(r.itens); } });
+    }
+    $btn.on('click', function () {
+        var t = $.trim($txt.val());
+        if (!t) { $msg.text('Escreva a observação antes de adicionar.'); return; }
+        $msg.text(''); $btn.prop('disabled', true);
+        $.ajax({ url: BASE + '/adicionar_observacao', type: 'POST', dataType: 'json', data: { os_id: OSID, texto: t } })
+            .done(function (r) {
+                if (r && r.success) { $txt.val(''); listar(); } else { $msg.text((r && r.message) || 'Não foi possível salvar. Seu texto foi mantido.'); }
+            })
+            .fail(function () { $msg.text('Sem conexão. Seu texto foi mantido, tente de novo.'); })
+            .always(function () { $btn.prop('disabled', false); });
+    });
+    $(document).on('checkin:iniciado', function () { $card.removeClass('hidden'); listar(); });
+    $(document).on('checkin:finalizado', function () { $card.addClass('hidden'); });
+    $(listar);
+})();
+</script>
+<?php endif; ?>
 
 <script nonce="<?= csp_nonce() ?>">
     // Aviso na tela (sem alert); usa o aviso do check-in

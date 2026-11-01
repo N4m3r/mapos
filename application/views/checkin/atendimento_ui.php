@@ -13,13 +13,14 @@
 $os_id = isset($os_id) ? (int) $os_id : 0;
 $nome_cliente = isset($nome_cliente) ? $nome_cliente : '';
 $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
+$nao_programada = !empty($nao_programada);
 ?>
 <style>
     .hidden { display: none !important; }
-    .checkin-section { margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid #eee; }
+    .checkin-section { margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--tec-line,#e0e3ee); }
     .checkin-section:last-child { border-bottom: none; }
-    .checkin-section h6 { color: #555; margin: 0 0 10px; font-weight: 700; }
-    .upload-area { border: 2px dashed #ccc; border-radius: 8px; padding: 18px; text-align: center; margin-bottom: 10px; background: #fafafa; }
+    .checkin-section h6 { color: var(--tec-muted,#555); margin: 0 0 10px; font-weight: 700; }
+    .upload-area { border: 2px dashed var(--tec-input-line,#8a90a8); border-radius: 8px; padding: 18px; text-align: center; margin-bottom: 10px; background: var(--tec-surface-2,#fafafa); color: var(--tec-ink,inherit); }
     .preview-fotos-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; margin-top: 10px; }
     .assinatura-canvas-wrapper canvas { touch-action: none; -webkit-user-select: none; user-select: none; }
     #modal-checkin .modal-body, #modal-checkout .modal-body { max-height: 74vh; overflow-y: auto; }
@@ -86,7 +87,7 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
 </div>
 
 <!-- Modal Check-out -->
-<div id="modal-checkout" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-checkout" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true" data-nao-programada="<?= $nao_programada ? 1 : 0 ?>">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h3><i class="bx bx-log-out"></i> Concluir atendimento</h3>
@@ -107,7 +108,7 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
                     <div class="span6">
                         <?php $this->load->view('checkin/assinatura_canvas', [
                             'id' => 'assinatura-cliente-saida',
-                            'titulo' => 'Assinatura do Cliente',
+                            'titulo' => $nao_programada ? 'Assinatura do cliente (opcional)' : 'Assinatura do Cliente',
                             'mostrar_campos' => true,
                             'campos' => ['nome' => true, 'documento' => true],
                         ]); ?>
@@ -173,11 +174,12 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
     <div class="modal-body">
         <div class="checkin-section">
             <div class="upload-area">
-                <input type="file" id="fs-input" accept="image/*" capture="environment" style="display:none;">
-                <button type="button" class="btn btn-info" data-acao="clicar" data-alvo="#fs-input"><i class="bx bx-camera"></i> Tirar / Escolher Foto</button>
-                <p class="text-muted" style="margin:10px 0 0;">Uma foto por vez (JPG, PNG). Máx. 10MB.</p>
+                <input type="file" id="fs-input" accept="image/*" multiple style="display:none;">
+                <button type="button" class="btn btn-info" data-acao="clicar" data-alvo="#fs-input"><i class="bx bx-camera"></i> Tirar ou escolher fotos</button>
+                <p class="text-muted" style="margin:10px 0 0;">Pode escolher várias. As fotos são reduzidas automaticamente antes do envio.</p>
             </div>
-            <div id="fs-preview" style="text-align:center; margin-top:10px; display:none;"></div>
+            <div id="fs-lista" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:8px; margin-top:10px;"></div>
+            <div id="fs-aviso" role="alert" style="display:none; color:var(--tec-danger,#c0392b); font-weight:600; margin-top:8px;"></div>
         </div>
         <div class="checkin-section">
             <h6><i class="bx bx-note"></i> Descrição (opcional)</h6>
@@ -190,14 +192,15 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
     </div>
     <div class="modal-footer">
         <button class="btn" data-dismiss="modal" aria-hidden="true">Fechar</button>
-        <button class="btn btn-success" id="btn-fs-enviar" disabled><i class="bx bx-upload"></i> Enviar Foto</button>
+        <button class="btn btn-success" id="btn-fs-enviar" disabled><i class="bx bx-upload"></i> Enviar fotos</button>
     </div>
 </div>
 
 <!-- Bibliotecas do fluxo de atendimento (mesmas da tela administrativa) -->
-<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/assinatura-canvas.js?v=3') ?>"></script>
-<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/assinatura-fullscreen.js?v=1') ?>"></script>
-<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/checkin-fotos.js?v=3') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/assinatura-canvas.js?v=4') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/assinatura-fullscreen.js?v=2') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/foto-compacta.js') ?>?v=<?= asset_versao('assets/js/foto-compacta.js', '2') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/checkin-fotos.js?v=4') ?>"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= asset_versao('assets/js/rascunho-form.js') ?>"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/checkin.js?v=8') ?>"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/checkin-formularios.js?v=2') ?>"></script>
@@ -293,16 +296,51 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
             }, isMobile() ? 300 : 100);
         });
 
-        // ---- Foto do serviço (etapa "durante", enviada durante o atendimento) ----
-        var fsArquivo = null;
+        // ---- Foto do serviço (etapa "durante"): varias fotos, envio uma a uma com progresso e nova tentativa ----
+        var fsItens = [];      // { dataUrl, estado: 'pronta'|'enviando'|'ok'|'erro', msg, pct, el }
         var fsEnviadas = 0;
+        var fsOcupado = false; // impede duplo envio
+        var FS_MAX = 20;
+
+        function fsAviso(msg) { $('#fs-aviso').text(msg || '').toggle(!!msg); }
+
+        function fsAtualizarBotao() {
+            var pendentes = fsItens.filter(function (i) { return i.estado === 'pronta' || i.estado === 'erro'; }).length;
+            $('#btn-fs-enviar').prop('disabled', fsOcupado || pendentes === 0)
+                .html('<i class="bx bx-upload"></i> ' + (fsOcupado ? 'Aguarde...' : (pendentes > 1 ? 'Enviar ' + pendentes + ' fotos' : 'Enviar foto')));
+        }
+
+        function fsDesenhar(item) {
+            var el = item.el;
+            if (!el) {
+                el = item.el = $('<div class="fs-item" style="position:relative; border:1px solid var(--tec-line,#e0e3ee); border-radius:8px; overflow:hidden; background:var(--tec-surface-2,#fafafa);"></div>');
+                $('#fs-lista').append(el);
+            }
+            var cor = item.estado === 'ok' ? 'var(--tec-success,#27ae60)' : (item.estado === 'erro' ? 'var(--tec-danger,#c0392b)' : 'var(--tec-info,#2d7ff9)');
+            var rotulo = item.estado === 'ok' ? (item.msg || 'Enviada') : (item.estado === 'erro' ? (item.msg || 'Falhou') : (item.estado === 'enviando' ? Math.round(item.pct || 0) + '%' : 'Pronta'));
+            el.empty()
+                .append($('<img alt="Foto" style="width:100%; height:80px; object-fit:cover; display:block;">').attr('src', item.dataUrl))
+                .append($('<div style="height:5px; background:var(--tec-line,#eee);"></div>').append($('<div></div>').css({ height: '5px', width: (item.estado === 'ok' ? 100 : (item.pct || 0)) + '%', background: cor })))
+                .append($('<div style="font-size:11px; padding:3px 4px; text-align:center;"></div>').css('color', cor).text(rotulo));
+            if (item.estado === 'pronta' || item.estado === 'erro') {
+                el.append($('<button type="button" aria-label="Remover foto" style="position:absolute; top:2px; right:2px; width:26px; height:26px; border:0; border-radius:50%; background:var(--tec-danger,#c62828); color:var(--tec-on-primary,#fff); font-size:16px; line-height:24px; padding:0;">&times;</button>')
+                    .on('click', function () {
+                        if (fsOcupado) { return; }
+                        fsItens.splice(fsItens.indexOf(item), 1);
+                        el.remove();
+                        fsAtualizarBotao();
+                    }));
+            }
+        }
 
         function fsReset() {
-            fsArquivo = null;
+            fsItens = [];
+            fsOcupado = false;
             $('#fs-input').val('');
             $('#fs-descricao').val('');
-            $('#fs-preview').empty().hide();
-            $('#btn-fs-enviar').prop('disabled', true);
+            $('#fs-lista').empty();
+            fsAviso('');
+            fsAtualizarBotao();
         }
 
         $(document).on('click', '#btn-foto-servico', function () {
@@ -314,46 +352,75 @@ $documento_cliente = isset($documento_cliente) ? $documento_cliente : '';
         });
 
         $(document).on('change', '#fs-input', function () {
-            var file = this.files && this.files[0];
-            if (!file) { return; }
-            if (typeof CheckinFotos !== 'undefined') {
-                var v = CheckinFotos.validarArquivo(file);
-                if (!v.valido) { avisar(v.erro, 'error'); this.value = ''; return; }
-            }
-            fsArquivo = file;
-            var reader = new FileReader();
-            reader.onload = function (e) {
-                $('#fs-preview').html('<img src="' + e.target.result + '" style="max-width:100%; max-height:180px; border-radius:8px;">').show();
-            };
-            reader.readAsDataURL(file);
-            $('#btn-fs-enviar').prop('disabled', false);
+            var arquivos = Array.prototype.slice.call(this.files || []);
+            var input = this;
+            if (!arquivos.length || typeof CheckinFotos === 'undefined') { return; }
+            fsAviso('');
+            fsOcupado = true; fsAtualizarBotao();
+            // Reduz uma de cada vez para nao estourar a memoria do celular
+            arquivos.reduce(function (cadeia, arq) {
+                return cadeia.then(function () {
+                    return new Promise(function (ok) {
+                        if (fsItens.length >= FS_MAX) { fsAviso('Limite de ' + FS_MAX + ' fotos por envio; as demais foram ignoradas.'); return ok(); }
+                        var v = CheckinFotos.validarArquivo(arq);
+                        if (!v.valido) { fsAviso(arq.name + ': ' + v.erro); return ok(); }
+                        CheckinFotos.processarImagem(arq, function (dataUrl) {
+                            if (!dataUrl) { fsAviso('Não consegui preparar uma das fotos. Tire de novo.'); return ok(); }
+                            var item = { dataUrl: dataUrl, estado: 'pronta', pct: 0 };
+                            fsItens.push(item); fsDesenhar(item); ok();
+                        });
+                    });
+                });
+            }, Promise.resolve()).then(function () {
+                input.value = '';
+                fsOcupado = false; fsAtualizarBotao();
+            });
         });
 
-        $(document).on('click', '#btn-fs-enviar', function () {
-            if (!fsArquivo || typeof CheckinFotos === 'undefined') { return; }
-            var $btn = $(this).prop('disabled', true);
-            var descricao = $('#fs-descricao').val();
-            CheckinFotos.processarImagem(fsArquivo, function (imgBase64) {
-                if (!imgBase64) { avisar('Não consegui preparar a foto. Tire de novo.', 'error'); $btn.prop('disabled', false); return; }
+        function fsEnviarItem(item, descricao) {
+            return new Promise(function (ok) {
+                item.estado = 'enviando'; item.pct = 0; fsDesenhar(item);
                 CheckinFotos.uploadFoto(
-                    { os_id: window.checkinConfig.osId, foto: imgBase64, descricao: descricao },
+                    { os_id: window.checkinConfig.osId, foto: item.dataUrl, descricao: descricao },
                     {
+                        progress: function (f) { item.pct = f * 100; fsDesenhar(item); },
                         success: function (resp) {
                             if (resp && resp.success) {
-                                fsEnviadas++;
-                                if (resp.offline) { avisar('Sem internet — guardado no aparelho, enviaremos quando voltar.', 'warning'); }
+                                item.estado = 'ok'; item.pct = 100; fsEnviadas++;
+                                if (resp.offline) { item.msg = 'Guardada'; fsAviso('Sem internet: fotos guardadas no aparelho; serão enviadas quando a conexão voltar.'); }
                                 $('#fs-enviadas-wrap').show();
-                                $('#fs-enviadas').append('<img src="' + (resp.url || '') + '" style="width:70px; height:70px; object-fit:cover; border-radius:6px; border:1px solid #ddd; margin:4px;">');
-                                fsReset();
-                                if (typeof swal !== 'undefined') { swal('Enviada!', 'Foto do serviço enviada.', 'success'); }
+                                if (resp.url) { $('#fs-enviadas').append($('<img alt="Foto enviada" style="width:70px; height:70px; object-fit:cover; border-radius:6px; border:1px solid var(--tec-line,#e0e3ee); margin:4px;">').attr('src', resp.url)); }
                             } else {
-                                avisar('Não consegui enviar a foto: ' + ((resp && resp.message) || 'falha ao enviar') + '. Toque em Enviar de novo.', 'error');
-                                $btn.prop('disabled', false);
+                                item.estado = 'erro'; item.msg = (resp && resp.message) || 'Falhou';
                             }
+                            fsDesenhar(item); ok();
                         },
-                        error: function () { avisar('A foto não foi enviada. Verifique a internet e toque em Enviar de novo.', 'error'); $btn.prop('disabled', false); }
+                        error: function (xhr) {
+                            item.estado = 'erro';
+                            item.msg = (xhr && (xhr.status === 403 || xhr.status === 401)) ? 'Sessão expirou' : 'Sem conexão';
+                            fsDesenhar(item); ok();
+                        }
                     }
                 );
+            });
+        }
+
+        $(document).on('click', '#btn-fs-enviar', function () {
+            if (fsOcupado || typeof CheckinFotos === 'undefined') { return; }
+            var fila = fsItens.filter(function (i) { return i.estado === 'pronta' || i.estado === 'erro'; });
+            if (!fila.length) { return; }
+            fsOcupado = true; fsAviso(''); fsAtualizarBotao();
+            var descricao = $('#fs-descricao').val();
+            fila.reduce(function (cadeia, item) {
+                return cadeia.then(function () { return fsEnviarItem(item, descricao); });
+            }, Promise.resolve()).then(function () {
+                fsOcupado = false; fsAtualizarBotao();
+                var falhas = fsItens.filter(function (i) { return i.estado === 'erro'; }).length;
+                if (falhas) {
+                    fsAviso(falhas + ' foto(s) não foram enviadas. Verifique a internet e toque em Enviar para tentar de novo.');
+                } else if (typeof swal !== 'undefined' && !$('#fs-aviso').text()) {
+                    swal('Enviadas!', 'Fotos do serviço enviadas.', 'success');
+                }
             });
         });
 

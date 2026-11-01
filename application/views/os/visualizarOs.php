@@ -6,7 +6,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
 <link href="<?= base_url('assets/css/custom.css'); ?>" rel="stylesheet">
 
 <!-- Scripts do Sistema de Check-in (carregados antes dos modais) -->
-<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/assinatura-canvas.js?v=3"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/assinatura-canvas.js?v=4"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/assinatura-fullscreen.js?v=1"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/checkin-fotos.js?v=3"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= asset_versao('assets/js/rascunho-form.js') ?>"></script>
@@ -910,6 +910,8 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                             } ?>
                         </table>
                         <?php } ?>
+
+                        <?php $this->load->view('os/_observacoes_tecnico', ['observacoes_tecnico' => $observacoes_tecnico ?? []]); ?>
 
                         <?php $this->load->view('os/_aprovacao_info', ['result' => $result]); ?>
                     </div>

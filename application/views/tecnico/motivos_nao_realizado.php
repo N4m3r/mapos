@@ -27,7 +27,7 @@ $this->load->view('tecnico/_topo', [
         <form method="post" action="<?= site_url('tecnico/salvar_motivo_nao_realizado') ?>" style="display:flex; gap:8px; align-items:stretch;">
             <input type="hidden" name="<?= $csrf_n ?>" value="<?= $csrf_h ?>">
             <input type="text" name="nome" maxlength="120" required placeholder="Ex.: Falta de energia no local"
-                style="flex:1; padding:11px 12px; border:1px solid rgba(0,0,0,.15); border-radius:10px; font-size:15px; background:transparent; color:inherit;">
+                style="flex:1; padding:11px 12px; border:1px solid var(--tec-input-line,rgba(0,0,0,.15)); border-radius:10px; font-size:15px; background:var(--tec-input-bg,transparent); color:inherit;">
             <button type="submit" class="btn-tec primary"><i class='bx bx-plus'></i></button>
         </form>
     </div>
@@ -44,7 +44,7 @@ $this->load->view('tecnico/_topo', [
         <?php foreach ($motivos as $m): ?>
             <div class="info-card" style="display:flex; align-items:center; justify-content:space-between; gap:10px; <?= empty($m->ativo) ? 'opacity:.55;' : '' ?>">
                 <span style="font-size:15px;">
-                    <i class='bx bx-purchase-tag' style="color:#8a8fa3;"></i>
+                    <i class='bx bx-purchase-tag' style="color:var(--tec-muted, #8a8fa3);"></i>
                     <?= html_escape($m->nome) ?>
                     <?php if (empty($m->ativo)): ?>
                         <span class="badge-status pendente" style="font-size:10px;">Inativo</span>
@@ -64,7 +64,7 @@ $this->load->view('tecnico/_topo', [
         <?php endforeach; ?>
     <?php endif; ?>
 
-    <p style="font-size:12px; color:#8a8fa3; margin-top:12px;">
+    <p style="font-size:12px; color:var(--tec-muted, #8a8fa3); margin-top:12px;">
         Motivos já usados em registros são desativados (não apagados) para preservar o histórico.
     </p>
 </div>

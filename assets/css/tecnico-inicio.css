@@ -1,5 +1,5 @@
 /* Tela inicial, Minhas OS e Nao realizadas da area do tecnico (uso leigo, celular) */
-.ti { --ti-ink:#1f2233; --ti-muted:#4d5166; --ti-card:#fff; --ti-line:#d5d8e5; --ti-main:#3b4cc0; --ti-ok:#1b6e2f; --ti-ok-bg:#e3f4e7; --ti-warn:#8a4b00; --ti-warn-bg:#fff0d9; --ti-bad:#a31515; --ti-bad-bg:#fde6e6; --ti-info:#0d5aa7; --ti-info-bg:#e0eefc; font-size:16px; color:var(--ti-ink); }
+.ti { --ti-ink:#1f2233; --ti-muted:#4d5166; --ti-card:#fff; --ti-line:#d5d8e5; --ti-main:#3b4cc0; --ti-ok:#1b6e2f; --ti-ok-bg:#e3f4e7; --ti-warn:#8a4b00; --ti-warn-bg:#fff0d9; --ti-bad:#a31515; --ti-bad-bg:#fde6e6; --ti-info:#0d5aa7; --ti-info-bg:#e0eefc; --ti-soft:#eef0fa; --ti-chip:#e6e9f5; font-size:16px; color:var(--ti-ink); }
 .ti *, .ti *::before, .ti *::after { box-sizing:border-box; }
 .ti a { text-decoration:none; }
 .ti-saud { margin:2px 0 14px; }
@@ -9,10 +9,10 @@
 .ti-btn { display:flex; align-items:center; justify-content:center; gap:8px; min-height:52px; padding:10px 14px; border-radius:12px; font-size:17px; font-weight:700; border:2px solid transparent; cursor:pointer; text-align:center; line-height:1.2; width:100%; }
 .ti-btn i { font-size:24px; }
 .ti-btn.main { background:var(--ti-main); color:#fff; }
-.ti-btn.alt { background:#fff; color:var(--ti-main); border-color:var(--ti-main); }
+.ti-btn.alt { background:var(--ti-card); color:var(--ti-main); border-color:var(--ti-main); }
 .ti-btn.ok { background:var(--ti-ok); color:#fff; }
 .ti-btn.warn { background:var(--ti-warn); color:#fff; }
-.ti-btn.soft { background:#eef0fa; color:var(--ti-ink); border-color:var(--ti-line); }
+.ti-btn.soft { background:var(--ti-soft); color:var(--ti-ink); border-color:var(--ti-line); }
 .ti-btn:focus-visible, .ti-aba:focus-visible, .ti-linha:focus-visible, .ti-aviso:focus-visible { outline:3px solid #ffb300; outline-offset:2px; }
 
 /* Proxima visita */
@@ -63,7 +63,7 @@
 /* Abas */
 .ti-abas { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin:0 0 12px; }
 .ti-aba { display:flex; align-items:center; justify-content:center; gap:6px; min-height:52px; padding:6px 8px; border-radius:12px; border:2px solid var(--ti-line); background:var(--ti-card); color:var(--ti-ink); font-size:16px; font-weight:700; text-align:center; line-height:1.15; }
-.ti-aba .n { min-width:26px; padding:1px 8px; border-radius:999px; background:#e6e9f5; color:var(--ti-ink); font-size:15px; }
+.ti-aba .n { min-width:26px; padding:1px 8px; border-radius:999px; background:var(--ti-chip); color:var(--ti-ink); font-size:15px; }
 .ti-aba.on { background:var(--ti-main); border-color:var(--ti-main); color:#fff; }
 .ti-aba.on .n { background:#fff; color:var(--ti-main); }
 .ti-aba.alerta:not(.on) .n { background:var(--ti-bad); color:#fff; }
@@ -90,15 +90,16 @@
 @media (min-width:560px) { .ti-abas { grid-template-columns:repeat(4,1fr); } .ti-prox-acoes { grid-template-columns:1fr 1fr; } }
 
 @media (prefers-color-scheme: dark) {
-  .ti { --ti-ink:#eef0fa; --ti-muted:#b9bed6; --ti-card:#1e2133; --ti-line:#3b4060; --ti-main:#9db0ff; --ti-ok:#7be08f; --ti-ok-bg:#173a21; --ti-warn:#ffc266; --ti-warn-bg:#40290a; --ti-bad:#ff9a9a; --ti-bad-bg:#44181b; --ti-info:#8ec5ff; --ti-info-bg:#14304f; }
+  .ti { --ti-ink:#eef0fa; --ti-muted:#b9bed6; --ti-card:#1e2133; --ti-line:#3b4060; --ti-main:#9db0ff; --ti-ok:#7be08f; --ti-ok-bg:#173a21; --ti-warn:#ffc266; --ti-warn-bg:#40290a; --ti-bad:#ff9a9a; --ti-bad-bg:#44181b; --ti-info:#8ec5ff; --ti-info-bg:#14304f; --ti-soft:#2a2e47; --ti-chip:#323756; }
   .ti-btn.main { background:#4a5ee0; color:#fff; }
   .ti-btn.ok { background:#2e8f45; color:#fff; }
   .ti-btn.warn { background:#b86a00; color:#fff; }
   .ti-btn.alt { background:transparent; }
-  .ti-btn.soft { background:#2a2e47; }
-  .ti-aba .n { background:#323756; }
   .ti-aba.on { background:#4a5ee0; border-color:#4a5ee0; color:#fff; }
   .ti-aba.on .n { background:#fff; color:#2a3aa8; }
   .ti-aviso b.n, .ti-aviso.bad b.n { color:#1b1b1b; }
 }
 .ti-os-cli small { color: var(--ti-muted); font-weight: 600; }
+
+.ti input, .ti select, .ti textarea { background:var(--tec-input-bg,var(--ti-card)); color:var(--tec-input-ink,var(--ti-ink)); border-color:var(--tec-input-line,var(--ti-line)); }
+.ti-btn:disabled { background:var(--ti-soft); color:var(--ti-muted); border-color:var(--ti-line); opacity:.7; cursor:not-allowed; }

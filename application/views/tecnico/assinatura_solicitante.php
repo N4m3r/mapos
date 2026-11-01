@@ -16,19 +16,22 @@ $emailCliente = !empty($cliente->email) ? $cliente->email : '';
     .asg-tabs { display:flex; gap:8px; margin-bottom:16px; }
     .asg-tab {
         flex:1; text-align:center; padding:12px; border-radius:12px; font-weight:700; font-size:14px;
-        background:#eef0f7; color:#55596e; cursor:pointer; border:1.5px solid transparent;
+        background:var(--tec-surface-2, #eef0f7); color:var(--tec-ink, #55596e); cursor:pointer; border:1.5px solid transparent;
     }
-    .asg-tab.active { background:#fff; color:var(--tec-grad-1); border-color:var(--tec-grad-1); }
+    .asg-tab.active { background:var(--tec-card, #fff); color:var(--tec-grad-1); border-color:var(--tec-grad-1); }
     .asg-pane { display:none; }
     .asg-pane.active { display:block; }
     .asg-input {
         width:100%; box-sizing:border-box; padding:12px 14px; font-size:15px; margin-bottom:12px;
-        border:1.5px solid #e2e5f0; border-radius:12px; background:#fff; color:var(--tec-ink);
+        border:1.5px solid var(--tec-input-line, #e2e5f0); border-radius:12px; background:var(--tec-input-bg, #fff); color:var(--tec-ink);
     }
-    .asg-canvas-wrap { border:2px dashed #c7ccdd; border-radius:12px; background:#fff; touch-action:none; min-height:220px; padding:0; }
+    .asg-canvas-wrap { border:2px dashed var(--tec-line, #c7ccdd); border-radius:12px; background:#fff; touch-action:none; min-height:220px; padding:0; position:relative; }
+    .asg-botoes { display:flex; gap:8px; margin-top:12px; }
+    .asg-botoes .btn-tec { min-height:52px; font-size:16px; }
+    @media (orientation:landscape) and (max-height:500px) { .asg-canvas-wrap { min-height:160px; } }
     #asg-canvas { display:block; width:100%; touch-action:none; cursor:crosshair; border-radius:10px; }
     .asg-link-box {
-        display:flex; gap:8px; align-items:center; background:#eef0f7; border-radius:12px; padding:12px; margin-top:12px;
+        display:flex; gap:8px; align-items:center; background:var(--tec-surface-2, #eef0f7); border-radius:12px; padding:12px; margin-top:12px;
         word-break:break-all; font-size:13px;
     }
     .asg-msg { padding:12px; border-radius:12px; margin-bottom:12px; font-size:14px; display:none; }
@@ -48,14 +51,14 @@ $emailCliente = !empty($cliente->email) ? $cliente->email : '';
             <div class="row" style="display:flex; flex-wrap:wrap; gap:14px;">
                 <?php foreach ($assinaturas as $a): ?>
                     <div style="flex:1 1 140px; text-align:center;">
-                        <h5 style="font-size:12px; color:#8a8fa3; margin:0 0 8px;"><?= ucfirst(str_replace('_', ' ', $a->tipo)) ?></h5>
-                        <div class="assinatura-box" style="border:1px solid #eee; background:#fff; padding:4px; border-radius:8px;">
+                        <h5 style="font-size:12px; color:var(--tec-muted, #8a8fa3); margin:0 0 8px;"><?= ucfirst(str_replace('_', ' ', $a->tipo)) ?></h5>
+                        <div class="assinatura-box" style="border:1px solid var(--tec-line, #eee); background:#fff; padding:4px; border-radius:8px;">
                             <?php if (!empty($a->is_base64)): ?>
                                 <img src="<?= $a->url_visualizacao ?>" alt="Assinatura" style="max-width:100%;">
                             <?php elseif (!empty($a->assinatura) && (file_exists($a->assinatura) || file_exists(FCPATH . $a->assinatura))): ?>
                                 <img src="<?= base_url($a->assinatura) ?>" alt="Assinatura" style="max-width:100%;">
                             <?php else: ?>
-                                <span style="color:#aaa; font-size:12px;">Indisponível</span>
+                                <span style="color:var(--tec-muted, #aaa); font-size:12px;">Indisponível</span>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -82,12 +85,15 @@ $emailCliente = !empty($cliente->email) ? $cliente->email : '';
             <div class="asg-canvas-wrap">
                 <canvas id="asg-canvas"></canvas>
             </div>
-            <div style="display:flex; gap:8px; margin-top:12px;">
+            <div class="asg-botoes">
+                <button type="button" class="btn-tec neutral" id="asg-desfazer" style="flex:0 0 auto;">
+                    <i class='bx bx-undo'></i> Desfazer
+                </button>
                 <button type="button" class="btn-tec neutral" id="asg-limpar" style="flex:0 0 auto;">
                     <i class='bx bx-eraser'></i> Limpar
                 </button>
                 <button type="button" class="btn-tec success" id="asg-salvar" style="flex:1;">
-                    <i class='bx bx-check'></i> Salvar assinatura
+                    <i class='bx bx-check'></i> Confirmar
                 </button>
             </div>
         </div>
@@ -115,7 +121,7 @@ $emailCliente = !empty($cliente->email) ? $cliente->email : '';
 
                     <!-- Envio manual: o técnico digita o destino -->
                     <div style="margin-top:18px;">
-                        <label style="display:block; font-size:13px; font-weight:700; color:#55596e; margin-bottom:6px;">
+                        <label style="display:block; font-size:13px; font-weight:700; color:var(--tec-ink, #55596e); margin-bottom:6px;">
                             <i class='bx bxl-whatsapp'></i> Enviar por WhatsApp
                         </label>
                         <div style="display:flex; gap:8px;">
@@ -127,7 +133,7 @@ $emailCliente = !empty($cliente->email) ? $cliente->email : '';
                     </div>
 
                     <div style="margin-top:12px;">
-                        <label style="display:block; font-size:13px; font-weight:700; color:#55596e; margin-bottom:6px;">
+                        <label style="display:block; font-size:13px; font-weight:700; color:var(--tec-ink, #55596e); margin-bottom:6px;">
                             <i class='bx bx-envelope'></i> Enviar por e-mail
                         </label>
                         <div style="display:flex; gap:8px;">
@@ -147,7 +153,7 @@ $emailCliente = !empty($cliente->email) ? $cliente->email : '';
 
 <?php $this->load->view('tecnico/_nav', ['nav_ativo' => 'os', 'pode_ver_sistema' => isset($pode_ver_sistema) ? $pode_ver_sistema : false]); ?>
 
-<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/assinatura-canvas.js') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/assinatura-canvas.js') ?>?v=<?= asset_versao('assets/js/assinatura-canvas.js', '4') ?>"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/csrf.js') ?>?v=<?= asset_versao('assets/js/csrf.js', '4') ?>"></script>
 <script nonce="<?= csp_nonce() ?>">
 (function () {
@@ -184,38 +190,58 @@ $emailCliente = !empty($cliente->email) ? $cliente->email : '';
     document.getElementById('asg-limpar').addEventListener('click', function () {
         if (assinatura) assinatura.limpar();
     });
+    document.getElementById('asg-desfazer').addEventListener('click', function () {
+        if (assinatura) assinatura.desfazer();
+    });
 
-    document.getElementById('asg-salvar').addEventListener('click', function () {
-        if (!assinatura || assinatura.estaVazio()) {
-            msg('Peça para o solicitante assinar no quadro antes de salvar.', false);
-            return;
-        }
-        var btn = this;
-        btn.setAttribute('disabled', 'disabled');
+    var enviando = false;
+    var btnSalvar = document.getElementById('asg-salvar');
+    var textoSalvar = btnSalvar.innerHTML;
+
+    function liberarEnvio(retry) {
+        enviando = false;
+        btnSalvar.removeAttribute('disabled');
+        btnSalvar.innerHTML = retry ? "<i class='bx bx-refresh'></i> Tentar novamente" : textoSalvar;
+    }
+
+    btnSalvar.addEventListener('click', function () {
+        if (enviando) return; // evita duplo envio
+        if (!assinatura) { msg('O quadro de assinatura não carregou. Recarregue a página.', false); return; }
+        var v = assinatura.validar();
+        if (!v.ok) { msg(v.motivo, false); return; }
+
+        enviando = true;
+        btnSalvar.setAttribute('disabled', 'disabled');
+        btnSalvar.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Enviando...";
 
         $.ajax({
             url: BASE + 'salvar_assinatura_solicitante',
             method: 'POST',
             dataType: 'json',
+            timeout: 30000,
             data: {
                 os_id: OS_ID,
                 assinatura: assinatura.obterImagem(),
-                nome: document.getElementById('asg-nome').value,
-                documento: document.getElementById('asg-doc').value
+                nome: document.getElementById('asg-nome').value.trim(),
+                documento: document.getElementById('asg-doc').value.trim()
             }
         }).done(function (res) {
             if (res && res.success) {
+                btnSalvar.innerHTML = "<i class='bx bx-check-circle'></i> Salvo";
                 msg(res.message || 'Assinatura registrada!', true);
                 setTimeout(function () {
                     window.location.href = BASE + 'visualizar/' + OS_ID;
                 }, 1200);
             } else {
                 msg((res && res.message) || 'Erro ao salvar.', false);
-                btn.removeAttribute('disabled');
+                liberarEnvio(false);
             }
-        }).fail(function () {
-            msg('Erro de comunicação ao salvar a assinatura.', false);
-            btn.removeAttribute('disabled');
+        }).fail(function (xhr, status) {
+            var motivo = status === 'timeout' ? 'A conexão está lenta e o envio demorou demais.'
+                : (xhr && xhr.status === 403 ? 'Sua sessão expirou. Recarregue a página e entre novamente.'
+                : 'Não foi possível enviar a assinatura (sem conexão?).');
+            msg(motivo + ' Sua assinatura continua na tela: toque em "Tentar novamente".', false);
+            liberarEnvio(true);
         });
     });
 

@@ -2,7 +2,7 @@
 // Checklist de teste de imagem da camera (Obra_pontos_model::TESTE_ITENS). Incluir dentro de um <form>.
 defined('BASEPATH') or exit('No direct script access allowed');
 ?>
-<fieldset class="ponto-teste" style="border:1px solid #ccc;border-radius:8px;padding:8px 10px;margin-top:8px;">
+<fieldset class="ponto-teste" style="border:1px solid var(--tec-line, #ccc);border-radius:8px;padding:8px 10px;margin-top:8px;">
     <legend style="font-size:13px;font-weight:700;padding:0 6px;">Teste de imagem (obrigatório)</legend>
     <?php foreach (Obra_pontos_model::TESTE_ITENS as $k => $rotuloTeste): ?>
         <label style="display:flex;align-items:center;gap:8px;min-height:40px;">

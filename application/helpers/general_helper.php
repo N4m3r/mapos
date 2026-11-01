@@ -304,7 +304,25 @@ if (! function_exists('dataurl_imagem')) {
     function dataurl_imagem($valor)
     {
         $valor = preg_replace('/\s+/', '', (string) $valor);
-        if (! preg_match('#^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$#', $valor)) {
+        // Limite de tamanho: tambem recebe fotos do check-out (alinhado aos 8MB do Fotosatendimento_model).
+        if ($valor === '' || strlen($valor) > 8 * 1024 * 1024) {
+            return null;
+        }
+        if (! preg_match('#^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$#', $valor, $m)) {
+            return null;
+        }
+
+        // Confere se o conteudo decodificado realmente e uma imagem do tipo declarado.
+        $bin = base64_decode(substr($valor, strpos($valor, ',') + 1), true);
+        if ($bin === false || strlen($bin) < 60) {
+            return null;
+        }
+        $assinaturas = [
+            'png'  => strncmp($bin, "\x89PNG\r\n\x1a\n", 8) === 0,
+            'jpeg' => strncmp($bin, "\xFF\xD8\xFF", 3) === 0,
+            'webp' => strncmp($bin, 'RIFF', 4) === 0 && substr($bin, 8, 4) === 'WEBP',
+        ];
+        if (empty($assinaturas[$m[1]])) {
             return null;
         }
 

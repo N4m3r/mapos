@@ -23,7 +23,7 @@ $container_preview_id = $id . '-preview';
     <h5><?php echo $titulo; ?></h5>
 
     <!-- Canvas -->
-    <div class="assinatura-canvas-wrapper" style="position: relative; border: 2px solid #ddd; border-radius: 4px; margin-bottom: 10px; background: #fff; touch-action: none;">
+    <div class="assinatura-canvas-wrapper" style="position: relative; border: 2px solid var(--tec-input-line,#8a90a8); border-radius: 4px; margin-bottom: 10px; background: #fff; touch-action: none;">
         <canvas id="<?php echo $canvas_id; ?>" width="400" height="150" style="width: 100%; height: auto; cursor: crosshair; touch-action: none; -webkit-touch-callout: none; user-select: none;"></canvas>
         <!-- Tarja de toque (visivel apenas no mobile via CSS) -->
         <div class="assinatura-tap-hint" data-titulo="<?php echo htmlspecialchars($titulo, ENT_QUOTES); ?>">
@@ -32,9 +32,15 @@ $container_preview_id = $id . '-preview';
     </div>
 
     <!-- Botões -->
+    <style nonce="<?= csp_nonce() ?>">
+        @media (max-width: 768px) { .assinatura-botoes .btn { min-height: 44px; font-size: 15px; padding: 8px 14px; margin-bottom: 6px; } }
+    </style>
     <div class="assinatura-botoes" style="margin-bottom: 15px;">
         <button type="button" class="btn btn-small btn-primary btn-assinatura-ampliar" data-target="<?php echo $id; ?>" data-titulo="<?php echo htmlspecialchars($titulo, ENT_QUOTES); ?>">
             <i class="bx bx-fullscreen"></i> Assinar em tela cheia
+        </button>
+        <button type="button" class="btn btn-small" id="<?php echo $id; ?>-desfazer">
+            <i class="bx bx-undo"></i> Desfazer
         </button>
         <button type="button" class="btn btn-small" id="<?php echo $btn_limpar_id; ?>">
             <i class="bx bx-eraser"></i> Limpar
@@ -47,7 +53,7 @@ $container_preview_id = $id . '-preview';
     <!-- Preview da assinatura -->
     <div id="<?php echo $container_preview_id; ?>" style="display: none; margin-bottom: 15px;">
         <label>Preview:</label>
-        <img src="" alt="Assinatura" style="border: 1px solid #ddd; max-width: 100%; height: auto;">
+        <img src="" alt="Assinatura" style="background:#fff; border: 1px solid var(--tec-input-line,#8a90a8); max-width: 100%; height: auto;">
     </div>
 
     <!-- Campos adicionais -->
@@ -102,6 +108,16 @@ $container_preview_id = $id . '-preview';
         }
     });
 
+    // Botão desfazer (remove o último traço)
+    $(document).on('click', '#<?php echo $id; ?>-desfazer', function(e) {
+        e.preventDefault();
+        var assinatura = (typeof AssinaturaManager !== 'undefined') ? AssinaturaManager.obter(containerId) : null;
+        if (assinatura && assinatura.desfazer) {
+            assinatura.desfazer();
+            $('#<?php echo $container_preview_id; ?>').hide().find('img').attr('src', '');
+        }
+    });
+
     // Botão preview - usa event delegation
     $(document).on('click', '.btn-assinatura-preview[data-target="<?php echo $id; ?>"]', function(e) {
         e.preventDefault();
@@ -111,8 +127,9 @@ $container_preview_id = $id . '-preview';
         }
         var assinatura = AssinaturaManager.obter(containerId);
         if (assinatura) {
-            if (assinatura.estaVazio()) {
-                alert('Nenhuma assinatura foi feita ainda.');
+            var valid = assinatura.validar();
+            if (!valid.ok) {
+                alert(valid.motivo || 'Nenhuma assinatura foi feita ainda.');
                 return;
             }
             var imagem = assinatura.obterImagem();

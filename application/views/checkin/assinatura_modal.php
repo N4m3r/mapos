@@ -32,7 +32,7 @@ $canvas_id = $modal_id . '-canvas';
 
     <!-- Preview da assinatura (aparece depois de assinar) -->
     <div class="assinatura-preview-salva" id="<?php echo $preview_id; ?>" style="display: none; margin-top: 10px;">
-        <div style="border: 1px solid #ddd; padding: 5px; background: #fff; max-width: 300px;">
+        <div style="border: 1px solid var(--tec-input-line,#8a90a8); padding: 5px; background: #fff; max-width: 300px;">
             <img src="" alt="Assinatura Salva" style="max-width: 100%; height: auto; display: block;">
             <div style="margin-top: 5px; text-align: center;">
                 <button type="button" class="btn btn-small btn-warning btn-editar-assinatura" data-modal="<?php echo $modal_id; ?>">
@@ -59,6 +59,14 @@ $canvas_id = $modal_id . '-canvas';
     <?php endif; ?>
 </div>
 
+<style nonce="<?= csp_nonce() ?>">
+    @media (max-width: 768px) {
+        .modal-assinatura { width: 96% !important; left: 2% !important; margin-left: 0 !important; top: 8px !important; }
+        .modal-assinatura .modal-body { max-height: 74vh; overflow-y: auto; }
+        .assinatura-botoes-modal .btn, .modal-assinatura .modal-footer .btn { min-height: 46px; font-size: 15px; }
+        .modal-assinatura .modal-footer .btn { display: block; width: 100%; box-sizing: border-box; margin: 6px 0 0; float: none; }
+    }
+</style>
 <!-- Modal de Assinatura -->
 <div class="modal hide fade modal-assinatura" id="<?php echo $modal_id; ?>" tabindex="-1" role="dialog" aria-labelledby="<?php echo $modal_id; ?>Label" aria-hidden="true" style="width: 600px; margin-left: -300px;">
     <div class="modal-header">
@@ -72,12 +80,15 @@ $canvas_id = $modal_id . '-canvas';
         </p>
 
         <!-- Canvas -->
-        <div class="assinatura-canvas-modal-wrapper" style="border: 2px solid #333; border-radius: 4px; margin: 0 auto 15px; background: #fff; display: inline-block; touch-action: none;">
-            <canvas id="<?php echo $canvas_id; ?>" width="500" height="200" style="cursor: crosshair; touch-action: none; display: block;"></canvas>
+        <div class="assinatura-canvas-modal-wrapper" style="border: 2px solid var(--tec-input-line,#8a90a8); border-radius: 4px; margin: 0 auto 15px; background: #fff; display: block; max-width: 100%; width: 100%; box-sizing: border-box; touch-action: none;">
+            <canvas id="<?php echo $canvas_id; ?>" width="500" height="200" style="cursor: crosshair; touch-action: none; display: block; width: 100%; height: auto;"></canvas>
         </div>
 
         <!-- Botões do canvas -->
         <div class="assinatura-botoes-modal" style="margin-bottom: 15px;">
+            <button type="button" class="btn btn-small btn-desfazer-canvas" data-canvas="<?php echo $canvas_id; ?>">
+                <i class="bx bx-undo"></i> Desfazer
+            </button>
             <button type="button" class="btn btn-small btn-limpar-canvas" data-canvas="<?php echo $canvas_id; ?>">
                 <i class="bx bx-eraser"></i> Limpar Canvas
             </button>
@@ -152,6 +163,15 @@ $canvas_id = $modal_id . '-canvas';
             if (assinaturaSalva && assinaturaSalva.indexOf('data:image') === 0) {
                 assinatura.carregarImagem(assinaturaSalva);
             }
+        }
+    });
+
+    // Desfazer ultimo traco
+    $(document).on('click', '.btn-desfazer-canvas[data-canvas="<?php echo $canvas_id; ?>"]', function(e) {
+        e.preventDefault();
+        if (typeof AssinaturaManager !== 'undefined') {
+            var assinatura = AssinaturaManager.obter(modalId);
+            if (assinatura && assinatura.desfazer) { assinatura.desfazer(); }
         }
     });
 

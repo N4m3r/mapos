@@ -516,6 +516,8 @@ class Os extends MY_Controller
         // Linha do tempo ("onde estamos") da OS.
         $this->data['timeline'] = $this->os_model->getTimeline($os_id);
         $this->data['assinaturas'] = $this->assinaturas_model->getByOs($os_id);
+        $this->load->model('os_observacoes_tecnico_model');
+        $this->data['observacoes_tecnico'] = $this->os_observacoes_tecnico_model->listarPorOs($os_id);
         log_info('OS Visualizar - Assinaturas carregadas: ' . count($this->data['assinaturas']));
         $this->data['fotosAtendimento'] = $this->fotosatendimento_model->getByOs($os_id);
 
@@ -619,6 +621,8 @@ class Os extends MY_Controller
         $this->data['servicos'] = $this->os_model->getServicos($this->uri->segment(3));
         $this->data['anexos'] = $this->os_model->getAnexos($this->uri->segment(3));
         $this->data['emitente'] = $this->mapos_model->getEmitente();
+        $this->load->model('os_observacoes_tecnico_model');
+        $this->data['observacoes_tecnico'] = $this->os_observacoes_tecnico_model->listarPorOs($this->uri->segment(3));
         $this->data['assinaturas'] = $this->assinaturas_model->getByOs($this->uri->segment(3));
         log_info('OS Imprimir - OS ID: ' . $this->uri->segment(3) . ' - Assinaturas: ' . count($this->data['assinaturas']));
         if (!empty($this->data['assinaturas'])) {

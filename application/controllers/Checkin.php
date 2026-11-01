@@ -214,6 +214,14 @@ class Checkin extends MY_Controller
         $observacao = $this->input->post('observacao');
         // Usar FALSE no terceiro parametro para evitar XSS filter que corrompe base64
         $assinatura_tecnico = $this->input->post('assinatura', false);
+        if ($assinatura_tecnico) {
+            // Valida mime/base64/tamanho; imagem invalida e rejeitada com mensagem clara.
+            $assinatura_tecnico = dataurl_imagem($assinatura_tecnico);
+            if ($assinatura_tecnico === null) {
+                echo json_encode(['success' => false, 'message' => 'Assinatura inválida ou muito grande. Limpe e assine novamente.']);
+                return;
+            }
+        }
         $latitude = $this->input->post('latitude');
         $longitude = $this->input->post('longitude');
 
@@ -459,7 +467,10 @@ class Checkin extends MY_Controller
             echo json_encode(['success' => false, 'message' => 'Assinatura do técnico obrigatória para finalizar o atendimento.']);
             return;
         }
-        if ($assinatura_cliente === null) {
+        // Atividade não programada: assinatura do cliente é opcional.
+        $osRow = $this->db->select('nao_programada')->where('idOs', $os_id)->get('os')->row();
+        $clienteOpcional = $osRow && !empty($osRow->nao_programada);
+        if ($assinatura_cliente === null && !$clienteOpcional) {
             echo json_encode(['success' => false, 'message' => 'Assinatura do cliente obrigatória para finalizar o atendimento.']);
             return;
         }
@@ -496,6 +507,9 @@ class Checkin extends MY_Controller
         foreach ($assinaturas as $a) {
             if ($falha) {
                 break;
+            }
+            if ($a['img'] === null) {
+                continue; // cliente não assinou (permitido em atividade não programada)
             }
             $imagem = $this->assinaturas_model->salvarImagem($a['img'], $os_id, $a['tipo']);
             if (!$imagem) {

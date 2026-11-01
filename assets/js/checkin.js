@@ -196,24 +196,24 @@ const CheckinManager = {
         var lngEl = $('#' + prefixo + '-longitude');
 
         if (!('geolocation' in navigator)) {
-            status.html('<i class="bx bx-error-circle"></i> GPS indisponivel neste dispositivo').css('color', '#c0392b');
+            status.html('<i class="bx bx-error-circle"></i> GPS indisponivel neste dispositivo').css('color', 'var(--tec-danger, #c0392b)');
             return;
         }
 
         latEl.val('');
         lngEl.val('');
-        status.html('<i class="bx bx-loader bx-spin"></i> Obtendo localizacao...').css('color', '#8a939c');
+        status.html('<i class="bx bx-loader bx-spin"></i> Obtendo localizacao...').css('color', 'var(--tec-muted, #5f6478)');
 
         navigator.geolocation.getCurrentPosition(function(pos) {
             latEl.val(pos.coords.latitude);
             lngEl.val(pos.coords.longitude);
             var prec = pos.coords.accuracy ? ' (±' + Math.round(pos.coords.accuracy) + ' m)' : '';
-            status.html('<i class="bx bx-map"></i> Localizacao capturada' + prec).css('color', '#2e7d32');
+            status.html('<i class="bx bx-map"></i> Localizacao capturada' + prec).css('color', 'var(--tec-success, #2e7d32)');
         }, function(err) {
             var msg = (err && err.code === 1)
                 ? 'Permissao de localizacao negada'
                 : 'Nao foi possivel obter a localizacao';
-            status.html('<i class="bx bx-error-circle"></i> ' + msg).css('color', '#c0392b');
+            status.html('<i class="bx bx-error-circle"></i> ' + msg).css('color', 'var(--tec-danger, #c0392b)');
         }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
     },
 
@@ -433,7 +433,8 @@ const CheckinManager = {
             return;
         }
 
-        if (assinaturaCliente.estaVazio()) {
+        var clienteOpcional = $('#modal-checkout').attr('data-nao-programada') === '1';
+        if (!clienteOpcional && assinaturaCliente.estaVazio()) {
             self.notificar('Falta a assinatura do cliente', 'Peça para o cliente assinar no quadro "Assinatura do Cliente".', 'warning');
             return;
         }
@@ -456,7 +457,7 @@ const CheckinManager = {
 
         // Coleta as imagens das assinaturas
         const assinaturaTecnicoImg = assinaturaTecnico.obterImagem();
-        const assinaturaClienteImg = assinaturaCliente.obterImagem();
+        const assinaturaClienteImg = (clienteOpcional && assinaturaCliente.estaVazio()) ? '' : assinaturaCliente.obterImagem();
 
         // Usar FormData para enviar dados sem codificação URL
         let dados = new FormData();
@@ -473,7 +474,7 @@ const CheckinManager = {
         dados.append('latitude', $('#checkout-latitude').val() || '');
         dados.append('longitude', $('#checkout-longitude').val() || '');
         dados.append('assinatura_tecnico', assinaturaTecnicoImg);
-        dados.append('assinatura_cliente', assinaturaClienteImg);
+        if (assinaturaClienteImg) { dados.append('assinatura_cliente', assinaturaClienteImg); }
 
         // Adiciona token CSRF
         const csrf = this.getCsrfToken();
@@ -740,7 +741,7 @@ const CheckinManager = {
         $('#' + containerId).empty();
 
         const html = '<div class="preview-foto-item" style="display:inline-block; margin:5px; position:relative;">' +
-            '<img src="' + base64 + '" style="max-width:100px;max-height:100px; border:1px solid #ddd; border-radius:4px;">' +
+            '<img src="' + base64 + '" style="max-width:100px;max-height:100px; border:1px solid var(--tec-line,#ddd); border-radius:4px;">' +
             '<div class="upload-status" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(0,0,0,0.7); color:white; padding:2px 8px; border-radius:4px; font-size:11px;">Enviando...</div>' +
             '</div>';
         $('#' + containerId).append(html);

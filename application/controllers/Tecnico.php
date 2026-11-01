@@ -19,6 +19,7 @@ class Tecnico extends MY_Controller
         $this->load->model('localizacao_model');
         $this->load->model('naorealizada_model');
         $this->load->model('mapos_model');
+        $this->load->model('os_observacoes_tecnico_model');
 
         // Helper 'text' (character_limiter) usado nas views do tecnico; nao esta no autoload
         $this->load->helper('text');
@@ -1496,6 +1497,64 @@ class Tecnico extends MY_Controller
      * já vinculada ao técnico logado, e anexa serviços/produtos com o preço
      * resolvido no servidor (o técnico nunca informa valor).
      */
+    /**
+     * Adiciona uma observacao do tecnico durante o atendimento (AJAX, POST).
+     */
+    public function adicionar_observacao()
+    {
+        $this->output->set_content_type('application/json');
+        $os_id = (int) $this->input->post('os_id');
+        $texto = trim((string) $this->input->post('texto'));
+        $tecnico_id = $this->session->userdata('id_admin');
+
+        if (!$this->input->is_ajax_request() || $this->input->method() !== 'post') {
+            return $this->output->set_output(json_encode(['success' => false, 'message' => 'Requisição inválida.']));
+        }
+        if (!$os_id || !$this->tecnico_model->getOsById($os_id, $tecnico_id)) {
+            return $this->output->set_output(json_encode(['success' => false, 'message' => 'OS não designada a você.']));
+        }
+        $len = function_exists('mb_strlen') ? mb_strlen($texto) : strlen($texto);
+        if ($len < 1 || $len > 2000) {
+            return $this->output->set_output(json_encode(['success' => false, 'message' => 'Escreva de 1 a 2000 caracteres.']));
+        }
+        $ativo = $this->checkin_model->getCheckinAtivo($os_id);
+        $id = $this->os_observacoes_tecnico_model->adicionar($os_id, $tecnico_id, $texto, $ativo ? $ativo->idCheckin : null);
+        if (!$id) {
+            return $this->output->set_output(json_encode(['success' => false, 'message' => 'Não foi possível salvar a observação.']));
+        }
+
+        return $this->output->set_output(json_encode(['success' => true, 'message' => 'Observação registrada.']));
+    }
+
+    /**
+     * Lista as observacoes do tecnico de uma OS (AJAX, GET).
+     */
+    public function listar_observacoes($os_id = null)
+    {
+        $this->output->set_content_type('application/json');
+        $os_id = (int) $os_id;
+        $tecnico_id = $this->session->userdata('id_admin');
+        $permitido = $os_id && $this->tecnico_model->getOsById($os_id, $tecnico_id);
+        if (!$permitido && $os_id) {
+            $this->load->model('obras_model');
+            $permitido = $this->obras_model->osEmProjetoDoUsuario($os_id, $tecnico_id);
+        }
+        if (!$permitido) {
+            return $this->output->set_output(json_encode(['success' => false, 'itens' => []]));
+        }
+        $itens = [];
+        foreach ($this->os_observacoes_tecnico_model->listarPorOs($os_id) as $o) {
+            $itens[] = [
+                'id' => (int) $o->id,
+                'texto' => $o->texto,
+                'hora' => date('d/m/Y H:i', strtotime($o->data_hora)),
+                'autor' => $o->nome_usuario ?: 'Técnico',
+            ];
+        }
+
+        return $this->output->set_output(json_encode(['success' => true, 'itens' => $itens]));
+    }
+
     public function salvar_atividade()
     {
         if (!$this->podeCriarAtividade()) {
@@ -1598,9 +1657,81 @@ class Tecnico extends MY_Controller
             }
         }
 
+        // Atividade realizada (observacoes do tecnico): opcional, max 2000 caracteres.
+        $atividadeRealizada = trim((string) $this->input->post('atividade_realizada'));
+        if ($atividadeRealizada !== '') {
+            $this->os_observacoes_tecnico_model->adicionar($idOs, $tecnico_id, mb_substr($atividadeRealizada, 0, 2000));
+        }
+
+        // Fotos (data URL reduzida no aparelho) e assinatura do solicitante: opcionais.
+        // Falha aqui nao desfaz a atividade ja criada; o tecnico e avisado.
+        $avisoAnexo = $this->anexarFotosEAssinaturaAtividade($idOs, $tecnico_id);
+
         log_info('Técnico abriu atividade não programada. OS ID: ' . $idOs);
-        $this->session->set_flashdata('success', 'Atividade aberta com sucesso!');
+        $this->session->set_flashdata('success', 'Atividade aberta com sucesso!' . $avisoAnexo);
         redirect('tecnico/visualizar/' . $idOs);
+    }
+
+    /**
+     * Grava as fotos (fotos[]) e a assinatura do solicitante enviadas ao abrir a
+     * atividade. Devolve texto de aviso (vazio se tudo certo).
+     */
+    private function anexarFotosEAssinaturaAtividade($idOs, $tecnico_id)
+    {
+        $falhas = [];
+        $this->load->model('fotosatendimento_model');
+
+        $enviadas = $this->input->post('fotos', false); // sem filtro XSS: validado em salvarFotoBase64
+        if (is_array($enviadas)) {
+            foreach (array_slice($enviadas, 0, 6) as $dataUrl) {
+                if (!is_string($dataUrl) || strpos($dataUrl, 'base64,') === false) {
+                    continue;
+                }
+                $r = $this->fotosatendimento_model->salvarFotoBase64($dataUrl, $idOs, $tecnico_id, null, 'durante', '');
+                if (isset($r['error'])) {
+                    $falhas[] = 'uma foto';
+                    continue;
+                }
+                $id = $this->fotosatendimento_model->add([
+                    'os_id' => $idOs,
+                    'checkin_id' => null,
+                    'usuarios_id' => $tecnico_id,
+                    'arquivo' => $r['arquivo'],
+                    'path' => $r['path'],
+                    'url' => $r['url'],
+                    'descricao' => '',
+                    'etapa' => 'durante',
+                    'data_upload' => date('Y-m-d H:i:s'),
+                    'tamanho' => $r['tamanho'],
+                    'tipo_arquivo' => $r['tipo'],
+                    'imagem_base64' => $r['imagem_base64'],
+                    'mime_type' => $r['mime_type'],
+                ], true);
+                if (!$id) {
+                    $falhas[] = 'uma foto';
+                }
+            }
+        }
+
+        $assinatura = dataurl_imagem($this->input->post('assinatura', false));
+        if ($assinatura !== null && strlen($assinatura) >= 100) {
+            $nome = $this->cortar($this->input->post('assinatura_nome'), 100);
+            $imagem = $this->assinaturas_model->salvarImagem($assinatura, $idOs, 'solicitante');
+            if (!$imagem) {
+                $falhas[] = 'a assinatura';
+            } elseif (isset($imagem['modo']) && $imagem['modo'] === 'arquivo') {
+                $this->assinaturas_model->add([
+                    'os_id' => $idOs,
+                    'tipo' => 'solicitante',
+                    'assinatura' => $imagem['path'],
+                    'nome_assinante' => $nome !== '' ? $nome : null,
+                    'data_assinatura' => date('Y-m-d H:i:s'),
+                    'ip_address' => $this->input->ip_address(),
+                ]);
+            }
+        }
+
+        return $falhas ? ' Atenção: não foi possível salvar ' . implode(' e ', array_unique($falhas)) . '. Anexe novamente na OS.' : '';
     }
 
     /**
@@ -1736,14 +1867,18 @@ class Tecnico extends MY_Controller
             return;
         }
 
-        $assinaturaBase64 = (string) dataurl_imagem($this->input->post('assinatura', false));
-        if (empty($assinaturaBase64) || strlen($assinaturaBase64) < 100) {
-            echo json_encode(['success' => false, 'message' => 'Assinatura em branco. Peça para o solicitante assinar no quadro.']);
+        $assinaturaBruta = (string) $this->input->post('assinatura', false);
+        $assinaturaBase64 = (string) dataurl_imagem($assinaturaBruta);
+        if ($assinaturaBase64 === '' || strlen($assinaturaBase64) < 100) {
+            $msg = trim($assinaturaBruta) === ''
+                ? 'Assinatura em branco. Peça para o solicitante assinar no quadro.'
+                : 'Imagem da assinatura inválida ou muito grande. Limpe o quadro e assine novamente.';
+            echo json_encode(['success' => false, 'message' => $msg]);
             return;
         }
 
-        $nome = trim((string) $this->input->post('nome'));
-        $documento = trim((string) $this->input->post('documento'));
+        $nome = mb_substr(trim(strip_tags((string) $this->input->post('nome'))), 0, 120);
+        $documento = mb_substr(trim(strip_tags((string) $this->input->post('documento'))), 0, 30);
 
         $imagem = $this->assinaturas_model->salvarImagem($assinaturaBase64, $os_id, 'solicitante');
 

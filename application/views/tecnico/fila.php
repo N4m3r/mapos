@@ -33,10 +33,10 @@ $blocoFoto = function ($rotulo, $etiqueta = false) {
     ?>
     <label class="btn-tec ghost block" style="cursor:pointer;margin-top:8px;">
         <i class='bx <?= $etiqueta ? 'bx-barcode-reader' : 'bx-camera' ?>'></i> <?= html_escape($rotulo) ?>
-        <input type="file" accept="image/*" capture="environment" multiple data-foto-compacta<?= $etiqueta ? ' data-etiqueta data-foto-nome="fotos_etiqueta[]"' : '' ?> style="display:none;">
+        <input type="file" accept="image/*"<?= $etiqueta ? ' capture="environment"' : '' ?> multiple data-foto-compacta<?= $etiqueta ? ' data-etiqueta data-foto-nome="fotos_etiqueta[]"' : '' ?> style="display:none;">
     </label>
     <div data-foto-preview style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
-    <div data-foto-erro role="alert" style="display:none;color:#e74c3c;font-weight:600;margin-top:6px;"></div>
+    <div data-foto-erro role="alert" style="display:none;color:var(--tec-danger, #e74c3c);font-weight:600;margin-top:6px;"></div>
     <?php
 };
 
@@ -73,7 +73,7 @@ $cartao = function ($it, $minha) use ($executores, $uidAtual, $status_lista, $ti
             <div class="ponto-meta"><i class='bx bx-devices'></i> <?= html_escape($modeloSerie) ?></div>
         <?php endif; ?>
         <?php if (!empty($it->instrucao)): ?>
-            <div class="ponto-meta" style="color:#55596e;"><i class='bx bx-note'></i> <?= html_escape((string) $it->instrucao) ?></div>
+            <div class="ponto-meta" style="color:var(--tec-muted, #55596e);"><i class='bx bx-note'></i> <?= html_escape((string) $it->instrucao) ?></div>
         <?php endif; ?>
         <div class="ponto-meta">
             <?php if ($minha && !empty($it->repassado_por_nome)): ?>
@@ -88,9 +88,9 @@ $cartao = function ($it, $minha) use ($executores, $uidAtual, $status_lista, $ti
         <?php if ($urlFoto): ?>
             <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
                 <a href="<?= html_escape($urlFoto) ?>" target="_blank" rel="noopener">
-                    <img src="<?= html_escape($urlFoto) ?>" loading="lazy" alt="Foto do equipamento" style="width:100%;max-width:280px;height:160px;object-fit:cover;border-radius:8px;border:1px solid #ccc;">
+                    <img src="<?= html_escape($urlFoto) ?>" loading="lazy" alt="Foto do equipamento" style="width:100%;max-width:280px;height:160px;object-fit:cover;border-radius:8px;border:1px solid var(--tec-line, #ccc);">
                 </a>
-                <?php if ($qtdFotos > 1): ?><small style="color:#666;">+<?= $qtdFotos - 1 ?> foto(s)</small><?php endif; ?>
+                <?php if ($qtdFotos > 1): ?><small style="color:var(--tec-muted, #666);">+<?= $qtdFotos - 1 ?> foto(s)</small><?php endif; ?>
             </div>
         <?php endif; ?>
 
@@ -211,10 +211,10 @@ $cartao = function ($it, $minha) use ($executores, $uidAtual, $status_lista, $ti
     .fila-card { margin: 0 0 12px; }
     .fila-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
     .ponto-id { font-size: 1.1em; font-weight: 700; }
-    .ponto-meta { color: #666; font-size: 13px; margin-top: 4px; }
-    .ponto-mais > summary { cursor: pointer; font-weight: 600; color: #55596e; padding: 8px 0; }
+    .ponto-meta { color: var(--tec-muted, #666); font-size: 13px; margin-top: 4px; }
+    .ponto-mais > summary { cursor: pointer; font-weight: 600; color: var(--tec-muted, #55596e); padding: 8px 0; }
     .ponto-campo { display: block; font-weight: 600; margin: 8px 0 0; }
-    .ponto-input { width: 100%; border: 1px solid #ccc; border-radius: 8px; padding: 10px; font-size: 15px; margin-top: 4px; font-weight: 400; }
+    .ponto-input { width: 100%; background: var(--tec-input-bg, #fff); color: var(--tec-input-ink, #000); border: 1px solid var(--tec-input-line, #ccc); border-radius: 8px; padding: 10px; font-size: 15px; margin-top: 4px; font-weight: 400; }
     .ponto-acao { min-height: 48px; width: 100%; }
 </style>
 

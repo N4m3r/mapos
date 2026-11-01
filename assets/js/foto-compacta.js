@@ -4,6 +4,8 @@
  * - input[type=file][data-foto-compacta]: cada imagem e reduzida com canvas
  *   (lado maior 1600 px, image/jpeg 0,8) e vira <input type="hidden" name="fotos[]">
  *   no proprio form, com miniatura em [data-foto-preview] e botao para remover.
+ * - Orientacao EXIF corrigida (createImageBitmap) e API window.FotoCompacta.comprimir(file).
+ * - Sem atributo capture no input, o celular oferece Camera ou Galeria.
  * - Maximo de 6 fotos por form.
  * - Enquanto comprime, os botoes de envio do form ficam desabilitados.
  * - form[data-exige-foto]: bloqueia o envio sem foto e mostra o texto do atributo
@@ -68,37 +70,62 @@
         });
     }
 
-    // Reduz a imagem: lado maior no maximo LADO_MAX, JPEG com QUALIDADE. Devolve data URL.
+    // Desenha a imagem (ja com a orientacao EXIF aplicada) reduzida e devolve data URL JPEG.
+    function desenhar(fonte, w, h, resolve, reject) {
+        try {
+            if (!w || !h) {
+                throw new Error('Imagem sem dimensões.');
+            }
+            var escala = Math.min(1, LADO_MAX / Math.max(w, h));
+            var canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(w * escala));
+            canvas.height = Math.max(1, Math.round(h * escala));
+            var ctx = canvas.getContext('2d');
+            // Fundo branco: PNG com transparencia viraria preto em JPEG
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(fonte, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', QUALIDADE));
+        } catch (e) {
+            reject(e);
+        }
+    }
+
+    // Caminho de reserva (navegadores sem createImageBitmap): <img> aplica EXIF sozinho nos atuais.
+    function comprimirComImg(arquivo, resolve, reject) {
+        var url = URL.createObjectURL(arquivo);
+        var img = new Image();
+        img.onload = function () {
+            desenhar(img, img.naturalWidth || img.width, img.naturalHeight || img.height, resolve, reject);
+            URL.revokeObjectURL(url);
+        };
+        img.onerror = function () {
+            URL.revokeObjectURL(url);
+            reject(new Error('Não foi possível ler a imagem.'));
+        };
+        img.src = url;
+    }
+
+    // Reduz a imagem: lado maior no maximo LADO_MAX, JPEG com QUALIDADE, orientacao EXIF corrigida.
+    // Devolve Promise<data URL>. Exposta como window.FotoCompacta.comprimir.
     function comprimir(arquivo) {
         return new Promise(function (resolve, reject) {
-            var url = URL.createObjectURL(arquivo);
-            var img = new Image();
-            img.onload = function () {
-                try {
-                    var w = img.naturalWidth || img.width;
-                    var h = img.naturalHeight || img.height;
-                    if (!w || !h) {
-                        throw new Error('Imagem sem dimensões.');
-                    }
-                    var escala = Math.min(1, LADO_MAX / Math.max(w, h));
-                    var canvas = document.createElement('canvas');
-                    canvas.width = Math.round(w * escala);
-                    canvas.height = Math.round(h * escala);
-                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', QUALIDADE));
-                } catch (e) {
-                    reject(e);
-                } finally {
-                    URL.revokeObjectURL(url);
-                }
-            };
-            img.onerror = function () {
-                URL.revokeObjectURL(url);
-                reject(new Error('Não foi possível ler a imagem.'));
-            };
-            img.src = url;
+            if (window.createImageBitmap) {
+                window.createImageBitmap(arquivo, { imageOrientation: 'from-image' }).then(function (bmp) {
+                    desenhar(bmp, bmp.width, bmp.height, function (r) {
+                        if (bmp.close) { bmp.close(); }
+                        resolve(r);
+                    }, reject);
+                }, function () {
+                    comprimirComImg(arquivo, resolve, reject);
+                });
+            } else {
+                comprimirComImg(arquivo, resolve, reject);
+            }
         });
     }
+
+    window.FotoCompacta = { comprimir: comprimir, LADO_MAX: LADO_MAX, QUALIDADE: QUALIDADE };
 
     function adicionarFoto(form, preview, dataUrl, nome) {
         var hidden = document.createElement('input');
@@ -116,14 +143,14 @@
         var img = document.createElement('img');
         img.src = dataUrl;
         img.alt = 'Foto';
-        img.style.cssText = 'width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid #ccc;';
+        img.style.cssText = 'width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--tec-input-line,#8a90a8);';
 
         var remover = document.createElement('button');
         remover.type = 'button';
         remover.setAttribute('data-foto-remover', '');
         remover.setAttribute('aria-label', 'Remover foto');
         remover.textContent = '×';
-        remover.style.cssText = 'position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;border:0;background:#e74c3c;color:#fff;line-height:22px;padding:0;font-size:16px;';
+        remover.style.cssText = 'position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;border:0;background:var(--tec-danger,#c62828);color:var(--tec-on-primary,#fff);line-height:22px;padding:0;font-size:16px;';
         remover.addEventListener('click', function () {
             if (hidden.parentNode) {
                 hidden.parentNode.removeChild(hidden);

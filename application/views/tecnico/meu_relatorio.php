@@ -77,7 +77,7 @@ foreach ($projetos as $pj) {
             <div class="info-card" style="text-align:center;margin:0;">
                 <i class='bx <?= $c[2] ?>' style="font-size:1.4em;"></i>
                 <div style="font-size:1.6em;font-weight:700;"><?= $c[0] === 'cabo_m' ? $qtd($totais['cabo_m'] ?? 0) : $tot($c[0]) ?></div>
-                <small style="color:#888;"><?= $c[1] ?></small>
+                <small style="color:var(--tec-muted, #888);"><?= $c[1] ?></small>
             </div>
         <?php endforeach; ?>
     </div>
@@ -96,33 +96,33 @@ foreach ($projetos as $pj) {
                 </div>
                 <div class="os-cliente"><i class='bx bx-user'></i> <?= html_escape($o['cliente'] ?: '—') ?></div>
                 <div style="margin:8px 0 4px;">
-                    <div style="background:#e9ecef;border-radius:6px;height:8px;overflow:hidden;">
-                        <div style="background:#2b7;height:8px;width:<?= max(0, min(100, (float) $o['percentual_concluido'])) ?>%;"></div>
+                    <div style="background:var(--tec-surface-2, #e9ecef);border-radius:6px;height:8px;overflow:hidden;">
+                        <div style="background:var(--tec-success, #2b7);height:8px;width:<?= max(0, min(100, (float) $o['percentual_concluido'])) ?>%;"></div>
                     </div>
-                    <small style="color:#888;"><?= number_format((float) $o['percentual_concluido'], 1, ',', '.') ?>% concluído</small>
+                    <small style="color:var(--tec-muted, #888);"><?= number_format((float) $o['percentual_concluido'], 1, ',', '.') ?>% concluído</small>
                 </div>
 
                 <?php if (!empty($pj['avancos'] ?? [])): ?>
-                    <div style="border-top:1px solid #eee;padding:10px 0;">
+                    <div style="border-top:1px solid var(--tec-line, #eee);padding:10px 0;">
                         <strong><i class='bx bx-git-branch'></i> Pontos avançados</strong>
                         <?php foreach ($pj['avancos'] as $av): ?>
-                            <div style="margin-top:4px;font-size:.92em;color:#555;"><?= html_escape($linhaAvanco($av)) ?></div>
+                            <div style="margin-top:4px;font-size:.92em;color:var(--tec-muted, #555);"><?= html_escape($linhaAvanco($av)) ?></div>
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
 
                 <?php foreach ($pj['registros'] as $r): ?>
-                    <div style="border-top:1px solid #eee;padding:10px 0;">
+                    <div style="border-top:1px solid var(--tec-line, #eee);padding:10px 0;">
                         <strong><i class='bx bx-calendar'></i> <?= html_escape($dd($r['data'])) ?></strong>
                         <div style="margin-top:4px;"><?= nl2br(html_escape((string) $r['atividades'])) ?></div>
                         <?php if (trim((string) $r['ocorrencias']) !== ''): ?>
-                            <div style="margin-top:6px;padding:8px;border-left:4px solid #e74c3c;background:#fdecea;border-radius:4px;">
+                            <div style="margin-top:6px;padding:8px;border-left:4px solid var(--tec-danger, #e74c3c);background:var(--tec-danger-bg, #fdecea);border-radius:4px;">
                                 <strong><i class='bx bx-error'></i> Ocorrência:</strong> <?= nl2br(html_escape((string) $r['ocorrencias'])) ?>
                             </div>
                         <?php endif; ?>
                         <?php foreach (['materiais' => 'Material', 'servicos' => 'Serviço'] as $ch => $rot): ?>
                             <?php if (!empty($r[$ch])): ?>
-                                <div style="margin-top:6px;font-size:.92em;color:#555;">
+                                <div style="margin-top:6px;font-size:.92em;color:var(--tec-muted, #555);">
                                     <strong><?= $rot ?>:</strong>
                                     <?php $parts = []; foreach ($r[$ch] as $it) { $parts[] = html_escape($it['descricao'] ?: '—') . ' (' . $qtd($it['quantidade']) . ')'; } echo implode(', ', $parts); ?>
                                 </div>

@@ -169,3 +169,10 @@ body.tec-assist-ativo .secao-foto-saida { display: none; }
   .tec-btn-azul, .tec-btn-verde, .tec-btn-laranja, .tec-btn-principal,
   .tec-btn-azul i, .tec-btn-verde i, .tec-btn-laranja i, .tec-btn-principal i { color: #10121c; }
 }
+
+/* Campos dos modais do atendimento seguem o tema */
+.tec-cab input, .tec-cab select, .tec-cab textarea, .tec-assist input, .tec-assist select, .tec-assist textarea,
+.tec-visita textarea, .tec-visita input, .tec-visita select {
+  background: var(--tec-input-bg, #fff); color: var(--tec-input-ink, #1f2233); border-color: var(--tec-input-line, #8a90a8);
+}
+.tec-btn:disabled { background: var(--a-suave); color: var(--a-muted); border-color: var(--a-line); opacity: 1; }

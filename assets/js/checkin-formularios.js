@@ -31,7 +31,7 @@ window.CheckinFormularios = (function () {
 
     function renderCampo(campo) {
         var id = campo.id;
-        var req = campo.obrigatorio ? ' <span style="color:#e5364b">*</span>' : '';
+        var req = campo.obrigatorio ? ' <span style="color:var(--tec-danger,#c62828)">*</span>' : '';
         var html = '<div class="campo-atendimento" data-campo-id="' + id + '" data-tipo="' + campo.tipo + '" data-obrigatorio="' + (campo.obrigatorio ? 1 : 0) + '" style="margin-bottom:10px">';
         html += '<label style="font-weight:600">' + esc(campo.label) + req + '</label>';
 
@@ -96,7 +96,7 @@ window.CheckinFormularios = (function () {
     }
 
     function renderForm(f) {
-        var html = '<div class="form-atendimento" data-form-id="' + f.id + '" data-obrigatorio="' + (f.obrigatorio ? 1 : 0) + '" style="border:1px solid #e2e5ef;border-radius:6px;padding:12px;margin-bottom:12px">';
+        var html = '<div class="form-atendimento" data-form-id="' + f.id + '" data-obrigatorio="' + (f.obrigatorio ? 1 : 0) + '" style="border:1px solid var(--tec-line,#e2e5ef);border-radius:6px;padding:12px;margin-bottom:12px">';
         html += '<h6 style="margin:0 0 6px;font-weight:700"><i class="bx bx-clipboard"></i> ' + esc(f.nome) + '</h6>';
         if (f.descricao) {
             html += '<p class="text-muted" style="margin:0 0 8px">' + esc(f.descricao) + '</p>';

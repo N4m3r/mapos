@@ -36,10 +36,10 @@ $statusLabels = ['planejamento' => 'Planejamento', 'em_execucao' => 'Em execuç�
                     <?php if (!empty($p->codigo)): ?><div class="os-desc">Código: <?= html_escape($p->codigo) ?></div><?php endif; ?>
                     <div class="os-cliente"><i class='bx bx-user'></i> <?= html_escape($p->nomeCliente ?: '—') ?></div>
                     <div style="margin:8px 0 4px;">
-                        <div style="background:#e9ecef;border-radius:6px;height:8px;overflow:hidden;">
-                            <div style="background:#2b7;height:8px;width:<?= (float) $p->percentual_concluido ?>%;"></div>
+                        <div style="background:var(--tec-surface-2, #e9ecef);border-radius:6px;height:8px;overflow:hidden;">
+                            <div style="background:var(--tec-success, #2b7);height:8px;width:<?= (float) $p->percentual_concluido ?>%;"></div>
                         </div>
-                        <small style="color:#888;"><?= number_format((float) $p->percentual_concluido, 1, ',', '.') ?>% concluído</small>
+                        <small style="color:var(--tec-muted, #888);"><?= number_format((float) $p->percentual_concluido, 1, ',', '.') ?>% concluído</small>
                     </div>
                     <div class="os-foot">
                         <span class="os-meta"><span><i class='bx bx-map'></i> <?= html_escape($p->cidade ?: '—') ?></span></span>

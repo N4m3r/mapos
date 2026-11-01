@@ -1382,10 +1382,15 @@ class Obras extends MY_Controller
         if (! $podeVer) {
             show_404();
         }
-        if ($row->foto) {
-            header('Content-Type: image/jpeg');
-            echo $row->foto;
+        // Sem limite de tamanho aqui: fotos antigas de RDO foram gravadas sem compressao.
+        $mime = $row->foto ? (new finfo(FILEINFO_MIME_TYPE))->buffer($row->foto) : null;
+        if (! in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            show_404();
         }
+        header('Content-Type: ' . $mime);
+        header('Cache-Control: private, max-age=86400');
+        header('X-Content-Type-Options: nosniff');
+        echo $row->foto;
     }
 
     /** Versão imprimível de um RDO (o que foi feito), com cabeçalho do emitente. */
