@@ -52,7 +52,7 @@ $podeAprovar = $this->permission->checkPermission($this->session->userdata('perm
                     <td><?= html_escape($tipos[$o->tipo] ?? $o->tipo) ?></td>
                     <td><?= $o->data_referencia ? date('d/m/Y', strtotime($o->data_referencia)) : '-' ?></td>
                     <td><?= html_escape($o->descricao) ?></td>
-                    <td><?= ! empty($o->anexo_base64) ? '<a href="'.site_url('rh/anexo/ocorrencia/'.(int) $o->id).'" target="_blank" rel="noopener" data-lightbox="rh-ocorrencias">ver anexo</a>' : '-' ?></td>
+                    <td><?= ! empty($o->anexo_base64) ? '<a href="'.site_url('rh/anexo/ocorrencia/'.(int) $o->id).'" target="_blank" rel="noopener">ver anexo</a>' : '-' ?></td>
                     <td><span class="ui-selo <?= $corStatus[$o->status] ?? 'neutro' ?>"><?= html_escape($rotStatus[$o->status] ?? ucfirst($o->status)) ?></span></td>
                     <td><?php if ($o->status==='pendente' && $podeAprovar): ?>
                         <a href="#modal-analise" role="button" data-toggle="modal" class="btn btn-mini btn-success" data-chamar="analisar" data-args="<?= html_escape(json_encode([$dadosModal])) ?>">Analisar</a>
@@ -76,7 +76,7 @@ $podeAprovar = $this->permission->checkPermission($this->session->userdata('perm
                 <div><span>Data de referência</span><strong id="an-quando"></strong></div>
                 <div id="an-correcao-box"><span>Correção pedida</span><strong id="an-correcao"></strong></div>
                 <div><span>Descrição</span><strong id="an-descricao" class="rh-texto-livre"></strong></div>
-                <div id="an-anexo-box"><span>Anexo</span><a id="an-anexo" href="#" target="_blank" rel="noopener" data-lightbox="rh-an">Abrir anexo</a></div>
+                <div id="an-anexo-box"><span>Anexo</span><a id="an-anexo" href="#" target="_blank" rel="noopener">Abrir anexo</a></div>
             </div>
             <label for="an-resposta">Resposta ao colaborador <small>(obrigatória para recusar)</small></label>
             <textarea name="resposta" id="an-resposta" rows="2" class="span12"></textarea>

@@ -59,7 +59,7 @@
 
                 <div class="span6" style="margin-left:0">
                     <label>Fotos (opcional)</label>
-                    <input type="file" id="fotos-input" accept="image/*" multiple>
+                    <input type="file" id="fotos-input" accept="image/*" capture="environment" multiple>
                     <div id="fotos-hidden"></div>
                     <div id="fotos-prev" class="obra-fotos-prev"></div>
                 </div>

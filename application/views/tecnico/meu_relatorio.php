@@ -131,7 +131,7 @@ foreach ($projetos as $pj) {
                         <?php if (!empty($r['fotos'])): ?>
                             <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
                                 <?php foreach ($r['fotos'] as $fid): ?>
-                                    <a href="<?= site_url('obras/fotoRdo/' . (int) $fid) ?>" target="_blank" rel="noopener" data-lightbox="rdo-<?= md5(json_encode($r['fotos'])) ?>"><img src="<?= site_url('obras/fotoRdo/' . (int) $fid) ?>" loading="lazy" alt="Foto do registro" style="width:84px;height:84px;object-fit:cover;border-radius:6px;"></a>
+                                    <a href="<?= site_url('obras/fotoRdo/' . (int) $fid) ?>" target="_blank" rel="noopener"><img src="<?= site_url('obras/fotoRdo/' . (int) $fid) ?>" loading="lazy" alt="Foto do registro" style="width:84px;height:84px;object-fit:cover;border-radius:6px;"></a>
                                 <?php endforeach; ?>
                             </div>
                         <?php endif; ?>

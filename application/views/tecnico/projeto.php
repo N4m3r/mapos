@@ -10,7 +10,7 @@ $blocoFoto = function ($rotulo, $etiqueta = false) {
     ?>
     <label class="btn-tec ghost block" style="cursor:pointer;margin-top:8px;">
         <i class='bx <?= $etiqueta ? 'bx-barcode-reader' : 'bx-camera' ?>'></i> <?= html_escape($rotulo) ?>
-        <input type="file" accept="image/*" multiple data-foto-compacta<?= $etiqueta ? ' data-etiqueta data-foto-nome="fotos_etiqueta[]"' : '' ?> style="display:none;">
+        <input type="file" accept="image/*"<?= $etiqueta ? ' capture="environment"' : '' ?> multiple data-foto-compacta<?= $etiqueta ? ' data-etiqueta data-foto-nome="fotos_etiqueta[]"' : '' ?> style="display:none;">
     </label>
     <div data-foto-preview style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
     <div data-foto-erro role="alert" style="display:none;color:var(--tec-danger, #e74c3c);font-weight:600;margin-top:6px;"></div>
@@ -168,7 +168,7 @@ foreach ($os_servicos as $ms) {
                         $urlFoto = site_url('obras/fotoPonto/' . (int) $capa->idFoto);
                     ?>
                         <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
-                            <a href="<?= html_escape($urlFoto) ?>" target="_blank" rel="noopener" data-lightbox="projeto">
+                            <a href="<?= html_escape($urlFoto) ?>" target="_blank" rel="noopener">
                                 <img src="<?= html_escape($urlFoto) ?>" loading="lazy" alt="Foto do equipamento" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--tec-line, #ccc);">
                             </a>
                             <small style="color:var(--tec-muted, #666);"><i class='bx bx-camera'></i> <?= count($fotosDoPonto) ?> foto(s)</small>

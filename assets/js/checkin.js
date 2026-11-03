@@ -754,7 +754,7 @@ const CheckinManager = {
             return;
         }
 
-        const input = $('<input type="file" accept="image/*" style="display:none">');
+        const input = $('<input type="file" accept="image/*" capture="camera" style="display:none">');
         $('body').append(input);
         input.one('change', function(e) {
             if (e.target.files && e.target.files.length > 0) {

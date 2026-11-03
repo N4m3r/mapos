@@ -30,14 +30,6 @@ $hook['pre_system'][] = [
     'params' => [],
 ];
 
-// Envio acima do post_max_size: mensagem clara em vez do erro de CSRF
-$hook['pre_system'][] = [
-    'class' => '',
-    'function' => 'verificar_post_grande',
-    'filename' => 'post_grande.php',
-    'filepath' => 'hooks',
-];
-
 // Content-Security-Policy com nonce (APP_CSP no .env)
 $hook['post_controller_constructor'][] = [
     'class' => '',

@@ -27,9 +27,6 @@ $voltar_url   = isset($voltar_url) ? $voltar_url : null;
     <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= base_url('assets/css/moderno.css') ?>?v=<?= asset_versao('assets/css/moderno.css', '1') ?>" />
-    <link rel="stylesheet" href="<?= base_url('assets/css/anexo-lightbox.css') ?>?v=<?= asset_versao('assets/css/anexo-lightbox.css') ?>">
-    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/anexo-lightbox.js') ?>?v=<?= asset_versao('assets/js/anexo-lightbox.js') ?>" defer></script>
-    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/comprimir-upload.js') ?>?v=<?= asset_versao('assets/js/comprimir-upload.js') ?>"></script>
 </head>
 <body class="tec-body">
     <header class="tec-header">

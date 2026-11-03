@@ -43,7 +43,7 @@ $csrf_h = $this->security->get_csrf_hash();
             </div>
             <small style="color:var(--tec-muted, #6b7280)"><?= date('d/m/Y', strtotime($a->data_inicio)) ?> a <?= date('d/m/Y', strtotime($a->data_fim)) ?> (<?= (int)$a->dias ?> dia<?= $a->dias > 1 ? 's':'' ?>)</small>
             <?php if ($a->motivo): ?><div style="font-size:13px;margin-top:4px"><?= nl2br(htmlspecialchars($a->motivo)) ?></div><?php endif; ?>
-            <?php if (! empty($a->anexo_base64)): ?><a href="<?= site_url('colaborador/anexo/ausencia/'.$a->id) ?>" target="_blank" data-lightbox="ausencias" style="font-size:12px">Ver anexo</a><?php endif; ?>
+            <?php if (! empty($a->anexo_base64)): ?><a href="<?= site_url('colaborador/anexo/ausencia/'.$a->id) ?>" target="_blank" style="font-size:12px">Ver anexo</a><?php endif; ?>
             <?php if ($a->resposta): ?><div style="font-size:12px;color:var(--tec-success, #065f46);margin-top:4px">RH: <?= htmlspecialchars($a->resposta) ?></div><?php endif; ?>
         </div>
     <?php endforeach; endif; ?>
