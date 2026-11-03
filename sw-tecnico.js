@@ -8,7 +8,7 @@
  * - POST nunca passa por cache: a fila offline (assets/js/fila-offline.js) cuida dos envios.
  * - A tela de login apaga estes caches (aparelho compartilhado).
  */
-var VERSAO = 'v8';
+var VERSAO = 'v9';
 var CACHE_ESTATICOS = 'mapos-tecnico-estaticos-' + VERSAO;
 var CACHE_PAGINAS = 'mapos-tecnico-paginas-' + VERSAO;
 var BASE = new URL('./', self.location).pathname;          // raiz do Map-OS (aceita subpasta)
@@ -25,6 +25,9 @@ var PRE_CACHE = [
     BASE + 'assets/js/jquery-3.7.1.min.js',
     BASE + 'assets/js/jquery-migrate-3.4.1.min.js',
     BASE + 'assets/js/acoes.js',
+    BASE + 'assets/js/comprimir-upload.js',
+    BASE + 'assets/js/anexo-lightbox.js',
+    BASE + 'assets/css/anexo-lightbox.css',
     BASE + 'assets/js/foto-compacta.js',
     BASE + 'assets/js/etiqueta-camera.js',
     BASE + 'assets/js/jsQR.js',
@@ -76,13 +79,17 @@ self.addEventListener('fetch', function (evento) {
 
     if (ehEstatico(url)) {
         evento.respondWith(caches.open(CACHE_ESTATICOS).then(function (cache) {
-            return cache.match(req, { ignoreSearch: true }).then(function (guardado) {
+            // Respeita o ?v= (versao do arquivo): versao nova vai a rede na hora.
+            // Sem internet, usa qualquer versao guardada do mesmo arquivo.
+            return cache.match(req).then(function (guardado) {
                 var daRede = fetch(req).then(function (resp) {
                     if (resp.ok) {
                         cache.put(req, resp.clone());
                     }
                     return resp;
-                }).catch(function () { return guardado; });
+                }).catch(function () {
+                    return guardado || cache.match(req, { ignoreSearch: true });
+                });
                 return guardado || daRede;
             });
         }));
