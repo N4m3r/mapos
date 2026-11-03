@@ -29,7 +29,11 @@
         fetch(meta('base-url') + 'index.php/tecnico/registrar_posicao', {
             method: 'POST', credentials: 'same-origin', body: f,
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        }).catch(function () {}).then(function () { ocupado = false; });
+        }).catch(function () {}).then(function () {
+            ocupado = false;
+            // O servidor trocou o token CSRF: atualiza os formularios abertos
+            if (window.atualizarTokenCsrf) { window.atualizarTokenCsrf(); }
+        });
     }
 
     function disparar() {

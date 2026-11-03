@@ -104,9 +104,27 @@
         }
     });
 
+    // Com csrf_regenerate o token muda a cada POST (ex.: envio periodico da posicao do
+    // tecnico). Atualiza o token de todos os formularios com o valor atual do cookie
+    // para que um form aberto ha algum tempo nao seja recusado ("action not allowed").
+    function atualizarTokenCsrf(raiz) {
+        var nome = document.querySelector('meta[name="csrf-token-name"]');
+        var ck = document.querySelector('meta[name="csrf-cookie-name"]');
+        if (!nome || !ck) { return; }
+        var m = document.cookie.match(new RegExp('(^| )' + ck.getAttribute('content') + '=([^;]+)'));
+        if (!m) { return; }
+        (raiz || document).querySelectorAll('input[name="' + nome.getAttribute('content') + '"]').forEach(function (i) { i.value = m[2]; });
+    }
+    window.atualizarTokenCsrf = atualizarTokenCsrf;
+
+    // form.submit() via JS nao dispara o evento submit: cobre esse caminho tambem
+    var submitNativo = HTMLFormElement.prototype.submit;
+    HTMLFormElement.prototype.submit = function () { atualizarTokenCsrf(this); return submitNativo.call(this); };
+
     document.addEventListener('submit', function (evento) {
         var form = evento.target;
         if (!form || form.tagName !== 'FORM') { return; }
+        atualizarTokenCsrf(form);
         if (form.hasAttribute('data-bloquear-envio')) {
             evento.preventDefault();
             return;
