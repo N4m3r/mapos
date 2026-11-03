@@ -14,113 +14,142 @@
         <p>Informe cliente, responsável e prazos. Os campos com * são obrigatórios; produtos e serviços são adicionados no próximo passo.</p>
     </div>
 </div>
+<style>
+.os-nova { padding: 18px 20px 0; }
+.os-nova .os-card { border: 1px solid var(--ui-borda); border-radius: var(--ui-raio); padding: 16px 18px 18px; margin-bottom: 18px; background: var(--ui-suave); }
+.os-nova .os-card-titulo { display: flex; align-items: center; gap: 8px; font-size: 15px; line-height: 1.3; font-weight: 600; margin: 0 0 14px; }
+.os-nova .os-card-titulo i { font-size: 18px; color: var(--ui-primaria); }
+.os-nova .os-grade { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 18px; }
+.os-nova .os-col-2 { grid-column: span 2; }
+.os-nova .os-campo label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 5px; }
+.os-nova .os-campo input[type=text], .os-nova .os-campo input[type=number], .os-nova .os-campo select { width: 100%; height: 38px; box-sizing: border-box; margin: 0; }
+.os-nova .os-campo .help-inline { display: block; padding: 4px 0 0; }
+.os-nova .required { color: var(--ui-perigo); margin-left: 2px; }
+.os-nova .os-editores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.os-nova .os-editores .os-campo > label { font-size: 14px; }
+.os-nova .trumbowyg-box { margin: 0; width: 100%; min-height: 0; border-radius: var(--ui-raio-p); overflow: hidden; }
+.os-nova .trumbowyg-editor, .os-nova .trumbowyg-textarea { min-height: 150px; height: 150px; }
+.os-nova .trumbowyg-box.trumbowyg-fullscreen .trumbowyg-editor { height: auto; }
+.os-nova .os-acoes { position: sticky; bottom: 0; z-index: 20; display: flex; justify-content: flex-end; gap: 10px; margin: 0 -20px; padding: 12px 20px; border-top: 1px solid var(--ui-borda); background: inherit; }
+.os-nova .os-acoes .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 150px; height: 42px; padding: 0 18px; line-height: 1; box-sizing: border-box; font-size: 14px; font-weight: 600; margin: 0; }
+.os-nova .os-acoes .btn i { font-size: 18px; }
+.os-nova .alert { margin: 0 0 16px; }
+@media (max-width: 979px) {
+    .os-nova .os-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .os-nova .os-editores { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+    .os-nova { padding: 12px 12px 0; }
+    .os-nova .os-card { padding: 14px 12px; }
+    .os-nova .os-grade { grid-template-columns: minmax(0, 1fr); }
+    .os-nova .os-col-2 { grid-column: auto; }
+    .os-nova .os-campo input[type=text], .os-nova .os-campo input[type=number], .os-nova .os-campo select { height: 44px; font-size: 16px; }
+    .os-nova .trumbowyg-editor, .os-nova .trumbowyg-textarea { min-height: 120px; height: 120px; }
+    .os-nova .trumbowyg-button-pane { display: flex; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+    .os-nova .trumbowyg-button-pane .trumbowyg-button-group { flex: 0 0 auto; }
+    .os-nova .trumbowyg-button-pane::after { display: none; }
+    .os-nova .os-acoes { margin: 0 -12px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); }
+    .os-nova .os-acoes .btn { flex: 1; min-width: 0; height: 48px; }
+}
+</style>
 <div class="row-fluid" style="margin-top:0">
     <div class="span12">
         <div class="widget-box">
-            <div class="widget-content nopadding tab-content">
-                <div class="span12" id="divProdutosServicos" style=" margin-left: 0">
-
-                    <ul class="nav nav-tabs">
-                        <li class="active" id="tabDetalhes"><a href="#tab1" data-toggle="tab">Detalhes da OS</a></li>
-                    </ul>
-                    <div class="tab-content">
-                        <div class="tab-pane active" id="tab1">
-                            <div class="span12" id="divCadastrarOs">
-                                <?php if ($custom_error == true) { ?>
-                                    <div class="span12 alert alert-danger" id="divInfo" style="padding: 1%;">Dados incompletos, verifique os campos com asterisco ou se selecionou corretamente cliente, responsável e garantia.<br />Ou se tem um cliente e um termo de garantia cadastrado.</div>
-                                <?php
-                                } ?>
-                                <form action="<?php echo current_url(); ?>" method="post" id="formOs">
-                                    <div class="span12" style="padding: 1%">
-                                        <div class="span6">
-                                            <label for="cliente">Cliente<span class="required">*</span></label>
-                                            <input id="cliente" class="span12" type="text" name="cliente" value="" />
-                                            <input id="clientes_id" class="span12" type="hidden" name="clientes_id" value="" />
-                                        </div>
-                                        <div class="span6">
-                                            <label for="tecnico">Técnico / Responsável<span class="required">*</span></label>
-                                            <input id="tecnico" class="span12" type="text" name="tecnico" value="<?= $this->session->userdata('nome_admin'); ?>" />
-                                            <input id="usuarios_id" class="span12" type="hidden" name="usuarios_id" value="<?= $this->session->userdata('id_admin'); ?>" />
-                                        </div>
-                                    </div>
-                                    <div class="span12" style="padding: 1%; margin-left: 0">
-                                        <div class="span3">
-                                            <label for="status">Status<span class="required">*</span></label>
-                                            <select class="span12" name="status" id="status" value="">
-                                                <option value="Aberto">Aberto</option>
-                                                <option value="Orçamento">Orçamento</option>
-                                                <option value="Negociação">Negociação</option>
-                                                <option value="Aprovado">Aprovado</option>
-                                                <option value="Aguardando Peças">Aguardando Peças</option>
-                                                <option value="Em Andamento">Em Andamento</option>
-                                                <option value="Finalizado">Finalizado</option>
-                                                <option value="Faturado">Faturado</option>
-                                                <option value="Cancelado">Cancelado</option>
-                                            </select>
-                                        </div>
-                                        <div class="span3">
-                                            <label for="dataInicial">Data Inicial<span class="required">*</span></label>
-                                            <input id="dataInicial" autocomplete="off" class="span12 datepicker" type="text" name="dataInicial" value="<?php echo date('d/m/Y'); ?>" />
-                                        </div>
-                                        <div class="span3">
-                                            <label for="dataFinal">Data Final<span class="required">*</span></label>
-                                            <input id="dataFinal" autocomplete="off" class="span12 datepicker" type="text" name="dataFinal" value="" />
-                                        </div>
-                                        <div class="span3">
-                                            <label for="garantia">Garantia (dias)</label>
-                                            <input id="garantia" type="number" placeholder="Status s/g inserir nº/0" min="0" max="9999" class="span12" name="garantia" value="" />
-                                            <?php echo form_error('garantia'); ?>
-                                            <label for="termoGarantia">Termo Garantia</label>
-                                            <input id="termoGarantia" class="span12" type="text" name="termoGarantia" value="" />
-                                            <input id="garantias_id" class="span12" type="hidden" name="garantias_id" value="" />
-                                        </div>
-                                    </div>
-                                    <div class="span6" style="padding: 1%; margin-left: 0">
-                                        <label for="tipo_servico"><h4>Tipo de serviço</h4></label>
-                                        <select class="span12" name="tipo_servico" id="tipo_servico">
-                                            <option value="">Não informado</option>
-                                            <?php $this->load->helper('tipo_servico'); foreach (tipos_servico() as $k => $t) { ?>
-                                                <option value="<?= $k ?>"><?= html_escape($t['rotulo']) ?></option>
-                                            <?php } ?>
-                                        </select>
-                                    </div>
-                                    <div class="span6" style="padding: 1%; margin-left: 0">
-                                        <label for="descricaoProduto">
-                                            <h4>Descrição Produto/Serviço</h4>
-                                        </label>
-                                        <textarea class="span12 editor" name="descricaoProduto" id="descricaoProduto" cols="30" rows="5"></textarea>
-                                    </div>
-                                    <div class="span6" style="padding: 1%; margin-left: 0">
-                                        <label for="defeito">
-                                            <h4>Defeito</h4>
-                                        </label>
-                                        <textarea class="span12 editor" name="defeito" id="defeito" cols="30" rows="5"></textarea>
-                                    </div>
-                                    <div class="span6" style="padding: 1%; margin-left: 0">
-                                        <label for="observacoes">
-                                            <h4>Observações</h4>
-                                        </label>
-                                        <textarea class="span12 editor" name="observacoes" id="observacoes" cols="30" rows="5"></textarea>
-                                    </div>
-                                    <div class="span6" style="padding: 1%; margin-left: 0">
-                                        <label for="laudoTecnico">
-                                            <h4>Laudo Técnico</h4>
-                                        </label>
-                                        <textarea class="span12 editor" name="laudoTecnico" id="laudoTecnico" cols="30" rows="5"></textarea>
-                                    </div>
-                                    <div class="span12" style="padding: 1%; margin-left: 0">
-                                        <div class="span6 offset3" style="display:flex">
-                                            <button class="button btn btn-success" id="btnContinuar">
-                                              <span class="button__icon"><i class='bx bx-chevrons-right'></i></span><span class="button__text2">Continuar</span></button>
-                                            <a href="<?php echo base_url() ?>index.php/os" class="button btn btn-mini btn-warning" style="max-width: 160px">
-                                              <span class="button__icon"><i class="bx bx-undo"></i></span><span class="button__text2">Voltar</span></a>
-                                        </div>
-                                    </div>
-                                </form>
+            <div class="widget-content os-nova" id="divCadastrarOs">
+                <?php if ($custom_error == true) { ?>
+                    <div class="alert alert-danger" id="divInfo">Dados incompletos: verifique os campos com asterisco e se selecionou cliente, responsável e termo de garantia na lista de sugestões.</div>
+                <?php } ?>
+                <form action="<?php echo current_url(); ?>" method="post" id="formOs">
+                    <div class="os-card">
+                        <h3 class="os-card-titulo"><i class="bx bx-user"></i> Cliente e responsável</h3>
+                        <div class="os-grade">
+                            <div class="os-campo os-col-2">
+                                <label for="cliente">Cliente<span class="required">*</span></label>
+                                <input id="cliente" type="text" name="cliente" value="" placeholder="Digite o nome para buscar" autocomplete="off" />
+                                <input id="clientes_id" type="hidden" name="clientes_id" value="" />
+                            </div>
+                            <div class="os-campo os-col-2">
+                                <label for="tecnico">Técnico / Responsável<span class="required">*</span></label>
+                                <input id="tecnico" type="text" name="tecnico" value="<?= html_escape($this->session->userdata('nome_admin')); ?>" autocomplete="off" />
+                                <input id="usuarios_id" type="hidden" name="usuarios_id" value="<?= $this->session->userdata('id_admin'); ?>" />
                             </div>
                         </div>
                     </div>
-                </div>
+
+                    <div class="os-card">
+                        <h3 class="os-card-titulo"><i class="bx bx-calendar"></i> Situação e prazos</h3>
+                        <div class="os-grade">
+                            <div class="os-campo">
+                                <label for="status">Status<span class="required">*</span></label>
+                                <select name="status" id="status">
+                                    <option value="Aberto">Aberto</option>
+                                    <option value="Orçamento">Orçamento</option>
+                                    <option value="Negociação">Negociação</option>
+                                    <option value="Aprovado">Aprovado</option>
+                                    <option value="Aguardando Peças">Aguardando Peças</option>
+                                    <option value="Em Andamento">Em Andamento</option>
+                                    <option value="Finalizado">Finalizado</option>
+                                    <option value="Faturado">Faturado</option>
+                                    <option value="Cancelado">Cancelado</option>
+                                </select>
+                            </div>
+                            <div class="os-campo">
+                                <label for="tipo_servico">Tipo de serviço</label>
+                                <select name="tipo_servico" id="tipo_servico">
+                                    <option value="">Não informado</option>
+                                    <?php $this->load->helper('tipo_servico'); foreach (tipos_servico() as $k => $t) { ?>
+                                        <option value="<?= $k ?>"><?= html_escape($t['rotulo']) ?></option>
+                                    <?php } ?>
+                                </select>
+                            </div>
+                            <div class="os-campo">
+                                <label for="dataInicial">Data inicial<span class="required">*</span></label>
+                                <input id="dataInicial" autocomplete="off" class="datepicker" type="text" name="dataInicial" value="<?php echo date('d/m/Y'); ?>" />
+                            </div>
+                            <div class="os-campo">
+                                <label for="dataFinal">Data final<span class="required">*</span></label>
+                                <input id="dataFinal" autocomplete="off" class="datepicker" type="text" name="dataFinal" value="" placeholder="dd/mm/aaaa" />
+                            </div>
+                            <div class="os-campo">
+                                <label for="garantia">Garantia (dias)</label>
+                                <input id="garantia" type="number" placeholder="0 = sem garantia" min="0" max="9999" name="garantia" value="" inputmode="numeric" />
+                                <?php echo form_error('garantia'); ?>
+                            </div>
+                            <div class="os-campo os-col-2">
+                                <label for="termoGarantia">Termo de garantia</label>
+                                <input id="termoGarantia" type="text" name="termoGarantia" value="" placeholder="Digite para buscar um termo cadastrado" autocomplete="off" />
+                                <input id="garantias_id" type="hidden" name="garantias_id" value="" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="os-card">
+                        <h3 class="os-card-titulo"><i class="bx bx-detail"></i> Descrição e diagnóstico</h3>
+                        <div class="os-editores">
+                            <div class="os-campo">
+                                <label for="descricaoProduto">Descrição do produto/serviço</label>
+                                <textarea class="editor" name="descricaoProduto" id="descricaoProduto" rows="5"></textarea>
+                            </div>
+                            <div class="os-campo">
+                                <label for="defeito">Defeito relatado</label>
+                                <textarea class="editor" name="defeito" id="defeito" rows="5"></textarea>
+                            </div>
+                            <div class="os-campo">
+                                <label for="observacoes">Observações</label>
+                                <textarea class="editor" name="observacoes" id="observacoes" rows="5"></textarea>
+                            </div>
+                            <div class="os-campo">
+                                <label for="laudoTecnico">Laudo técnico</label>
+                                <textarea class="editor" name="laudoTecnico" id="laudoTecnico" rows="5"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="os-acoes">
+                        <a href="<?php echo base_url() ?>index.php/os" class="btn btn-warning"><i class="bx bx-undo"></i> Voltar</a>
+                        <button type="submit" class="btn btn-success" id="btnContinuar"><i class="bx bx-chevrons-right"></i> Continuar</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
