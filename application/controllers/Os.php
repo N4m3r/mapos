@@ -292,6 +292,8 @@ class Os extends MY_Controller
             //Verifica para poder fazer a devolução do produto para o estoque caso OS seja cancelada.
 
             // Handle material stock based on project linkage
+            $this->load->model('obras_model');
+            $this->load->library('projeto_sync');
             $vinculo = $this->obras_model->getVinculoDaOs((int) $this->input->post('idOs'));
             $destino = \Projeto_sync::decidirDestinoEstoque($vinculo, 'cancelar');
             if (strtolower($this->input->post('status')) == 'cancelado' && strtolower($os->status) != 'cancelado') {

@@ -14,44 +14,7 @@
         <p>Informe cliente, responsável e prazos. Os campos com * são obrigatórios; produtos e serviços são adicionados no próximo passo.</p>
     </div>
 </div>
-<style>
-.os-nova { padding: 18px 20px 0; }
-.os-nova .os-card { border: 1px solid var(--ui-borda); border-radius: var(--ui-raio); padding: 16px 18px 18px; margin-bottom: 18px; background: var(--ui-suave); }
-.os-nova .os-card-titulo { display: flex; align-items: center; gap: 8px; font-size: 15px; line-height: 1.3; font-weight: 600; margin: 0 0 14px; }
-.os-nova .os-card-titulo i { font-size: 18px; color: var(--ui-primaria); }
-.os-nova .os-grade { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 18px; }
-.os-nova .os-col-2 { grid-column: span 2; }
-.os-nova .os-campo label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 5px; }
-.os-nova .os-campo input[type=text], .os-nova .os-campo input[type=number], .os-nova .os-campo select { width: 100%; height: 38px; box-sizing: border-box; margin: 0; }
-.os-nova .os-campo .help-inline { display: block; padding: 4px 0 0; }
-.os-nova .required { color: var(--ui-perigo); margin-left: 2px; }
-.os-nova .os-editores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
-.os-nova .os-editores .os-campo > label { font-size: 14px; }
-.os-nova .trumbowyg-box { margin: 0; width: 100%; min-height: 0; border-radius: var(--ui-raio-p); overflow: hidden; }
-.os-nova .trumbowyg-editor, .os-nova .trumbowyg-textarea { min-height: 150px; height: 150px; }
-.os-nova .trumbowyg-box.trumbowyg-fullscreen .trumbowyg-editor { height: auto; }
-.os-nova .os-acoes { position: sticky; bottom: 0; z-index: 20; display: flex; justify-content: flex-end; gap: 10px; margin: 0 -20px; padding: 12px 20px; border-top: 1px solid var(--ui-borda); background: inherit; }
-.os-nova .os-acoes .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 150px; height: 42px; padding: 0 18px; line-height: 1; box-sizing: border-box; font-size: 14px; font-weight: 600; margin: 0; }
-.os-nova .os-acoes .btn i { font-size: 18px; }
-.os-nova .alert { margin: 0 0 16px; }
-@media (max-width: 979px) {
-    .os-nova .os-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .os-nova .os-editores { grid-template-columns: minmax(0, 1fr); }
-}
-@media (max-width: 600px) {
-    .os-nova { padding: 12px 12px 0; }
-    .os-nova .os-card { padding: 14px 12px; }
-    .os-nova .os-grade { grid-template-columns: minmax(0, 1fr); }
-    .os-nova .os-col-2 { grid-column: auto; }
-    .os-nova .os-campo input[type=text], .os-nova .os-campo input[type=number], .os-nova .os-campo select { height: 44px; font-size: 16px; }
-    .os-nova .trumbowyg-editor, .os-nova .trumbowyg-textarea { min-height: 120px; height: 120px; }
-    .os-nova .trumbowyg-button-pane { display: flex; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
-    .os-nova .trumbowyg-button-pane .trumbowyg-button-group { flex: 0 0 auto; }
-    .os-nova .trumbowyg-button-pane::after { display: none; }
-    .os-nova .os-acoes { margin: 0 -12px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); }
-    .os-nova .os-acoes .btn { flex: 1; min-width: 0; height: 48px; }
-}
-</style>
+<link rel="stylesheet" href="<?= base_url('assets/css/os-form.css') ?>?v=<?= asset_versao('assets/css/os-form.css') ?>" />
 <div class="row-fluid" style="margin-top:0">
     <div class="span12">
         <div class="widget-box">

@@ -9,11 +9,12 @@
 
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/custom.css" />
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/assinatura.css" />
+<link rel="stylesheet" href="<?= base_url('assets/css/os-form.css') ?>?v=<?= asset_versao('assets/css/os-form.css') ?>" />
 
 <div class="row-fluid" style="margin-top:0">
     <div class="span12">
         <div class="widget-box">
-            <div class="widget-title" style="margin: -20px 0 0">
+            <div class="widget-title os-topo">
                 <span class="icon"><i class="fas fa-diagnoses"></i></span>
                 <h5>Editar Ordem de Serviço</h5>
                 <div class="buttons">
@@ -100,7 +101,7 @@
                 </div>
             </div>
             <div class="widget-content nopadding tab-content">
-                <div class="span12" id="divProdutosServicos" style=" margin-left: 0">
+                <div class="span12 os-abas-wrap" id="divProdutosServicos" style=" margin-left: 0">
                     <ul class="nav nav-tabs">
                         <li class="active" id="tabDetalhes"><a href="#tab1" data-toggle="tab">Detalhes da OS</a></li>
                         <li id="tabDesconto"><a href="#tab2" data-toggle="tab">Desconto</a></li>
@@ -115,55 +116,69 @@
                     </ul>
                     <div class="tab-content">
                         <div class="tab-pane active" id="tab1">
-                            <div class="span12" id="divCadastrarOs">
+                            <div class="os-nova" id="divCadastrarOs">
                                 <form action="<?php echo current_url(); ?>" method="post" id="formOs">
                                     <?php echo form_hidden('idOs', $result->idOs) ?>
-                                    <div class="span12" style="padding: 1%; margin-left: 0">
-                                        <h3>N° OS: <?php echo $result->idOs; ?></h3>
+                                    <input id="valor" type="hidden" name="valor" value="" />
+                                    <div class="os-numero">
+                                        <h3>OS nº <?php echo $result->idOs; ?></h3>
                                         <?php $this->load->view('os/_projeto_selo', ['vinculoProjeto' => $vinculoProjeto, 'podeVerProjeto' => $podeVerProjeto, 'mostrarAcoes' => false, 'osIdProjeto' => $result->idOs]); ?>
-                                        <div class="span6" style="margin-left: 0">
-                                            <label for="cliente">Cliente<span class="required">*</span></label>
-                                            <input id="cliente" class="span12" type="text" name="cliente" value="<?php echo html_escape($result->nomeCliente); ?>" />
-                                            <input id="clientes_id" class="span12" type="hidden" name="clientes_id" value="<?php echo $result->clientes_id ?>" />
-                                            <input id="valor" type="hidden" name="valor" value="" />
-                                        </div>
-                                        <div class="span6">
-                                            <label for="tecnico">Técnico / Responsável<span class="required">*</span></label>
-                                            <input id="tecnico" class="span12" type="text" name="tecnico" value="<?php echo html_escape($result->nome); ?>" />
-                                            <input id="usuarios_id" class="span12" type="hidden" name="usuarios_id" value="<?php echo $result->usuarios_id ?>" />
+                                    </div>
+
+                                    <div class="os-card">
+                                        <h3 class="os-card-titulo"><i class="bx bx-user"></i> Cliente e responsável</h3>
+                                        <div class="os-grade">
+                                            <div class="os-campo os-col-2">
+                                                <label for="cliente">Cliente<span class="required">*</span></label>
+                                                <input id="cliente" type="text" name="cliente" value="<?php echo html_escape($result->nomeCliente); ?>" placeholder="Digite o nome para buscar" autocomplete="off" />
+                                                <input id="clientes_id" type="hidden" name="clientes_id" value="<?php echo $result->clientes_id ?>" />
+                                            </div>
+                                            <div class="os-campo os-col-2">
+                                                <label for="tecnico">Técnico / Responsável<span class="required">*</span></label>
+                                                <input id="tecnico" type="text" name="tecnico" value="<?php echo html_escape($result->nome); ?>" autocomplete="off" />
+                                                <input id="usuarios_id" type="hidden" name="usuarios_id" value="<?php echo $result->usuarios_id ?>" />
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="span12" style="padding: 1%; margin-left: 0">
-                                        <div class="span3">
-                                            <label for="status">Status<span class="required">*</span></label>
-                                            <select class="span12" name="status" id="status" value="">
-                                                <option <?php if ($result->status == 'Aberto') { echo 'selected'; } ?> value="Aberto">Aberto</option>
-                                                <option <?php if ($result->status == 'Orçamento') { echo 'selected'; } ?> value="Orçamento">Orçamento</option>
-                                                <option <?php if ($result->status == 'Negociação') { echo 'selected'; } ?> value="Negociação">Negociação</option>
-                                                <option <?php if ($result->status == 'Aprovado') { echo 'selected'; } ?> value="Aprovado">Aprovado</option>
-                                                <option <?php if ($result->status == 'Aguardando Peças') { echo 'selected'; } ?> value="Aguardando Peças">Aguardando Peças</option>
-                                                <option <?php if ($result->status == 'Em Andamento') { echo 'selected'; } ?> value="Em Andamento">Em Andamento</option>
-                                                <option <?php if ($result->status == 'Não Realizado') { echo 'selected'; } ?> value="Não Realizado">Não Realizado</option>
-                                                <option <?php if ($result->status == 'Finalizado') { echo 'selected'; } ?> value="Finalizado">Finalizado</option>
-                                                <option <?php if ($result->status == 'Faturado') { echo 'selected'; } ?> value="Faturado">Faturado</option>
-                                                <option <?php if ($result->status == 'Cancelado') { echo 'selected'; } ?> value="Cancelado">Cancelado</option>                                                          
-                                            </select>
-                                        </div>
-                                        <div class="span3">
-                                            <label for="dataInicial">Data Inicial<span class="required">*</span></label>
-                                            <input id="dataInicial" autocomplete="off" class="span12 datepicker" type="text" name="dataInicial" value="<?php echo date('d/m/Y', strtotime($result->dataInicial)); ?>" />
-                                        </div>
-                                        <div class="span3">
-                                            <label for="dataFinal">Data Final<span class="required">*</span></label>
-                                            <input id="dataFinal" autocomplete="off" class="span12 datepicker" type="text" name="dataFinal" value="<?php echo date('d/m/Y', strtotime($result->dataFinal)); ?>" />
-                                        </div>
-                                        <div class="span3">
-                                            <label for="garantia">Garantia (dias)</label>
-                                            <input id="garantia" type="number" placeholder="Status s/g inserir nº/0" min="0" max="9999" class="span12" name="garantia" value="<?php echo $result->garantia ?>" />
-                                            <?php echo form_error('garantia'); ?>
-                                            <label for="termoGarantia">Termo Garantia</label>
-                                            <input id="termoGarantia" class="span12" type="text" name="termoGarantia" value="<?php echo html_escape($result->refGarantia); ?>" />
-                                            <input id="garantias_id" class="span12" type="hidden" name="garantias_id" value="<?php echo $result->garantias_id ?>" />
+
+                                    <div class="os-card">
+                                        <h3 class="os-card-titulo"><i class="bx bx-calendar"></i> Situação e prazos</h3>
+                                        <div class="os-grade">
+                                            <div class="os-campo">
+                                                <label for="status">Status<span class="required">*</span></label>
+                                                <select name="status" id="status">
+                                                    <?php foreach (['Aberto', 'Orçamento', 'Negociação', 'Aprovado', 'Aguardando Peças', 'Em Andamento', 'Não Realizado', 'Finalizado', 'Faturado', 'Cancelado'] as $st) { ?>
+                                                        <option <?= $result->status == $st ? 'selected' : '' ?> value="<?= $st ?>"><?= $st ?></option>
+                                                    <?php } ?>
+                                                </select>
+                                            </div>
+                                            <div class="os-campo">
+                                                <label for="tipo_servico">Tipo de serviço</label>
+                                                <select name="tipo_servico" id="tipo_servico">
+                                                    <option value="">Não informado</option>
+                                                    <?php $this->load->helper('tipo_servico'); foreach (tipos_servico() as $k => $t) { ?>
+                                                        <option value="<?= $k ?>"<?= (($result->tipo_servico ?? '') === $k) ? ' selected' : '' ?>><?= html_escape($t['rotulo']) ?></option>
+                                                    <?php } ?>
+                                                </select>
+                                            </div>
+                                            <div class="os-campo">
+                                                <label for="dataInicial">Data inicial<span class="required">*</span></label>
+                                                <input id="dataInicial" autocomplete="off" class="datepicker" type="text" name="dataInicial" value="<?php echo date('d/m/Y', strtotime($result->dataInicial)); ?>" />
+                                            </div>
+                                            <div class="os-campo">
+                                                <label for="dataFinal">Data final<span class="required">*</span></label>
+                                                <input id="dataFinal" autocomplete="off" class="datepicker" type="text" name="dataFinal" value="<?php echo date('d/m/Y', strtotime($result->dataFinal)); ?>" placeholder="dd/mm/aaaa" />
+                                            </div>
+                                            <div class="os-campo">
+                                                <label for="garantia">Garantia (dias)</label>
+                                                <input id="garantia" type="number" placeholder="0 = sem garantia" min="0" max="9999" name="garantia" value="<?php echo $result->garantia ?>" inputmode="numeric" />
+                                                <?php echo form_error('garantia'); ?>
+                                            </div>
+                                            <div class="os-campo os-col-2">
+                                                <label for="termoGarantia">Termo de garantia</label>
+                                                <input id="termoGarantia" type="text" name="termoGarantia" value="<?php echo html_escape($result->refGarantia); ?>" placeholder="Digite para buscar um termo cadastrado" autocomplete="off" />
+                                                <input id="garantias_id" type="hidden" name="garantias_id" value="<?php echo $result->garantias_id ?>" />
+                                            </div>
                                         </div>
                                     </div>
 
@@ -175,106 +190,102 @@
                                     $verCusto = $this->permission->checkPermission($this->session->userdata('permissao'), 'vLancamento');
                                     ?>
                                     <?php if ($temContrato || $temEquipe): ?>
-                                    <div class="span12" style="padding: 1%; margin-left: 0; border-top:1px dashed #e0e0e0; margin-top:6px">
-                                        <?php if ($temContrato): ?>
-                                            <div class="span4">
-                                                <label for="contrato_id"><i class='bx bx-file-blank'></i> Contrato de manutenção</label>
-                                                <select class="span12" name="contrato_id" id="contrato_id">
-                                                    <option value="">— Sem contrato —</option>
-                                                    <?php foreach ($contratosSelect as $ct): ?>
-                                                        <option value="<?= $ct->idContrato ?>" <?= (isset($result->contrato_id) && $result->contrato_id == $ct->idContrato) ? 'selected' : '' ?>>
-                                                            <?= html_escape(($ct->codigo ? $ct->codigo . ' — ' : '') . $ct->descricao) ?>
-                                                        </option>
-                                                    <?php endforeach; ?>
-                                                </select>
-                                            </div>
-                                            <div class="span3">
-                                                <label for="prioridade">Prioridade (SLA)</label>
-                                                <select class="span12" name="prioridade" id="prioridade">
-                                                    <option value="">— Não definida —</option>
-                                                    <?php foreach ($slaPrioridades as $p): ?>
-                                                        <option value="<?= html_escape($p) ?>" <?= (isset($result->prioridade) && $result->prioridade === $p) ? 'selected' : '' ?>><?= html_escape($p) ?></option>
-                                                    <?php endforeach; ?>
-                                                </select>
-                                            </div>
-                                            <?php
-                                            $prazoSol = $result->sla_solucao_prazo ?? null;
-                                            $solEm = $result->sla_solucao_em ?? null;
-                                            if (! empty($prazoSol)):
-                                                $statusAberto = ! in_array($result->status, ['Finalizado', 'Faturado', 'Cancelado'], true);
-                                                if (! empty($solEm)) {
-                                                    $ok = strtotime($solEm) <= strtotime($prazoSol);
-                                                    $badge = $ok ? '<span class="label label-success">Solucionado no prazo</span>' : '<span class="label label-important">Solucionado fora do prazo</span>';
-                                                } elseif ($statusAberto && strtotime($prazoSol) < time()) {
-                                                    $badge = '<span class="label label-important">SLA estourado</span>';
-                                                } else {
-                                                    $badge = '<span class="label label-warning">Dentro do prazo</span>';
-                                                }
-                                            ?>
-                                                <div class="span5">
-                                                    <label>Status do SLA</label>
-                                                    <div style="padding-top:6px">
-                                                        <?= $badge ?>
-                                                        <small style="display:block;color:#888">Prazo de solução: <?= date('d/m/Y H:i', strtotime($prazoSol)) ?></small>
-                                                    </div>
+                                    <div class="os-card">
+                                        <h3 class="os-card-titulo"><i class="bx bx-file-blank"></i> Contrato e equipe</h3>
+                                        <div class="os-grade">
+                                            <?php if ($temContrato): ?>
+                                                <div class="os-campo os-col-2">
+                                                    <label for="contrato_id">Contrato de manutenção</label>
+                                                    <select name="contrato_id" id="contrato_id">
+                                                        <option value="">— Sem contrato —</option>
+                                                        <?php foreach ($contratosSelect as $ct): ?>
+                                                            <option value="<?= $ct->idContrato ?>" <?= (isset($result->contrato_id) && $result->contrato_id == $ct->idContrato) ? 'selected' : '' ?>>
+                                                                <?= html_escape(($ct->codigo ? $ct->codigo . ' — ' : '') . $ct->descricao) ?>
+                                                            </option>
+                                                        <?php endforeach; ?>
+                                                    </select>
                                                 </div>
+                                                <div class="os-campo">
+                                                    <label for="prioridade">Prioridade (SLA)</label>
+                                                    <select name="prioridade" id="prioridade">
+                                                        <option value="">— Não definida —</option>
+                                                        <?php foreach ($slaPrioridades as $p): ?>
+                                                            <option value="<?= html_escape($p) ?>" <?= (isset($result->prioridade) && $result->prioridade === $p) ? 'selected' : '' ?>><?= html_escape($p) ?></option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                </div>
+                                                <?php
+                                                $prazoSol = $result->sla_solucao_prazo ?? null;
+                                                $solEm = $result->sla_solucao_em ?? null;
+                                                if (! empty($prazoSol)):
+                                                    $statusAberto = ! in_array($result->status, ['Finalizado', 'Faturado', 'Cancelado'], true);
+                                                    if (! empty($solEm)) {
+                                                        $ok = strtotime($solEm) <= strtotime($prazoSol);
+                                                        $badge = $ok ? '<span class="label label-success">Solucionado no prazo</span>' : '<span class="label label-important">Solucionado fora do prazo</span>';
+                                                    } elseif ($statusAberto && strtotime($prazoSol) < time()) {
+                                                        $badge = '<span class="label label-important">SLA estourado</span>';
+                                                    } else {
+                                                        $badge = '<span class="label label-warning">Dentro do prazo</span>';
+                                                    }
+                                                ?>
+                                                    <div class="os-campo">
+                                                        <label>Status do SLA</label>
+                                                        <div style="padding-top:6px">
+                                                            <?= $badge ?>
+                                                            <small>Prazo de solução: <?= date('d/m/Y H:i', strtotime($prazoSol)) ?></small>
+                                                        </div>
+                                                    </div>
+                                                <?php endif; ?>
                                             <?php endif; ?>
-                                        <?php endif; ?>
-                                    </div>
-                                    <?php if ($temEquipe): ?>
-                                    <div class="span12" style="padding: 1%; margin-left: 0">
-                                        <div class="span5">
-                                            <label for="equipe_id"><i class='bx bx-group'></i> Equipe designada</label>
-                                            <select class="span12" name="equipe_id" id="equipe_id">
-                                                <option value="">— Nenhuma —</option>
-                                                <?php foreach ($equipesSelect as $eq): ?>
-                                                    <option value="<?= $eq->idEquipe ?>" <?= (isset($result->equipe_id) && $result->equipe_id == $eq->idEquipe) ? 'selected' : '' ?>>
-                                                        <?= html_escape($eq->nome) ?><?= (isset($eq->tipo) && $eq->tipo === 'terceirizada') ? ' (terceirizada)' : '' ?>
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            </select>
+                                            <?php if ($temEquipe): ?>
+                                                <div class="os-campo os-col-2">
+                                                    <label for="equipe_id">Equipe designada</label>
+                                                    <select name="equipe_id" id="equipe_id">
+                                                        <option value="">— Nenhuma —</option>
+                                                        <?php foreach ($equipesSelect as $eq): ?>
+                                                            <option value="<?= $eq->idEquipe ?>" <?= (isset($result->equipe_id) && $result->equipe_id == $eq->idEquipe) ? 'selected' : '' ?>>
+                                                                <?= html_escape($eq->nome) ?><?= (isset($eq->tipo) && $eq->tipo === 'terceirizada') ? ' (terceirizada)' : '' ?>
+                                                            </option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                </div>
+                                                <?php if ($verCusto): ?>
+                                                    <div class="os-campo">
+                                                        <label for="custo_equipe">Custo da equipe (R$)</label>
+                                                        <input type="text" id="custo_equipe" name="custo_equipe" placeholder="0,00" inputmode="decimal" value="<?= isset($result->custo_equipe) ? number_format((float) $result->custo_equipe, 2, ',', '') : '' ?>">
+                                                        <small>Valor pago à equipe/terceiro por esta OS.</small>
+                                                    </div>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
                                         </div>
-                                        <?php if ($verCusto): ?>
-                                            <div class="span3">
-                                                <label for="custo_equipe">Custo da equipe (R$)</label>
-                                                <input type="text" class="span12" id="custo_equipe" name="custo_equipe" placeholder="0,00" value="<?= isset($result->custo_equipe) ? number_format((float) $result->custo_equipe, 2, ',', '') : '' ?>">
-                                                <small style="color:#888">Valor pago à equipe/terceiro por esta OS.</small>
-                                            </div>
-                                        <?php endif; ?>
                                     </div>
-                                    <?php endif; ?>
                                     <?php endif; ?>
 
-                                    <div class="span6" style="padding: 1%; margin-left: 0">
-                                        <label for="tipo_servico"><h4>Tipo de serviço</h4></label>
-                                        <select class="span12" name="tipo_servico" id="tipo_servico">
-                                            <option value="">Não informado</option>
-                                            <?php $this->load->helper('tipo_servico'); foreach (tipos_servico() as $k => $t) { ?>
-                                                <option value="<?= $k ?>"<?= (($result->tipo_servico ?? '') === $k) ? ' selected' : '' ?>><?= html_escape($t['rotulo']) ?></option>
-                                            <?php } ?>
-                                        </select>
-                                    </div>
-                                    <div class="span6" style="padding: 1%; margin-left: 0">
-                                        <label for="descricaoProduto"><h4>Descrição Produto/Serviço</h4></label>
-                                        <textarea class="span12 editor" name="descricaoProduto" id="descricaoProduto" cols="30" rows="5"><?php echo $result->descricaoProduto ?></textarea>
-                                    </div>
-                                    <div class="span6" style="padding: 1%; margin-left: 0">
-                                        <label for="defeito"><h4>Defeito</h4></label>
-                                        <textarea class="span12 editor" name="defeito" id="defeito" cols="30" rows="5"><?php echo $result->defeito ?></textarea>
-                                    </div>
-                                    <div class="span6" style="padding: 1%; margin-left: 0">
-                                        <label for="observacoes"><h4>Observações</h4></label>
-                                        <textarea class="span12 editor" name="observacoes" id="observacoes" cols="30" rows="5"><?php echo $result->observacoes ?></textarea>
-                                    </div>
-                                    <div class="span6" style="padding: 1%; margin-left: 0">
-                                        <label for="laudoTecnico"><h4>Laudo Técnico</h4></label>
-                                        <textarea class="span12 editor" name="laudoTecnico" id="laudoTecnico" cols="30" rows="5"><?php echo $result->laudoTecnico ?></textarea>
-                                    </div>
-                                    <div class="span12" style="padding: 0; margin-left: 0">
-                                        <div class="span6 offset3" style="display:flex;justify-content: center">
-                                            <button class="button btn btn-primary" id="btnContinuar"><span class="button__icon"><i class="bx bx-sync"></i></span><span class="button__text2">Atualizar</span></button>
-                                            <a href="<?php echo base_url() ?>index.php/os" class="button btn btn-mini btn-warning"><span class="button__icon"><i class="bx bx-undo"></i></span> <span class="button__text2">Voltar</span></a>
+                                    <div class="os-card">
+                                        <h3 class="os-card-titulo"><i class="bx bx-detail"></i> Descrição e diagnóstico</h3>
+                                        <div class="os-editores">
+                                            <div class="os-campo">
+                                                <label for="descricaoProduto">Descrição do produto/serviço</label>
+                                                <textarea class="editor" name="descricaoProduto" id="descricaoProduto" rows="5"><?php echo $result->descricaoProduto ?></textarea>
+                                            </div>
+                                            <div class="os-campo">
+                                                <label for="defeito">Defeito relatado</label>
+                                                <textarea class="editor" name="defeito" id="defeito" rows="5"><?php echo $result->defeito ?></textarea>
+                                            </div>
+                                            <div class="os-campo">
+                                                <label for="observacoes">Observações</label>
+                                                <textarea class="editor" name="observacoes" id="observacoes" rows="5"><?php echo $result->observacoes ?></textarea>
+                                            </div>
+                                            <div class="os-campo">
+                                                <label for="laudoTecnico">Laudo técnico</label>
+                                                <textarea class="editor" name="laudoTecnico" id="laudoTecnico" rows="5"><?php echo $result->laudoTecnico ?></textarea>
+                                            </div>
                                         </div>
+                                    </div>
+
+                                    <div class="os-acoes">
+                                        <a href="<?php echo base_url() ?>index.php/os" class="btn btn-warning"><i class="bx bx-undo"></i> Voltar</a>
+                                        <button type="submit" class="btn btn-primary" id="btnContinuar"><i class="bx bx-sync"></i> Atualizar</button>
                                     </div>
                                 </form>
                             </div>
@@ -1234,6 +1245,12 @@
                     text: "Termo de garantia removido"
                 });
             }
+        });
+
+        // Barra de abas rola ate a aba escolhida (celular)
+        $('.os-abas-wrap > .nav-tabs a[data-toggle="tab"]').on('shown', function () {
+            var ul = this.closest('.nav-tabs'), li = this.parentNode;
+            if (ul && ul.scrollWidth > ul.clientWidth) { ul.scrollLeft = li.offsetLeft - (ul.clientWidth - li.offsetWidth) / 2; }
         });
 
         $("#formOs").validate({
