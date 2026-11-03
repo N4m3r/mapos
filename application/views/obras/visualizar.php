@@ -1134,7 +1134,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                 <textarea name="atividades" id="reg_atividades" class="span12" rows="4" placeholder="Descreva a atividade executada..." required></textarea>
             </div>
             <div class="span12" style="margin-left:0"><label>Fotos (opcional)</label>
-                <input type="file" accept="image/*" multiple id="regFotos" capture="environment">
+                <input type="file" accept="image/*" multiple id="regFotos">
                 <div id="regFotosHidden"></div><div id="regFotosPrev" class="obra-fotos-prev"></div>
             </div>
         </div>
@@ -1211,7 +1211,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
             <div class="span3"><label>Canal</label><input type="text" class="span12" name="canal" id="pt_canal" maxlength="10" pattern="[A-Za-z]{0,3} ?[0-9]{1,4}" title="Número do canal, ex.: 5 ou D5"></div>
             <div class="span3"><label>Porta</label><input type="text" class="span12" name="porta" id="pt_porta" maxlength="30"></div>
             <div class="span12" style="margin-left:0"><label for="pt_etiqueta">Foto da etiqueta (preenche modelo e série)</label>
-                <input type="file" id="pt_etiqueta" accept="image/*" capture="environment" data-foto-compacta data-foto-nome="fotos_etiqueta[]" data-etiqueta data-etiqueta-modelo="#pt_modelo" data-etiqueta-serie="#pt_serie">
+                <input type="file" id="pt_etiqueta" accept="image/*" data-foto-compacta data-foto-nome="fotos_etiqueta[]" data-etiqueta data-etiqueta-modelo="#pt_modelo" data-etiqueta-serie="#pt_serie">
             </div>
             <div class="span6" style="margin-left:0"><label>Modelo</label><input type="text" class="span12" name="modelo" id="pt_modelo" maxlength="80"></div>
             <div class="span6"><label>Série / MAC</label><input type="text" class="span12" name="serie" id="pt_serie" maxlength="60"></div>
@@ -1306,7 +1306,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
             <div class="span12" style="margin-left:0"><label>Atividades executadas</label><textarea class="span12" name="atividades" rows="3"></textarea></div>
             <div class="span6" style="margin-left:0"><label>Ocorrências</label><textarea class="span12" name="ocorrencias" rows="2"></textarea></div>
             <div class="span6"><label>Observações</label><textarea class="span12" name="observacoes" rows="2"></textarea></div>
-            <div class="span12" style="margin-left:0"><label>Fotos</label><input type="file" accept="image/*" multiple id="rdoFotos" capture="environment"><div id="rdoFotosHidden"></div><div id="rdoFotosPrev" class="obra-fotos-prev"></div></div>
+            <div class="span12" style="margin-left:0"><label>Fotos</label><input type="file" accept="image/*" multiple id="rdoFotos"><div id="rdoFotosHidden"></div><div id="rdoFotosPrev" class="obra-fotos-prev"></div></div>
         </div>
         <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Registrar</span></button></div>
     </form>
