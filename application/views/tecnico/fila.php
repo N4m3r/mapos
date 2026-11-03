@@ -87,7 +87,7 @@ $cartao = function ($it, $minha) use ($executores, $uidAtual, $status_lista, $ti
 
         <?php if ($urlFoto): ?>
             <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
-                <a href="<?= html_escape($urlFoto) ?>" target="_blank" rel="noopener">
+                <a href="<?= html_escape($urlFoto) ?>" target="_blank" rel="noopener" data-lightbox="fila">
                     <img src="<?= html_escape($urlFoto) ?>" loading="lazy" alt="Foto do equipamento" style="width:100%;max-width:280px;height:160px;object-fit:cover;border-radius:8px;border:1px solid var(--tec-line, #ccc);">
                 </a>
                 <?php if ($qtdFotos > 1): ?><small style="color:var(--tec-muted, #666);">+<?= $qtdFotos - 1 ?> foto(s)</small><?php endif; ?>

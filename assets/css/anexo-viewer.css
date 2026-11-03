@@ -8,6 +8,20 @@
 #modal-anexo .av-prev{left:0}#modal-anexo .av-next{right:0}
 #modal-anexo .av-count{display:inline-block;margin-right:10px;color:#666;font-size:13px}
 #modal-anexo .av-count:empty{display:none}
+/* Desktop/tablet (>768px): modal acompanha o tamanho da janela em vez dos 560px fixos do Bootstrap 2 */
+@media (min-width:769px){
+ #modal-anexo.modal{width:min(1100px,92vw);margin-left:calc(min(1100px,92vw) / -2);top:3vh}
+ #modal-anexo.modal.fade.in{top:3vh}
+ #modal-anexo .modal-body{max-height:calc(94vh - 130px);overflow:auto}
+ #modal-anexo #div-visualizar-anexo img.av-img{max-height:calc(94vh - 170px);width:auto;height:auto}
+ #modal-anexo #div-visualizar-anexo.av-zoom{overflow:auto;max-height:calc(94vh - 160px)}
+ #modal-anexo #div-visualizar-anexo.av-zoom img.av-img{max-width:none;max-height:none;width:200%}
+}
+/* Miniaturas de anexos: nunca estouram o container */
+a.anexo img,.anexo-thumb img{max-width:100%;height:auto;object-fit:cover}
+@media (max-width:768px){
+ a.anexo{min-height:0!important}
+}
 @media (max-width:768px){
  #modal-anexo.modal{position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:100%!important;height:100vh;height:100dvh;margin:0!important;border:0;border-radius:0;background:#000;overflow:hidden;transform:none!important}
  #modal-anexo.modal.fade,#modal-anexo.modal.fade.in{top:0!important}

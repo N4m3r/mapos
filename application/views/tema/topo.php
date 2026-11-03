@@ -80,6 +80,8 @@
     window.BaseUrl = "<?= base_url() ?>";
   </script>
     <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
+    <link rel="stylesheet" href="<?= base_url('assets/css/anexo-lightbox.css') ?>?v=<?= asset_versao('assets/css/anexo-lightbox.css') ?>">
+    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/anexo-lightbox.js') ?>?v=<?= asset_versao('assets/js/anexo-lightbox.js') ?>" defer></script>
 </head>
 
 <body data-theme="<?= html_escape($configuration['app_theme'] ?: 'white') ?>">

@@ -96,7 +96,7 @@ $batidasRef = $batidas_ref ?? [];
             <?php endif; ?>
             <div style="font-size:13px;margin-top:4px"><?= nl2br(htmlspecialchars($o->descricao)) ?></div>
             <?php if (! empty($o->anexo_base64)): ?>
-                <a href="<?= site_url('colaborador/anexo/ocorrencia/'.$o->id) ?>" target="_blank" style="font-size:12px">Ver anexo</a>
+                <a href="<?= site_url('colaborador/anexo/ocorrencia/'.$o->id) ?>" target="_blank" data-lightbox="ocorrencias" style="font-size:12px">Ver anexo</a>
             <?php endif; ?>
             <?php if ($o->resposta): ?><div style="font-size:12px;color:var(--tec-success, #065f46);margin-top:4px">RH: <?= htmlspecialchars($o->resposta) ?></div><?php endif; ?>
         </div>

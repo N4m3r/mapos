@@ -51,7 +51,7 @@ $podeAprovar = $this->permission->checkPermission($this->session->userdata('perm
                     <td><?= $periodo ?></td>
                     <td><?= (int) $a->dias ?></td>
                     <td><?= html_escape($a->motivo) ?></td>
-                    <td><?= ! empty($a->anexo_base64) ? '<a href="'.site_url('rh/anexo/ausencia/'.(int) $a->id).'" target="_blank" rel="noopener">ver anexo</a>' : '-' ?></td>
+                    <td><?= ! empty($a->anexo_base64) ? '<a href="'.site_url('rh/anexo/ausencia/'.(int) $a->id).'" target="_blank" rel="noopener" data-lightbox="rh-ausencias">ver anexo</a>' : '-' ?></td>
                     <td><span class="ui-selo <?= $corStatus[$a->status] ?? 'neutro' ?>"><?= html_escape($rotStatus[$a->status] ?? ucfirst($a->status)) ?></span></td>
                     <td><?php if ($a->status==='pendente' && $podeAprovar): ?>
                         <a href="#modal-analise-a" role="button" data-toggle="modal" class="btn btn-mini btn-success" data-chamar="analisarA" data-args="<?= html_escape(json_encode([$dadosModal])) ?>">Analisar</a>
@@ -74,7 +74,7 @@ $podeAprovar = $this->permission->checkPermission($this->session->userdata('perm
                 <div><span>Tipo</span><strong id="ana-tipo"></strong></div>
                 <div><span>Período</span><strong id="ana-periodo"></strong></div>
                 <div><span>Motivo</span><strong id="ana-motivo" class="rh-texto-livre"></strong></div>
-                <div id="ana-anexo-box"><span>Anexo</span><a id="ana-anexo" href="#" target="_blank" rel="noopener">Abrir anexo</a></div>
+                <div id="ana-anexo-box"><span>Anexo</span><a id="ana-anexo" href="#" target="_blank" rel="noopener" data-lightbox="rh-ana">Abrir anexo</a></div>
             </div>
             <label for="ana-resposta">Resposta ao colaborador <small>(obrigatória para recusar)</small></label>
             <textarea name="resposta" id="ana-resposta" rows="2" class="span12"></textarea>

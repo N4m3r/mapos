@@ -168,7 +168,7 @@ foreach ($os_servicos as $ms) {
                         $urlFoto = site_url('obras/fotoPonto/' . (int) $capa->idFoto);
                     ?>
                         <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
-                            <a href="<?= html_escape($urlFoto) ?>" target="_blank" rel="noopener">
+                            <a href="<?= html_escape($urlFoto) ?>" target="_blank" rel="noopener" data-lightbox="projeto">
                                 <img src="<?= html_escape($urlFoto) ?>" loading="lazy" alt="Foto do equipamento" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--tec-line, #ccc);">
                             </a>
                             <small style="color:var(--tec-muted, #666);"><i class='bx bx-camera'></i> <?= count($fotosDoPonto) ?> foto(s)</small>
