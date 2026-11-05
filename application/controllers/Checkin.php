@@ -257,6 +257,17 @@ class Checkin extends MY_Controller
             }
         }
 
+        // OS em status terminal nao aceita novo atendimento. A tela esconde o botao,
+        // mas o POST direto chegava aqui e abria check-in numa OS finalizada.
+        if (! isset($os)) {
+            $os = $this->os_model->getById($os_id);
+        }
+        require_once APPPATH . 'helpers/atendimento_regras_helper.php';
+        if ($os && AtendimentoRegras::statusBloqueiaAtendimento($os->status ?? null)) {
+            echo json_encode(['success' => false, 'message' => 'Esta OS já está ' . $os->status . ' e não aceita novo atendimento.']);
+            return;
+        }
+
         // Verifica se já existe check-in ativo
         if ($this->checkin_model->hasCheckinAtivo($os_id)) {
             echo json_encode(['success' => false, 'message' => 'Já existe um atendimento em andamento para esta OS']);

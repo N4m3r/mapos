@@ -35,4 +35,17 @@ class AtendimentoRegrasTest extends TestCase
         $this->assertSame('2026-11-05 08:00:00', AtendimentoRegras::dataAgendamentoReagendada('2026-11-05', '2026-10-01 00:00:00'));
         $this->assertSame('2026-11-05 14:30:00', AtendimentoRegras::dataAgendamentoReagendada('2026-11-05', '2026-10-01 14:30:00'));
     }
+
+    public function testStatusBloqueiaAtendimento(): void
+    {
+        $this->assertTrue(AtendimentoRegras::statusBloqueiaAtendimento('Finalizado'));
+        $this->assertTrue(AtendimentoRegras::statusBloqueiaAtendimento('Faturado'));
+        $this->assertTrue(AtendimentoRegras::statusBloqueiaAtendimento('Cancelado'));
+
+        $this->assertFalse(AtendimentoRegras::statusBloqueiaAtendimento('Aberto'));
+        $this->assertFalse(AtendimentoRegras::statusBloqueiaAtendimento('Em Andamento'));
+        $this->assertFalse(AtendimentoRegras::statusBloqueiaAtendimento('Aprovado'));
+        $this->assertFalse(AtendimentoRegras::statusBloqueiaAtendimento('Aguardando Peças'));
+        $this->assertFalse(AtendimentoRegras::statusBloqueiaAtendimento(null));
+    }
 }

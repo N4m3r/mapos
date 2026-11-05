@@ -188,7 +188,7 @@ class ClientOsController extends REST_Controller
         $this->load->model('Audit_model');
         $log_data = [
             'Usuario' => '[APP]',
-            'tarefa' => 'Cliente ' . $this->logged_client()->usuario->nomeCliente . " Adicionou uma OS Nº ${osId} pelo APP",
+            'tarefa' => 'Cliente ' . $this->logged_client()->usuario->nomeCliente . " Adicionou uma OS Nº {$osId} pelo APP",
             'data' => date('Y-m-d'),
             'hora' => date('H:i:s'),
             'ip' => $_SERVER['REMOTE_ADDR']

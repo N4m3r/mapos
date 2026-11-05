@@ -38,6 +38,15 @@ class AtendimentoRegras
     }
 
     /**
+     * OS em estado terminal nao aceita novo atendimento. A tela esconde o botao,
+     * mas o endpoint precisa recusar o POST direto.
+     */
+    public static function statusBloqueiaAtendimento(?string $status): bool
+    {
+        return in_array($status, ['Finalizado', 'Faturado', 'Cancelado'], true);
+    }
+
+    /**
      * Data/hora de agendamento ao reagendar: nova data + hora do agendamento anterior
      * (se houver), senao 08:00:00.
      */

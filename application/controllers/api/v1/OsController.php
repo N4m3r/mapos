@@ -378,7 +378,7 @@ class OsController extends REST_Controller
         $this->os_model->delete('anexos', 'os_id', $id);
 
         if ((int) $os->faturado === 1) {
-            $this->os_model->delete('lancamentos', 'descricao', "Fatura de OS - #${id}");
+            $this->os_model->delete('lancamentos', 'descricao', "Fatura de OS - #{$id}");
         }
 
         if ($this->os_model->delete('os', 'idOs', $id)) {
