@@ -56,9 +56,9 @@ Também entraram `mobile/` (126 arquivos) e `teste/` (18), com regras de ignore 
 
 **Achado.** `install/do_install.php` importa só `banco.sql`, gera o `.env` e encerra com
 `Instalação bem sucedida` (linha 113). Não executa migration nenhuma: a palavra `migrat` não aparece
-no arquivo. O dump cria 28 tabelas e semeia a versão `20210125173741` (`banco.sql:660`). As 52
-migrations criam 107 tabelas, das quais **81 não existem no dump**, então uma instalação nova fica
-com cerca de um quarto do schema.
+no arquivo. O dump cria 28 tabelas e semeia a versão `20210125173741` (`banco.sql:660`). Das 52
+migrations, 28 criam tabelas: somam 107 no total, das quais **81 não existem no dump**, então uma
+instalação nova fica com cerca de um quarto do schema.
 
 Ficam de fora, entre outras: `os_checkin`, `os_assinaturas`, `os_fotos_atendimento`, `os_avaliacoes`,
 `caixas`, `caixa_movimentos`, `inventarios`, `login_tentativas`, `notas_entrada`,
