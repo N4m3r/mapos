@@ -83,6 +83,10 @@ application/arquivos_fiscais/xml/
 .claude-flow/logs/
 .claude-flow/sessions/
 
+# Configuracao local da ferramenta, nao faz parte do projeto
+/CLAUDE.md
+/.agents/
+
 # Artefatos publicados a partir de mobile/ e capturas geradas em subpasta de teste
 /mobile/*.zip
 /mobile/*.apk
