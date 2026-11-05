@@ -18,6 +18,8 @@ class Clientes_model extends CI_Model
             $this->db->or_like('documento', $where);
             $this->db->or_like('email', $where);
             $this->db->or_like('telefone', $where);
+            $this->db->or_like('celular', $where);
+            $this->db->or_like('contato', $where);
         }
 
         $query = $this->db->get();

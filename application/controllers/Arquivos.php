@@ -180,6 +180,11 @@ class Arquivos extends MY_Controller
         }
 
         $file = $this->arquivos_model->getById($id);
+        if ($file == null || empty($file->path)) {
+            $this->session->set_flashdata('error', 'Erro! O arquivo não pode ser localizado.');
+            redirect(base_url() . 'index.php/arquivos/');
+        }
+
         $this->load->library('zip');
         $path = $file->path;
         $this->zip->read_file($path);
@@ -200,10 +205,16 @@ class Arquivos extends MY_Controller
         }
 
         $file = $this->arquivos_model->getById($id);
+        if ($file == null) {
+            $this->session->set_flashdata('error', 'Erro! O arquivo não pode ser localizado.');
+            redirect(site_url('arquivos'));
+        }
+
         $this->db->where('idDocumentos', $id);
         if ($this->db->delete('documentos')) {
-            $path = $file->path;
-            unlink($path);
+            if (! empty($file->path) && is_file($file->path)) {
+                unlink($file->path);
+            }
             $this->session->set_flashdata('success', 'Arquivo excluido com sucesso!');
             log_info('Removeu um arquivo. ID: ' . $id);
         } else {

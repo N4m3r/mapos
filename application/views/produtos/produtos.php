@@ -27,7 +27,7 @@
     <form class="ui-filtros" method="get" action="<?= base_url() ?>index.php/produtos">
         <div class="ui-campo">
             <label for="pesquisa">Buscar</label>
-            <input type="text" name="pesquisa" id="pesquisa" placeholder="Nome ou código de barras" value="<?=$this->input->get('pesquisa')?>">
+            <input type="text" name="pesquisa" id="pesquisa" placeholder="Nome ou código de barras" value="<?= html_escape($this->input->get('pesquisa')) ?>">
         </div>
         <div class="ui-campo ui-campo-acao">
             <button class="button btn btn-mini btn-warning" title="Buscar" aria-label="Buscar">
@@ -60,8 +60,8 @@
                 foreach ($results as $r) {
                     echo '<tr>';
                     echo '<td>' . $r->idProdutos . '</td>';
-                    echo '<td>' . $r->codDeBarra . '</td>';
-                    echo '<td>' . $r->descricao . '</td>';
+                    echo '<td>' . html_escape($r->codDeBarra) . '</td>';
+                    echo '<td>' . html_escape($r->descricao) . '</td>';
                     echo '<td>' . $r->estoque . '</td>';
                     echo '<td>' . number_format($r->precoVenda, 2, ',', '.') . '</td>';
                     echo '<td>';

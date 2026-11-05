@@ -39,7 +39,7 @@
                     }
                     foreach ($results as $r) {
                         $dataGarantia = date(('d/m/Y'), strtotime($r->dataGarantia));
-                        $textoGarantiaShort = mb_strimwidth(strip_tags($r->textoGarantia), 0, 50, "...");
+                        $textoGarantiaShort = html_escape(mb_strimwidth(strip_tags($r->textoGarantia), 0, 50, "..."));
 
                         echo '<tr>';
                         echo '<td>' . $r->idGarantias . '</td>';

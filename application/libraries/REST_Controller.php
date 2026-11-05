@@ -2211,9 +2211,29 @@ abstract class REST_Controller extends CI_Controller
 
         $this->load->library('Authorization_Token');
         $token = explode(' ', $_SERVER["HTTP_AUTHORIZATION"]);
+        if (! isset($token[1])) {
+            $this->response([
+                'status' => false,
+                'message' => 'Faça o login novamente!',
+            ], REST_Controller::HTTP_UNAUTHORIZED);
+        }
         $decodedToken = (object) $this->authorization_token->validateToken($token[1], $reGenToken);
 
         if (! $reGenToken && ! $decodedToken->status) {
+            $this->response([
+                'status' => false,
+                'message' => 'Faça o login novamente!',
+            ], self::HTTP_FORBIDDEN);
+        }
+
+        // Token de cliente do portal nunca vale como sessão de usuário do
+        // sistema (os ids das duas tabelas são independentes). Tokens antigos
+        // sem 'tipo' só passam se tiverem 'permissao', que só o login de
+        // usuário emite.
+        $claims = isset($decodedToken->data) ? $decodedToken->data : null;
+        $tipoToken = is_object($claims) && isset($claims->tipo) ? $claims->tipo : null;
+        $legadoUsuario = is_object($claims) && property_exists($claims, 'permissao');
+        if ($tipoToken !== 'usuario' && ! ($tipoToken === null && $legadoUsuario)) {
             $this->response([
                 'status' => false,
                 'message' => 'Faça o login novamente!',
@@ -2224,6 +2244,14 @@ abstract class REST_Controller extends CI_Controller
         $this->user = $decodedToken;
         $this->user->usuario = $this->Usuarios_model->getById($decodedToken->data->uid);
         $this->user->level = $decodedToken->data->permissao;
+
+        // Usuário removido/desativado não mantém acesso até o token expirar.
+        if (! $this->user->usuario || (isset($this->user->usuario->situacao) && ! $this->user->usuario->situacao)) {
+            $this->response([
+                'status' => false,
+                'message' => 'Faça o login novamente!',
+            ], self::HTTP_FORBIDDEN);
+        }
 
         return $this->user;
     }
@@ -2246,6 +2274,12 @@ abstract class REST_Controller extends CI_Controller
 
         $this->load->library('Authorization_Token');
         $token = explode(' ', $_SERVER["HTTP_AUTHORIZATION"]);
+        if (! isset($token[1])) {
+            $this->response([
+                'status' => false,
+                'message' => 'Faça o login novamente!',
+            ], REST_Controller::HTTP_UNAUTHORIZED);
+        }
         $decodedToken = (object) $this->authorization_token->validateToken($token[1], $reGenToken);
 
         if (! $reGenToken && ! $decodedToken->status) {
@@ -2255,10 +2289,31 @@ abstract class REST_Controller extends CI_Controller
             ], self::HTTP_FORBIDDEN);
         }
 
+        // Um token de usuário do sistema não abre o portal do cliente: o uid
+        // aponta para outra tabela. Tokens antigos sem 'tipo' são recusados se
+        // tiverem 'permissao', que só o login de usuário emite.
+        $claims = isset($decodedToken->data) ? $decodedToken->data : null;
+        $tipoToken = is_object($claims) && isset($claims->tipo) ? $claims->tipo : null;
+        $legadoUsuario = is_object($claims) && property_exists($claims, 'permissao');
+        if ($tipoToken === 'usuario' || ($tipoToken === null && $legadoUsuario)) {
+            $this->response([
+                'status' => false,
+                'message' => 'Faça o login novamente!',
+            ], self::HTTP_FORBIDDEN);
+        }
+
         $this->load->model('Clientes_model');
         $this->client = $decodedToken;
         $this->client->usuario = $this->Clientes_model->getById($decodedToken->data->uid);
-        
+
+        // Cliente removido não mantém acesso até o token expirar.
+        if (! $this->client->usuario) {
+            $this->response([
+                'status' => false,
+                'message' => 'Faça o login novamente!',
+            ], self::HTTP_FORBIDDEN);
+        }
+
         return $this->client;
     }
 

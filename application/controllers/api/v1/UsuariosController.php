@@ -127,7 +127,11 @@ class UsuariosController extends REST_Controller
             ], REST_Controller::HTTP_BAD_REQUEST);
         }
 
-        if ($this->logged_user()->usuario->idUsuarios != $id) {
+        // Edição do próprio cadastro não exige cUsuario, mas também não pode
+        // alterar permissão/situação (evita escalada de privilégio)
+        $editandoProprioUsuario = $this->logged_user()->usuario->idUsuarios == $id;
+
+        if (! $editandoProprioUsuario) {
             if (! $this->permission->checkPermission($this->logged_user()->level, 'cUsuario')) {
                 $this->response([
                     'status' => false,
@@ -136,19 +140,18 @@ class UsuariosController extends REST_Controller
             }
         }
 
-        if (! $this->put(['nome'], true) ||
-            ! $this->put(['rg'], true) ||
-            ! $this->put(['cpf'], true) ||
-            ! $this->put(['cep'], true) ||
-            ! $this->put(['rua'], true) ||
-            ! $this->put(['numero'], true) ||
-            ! $this->put(['bairro'], true) ||
-            ! $this->put(['cidade'], true) ||
-            ! $this->put(['estado'], true) ||
-            ! $this->put(['email'], true) ||
-            ! $this->put(['telefone'], true) ||
-            ! $this->put(['situacao'], true) ||
-            ! $this->put(['permissoes_id'], true)
+        if (! $this->put('nome', true) ||
+            ! $this->put('rg', true) ||
+            ! $this->put('cpf', true) ||
+            ! $this->put('cep', true) ||
+            ! $this->put('rua', true) ||
+            ! $this->put('numero', true) ||
+            ! $this->put('bairro', true) ||
+            ! $this->put('cidade', true) ||
+            ! $this->put('estado', true) ||
+            ! $this->put('email', true) ||
+            ! $this->put('telefone', true) ||
+            (! $editandoProprioUsuario && (! $this->put('situacao', true) || ! $this->put('permissoes_id', true)))
         ) {
             $this->response([
                 'status' => false,
@@ -156,7 +159,7 @@ class UsuariosController extends REST_Controller
             ], REST_Controller::HTTP_BAD_REQUEST);
         }
 
-        if ($id == 1 && $this->put('situacao', true) == 0) {
+        if (! $editandoProprioUsuario && $id == 1 && $this->put('situacao', true) == 0) {
             $this->response([
                 'status' => false,
                 'message' => 'error', 'O usuário super admin não pode ser desativado!',
@@ -176,21 +179,30 @@ class UsuariosController extends REST_Controller
             'email' => $this->put('email', true),
             'telefone' => $this->put('telefone', true),
             'celular' => $this->put('celular', true),
-            'dataExpiracao' => $this->put('dataExpiracao', true),
-            'situacao' => $this->put('situacao', true),
-            'permissoes_id' => $this->put('permissoes_id', true),
         ];
 
+        // Campos privilegiados só são gravados por quem tem cUsuario editando outro usuário
+        if (! $editandoProprioUsuario) {
+            $data['dataExpiracao'] = $this->put('dataExpiracao', true);
+            $data['situacao'] = $this->put('situacao', true);
+            $data['permissoes_id'] = $this->put('permissoes_id', true);
+        }
+
         if ($this->put('senha', true)) {
-            $data['senha'] = $this->put('senha', true);
+            // O login confere com password_verify: senha gravada em claro tranca o usuário fora.
+            $data['senha'] = password_hash($this->put('senha', true), PASSWORD_DEFAULT);
         }
 
         if ($this->usuarios_model->edit('usuarios', $data, 'idUsuarios', $id)) {
             $this->log_app('Alterou um usuário. ID: ' . $id);
+            $result = $this->usuarios_model->getById($id);
+            if ($result) {
+                unset($result->senha);
+            }
             $this->response([
                 'status' => true,
                 'message' => 'Cliente editado com sucesso!',
-                'result' => $this->usuarios_model->getById($id),
+                'result' => $result,
             ], REST_Controller::HTTP_OK);
         }
 
@@ -302,6 +314,7 @@ class UsuariosController extends REST_Controller
                     'uid' => $user->idUsuarios,
                     'email' => $user->email,
                     'permissao' => $user->permissoes_id,
+                    'tipo' => 'usuario',
                 ];
 
                 $result = [
@@ -346,6 +359,7 @@ class UsuariosController extends REST_Controller
                     'uid' => $user->idUsuarios,
                     'email' => $user->email,
                     'permissao' => $user->permissoes_id,
+                    'tipo' => 'usuario',
                 ];
 
                 $permissoes = $this->getInstanceDatabase('permissoes', '*', 'idPermissao = ' . $user->permissoes_id, 1, true);

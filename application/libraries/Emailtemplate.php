@@ -185,10 +185,10 @@ class Emailtemplate
             // Campos individuais dos blocos da OS (texto), para uso avulso no
             // corpo (ex.: no modelo de Cobrança/Boleto). Cada um respeita o bloco
             // marcado no gatilho; sem restrição, todos são preenchidos.
-            $tags['os_descricao'] = $this->blocoAtivo('dados', $blocos) ? htmlspecialchars_decode((string) $this->prop($os, 'descricaoProduto')) : '';
-            $tags['os_defeito'] = $this->blocoAtivo('defeito', $blocos) ? htmlspecialchars_decode((string) $this->prop($os, 'defeito')) : '';
-            $tags['os_observacoes'] = $this->blocoAtivo('observacoes', $blocos) ? htmlspecialchars_decode((string) $this->prop($os, 'observacoes')) : '';
-            $tags['os_laudo'] = $this->blocoAtivo('laudo', $blocos) ? htmlspecialchars_decode((string) $this->prop($os, 'laudoTecnico')) : '';
+            $tags['os_descricao'] = $this->blocoAtivo('dados', $blocos) ? html_seguro(htmlspecialchars_decode((string) $this->prop($os, 'descricaoProduto'))) : '';
+            $tags['os_defeito'] = $this->blocoAtivo('defeito', $blocos) ? html_seguro(htmlspecialchars_decode((string) $this->prop($os, 'defeito'))) : '';
+            $tags['os_observacoes'] = $this->blocoAtivo('observacoes', $blocos) ? html_seguro(htmlspecialchars_decode((string) $this->prop($os, 'observacoes'))) : '';
+            $tags['os_laudo'] = $this->blocoAtivo('laudo', $blocos) ? html_seguro(htmlspecialchars_decode((string) $this->prop($os, 'laudoTecnico'))) : '';
 
             $produtos = $this->blocoAtivo('produtos', $blocos) ? ($context['produtos'] ?? []) : [];
             $servicos = $this->blocoAtivo('servicos', $blocos) ? ($context['servicos'] ?? []) : [];
@@ -254,7 +254,7 @@ class Emailtemplate
                 continue;
             }
             if ($conteudo !== null && trim((string) $conteudo) !== '') {
-                $html .= '<h2>' . $titulo . '</h2><p>' . htmlspecialchars_decode((string) $conteudo) . '</p>';
+                $html .= '<h2>' . $titulo . '</h2><p>' . html_seguro(htmlspecialchars_decode((string) $conteudo)) . '</p>';
             }
         }
 

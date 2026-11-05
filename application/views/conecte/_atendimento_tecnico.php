@@ -121,7 +121,9 @@ $rotulosAssinatura = [
                     <h6 style="color:#2d335b; margin:16px 0 8px"><i class="bx bx-pen"></i> Assinaturas</h6>
                     <div class="row-fluid">
                         <?php foreach ($assinaturasValidas as $tipo => $a) {
-                            $imgSrc = (isset($a->is_base64) && $a->is_base64) ? $a->url_visualizacao : base_url($a->assinatura); ?>
+                            // URL do portal: a rota administrativa de assinatura exige
+                            // sessão de usuário, que o cliente logado não tem.
+                            $imgSrc = site_url('mine/assinaturaAtendimento/' . (int) $a->idAssinatura); ?>
                             <div class="span4" style="text-align:center; margin-bottom:12px">
                                 <div style="border:1px solid #e2e6ef; border-radius:6px; padding:8px; background:#fafafa; min-height:90px; display:flex; align-items:center; justify-content:center">
                                     <img src="<?= html_escape($imgSrc) ?>" alt="Assinatura" style="max-width:100%; max-height:90px">

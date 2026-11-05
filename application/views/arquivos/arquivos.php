@@ -18,15 +18,15 @@
         <form class="ui-filtros" method="get" action="<?= current_url(); ?>">
             <div class="ui-campo">
                 <label for="pesquisa">Nome do documento</label>
-                <input type="text" name="pesquisa" id="pesquisa" placeholder="Digite o nome do documento" value="<?= $this->input->get('pesquisa') ?>">
+                <input type="text" name="pesquisa" id="pesquisa" placeholder="Digite o nome do documento" value="<?= html_escape($this->input->get('pesquisa')) ?>">
             </div>
             <div class="ui-campo">
                 <label for="data">Enviado de</label>
-                <input type="text" name="data" id="data" placeholder="Data inicial" class="datepicker" value="<?= $this->input->get('data') ?>">
+                <input type="text" name="data" id="data" placeholder="Data inicial" class="datepicker" value="<?= html_escape($this->input->get('data')) ?>">
             </div>
             <div class="ui-campo">
                 <label for="data2">Enviado até</label>
-                <input type="text" name="data2" id="data2" placeholder="Data final" class="datepicker" value="<?= $this->input->get('data2') ?>">
+                <input type="text" name="data2" id="data2" placeholder="Data final" class="datepicker" value="<?= html_escape($this->input->get('data2')) ?>">
             </div>
             <div class="ui-campo ui-campo-acao">
                 <button class="button btn btn-mini btn-warning" title="Buscar" aria-label="Buscar"><span class="button__icon"><i class='bx bx-search-alt'></i></span><span class="button__text2">Buscar</span></button>

@@ -128,7 +128,7 @@ if (!$results) { ?>
                     }
                         echo '<tr>';
                         echo '<td>' . $r->idVendas . '</td>';
-                        echo '<td>' . $r->nome . '</td>';
+                        echo '<td>' . html_escape($r->nome) . '</td>';
                         echo '<td>' . $dataVenda . '</td>';
                         echo '<td><span class="badge" style="background-color: ' . $corGarantia . '; border-color: ' . $corGarantia . '">' . $vencGarantia . '</span> </td>';
                         echo '<td>' . $faturado . '</td>';

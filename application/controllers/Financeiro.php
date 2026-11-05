@@ -26,7 +26,6 @@ class Financeiro extends MY_Controller
             redirect(base_url());
         }
 
-        $where = '';
         $vencimento_de = $this->input->get('vencimento_de') ?: date('d/m/Y');
         $vencimento_ate = $this->input->get('vencimento_ate') ?: date('d/m/Y');
         $cliente = $this->input->get('cliente');
@@ -37,54 +36,55 @@ class Financeiro extends MY_Controller
 
         $periodo = $this->input->get('periodo');
 
+        // Os filtros são montados como condições com os valores escapados: o texto
+        // do usuário nunca entra cru no SQL (os models recebem $where como string).
+        $condicoes = [];
+
         if (! empty($vencimento_de)) {
             $date = DateTime::createFromFormat('d/m/Y', $vencimento_de);
-
-            if (empty($where)) {
-                $dateString = $date->format('Y-m-d');
-                $where = "data_vencimento >= '$dateString'";
-            } else {
-                $where .= " AND data_vencimento >= '$date'";
+            if ($date !== false) {
+                $condicoes[] = "data_vencimento >= '" . $date->format('Y-m-d') . "'";
             }
         }
 
         if (! empty($vencimento_ate)) {
-            $date = DateTime::createFromFormat('d/m/Y', $vencimento_ate)->format('Y-m-d');
-
-            if (empty($where)) {
-                $where = "data_vencimento <= '$date'";
-            } else {
-                $where .= " AND data_vencimento <= '$date'";
+            $date = DateTime::createFromFormat('d/m/Y', $vencimento_ate);
+            if ($date !== false) {
+                $condicoes[] = "data_vencimento <= '" . $date->format('Y-m-d') . "'";
             }
         }
 
         if (isset($status) && $status != '') {
-            if (empty($where)) {
-                $where = "baixado = '$status'";
-            } else {
-                $where .= " AND baixado = '$status'";
-            }
+            $condicoes[] = 'baixado = ' . $this->db->escape($status);
         }
 
         if (! empty($cliente)) {
-            if (empty($where)) {
-                $where = "cliente_fornecedor LIKE '%{$cliente}%'";
-            } else {
-                $where .= " AND cliente_fornecedor LIKE '%{$cliente}%'";
-            }
+            // Curingas escapados com barra invertida, que e o escape padrao do
+            // LIKE no MySQL; escape() depois cuida da aspa e do resto do literal.
+            // escape_like_str() nao serve aqui: ele escapa com '!', que o MySQL
+            // so interpreta com ESCAPE '!', e o padrao sairia literal.
+            $condicoes[] = 'cliente_fornecedor LIKE ' . $this->db->escape('%' . addcslashes($cliente, '%_\\') . '%');
         }
 
         if (! empty($tipo)) {
-            if (empty($where)) {
-                $where = "tipo = '$tipo'";
-            } else {
-                $where .= " AND tipo = '$tipo'";
-            }
+            $condicoes[] = 'tipo = ' . $this->db->escape($tipo);
         }
+
+        $where = implode(' AND ', $condicoes);
 
         $this->load->library('pagination');
 
-        $this->data['configuration']['base_url'] = site_url("financeiro/lancamentos/?vencimento_de=$vencimento_de&vencimento_ate=$vencimento_ate&cliente=$cliente&tipo=$tipo&status=$status&periodo=$periodo");
+        // Valores de GET entram no link de paginação: urlencode antes, senão
+        // um filtro com aspas/quebra de tag injeta HTML na página.
+        $querystring = http_build_query([
+            'vencimento_de' => (string) $vencimento_de,
+            'vencimento_ate' => (string) $vencimento_ate,
+            'cliente' => (string) $cliente,
+            'tipo' => (string) $tipo,
+            'status' => (string) $status,
+            'periodo' => (string) $periodo,
+        ]);
+        $this->data['configuration']['base_url'] = site_url('financeiro/lancamentos/') . '?' . $querystring;
         $this->data['configuration']['total_rows'] = $this->financeiro_model->count('lancamentos', $where);
         $this->data['configuration']['page_query_string'] = true;
 

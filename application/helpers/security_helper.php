@@ -117,5 +117,158 @@ if (! function_exists('encode_php_tags')) {
     }
 }
 
+// ------------------------------------------------------------------------
+
+/**
+ * Tags permitidas na saida de campos ricos, com os atributos de cada uma.
+ */
+function html_seguro_tags()
+{
+    return [
+        'p' => [], 'br' => [], 'strong' => [], 'b' => [], 'em' => [], 'i' => [],
+        'u' => [], 'ol' => [], 'ul' => [], 'li' => [], 'blockquote' => [],
+        'span' => [], 'div' => [],
+        'h1' => [], 'h2' => [], 'h3' => [], 'h4' => [], 'h5' => [], 'h6' => [],
+        'table' => [], 'thead' => [], 'tbody' => [], 'tr' => [],
+        'td' => ['colspan', 'rowspan'], 'th' => ['colspan', 'rowspan'],
+        'a' => ['href', 'title', 'target', 'rel'],
+        'img' => ['src', 'alt', 'width', 'height'],
+    ];
+}
+
+/**
+ * Tags removidas junto com o conteudo (nao adianta manter o texto delas).
+ */
+function html_seguro_tags_proibidas()
+{
+    return [
+        'script', 'style', 'iframe', 'object', 'embed', 'svg', 'math', 'form',
+        'input', 'textarea', 'button', 'select', 'option', 'link', 'meta',
+        'base', 'applet', 'frame', 'frameset', 'noscript', 'template',
+    ];
+}
+
+/**
+ * Devolve a URL quando ela e segura (http, https, mailto, relativa) ou null.
+ */
+function html_seguro_url($url, $permitir_data_imagem = false)
+{
+    $teste = strtolower(preg_replace('/[\x00-\x20\x7F]+/', '', (string) $url));
+    if ($permitir_data_imagem && preg_match('/^data:image\/(png|jpe?g|gif|webp);base64,/', $teste)) {
+        return $url;
+    }
+    if (preg_match('/^(javascript|vbscript|data|file|jar):/', $teste)) {
+        return null;
+    }
+
+    return $url;
+}
+
+/**
+ * Percorre o DOM removendo tags/atributos fora da allowlist.
+ */
+function html_seguro_limpar(DOMNode $no, $tags, $proibidas)
+{
+    if (! $no->hasChildNodes()) {
+        return;
+    }
+    foreach (iterator_to_array($no->childNodes) as $filho) {
+        if ($filho instanceof DOMElement) {
+            $tag = strtolower($filho->nodeName);
+            if (in_array($tag, $proibidas, true)) {
+                $no->removeChild($filho);
+                continue;
+            }
+            if (! isset($tags[$tag])) {
+                // Tag desconhecida: remove a tag e preserva o conteudo.
+                while ($filho->firstChild) {
+                    $no->insertBefore($filho->firstChild, $filho);
+                }
+                $no->removeChild($filho);
+                continue;
+            }
+            foreach (iterator_to_array($filho->attributes) as $attr) {
+                $nome = strtolower($attr->nodeName);
+                if (strpos($nome, 'on') === 0 || ! in_array($nome, $tags[$tag], true)) {
+                    $filho->removeAttribute($attr->nodeName);
+                    continue;
+                }
+                if ($nome === 'href' || $nome === 'src') {
+                    $url = html_seguro_url($attr->nodeValue, $tag === 'img' && $nome === 'src');
+                    if ($url === null) {
+                        $filho->removeAttribute($attr->nodeName);
+                    } else {
+                        $filho->setAttribute($attr->nodeName, $url);
+                    }
+                }
+            }
+            html_seguro_limpar($filho, $tags, $proibidas);
+        } elseif (! ($filho instanceof DOMText)) {
+            // Comentarios e instrucoes de processamento: fora.
+            $no->removeChild($filho);
+        }
+    }
+}
+
+/**
+ * Sanitiza HTML pelos allowlists acima. Devolve string sempre segura.
+ */
+function html_seguro_sanitizar($html)
+{
+    if (! class_exists('DOMDocument')) {
+        return nl2br(html_escape($html));
+    }
+
+    $tags = html_seguro_tags();
+    $proibidas = html_seguro_tags_proibidas();
+    $html = preg_replace('/<\?xml[^>]*>/i', '', (string) $html);
+
+    $anteriores = libxml_use_internal_errors(true);
+    $dom = new DOMDocument('1.0', 'UTF-8');
+    $dom->loadHTML(
+        '<?xml encoding="UTF-8"><div id="html-seguro-raiz">' . $html . '</div>',
+        LIBXML_NODEFDTD
+    );
+
+    $xpath = new DOMXPath($dom);
+    $nos = $xpath->query('//*[@id="html-seguro-raiz"]');
+    $saida = '';
+    if ($nos->length) {
+        $raiz = $nos->item(0);
+        html_seguro_limpar($raiz, $tags, $proibidas);
+        foreach ($raiz->childNodes as $filho) {
+            $saida .= $dom->saveHTML($filho);
+        }
+    }
+    libxml_clear_errors();
+    libxml_use_internal_errors($anteriores);
+
+    return $saida;
+}
+
+/**
+ * Saida segura para campo que pode conter HTML (editor WYSIWYG de OS/garantias).
+ *
+ * Sem tag nenhuma, cai no html_escape — que e o caso comum. Com tag, passa pela
+ * allowlist: mantem a formatacao e remove script, evento e URL perigosa.
+ *
+ * @param   string
+ * @return  string
+ */
+if (! function_exists('html_seguro')) {
+    function html_seguro($valor)
+    {
+        $valor = (string) $valor;
+        if (trim($valor) === '') {
+            return '';
+        }
+        if (! preg_match('/<\s*(?:p|br|strong|b|em|i|u|ol|ul|li|blockquote|span|div|h[1-6]|table|thead|tbody|tr|td|th|a|img)\b/i', $valor)) {
+            return html_escape($valor);
+        }
+
+        return html_seguro_sanitizar($valor);
+    }
+}
+
 /* End of file security_helper.php */
 /* Location: ./system/helpers/security_helper.php */

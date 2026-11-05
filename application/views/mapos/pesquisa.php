@@ -45,7 +45,7 @@
                         foreach ($produtos as $r) {
                             echo '<tr>';
                             echo '<td>' . $r->idProdutos . '</td>';
-                            echo '<td>' . $r->descricao . '</td>';
+                            echo '<td>' . html_escape($r->descricao) . '</td>';
                             echo '<td>' . $r->precoVenda . '</td>';
                             echo '<td>' . $r->estoque . '</td>';
                             echo '<td>';
@@ -93,8 +93,8 @@
                         foreach ($clientes as $r) {
                             echo '<tr>';
                             echo '<td>' . $r->idClientes . '</td>';
-                            echo '<td>' . $r->nomeCliente . '</td>';
-                            echo '<td>' . $r->documento . '</td>';
+                            echo '<td>' . html_escape($r->nomeCliente) . '</td>';
+                            echo '<td>' . html_escape($r->documento) . '</td>';
                             $cor = ($r->fornecedor ? '#CDB380' : '#CD0000');
                             echo '<td><span class="badge" style="background-color: ' . $cor . '; border-color: ' . $cor . '">' . ($r->fornecedor ? 'Fornecedor' : 'Cliente') . '</span> </td>';
                             echo '<td>';
@@ -143,7 +143,7 @@
                     foreach ($servicos as $r) {
                         echo '<tr>';
                         echo '<td>' . $r->idServicos . '</td>';
-                        echo '<td>' . $r->nome . '</td>';
+                        echo '<td>' . html_escape($r->nome) . '</td>';
                         echo '<td>' . $r->preco . '</td>';
                         echo '<td>';
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eServico')) {
@@ -191,8 +191,8 @@
             echo '<tr>';
             echo '<td>' . $r->idOs . '</td>';
             echo '<td>' . $dataInicial . '</td>';
-            echo '<td>' . $r->descricaoProduto . '</td>';
-            echo '<td>' . $r->defeito . '</td>';
+            echo '<td>' . html_seguro($r->descricaoProduto) . '</td>';
+            echo '<td>' . html_seguro($r->defeito) . '</td>';
             echo '<td>';
             if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
                 echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/os/visualizar/' . $r->idOs . '" class="btn-nwe" title="Ver mais detalhes"><i class="bx bx-show"></i></a>';

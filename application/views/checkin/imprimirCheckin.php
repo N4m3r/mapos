@@ -365,7 +365,7 @@
                 <div class="company-info">
                     <?php if ($emitente) { ?>
                         <?php if ($emitente->url_logo) { ?>
-                            <img src="<?php echo $emitente->url_logo; ?>" alt="Logo" style="max-height: 60px; margin-bottom: 10px;">
+                            <img src="<?php echo html_escape($emitente->url_logo); ?>" alt="Logo" style="max-height: 60px; margin-bottom: 10px;">
                         <?php } ?>
                         <div class="company-name"><?php echo html_escape($emitente->nome); ?></div>
                         <div class="company-details">
@@ -421,7 +421,7 @@
                 <div class="info-grid" style="margin-top: 15px;">
                     <div class="info-item" style="flex: 2;">
                         <div class="info-label">Descrição do Produto/Serviço</div>
-                        <div class="info-value"><?php echo strip_tags($os->descricaoProduto); ?></div>
+                        <div class="info-value"><?php echo html_escape(strip_tags($os->descricaoProduto)); ?></div>
                     </div>
                 </div>
             </div>
@@ -608,14 +608,21 @@
                                 <div class="signature-box">
                                     <div class="signature-image">
                                         <?php
-                                        // Verifica se é base64 ou arquivo
-                                        if (isset($assinatura->is_base64) && $assinatura->is_base64) {
-                                            $img_src = $assinatura->url_visualizacao;
+                                        // No portal do cliente a rota administrativa
+                                        // (checkin/verAssinatura) nao abre: a view recebe
+                                        // 'assinaturaUrlBase' apontando para a rota do portal.
+                                        $urlBaseAssinatura = isset($assinaturaUrlBase) ? $assinaturaUrlBase : '';
+                                        if (! empty($assinatura->is_base64)) {
+                                            $img_src = $urlBaseAssinatura !== ''
+                                                ? base_url('index.php/' . $urlBaseAssinatura . $assinatura->idAssinatura)
+                                                : $assinatura->url_visualizacao;
                                         } else {
-                                            $img_src = base_url($assinatura->assinatura);
+                                            $img_src = $urlBaseAssinatura !== ''
+                                                ? base_url('index.php/' . $urlBaseAssinatura . $assinatura->idAssinatura)
+                                                : base_url($assinatura->assinatura);
                                         }
                                         ?>
-                                        <img src="<?php echo $img_src; ?>" alt="Assinatura <?php echo $tipo; ?>">
+                                        <img src="<?php echo html_escape($img_src); ?>" alt="Assinatura <?php echo html_escape($tipo); ?>">
                                     </div>
                                     <div class="signature-label">
                                         <?php
@@ -670,7 +677,7 @@
                                         : $foto->url;
                                 ?>
                                     <div class="photo-item">
-                                        <img src="<?php echo $imgUrl; ?>" alt="Foto de entrada">
+                                        <img src="<?php echo html_escape($imgUrl); ?>" alt="Foto de entrada">
                                         <?php if ($foto->descricao) { ?>
                                             <div class="photo-description"><?php echo html_escape($foto->descricao); ?></div>
                                         <?php } ?>
@@ -692,7 +699,7 @@
                                         : $foto->url;
                                 ?>
                                     <div class="photo-item">
-                                        <img src="<?php echo $imgUrl; ?>" alt="Foto durante atendimento">
+                                        <img src="<?php echo html_escape($imgUrl); ?>" alt="Foto durante atendimento">
                                         <?php if ($foto->descricao) { ?>
                                             <div class="photo-description"><?php echo html_escape($foto->descricao); ?></div>
                                         <?php } ?>
@@ -714,7 +721,7 @@
                                         : $foto->url;
                                 ?>
                                     <div class="photo-item">
-                                        <img src="<?php echo $imgUrl; ?>" alt="Foto de saída">
+                                        <img src="<?php echo html_escape($imgUrl); ?>" alt="Foto de saída">
                                         <?php if ($foto->descricao) { ?>
                                             <div class="photo-description"><?php echo html_escape($foto->descricao); ?></div>
                                         <?php } ?>

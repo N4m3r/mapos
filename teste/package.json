@@ -1,0 +1,13 @@
+{
+  "name": "mapos-teste",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Validação do MAPOS Mobile contra um servidor que replica o contrato da API v1",
+  "scripts": {
+    "test": "node run.mjs"
+  },
+  "dependencies": {
+    "playwright-core": "1.49.1"
+  }
+}

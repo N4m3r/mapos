@@ -148,7 +148,7 @@ if (!$results) {
 
                             echo '<tr>';
                             echo '<td>' . $r->idOs . '</td>';
-                            echo '<td>' . $r->nome . '</td>';
+                            echo '<td>' . html_escape($r->nome) . '</td>';
                             echo '<td>' . $dataInicial . '</td>';
                             echo '<td>' . $dataFinal . '</td>';
                             echo '<td><span class="ui-selo ' . ($corGarantia === "#4d9c79" ? "sucesso" : ($corGarantia === "#f24c6f" ? "perigo" : "")) . '">' . $vencGarantia . '</span> </td>';

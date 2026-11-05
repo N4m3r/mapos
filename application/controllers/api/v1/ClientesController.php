@@ -26,21 +26,20 @@ class ClientesController extends REST_Controller
 
         if (! $id) {
             $search = trim($this->get('search', true));
-            $where = $search ? "nomeCliente LIKE '%{$search}%' OR documento LIKE '%{$search}%' OR telefone LIKE '%{$search}%' OR celular LIKE '%{$search}%' OR email LIKE '%{$search}%' OR contato LIKE '%{$search}%'" : '';
 
-            $perPage = $this->get('perPage', true) ?: 20;
-            $page = $this->get('page', true) ?: 0;
-            $start = $page ? ($perPage * $page) : 0;
+            $perPage = (int) ($this->get('perPage', true) ?: 20);
+            $page = (int) ($this->get('page', true) ?: 0);
+            $start = $page > 0 ? $perPage * $page : 0;
 
-            $clientes = $this->clientes_model->get('clientes', '*', $where, $perPage, $start);
+            // O model aplica o LIKE nas colunas; aqui vai só o termo digitado.
+            $clientes = $this->clientes_model->get('clientes', '*', $search, $perPage, $start);
 
-            if ($clientes) {
-                $this->response([
-                    'status' => true,
-                    'message' => 'Lista de Clientes',
-                    'result' => $clientes,
-                ], REST_Controller::HTTP_OK);
-            }
+            // Lista vazia é resposta válida — o app mostra o estado vazio.
+            $this->response([
+                'status' => true,
+                'message' => 'Lista de Clientes',
+                'result' => is_array($clientes) ? $clientes : [],
+            ], REST_Controller::HTTP_OK);
         }
 
         if ($id && is_numeric($id)) {
@@ -114,11 +113,14 @@ class ClientesController extends REST_Controller
             'fornecedor' => $this->post('fornecedor', true) == true ? 1 : 0,
         ];
 
-        if ($this->clientes_model->add('clientes', $data) == true) {
+        // O insert devolve o id: reler por telefone abria o cliente errado
+        // quando o telefone vinha vazio ou repetido.
+        $idCliente = $this->clientes_model->add('clientes', $data);
+        if ($idCliente) {
             $this->response([
                 'status' => true,
                 'message' => 'Cliente adicionado com sucesso!',
-                'result' => $this->clientes_model->get('clientes', '*', "telefone = '{$data['telefone']}'", 1, 0, true),
+                'result' => $this->clientes_model->getById($idCliente),
             ], REST_Controller::HTTP_CREATED);
         }
 

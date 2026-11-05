@@ -100,7 +100,7 @@
                     <div class="subtitle">DESCRIÇÃO</div>
                     <div class="dados">
                         <div style="text-align: justify;">
-                            <?= htmlspecialchars_decode($result->descricaoProduto) ?>
+                            <?= html_seguro($result->descricaoProduto) ?>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -109,7 +109,7 @@
                     <div class="subtitle">DEFEITO APRESENTADO</div>
                     <div class="dados">
                         <div style="text-align: justify;">
-                            <?= htmlspecialchars_decode($result->defeito) ?>
+                            <?= html_seguro($result->defeito) ?>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -118,7 +118,7 @@
                     <div class="subtitle">OBSERVAÇÕES</div>
                     <div class="dados">
                         <div style="text-align: justify;">
-                            <?= htmlspecialchars_decode($result->observacoes) ?>
+                            <?= html_seguro($result->observacoes) ?>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -127,7 +127,7 @@
 					<div class="subtitle">PARECER TÉCNICO</div>
                     <div class="dados">
                         <div style="text-align: justify;">
-    						<?= htmlspecialchars_decode($result->laudoTecnico) ?>
+    						<?= html_seguro($result->laudoTecnico) ?>
 						</div>
                     </div>
                 <?php endif; ?>
@@ -135,7 +135,7 @@
                 <?php if ($result->garantias_id) : ?>
                     <div class="subtitle">TERMO DE GARANTIA</div>
                     <div class="dados">
-                        <div style="text-align: justify;"><?= htmlspecialchars_decode($result->textoGarantia) ?></div>
+                        <div style="text-align: justify;"><?= html_seguro($result->textoGarantia) ?></div>
                     </div>
                 <?php endif; ?>
 
@@ -411,7 +411,7 @@
                         <div class="subtitle">DESCRIÇÃO</div>
                         <div class="dados">
                             <div>
-                                <?= htmlspecialchars_decode($result->descricaoProduto) ?>
+                                <?= html_seguro($result->descricaoProduto) ?>
                             </div>
                         </div>
                     <?php endif; ?>
@@ -420,7 +420,7 @@
                         <div class="subtitle">DEFEITO APRESENTADO</div>
                         <div class="dados">
                             <div>
-                                <?= htmlspecialchars_decode($result->defeito) ?>
+                                <?= html_seguro($result->defeito) ?>
                             </div>
                         </div>
                     <?php endif; ?>
@@ -429,7 +429,7 @@
                         <div class="subtitle">OBSERVAÇÕES</div>
                         <div class="dados">
                             <div>
-                                <?= htmlspecialchars_decode($result->observacoes) ?>
+                                <?= html_seguro($result->observacoes) ?>
                             </div>
                         </div>
                     <?php endif; ?>
@@ -438,7 +438,7 @@
                         <div class="subtitle">PARECER TÉCNICO</div>
                         <div class="dados">
                             <div>
-                                <?= htmlspecialchars_decode($result->laudoTecnico) ?>
+                                <?= html_seguro($result->laudoTecnico) ?>
                             </div>
                         </div>
                     <?php endif; ?>
@@ -446,7 +446,7 @@
                     <?php if ($result->garantias_id) : ?>
                         <div class="subtitle">TERMO DE GARANTIA</div>
                         <div class="dados">
-                            <div style="text-align: justify;"><?= htmlspecialchars_decode($result->textoGarantia) ?></div>
+                            <div style="text-align: justify;"><?= html_seguro($result->textoGarantia) ?></div>
                         </div>
                     <?php endif; ?>
 

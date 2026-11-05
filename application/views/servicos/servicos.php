@@ -21,7 +21,7 @@
     <form class="ui-filtros" method="get" action="<?= base_url() ?>index.php/servicos">
         <div class="ui-campo">
             <label for="pesquisa">Buscar</label>
-            <input type="text" name="pesquisa" id="pesquisa" placeholder="Nome ou descrição" value="<?=$this->input->get('pesquisa')?>">
+            <input type="text" name="pesquisa" id="pesquisa" placeholder="Nome ou descrição" value="<?= html_escape($this->input->get('pesquisa')) ?>">
         </div>
         <div class="ui-campo ui-campo-acao">
             <button class="button btn btn-mini btn-warning" title="Buscar" aria-label="Buscar">
@@ -52,9 +52,9 @@
                         foreach ($results as $r) {
                             echo '<tr>';
                             echo '<td>' . $r->idServicos . '</td>';
-                            echo '<td>' . $r->nome . '</td>';
+                            echo '<td>' . html_escape($r->nome) . '</td>';
                             echo '<td>' . number_format($r->preco, 2, ',', '.') . '</td>';
-                            echo '<td>' . $r->descricao . '</td>';
+                            echo '<td>' . html_escape($r->descricao) . '</td>';
                             echo '<td>';
                             if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eServico')) {
                                 echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/servicos/editar/' . $r->idServicos . '" class="btn-nwe3" title="Editar Serviço" aria-label="Editar Serviço"><i class="bx bx-edit bx-xs"></i></a>';

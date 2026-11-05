@@ -122,8 +122,8 @@
 
                             echo '<tr>';
                             echo '<td>' . $r->idVendas . '</td>';
-                            echo '<td><a href="' . base_url() . 'index.php/clientes/visualizar/' . $r->idClientes . '">' . $r->nomeCliente . '</a></td>';
-                            echo '<td class="ph1">' . $r->nome . '</td>';
+                            echo '<td><a href="' . base_url() . 'index.php/clientes/visualizar/' . $r->idClientes . '">' . html_escape($r->nomeCliente) . '</a></td>';
+                            echo '<td class="ph1">' . html_escape($r->nome) . '</td>';
                             echo '<td>' . $dataVenda . '</td>';
                             echo '<td class="ph3"><span class="badge" style="background-color: ' . $corGarantia . '; border-color: ' . $corGarantia . '">' . $vencGarantia . '</span> </td>';
 

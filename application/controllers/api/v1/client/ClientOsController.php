@@ -65,20 +65,32 @@ class ClientOsController extends REST_Controller
         }
         
         $data['pix_key'] = $this->CI->db->get_where('configuracoes', ['config' => 'pix_key'])->row_object()->valor;
-        $data['result'] = $this->os_model->getById($this->uri->segment(5));
+        $osId = (int) $this->uri->segment(5);
+        $data['result'] = $this->os_model->getById($osId);
         if (empty($data['result'])) {
             $this->response([
                 'status' => false,
                 'message' => 'Ordem de serviço encontrada'
             ], REST_Controller::HTTP_NOT_FOUND);
         }
-        $os = $this->os_model->getById($this->uri->segment(5));
-        $produtos = $this->os_model->getProdutos($this->uri->segment(5));
-        $servicos = $this->os_model->getServicos($this->uri->segment(5));
-        $anexos = $this->os_model->getAnexos($this->uri->segment(5));
+
+        // IDOR: garante que a OS pertence ao cliente logado ou a um CNPJ vinculado
+        // antes de carregar produtos, serviços e anexos de outro tenant.
+        $permitidos = $this->Conecte_model->getVinculados($clientLogged->usuario->idClientes);
+        if (! in_array((int) $data['result']->clientes_id, $permitidos, true)) {
+            $this->response([
+                'status' => false,
+                'message' => 'Ordem de serviço encontrada'
+            ], REST_Controller::HTTP_NOT_FOUND);
+        }
+
+        $os = $this->os_model->getById($osId);
+        $produtos = $this->os_model->getProdutos($osId);
+        $servicos = $this->os_model->getServicos($osId);
+        $anexos = $this->os_model->getAnexos($osId);
         $emitente = $this->mapos_model->getEmitente();
         $qrCode = $this->os_model->getQrCode(
-            $id,
+            $osId,
             $data['pix_key'],
             $emitente
         );

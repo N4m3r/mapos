@@ -54,11 +54,11 @@ $periodo = $this->input->get('periodo');
         </div>
         <div class="ui-campo">
             <label for="vencimento_de">Vencimento (de)</label>
-            <input id="vencimento_de" type="text" class="datepicker" name="vencimento_de" value="<?= $this->input->get('vencimento_de') ? $this->input->get('vencimento_de') : date('d/m/Y') ?>">
+            <input id="vencimento_de" type="text" class="datepicker" name="vencimento_de" value="<?= html_escape($this->input->get('vencimento_de') ? $this->input->get('vencimento_de') : date('d/m/Y')) ?>">
         </div>
         <div class="ui-campo">
             <label for="vencimento_ate">Vencimento (até)</label>
-            <input id="vencimento_ate" type="text" class="datepicker" name="vencimento_ate" value="<?= $this->input->get('vencimento_ate') ? $this->input->get('vencimento_ate') : date('d/m/Y') ?>">
+            <input id="vencimento_ate" type="text" class="datepicker" name="vencimento_ate" value="<?= html_escape($this->input->get('vencimento_ate') ? $this->input->get('vencimento_ate') : date('d/m/Y')) ?>">
         </div>
         <div class="ui-campo">
             <label for="filtro_tipo">Tipo</label>
@@ -78,7 +78,7 @@ $periodo = $this->input->get('periodo');
         </div>
         <div class="ui-campo">
             <label for="cliente_busca">Cliente/Fornecedor</label>
-            <input id="cliente_busca" type="text" name="cliente" value="<?= $this->input->get('cliente') ?>">
+            <input id="cliente_busca" type="text" name="cliente" value="<?= html_escape($this->input->get('cliente')) ?>">
         </div>
         <div class="ui-campo ui-campo-acao">
             <button type="submit" class="button btn btn-primary">
@@ -135,12 +135,12 @@ $periodo = $this->input->get('periodo');
                             echo '<tr>';
                             echo '<td>' . $r->idLancamentos . '</td>';
                             echo '<td><span class="ui-selo ' . ($r->tipo == 'receita' ? 'sucesso' : 'perigo') . '">' . ucfirst($r->tipo) . '</span></td>';
-                            echo '<td>' . $r->cliente_fornecedor . '</td>';
-                            echo '<td>' . $r->descricao . '</td>';
+                            echo '<td>' . html_escape($r->cliente_fornecedor) . '</td>';
+                            echo '<td>' . html_escape($r->descricao) . '</td>';
                             echo '<td>' . $vencimento . '</td>';
                             echo '<td><span class="ui-selo ' . ($r->baixado == 0 ? 'alerta' : 'sucesso') . '">' . $status . '</span></td>';
-                            echo '<td>' . $r->observacoes . '</td>';
-                            echo '<td>' . $r->forma_pgto . '</td>';
+                            echo '<td>' . html_escape($r->observacoes) . '</td>';
+                            echo '<td>' . html_escape($r->forma_pgto) . '</td>';
                             echo '<td> R$ ' . number_format($r->valor, 2, ',', '.') . '</td>'; //valor total sem o desconto
                             echo  $r->tipo_desconto == "real" ? '<td>' . "R$ ".$r->desconto . '</td>' : ($r->tipo_desconto == "porcento" ? '<td>' . $r->desconto." %" . '</td>' : '<td>' . "0" . '</td>'); // valor do desconto
                             echo $r->valor_desconto != 0 ? '<td> R$ ' . number_format($r->valor_desconto, 2, ',', '.') . '</td>' : '<td> R$ ' . number_format($r->valor, 2, ',', '.') . '</td>'; // valor total  com o desconto
@@ -153,7 +153,7 @@ $periodo = $this->input->get('periodo');
                             }
 
                             if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eLancamento')) {
-                                echo '<a href="#modalEditar" data-toggle="modal" role="button" idLancamento="' . $r->idLancamentos . '" descricao="' . $r->descricao . '" valor="' . $r->valor . '" vencimento="' . date('d/m/Y', strtotime($r->data_vencimento)) . '" pagamento="' . $data_pagamento . '" baixado="' . $r->baixado . '" cliente="' . $r->cliente_fornecedor . '" formaPgto="' . $r->forma_pgto . '" tipo="' . $r->tipo . '" observacoes="' . $r->observacoes . '" descontos_editar="' . $r->desconto . '" valor_desconto_editar="' . $r->desconto . '" usuario="' . $r->nome . '" class="btn-nwe3 editar" title="Editar lançamento" aria-label="Editar lançamento"><i class="bx bx-edit"></i></a>';
+                                echo '<a href="#modalEditar" data-toggle="modal" role="button" idLancamento="' . $r->idLancamentos . '" descricao="' . html_escape($r->descricao) . '" valor="' . $r->valor . '" vencimento="' . date('d/m/Y', strtotime($r->data_vencimento)) . '" pagamento="' . $data_pagamento . '" baixado="' . $r->baixado . '" cliente="' . html_escape($r->cliente_fornecedor) . '" formaPgto="' . html_escape($r->forma_pgto) . '" tipo="' . html_escape($r->tipo) . '" observacoes="' . html_escape($r->observacoes) . '" descontos_editar="' . $r->desconto . '" valor_desconto_editar="' . $r->desconto . '" usuario="' . html_escape($r->nome) . '" class="btn-nwe3 editar" title="Editar lançamento" aria-label="Editar lançamento"><i class="bx bx-edit"></i></a>';
                             }
                             if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dLancamento')) {
                                 echo '<a href="#modalExcluir" data-toggle="modal" role="button" idLancamento="' . $r->idLancamentos . '" class="btn-nwe4 excluir" title="Excluir lançamento" aria-label="Excluir lançamento"><i class="bx bx-trash-alt"></i></a>';
