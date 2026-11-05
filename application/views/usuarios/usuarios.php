@@ -41,7 +41,7 @@
                                 <td><?= html_escape($r->nome) ?></td>
                                 <td><?= html_escape($r->cpf) ?></td>
                                 <td><?= html_escape($r->telefone) ?></td>
-                                <td><?= $r->permissao ?></td>
+                                <td><?= html_escape($r->permissao) ?></td>
                                 <?php
                                 $situacao = ($r->situacao == 1) ? 'Ativo' : 'Inativo';
                                 $situacaoClasse = ($r->situacao == 1) ? 'situacao-ativo' : 'situacao-inativo';

@@ -1,0 +1,16 @@
+{
+  "appId": "br.com.jjferreiras.mapos",
+  "appName": "MAPOS",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}

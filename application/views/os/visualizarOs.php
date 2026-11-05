@@ -286,13 +286,13 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                             <span><i class='bx bxs-business'></i> <b><?php echo html_escape($result->nomeCliente); ?></b></span><br />
                                             <?php if (!empty($result->celular_cliente) || !empty($result->telefone_cliente) || !empty($result->contato_cliente)): ?>
                                                 <span><i class='bx bxs-phone'></i>
-                                                    <?= !empty($result->contato_cliente) ? $result->contato_cliente . ' ' : "" ?>
+                                                    <?= !empty($result->contato_cliente) ? html_escape($result->contato_cliente) . ' ' : "" ?>
                                                     <?php if ($result->celular_cliente == $result->telefone_cliente) { ?>
                                                         <?= html_escape($result->celular_cliente) ?>
                                                     <?php } else { ?>
-                                                        <?= !empty($result->telefone_cliente) ? $result->telefone_cliente : "" ?>
+                                                        <?= !empty($result->telefone_cliente) ? html_escape($result->telefone_cliente) : "" ?>
                                                         <?= !empty($result->celular_cliente) && !empty($result->telefone_cliente) ? ' / ' : "" ?>
-                                                        <?= !empty($result->celular_cliente) ? $result->celular_cliente : "" ?>
+                                                        <?= !empty($result->celular_cliente) ? html_escape($result->celular_cliente) : "" ?>
                                                     <?php } ?>
                                                 </span></br>
                                             <?php endif; ?>
@@ -373,7 +373,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                     <tr>
                                         <td colspan="5">
                                             <b>DESCRIÇÃO: </b>
-                                            <?php echo htmlspecialchars_decode($result->descricaoProduto) ?>
+                                            <?php echo html_seguro($result->descricaoProduto) ?>
                                         </td>
                                     </tr>
                                 <?php } ?>
@@ -382,7 +382,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                     <tr>
                                         <td colspan="5">
                                             <b>DEFEITO APRESENTADO: </b>
-                                            <?php echo htmlspecialchars_decode($result->defeito) ?>
+                                            <?php echo html_seguro($result->defeito) ?>
                                         </td>
                                     </tr>
                                 <?php } ?>
@@ -391,7 +391,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                     <tr>
                                         <td colspan="5">
                                             <b>OBSERVAÇÕES: </b>
-                                            <?php echo htmlspecialchars_decode($result->observacoes) ?>
+                                            <?php echo html_seguro($result->observacoes) ?>
                                         </td>
                                     </tr>
                                 <?php } ?>
@@ -400,7 +400,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                     <tr>
                                         <td colspan="5">
                                             <b>LAUDO TÉCNICO: </b>
-                                            <?php echo htmlspecialchars_decode($result->laudoTecnico) ?>
+                                            <?php echo html_seguro($result->laudoTecnico) ?>
                                         </td>
                                     </tr>
                                 <?php } ?>
@@ -409,7 +409,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                     <tr>
                                         <td colspan="5">
                                             <strong>TERMO DE GARANTIA </strong><br>
-                                            <?php echo htmlspecialchars_decode($result->textoGarantia) ?>
+                                            <?php echo html_seguro($result->textoGarantia) ?>
                                         </td>
                                     </tr>
                                 <?php } ?>
@@ -1836,7 +1836,7 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
             <div class="mobile-os-info">
                 <h4><i class="bx bx-file"></i> OS #<?= sprintf('%04d', $result->idOs) ?></h4>
                 <p><strong>Cliente:</strong> <?= html_escape($result->nomeCliente) ?></p>
-                <p><strong>Status:</strong> <?= $result->status ?></p>
+                <p><strong>Status:</strong> <?= html_escape($result->status) ?></p>
             </div>
 
             <!-- checklist de verificação -->

@@ -112,7 +112,7 @@
                                 <tr>
                                     <td colspan="4"> 
                                             <b>Observações: </b>
-                                        <?php echo htmlspecialchars_decode($result->observacoes_cliente) ?>
+                                        <?php echo html_seguro($result->observacoes_cliente) ?>
                                     </td>
                                 </tr>
                             </tbody>

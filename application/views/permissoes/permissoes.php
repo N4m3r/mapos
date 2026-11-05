@@ -42,7 +42,7 @@
                         }
                         echo '<tr>';
                         echo '<td>' . $r->idPermissao . '</td>';
-                        echo '<td>' . $r->nome . '</td>';
+                        echo '<td>' . html_escape($r->nome) . '</td>';
                         echo '<td>' . date('d/m/Y', strtotime($r->data)) . '</td>';
                         echo '<td><span class="ui-selo ' . ($r->situacao == 1 ? 'sucesso' : 'perigo') . '">' . $situacao . '</span></td>';
                         echo '<td><div class="ui-acoes-linha">

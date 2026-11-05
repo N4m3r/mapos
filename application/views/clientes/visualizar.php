@@ -198,8 +198,8 @@
                         echo '<td>' . $r->idOs . '</td>';
                         echo '<td>' . $dataInicial . '</td>';
                         echo '<td>' . $dataFinal . '</td>';
-                        echo '<td>' . $r->descricaoProduto . '</td>';
-                        echo '<td>' . $r->defeito . '</td>';
+                        echo '<td>' . html_seguro($r->descricaoProduto) . '</td>';
+                        echo '<td>' . html_seguro($r->defeito) . '</td>';
 
                         echo '<td>';
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {

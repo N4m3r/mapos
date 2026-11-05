@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  O NVR e as câmeras Hikvision falam ISAPI por HTTP (sem TLS) na rede local do
+  cliente. O APK precisa abrir esse tráfego; a instalação MAPOS continua em
+  HTTPS, sem exceção.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

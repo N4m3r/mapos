@@ -147,7 +147,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                     </tr>
                                 <?php } else { ?>
                                     <tr>
-                                        <td style="width: 25%"><img src=" <?php echo $emitente->url_logo; ?> " style="max-height: 100px"></td>
+                                        <td style="width: 25%"><img src="<?php echo html_escape($emitente->url_logo); ?>" style="max-height: 100px"></td>
                                         <td>
                                             <span style="font-size: 20px;"><?php echo html_escape($emitente->nome); ?></span></br>
                                             <?php if($emitente->cnpj != "00.000.000/0000-00") { ?><span class="icon"><i class="fas fa-fingerprint" style="margin:5px 1px"></i> <?php echo html_escape($emitente->cnpj); ?></span></br><?php } ?>
@@ -202,7 +202,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                         <tr>
                                             <td>
                                                 <strong>DESCRIÇÃO: </strong><br>
-                                                <?php echo htmlspecialchars_decode($result->descricaoProduto) ?>
+                                                <?php echo html_seguro($result->descricaoProduto) ?>
                                             </td>
                                         </tr>
 
@@ -212,7 +212,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                         <tr>
                                             <td>
                                                 <strong>DEFEITO APRESENTADO: </strong><br>
-                                                <?php echo htmlspecialchars_decode($result->defeito) ?>
+                                                <?php echo html_seguro($result->defeito) ?>
                                             </td>
                                         </tr>
                                     <?php } ?>
@@ -221,7 +221,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                         <tr>
                                             <td>
                                                 <strong>OBSERVAÇÕES: </strong><br>
-                                                <?php echo htmlspecialchars_decode($result->observacoes) ?>
+                                                <?php echo html_seguro($result->observacoes) ?>
                                             </td>
                                         </tr>
                                     <?php } ?>
@@ -230,7 +230,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                         <tr>
                                             <td>
                                                 <strong>LAUDO TÉCNICO: </strong><br>
-                                                <?php echo htmlspecialchars_decode($result->laudoTecnico) ?>
+                                                <?php echo html_seguro($result->laudoTecnico) ?>
                                             </td>
                                         </tr>
                                     <?php } ?>
@@ -239,7 +239,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                         <tr>
                                             <td>
                                                 <strong>TERMO DE GARANTIA </strong><br>
-                                                <?php echo htmlspecialchars_decode($result->textoGarantia) ?>
+                                                <?php echo html_seguro($result->textoGarantia) ?>
                                             </td>
                                         </tr>
                                     <?php } ?>
@@ -263,7 +263,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                             $thumb = $a->url . '/thumbs/' . $a->thumb;
                                             $link = $a->url . '/' . $a->anexo;
                                         }
-                                        echo '<div class="span3" style="min-height: 150px; margin-left: 0"><a style="min-height: 150px;" href="#modal-anexo" imagem="' . $a->idAnexos . '" link="' . $link . '" role="button" class="btn anexo span12" data-toggle="modal"><img src="' . $thumb . '" alt=""></a></div>';
+                                        echo '<div class="span3" style="min-height: 150px; margin-left: 0"><a style="min-height: 150px;" href="#modal-anexo" imagem="' . (int) $a->idAnexos . '" link="' . html_escape($link) . '" role="button" class="btn anexo span12" data-toggle="modal"><img src="' . html_escape($thumb) . '" alt=""></a></div>';
                                     } ?>
                                     </th>
                                 </tbody>
@@ -349,8 +349,8 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                     <?php if ($qrCode) : ?>
                                         <td style="width: 15%; padding-left: 0; text-align:center;">
                                             <img style="margin:0px" src="<?php echo base_url(); ?>assets/img/logo_pix.png" width="48px" alt="QR Code de Pagamento" /></br>
-                                            <img style="margin:6px 0px 0px 0px" width="94px" src="<?= $qrCode ?>" alt="QR Code de Pagamento" /></br>
-                                            <?php echo '<span style="margin:0px;font-size: 80%;text-align:center;">Chave PIX: ' . $chaveFormatada . '</span>';?>
+                                            <img style="margin:6px 0px 0px 0px" width="94px" src="<?php echo html_escape($qrCode); ?>" alt="QR Code de Pagamento" /></br>
+                                            <?php echo '<span style="margin:0px;font-size: 80%;text-align:center;">Chave PIX: ' . html_escape($chaveFormatada) . '</span>';?>
                                         </td>
                                     <?php endif ?>
                                 <?php } ?>
@@ -407,7 +407,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
 <!-- Inicio Modal visualizar anexo -->
 <link rel="stylesheet" href="<?= base_url('assets/css/anexo-viewer.css') ?>?v=<?= asset_versao('assets/css/anexo-viewer.css') ?>">
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/anexo-viewer.js') ?>?v=<?= asset_versao('assets/js/anexo-viewer.js') ?>"></script>
-<div id="modal-anexo" class="modal hide fade" data-excluir-url="<?php echo base_url(); ?>index.php/os/excluirAnexo/" data-download-url="<?php echo base_url(); ?>index.php/os/downloadanexo/" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div id="modal-anexo" class="modal hide fade" data-excluir-url="" data-download-url="<?php echo base_url(); ?>index.php/mine/downloadanexo/" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
         <h3 id="myModalLabel">Visualizar Anexo</h3>

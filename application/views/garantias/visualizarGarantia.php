@@ -94,7 +94,7 @@
                                                 <span>
                                                     <h5>Texto da Garantia</h5>
                                                 </span><br />
-                                                <span><?php echo htmlspecialchars_decode($result->textoGarantia) ?></span><br />
+                                                <span><?php echo html_seguro($result->textoGarantia) ?></span><br />
                                             </li>
                                         </ul>
                                     </td>

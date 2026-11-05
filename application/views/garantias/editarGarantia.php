@@ -42,7 +42,7 @@
                             <label for="textoGarantia">
                                 <h4 class="text-center">Termo de Garantia</h4>
                             </label>
-                            <textarea required class="span10 editor" name="textoGarantia" id="textoGarantia" cols="30" rows="5"><?php echo $result->textoGarantia ?></textarea>
+                            <textarea required class="span10 editor" name="textoGarantia" id="textoGarantia" cols="30" rows="5"><?php echo html_escape($result->textoGarantia) ?></textarea>
                         </div>
                     </div>
 

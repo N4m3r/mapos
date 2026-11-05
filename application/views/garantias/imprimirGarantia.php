@@ -129,7 +129,7 @@
                                             <ul>
                                                 <li>
 
-                                                    <span><?php echo htmlspecialchars_decode($result->textoGarantia) ?></span><br />
+                                                    <span><?php echo html_seguro($result->textoGarantia) ?></span><br />
                                                 </li>
                                             </ul>
                                         </td>

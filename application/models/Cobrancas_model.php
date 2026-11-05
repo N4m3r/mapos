@@ -58,7 +58,10 @@ class Cobrancas_model extends CI_Model
         $binds = [];
         if ($busca !== '') {
             $like = ' AND c.nomeCliente LIKE ?';
-            $binds[] = '%' . $this->db->escape_like_str($busca) . '%';
+            // O bind já é escapado pelo driver: aqui só se prefixa os curingas do
+            // LIKE. escape_like_str() escapa de novo e uma barra invertida na
+            // busca virava padrão errado.
+            $binds[] = '%' . addcslashes($busca, '%_\\') . '%';
         }
 
         // Cobrança ativa (não cancelada) que cobre o documento inteiro / só alguns itens.

@@ -266,19 +266,19 @@
                                         <div class="os-editores">
                                             <div class="os-campo">
                                                 <label for="descricaoProduto">Descrição do produto/serviço</label>
-                                                <textarea class="editor" name="descricaoProduto" id="descricaoProduto" rows="5"><?php echo $result->descricaoProduto ?></textarea>
+                                                <textarea class="editor" name="descricaoProduto" id="descricaoProduto" rows="5"><?php echo html_escape($result->descricaoProduto) ?></textarea>
                                             </div>
                                             <div class="os-campo">
                                                 <label for="defeito">Defeito relatado</label>
-                                                <textarea class="editor" name="defeito" id="defeito" rows="5"><?php echo $result->defeito ?></textarea>
+                                                <textarea class="editor" name="defeito" id="defeito" rows="5"><?php echo html_escape($result->defeito) ?></textarea>
                                             </div>
                                             <div class="os-campo">
                                                 <label for="observacoes">Observações</label>
-                                                <textarea class="editor" name="observacoes" id="observacoes" rows="5"><?php echo $result->observacoes ?></textarea>
+                                                <textarea class="editor" name="observacoes" id="observacoes" rows="5"><?php echo html_escape($result->observacoes) ?></textarea>
                                             </div>
                                             <div class="os-campo">
                                                 <label for="laudoTecnico">Laudo técnico</label>
-                                                <textarea class="editor" name="laudoTecnico" id="laudoTecnico" rows="5"><?php echo $result->laudoTecnico ?></textarea>
+                                                <textarea class="editor" name="laudoTecnico" id="laudoTecnico" rows="5"><?php echo html_escape($result->laudoTecnico) ?></textarea>
                                             </div>
                                         </div>
                                     </div>

@@ -24,7 +24,7 @@
         <div class="ui-campo">
             <label for="pesquisa">Buscar</label>
             <input type="text" name="pesquisa" id="pesquisa"
-                placeholder="Nome, documento, e-mail ou telefone" value="<?= $this->input->get('pesquisa') ?>">
+                placeholder="Nome, documento, e-mail ou telefone" value="<?= html_escape($this->input->get('pesquisa')) ?>">
         </div>
         <div class="ui-campo ui-campo-acao">
             <button class="button btn btn-mini btn-warning" title="Buscar" aria-label="Buscar">
@@ -59,12 +59,12 @@
                     foreach ($results as $r) {
                         echo '<tr>';
                         echo '<td>' . $r->idClientes . '</td>';
-                        echo '<td><a href="' . base_url() . 'index.php/clientes/visualizar/' . $r->idClientes . '" style="margin-right: 1%">' . $r->nomeCliente . '</a></td>';
-                        echo '<td>' . $r->contato . '</td>';
-                        echo '<td>' . $r->documento . '</td>';
-                        echo '<td>' . $r->telefone . '</td>';
-                        echo '<td>' . $r->celular . '</td>';
-                        echo '<td>' . $r->email . '</td>';
+                        echo '<td><a href="' . base_url() . 'index.php/clientes/visualizar/' . $r->idClientes . '" style="margin-right: 1%">' . html_escape($r->nomeCliente) . '</a></td>';
+                        echo '<td>' . html_escape($r->contato) . '</td>';
+                        echo '<td>' . html_escape($r->documento) . '</td>';
+                        echo '<td>' . html_escape($r->telefone) . '</td>';
+                        echo '<td>' . html_escape($r->celular) . '</td>';
+                        echo '<td>' . html_escape($r->email) . '</td>';
 
                         // Verifica se é Fornecedor ou Cliente
                         if ($r->fornecedor == 1) {

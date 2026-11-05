@@ -1578,18 +1578,33 @@ class Os extends MY_Controller
 
     public function adicionarAnotacao()
     {
+        // Anotação compõe o histórico da OS: exige a mesma permissão de edição.
+        $this->exigirEdicaoOs();
+
+        $osId = $this->input->post('os_id');
+        if (! $osId || ! is_numeric($osId)) {
+            return $this->output->set_content_type('application/json')->set_status_header(400)
+                ->set_output(json_encode(['result' => false, 'mensagem' => 'OS inválida.']));
+        }
+
         $this->load->library('form_validation');
         if ($this->form_validation->run('anotacoes_os') == false) {
             echo json_encode(validation_errors());
         } else {
+            // Só grava anotação em OS existente.
+            if ($this->db->where('idOs', (int) $osId)->count_all_results('os') === 0) {
+                return $this->output->set_content_type('application/json')->set_status_header(404)
+                    ->set_output(json_encode(['result' => false, 'mensagem' => 'OS não encontrada.']));
+            }
+
             $data = [
                 'anotacao' => '[' . $this->session->userdata('nome_admin') . '] ' . $this->input->post('anotacao'),
                 'data_hora' => date('Y-m-d H:i:s'),
-                'os_id' => $this->input->post('os_id'),
+                'os_id' => (int) $osId,
             ];
 
             if ($this->os_model->add('anotacoes_os', $data) == true) {
-                log_info('Adicionou anotação a uma OS. ID (OS): ' . $this->input->post('os_id'));
+                log_info('Adicionou anotação a uma OS. ID (OS): ' . $osId);
                 echo json_encode(['result' => true]);
             } else {
                 echo json_encode(['result' => false]);
@@ -1599,10 +1614,26 @@ class Os extends MY_Controller
 
     public function excluirAnotacao()
     {
+        // Excluir anotação altera o histórico da OS: exige permissão de edição.
+        $this->exigirEdicaoOs();
+
         $id = $this->input->post('idAnotacao');
         $idOs = $this->input->post('idOs');
 
-        if ($this->os_model->delete('anotacoes_os', 'idAnotacoes', $id) == true) {
+        if (! $id || ! is_numeric($id) || ! $idOs || ! is_numeric($idOs)) {
+            return $this->output->set_content_type('application/json')->set_status_header(400)
+                ->set_output(json_encode(['result' => false, 'mensagem' => 'Anotação ou OS inválida.']));
+        }
+
+        // A anotação precisa pertencer à OS informada (não exclui histórico de outra OS).
+        $anotacao = $this->db->select('idAnotacoes, os_id')->where('idAnotacoes', (int) $id)
+            ->get('anotacoes_os')->row();
+        if (! $anotacao || (int) $anotacao->os_id !== (int) $idOs) {
+            return $this->output->set_content_type('application/json')->set_status_header(404)
+                ->set_output(json_encode(['result' => false, 'mensagem' => 'Anotação não encontrada nesta OS.']));
+        }
+
+        if ($this->os_model->delete('anotacoes_os', 'idAnotacoes', (int) $id) == true) {
             log_info('Removeu anotação de uma OS. ID (OS): ' . $idOs);
             echo json_encode(['result' => true]);
         } else {

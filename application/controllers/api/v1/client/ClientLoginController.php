@@ -56,6 +56,7 @@ class ClientLoginController extends REST_Controller
             'uid' => $cliente->idClientes,
             'nome' => $cliente->nomeCliente,
             'email' => $cliente->email,
+            'tipo' => 'cliente',
         ];
 
         $result = [

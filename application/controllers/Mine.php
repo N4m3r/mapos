@@ -27,7 +27,12 @@ class Mine extends CI_Controller
      */
     private function clientesPermitidos()
     {
-        return $this->Conecte_model->getVinculados($this->session->userdata('cliente_id'));
+        $clienteId = (int) $this->session->userdata('cliente_id');
+        if (! $clienteId) {
+            return []; // falha fechada: sem cliente na sessao, nenhum dado do portal
+        }
+
+        return $this->Conecte_model->getVinculados($clienteId);
     }
 
     public function sair()
@@ -363,7 +368,11 @@ class Mine extends CI_Controller
                 ];
             }
 
-            if ($this->Conecte_model->edit('clientes', $data, 'idClientes', $this->input->post('idClientes')) == true) {
+            // O id vem do formulário: editar sempre o próprio cadastro (nunca outro
+            // cliente do portal, nem outro CNPJ vinculado) para não sobrescrever
+            // nome, e-mail e senha de terceiros.
+            $idCliente = (int) $this->session->userdata('cliente_id');
+            if ($this->Conecte_model->edit('clientes', $data, 'idClientes', $idCliente) == true) {
                 $this->session->set_flashdata('success', 'Dados editados com sucesso!');
                 redirect(base_url() . 'index.php/mine/conta');
             } else {
@@ -758,6 +767,77 @@ class Mine extends CI_Controller
         Fotosatendimento_model::enviarFoto($bin);
     }
 
+    /**
+     * Assinatura do atendimento para o portal do cliente: so sai se a OS da
+     * assinatura for do cliente logado (ou de um cliente vinculado). A rota
+     * administrativa (checkin/verAssinatura) exige sessao de usuario e o
+     * cliente do portal nao tem, por isso nao serve aqui. Senao, 404.
+     */
+    public function assinaturaAtendimento($assinatura_id = null)
+    {
+        if (! session_id() || ! $this->session->userdata('conectado') || ! (int) $assinatura_id) {
+            show_404();
+        }
+        if (! $this->db->table_exists('os_assinaturas')) {
+            show_404();
+        }
+        $this->load->model('assinaturas_model');
+        $assinatura = $this->assinaturas_model->getById((int) $assinatura_id);
+        if (! $assinatura || empty($assinatura->assinatura)) {
+            show_404();
+        }
+        $os = $this->db->select('clientes_id')->where('idOs', (int) $assinatura->os_id)->get('os')->row();
+        if (! $os || ! in_array((int) $os->clientes_id, array_map('intval', $this->clientesPermitidos()), true)) {
+            show_404();
+        }
+
+        if (! empty($assinatura->is_base64)) {
+            $base64 = preg_replace('/\s+/', '', substr((string) $assinatura->assinatura, 7)); // remove "BASE64:"
+            $mime = 'image/png';
+            if (preg_match('/^data:(image\/[\w+.-]+);base64,/', $base64, $m)) {
+                $mime = $m[1];
+                $base64 = substr($base64, strlen($m[0]));
+            }
+            $dados = base64_decode($base64, false);
+            if ($dados === false || $dados === '') {
+                show_404();
+            }
+            if ($mime === 'image/png' && function_exists('finfo_buffer')) {
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $detectado = finfo_buffer($finfo, $dados);
+                finfo_close($finfo);
+                if (in_array($detectado, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true)) {
+                    $mime = $detectado;
+                }
+            }
+
+            header('Content-Type: ' . $mime);
+            header('Content-Length: ' . strlen($dados));
+            header('X-Content-Type-Options: nosniff');
+            header('Cache-Control: private, max-age=86400');
+            echo $dados;
+            exit;
+        }
+
+        // Arquivo em disco: so dentro da pasta de assinaturas, nunca um caminho arbitrario.
+        $caminho = realpath($assinatura->assinatura);
+        $base = realpath('assets/assinaturas');
+        if (! $caminho || ! $base || strpos(str_replace('\\', '/', $caminho), str_replace('\\', '/', $base) . '/') !== 0 || ! is_file($caminho)) {
+            show_404();
+        }
+        $mime = function_exists('mime_content_type') ? mime_content_type($caminho) : 'image/png';
+        if (strpos((string) $mime, 'image/') !== 0) {
+            show_404();
+        }
+
+        header('Content-Type: ' . $mime);
+        header('Content-Length: ' . filesize($caminho));
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, max-age=86400');
+        readfile($caminho);
+        exit;
+    }
+
     public function visualizarOs($id = null)
     {
         if (! session_id() || ! $this->session->userdata('conectado')) {
@@ -771,26 +851,31 @@ class Mine extends CI_Controller
         $this->CI = &get_instance();
         $this->CI->load->database();
 
+        $osId = is_numeric($id) ? (int) $id : (int) $this->uri->segment(3);
+
         $data['pix_key'] = $this->CI->db->get_where('configuracoes', ['config' => 'pix_key'])->row_object()->valor;
-        $data['result'] = $this->os_model->getById($this->uri->segment(3));
-        $data['produtos'] = $this->os_model->getProdutos($this->uri->segment(3));
-        $data['servicos'] = $this->os_model->getServicos($this->uri->segment(3));
-        $data['anexos'] = $this->os_model->getAnexos($this->uri->segment(3));
+        $data['result'] = $this->os_model->getById($osId);
+        if (! $data['result']) {
+            $this->session->set_flashdata('error', 'OS não encontrada ou não pertence ao cliente logado.');
+            redirect('mine/painel');
+        }
+        if (! in_array((int) $data['result']->idClientes, $this->clientesPermitidos(), true)) {
+            $this->session->set_flashdata('error', 'Esta OS não pertence ao cliente logado.');
+            redirect('mine/painel');
+        }
+
+        $data['produtos'] = $this->os_model->getProdutos($osId);
+        $data['servicos'] = $this->os_model->getServicos($osId);
+        $data['anexos'] = $this->os_model->getAnexos($osId);
         $data['emitente'] = $this->mapos_model->getEmitente();
         $data['qrCode'] = $this->os_model->getQrCode(
-            $id,
+            $osId,
             $data['pix_key'],
             $data['emitente']
         );
         $data['chaveFormatada'] = formatar_chave_pix($data['pix_key']);
 
-        if (! in_array($data['result']->idClientes, $this->clientesPermitidos())) {
-            $this->session->set_flashdata('error', 'Esta OS não pertence ao cliente logado.');
-            redirect('mine/painel');
-        }
-
         // Notas fiscais e boletos vinculados à OS (abas de fácil acesso).
-        $osId = $this->uri->segment(3);
         $data['notasFiscais'] = [];
         $data['boletosPorNota'] = [];
         if ($this->db->table_exists('notas_fiscais')) {
@@ -899,7 +984,7 @@ class Mine extends CI_Controller
             redirect('mine');
         }
 
-        $id = $id ?: $this->uri->segment(3);
+        $id = (int) ($id ?: $this->uri->segment(3));
         $this->load->model('os_model');
         $this->load->model('mapos_model');
         $this->load->model('clientes_model');
@@ -941,6 +1026,7 @@ class Mine extends CI_Controller
             'assinaturas' => $assinaturasPorTipo,
             'fotosPorEtapa' => $fotosPorEtapa,
             'respostasPorEtapa' => $respostasPorEtapa,
+            'assinaturaUrlBase' => 'mine/assinaturaAtendimento/',
             'titulo' => 'Relatório de Atendimento - OS #' . sprintf('%04d', $id),
         ]);
     }
@@ -967,9 +1053,19 @@ class Mine extends CI_Controller
         $this->data['custom_error'] = '';
         $this->load->model('mapos_model');
         $this->load->model('os_model');
-        $data['result'] = $this->os_model->getById($this->uri->segment(3));
-        $data['produtos'] = $this->os_model->getProdutos($this->uri->segment(3));
-        $data['servicos'] = $this->os_model->getServicos($this->uri->segment(3));
+        $data['result'] = is_numeric($id) ? $this->os_model->getById((int) $id) : null;
+        if (! $data['result']) {
+            $this->session->set_flashdata('error', 'OS não encontrada ou não pertence ao cliente logado.');
+            redirect('mine/painel');
+        }
+        if (! in_array((int) $data['result']->idClientes, $this->clientesPermitidos(), true)) {
+            $this->session->set_flashdata('error', 'Esta OS não pertence ao cliente logado.');
+            redirect('mine/painel');
+        }
+
+        $id = (int) $id;
+        $data['produtos'] = $this->os_model->getProdutos($id);
+        $data['servicos'] = $this->os_model->getServicos($id);
         $data['emitente'] = $this->mapos_model->getEmitente();
         $data['pix_key'] = $this->db->get_where('configuracoes', ['config' => 'pix_key'])->row_object()->valor;
         $data['qrCode'] = $this->os_model->getQrCode(
@@ -978,11 +1074,6 @@ class Mine extends CI_Controller
             $data['emitente']
         );
         $data['chaveFormatada'] = formatar_chave_pix($data['pix_key']);
-
-        if (! in_array($data['result']->idClientes, $this->clientesPermitidos())) {
-            $this->session->set_flashdata('error', 'Esta OS não pertence ao cliente logado.');
-            redirect('mine/painel');
-        }
 
         $this->load->view('conecte/imprimirOs', $data);
     }
@@ -1001,21 +1092,26 @@ class Mine extends CI_Controller
         $this->load->model('os_model');
         $this->load->model('vendas_model');        
 
-        $data['result'] = $this->vendas_model->getById($this->uri->segment(3));
-        $data['produtos'] = $this->vendas_model->getProdutos($this->uri->segment(3));
+        $compraId = is_numeric($id) ? (int) $id : (int) $this->uri->segment(3);
+        $data['result'] = $this->vendas_model->getById($compraId);
+        if (! $data['result']) {
+            $this->session->set_flashdata('error', 'Venda não encontrada ou não pertence ao cliente logado.');
+            redirect('mine/painel');
+        }
+        if (! in_array((int) $data['result']->clientes_id, $this->clientesPermitidos(), true)) {
+            $this->session->set_flashdata('error', 'Esta venda não pertence ao cliente logado.');
+            redirect('mine/painel');
+        }
+
+        $data['produtos'] = $this->vendas_model->getProdutos($compraId);
         $data['emitente'] = $this->mapos_model->getEmitente();
         $data['pix_key'] = $this->CI->db->get_where('configuracoes', ['config' => 'pix_key'])->row_object()->valor;
         $data['qrCode'] = $this->vendas_model->getQrCode(
-            $id,
+            $compraId,
             $data['pix_key'],
             $data['emitente']
         );
         $data['chaveFormatada'] = formatar_chave_pix($data['pix_key']);
-
-        if (! in_array($data['result']->clientes_id, $this->clientesPermitidos())) {
-            $this->session->set_flashdata('error', 'Esta OS não pertence ao cliente logado.');
-            redirect('mine/painel');
-        }
 
         $data['output'] = 'conecte/visualizar_compra';
 
@@ -1035,20 +1131,25 @@ class Mine extends CI_Controller
         $this->load->model('vendas_model');
         $this->load->model('os_model');
 
-        $data['result'] = $this->vendas_model->getById($id);
-        $data['produtos'] = $this->vendas_model->getProdutos($id);
+        $compraId = is_numeric($id) ? (int) $id : 0;
+        $data['result'] = $this->vendas_model->getById($compraId);
+        if (! $data['result']) {
+            $this->session->set_flashdata('error', 'Venda não encontrada ou não pertence ao cliente logado.');
+            redirect('mine/painel');
+        }
+        if (! in_array((int) $data['result']->clientes_id, $this->clientesPermitidos(), true)) {
+            $this->session->set_flashdata('error', 'Esta venda não pertence ao cliente logado.');
+            redirect('mine/painel');
+        }
+
+        $data['produtos'] = $this->vendas_model->getProdutos($compraId);
         $data['emitente'] = $this->mapos_model->getEmitente();
 
         $this->CI = &get_instance();
         $this->CI->load->database();
         $data['pix_key'] = $this->CI->db->get_where('configuracoes', ['config' => 'pix_key'])->row_object()->valor;
-        $data['qrCode'] = $this->vendas_model->getQrCode($id, $data['pix_key'], $data['emitente']);
+        $data['qrCode'] = $this->vendas_model->getQrCode($compraId, $data['pix_key'], $data['emitente']);
         $data['chaveFormatada'] = formatar_chave_pix($data['pix_key']);
-
-        if (! in_array($data['result']->clientes_id, $this->clientesPermitidos())) {
-            $this->session->set_flashdata('error', 'Esta venda não pertence ao cliente logado.');
-            redirect('mine/painel');
-        }
 
         $this->load->view('conecte/imprimirVenda', $data);
     }
@@ -1236,8 +1337,19 @@ class Mine extends CI_Controller
             redirect('mine');
         }
         if ($id != null && is_numeric($id)) {
-            $this->db->where('idAnexos', $id);
-            $file = $this->db->get('anexos', 1)->row();
+            // IDOR: só permite baixar anexos de OS pertencentes ao cliente logado
+            // (ou a um CNPJ vinculado), evitando leitura de arquivos de outro tenant.
+            $this->db->select('anexos.*, os.clientes_id');
+            $this->db->from('anexos');
+            $this->db->join('os', 'os.idOs = anexos.os_id', 'left');
+            $this->db->where('anexos.idAnexos', (int) $id);
+            $this->db->limit(1);
+            $file = $this->db->get()->row();
+
+            if (! $file || ! in_array((int) $file->clientes_id, $this->clientesPermitidos(), true)) {
+                $this->session->set_flashdata('error', 'Anexo não encontrado ou não pertence ao cliente logado.');
+                redirect('mine/painel');
+            }
 
             $this->load->library('zip');
             $path = $file->path;

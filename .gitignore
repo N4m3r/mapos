@@ -53,3 +53,37 @@ application/arquivos_fiscais/xml/
 # Memoria do ruflo/claude-flow (ADRs indexados)
 /.swarm/
 /.claude/memory.db
+
+# MAPOS Mobile (app React/Vite) — build, dependências e cópia publicada
+/mobile/node_modules/
+/mobile/dist/
+/mobile-app/
+/mapos-mobile-app.zip
+/mapos-mobile.apk
+/teste/node_modules/
+/teste/artefatos/
+
+# Projeto Android (Capacitor): o código-fonte é versionado, os artefatos não
+/mobile/android/.gradle/
+/mobile/android/build/
+/mobile/android/app/build/
+/mobile/android/local.properties
+/mobile/android/.idea/
+/mobile/android/app/src/main/assets/public/
+/mobile/android/app/src/main/assets/capacitor.config.json
+/mobile/android/app/src/main/assets/capacitor.plugins.json
+/mobile/android/app/src/main/assets/cordova.js
+/mobile/android/app/src/main/assets/cordova_plugins.js
+/mobile/android/capacitor-cordova-android-plugins/
+
+# Ruflo local secrets and runtime data
+.env
+.env.*.local
+.claude-flow/data/
+.claude-flow/logs/
+.claude-flow/sessions/
+
+# Artefatos publicados a partir de mobile/ e capturas geradas em subpasta de teste
+/mobile/*.zip
+/mobile/*.apk
+/teste/teste/

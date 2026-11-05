@@ -37,7 +37,7 @@ $this->load->view('tecnico/_topo', [
                     <div class="ti-nr-motivo"><strong>Motivo:</strong> <?= html_escape($oc->motivo_texto) ?></div>
                 <?php endif; ?>
                 <?php if (!empty($oc->observacao)): ?>
-                    <div class="ti-nr-motivo"><?= character_limiter(strip_tags($oc->observacao), 120) ?></div>
+                    <div class="ti-nr-motivo"><?= html_escape(character_limiter(strip_tags($oc->observacao), 120)) ?></div>
                 <?php endif; ?>
                 <div class="ti-os-lin"><i class='bx bx-time'></i> <span>Registrado em <?= !empty($oc->data_registro) ? date('d/m/Y H:i', strtotime($oc->data_registro)) : '--' ?></span></div>
                 <div class="ti-os-acoes">

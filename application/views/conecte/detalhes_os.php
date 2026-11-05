@@ -77,22 +77,22 @@
 
                                 <div class="span12" style="padding: 1%; margin-left: 0">
                                     <label for="descricaoProduto">Descrição Produto/Serviço</label>
-                                    <textarea class="span12 editor" name="descricaoProduto" id="descricaoProduto" cols="30" rows="5" disabled><?php echo $result->descricaoProduto; ?></textarea>
+                                    <textarea class="span12 editor" name="descricaoProduto" id="descricaoProduto" cols="30" rows="5" disabled><?php echo html_escape($result->descricaoProduto); ?></textarea>
                                 </div>
 
                                 <div class="span12" style="padding: 1%; margin-left: 0">
                                     <label for="defeito">Defeito</label>
-                                    <textarea class="span12 editor" name="defeito" id="defeito" cols="30" rows="5" disabled><?php echo $result->defeito; ?></textarea>
+                                    <textarea class="span12 editor" name="defeito" id="defeito" cols="30" rows="5" disabled><?php echo html_escape($result->defeito); ?></textarea>
                                 </div>
 
                                 <div class="span12" style="padding: 1%; margin-left: 0">
                                     <label for="observacoes">Observações</label>
-                                    <textarea class="span12 editor" name="observacoes" id="observacoes" cols="30" rows="5" disabled><?php echo $result->observacoes; ?></textarea>
+                                    <textarea class="span12 editor" name="observacoes" id="observacoes" cols="30" rows="5" disabled><?php echo html_escape($result->observacoes); ?></textarea>
                                 </div>
 
                                 <div class="span12" style="padding: 1%; margin-left: 0">
                                     <label for="laudoTecnico">Laudo Técnico</label>
-                                    <textarea class="span12 editor" name="laudoTecnico" id="laudoTecnico" cols="30" rows="5" disabled><?php echo $result->laudoTecnico; ?></textarea>
+                                    <textarea class="span12 editor" name="laudoTecnico" id="laudoTecnico" cols="30" rows="5" disabled><?php echo html_escape($result->laudoTecnico); ?></textarea>
                                 </div>
 
                             </div>

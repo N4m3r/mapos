@@ -51,9 +51,10 @@ class OsController extends REST_Controller
         }
 
         if (! $id) {
-            $perPage = $this->get('perPage', true) ?: 20;
-            $page = $this->get('page', true) ? ($this->get('page', true) * $perPage) : 0;
-            $start = $page ? ($perPage * $page) : 0;
+            $perPage = (int) ($this->get('perPage', true) ?: 20);
+            $page = (int) ($this->get('page', true) ?: 0);
+            // Página 0-based: o offset é página × tamanho, uma vez só.
+            $start = $page > 0 ? $perPage * $page : 0;
 
             $oss = $this->os_model->getOs(
                 'os',
@@ -62,7 +63,7 @@ class OsController extends REST_Controller
                 COALESCE((SELECT SUM(servicos_os.preco * servicos_os.quantidade ) FROM servicos_os WHERE servicos_os.os_id = os.idOs), 0) totalServicos',
                 $where_array,
                 $perPage,
-                $page
+                $start
             );
 
             $this->response([
@@ -72,21 +73,13 @@ class OsController extends REST_Controller
             ], REST_Controller::HTTP_OK);
         }
 
-        $os = $this->os_model->getById($id);
-        $os->produtos = $this->os_model->getProdutos($id);
-        $os->servicos = $this->os_model->getServicos($id);
-        $os->anexos = $this->os_model->getAnexos($id);
-        $os->anotacoes = $this->os_model->getAnotacoes($id);
-        $os->calcTotal = $this->calcTotal($id);
-        unset($os->senha);
-
-        // Montando texto para whatsapp
-        if ($return = $this->os_model->valorTotalOS($id)) {
-            $totalProdutos = $return['totalProdutos'];
-            $totalServico = $return['totalServico'];
+        $os = $this->detalheDaOs($id);
+        if (! $os) {
+            $this->response([
+                'status' => false,
+                'message' => 'Essa OS não existe',
+            ], REST_Controller::HTTP_NOT_FOUND);
         }
-
-        $os->textoWhatsApp = $this->criarTextoWhats($os, $totalProdutos, $totalServico);
 
         $this->response([
             'status' => true,
@@ -236,7 +229,6 @@ class OsController extends REST_Controller
 
         $dataInicial = $this->put('dataInicial', true);
         $dataFinal = $this->put('dataFinal', true);
-        $termoGarantiaId = $this->put('termoGarantia', true);
 
         try {
             $dataInicial = explode('/', $dataInicial);
@@ -248,8 +240,6 @@ class OsController extends REST_Controller
             } else {
                 $dataFinal = date('Y/m/d');
             }
-
-            $termoGarantiaId = (! $termoGarantiaId == null || ! $termoGarantiaId == '') ? $this->put('garantias_id') : null;
         } catch (Exception $e) {
             $dataInicial = date('Y/m/d');
             $dataFinal = date('Y/m/d');
@@ -261,14 +251,25 @@ class OsController extends REST_Controller
             'usuarios_id' => $this->put('usuarios_id', true),
             'dataFinal' => $dataFinal,
             'garantia' => $this->put('garantia', true),
-            'garantias_id' => $termoGarantiaId,
             'descricaoProduto' => $this->put('descricaoProduto', true),
             'defeito' => $this->put('defeito', true),
             'status' => $this->put('status', true),
             'observacoes' => $this->put('observacoes', true),
             'laudoTecnico' => $this->put('laudoTecnico', true),
-            'faturado' => 0,
         ];
+
+        // Vínculo com o termo de garantia: só é gravado quando o cliente envia
+        // o campo. Antes, toda edição pelo app gravava NULL e apagava o termo.
+        $corpo = $this->put();
+        if (is_array($corpo) && array_key_exists('garantias_id', $corpo)) {
+            $data['garantias_id'] = $this->put('garantias_id');
+        } elseif (is_array($corpo) && array_key_exists('termoGarantia', $corpo)) {
+            $data['garantias_id'] = $this->put('termoGarantia');
+        }
+
+        // `faturado` não é campo do formulário: preservar o valor atual em vez
+        // de desfaturar a OS a cada edição.
+        $data['faturado'] = $os->faturado;
 
         if (strtolower($this->put('status')) == 'cancelado' && strtolower($os->status) != 'cancelado') {
             $this->devolucaoEstoque($id);
@@ -317,7 +318,7 @@ class OsController extends REST_Controller
             $this->response([
                 'status' => true,
                 'message' => 'OS editada com sucesso!',
-                'result' => $os,
+                'result' => $this->detalheDaOs($id),
             ], REST_Controller::HTTP_OK);
         }
 
@@ -330,7 +331,7 @@ class OsController extends REST_Controller
     public function index_delete($id)
     {
         $this->logged_user();
-        if (! $this->permission->checkPermission($this->logged_user()->level, 'dServico')) {
+        if (! $this->permission->checkPermission($this->logged_user()->level, 'dOs')) {
             $this->response([
                 'status' => false,
                 'message' => 'Você não está autorizado a Apagar OS!',
@@ -396,6 +397,9 @@ class OsController extends REST_Controller
 
     public function desconto_post($id)
     {
+        $this->logged_user();
+        $this->exigirEdicaoOs($id);
+
         if (empty($this->post('desconto', true)) || empty($this->post('valor_desconto', true))) {
             $this->response([
                 'status' => false,
@@ -435,6 +439,7 @@ class OsController extends REST_Controller
     public function produtos_post($id)
     {
         $this->logged_user();
+        $this->exigirEdicaoOs($id);
 
         $_POST = (array) json_decode(trim(file_get_contents('php://input')));
         $_POST['idOsProduto'] = $id;
@@ -499,6 +504,8 @@ class OsController extends REST_Controller
     public function produtos_put($id, $idProdutos_os)
     {
         $this->logged_user();
+        $this->exigirEdicaoOs($id);
+
         if (! $id || ! $idProdutos_os) {
             $this->response([
                 'status' => false,
@@ -506,7 +513,7 @@ class OsController extends REST_Controller
             ], REST_Controller::HTTP_BAD_REQUEST);
         }
 
-        $ddAntigo = $this->Api_model->getRowById('produtos_os', 'idProdutos_os', $idProdutos_os);
+        $ddAntigo = $this->exigirItemDaOs('produtos_os', 'idProdutos_os', $idProdutos_os, $id);
 
         $subTotal = $this->put('preco', true) * $this->put('quantidade', true);
 
@@ -544,22 +551,9 @@ class OsController extends REST_Controller
     public function produtos_delete($id, $idProdutos_os)
     {
         $this->logged_user();
-        $os = $this->os_model->getById($id);
-        if ($os == null) {
-            $this->response([
-                'status' => false,
-                'message' => 'Não foi possível excluir o Produto da OS.',
-            ], REST_Controller::HTTP_BAD_REQUEST);
-        }
+        $this->exigirEdicaoOs($id);
 
-        $ddAntigo = $this->Api_model->getRowById('produtos_os', 'idProdutos_os', $idProdutos_os);
-
-        if (! $ddAntigo) {
-            $this->response([
-                'status' => false,
-                'message' => 'Não foi encontrado esse Produto na OS.',
-            ], REST_Controller::HTTP_BAD_REQUEST);
-        }
+        $ddAntigo = $this->exigirItemDaOs('produtos_os', 'idProdutos_os', $idProdutos_os, $id);
 
         if ($this->os_model->delete('produtos_os', 'idProdutos_os', $idProdutos_os)) {
             $this->produtoEstoque($ddAntigo->produtos_id, $ddAntigo->quantidade, '+', $id);
@@ -587,6 +581,8 @@ class OsController extends REST_Controller
     public function servicos_post($id)
     {
         $this->logged_user();
+        $this->exigirEdicaoOs($id);
+
         $_POST = (array) json_decode(trim(file_get_contents('php://input')));
         $_POST['idOsServico'] = $id;
 
@@ -640,6 +636,8 @@ class OsController extends REST_Controller
     public function servicos_put($id, $idServicos_os)
     {
         $this->logged_user();
+        $this->exigirEdicaoOs($id);
+
         if (! $id || ! $idServicos_os) {
             $this->response([
                 'status' => false,
@@ -647,7 +645,7 @@ class OsController extends REST_Controller
             ], REST_Controller::HTTP_BAD_REQUEST);
         }
 
-        $ddAntigo = $this->Api_model->getRowById('servicos_os', 'idServicos_os', $idServicos_os);
+        $ddAntigo = $this->exigirItemDaOs('servicos_os', 'idServicos_os', $idServicos_os, $id);
 
         $subTotal = $this->put('preco', true) * $this->put('quantidade', true);
 
@@ -678,7 +676,10 @@ class OsController extends REST_Controller
     public function servicos_delete($id, $idServicos_os)
     {
         $this->logged_user();
-        if ($this->os_model->delete('servicos_os', 'idServicos_os', $idServicos_os)) {
+        $this->exigirEdicaoOs($id);
+        $this->exigirItemDaOs('servicos_os', 'idServicos_os', $idServicos_os, $id);
+
+        if ($this->os_model->delete('servicos_os', 'idServicos_os', (int) $idServicos_os)) {
             $this->log_app('Removeu Serviço de uma OS. ID (OS): ' . $id);
             $this->CI = &get_instance();
             $this->CI->load->database();
@@ -703,6 +704,7 @@ class OsController extends REST_Controller
     public function anotacoes_post($id)
     {
         $this->logged_user();
+        $this->exigirEdicaoOs($id);
 
         $_POST = (array) json_decode(trim(file_get_contents('php://input')));
         $_POST['os_id'] = $id;
@@ -747,7 +749,10 @@ class OsController extends REST_Controller
     public function anotacoes_delete($id, $idAnotacao)
     {
         $this->logged_user();
-        if ($this->os_model->delete('anotacoes_os', 'idAnotacoes', $idAnotacao)) {
+        $this->exigirEdicaoOs($id);
+        $this->exigirItemDaOs('anotacoes_os', 'idAnotacoes', $idAnotacao, $id);
+
+        if ($this->os_model->delete('anotacoes_os', 'idAnotacoes', (int) $idAnotacao)) {
             $this->log_app('Removeu anotação de uma OS. ID (OS): ' . $id);
 
             $this->response([
@@ -764,6 +769,26 @@ class OsController extends REST_Controller
 
     public function anexos_post($id)
     {
+        $this->logged_user();
+
+        if (! $this->permission->checkPermission($this->logged_user()->level, 'eOs')) {
+            $this->response([
+                'status' => false,
+                'message' => 'Você não está autorizado a Adicionar Anexos a uma OS!',
+            ], REST_Controller::HTTP_UNAUTHORIZED);
+        }
+
+        // Garante que o id da URL é numérico (evita path traversal no nome do diretório)
+        // e só cria os diretórios se a OS existir de fato
+        $id = (int) $id;
+
+        if (! $this->os_model->getById($id)) {
+            $this->response([
+                'status' => false,
+                'message' => 'Essa OS não existe',
+            ], REST_Controller::HTTP_NOT_FOUND);
+        }
+
         $this->load->library('upload');
         $this->load->library('image_lib');
 
@@ -864,11 +889,21 @@ class OsController extends REST_Controller
     public function anexos_delete($id, $idAnexo)
     {
         $this->logged_user();
+
+        if (! $this->permission->checkPermission($this->logged_user()->level, 'eOs')) {
+            $this->response([
+                'status' => false,
+                'message' => 'Você não está autorizado a Excluir Anexos de uma OS!',
+            ], REST_Controller::HTTP_UNAUTHORIZED);
+        }
+
+        $id = (int) $id;
+
         if ($idAnexo != null && is_numeric($idAnexo)) {
             $this->db->where('idAnexos', $idAnexo);
             $file = $this->db->get('anexos', 1)->row();
 
-            if ($file->os_id == $id) {
+            if ($file && $file->os_id == $id) {
                 unlink($file->path . DIRECTORY_SEPARATOR . $file->anexo);
 
                 if ($file->thumb != null) {
@@ -890,6 +925,37 @@ class OsController extends REST_Controller
             'status' => false,
             'message' => 'Erro ao tentar excluir anexo.',
         ], REST_Controller::HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * OS completa: dados da linha mais produtos, serviços, anexos, anotações,
+     * total calculado e texto de WhatsApp. Usada pelo GET de detalhe e pelo PUT,
+     * para que editar não devolva um objeto parcial (que apagava seções na tela).
+     */
+    private function detalheDaOs($id)
+    {
+        $os = $this->os_model->getById($id);
+        if (! $os) {
+            return null;
+        }
+
+        $os->produtos = $this->os_model->getProdutos($id);
+        $os->servicos = $this->os_model->getServicos($id);
+        $os->anexos = $this->os_model->getAnexos($id);
+        $os->anotacoes = $this->os_model->getAnotacoes($id);
+        $os->calcTotal = $this->calcTotal($id);
+        unset($os->senha);
+
+        $totalProdutos = 0;
+        $totalServico = 0;
+        if ($return = $this->os_model->valorTotalOS($id)) {
+            $totalProdutos = $return['totalProdutos'];
+            $totalServico = $return['totalServico'];
+        }
+
+        $os->textoWhatsApp = $this->criarTextoWhats($os, $totalProdutos, $totalServico);
+
+        return $os;
     }
 
     private function calcTotal($id)
@@ -1041,5 +1107,42 @@ class OsController extends REST_Controller
         }
 
         return true;
+    }
+
+    /**
+     * Alterar itens, desconto ou histórico de uma OS exige eOs — o token sozinho
+     * não autoriza (um usuário de leitura podia editar qualquer OS pela API).
+     */
+    private function exigirEdicaoOs($id)
+    {
+        if (! $this->permission->checkPermission($this->logged_user()->level, 'eOs')) {
+            $this->response([
+                'status' => false,
+                'message' => 'Você não está autorizado a Editar Ordens de Serviços',
+            ], REST_Controller::HTTP_UNAUTHORIZED);
+        }
+
+        if (! $this->os_model->getById((int) $id)) {
+            $this->response([
+                'status' => false,
+                'message' => 'OS não encontrada',
+            ], REST_Controller::HTTP_NOT_FOUND);
+        }
+    }
+
+    /**
+     * Confere que o item informado na URL pertence à OS informada na URL.
+     */
+    private function exigirItemDaOs($tabela, $colunaPk, $idPk, $idOs)
+    {
+        $item = $this->Api_model->getRowById($tabela, $colunaPk, (int) $idPk);
+        if (! $item || (int) $item->os_id !== (int) $idOs) {
+            $this->response([
+                'status' => false,
+                'message' => 'Item não encontrado nesta OS',
+            ], REST_Controller::HTTP_NOT_FOUND);
+        }
+
+        return $item;
     }
 }

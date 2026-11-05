@@ -56,11 +56,11 @@
         </div>
         <div class="ui-campo">
             <label for="data">De</label>
-            <input type="text" name="data" autocomplete="off" id="data" placeholder="Data inicial" class="span12 datepicker" value="<?=$this->input->get('data')?>">
+            <input type="text" name="data" autocomplete="off" id="data" placeholder="Data inicial" class="span12 datepicker" value="<?= html_escape($this->input->get('data')) ?>">
         </div>
         <div class="ui-campo">
             <label for="data2">Até</label>
-            <input type="text" name="data2" autocomplete="off" id="data2" placeholder="Data final" class="span12 datepicker" value="<?=$this->input->get('data2')?>">
+            <input type="text" name="data2" autocomplete="off" id="data2" placeholder="Data final" class="span12 datepicker" value="<?= html_escape($this->input->get('data2')) ?>">
         </div>
         <div class="ui-campo-acao">
             <button class="button btn btn-warning" title="Filtrar" aria-label="Filtrar">
@@ -171,8 +171,8 @@
                                 $seloProjeto = $vp ? ' <span title="Projeto: ' . html_escape($vp->obra_nome . ($vp->etapa_nome ? ' › ' . $vp->etapa_nome : '')) . '" style="color:#436eee"><i class="bx bx-buildings"></i></span>' : '';
                                 $this->load->helper('tipo_servico');
                                 echo '<td>' . $r->idOs . $seloProjeto . tipo_servico_selo($r->tipo_servico ?? '') . '</td>';
-                                echo '<td class="cli1"><a href="' . base_url() . 'index.php/clientes/visualizar/' . $r->idClientes . '" style="margin-right: 1%">' . $r->nomeCliente . '</a></td>';
-                                echo '<td class="ph1">' . $r->nome . '</td>';
+                                echo '<td class="cli1"><a href="' . base_url() . 'index.php/clientes/visualizar/' . $r->idClientes . '" style="margin-right: 1%">' . html_escape($r->nomeCliente) . '</a></td>';
+                                echo '<td class="ph1">' . html_escape($r->nome) . '</td>';
                                 echo '<td>' . $dataInicial . '</td>';
                                 echo '<td class="ph2">' . $dataFinal . '</td>';
                                 echo '<td class="ph3"><span class="badge" style="background-color: ' . $corGarantia . '; border-color: ' . $corGarantia . '">' . $vencGarantia . '</span> </td>';

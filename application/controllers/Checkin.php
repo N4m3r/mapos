@@ -138,8 +138,14 @@ class Checkin extends MY_Controller
 
         $os_id = $this->input->post('os_id');
 
-        if (!$os_id) {
+        if (!$os_id || !is_numeric($os_id)) {
             echo json_encode(['success' => false, 'message' => 'OS não informada']);
+            return;
+        }
+
+        // Estado do atendimento (check-in, assinaturas e fotos) só para quem vê a OS.
+        if (!$this->podeVerOs((int) $os_id)) {
+            echo json_encode(['success' => false, 'message' => 'Você não tem permissão para ver o atendimento desta OS.']);
             return;
         }
 
@@ -837,8 +843,14 @@ class Checkin extends MY_Controller
         $os_id = $this->input->post('os_id');
         $etapa = $this->input->post('etapa');
 
-        if (!$os_id) {
+        if (!$os_id || !is_numeric($os_id)) {
             echo json_encode(['success' => false, 'message' => 'OS não informada']);
+            return;
+        }
+
+        // Só lista fotos de OS que o usuário pode ver (mesma regra de verFotoDB/downloadFoto).
+        if (!$this->podeVerOs((int) $os_id)) {
+            echo json_encode(['success' => false, 'message' => 'Você não tem permissão para ver as fotos desta OS.']);
             return;
         }
 
@@ -888,8 +900,14 @@ class Checkin extends MY_Controller
         $etapa = $this->input->post('etapa') ?: 'durante';
         $descricao = $this->input->post('descricao');
 
-        if (!$os_id) {
+        if (!$os_id || !is_numeric($os_id)) {
             echo json_encode(['success' => false, 'message' => 'OS não informada']);
+            return;
+        }
+
+        // Só envia arquivo para OS existente.
+        if (!$this->podeEnviarArquivoOs((int) $os_id)) {
+            echo json_encode(['success' => false, 'message' => 'OS não encontrada.']);
             return;
         }
 
@@ -965,8 +983,13 @@ class Checkin extends MY_Controller
         $checkin_id = $this->input->post('checkin_id');
         $etapa = $this->input->post('etapa') ?: 'durante';
 
-        if (!$os_id) {
+        if (!$os_id || !is_numeric($os_id)) {
             echo json_encode(['success' => false, 'message' => 'OS não informada']);
+            return;
+        }
+
+        if (!$this->podeEnviarArquivoOs((int) $os_id)) {
+            echo json_encode(['success' => false, 'message' => 'OS não encontrada.']);
             return;
         }
 
@@ -1078,31 +1101,20 @@ class Checkin extends MY_Controller
     }
 
     /**
-     * Quem pode ver/baixar uma foto de atendimento: quem ve OS (vOs) ou relatorio de OS (rOs),
-     * quem tirou a foto, o tecnico responsavel pela OS, quem fez check-in nela ou quem
-     * acessa o projeto em que a OS esta. Sem acesso, a rota responde 404.
+     * Quem pode ver uma OS: quem ve OS (vOs) ou relatorio de OS (rOs), o tecnico
+     * responsavel pela OS, quem fez check-in nela ou quem acessa o projeto em que
+     * a OS esta. Base comum da visibilidade de fotos e assinaturas do atendimento.
      */
-    private function podeVerFoto($foto_id)
+    private function podeVerOs($os_id)
     {
         $permissao = $this->session->userdata('permissao');
         if ($this->permission->checkPermission($permissao, 'vOs') || $this->permission->checkPermission($permissao, 'rOs')) {
             return true;
         }
-        if (!$this->db->table_exists('os_fotos_atendimento')) {
-            return false;
-        }
-        $foto = $this->db->select('os_id, usuarios_id')->where('idFoto', (int) $foto_id)
-            ->get('os_fotos_atendimento')->row();
-        if (!$foto) {
-            return false;
-        }
         $uid = (int) $this->session->userdata('id_admin');
-        $osId = (int) $foto->os_id;
-        if (!$uid) {
+        $osId = (int) $os_id;
+        if (!$uid || $osId <= 0) {
             return false;
-        }
-        if ((int) $foto->usuarios_id === $uid) {
-            return true;
         }
         if ($this->db->field_exists('tecnico_responsavel', 'os')
             && $this->db->where('idOs', $osId)->where('tecnico_responsavel', $uid)->count_all_results('os') > 0) {
@@ -1115,6 +1127,28 @@ class Checkin extends MY_Controller
         $this->load->model('obras_model');
 
         return (bool) $this->obras_model->osEmProjetoDoUsuario($osId, $uid);
+    }
+
+    /**
+     * Quem pode ver/baixar uma foto de atendimento: as mesmas regras de
+     * podeVerOs(), mais quem tirou a foto. Sem acesso, a rota responde 404.
+     */
+    private function podeVerFoto($foto_id)
+    {
+        if (!$this->db->table_exists('os_fotos_atendimento')) {
+            return false;
+        }
+        $foto = $this->db->select('os_id, usuarios_id')->where('idFoto', (int) $foto_id)
+            ->get('os_fotos_atendimento')->row();
+        if (!$foto) {
+            return false;
+        }
+        $uid = (int) $this->session->userdata('id_admin');
+        if ($uid && (int) $foto->usuarios_id === $uid) {
+            return true;
+        }
+
+        return $this->podeVerOs($foto->os_id);
     }
 
     /**
@@ -1236,8 +1270,14 @@ class Checkin extends MY_Controller
 
         $os_id = $this->input->post('os_id');
 
-        if (!$os_id) {
+        if (!$os_id || !is_numeric($os_id)) {
             echo json_encode(['success' => false, 'message' => 'OS não informada']);
+            return;
+        }
+
+        // Mesma regra de visibilidade de listarFotos/verFotoDB.
+        if (!$this->podeVerOs((int) $os_id)) {
+            echo json_encode(['success' => false, 'message' => 'Você não tem permissão para ver as fotos desta OS.']);
             return;
         }
 
@@ -1276,18 +1316,53 @@ class Checkin extends MY_Controller
 
         $assinatura_id = $this->input->post('assinatura_id');
 
-        if (!$assinatura_id) {
+        if (!$assinatura_id || !is_numeric($assinatura_id)) {
             echo json_encode(['success' => false, 'message' => 'Assinatura não informada']);
             return;
         }
 
-        $resultado = $this->assinaturas_model->delete($assinatura_id);
+        // Só remove assinatura de OS que o usuário pode ver (não apaga por id cego).
+        if (!$this->podeVerAssinatura((int) $assinatura_id)) {
+            echo json_encode(['success' => false, 'message' => 'Assinatura não encontrada']);
+            return;
+        }
+
+        $resultado = $this->assinaturas_model->delete((int) $assinatura_id);
 
         if ($resultado) {
             echo json_encode(['success' => true, 'message' => 'Assinatura removida com sucesso']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Erro ao remover assinatura']);
         }
+    }
+
+    /**
+     * Upload multipart: exige que a OS exista antes de gravar arquivo/anexo.
+     * (O chamador já restringe estes endpoints a eOs.)
+     */
+    private function podeEnviarArquivoOs($os_id)
+    {
+        return (bool) $this->db->where('idOs', (int) $os_id)->count_all_results('os');
+    }
+
+    /**
+     * Quem pode ver uma assinatura do atendimento: a assinatura sempre pertence a
+     * uma OS (os_assinaturas.os_id), então vale a mesma regra da foto — quem ve OS
+     * (vOs/rOs), o tecnico responsavel, quem fez check-in ou quem acessa o projeto.
+     * Sem acesso, a rota responde 404 para não permitir enumerar ids.
+     */
+    private function podeVerAssinatura($assinatura_id)
+    {
+        if (!$this->db->table_exists('os_assinaturas')) {
+            return false;
+        }
+        $assinatura = $this->db->select('os_id')->where('idAssinatura', (int) $assinatura_id)
+            ->get('os_assinaturas')->row();
+        if (!$assinatura) {
+            return false;
+        }
+
+        return $this->podeVerOs($assinatura->os_id);
     }
 
     /**
@@ -1305,7 +1380,9 @@ class Checkin extends MY_Controller
             return;
         }
 
-        $assinatura = $this->assinaturas_model->getById($assinatura_id);
+        $assinatura = $this->podeVerAssinatura($assinatura_id)
+            ? $this->assinaturas_model->getById($assinatura_id)
+            : null;
 
         if (!$assinatura) {
             show_404();
@@ -1338,19 +1415,28 @@ class Checkin extends MY_Controller
             // Enviar headers e imagem
             header('Content-Type: ' . $mime_type);
             header('Content-Length: ' . strlen($image_data));
-            header('Cache-Control: public, max-age=86400');
+            header('X-Content-Type-Options: nosniff');
+            header('Cache-Control: private, max-age=86400');
             echo $image_data;
             exit;
         }
 
-        // Se é arquivo no disco
-        if (file_exists($assinatura->assinatura)) {
-            $mime = mime_content_type($assinatura->assinatura);
-            header('Content-Type: ' . $mime);
-            header('Content-Length: ' . filesize($assinatura->assinatura));
-            header('Cache-Control: public, max-age=86400');
-            readfile($assinatura->assinatura);
-            exit;
+        // Se é arquivo no disco: só dentro da pasta de assinaturas, nunca um
+        // caminho arbitrário (mesma regra da rota do portal em Mine).
+        $caminho = realpath((string) $assinatura->assinatura);
+        $baseAssinaturas = realpath('assets/assinaturas');
+        if ($caminho && $baseAssinaturas
+            && strpos(str_replace('\\', '/', $caminho), str_replace('\\', '/', $baseAssinaturas) . '/') === 0
+            && is_file($caminho)) {
+            $mime = mime_content_type($caminho);
+            if (strpos((string) $mime, 'image/') === 0) {
+                header('Content-Type: ' . $mime);
+                header('Content-Length: ' . filesize($caminho));
+                header('X-Content-Type-Options: nosniff');
+                header('Cache-Control: private, max-age=86400');
+                readfile($caminho);
+                exit;
+            }
         }
 
         show_404();
@@ -1370,11 +1456,10 @@ class Checkin extends MY_Controller
             return;
         }
 
-        // Verifica permissão: libera para quem enxerga OS (vOs) ou para o
-        // perfil técnico (área do técnico), que acessa o relatório pelo app.
-        $permissao = $this->session->userdata('permissao');
-        if (!$this->permission->checkPermission($permissao, 'vOs') &&
-            !$this->permission->checkPermission($permissao, 'vTecnicoDashboard')) {
+        // Libera para quem enxerga OS (vOs/rOs) ou para quem tem vínculo com a
+        // OS (técnico responsável, check-in ou projeto) — o perfil do técnico
+        // sozinho não pode abrir o relatório de uma OS alheia.
+        if (!$this->podeVerOs((int) $os_id)) {
             $this->session->set_flashdata('error', 'Você não tem permissão para visualizar este relatório.');
             redirect(base_url());
         }
