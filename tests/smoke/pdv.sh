@@ -46,7 +46,7 @@ CAIXA=$(curl -s -b "$J" "$BASE_URL/pdv" | sed -n 's/.*PDV - caixa #\([0-9]*\).*/
 post caixa/movimentar "caixa_id=$CAIXA" tipo=sangria valor=10 descricao=teste > /dev/null
 confere "sangria registrada" "$(curl -s -b "$J" "$BASE_URL/caixa/ver/$CAIXA")" 'Sangria'
 post caixa/fechar "caixa_id=$CAIXA" contado_dinheiro=0 observacao=smoke > /dev/null
-confere "caixa fechado" "$(curl -s -b "$J" "$BASE_URL/caixa/ver/$CAIXA")" 'badge-success">Fechado'
+confere "caixa fechado" "$(curl -s -b "$J" "$BASE_URL/caixa/ver/$CAIXA")" '>Fechado<'
 confere "PDV pede novo caixa" "$(curl -s -b "$J" "$BASE_URL/pdv")" 'abrirCaixa'
 
 rm -rf "$TMP"
