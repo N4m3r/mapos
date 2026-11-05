@@ -18,7 +18,7 @@ dependem de uma instância real; os demais vêm de código lido diretamente, com
 
 | # | Assunto | Gravidade | Onde |
 |---|---|---|---|
-| 1 | Instalação nova fica sem 59 tabelas | Crítico | `install/do_install.php` |
+| 1 | Instalação nova fica sem 81 tabelas | Crítico | `install/do_install.php` |
 | 2 | Whoops mostra stack trace em produção | Alto | `hooks/whoops.php:8` |
 | 3 | Auto-update troca o fork pelo upstream | Alto | `config/github_updater.php:10-40` |
 | 4 | Chave do `.env` fraca e o 2FA depende dela | Alto | `install/do_install.php:100` |
@@ -52,17 +52,17 @@ Também entraram `mobile/` (126 arquivos) e `teste/` (18), com regras de ignore 
 
 ---
 
-## 1. Instalação nova fica sem 59 tabelas — Crítico
+## 1. Instalação nova fica sem 81 tabelas — Crítico
 
 **Achado.** `install/do_install.php` importa só `banco.sql`, gera o `.env` e encerra com
 `Instalação bem sucedida` (linha 113). Não executa migration nenhuma: a palavra `migrat` não aparece
-no arquivo. O dump cria 27 tabelas e semeia a versão `20210125173741` (`banco.sql:660`). As 52
-migrations criam **59 tabelas que o dump não tem**, então uma instalação nova fica com menos da
-metade do schema.
+no arquivo. O dump cria 28 tabelas e semeia a versão `20210125173741` (`banco.sql:660`). As 52
+migrations criam 107 tabelas, das quais **81 não existem no dump**, então uma instalação nova fica
+com cerca de um quarto do schema.
 
 Ficam de fora, entre outras: `os_checkin`, `os_assinaturas`, `os_fotos_atendimento`, `os_avaliacoes`,
 `caixas`, `caixa_movimentos`, `inventarios`, `login_tentativas`, `notas_entrada`,
-`tributos_parametros`, `conciliacao_itens` e as 20 tabelas de `obra*` (`obras`, `obra_pontos`,
+`tributos_parametros`, `conciliacao_itens` e as 25 tabelas de `obra*` (`obras`, `obra_pontos`,
 `obra_rdo`, `obra_medicao`, `obra_material_*`). Também faltam colunas como
 `os.tecnico_responsavel`, `os.data_agendamento` e `os.aceite_token`.
 
@@ -330,8 +330,9 @@ a consulta passa no modo estrito.
 o produto cartesiano antes de colapsar no `GROUP BY`; sem índice por data, o filtro de período varre
 a tabela inteira.
 
-**Como conferir.** `EXPLAIN` da listagem com filtro de período deve mostrar acesso por índice
-(`range`), não varredura completa (`ALL`). Comparar o tempo de `/os` antes e depois.
+**Como conferir.** Em `os/gerenciar`, filtrar por período (campos `data` e `data2`, que o controller
+converte em `de` e `ate`) e rodar `EXPLAIN` na consulta: deve aparecer acesso por índice (`range`),
+não varredura completa (`ALL`). Comparar o tempo da tela antes e depois do índice.
 
 ---
 
@@ -371,9 +372,11 @@ nonce e CSP em modo bloqueio (`.env.example:41`).
 **Correção.** Desligar o filtro global, remover os 24 contornos e manter a CSP em `bloquear`,
 conferindo tela a tela as áreas que dependiam do filtro.
 
-**Como conferir.** Salvar um contrato com HTML legítimo e um campo com `<script>alert(1)</script>`:
-o HTML do contrato deve persistir íntegro e o script deve aparecer escapado na tela, sem executar.
-Repetir em OS, projetos e área do técnico, que usam `data:` de foto e assinatura.
+**Como conferir.** Numa OS, gravar em `observacoes` um texto com formatação (`<b>`, `<p>`) mais um
+`<script>alert(1)</script>`. Ao reabrir a OS em `visualizarOs.php:394`, a formatação deve aparecer
+renderizada, porque `html_seguro()` mantém a allowlist de tags, e o script deve sumir, porque
+`script` está na lista de tags removidas junto com o conteúdo. Repetir na área do técnico, que recebe
+foto e assinatura em `data:` URL pelo `dataurl_imagem()`.
 
 ---
 
@@ -463,12 +466,12 @@ Para não dar a impressão de que o quadro é só dívida:
 - **Segurança já resolvida**: CSRF ligado com lista de exceções documentada
   (`config/config.php:447-452`), CSP com nonce (`helpers/general_helper.php:264`),
   `sess_regenerate(true)` no login (`controllers/Login.php:134`), senhas com `password_hash` e
-  `password_verify` (20 usos), e bloqueio de força bruta por e-mail e por IP
-  (`libraries/Limite_login.php:25-26`) no painel, na API e no portal do cliente.
-- **Autorização da API**: dos 90 métodos REST, só os dois `login_post` não checam autenticação, e são
-  públicos por natureza. Os demais usam `logged_user()`, `logged_client()` no portal do cliente, ou
-  `isEditable()` e `exigirEdicaoOs()`, que chamam `logged_user()`. Restou apenas a dependência de
-  `application/config/rest.php`, que não existe.
+  `password_verify` (20 usos no projeto, 18 deles em controllers e models), e bloqueio de força bruta
+  por e-mail e por IP (`libraries/Limite_login.php:25-26`) no painel, na API e no portal do cliente.
+- **Autorização da API**: dos 92 métodos REST, só os dois `login_post` não checam autenticação, e são
+  públicos por natureza. Os demais usam `logged_user()`, `logged_client()` no portal do cliente, o
+  `exigir()` herdado de `AreaApiController`, ou `isEditable()` e `exigirEdicaoOs()`, que chamam
+  `logged_user()`. Restou apenas a dependência de `application/config/rest.php`, que não existe.
 
 ---
 
