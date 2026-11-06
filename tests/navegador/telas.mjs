@@ -18,7 +18,7 @@ const CHROME = process.env.CHROME || '/usr/bin/google-chrome';
 const TELAS = [
     'mapos', 'clientes', 'clientes/adicionar', 'os', 'os/adicionar', 'vendas', 'vendas/adicionar',
     'produtos', 'produtos/adicionar', 'produtos/movimentacoes', 'inventarios', 'servicos', 'garantias',
-    'arquivos', 'financeiro/lancamentos', 'cobrancas/cobrancas', 'contratos', 'obras', 'usuarios',
+    'arquivos', 'financeiro/lancamentos', 'cobrancas/cobrancas', 'cobrancas/configCora', 'contratos', 'obras', 'usuarios',
     'permissoes', 'mapos/emitente', 'mapos/configurar', 'mapos/minhaConta', 'mapos/backups',
     'notificacoes?aba=historico', 'relatorios/clientes', 'relatorios/os', 'agenda', 'sla', 'caixa', 'pdv',
     'relatorios/nps', 'painelgerencial', 'relatoriocobranca', 'margem', 'comprasugerida', 'conciliacao', 'notificacoes', 'notificacoes?aba=canais', 'notificacoes?aba=modelos', 'automacao', 'emailtemplates', 'whatsapptemplates', 'nfe/gerenciar', 'nfe/configuracoes',
