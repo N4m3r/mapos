@@ -325,4 +325,36 @@ class NotificacoesViewsTest extends TestCase
         $this->assertStringContainsString('mapos/emails', $html);
         $this->assertStringContainsString('fila de e-mails', $html);
     }
+
+    /**
+     * A central abre com cSistema OU cEmail, mas salvar evento exige cSistema
+     * (exigirSistema()). Quem so tem cEmail precisa ver o evento e nao receber
+     * um botao que termina em redirect.
+     */
+    public function testEventoSemPermissaoDeSistemaFicaSomenteLeitura(): void
+    {
+        $this->load->vars = array_merge($this->contextoBase(), [
+            'eventoSlug' => 'os_aberta',
+            'eventoInfo' => ['nome' => 'OS aberta', 'grupo' => 'Ordem de Serviço'],
+            'gatilho' => $this->gatilho(),
+            'gatilhosEvento' => [$this->gatilho()],
+            'canais' => Notification_triggers_model::canaisDisponiveis(),
+            'destinatarios' => Notification_triggers_model::destinatariosDisponiveis(),
+            'blocos' => Notification_triggers_model::blocosDisponiveis(),
+            'anexos' => Notification_triggers_model::anexosDisponiveis(),
+            'whatsappTemplates' => [],
+            'emailTemplates' => [],
+            'clientesSelecionados' => [],
+            'projetosSelecionados' => [],
+            'ehOs' => true,
+            'ehProjeto' => false,
+            'podeSistema' => false,
+        ]);
+
+        $html = $this->load->view('notificacoes/evento', null, true);
+
+        $this->assertStringContainsString('Seu perfil pode consultar este evento', $html);
+        $this->assertStringContainsString('disabled', $html, 'o botao de salvar aparece desabilitado');
+        $this->assertStringNotContainsString('Outras ações deste evento', $html);
+    }
 }

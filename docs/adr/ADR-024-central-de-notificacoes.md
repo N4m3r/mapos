@@ -60,8 +60,9 @@ Uma tela, quatro abas, uma biblioteca de credenciais.
 - Um caminho para tudo: evento, canal, texto e resultado ficam a um clique.
 - O histórico responde "saiu ou falhou" com e-mail e WhatsApp na mesma lista, com filtro por canal e status.
 - Salvar Configurações não apaga mais credencial: as chaves saíram de lá.
-- `NotificacoesViewsTest` renderiza as quatro abas e a tela de evento sem banco, então erro de variável
-  aparece no PHPUnit e não em produção.
+- `NotificacoesViewsTest` renderiza as quatro abas e a tela de evento sem banco, nos dois estados de permissão
+  (`podeSistema` e `podeEmail`), então erro de variável, link indevido e botão que termina em redirect aparecem
+  no PHPUnit e não em produção.
 
 ### Negative
 - `Notificacoes_credenciais` precisa que `application/.env` exista; sem ele, a aba Canais avisa e esconde os
