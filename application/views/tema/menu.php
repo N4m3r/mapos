@@ -1,11 +1,32 @@
+<?php
+/**
+ * Menu lateral unico do layout administrativo.
+ *
+ * Renderiza o catalogo de application/helpers/menu_navegacao_helper.php: todos
+ * os itens ficam aqui, agrupados por area, e ja vem filtrados pela permissao do
+ * usuario. O topo (tema/topo.php) nao repete navegacao — so perfil e busca.
+ *
+ * O modo recolhido (80px) depende de `#sidebar.open` e das spans .title /
+ * .title-tooltip; o JavaScript da paleta (Ctrl+K) le os links daqui.
+ */
+$this->load->helper('menu_navegacao');
+
+$permissao = $this->session->userdata('permissao');
+$pode = function ($atividade) use ($permissao) {
+    return $this->permission->checkPermission($permissao, $atividade);
+};
+
+$grupos = menu_navegacao_para($pode);
+$uri = $this->uri->uri_string();
+?>
 <!--sidebar-menu-->
 <nav id="sidebar">
     <div id="newlog">
         <div class="icon2">
-            <img src="<?php echo base_url() ?>assets/img/logo-two.png">
+            <img src="<?php echo base_url() ?>assets/img/logo-two.png" alt="">
         </div>
         <div class="title1">
-            <?= $configuration['app_theme'] == 'white' ||  $configuration['app_theme'] == 'whitegreen' ? '<img src="' . base_url() . 'assets/img/logo-mapos.png">' : '<img src="' . base_url() . 'assets/img/logo-mapos-branco.png">'; ?>
+            <?= $configuration['app_theme'] == 'white' || $configuration['app_theme'] == 'whitegreen' ? '<img src="' . base_url() . 'assets/img/logo-mapos.png">' : '<img src="' . base_url() . 'assets/img/logo-mapos-branco.png">'; ?>
         </div>
     </div>
     <a href="#" class="visible-phone">
@@ -31,147 +52,23 @@
         <div class="menu">
 
             <ul class="menu-links" style="position: relative;">
-                <li class="<?php if (isset($menuPainel)) {
-                    echo 'active';
-                }; ?>">
-                    <a class="tip-bottom" title="" href="<?= base_url() ?>"><i class='bx bx-home-alt iconX'></i>
-                        <span class="title nav-title">Home</span>
-                        <span class="title-tooltip">Início</span>
-                    </a>
-                </li>
-
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vCliente')) { ?>
-                    <li class="<?php if (isset($menuClientes)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('clientes') ?>"><i class='bx bx-user iconX'></i>
-                            <span class="title">Cliente / Fornecedor</span>
-                            <span class="title-tooltip">Clientes</span>
-                        </a>
-                    </li>
+                <?php foreach ($grupos as $grupo) { ?>
+                    <li class="nv-grupo" aria-hidden="true"><?= html_escape($grupo['titulo']) ?></li>
+                    <?php foreach ($grupo['itens'] as $item) { ?>
+                        <?php
+                        $ativo = menu_navegacao_ativo($uri, $item['rota'], $item['aliases'] ?? []);
+                        $destino = $item['rota'] === '' ? base_url() : site_url($item['rota']);
+                        ?>
+                        <li class="<?= $ativo ? 'active' : '' ?>">
+                            <a class="tip-bottom" title="<?= html_escape($item['dica']) ?>"
+                               href="<?= $destino ?>"<?= $ativo ? ' aria-current="page"' : '' ?>>
+                                <i class='bx <?= html_escape($item['icone']) ?> iconX'></i>
+                                <span class="title"><?= html_escape($item['rotulo']) ?></span>
+                                <span class="title-tooltip"><?= html_escape($item['dica']) ?></span>
+                            </a>
+                        </li>
+                    <?php } ?>
                 <?php } ?>
-
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vProduto')) { ?>
-                    <li class="<?php if (isset($menuProdutos)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('produtos') ?>"><i class='bx bx-basket iconX'></i>
-                            <span class="title">Produtos</span>
-                            <span class="title-tooltip">Produtos</span>
-                        </a>
-                    </li>
-                <?php } ?>
-
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vServico')) { ?>
-                    <li class="<?php if (isset($menuServicos)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('servicos') ?>"><i class='bx bx-wrench iconX'></i>
-                            <span class="title">Serviços</span>
-                            <span class="title-tooltip">Serviços</span>
-                        </a>
-                    </li>
-                <?php } ?>
-
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vVenda')) { ?>
-                    <li class="<?php if (isset($menuVendas)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('vendas') ?>"><i class='bx bx-cart-alt iconX'></i></span>
-                            <span class="title">Vendas</span>
-                            <span class="title-tooltip">Vendas</span>
-                        </a>
-                    </li>
-                <?php } ?>
-
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) { ?>
-                    <li class="<?php if (isset($menuOs)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('os') ?>"><i class='bx bx-file iconX'></i>
-                            <span class="title">Ordens de Serviço</span>
-                            <span class="title-tooltip">Ordens</span>
-                        </a>
-                    </li>
-                <?php } ?>
-
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vObras')) { ?>
-                    <li class="<?php if (isset($menuObras)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('obras') ?>"><i class='bx bx-network-chart iconX'></i>
-                            <span class="title">Projetos</span>
-                            <span class="title-tooltip">Projetos</span>
-                        </a>
-                    </li>
-                <?php } ?>
-
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vTecnicoDashboard')) { ?>
-                    <li class="<?php if (isset($menuTecnico)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('tecnico') ?>"><i class='bx bx-wrench iconX'></i>
-                            <span class="title">Área do Técnico</span>
-                            <span class="title-tooltip">Técnico</span>
-                        </a>
-                    </li>
-                <?php } ?>
-
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) { ?>
-                    <li class="<?php if (isset($menuAtribuir)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('os/atribuir') ?>"><i class='bx bx-headphone iconX'></i>
-                            <span class="title">Central de Atendimento</span>
-                            <span class="title-tooltip">Atendimento</span>
-                        </a>
-                    </li>
-                <?php } ?>
-
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vGarantia')) { ?>
-                    <li class="<?php if (isset($menuGarantia)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('garantias') ?>"><i class='bx bx-receipt iconX'></i>
-                            <span class="title">Termos de Garantias</span>
-                            <span class="title-tooltip">Garantias</span>
-                        </a>
-                    </li>
-                <?php } ?>
-
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vArquivo')) { ?>
-                    <li class="<?php if (isset($menuArquivos)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('arquivos') ?>"><i class='bx bx-box iconX'></i>
-                            <span class="title">Arquivos</span>
-                            <span class="title-tooltip">Arquivos</span>
-                        </a>
-                    </li>
-                <?php } ?>
-
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vLancamento')) { ?>
-                    <li class="<?php if (isset($menuLancamentos)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('financeiro/lancamentos') ?>"><i class="bx bx-bar-chart-alt-2 iconX"></i>
-                            <span class="title">Lançamentos</span>
-                            <span class="title-tooltip">Lançamentos</span>
-                        </a>
-                    </li>
-                <?php } ?>
-
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vRelatorioAtendimentos')) { ?>
-                    <li class="<?php if (isset($menuRelatorioAtendimentos)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('relatorioatendimentos') ?>"><i class='bx bx-time iconX'></i>
-                            <span class="title">Atendimentos</span>
-                            <span class="title-tooltip">Atendimentos</span>
-                        </a>
-                    </li>
-                <?php } ?>
-
             </ul>
         </div>
 

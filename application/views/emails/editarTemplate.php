@@ -8,7 +8,7 @@ $tokenHash = $this->security->get_csrf_hash();
         <p class="ui-subtitulo">Ajuste assunto e corpo. As tags entre chaves são trocadas pelos dados reais no envio.</p>
     </div>
     <div class="ui-acoes">
-        <a href="<?= site_url('emailtemplates') ?>" class="button btn btn-warning"><span class="button__icon"><i class="bx bx-arrow-back"></i></span><span class="button__text2">Voltar</span></a>
+        <a href="<?= site_url('notificacoes?aba=modelos') ?>" class="button btn btn-warning"><span class="button__icon"><i class="bx bx-arrow-back"></i></span><span class="button__text2">Voltar</span></a>
     </div>
 </div>
 <div class="widget-box">
@@ -51,7 +51,7 @@ $tokenHash = $this->security->get_csrf_hash();
                             <span class="button__icon"><i class="bx bx-show"></i></span>
                             <span class="button__text2">Pré-visualizar</span>
                         </button>
-                        <a href="<?= site_url('emailtemplates') ?>" class="button btn btn-warning">
+                        <a href="<?= site_url('notificacoes?aba=modelos') ?>" class="button btn btn-warning">
                             <span class="button__icon"><i class="bx bx-arrow-back"></i></span>
                             <span class="button__text2">Voltar</span>
                         </a>

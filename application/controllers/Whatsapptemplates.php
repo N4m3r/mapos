@@ -22,15 +22,8 @@ class Whatsapptemplates extends MY_Controller
 
     public function index()
     {
-        if (! $this->whatsapp_templates_model->suportado()) {
-            $this->session->set_flashdata('error', 'Recurso indisponível: rode updates/update_whatsapp_templates.sql.');
-        }
-
-        $this->data['menuConfiguracoes'] = 'WhatsappTemplates';
-        $this->data['templates'] = $this->whatsapp_templates_model->getAll();
-        $this->data['view'] = 'whatsapptemplates/index';
-
-        return $this->layout();
+        // A lista de modelos vive na Central de Notificacoes (aba Modelos).
+        redirect(site_url('notificacoes?aba=modelos'));
     }
 
     public function novo()

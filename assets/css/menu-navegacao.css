@@ -1,0 +1,74 @@
+/*
+ * Menu lateral unico do layout administrativo (tema/menu.php).
+ *
+ * A navegacao passou a ter uma superficie so: a barra lateral lista todas as
+ * telas em grupos, e o topo ficou com perfil e busca. Este arquivo cuida do que
+ * a barra precisou ganhar: titulo de grupo, rolagem propria e o ajuste do modo
+ * recolhido (80px). As cores continuam vindo do tema.
+ */
+
+/* Lista longa precisa rolar sozinha: o menu nao cabe inteiro em telas baixas. */
+#sidebar .menu-bar .menu {
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(127, 127, 127, .45) transparent;
+}
+
+#sidebar .menu-bar .menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+#sidebar .menu-bar .menu::-webkit-scrollbar-thumb {
+    background: rgba(127, 127, 127, .45);
+    border-radius: 999px;
+}
+
+#sidebar .menu-links {
+    padding-bottom: 10px;
+}
+
+/* Titulo de grupo. Sobrescreve a altura fixa de #sidebar li. */
+#sidebar .nv-grupo {
+    display: block !important;
+    height: auto !important;
+    margin: 14px 0 4px !important;
+    padding: 0 0 0 50px;
+    font-size: .7em;
+    font-weight: 700;
+    letter-spacing: .08em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    color: var(--cinza0);
+    opacity: .72;
+    white-space: nowrap;
+    overflow: hidden;
+    list-style: none;
+}
+
+#sidebar .nv-grupo:first-child {
+    margin-top: 4px !important;
+}
+
+/* Recolhido: o rotulo some e o titulo de grupo tambem, para nao sobrar
+   texto solto entre os icones. */
+#sidebar.open .nv-grupo {
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0;
+    opacity: 0;
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    #sidebar .nv-grupo {
+        opacity: .62;
+    }
+}
+
+@media print {
+    #sidebar {
+        display: none;
+    }
+}

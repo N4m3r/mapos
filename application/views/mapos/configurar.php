@@ -3,7 +3,7 @@
         <div class="ui-cabecalho">
             <div>
                 <h1 class="ui-titulo"><i class="bx bx-wrench"></i> Configurações do Sistema</h1>
-                <p class="ui-subtitulo">Escolha uma aba para ajustar cada parte do sistema. Qualquer botão Salvar grava todas as abas.</p>
+                <p class="ui-subtitulo">Escolha uma aba para ajustar esta parte do sistema. Salvar grava as abas desta tela; notificações, e-mail e WhatsApp ficam na Central de Notificações (menu Configurações).</p>
             </div>
         </div>
         <div class="widget-box">
@@ -11,11 +11,9 @@
                 <li class="active"><a data-toggle="tab" href="#home">Gerais</a></li>
                 <li><a data-toggle="tab" href="#menu1">Financeiro</a></li>
                 <li><a data-toggle="tab" href="#menu2">Produtos</a></li>
-                <li><a data-toggle="tab" href="#menu3">Notificações</a></li>
                 <li><a data-toggle="tab" href="#menu4">Atualizações</a></li>
                 <li><a data-toggle="tab" href="#menu5">OS</a></li>
                 <li><a data-toggle="tab" href="#menu6">API</a></li>
-                <li><a data-toggle="tab" href="#menu7">E-mail</a></li>
             </ul>
             <form action="<?php echo current_url(); ?>" id="formConfigurar" method="post" class="form-horizontal">
                 <div class="widget-content nopadding tab-content">
@@ -279,141 +277,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Menu Notificações -->
-                    <div id="menu3" class="tab-pane fade">
-                        <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Avisos automáticos sobre as OS por e-mail e WhatsApp. Ative só os canais que você usa.</div></div>
-                        <div class="control-group">
-                            <label for="os_notification" class="control-label">Notificação de OS</label>
-                            <div class="controls">
-                                <select name="os_notification" id="os_notification">
-                                    <option value="todos">Notificar a Todos</option>
-                                    <option value="cliente" <?= $configuration['os_notification'] == 'cliente' ? 'selected' : ''; ?>>Somente o Cliente</option>
-                                    <option value="tecnico" <?= $configuration['os_notification'] == 'tecnico' ? 'selected' : ''; ?>>Somente o Técnico</option>
-                                    <option value="emitente" <?= $configuration['os_notification'] == 'emitente' ? 'selected' : ''; ?>>Somente o Emitente</option>
-                                    <option value="nenhum" <?= $configuration['os_notification'] == 'nenhum' ? 'selected' : ''; ?>>Não Notificar</option>
-                                </select>
-                                <span class="help-inline">Selecione a opção de notificação por e-mail no cadastro de OS.</span>
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label for="email_automatico" class="control-label">Enviar Email Automático</label>
-                            <div class="controls">
-                                <select name="email_automatico" id="email_automatico">
-                                    <option value="1">Ativar</option>
-                                    <option value="0" <?= $configuration['email_automatico'] == '0' ? 'selected' : ''; ?>>Desativar</option>
-                                </select>
-                                <span class="help-inline">Ativar ou Desativar a opção de envio de e-mail automático no cadastro de OS.</span>
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label for="notifica_whats" class="control-label">Notificação do whatsapp</label>
-                            <div class="controls">
-                                <textarea rows="5" cols="20" name="notifica_whats" id="notifica_whats" placeholder="Use as tags abaixo para criar seu texto!" style="margin: 0px; width: 606px; height: 86px;"><?php echo $configuration['notifica_whats']; ?></textarea>
-                            </div>
-                            <div class="span3">
-                                <label for="notifica_whats_select">Tags de preenchimento<span class="required"></span></label>
-                                <select class="span12" name="notifica_whats_select" id="notifica_whats_select" value="">
-                                    <option value="0">Selecione...</option>
-                                    <option value="{CLIENTE_NOME}">Nome do Cliente</option>
-                                    <option value="{NUMERO_OS}">Número da OS</option>
-                                    <option value="{STATUS_OS}">Status da OS</option>
-                                    <option value="{VALOR_OS}">Valor da OS</option>
-                                    <option value="{DESCRI_PRODUTOS}">Descrição produtos</option>
-                                    <option value="{EMITENTE}">Nome emitente</option>
-                                    <option value="{TELEFONE_EMITENTE}">Telefone emitente</option>
-                                    <option value="{OBS_OS}">Observações</option>
-                                    <option value="{DEFEITO_OS}">Defeitos</option>
-                                    <option value="{LAUDO_OS}">Laudo</option>
-                                    <option value="{DATA_FINAL}">Data Final</option>
-                                    <option value="{DATA_INICIAL}">Data Inicial</option>
-                                    <option value="{DATA_GARANTIA}">Data da Garantia</option>
-                                    <option value="{LINK_ACOMPANHAR}">Link de acompanhamento / avaliação</option>
-                                </select>
-                            </div>
-                            <span6 class="span10">
-                                Para negrito use: *palavra*
-                                Para itálico use: _palavra_
-                                Para riscado use: ~palavra~
-                                </span>
-                        </div>
-
-                        <hr>
-                        <h4 style="margin-left: 0;"><i class='bx bxl-whatsapp'></i> Envio automático por WhatsApp (Evolution API)</h4>
-                        <p class="help-block">Quando ativo, o Mapos envia a notificação direto pela Evolution API (sem abrir o WhatsApp Web). Deixe desativado para manter apenas o link click-to-chat.</p>
-                        <div class="control-group">
-                            <label for="WHATSAPP_EVOLUTION_ENABLED" class="control-label">Ativar Evolution API</label>
-                            <div class="controls">
-                                <select name="WHATSAPP_EVOLUTION_ENABLED" id="WHATSAPP_EVOLUTION_ENABLED">
-                                    <option value="false">Desativar</option>
-                                    <option value="true" <?= filter_var($_ENV['WHATSAPP_EVOLUTION_ENABLED'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 'selected' : ''; ?>>Ativar</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label for="WHATSAPP_EVOLUTION_URL" class="control-label">URL da instância</label>
-                            <div class="controls">
-                                <input type="text" name="WHATSAPP_EVOLUTION_URL" id="WHATSAPP_EVOLUTION_URL" placeholder="https://evo.suaempresa.com" value="<?= $_ENV['WHATSAPP_EVOLUTION_URL'] ?? '' ?>">
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label for="WHATSAPP_EVOLUTION_APIKEY" class="control-label">API Key</label>
-                            <div class="controls">
-                                <input type="text" name="WHATSAPP_EVOLUTION_APIKEY" id="WHATSAPP_EVOLUTION_APIKEY" value="<?= $_ENV['WHATSAPP_EVOLUTION_APIKEY'] ?? '' ?>">
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label for="WHATSAPP_EVOLUTION_INSTANCE" class="control-label">Instância</label>
-                            <div class="controls">
-                                <input type="text" name="WHATSAPP_EVOLUTION_INSTANCE" id="WHATSAPP_EVOLUTION_INSTANCE" value="<?= $_ENV['WHATSAPP_EVOLUTION_INSTANCE'] ?? '' ?>">
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label for="WHATSAPP_EVOLUTION_VERIFY_SSL" class="control-label">Verificar certificado SSL</label>
-                            <div class="controls">
-                                <?php $verifySsl = isset($_ENV['WHATSAPP_EVOLUTION_VERIFY_SSL']) ? filter_var($_ENV['WHATSAPP_EVOLUTION_VERIFY_SSL'], FILTER_VALIDATE_BOOLEAN) : true; ?>
-                                <select name="WHATSAPP_EVOLUTION_VERIFY_SSL" id="WHATSAPP_EVOLUTION_VERIFY_SSL">
-                                    <option value="true" <?= $verifySsl ? 'selected' : '' ?>>Sim (recomendado)</option>
-                                    <option value="false" <?= ! $verifySsl ? 'selected' : '' ?>>Não (ignorar erro de certificado)</option>
-                                </select>
-                                <span class="help-inline">Desligue apenas se o servidor Evolution usa certificado inválido/self-signed (ex.: erro "no alternative certificate subject name"). Menos seguro.</span>
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label for="WHATSAPP_EVOLUTION_AUTO_STATUS" class="control-label">Status que enviam automático</label>
-                            <div class="controls">
-                                <input type="text" name="WHATSAPP_EVOLUTION_AUTO_STATUS" id="WHATSAPP_EVOLUTION_AUTO_STATUS" placeholder="Ex.: Finalizado,Faturado" value="<?= $_ENV['WHATSAPP_EVOLUTION_AUTO_STATUS'] ?? '' ?>">
-                                <span class="help-inline">Separe por vírgula. Vazio = não envia automaticamente (só pelo botão).</span>
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label for="whatsapp_test_number" class="control-label">Número para teste</label>
-                            <div class="controls">
-                                <input type="text" id="whatsapp_test_number" placeholder="Ex.: 5592999998888 (com DDI 55 e DDD)">
-                                <span class="help-inline">Informe um número para enviar uma mensagem de teste e validar o envio.</span>
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <div class="controls">
-                                <button type="button" id="btnTestarWhatsapp" class="button btn btn-success">
-                                    <span class="button__icon"><i class='bx bx-plug'></i></span><span class="button__text2">Testar conexão</span>
-                                </button>
-                                <button type="button" id="btnEnviarTesteWhatsapp" class="button btn btn-primary">
-                                    <span class="button__icon"><i class='bx bxl-whatsapp'></i></span><span class="button__text2">Enviar mensagem de teste</span>
-                                </button>
-                                <span id="testarWhatsappResultado" style="margin-left:10px;"></span>
-                                <span class="help-block">Salve as alterações antes de testar — o teste usa as credenciais já salvas.</span>
-                            </div>
-                        </div>
-
-                        <div class="ui-rodape-form">
-                            <div style="display:contents">
-                                <div style="display:contents">
-                                  <button type="submit" class="button btn btn-primary">
-                                  <span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Salvar Alterações</span></button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     <!-- Menu Atualização -->
                     <div id="menu4" class="tab-pane fade">
                         <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Atualize o sistema ou o banco de dados. Faça um backup antes de qualquer atualização.</div></div>
@@ -545,76 +408,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Menu E-mail -->
-                    <div id="menu7" class="tab-pane fade">
-                        <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Servidor SMTP usado para enviar os e-mails do sistema. Salve antes de testar o envio.</div></div>
-                        <div class="control-group">
-                            <label for="EMAIL_PROTOCOL" class="control-label">Protocolo de E-mail</label>
-                            <div class="controls">
-                                <input type="text" name="EMAIL_PROTOCOL" value="<?= $_ENV['EMAIL_PROTOCOL'] ?>" id="EMAIL_PROTOCOL">
-                                <span class="help-inline">Informe o protocolo que será utilizado</span>
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label for="EMAIL_SMTP_HOST" class="control-label">Endereço do Host</label>
-                            <div class="controls">
-                                <input type="text" name="EMAIL_SMTP_HOST" value="<?= $_ENV['EMAIL_SMTP_HOST'] ?>" id="EMAIL_SMTP_HOST">
-                                <span class="help-inline">Informe o endereço do host</span>
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label for="EMAIL_SMTP_CRYPTO" class="control-label">Tipo de criptografia</label>
-                            <div class="controls">
-                                <?php $cripto = isset($_ENV['EMAIL_SMTP_CRYPTO']) ? $_ENV['EMAIL_SMTP_CRYPTO'] : ''; ?>
-                                <select name="EMAIL_SMTP_CRYPTO" id="EMAIL_SMTP_CRYPTO">
-                                    <option value="tls" <?= $cripto == 'tls' ? 'selected' : ''; ?>>tls (STARTTLS — porta 587)</option>
-                                    <option value="ssl" <?= $cripto == 'ssl' ? 'selected' : ''; ?>>ssl (porta 465)</option>
-                                    <option value="" <?= ($cripto === '' || $cripto === 'none') ? 'selected' : ''; ?>>Nenhuma (sem criptografia — porta 25)</option>
-                                </select>
-                                <span class="help-inline">Tipo de criptografia da conexão SMTP. Use "Nenhuma" só em servidores locais/sem TLS.</span>
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label for="EMAIL_SMTP_PORT" class="control-label">Porta</label>
-                            <div class="controls">
-                                <input type="text" name="EMAIL_SMTP_PORT" value="<?= $_ENV['EMAIL_SMTP_PORT'] ?>" id="EMAIL_SMTP_PORT">
-                                <span class="help-inline">Informe a porta que será utilizada.</span>
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label for="EMAIL_SMTP_USER" class="control-label">Usuário</label>
-                            <div class="controls">
-                                <input type="text" name="EMAIL_SMTP_USER" value="<?= $_ENV['EMAIL_SMTP_USER'] ?>" id="EMAIL_SMTP_USER">
-                                <span class="help-inline">Informe nome de usuáriodo e-mail.</span>
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label for="EMAIL_SMTP_PASS" class="control-label">Senha</label>
-                            <div class="controls">
-                                <input type="password" name="EMAIL_SMTP_PASS" value="<?= $_ENV['EMAIL_SMTP_PASS'] ?>" id="EMAIL_SMTP_PASS">
-                                <span class="help-inline">Informe a senha do e-mail.</span>
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label class="control-label" for="email_teste_destino">Testar envio (com anexo NF/Boleto)</label>
-                            <div class="controls">
-                                <input type="text" id="email_teste_destino" placeholder="email@destino.com para receber o teste">
-                                <button type="button" id="btnTestarEmail" class="button btn btn-success" style="margin-top:6px">
-                                    <span class="button__icon"><i class='bx bx-paper-plane'></i></span><span class="button__text2">Enviar e-mail de teste</span>
-                                </button>
-                                <span id="testarEmailResultado" style="margin-left:10px;"></span>
-                                <span class="help-block">Envia na hora um e-mail com um PDF de exemplo anexado (simula NF-e/NFS-e + Boleto), usando as credenciais SMTP já salvas. Salve as alterações antes de testar.</span>
-                            </div>
-                        </div>
-                        <div class="ui-rodape-form">
-                            <div style="display:contents">
-                                <div style="display:contents">
-                                  <button type="submit" class="button btn btn-primary">
-                                  <span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Salvar Alterações</span></button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </form>
         </div>
@@ -665,72 +458,5 @@
     });
     $('#update-mapos').click(function() {
         window.location = "<?= site_url('mapos/atualizarMapos') ?>"
-    });
-    $(document).ready(function() {
-        $('#notifica_whats_select').change(function() {
-            if ($(this).val() != "0")
-                document.getElementById("notifica_whats").value += $(this).val();
-            $(this).prop('selectedIndex', 0);
-        });
-
-        function testarWhatsapp(enviar) {
-            var $out = $('#testarWhatsappResultado');
-            var dados = {};
-            if (enviar) {
-                var numero = $.trim($('#whatsapp_test_number').val());
-                if (!numero) {
-                    $out.html('<span style="color:#b94a48">Informe um número para enviar a mensagem de teste.</span>');
-                    return;
-                }
-                dados.numero = numero;
-            }
-            $('#btnTestarWhatsapp, #btnEnviarTesteWhatsapp').prop('disabled', true);
-            $out.html('<i class="bx bx-loader bx-spin"></i> ' + (enviar ? 'Enviando teste...' : 'Testando conexão...'));
-            $.ajax({
-                url: '<?= site_url('whatsapp/testar') ?>',
-                type: 'POST',
-                dataType: 'json',
-                data: dados
-            }).done(function(data) {
-                var cor = data.result ? 'green' : '#c09853';
-                $out.html('<span style="color:' + cor + '">' + (data.mensagem || '') + '</span>');
-            }).fail(function(xhr) {
-                var msg = 'Falha ao testar.';
-                try { msg = JSON.parse(xhr.responseText).mensagem || msg; } catch (e) {}
-                $out.html('<span style="color:#b94a48">' + msg + '</span>');
-            }).always(function() {
-                $('#btnTestarWhatsapp, #btnEnviarTesteWhatsapp').prop('disabled', false);
-            });
-        }
-
-        $('#btnTestarWhatsapp').click(function() { testarWhatsapp(false); });
-        $('#btnEnviarTesteWhatsapp').click(function() { testarWhatsapp(true); });
-
-        $('#btnTestarEmail').click(function() {
-            var $btn = $(this);
-            var $out = $('#testarEmailResultado');
-            var dest = $.trim($('#email_teste_destino').val());
-            if (!dest) {
-                $out.html('<span style="color:#b94a48">Informe um e-mail de destino.</span>');
-                return;
-            }
-            $btn.prop('disabled', true);
-            $out.html('<i class="bx bx-loader bx-spin"></i> Enviando...');
-            $.ajax({
-                url: '<?= site_url('mapos/testarEmailAnexo') ?>',
-                type: 'POST',
-                dataType: 'json',
-                data: { email: dest }
-            }).done(function(data) {
-                var cor = data.result ? 'green' : '#c09853';
-                $out.html('<span style="color:' + cor + '">' + (data.mensagem || '') + '</span>');
-            }).fail(function(xhr) {
-                var msg = 'Falha no teste de e-mail.';
-                try { msg = JSON.parse(xhr.responseText).mensagem || msg; } catch (e) {}
-                $out.html('<span style="color:#b94a48">' + msg + '</span>');
-            }).always(function() {
-                $btn.prop('disabled', false);
-            });
-        });
     });
 </script>

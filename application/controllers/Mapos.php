@@ -614,18 +614,8 @@ class Mapos extends MY_Controller {
             redirect(base_url());
         }
 
-        $this->load->model('email_envios_model');
-        $status = $this->input->get('status');
-        $status = in_array($status, ['enviado', 'falha'], true) ? $status : null;
-
-        $this->data['menuConfiguracoes'] = 'Email';
-        $this->data['statusFiltro'] = $status;
-        $this->data['totalEnviados'] = $this->email_envios_model->count('enviado');
-        $this->data['totalFalhas'] = $this->email_envios_model->count('falha');
-        $this->data['envios'] = $this->email_envios_model->getUltimos(100, 0, $status);
-        $this->data['view'] = 'mapos/emailsLog';
-
-        return $this->layout();
+        // O historico unificado (e-mail + WhatsApp) vive na Central de Notificacoes.
+        redirect(site_url('notificacoes?aba=historico'));
     }
 
     /**
@@ -644,19 +634,19 @@ class Mapos extends MY_Controller {
         $log = $id ? $this->email_envios_model->getById($id) : null;
         if (! $log) {
             $this->session->set_flashdata('error', 'Registro de e-mail não encontrado.');
-            redirect(site_url('mapos/emailsLog'));
+            redirect(site_url('notificacoes?aba=historico'));
         }
 
         $queueId = isset($log->queue_id) ? (int) $log->queue_id : 0;
         if ($queueId <= 0) {
             $this->session->set_flashdata('error', 'Não é possível reenviar: este envio não tem o e-mail original guardado na fila (sem anexos para reaproveitar). Gere o e-mail novamente pela origem (OS/cobrança).');
-            redirect(site_url('mapos/emailsLog'));
+            redirect(site_url('notificacoes?aba=historico'));
         }
 
         $fila = $this->db->where('id', $queueId)->limit(1)->get('email_queue')->row();
         if (! $fila) {
             $this->session->set_flashdata('error', 'O e-mail original não está mais na fila; não é possível reenviar com os anexos.');
-            redirect(site_url('mapos/emailsLog'));
+            redirect(site_url('notificacoes?aba=historico'));
         }
 
         // Reenfileira a mesma mensagem/anexos para novo disparo.
@@ -667,7 +657,7 @@ class Mapos extends MY_Controller {
 
         log_info('Reenvio de e-mail solicitado (fila #' . $queueId . ' -> ' . $log->destino . ')');
         $this->session->set_flashdata('success', 'E-mail reenfileirado para ' . $log->destino . '. Será reenviado com os mesmos anexos no próximo disparo (em até ~2 min).');
-        redirect(site_url('mapos/emailsLog'));
+        redirect(site_url('notificacoes?aba=historico'));
     }
 
     public function emails()
@@ -732,10 +722,7 @@ class Mapos extends MY_Controller {
         $this->form_validation->set_rules('app_name', 'Nome do Sistema', 'required|trim');
         $this->form_validation->set_rules('per_page', 'Registros por página', 'required|numeric|trim');
         $this->form_validation->set_rules('app_theme', 'Tema do Sistema', 'required|trim');
-        $this->form_validation->set_rules('os_notification', 'Notificação de OS', 'required|trim');
-        $this->form_validation->set_rules('email_automatico', 'Enviar Email Automático', 'required|trim');
         $this->form_validation->set_rules('control_estoque', 'Controle de Estoque', 'required|trim');
-        $this->form_validation->set_rules('notifica_whats', 'Notificação Whatsapp', 'required|trim');
         $this->form_validation->set_rules('control_baixa', 'Controle de Baixa', 'required|trim');
         $this->form_validation->set_rules('control_editos', 'Controle de Edição de OS', 'required|trim');
         $this->form_validation->set_rules('control_edit_vendas', 'Controle de Edição de Vendas', 'required|trim');
@@ -768,18 +755,6 @@ class Mapos extends MY_Controller {
                 'API_ENABLED' => $this->input->post('apiEnabled'),
                 'API_TOKEN_EXPIRE_TIME' => $this->input->post('apiExpireTime'),
                 'API_JWT_KEY' => $this->input->post('resetJwtToken'),
-                'EMAIL_PROTOCOL' => $this->input->post('EMAIL_PROTOCOL'),
-                'EMAIL_SMTP_HOST' => $this->input->post('EMAIL_SMTP_HOST'),
-                'EMAIL_SMTP_CRYPTO' => $this->input->post('EMAIL_SMTP_CRYPTO'),
-                'EMAIL_SMTP_PORT' => $this->input->post('EMAIL_SMTP_PORT'),
-                'EMAIL_SMTP_USER' => $this->input->post('EMAIL_SMTP_USER'),
-                'EMAIL_SMTP_PASS' => $this->input->post('EMAIL_SMTP_PASS'),
-                'WHATSAPP_EVOLUTION_ENABLED' => $this->input->post('WHATSAPP_EVOLUTION_ENABLED'),
-                'WHATSAPP_EVOLUTION_URL' => $this->input->post('WHATSAPP_EVOLUTION_URL'),
-                'WHATSAPP_EVOLUTION_APIKEY' => $this->input->post('WHATSAPP_EVOLUTION_APIKEY'),
-                'WHATSAPP_EVOLUTION_INSTANCE' => $this->input->post('WHATSAPP_EVOLUTION_INSTANCE'),
-                'WHATSAPP_EVOLUTION_VERIFY_SSL' => $this->input->post('WHATSAPP_EVOLUTION_VERIFY_SSL'),
-                'WHATSAPP_EVOLUTION_AUTO_STATUS' => $this->input->post('WHATSAPP_EVOLUTION_AUTO_STATUS'),
             ];
 
             if (!$this->editDontEnv($dataDotEnv)) {
@@ -791,10 +766,7 @@ class Mapos extends MY_Controller {
                 'app_name' => $this->input->post('app_name'),
                 'per_page' => $this->input->post('per_page'),
                 'app_theme' => $this->input->post('app_theme'),
-                'os_notification' => $this->input->post('os_notification'),
-                'email_automatico' => $this->input->post('email_automatico'),
                 'control_estoque' => $this->input->post('control_estoque'),
-                'notifica_whats' => $this->input->post('notifica_whats'),
                 'control_baixa' => $this->input->post('control_baixa'),
                 'control_editos' => $this->input->post('control_editos'),
                 'control_edit_vendas' => $this->input->post('control_edit_vendas'),

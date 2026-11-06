@@ -1,0 +1,200 @@
+/*
+ * Central de Notificacoes (tela unica: eventos, canais, modelos e historico).
+ *
+ * Carregada depois de moderno.css e do tema escolhido. Usa apenas as variaveis
+ * --ui-* e rgba neutro, entao funciona nos temas claros e escuros sem regra
+ * propria por tema (ADR-009).
+ */
+
+/* ---------- Estrutura da central ---------- */
+.nt { display: flex; flex-direction: column; gap: 16px; }
+
+.nt-abas {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    padding: 4px; border: 1px solid var(--ui-borda); border-radius: var(--ui-raio);
+    background: var(--ui-suave);
+}
+.nt-aba {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border: 0; border-radius: var(--ui-raio-p);
+    background: transparent; color: inherit; font: inherit; font-size: 13px; font-weight: 600;
+    cursor: pointer; white-space: nowrap;
+}
+.nt-aba i { font-size: 17px; opacity: .85; }
+.nt-aba:hover { background: rgba(127, 127, 127, .1); }
+.nt-aba[aria-selected='true'] {
+    background: var(--ui-primaria); color: #fff;
+    box-shadow: var(--ui-sombra);
+}
+.nt-aba[aria-selected='true'] i { opacity: 1; }
+.nt-aba:focus-visible { outline: 2px solid var(--ui-primaria); outline-offset: 2px; }
+.nt-aba .nt-aba-num {
+    font-size: 11px; font-weight: 700; padding: 0 6px; border-radius: 999px;
+    background: rgba(127, 127, 127, .18);
+}
+.nt-aba[aria-selected='true'] .nt-aba-num { background: rgba(255, 255, 255, .25); }
+
+.nt-painel[hidden] { display: none; }
+
+/* ---------- Cabecalho de secao ---------- */
+.nt-secao-topo {
+    display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between;
+    gap: 10px; margin-bottom: 12px;
+}
+.nt-secao-topo h2 {
+    margin: 0; font-size: 16px; font-weight: 700;
+    display: flex; align-items: center; gap: 8px;
+}
+.nt-secao-topo p { margin: 4px 0 0; font-size: 13px; color: var(--ui-texto-2); max-width: 78ch; }
+
+/* ---------- Grupos de eventos ---------- */
+.nt-grupo { margin: 0 0 18px; }
+.nt-grupo:last-child { margin-bottom: 0; }
+.nt-grupo-titulo {
+    display: flex; align-items: center; gap: 8px;
+    margin: 0 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--ui-borda);
+    font-size: 12px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+    color: var(--ui-texto-2);
+}
+.nt-grupo-titulo .ui-selo { text-transform: none; letter-spacing: 0; }
+
+/* ---------- Cartao de evento ---------- */
+.nt-eventos { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; }
+.nt-evento {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 12px 14px; border: 1px solid var(--ui-borda); border-radius: var(--ui-raio);
+    background: transparent; color: inherit;
+    transition: border-color var(--ui-transicao), background-color var(--ui-transicao);
+}
+.nt-evento:hover { border-color: rgba(79, 107, 237, .45); background: var(--ui-suave); }
+.nt-evento.nt-inativo { opacity: .62; }
+.nt-evento-icone {
+    flex: 0 0 auto; width: 38px; height: 38px; border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(79, 107, 237, .12); color: var(--ui-primaria); font-size: 20px;
+}
+.nt-evento.nt-inativo .nt-evento-icone { background: rgba(127, 127, 127, .14); color: var(--ui-texto-2); }
+.nt-evento-corpo { flex: 1 1 auto; min-width: 0; }
+.nt-evento-nome {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+    font-size: 13.5px; font-weight: 600; margin: 0;
+}
+.nt-evento-desc { margin: 3px 0 0; font-size: 12px; color: var(--ui-texto-2); }
+.nt-evento-meta { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.nt-evento-acoes { flex: 0 0 auto; display: flex; gap: 4px; align-items: flex-start; }
+
+/* ---------- Linha de canal (E-mail / WhatsApp) ---------- */
+.nt-canais { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.nt-canal {
+    border: 1px solid var(--ui-borda); border-radius: var(--ui-raio);
+    overflow: hidden; background: transparent;
+}
+.nt-canal-cab {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; border-bottom: 1px solid var(--ui-borda); background: var(--ui-suave);
+}
+.nt-canal-cab i { font-size: 22px; }
+.nt-canal-cab .nt-canal-nome { font-weight: 700; font-size: 14px; }
+.nt-canal-cab .nt-canal-estado { margin-left: auto; }
+.nt-canal-corpo { padding: 14px; }
+.nt-canal-corpo .nt-grade {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px 14px;
+}
+.nt-canal-corpo label { font-size: 12px; font-weight: 600; margin: 0 0 4px; display: block; }
+.nt-canal-corpo input, .nt-canal-corpo select { width: 100%; }
+
+/* ---------- Botao de teste em linha ---------- */
+.nt-teste { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+.nt-teste .nt-teste-saida { font-size: 12px; }
+
+/* ---------- Modelos ---------- */
+.nt-modelos { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+.nt-modelo {
+    border: 1px solid var(--ui-borda); border-radius: var(--ui-raio);
+    padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
+    transition: border-color var(--ui-transicao), background-color var(--ui-transicao);
+}
+.nt-modelo:hover { border-color: rgba(79, 107, 237, .45); background: var(--ui-suave); }
+.nt-modelo-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.nt-modelo-nome { font-weight: 700; font-size: 13.5px; }
+.nt-modelo-desc { font-size: 12px; color: var(--ui-texto-2); flex: 1 1 auto; }
+.nt-modelo-preview {
+    font-size: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--ui-suave); border: 1px solid var(--ui-borda); border-radius: var(--ui-raio-p);
+    padding: 8px 10px; max-height: 84px; overflow: hidden; white-space: pre-wrap;
+    word-break: break-word; color: var(--ui-texto-2);
+}
+
+/* ---------- Historico ---------- */
+.nt-historico-filtros {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px;
+}
+.nt-historico-filtros .nt-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border: 1px solid var(--ui-borda); border-radius: 999px;
+    font-size: 12px; font-weight: 600; text-decoration: none; color: inherit;
+    background: transparent;
+}
+.nt-historico-filtros .nt-chip:hover { border-color: rgba(79, 107, 237, .5); }
+.nt-historico-filtros .nt-chip[aria-current='page'] {
+    background: var(--ui-primaria); border-color: var(--ui-primaria); color: #fff;
+}
+.nt-historico-filtros .nt-chip.nt-chip-falha[aria-current='page'] {
+    background: var(--ui-perigo); border-color: var(--ui-perigo);
+}
+
+.nt-tabela { width: 100%; border-collapse: collapse; font-size: 13px; }
+.nt-tabela th {
+    text-align: left; font-size: 11px; font-weight: 700; letter-spacing: .4px;
+    text-transform: uppercase; color: var(--ui-texto-2);
+    padding: 8px 12px; border-bottom: 1px solid var(--ui-borda); white-space: nowrap;
+}
+.nt-tabela td { padding: 9px 12px; border-bottom: 1px solid var(--ui-borda); vertical-align: top; }
+.nt-tabela tbody tr:last-child td { border-bottom: 0; }
+.nt-tabela tbody tr:hover td { background: var(--ui-suave); }
+.nt-tabela .nt-dat { white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--ui-texto-2); font-size: 12px; }
+.nt-tabela .nt-destino { font-weight: 600; }
+.nt-tabela .nt-erro { font-size: 11.5px; color: var(--ui-perigo); word-break: break-word; max-width: 320px; display: block; }
+
+.nt-vazio-linha { text-align: center; padding: 26px 12px; color: var(--ui-texto-2); font-size: 13px; }
+
+/* ---------- Barra lateral de resumo ---------- */
+.nt-visao-geral {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;
+    margin-bottom: 14px;
+}
+.nt-visao-item {
+    border: 1px solid var(--ui-borda); border-radius: var(--ui-raio-p);
+    padding: 10px 12px; background: var(--ui-suave);
+}
+.nt-visao-item strong { display: block; font-size: 19px; font-weight: 700; line-height: 1.2; }
+.nt-visao-item span { font-size: 11px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; color: var(--ui-texto-2); }
+.nt-visao-item.nt-ok strong { color: var(--ui-sucesso); }
+.nt-visao-item.nt-falha strong { color: var(--ui-perigo); }
+.nt-visao-item.nt-pendente strong { color: var(--ui-alerta); }
+
+/* ---------- Intervalo de disparo ---------- */
+.nt-intervalo { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+.nt-intervalo .control-group { margin: 0; }
+.nt-intervalo input { width: 140px; }
+
+/* ---------- Chips de filtro (clientes/projetos do evento) ---------- */
+.nt-chip-cliente, .nt-chip-projeto {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--ui-suave); border: 1px solid var(--ui-borda);
+    border-radius: 16px; padding: 4px 10px; font-size: 12px;
+}
+.nt-remover-cliente, .nt-remover-projeto {
+    color: var(--ui-perigo); text-decoration: none; font-weight: 700;
+}
+.nt-remover-cliente:hover, .nt-remover-projeto:hover { color: var(--ui-perigo); }
+
+/* ---------- Celular ---------- */
+@media (max-width: 767px) {
+    .nt-eventos { grid-template-columns: 1fr; }
+    .nt-canais { grid-template-columns: 1fr; }
+    .nt-modelos { grid-template-columns: 1fr; }
+    .nt-aba { flex: 1 1 auto; justify-content: center; }
+    .nt-aba .nt-aba-num { display: none; }
+    .nt-tabela th:nth-child(n+5), .nt-tabela td:nth-child(n+5) { display: none; }
+}

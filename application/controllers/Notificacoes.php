@@ -2,141 +2,158 @@
 
 defined('BASEPATH') or exit('No direct script access allowed');
 
+/**
+ * Central de Notificacoes — tela unica para eventos, canais, modelos e historico.
+ *
+ * Substitui as telas separadas (gatilhos, modelos de e-mail/WhatsApp, log de
+ * envios e as abas de notificacao de Configuracoes). As URLs antigas continuam
+ * respondendo por redirecionamento, para nao quebrar favoritos e testes.
+ *
+ * Credenciais do .env e avisos legados de OS ficam em Notificacoes_credenciais.
+ */
 class Notificacoes extends MY_Controller
 {
+    /** Abas validas da central. */
+    private const ABAS = ['eventos', 'canais', 'modelos', 'historico'];
+
     public function __construct()
     {
         parent::__construct();
 
-        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'cSistema')) {
+        $permissao = $this->session->userdata('permissao');
+        if (! $this->permission->checkPermission($permissao, 'cSistema')
+            && ! $this->permission->checkPermission($permissao, 'cEmail')) {
             $this->session->set_flashdata('error', 'Você não tem permissão para configurar notificações.');
             redirect(base_url());
         }
 
+        $this->load->helper('notificacoes');
+        $this->load->library('notificacoes_credenciais');
         $this->load->model('notification_triggers_model');
+        $this->load->model('notificacoes_central_model');
     }
+
+    /* ------------------------------------------------------------------ */
+    /* Tela unica                                                          */
+    /* ------------------------------------------------------------------ */
 
     public function index()
     {
-        $this->data['menuConfiguracoes'] = 'Notificacoes';
-        $this->data['results'] = $this->notification_triggers_model->getAll();
-        $this->data['intervalo'] = isset($this->data['configuration']['notif_intervalo_disparo'])
-            ? (int) $this->data['configuration']['notif_intervalo_disparo']
-            : 120;
+        $aba = (string) $this->input->get('aba');
+        if (! in_array($aba, self::ABAS, true)) {
+            $aba = 'eventos';
+        }
 
-        $this->data['view'] = 'notificacoes/notificacoes';
+        $canal = (string) $this->input->get('canal');
+        $status = (string) $this->input->get('status');
+        $porEvento = $this->notificacoes_central_model->eventosComGatilhos();
+
+        $this->data['menuConfiguracoes'] = 'Notificacoes';
+        $this->data['abaAtiva'] = $aba;
+        $this->data['tabelaGatilhos'] = $this->db->table_exists('notification_triggers');
+        $this->data['porEvento'] = $porEvento;
+        $this->data['eventosSemGatilho'] = $this->notificacoes_central_model->eventosSemGatilho();
+        $this->data['ordemGrupos'] = notif_ordem_grupos();
+
+        // Canais: credenciais vem da biblioteca; o .env e lido, nunca criado.
+        $this->data['intervalo'] = $this->notificacoes_credenciais->intervalo();
+        $this->data['smtp'] = $this->notificacoes_credenciais->smtp();
+        $this->data['whatsapp'] = $this->notificacoes_credenciais->whatsapp();
+        $this->data['whatsappAtivo'] = $this->notificacoes_credenciais->whatsappLigado();
+        $this->data['envDisponivel'] = $this->notificacoes_credenciais->envDisponivel();
+
+        // Avisos automaticos de OS (antes na aba "Notificacoes" de Configuracoes).
+        $this->data['osNotification'] = $this->data['configuration']['os_notification'] ?? 'cliente';
+        $this->data['emailAutomatico'] = (string) ($this->data['configuration']['email_automatico'] ?? '1');
+        $this->data['notificaWhats'] = (string) ($this->data['configuration']['notifica_whats'] ?? '');
+        $this->data['podeSistema'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'cSistema');
+        $this->data['podeEmail'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'cEmail');
+
+        // Modelos
+        $this->load->model('whatsapp_templates_model');
+        $this->data['modelosEmail'] = $this->notificacoes_central_model->modelosEmail();
+        $this->data['modelosWhatsapp'] = $this->notificacoes_central_model->modelosWhatsapp();
+        $this->data['whatsappSlugsCore'] = Whatsapp_templates_model::slugsCore();
+
+        // Historico
+        $this->data['canalFiltro'] = in_array($canal, ['email', 'whatsapp'], true) ? $canal : null;
+        $this->data['statusFiltro'] = in_array($status, ['enviado', 'falha'], true) ? $status : null;
+        $this->data['historico'] = $this->notificacoes_central_model->historico(
+            $this->data['canalFiltro'],
+            $this->data['statusFiltro'],
+            max(1, (int) $this->input->get('pagina'))
+        );
+        $this->data['totais'] = $this->notificacoes_central_model->totaisHistorico();
+        $this->data['filaPendente'] = $this->notificacoes_central_model->filaEmailPendente();
+
+        $this->data['view'] = 'notificacoes/central';
 
         return $this->layout();
     }
 
-    public function editar($id = null)
+    /* ------------------------------------------------------------------ */
+    /* Gatilhos por evento                                                 */
+    /* ------------------------------------------------------------------ */
+
+    /** Formulario de um evento (cria o gatilho no primeiro salvamento). */
+    public function evento($evento = null)
     {
-        if (! $id || ! is_numeric($id)) {
-            $this->session->set_flashdata('error', 'Gatilho não encontrado.');
+        if (! $this->db->table_exists('notification_triggers')) {
+            $this->session->set_flashdata('error', 'A tabela de gatilhos ainda não existe neste banco. Rode a atualização do banco para configurar notificações.');
             redirect(site_url('notificacoes'));
         }
 
-        $gatilho = $this->notification_triggers_model->getById($id);
-        if (! $gatilho) {
-            $this->session->set_flashdata('error', 'Gatilho não encontrado.');
+        $catalogo = Notification_triggers_model::eventosCatalogo();
+        if (! $evento || ! isset($catalogo[$evento])) {
+            $this->session->set_flashdata('error', 'Evento de notificação inválido.');
             redirect(site_url('notificacoes'));
         }
+
+        $todos = $this->gatilhosDoEvento($evento);
+        $principal = $todos[0] ?? null;
 
         $this->load->model('whatsapp_templates_model');
+        $this->load->model('email_templates_model');
 
         $this->data['menuConfiguracoes'] = 'Notificacoes';
-        $this->data['gatilho'] = $gatilho;
-        $this->data['templates'] = $this->templatesDisponiveis();
+        $this->data['eventoSlug'] = $evento;
+        $this->data['eventoInfo'] = $catalogo[$evento];
+        $this->data['podeSistema'] = $this->permission->checkPermission($this->session->userdata('permissao'), 'cSistema');
+        $this->data['gatilho'] = $principal;
+        $this->data['gatilhosEvento'] = $todos;
+        $this->data['canais'] = Notification_triggers_model::canaisDisponiveis();
+        $this->data['destinatarios'] = Notification_triggers_model::destinatariosDisponiveis();
+        $this->data['blocos'] = Notification_triggers_model::blocosDisponiveis();
+        $this->data['anexos'] = Notification_triggers_model::anexosDisponiveis();
         $this->data['whatsappTemplates'] = $this->whatsapp_templates_model->getAll();
-        $this->data['clientesSelecionados'] = $this->clientesDoGatilho($gatilho);
-        $this->data['projetosSelecionados'] = $this->projetosDoGatilho($gatilho);
+        $this->data['emailTemplates'] = $this->email_templates_model->getAll();
+        $this->data['clientesSelecionados'] = $this->clientesDoGatilho($principal);
+        $this->data['projetosSelecionados'] = $this->projetosDoGatilho($principal);
+        $this->data['ehOs'] = ($catalogo[$evento]['grupo'] === 'Ordem de Serviço');
+        $this->data['ehProjeto'] = ($catalogo[$evento]['grupo'] === 'Projetos');
 
-        $this->data['view'] = 'notificacoes/editarNotificacao';
+        $this->data['view'] = 'notificacoes/evento';
 
         return $this->layout();
     }
 
-    /**
-     * Autocomplete de clientes para o filtro do gatilho WhatsApp.
-     */
-    public function autoCompleteCliente()
+    /** Grava o gatilho principal do evento (cria quando ainda nao existe). */
+    public function salvarEvento()
     {
-        $q = trim((string) $this->input->get('term'));
-        if ($q === '') {
-            echo json_encode([]);
-
-            return;
-        }
-
-        $this->db->select('idClientes, nomeCliente, documento, celular, telefone');
-        $this->db->group_start();
-        $this->db->like('nomeCliente', $q);
-        $this->db->or_like('documento', $q);
-        $this->db->or_like('celular', $q);
-        $this->db->or_like('telefone', $q);
-        $this->db->group_end();
-        $this->db->order_by('nomeCliente', 'ASC');
-        $this->db->limit(25);
-        $rows = $this->db->get('clientes')->result();
-
-        $out = [];
-        foreach ($rows as $r) {
-            $doc = trim((string) $r->documento);
-            $label = $r->nomeCliente . ($doc !== '' ? ' — ' . $doc : '');
-            $out[] = [
-                'id' => (int) $r->idClientes,
-                'label' => $label,
-                'value' => $label,
-            ];
-        }
-
-        echo json_encode($out);
-    }
-
-    /**
-     * Autocomplete de projetos para o filtro do gatilho (RDO).
-     */
-    public function autoCompleteProjeto()
-    {
-        $q = trim((string) $this->input->get('term'));
-        if ($q === '' || ! $this->db->table_exists('obras')) {
-            echo json_encode([]);
-
-            return;
-        }
-
-        $this->db->select('idObra, nome, codigo');
-        $this->db->group_start();
-        $this->db->like('nome', $q);
-        $this->db->or_like('codigo', $q);
-        $this->db->group_end();
-        $this->db->order_by('nome', 'ASC');
-        $this->db->limit(25);
-        $rows = $this->db->get('obras')->result();
-
-        $out = [];
-        foreach ($rows as $r) {
-            $cod = trim((string) $r->codigo);
-            $label = $r->nome . ($cod !== '' ? ' — ' . $cod : '');
-            $out[] = [
-                'id' => (int) $r->idObra,
-                'label' => $label,
-                'value' => $label,
-            ];
-        }
-
-        echo json_encode($out);
-    }
-
-    public function salvar()
-    {
-        $id = $this->input->post('id');
-        $gatilho = $id && is_numeric($id) ? $this->notification_triggers_model->getById($id) : null;
-        if (! $gatilho) {
-            $this->session->set_flashdata('error', 'Gatilho não encontrado.');
+        $this->exigirSistema();
+        if (! $this->db->table_exists('notification_triggers')) {
+            $this->session->set_flashdata('error', 'A tabela de gatilhos ainda não existe neste banco. Rode a atualização do banco e tente de novo.');
             redirect(site_url('notificacoes'));
         }
 
+        $evento = (string) $this->input->post('evento');
+        $catalogo = Notification_triggers_model::eventosCatalogo();
+        if (! isset($catalogo[$evento])) {
+            $this->session->set_flashdata('error', 'Evento de notificação inválido.');
+            redirect(site_url('notificacoes'));
+        }
+
+        $gatilho = $this->gatilhoDoEvento($evento);
         $data = [
             'ativo' => $this->input->post('ativo') ? 1 : 0,
             'canais' => $this->listaPost('canais'),
@@ -144,15 +161,16 @@ class Notificacoes extends MY_Controller
             'blocos' => $this->listaPost('blocos'),
             'anexos' => $this->listaPost('anexos'),
             'template_slug' => $this->input->post('template_slug') ?: null,
+            'nome' => trim((string) $this->input->post('nome')) ?: $catalogo[$evento]['nome'],
+            'descricao' => trim((string) $this->input->post('descricao')) ?: null,
         ];
-        if ($this->db->field_exists('whatsapp_grupos', 'notification_triggers')) {
-            $data['whatsapp_grupos'] = $this->listaPost('whatsapp_grupos');
+        foreach (['whatsapp_grupos', 'whatsapp_clientes', 'projetos_id'] as $campoLista) {
+            if ($this->db->field_exists($campoLista, 'notification_triggers')) {
+                $data[$campoLista] = $this->listaPost($campoLista);
+            }
         }
         if ($this->db->field_exists('whatsapp_template', 'notification_triggers')) {
             $data['whatsapp_template'] = $this->input->post('whatsapp_template') ?: null;
-        }
-        if ($this->db->field_exists('whatsapp_clientes', 'notification_triggers')) {
-            $data['whatsapp_clientes'] = $this->listaPost('whatsapp_clientes');
         }
         if ($this->db->field_exists('email_destinatarios', 'notification_triggers')) {
             $data['email_destinatarios'] = $this->emailListaPost('email_destinatarios_raw');
@@ -160,163 +178,242 @@ class Notificacoes extends MY_Controller
         if ($this->db->field_exists('email_conversa', 'notification_triggers')) {
             $data['email_conversa'] = $this->input->post('email_conversa') ? 1 : 0;
         }
-        if ($this->db->field_exists('projetos_id', 'notification_triggers')) {
-            $data['projetos_id'] = $this->listaPost('projetos_id');
+
+        if ($gatilho) {
+            $this->notification_triggers_model->update($gatilho->id, $data);
+            log_info('Alterou o gatilho de notificação: ' . $evento);
+        } else {
+            $data['evento'] = $evento;
+            $data['grupo'] = $catalogo[$evento]['grupo'];
+            $this->notification_triggers_model->create($data);
+            log_info('Criou o gatilho de notificação: ' . $evento);
         }
 
-        $this->notification_triggers_model->update($id, $data);
-
-        log_info('Alterou o gatilho de notificação: ' . $gatilho->evento);
-        $this->session->set_flashdata('success', 'Gatilho de notificação salvo com sucesso!');
-        redirect(site_url('notificacoes/editar/' . $id));
+        $this->session->set_flashdata('success', 'Configuração do evento salva.');
+        redirect(site_url('notificacoes/evento/' . rawurlencode($evento)));
     }
 
-    public function envios()
+    /** Ligar/desligar um evento (todos os gatilhos dele andam juntos). */
+    public function alternar($evento = null)
     {
-        $this->load->model('whatsapp_envios_model');
-        $status = $this->input->get('status');
-        $status = in_array($status, ['enviado', 'falha'], true) ? $status : null;
+        $this->exigirSistema();
+        $gatilhos = $evento ? $this->gatilhosDoEvento((string) $evento) : [];
 
-        $this->data['menuConfiguracoes'] = 'Notificacoes';
-        $this->data['statusFiltro'] = $status;
-        $this->data['totalEnviados'] = $this->whatsapp_envios_model->count('enviado');
-        $this->data['totalFalhas'] = $this->whatsapp_envios_model->count('falha');
-        $this->data['envios'] = $this->whatsapp_envios_model->getUltimos(100, 0, $status);
-        $this->data['view'] = 'notificacoes/envios';
-
-        return $this->layout();
+        if ($gatilhos) {
+            $algumAtivo = false;
+            foreach ($gatilhos as $g) {
+                if ((int) $g->ativo === 1) {
+                    $algumAtivo = true;
+                    break;
+                }
+            }
+            $novo = $algumAtivo ? 0 : 1;
+            foreach ($gatilhos as $g) {
+                $this->notification_triggers_model->update($g->id, ['ativo' => $novo]);
+            }
+            log_info('Alternou os gatilhos de notificação do evento ' . $evento . ' para ' . $novo);
+            $this->session->set_flashdata('success', 'Evento ' . ($novo === 1 ? 'ativado' : 'desativado') . '.');
+        }
+        redirect(site_url('notificacoes'));
     }
 
-    public function novo()
+    /** Cria uma copia do gatilho do evento, desativada. */
+    public function clonar($evento = null)
     {
-        $this->load->model('whatsapp_templates_model');
-
-        $this->data['menuConfiguracoes'] = 'Notificacoes';
-        $this->data['eventos'] = Notification_triggers_model::eventosCatalogo();
-        $this->data['templates'] = $this->templatesDisponiveis();
-        $this->data['whatsappTemplates'] = $this->whatsapp_templates_model->getAll();
-        $this->data['view'] = 'notificacoes/novoNotificacao';
-
-        return $this->layout();
-    }
-
-    public function criar()
-    {
-        $evento = $this->input->post('evento');
-        $catalogo = Notification_triggers_model::eventosCatalogo();
-        if (! isset($catalogo[$evento])) {
-            $this->session->set_flashdata('error', 'Selecione um evento válido.');
-            redirect(site_url('notificacoes/novo'));
-        }
-
-        $data = [
-            'evento' => $evento,
-            'nome' => trim((string) $this->input->post('nome')) ?: $catalogo[$evento]['nome'],
-            'grupo' => $catalogo[$evento]['grupo'],
-            'descricao' => trim((string) $this->input->post('descricao')) ?: null,
-            'ativo' => $this->input->post('ativo') ? 1 : 0,
-            'canais' => $this->listaPost('canais'),
-            'destinatarios' => $this->listaPost('destinatarios'),
-            'blocos' => $this->listaPost('blocos'),
-            'anexos' => $this->listaPost('anexos'),
-            'template_slug' => $this->input->post('template_slug') ?: null,
-        ];
-        if ($this->db->field_exists('whatsapp_grupos', 'notification_triggers')) {
-            $data['whatsapp_grupos'] = $this->listaPost('whatsapp_grupos');
-        }
-        if ($this->db->field_exists('whatsapp_template', 'notification_triggers')) {
-            $data['whatsapp_template'] = $this->input->post('whatsapp_template') ?: null;
-        }
-        if ($this->db->field_exists('whatsapp_clientes', 'notification_triggers')) {
-            $data['whatsapp_clientes'] = $this->listaPost('whatsapp_clientes');
-        }
-
-        $id = $this->notification_triggers_model->create($data);
-        if ($id) {
-            log_info('Criou um gatilho de notificação: ' . $evento);
-            $this->session->set_flashdata('success', 'Gatilho criado com sucesso!');
-            redirect(site_url('notificacoes/editar/' . $id));
-        }
-
-        $this->session->set_flashdata('error', 'Não foi possível criar o gatilho.');
-        redirect(site_url('notificacoes/novo'));
-    }
-
-    /**
-     * Clona um gatilho existente (todos os campos) com um novo nome, desativado
-     * por padrão — o usuário ajusta o que for preciso e ativa. Serve tanto pra
-     * criar variações do gatilho de WhatsApp quanto, no caso do RDO, pra
-     * reaproveitar a lista de e-mails responsáveis num gatilho separado.
-     */
-    public function clonar($id = null)
-    {
-        if (! $id || ! is_numeric($id)) {
-            $this->session->set_flashdata('error', 'Gatilho não encontrado.');
-            redirect(site_url('notificacoes'));
-        }
-
-        $gatilho = $this->notification_triggers_model->getById($id);
+        $this->exigirSistema();
+        $gatilho = $evento ? $this->gatilhoDoEvento((string) $evento) : null;
         if (! $gatilho) {
-            $this->session->set_flashdata('error', 'Gatilho não encontrado.');
+            $this->session->set_flashdata('error', 'Nenhum gatilho configurado nesse evento.');
             redirect(site_url('notificacoes'));
-        }
-
-        $nome = trim((string) $this->input->post('nome'));
-        if ($nome === '') {
-            $nome = $gatilho->nome . ' (cópia)';
         }
 
         $data = (array) $gatilho;
         unset($data['id'], $data['data_criacao'], $data['data_atualizacao']);
-        $data['nome'] = $nome;
+        $data['nome'] = $gatilho->nome . ' (cópia)';
         $data['ativo'] = 0;
 
-        $novoId = $this->notification_triggers_model->create($data);
-        if ($novoId) {
-            log_info('Clonou o gatilho de notificação #' . $id . ' (' . $gatilho->evento . ') como "' . $nome . '"');
-            $this->session->set_flashdata('success', 'Gatilho clonado com sucesso! Ajuste o que for preciso e ative.');
-            redirect(site_url('notificacoes/editar/' . $novoId));
+        if ($this->notification_triggers_model->create($data)) {
+            log_info('Clonou o gatilho de notificação ' . $evento . ' como "' . $data['nome'] . '"');
+            $this->session->set_flashdata('success', 'Cópia criada e desativada. Ajuste e ative quando estiver pronta.');
+            redirect(site_url('notificacoes/evento/' . rawurlencode($evento)));
         }
 
         $this->session->set_flashdata('error', 'Não foi possível clonar o gatilho.');
         redirect(site_url('notificacoes'));
     }
 
-    public function excluir($id = null)
+    /** Remove todos os gatilhos do evento. */
+    public function excluir($evento = null)
     {
-        if ($id && is_numeric($id)) {
-            $gatilho = $this->notification_triggers_model->getById($id);
-            if ($gatilho) {
-                $this->notification_triggers_model->delete($id);
-                log_info('Excluiu o gatilho de notificação: ' . $gatilho->evento);
-                $this->session->set_flashdata('success', 'Gatilho excluído.');
+        $this->exigirSistema();
+        $gatilhos = $evento ? $this->gatilhosDoEvento((string) $evento) : [];
+
+        if ($gatilhos) {
+            foreach ($gatilhos as $g) {
+                $this->notification_triggers_model->delete($g->id);
             }
+            log_info('Excluiu os gatilhos de notificação do evento ' . $evento);
+            $this->session->set_flashdata('success', 'Configuração excluída. O evento volta ao padrão do sistema.');
         }
         redirect(site_url('notificacoes'));
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Canais                                                              */
+    /* ------------------------------------------------------------------ */
+
+    public function salvarEmail()
+    {
+        $this->exigirSistema();
+        $this->flashResultado($this->notificacoes_credenciais->salvarEmail($this->input->post()));
+        redirect(site_url('notificacoes?aba=canais'));
+    }
+
+    public function salvarWhatsapp()
+    {
+        $this->exigirSistema();
+        $this->flashResultado($this->notificacoes_credenciais->salvarWhatsapp($this->input->post()));
+        redirect(site_url('notificacoes?aba=canais'));
+    }
+
+    public function salvarDespacho()
+    {
+        $this->exigirSistema();
+        $this->flashResultado($this->notificacoes_credenciais->salvarIntervalo($this->input->post('notif_intervalo_disparo')));
+        redirect(site_url('notificacoes?aba=canais'));
+    }
+
+    public function salvarLegado()
+    {
+        $this->exigirSistema();
+        $this->flashResultado($this->notificacoes_credenciais->salvarAvisosOs($this->input->post()));
+        redirect(site_url('notificacoes?aba=canais'));
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Compatibilidade com URLs antigas                                    */
+    /* ------------------------------------------------------------------ */
+
+    public function envios()
+    {
+        redirect(site_url('notificacoes?aba=historico'));
+    }
+
+    public function novo()
+    {
+        redirect(site_url('notificacoes'));
+    }
+
+    public function editar($id = null)
+    {
+        $gatilho = $id && is_numeric($id) ? $this->notification_triggers_model->getById($id) : null;
+        redirect($gatilho ? site_url('notificacoes/evento/' . rawurlencode($gatilho->evento)) : site_url('notificacoes'));
+    }
+
+    public function salvar()
+    {
+        $id = $this->input->post('id');
+        $gatilho = $id && is_numeric($id) ? $this->notification_triggers_model->getById($id) : null;
+        if ($gatilho) {
+            $_POST['evento'] = $gatilho->evento;
+            return $this->salvarEvento();
+        }
+        redirect(site_url('notificacoes'));
+    }
+
+    public function criar()
+    {
+        return $this->salvarEvento();
     }
 
     public function salvarConfig()
     {
-        $this->load->model('mapos_model');
-
-        $intervalo = (int) $this->input->post('notif_intervalo_disparo');
-        if ($intervalo < 30) {
-            $intervalo = 30; // piso de segurança
-        }
-
-        $ok = $this->mapos_model->saveConfiguracao(['notif_intervalo_disparo' => $intervalo]);
-        if ($ok) {
-            log_info('Alterou o intervalo de disparo de notificações para ' . $intervalo . 's.');
-            $this->session->set_flashdata('success', 'Intervalo de disparo salvo com sucesso!');
-        } else {
-            $this->session->set_flashdata('error', 'Ocorreu um erro ao salvar o intervalo.');
-        }
-        redirect(site_url('notificacoes'));
+        return $this->salvarDespacho();
     }
 
-    /**
-     * Junta os checkboxes marcados (array no POST) numa string por vírgula.
-     */
+    /* ------------------------------------------------------------------ */
+    /* Autocomplete dos filtros do evento                                  */
+    /* ------------------------------------------------------------------ */
+
+    public function autoCompleteCliente()
+    {
+        $q = trim((string) $this->input->get('term'));
+        if ($q === '') {
+            return $this->json([]);
+        }
+
+        $rows = $this->db->select('idClientes, nomeCliente, documento, celular, telefone')
+            ->group_start()->like('nomeCliente', $q)->or_like('documento', $q)
+            ->or_like('celular', $q)->or_like('telefone', $q)->group_end()
+            ->order_by('nomeCliente', 'ASC')->limit(25)->get('clientes')->result();
+
+        return $this->json(array_map(function ($r) {
+            $doc = trim((string) $r->documento);
+
+            return ['id' => (int) $r->idClientes, 'label' => $r->nomeCliente . ($doc !== '' ? ' — ' . $doc : '')];
+        }, $rows));
+    }
+
+    public function autoCompleteProjeto()
+    {
+        $q = trim((string) $this->input->get('term'));
+        if ($q === '' || ! $this->db->table_exists('obras')) {
+            return $this->json([]);
+        }
+
+        $rows = $this->db->select('idObra, nome, codigo')
+            ->group_start()->like('nome', $q)->or_like('codigo', $q)->group_end()
+            ->order_by('nome', 'ASC')->limit(25)->get('obras')->result();
+
+        return $this->json(array_map(function ($r) {
+            $cod = trim((string) $r->codigo);
+
+            return ['id' => (int) $r->idObra, 'label' => $r->nome . ($cod !== '' ? ' — ' . $cod : '')];
+        }, $rows));
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Apoio                                                               */
+    /* ------------------------------------------------------------------ */
+
+    private function json($payload)
+    {
+        return $this->output->set_content_type('application/json')->set_output(json_encode($payload));
+    }
+
+    private function exigirSistema()
+    {
+        if (! $this->permission->checkPermission($this->session->userdata('permissao'), 'cSistema')) {
+            $this->session->set_flashdata('error', 'Apenas quem configura o sistema pode alterar as notificações.');
+            redirect(base_url());
+        }
+    }
+
+    private function flashResultado(array $resultado)
+    {
+        $this->session->set_flashdata($resultado['ok'] ? 'success' : 'error', $resultado['mensagem']);
+    }
+
+    private function gatilhoDoEvento($evento)
+    {
+        $gatilhos = $this->gatilhosDoEvento($evento);
+
+        return $gatilhos[0] ?? null;
+    }
+
+    /** @return object[] gatilhos do evento, na ordem de criacao */
+    private function gatilhosDoEvento($evento)
+    {
+        $lista = [];
+        foreach ($this->notification_triggers_model->getAll() as $g) {
+            if ($g->evento === $evento) {
+                $lista[] = $g;
+            }
+        }
+
+        return $lista;
+    }
+
     private function listaPost($campo)
     {
         $valores = $this->input->post($campo);
@@ -324,7 +421,6 @@ class Notificacoes extends MY_Controller
             return null;
         }
 
-        // IDs de clientes/projetos: só números positivos, únicos.
         if ($campo === 'whatsapp_clientes' || $campo === 'projetos_id') {
             $ids = [];
             foreach ($valores as $v) {
@@ -340,10 +436,6 @@ class Notificacoes extends MY_Controller
         return implode(',', array_map('strval', $valores));
     }
 
-    /**
-     * Normaliza a textarea de e-mails "responsáveis" (um por linha, ou separados
-     * por vírgula/ponto-e-vírgula) numa string CSV só com e-mails válidos.
-     */
     private function emailListaPost($campo)
     {
         $bruto = (string) $this->input->post($campo);
@@ -351,9 +443,8 @@ class Notificacoes extends MY_Controller
             return null;
         }
 
-        $partes = preg_split('/[,;\r\n]+/', $bruto);
         $emails = [];
-        foreach ($partes as $p) {
+        foreach (preg_split('/[,;\r\n]+/', $bruto) as $p) {
             $p = trim($p);
             if ($p !== '' && filter_var($p, FILTER_VALIDATE_EMAIL) && ! in_array($p, $emails, true)) {
                 $emails[] = $p;
@@ -363,11 +454,6 @@ class Notificacoes extends MY_Controller
         return empty($emails) ? null : implode(',', $emails);
     }
 
-    /**
-     * Carrega dados dos clientes salvos no gatilho (para a UI de edição).
-     *
-     * @return object[]
-     */
     private function clientesDoGatilho($gatilho)
     {
         if (! $gatilho || empty($gatilho->whatsapp_clientes) || ! $this->db->table_exists('clientes')) {
@@ -379,18 +465,11 @@ class Notificacoes extends MY_Controller
             return [];
         }
 
-        $this->db->select('idClientes, nomeCliente, documento');
-        $this->db->where_in('idClientes', $ids);
-        $this->db->order_by('nomeCliente', 'ASC');
-
-        return $this->db->get('clientes')->result();
+        return $this->db->select('idClientes, nomeCliente, documento')
+            ->where_in('idClientes', $ids)->order_by('nomeCliente', 'ASC')
+            ->get('clientes')->result();
     }
 
-    /**
-     * Carrega dados dos projetos salvos no filtro do gatilho (para a UI de edição).
-     *
-     * @return object[]
-     */
     private function projetosDoGatilho($gatilho)
     {
         if (! $gatilho || empty($gatilho->projetos_id) || ! $this->db->table_exists('obras')) {
@@ -402,24 +481,8 @@ class Notificacoes extends MY_Controller
             return [];
         }
 
-        $this->db->select('idObra, nome, codigo');
-        $this->db->where_in('idObra', $ids);
-        $this->db->order_by('nome', 'ASC');
-
-        return $this->db->get('obras')->result();
-    }
-
-    private function templatesDisponiveis()
-    {
-        if (! $this->db->table_exists('email_templates')) {
-            return [];
-        }
-        $rows = $this->db->select('slug, nome')->order_by('nome', 'ASC')->get('email_templates')->result();
-        $lista = [];
-        foreach ($rows as $r) {
-            $lista[$r->slug] = $r->nome;
-        }
-
-        return $lista;
+        return $this->db->select('idObra, nome, codigo')
+            ->where_in('idObra', $ids)->order_by('nome', 'ASC')
+            ->get('obras')->result();
     }
 }

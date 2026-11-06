@@ -47,7 +47,7 @@ $tokenHash = $this->security->get_csrf_hash();
                     <span class="button__icon"><i class="bx bx-show"></i></span>
                     <span class="button__text2">Pré-visualizar</span>
                 </button>
-                <a href="<?= site_url('emailtemplates') ?>" class="button btn btn-warning">
+                <a href="<?= site_url('notificacoes?aba=modelos') ?>" class="button btn btn-warning">
                     <span class="button__icon"><i class="bx bx-arrow-back"></i></span>
                     <span class="button__text2">Voltar</span>
                 </a>

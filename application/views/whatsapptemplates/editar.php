@@ -50,7 +50,7 @@ $tags = array_filter(array_map('trim', explode(',', (string) $tpl->tags)));
                     <span class="button__icon"><i class="bx bx-save"></i></span>
                     <span class="button__text2">Salvar modelo</span>
                 </button>
-                <a href="<?= site_url('whatsapptemplates') ?>" class="button btn btn-warning">
+                <a href="<?= site_url('notificacoes?aba=modelos') ?>" class="button btn btn-warning">
                     <span class="button__icon"><i class="bx bx-arrow-back"></i></span>
                     <span class="button__text2">Voltar</span>
                 </a>

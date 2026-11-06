@@ -19,14 +19,8 @@ class Emailtemplates extends MY_Controller
 
     public function index()
     {
-        $this->data['menuConfiguracoes'] = 'Email';
-        $this->data['results'] = $this->email_templates_model->getAll();
-        $this->data['layout'] = $this->emailtemplate->getLayout();
-        $this->data['css'] = $this->emailtemplate->getCss();
-
-        $this->data['view'] = 'emails/templates';
-
-        return $this->layout();
+        // A lista de modelos vive na Central de Notificacoes (aba Modelos).
+        redirect(site_url('notificacoes?aba=modelos'));
     }
 
     public function editar($id = null)

@@ -1,9 +1,9 @@
 /**
  * Paleta de comandos (Ctrl+K / Cmd+K) - ADR-002.
  *
- * Lista os links do menu lateral (#sidebar) e do menu superior de atalhos
- * (.ns-atalhos-menu), que ja vem filtrado pelas permissoes do usuario, e
- * permite ir a qualquer tela digitando parte do nome.
+ * Lista os links do menu lateral (#sidebar), que e a unica superficie de
+ * navegacao do layout e ja vem filtrado pelas permissoes do usuario, e permite
+ * ir a qualquer tela digitando parte do nome.
  * Enter sem resultado selecionado cai na pesquisa global (mapos/pesquisar).
  *
  * So adiciona comportamento: se #sidebar nao existir, nao faz nada.
@@ -11,11 +11,10 @@
 (function () {
     'use strict';
 
+    // A barra lateral e a unica superficie de navegacao (menu unificado),
+    // entao ela ja traz todas as telas liberadas para o usuario.
     var sidebar = document.getElementById('sidebar');
-    // Os atalhos de uso menos frequente sairam do menu lateral para o
-    // menu superior; sem incluir os dois, deixariam de aparecer aqui.
-    var topo = document.querySelector('.ns-atalhos-menu');
-    if (!sidebar && !topo) {
+    if (!sidebar) {
         return;
     }
 
@@ -32,9 +31,6 @@
         var raizes = [];
         if (sidebar) {
             raizes.push(sidebar);
-        }
-        if (topo) {
-            raizes.push(topo);
         }
         for (var r = 0; r < raizes.length; r++) {
             var links = raizes[r].querySelectorAll('a[href]');
