@@ -10,8 +10,9 @@ require_once APPPATH . 'helpers/menu_navegacao_helper.php';
 
 /**
  * Catalogo unico da navegacao (tema/menu.php): ordem dos grupos, filtro por
- * permissao e marcacao do item aberto. A renderizacao em si e coberta pelo
- * teste de navegador (tests/navegador/telas.mjs).
+ * permissao e marcacao do item aberto. A renderizacao da barra lateral fica em
+ * MenuViewTest; o teste de navegador (tests/navegador/telas.mjs) so verifica
+ * status e erro de JS/CSP em cada tela, nao o HTML do menu.
  */
 class MenuNavegacaoTest extends TestCase
 {
