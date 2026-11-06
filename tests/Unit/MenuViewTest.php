@@ -169,12 +169,35 @@ class MenuViewTest extends TestCase
         $this->assertStringContainsString('logo-mapos-branco.png', $escuro);
     }
 
-    public function testRotuloComCaractereEspecialSaiEscapado(): void
+    /**
+     * O catalogo e codigo fixo, entao nao da para injetar um rotulo com "<" e
+     * ver o escape em acao. Este teste varre a view: todo echo que imprime
+     * campo do catalogo precisa passar por html_escape, e nenhuma saida pode
+     * ficar de fora — a dica, por exemplo, aparece em dois lugares.
+     */
+    public function testTodaSaidaDoCatalogoPassaPorHtmlEscape(): void
     {
-        $html = $this->render(['vOs']);
+        $view = (string) file_get_contents(APPPATH . 'views/tema/menu.php');
 
-        $this->assertSemErroPhp($html);
-        $this->assertStringContainsString('Ordens de Serviço', $html);
-        $this->assertStringNotContainsString('Ordens de Servi&ccedil;o', $html, 'escapou duas vezes');
+        preg_match_all('/<\?=\s*(.+?)\s*\?>/s', $view, $achados);
+
+        $doCatalogo = [];
+        foreach ($achados[1] as $expressao) {
+            if (strpos($expressao, '$item[') === false && strpos($expressao, '$grupo[') === false) {
+                continue;
+            }
+            $doCatalogo[] = $expressao;
+            $this->assertStringContainsString(
+                'html_escape',
+                $expressao,
+                'saida do catalogo sem escape: ' . preg_replace('/\s+/', ' ', $expressao)
+            );
+        }
+
+        $this->assertGreaterThanOrEqual(
+            4,
+            count($doCatalogo),
+            'poucas saidas do catalogo encontradas: a varredura pode ter parado de casar'
+        );
     }
 }
