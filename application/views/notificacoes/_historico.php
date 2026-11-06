@@ -5,7 +5,7 @@
  * Junta os envios de e-mail e de WhatsApp numa lista unica, com filtros por
  * canal e por resultado, e os totais em cartoes no topo.
  *
- * Variaveis: $historico, $totais, $filaPendente, $canalFiltro, $statusFiltro
+ * Variaveis: $historico, $totais, $filaPendente, $canalFiltro, $statusFiltro, $podeEmail
  */
 $e = function ($v) {
     return html_escape((string) ($v ?? ''));
@@ -146,6 +146,6 @@ $rotuloCanal = ['email' => 'E-mail', 'whatsapp' => 'WhatsApp'];
 
 <p style="color:var(--ui-texto-2);font-size:12px;margin:10px 0 0">
     "Enviado" significa que o e-mail foi aceito pelo servidor SMTP ou a mensagem pela Evolution API.
-    A entrega final depende do destinatário. E-mails ainda na fila aparecem no card acima e podem ser vistos em
-    <a href="<?= site_url('mapos/emails') ?>">fila de e-mails</a>.
+    A entrega final depende do destinatário. E-mails ainda na fila aparecem no card acima<?php if ($podeEmail) { ?> e podem
+    ser vistos em <a href="<?= site_url('mapos/emails') ?>">fila de e-mails</a><?php } ?>.
 </p>
