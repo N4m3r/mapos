@@ -63,7 +63,9 @@ O menu do técnico (`views/tema/menu_tecnico.php`) é outro layout, com outro p�
 - Quem não tem a permissão deixa de ver o link: menos redirect e menos dúvida.
 - O topo fica curto; a navegação inteira está na lateral, agrupada por área.
 - `MenuNavegacaoTest` cobre ordem dos grupos, filtro por permissão (inclusive permissão alternativa, como
-  `cSistema` ou `cEmail`), ids e rotas sem repetição, e a marcação do item aberto.
+  `cSistema` ou `cEmail`), ids e rotas sem repetição, a marcação de um item só por tela, a ausência de item
+  gated por permissão que troca o layout (`vTecnicoDashboard`) e o alcance da configuração da Cora por quem
+  tem apenas `cNfe`.
 
 ### Negative
 - A barra lateral ficou longa (48 destinos). Em tela baixa depende da rolagem nova para ser alcançável.
