@@ -86,7 +86,16 @@
       "Bash(docker rm *)",
       "Bash(docker run *)",
       "Bash(docker exec *)",
-      "Bash(MSYS_NO_PATHCONV=1 timeout 570 docker run --rm --network rhtest-net -v __CMDSUB_OUTPUT__/application:/src/application:ro -v __CMDSUB_OUTPUT__/index.php:/src/index.php:ro -v __TRACKED_VAR__/rh.env:/env.env:ro php:8.3-cli sh -c ' *)"
+      "Bash(MSYS_NO_PATHCONV=1 timeout 570 docker run --rm --network rhtest-net -v __CMDSUB_OUTPUT__/application:/src/application:ro -v __CMDSUB_OUTPUT__/index.php:/src/index.php:ro -v __TRACKED_VAR__/rh.env:/env.env:ro php:8.3-cli sh -c ' *)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(unzip -l mapos-mobile.apk)",
+      "Bash(node -e ' *)",
+      "Bash(grep -c \"margemLucro\" application/views/produtos/editarProduto.php)",
+      "Bash(grep -n \"margemLucro\\\\|selectLucro\\\\|errorAlert\" application/views/produtos/editarProduto.php)"
     ]
-  }
+  },
+  "disabledMcpjsonServers": [
+    "claude-flow"
+  ]
 }
