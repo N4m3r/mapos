@@ -495,6 +495,6 @@ Para não dar a impressão de que o quadro é só dívida:
 
 ## Como registrar as decisões
 
-O `docs/adr/` está na numeração 022 e o **ADR-023 está livre**. Vale um ADR por bloco: instalação e
+O `docs/adr/` está na numeração 024 e o **ADR-025 está livre**. Vale um ADR por bloco: instalação e
 atualização, limites de upload e API, e retenção de dados. O formato do projeto (Status, Data,
 Contexto, Decisão, Consequências) já está estabelecido e cabe bem nesses três temas.
