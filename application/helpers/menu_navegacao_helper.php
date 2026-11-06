@@ -35,7 +35,6 @@ if (! function_exists('menu_navegacao_catalogo')) {
                     ['id' => 'agenda', 'rotulo' => 'Agenda', 'dica' => 'Agenda', 'icone' => 'bx-calendar', 'rota' => 'agenda', 'permissoes' => ['vOs']],
                     ['id' => 'osrealizadas', 'rotulo' => 'OS realizadas', 'dica' => 'OS realizadas', 'icone' => 'bx-check-square', 'rota' => 'relatorioos', 'permissoes' => ['rOs']],
                     ['id' => 'sla', 'rotulo' => 'Prazos (SLA)', 'dica' => 'SLA', 'icone' => 'bx-time-five', 'rota' => 'sla', 'permissoes' => ['vOs']],
-                    ['id' => 'tecnico', 'rotulo' => 'Área do Técnico', 'dica' => 'Técnico', 'icone' => 'bx-wrench', 'rota' => 'tecnico', 'permissoes' => ['vTecnicoDashboard']],
                     ['id' => 'mapa', 'rotulo' => 'Gestão no Mapa', 'dica' => 'Mapa', 'icone' => 'bx-map-alt', 'rota' => 'localizacao/mapa', 'permissoes' => ['vTecnicoMapa']],
                 ],
             ],

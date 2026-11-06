@@ -90,14 +90,32 @@ class MenuNavegacaoTest extends TestCase
         $this->assertSame(['operacao'], array_keys($grupos));
     }
 
-    public function testCatalogoTem48Itens(): void
+    public function testCatalogoTem47Itens(): void
     {
         $total = 0;
         foreach (menu_navegacao_catalogo() as $grupo) {
             $total += count($grupo['itens']);
         }
 
-        $this->assertSame(48, $total, 'o catalogo mudou de tamanho; confira se e intencional');
+        $this->assertSame(47, $total, 'o catalogo mudou de tamanho; confira se e intencional');
+    }
+
+    /**
+     * isTecnico() troca o layout inteiro: quem tem vTecnicoDashboard recebe
+     * tema/menu_tecnico e nunca ve o menu administrativo. Um item do catalogo
+     * que exija essa permissao seria codigo morto (o item "tecnico" era).
+     */
+    public function testNenhumItemExigePermissaoQueTrocaOLayout(): void
+    {
+        foreach (menu_navegacao_catalogo() as $chave => $grupo) {
+            foreach ($grupo['itens'] as $item) {
+                $this->assertNotContains(
+                    'vTecnicoDashboard',
+                    $item['permissoes'] ?? [],
+                    'item ' . $item['id'] . ' (' . $chave . ') nunca apareceria: isTecnico() troca o menu'
+                );
+            }
+        }
     }
 
     /**

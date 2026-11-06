@@ -36,7 +36,7 @@ Uma superfície de navegação, alimentada por um catálogo.
    menu (continuam existindo; podem ser removidas depois, uma por vez).
 4. **Topo sem navegação.** Saem os dropdowns Atalhos, Relatórios e Configurações. Ficam perfil, busca e o link
    de saída, que não são navegação de módulo.
-5. **Barra lateral rola sozinha.** Não havia `overflow` em `#sidebar`/`.menu-bar`; com 48 destinos a lista não
+5. **Barra lateral rola sozinha.** Não havia `overflow` em `#sidebar`/`.menu-bar`; com 47 destinos a lista não
    cabe em telas baixas. `assets/css/menu-navegacao.css` cuida da rolagem e do título de grupo, que some no
    modo recolhido (80px).
 6. **Paleta de comandos lê um lugar só.** `assets/js/paleta-comandos.js` passa a varrer apenas `#sidebar`.
@@ -66,7 +66,7 @@ O menu do técnico (`views/tema/menu_tecnico.php`) é outro layout, com outro p�
   `cSistema` ou `cEmail`), ids e rotas sem repetição, e a marcação do item aberto.
 
 ### Negative
-- A barra lateral ficou longa (48 destinos). Em tela baixa depende da rolagem nova para ser alcançável.
+- A barra lateral ficou longa (47 destinos). Em tela baixa depende da rolagem nova para ser alcançável.
 - As flags `$menu*` dos controllers viraram código morto para o menu; ficam no repositório até uma limpeza
   própria.
 - Administradores que usavam o dropdown de Relatórios precisam reaprender o caminho (grupo "Relatórios e
