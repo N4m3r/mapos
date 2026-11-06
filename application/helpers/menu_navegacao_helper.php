@@ -29,7 +29,7 @@ if (! function_exists('menu_navegacao_catalogo')) {
             'operacao' => [
                 'titulo' => 'Operação',
                 'itens' => [
-                    ['id' => 'home', 'rotulo' => 'Início', 'dica' => 'Início', 'icone' => 'bx-home-alt', 'rota' => '', 'permissoes' => []],
+                    ['id' => 'home', 'rotulo' => 'Início', 'dica' => 'Início', 'icone' => 'bx-home-alt', 'rota' => '', 'permissoes' => [], 'aliases' => ['mapos']],
                     ['id' => 'os', 'rotulo' => 'Ordens de Serviço', 'dica' => 'Ordens', 'icone' => 'bx-file', 'rota' => 'os', 'permissoes' => ['vOs'], 'aliases' => ['os/adicionar']],
                     ['id' => 'atendimento', 'rotulo' => 'Central de Atendimento', 'dica' => 'Atendimento', 'icone' => 'bx-headphone', 'rota' => 'os/atribuir', 'permissoes' => ['eOs']],
                     ['id' => 'agenda', 'rotulo' => 'Agenda', 'dica' => 'Agenda', 'icone' => 'bx-calendar', 'rota' => 'agenda', 'permissoes' => ['vOs']],
@@ -149,6 +149,69 @@ if (! function_exists('menu_navegacao_para')) {
     }
 }
 
+if (! function_exists('menu_navegacao_pontuacao')) {
+    /**
+     * Quanto a rota atual "pertence" ao item: rota exata vale mais que prefixo,
+     * e prefixo mais longo vale mais que prefixo curto. Nulo quando nao casa.
+     *
+     * Serve para desempatar modulos que se sobrepoem: 'os/atribuir' e a Central
+     * de Atendimento (exata), mas tambem comecaria com 'os' (prefixo). Sem a
+     * pontuacao, os dois itens ficariam marcados.
+     */
+    function menu_navegacao_pontuacao($atual, $rota, array $aliases = [])
+    {
+        $norm = function ($caminho) {
+            return strtolower(preg_replace('#^index\.php/?#i', '', trim((string) $caminho, '/')));
+        };
+
+        $atual = $norm($atual);
+        $melhor = null;
+
+        foreach (array_merge([$rota], $aliases) as $candidata) {
+            $candidata = $norm($candidata);
+            if ($candidata === '') {
+                if ($atual === '') {
+                    $melhor = max((int) $melhor, 1);
+                }
+                continue;
+            }
+            if ($atual === $candidata) {
+                $melhor = max((int) $melhor, 1000 + strlen($candidata));
+            } elseif (strpos($atual, $candidata . '/') === 0) {
+                $melhor = max((int) $melhor, strlen($candidata));
+            }
+        }
+
+        return $melhor;
+    }
+}
+
+if (! function_exists('menu_navegacao_id_ativo')) {
+    /**
+     * Id do unico item que representa a tela atual, ou null quando nenhum casa.
+     * O menu marca um item so: duas marcacoes confundem mais do que ajudam.
+     *
+     * @param array<string, array{titulo: string, itens: array<int, array>}> $grupos
+     */
+    function menu_navegacao_id_ativo($atual, array $grupos)
+    {
+        $vencedor = null;
+        $melhor = 0;
+
+        foreach ($grupos as $grupo) {
+            foreach ($grupo['itens'] as $item) {
+                $pontos = menu_navegacao_pontuacao($atual, $item['rota'], $item['aliases'] ?? []);
+                if ($pontos !== null && $pontos > $melhor) {
+                    $melhor = $pontos;
+                    $vencedor = $item['id'];
+                }
+            }
+        }
+
+        return $vencedor;
+    }
+}
+
 if (! function_exists('menu_navegacao_ativo')) {
     /**
      * Verdadeiro quando a rota atual e a do item (ou um apelido).
@@ -158,26 +221,6 @@ if (! function_exists('menu_navegacao_ativo')) {
      */
     function menu_navegacao_ativo($atual, $rota, array $aliases = [])
     {
-        $norm = function ($caminho) {
-            $caminho = preg_replace('#^index\.php/?#i', '', trim((string) $caminho, '/'));
-
-            return strtolower($caminho);
-        };
-
-        $atual = $norm($atual);
-        foreach (array_merge([$rota], $aliases) as $r) {
-            $r = $norm($r);
-            if ($r === '') {
-                if ($atual === '') {
-                    return true;
-                }
-                continue;
-            }
-            if ($atual === $r || strpos($atual, $r . '/') === 0) {
-                return true;
-            }
-        }
-
-        return false;
+        return menu_navegacao_pontuacao($atual, $rota, $aliases) !== null;
     }
 }

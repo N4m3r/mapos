@@ -155,4 +155,64 @@ class MenuNavegacaoTest extends TestCase
     {
         $this->assertSame($ativo, menu_navegacao_ativo($atual, $rota, $aliases));
     }
+
+    /**
+     * A tela marca um item so. Medido no navegador antes da correcao: /os/atribuir
+     * marcava dois (Central de Atendimento e Ordens de Servico) e /mapos marcava
+     * nenhum, porque o Inicio so casava com a URI vazia.
+     */
+    public function testUmaTelaMarcaUmItemSo(): void
+    {
+        $grupos = menu_navegacao_para(static fn () => true);
+
+        $this->assertSame('atendimento', menu_navegacao_id_ativo('os/atribuir', $grupos));
+        $this->assertSame('os', menu_navegacao_id_ativo('os', $grupos));
+        $this->assertSame('os', menu_navegacao_id_ativo('os/adicionar', $grupos));
+        $this->assertSame('home', menu_navegacao_id_ativo('mapos', $grupos));
+        $this->assertSame('configuracoes', menu_navegacao_id_ativo('mapos/configurar', $grupos));
+        $this->assertNull(menu_navegacao_id_ativo('tela-que-nao-existe', $grupos));
+    }
+
+    public function testTodaRotaDoCatalogoTemUmVencedor(): void
+    {
+        $grupos = menu_navegacao_para(static fn () => true);
+
+        // Rotas tiradas do proprio catalogo (destinos e apelidos), mais uma subrota
+        // que nao esta declarada em item nenhum: todas precisam resolver em um item.
+        $rotas = ['mapos', 'mapos/configurar', 'clientes/adicionar', 'os/adicionar'];
+        foreach (menu_navegacao_catalogo() as $grupo) {
+            foreach ($grupo['itens'] as $item) {
+                if ($item['rota'] !== '') {
+                    $rotas[] = $item['rota'];
+                }
+                foreach ($item['aliases'] ?? [] as $apelido) {
+                    $rotas[] = $apelido;
+                }
+            }
+        }
+
+        foreach (array_unique($rotas) as $rota) {
+            $this->assertNotNull(menu_navegacao_id_ativo($rota, $grupos), 'rota sem item: ' . $rota);
+        }
+    }
+
+    public static function pontuacoes(): array
+    {
+        return [
+            'exata soma mil' => ['os', 'os', [], 1002],
+            'exata longa' => ['os/atribuir', 'os/atribuir', [], 1011],
+            'prefixo soma o tamanho' => ['os/atribuir', 'os', [], 2],
+            'prefixo nao casa ao contrario' => ['os', 'os/atribuir', [], null],
+            'apelido exato' => ['os/adicionar', 'os', ['os/adicionar'], 1012],
+            'apelido por prefixo' => ['mapos/configurar', 'mapos', ['mapos'], 5],
+            'raiz casa com uri vazia' => ['', '', [], 1],
+            'raiz nao casa com tela' => ['rh', '', [], null],
+        ];
+    }
+
+    #[DataProvider('pontuacoes')]
+    public function testPontuaOQuaoEspecificoEOMatch(string $atual, string $rota, array $aliases, ?int $esperado): void
+    {
+        $this->assertSame($esperado, menu_navegacao_pontuacao($atual, $rota, $aliases));
+    }
 }

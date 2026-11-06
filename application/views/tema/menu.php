@@ -7,7 +7,8 @@
  * usuario. O topo (tema/topo.php) nao repete navegacao — so perfil e busca.
  *
  * O modo recolhido (80px) depende de `#sidebar.open` e das spans .title /
- * .title-tooltip; o JavaScript da paleta (Ctrl+K) le os links daqui.
+ * .title-tooltip; o JavaScript da paleta (Ctrl+K) le os links daqui. Uma tela
+ * marca um item so (menu_navegacao_id_ativo), pela rota mais especifica.
  */
 $this->load->helper('menu_navegacao');
 
@@ -52,11 +53,12 @@ $uri = $this->uri->uri_string();
         <div class="menu">
 
             <ul class="menu-links" style="position: relative;">
+                <?php $ativoId = menu_navegacao_id_ativo($uri, $grupos); ?>
                 <?php foreach ($grupos as $grupo) { ?>
                     <li class="nv-grupo" aria-hidden="true"><?= html_escape($grupo['titulo']) ?></li>
                     <?php foreach ($grupo['itens'] as $item) { ?>
                         <?php
-                        $ativo = menu_navegacao_ativo($uri, $item['rota'], $item['aliases'] ?? []);
+                        $ativo = $item['id'] === $ativoId;
                         $destino = $item['rota'] === '' ? base_url() : site_url($item['rota']);
                         ?>
                         <li class="<?= $ativo ? 'active' : '' ?>">
