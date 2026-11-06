@@ -64,6 +64,7 @@ if (! function_exists('menu_navegacao_catalogo')) {
                 'itens' => [
                     ['id' => 'lancamentos', 'rotulo' => 'Lançamentos', 'dica' => 'Lançamentos', 'icone' => 'bx-bar-chart-alt-2', 'rota' => 'financeiro/lancamentos', 'permissoes' => ['vLancamento']],
                     ['id' => 'cobrancas', 'rotulo' => 'Cobranças', 'dica' => 'Cobranças', 'icone' => 'bx-dollar-circle', 'rota' => 'cobrancas/cobrancas', 'permissoes' => ['vCobranca']],
+                    ['id' => 'cobrancacora', 'rotulo' => 'Cobrança Cora (API)', 'dica' => 'Cora', 'icone' => 'bx-credit-card', 'rota' => 'cobrancas/configCora', 'permissoes' => ['cNfe']],
                     ['id' => 'entradas', 'rotulo' => 'Entradas', 'dica' => 'Entradas', 'icone' => 'bx-import', 'rota' => 'entradas', 'permissoes' => ['vEntrada']],
                     ['id' => 'nfe', 'rotulo' => 'Notas Fiscais', 'dica' => 'NFS-e', 'icone' => 'bx-receipt', 'rota' => 'nfe', 'permissoes' => ['vNfe']],
                     ['id' => 'conciliacao', 'rotulo' => 'Conciliação bancária', 'dica' => 'Conciliação', 'icone' => 'bx-link-external', 'rota' => 'conciliacao', 'permissoes' => ['vLancamento']],

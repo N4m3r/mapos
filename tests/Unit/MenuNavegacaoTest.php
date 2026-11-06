@@ -90,14 +90,31 @@ class MenuNavegacaoTest extends TestCase
         $this->assertSame(['operacao'], array_keys($grupos));
     }
 
-    public function testCatalogoTem47Itens(): void
+    public function testCatalogoTem48Itens(): void
     {
         $total = 0;
         foreach (menu_navegacao_catalogo() as $grupo) {
             $total += count($grupo['itens']);
         }
 
-        $this->assertSame(47, $total, 'o catalogo mudou de tamanho; confira se e intencional');
+        $this->assertSame(48, $total, 'o catalogo mudou de tamanho; confira se e intencional');
+    }
+
+    /**
+     * A configuracao da Cora morava no dropdown de Configuracoes do topo, que
+     * saiu. Quem tem cNfe e nao tem vCobranca nem vNfe precisa continuar
+     * chegando nela pelo menu, senao a tela fica so por URL.
+     */
+    public function testQuemSoTemCNfeAlcancaAConfiguracaoDaCora(): void
+    {
+        $grupos = menu_navegacao_para(fn ($atividade) => $atividade === 'cNfe');
+
+        $this->assertContains('cobrancacora', self::ids($grupos));
+        $this->assertSame(
+            'cobrancacora',
+            menu_navegacao_id_ativo('cobrancas/configCora', $grupos),
+            'a tela da Cora marca o proprio item, nao o de Cobrancas'
+        );
     }
 
     /**
