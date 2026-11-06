@@ -27,14 +27,14 @@ Criar a página `relatorioos` com um relatório de **OS realizadas**: OS com ate
 5. **Impressão**: versão própria para impressão, no mesmo padrão do relatório de projetos.
 6. **Filtros**: técnico, cliente e status.
 7. **Permissão**: `rOs`. Sem ela, a rota e o item de menu não aparecem.
-8. **Menu e atalhos**: item "OS realizadas" no menu lateral (visível com `rOs`) e atalho na página de
+8. **Menu e atalhos**: item "OS realizadas" no menu superior de atalhos (visível com `rOs`) e atalho na página de
    relatórios de OS (`relatorios/os`).
 
 ## Implementacao
 
 | Parte | Arquivos |
 |---|---|
-| Menu lateral | `views/tema/menu.php` |
+| Menu superior de atalhos | `views/tema/topo.php`, `helpers/menu_superior_helper.php` |
 | Atalho na página de OS | `views/relatorios/rel_os.php` |
 | Relatório | `controllers/Relatorioos.php`, `models/Relatorio_os_model.php`, `views/relatorioos/` |
 | Gráficos | `libraries/Grafico_svg.php` (existente) |

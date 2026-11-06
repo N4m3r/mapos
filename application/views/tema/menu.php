@@ -95,17 +95,6 @@
                     </li>
                 <?php } ?>
 
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vContrato')) { ?>
-                    <li class="<?php if (isset($menuContratos)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('contratos') ?>"><i class='bx bx-file-blank iconX'></i>
-                            <span class="title">Contratos</span>
-                            <span class="title-tooltip">Contratos</span>
-                        </a>
-                    </li>
-                <?php } ?>
-
                 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vObras')) { ?>
                     <li class="<?php if (isset($menuObras)) {
                         echo 'active';
@@ -117,17 +106,6 @@
                     </li>
                 <?php } ?>
 
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vTecnicoMapa')) { ?>
-                    <li class="<?php if (isset($menuLocalizacao)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('localizacao/mapa') ?>"><i class='bx bx-map-alt iconX'></i>
-                            <span class="title">Gestão no Mapa</span>
-                            <span class="title-tooltip">Mapa</span>
-                        </a>
-                    </li>
-                <?php } ?>
-
                 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vTecnicoDashboard')) { ?>
                     <li class="<?php if (isset($menuTecnico)) {
                         echo 'active';
@@ -135,39 +113,6 @@
                         <a class="tip-bottom" title="" href="<?= site_url('tecnico') ?>"><i class='bx bx-wrench iconX'></i>
                             <span class="title">Área do Técnico</span>
                             <span class="title-tooltip">Técnico</span>
-                        </a>
-                    </li>
-                <?php } ?>
-
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vRh')) { ?>
-                    <li class="<?php if (isset($menuRh)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('rh') ?>"><i class='bx bx-id-card iconX'></i>
-                            <span class="title">Recursos Humanos</span>
-                            <span class="title-tooltip">RH</span>
-                        </a>
-                    </li>
-                <?php } ?>
-
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vNfe')) { ?>
-                    <li class="<?php if (isset($menuNfe)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('nfe') ?>"><i class='bx bx-receipt iconX'></i>
-                            <span class="title">Notas Fiscais</span>
-                            <span class="title-tooltip">NF-e / NFS-e</span>
-                        </a>
-                    </li>
-                <?php } ?>
-
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vEntrada')) { ?>
-                    <li class="<?php if (isset($menuEntradas)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('entradas') ?>"><i class='bx bx-import iconX'></i>
-                            <span class="title">Entradas</span>
-                            <span class="title-tooltip">Créditos IBS/CBS</span>
                         </a>
                     </li>
                 <?php } ?>
@@ -215,16 +160,6 @@
                         </a>
                     </li>
                 <?php } ?>
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vCobranca')) { ?>
-                    <li class="<?php if (isset($menuCobrancas)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('cobrancas/cobrancas') ?>"><i class='bx bx-dollar-circle iconX'></i>
-                            <span class="title">Cobranças</span>
-                            <span class="title-tooltip">Cobranças</span>
-                        </a>
-                    </li>
-                <?php } ?>
 
                 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vRelatorioAtendimentos')) { ?>
                     <li class="<?php if (isset($menuRelatorioAtendimentos)) {
@@ -237,16 +172,6 @@
                     </li>
                 <?php } ?>
 
-                <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'rOs')) { ?>
-                    <li class="<?php if (isset($menuRelatorioOs)) {
-                        echo 'active';
-                    }; ?>">
-                        <a class="tip-bottom" title="" href="<?= site_url('relatorioos') ?>"><i class='bx bx-check-square iconX'></i>
-                            <span class="title">OS realizadas</span>
-                            <span class="title-tooltip">OS realizadas</span>
-                        </a>
-                    </li>
-                <?php } ?>
             </ul>
         </div>
 

@@ -1,8 +1,9 @@
 /**
  * Paleta de comandos (Ctrl+K / Cmd+K) - ADR-002.
  *
- * Lista os links do menu lateral (#sidebar), que ja vem filtrado pelas
- * permissoes do usuario, e permite ir a qualquer tela digitando parte do nome.
+ * Lista os links do menu lateral (#sidebar) e do menu superior de atalhos
+ * (.ns-atalhos-menu), que ja vem filtrado pelas permissoes do usuario, e
+ * permite ir a qualquer tela digitando parte do nome.
  * Enter sem resultado selecionado cai na pesquisa global (mapos/pesquisar).
  *
  * So adiciona comportamento: se #sidebar nao existir, nao faz nada.
@@ -11,7 +12,10 @@
     'use strict';
 
     var sidebar = document.getElementById('sidebar');
-    if (!sidebar) {
+    // Os atalhos de uso menos frequente sairam do menu lateral para o
+    // menu superior; sem incluir os dois, deixariam de aparecer aqui.
+    var topo = document.querySelector('.ns-atalhos-menu');
+    if (!sidebar && !topo) {
         return;
     }
 
@@ -25,20 +29,29 @@
     function coletarItens() {
         var vistos = {};
         var itens = [];
-        var links = sidebar.querySelectorAll('a[href]');
-        for (var i = 0; i < links.length; i++) {
-            var a = links[i];
-            var href = a.getAttribute('href');
-            if (!href || href === '#' || href.indexOf('javascript:') === 0 || vistos[href]) {
-                continue;
+        var raizes = [];
+        if (sidebar) {
+            raizes.push(sidebar);
+        }
+        if (topo) {
+            raizes.push(topo);
+        }
+        for (var r = 0; r < raizes.length; r++) {
+            var links = raizes[r].querySelectorAll('a[href]');
+            for (var i = 0; i < links.length; i++) {
+                var a = links[i];
+                var href = a.getAttribute('href');
+                if (!href || href === '#' || href.indexOf('javascript:') === 0 || vistos[href]) {
+                    continue;
+                }
+                var tituloEl = a.querySelector('.title') || a;
+                var titulo = (tituloEl.textContent || '').replace(/\s+/g, ' ').trim();
+                if (!titulo) {
+                    continue;
+                }
+                vistos[href] = true;
+                itens.push({ titulo: titulo, href: a.href, busca: normalizar(titulo) });
             }
-            var tituloEl = a.querySelector('.title') || a;
-            var titulo = (tituloEl.textContent || '').replace(/\s+/g, ' ').trim();
-            if (!titulo) {
-                continue;
-            }
-            vistos[href] = true;
-            itens.push({ titulo: titulo, href: a.href, busca: normalizar(titulo) });
         }
         return itens;
     }

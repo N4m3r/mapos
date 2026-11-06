@@ -42,6 +42,7 @@
   <link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
   <!-- Camada visual moderna (ADR-009): depois do tema, que continua dando as cores -->
   <link rel="stylesheet" href="<?= base_url('assets/css/moderno.css') ?>?v=<?= asset_versao('assets/css/moderno.css', '1') ?>" />
+  <link rel="stylesheet" href="<?= base_url('assets/css/menu-superior.css') ?>?v=<?= asset_versao('assets/css/menu-superior.css', '1') ?>" />
   <!-- jQuery 3.7 + Migrate (padrao); APP_JQUERY3=false no .env volta ao 1.12 -->
   <?= jquery_tags() ?>
   <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/shortcut.js"></script>
@@ -87,6 +88,27 @@
   <div class="navebarn">
     <div id="user-nav" class="navbar navbar-inverse">
       <ul class="nav">
+        <?php
+        // Atalhos de uso menos frequente (movidos do menu lateral para encurtar
+        // o dia a dia). A lista e filtrada pela permissao de quem esta logado.
+        $this->load->helper('menu_superior');
+        $ns_atalhos = menu_superior_atalhos(
+            function ($atividade) {
+                return $this->permission->checkPermission($this->session->userdata('permissao'), $atividade);
+            }
+        );
+        $ns_atual = $this->uri->uri_string();
+        ?>
+        <?php if (! empty($ns_atalhos)) { ?>
+        <li class="dropdown ns-atalhos">
+          <a href="#" class="tip-right dropdown-toggle" data-toggle="dropdown" title="Atalhos" aria-haspopup="true"><i class='bx bx-grid-alt iconN'></i><span class="text">Atalhos</span><i class='bx bx-chevron-down ns-seta'></i></a>
+          <ul class="dropdown-menu ns-atalhos-menu">
+            <?php foreach ($ns_atalhos as $ns) { ?>
+            <li<?= menu_superior_ativo($ns_atual, $ns['rota']) ? ' class="ns-ativo"' : '' ?>><a href="<?= site_url($ns['rota']) ?>" title="<?= html_escape($ns['rotulo']) ?>"><i class='bx <?= html_escape($ns['icone']) ?>'></i><?= html_escape($ns['rotulo']) ?></a></li>
+            <?php } ?>
+          </ul>
+        </li>
+        <?php } ?>
         <li class="dropdown">
           <a href="#" class="tip-right dropdown-toggle" data-toggle="dropdown" title="Perfis"><i class='bx bx-user-circle iconN'></i><span class="text"></span></a>
           <ul class="dropdown-menu">
