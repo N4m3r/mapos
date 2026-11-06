@@ -8,16 +8,21 @@
 
 ## Context
 
-A navegação tinha duas superfícies. A barra lateral (`views/tema/menu.php`) listava 15 telas do dia a dia,
-com o item aberto marcado por flags `$menu*` que cada controller definia. O topo (`views/tema/topo.php`)
-tinha quatro dropdowns: Atalhos, Perfis, Relatórios e Configurações.
+A navegação tinha duas superfícies. A barra lateral (`views/tema/menu.php`) listava 12 telas de módulo mais o
+Início, a busca e a saída, com o item aberto marcado por flags `$menu*` que cada controller definia. O topo
+(`views/tema/topo.php`) tinha quatro dropdowns: Atalhos, Perfis, Relatórios e Configurações.
 
 Isso produzia três problemas:
 
 1. **Duplicação.** Sete rotas apareciam nas duas superfícies (`clientes`, `os`, `produtos`, `servicos`,
-   `financeiro/lancamentos`, `mapos/pesquisar`, `login/sair`). Medido no commit anterior: 34 URLs no topo, 14 na lateral.
-2. **Permissão desigual.** O dropdown de Relatórios expunha 16 itens sem checagem, enquanto a mesma tela na
-   lateral era protegida. Quem não tinha `rFinanceiro` via o link e só descobria no redirect.
+   `financeiro/lancamentos`, `mapos/pesquisar`, `login/sair`). Medido no commit anterior, contando alvos
+   literais de `site_url`: 14 na lateral, contra 32 nos dropdowns de Perfis (2), Relatórios (16) e
+   Configurações (14) e mais 7 no corpo do topo. O dropdown Atalhos é montado em laço a partir de
+   `$ns_atalhos`, então não tem alvo literal para contar.
+2. **Permissão desigual.** No dropdown de Relatórios, 15 dos 16 links apareciam sem nenhuma checagem; só
+   `relatorioos` estava sob `rOs`. Na lateral, 12 chamadas de `checkPermission` cobriam 13 dos 14 links, e
+   apenas `mapos/pesquisar` era sempre visível. Quem não tinha a permissão via o link no topo e só descobria
+   no redirect.
 3. **Duas listas para manter.** O ADR-020 chegou a registrar um item "no menu superior de atalhos"; mover uma
    tela exigia tocar em dois arquivos e num helper, e a paleta de comandos (Ctrl+K) precisava varrer os dois
    lugares para não perder telas.
