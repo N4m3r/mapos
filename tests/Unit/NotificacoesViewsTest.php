@@ -294,4 +294,35 @@ class NotificacoesViewsTest extends TestCase
 
         $this->assertStringContainsString('não existe neste banco', $html);
     }
+
+    /**
+     * A tela da fila de e-mails exige cEmail, mas a central abre com cSistema
+     * OU cEmail. Sem o portao, quem entrava so com cSistema via um link que
+     * terminava em redirect.
+     */
+    public function testHistoricoEscondeFilaDeEmailsSemPermissao(): void
+    {
+        $this->load->vars = array_merge($this->contextoBase(), [
+            'abaAtiva' => 'historico',
+            'podeEmail' => false,
+        ]);
+
+        $html = $this->load->view('notificacoes/central', null, true);
+
+        $this->assertStringNotContainsString('mapos/emails', $html);
+        $this->assertStringContainsString('E-mails ainda na fila aparecem no card acima.', $html);
+    }
+
+    public function testHistoricoMostraFilaDeEmailsComPermissao(): void
+    {
+        $this->load->vars = array_merge($this->contextoBase(), [
+            'abaAtiva' => 'historico',
+            'podeEmail' => true,
+        ]);
+
+        $html = $this->load->view('notificacoes/central', null, true);
+
+        $this->assertStringContainsString('mapos/emails', $html);
+        $this->assertStringContainsString('fila de e-mails', $html);
+    }
 }
