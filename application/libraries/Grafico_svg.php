@@ -83,10 +83,22 @@ class Grafico_svg
         return [(float) ($passo * ceil($max / $passo)), (float) $passo];
     }
 
-    /** Marca fina com ponta arredondada (4px) e base reta. */
-    private static function colunaPath($x, $base, $w, $h, $r = 4): string
+    /**
+     * Marca fina com ponta arredondada (4px) e base reta. Com $paraBaixo a
+     * coluna desce a partir da linha zero (valores negativos).
+     */
+    private static function colunaPath($x, $base, $w, $h, $r = 4, $paraBaixo = false): string
     {
         $r = min($r, $w / 2, $h);
+        if ($paraBaixo) {
+            $y = $base + $h;
+
+            return 'M' . self::f($x) . ' ' . self::f($base) . 'V' . self::f($y - $r)
+                . 'Q' . self::f($x) . ' ' . self::f($y) . ' ' . self::f($x + $r) . ' ' . self::f($y)
+                . 'H' . self::f($x + $w - $r)
+                . 'Q' . self::f($x + $w) . ' ' . self::f($y) . ' ' . self::f($x + $w) . ' ' . self::f($y - $r)
+                . 'V' . self::f($base) . 'Z';
+        }
         $y = $base - $h;
 
         return 'M' . self::f($x) . ' ' . self::f($base) . 'V' . self::f($y + $r)
@@ -116,22 +128,33 @@ class Grafico_svg
         $s = self::abrir($W, $H, $opc, $id);
 
         $max = 0.0;
+        $min = 0.0;
         foreach ($pontos as $p) {
-            $max = max($max, (float) ($p['valor'] ?? 0));
+            $valor = (float) ($p['valor'] ?? 0);
+            $max = max($max, $valor);
+            $min = min($min, $valor);
         }
         [$teto, $passo] = self::escala($max, $dec === 0);
+        // Serie com negativos ganha piso e uma linha zero; sem negativos, piso 0
+        $piso = 0.0;
+        if ($min < 0) {
+            [$piso, $passoNeg] = self::escala(abs($min), $dec === 0);
+            $passo = max($passo, $passoNeg);
+        }
+        $span = max($teto + $piso, 1e-9);
         $base = $H - $mb;
         $ph = $base - $mt;
         $pw = $W - $ml - $mr;
+        $zero = $base - ($piso / $span * $ph);
 
-        for ($v = 0.0; $v <= $teto + 1e-9; $v += $passo) {
-            $y = $base - ($v / $teto * $ph);
-            if ($v > 0) {
+        for ($v = -$piso; $v <= $teto + 1e-9; $v += $passo) {
+            $y = $base - (($v + $piso) / $span * $ph);
+            if ($v > 1e-9) {
                 $s .= '<line x1="' . $ml . '" x2="' . ($W - $mr) . '" y1="' . self::f($y) . '" y2="' . self::f($y) . '" stroke="' . self::GRADE . '" stroke-width="1"/>';
             }
             $s .= self::texto($ml - 6, $y + 4, self::num($v, $dec), 'end');
         }
-        $s .= '<line x1="' . $ml . '" x2="' . ($W - $mr) . '" y1="' . $base . '" y2="' . $base . '" stroke="' . self::BASE . '" stroke-width="1"/>';
+        $s .= '<line x1="' . $ml . '" x2="' . ($W - $mr) . '" y1="' . $zero . '" y2="' . $zero . '" stroke="' . self::BASE . '" stroke-width="1"/>';
 
         if ($n === 0) {
             return $s . '</svg>';
@@ -150,20 +173,23 @@ class Grafico_svg
         foreach ($pontos as $i => $p) {
             $val = (float) ($p['valor'] ?? 0);
             $cx = $ml + $banda * ($i + 0.5);
-            $h = $val / $teto * $ph;
+            $h = $val / $span * $ph;
             $dica = (string) ($p['dica'] ?? (($p['rotulo'] ?? '') . "\n" . self::num($val, $dec)));
             $s .= self::marca($dica)
                 . '<rect class="gsvg-alvo" x="' . self::f($cx - $banda / 2) . '" y="' . $mt . '" width="' . self::f($banda) . '" height="' . self::f($ph) . '" fill="transparent"/>';
-            if ($h > 0) {
-                $s .= '<path class="gsvg-barra" d="' . self::colunaPath($cx - $larg / 2, $base, $larg, max($h, 1)) . '" fill="' . $cor . '"/>';
+            if ($val > 0) {
+                $s .= '<path class="gsvg-barra" d="' . self::colunaPath($cx - $larg / 2, $zero, $larg, max($h, 1)) . '" fill="' . $cor . '"/>';
+            } elseif ($val < 0) {
+                $s .= '<path class="gsvg-barra" d="' . self::colunaPath($cx - $larg / 2, $zero, $larg, max(abs($h), 1), 4, true) . '" fill="' . $cor . '"/>';
             }
             $s .= '</g>';
             $mostraX = ($i % $cada === 0) || ($i === $n - 1 && ($n - 1) % $cada >= $cada / 2);
             if ($mostraX) {
                 $s .= self::texto($cx, $base + 15, (string) ($p['rotulo'] ?? ''), 'middle');
             }
-            if ($val > 0 && ($i === $iMax || $i === $n - 1)) {
-                $s .= self::texto($cx, $base - $h - 5, self::num($val, $dec), 'middle', self::TINTA, 11, 600);
+            if ($val != 0 && ($i === $iMax || $i === $n - 1)) {
+                $yRotulo = $val > 0 ? $zero - $h - 5 : $zero - $h + 13;
+                $s .= self::texto($cx, $yRotulo, self::num($val, $dec), 'middle', self::TINTA, 11, 600);
             }
         }
 

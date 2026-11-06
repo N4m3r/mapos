@@ -21,21 +21,45 @@ class Mapos extends MY_Controller {
             redirect('colaborador');
         }
 
-        $status = array('Em Andamento', 'Aguardando Peças');
-        $this->data['ordens_status'] = $this->mapos_model->getOsStatus($status);
-        $vstatus = array('Aberto', 'Em Andamento', 'Aguardando Peças', 'Aprovado', 'Orçamento');
-        $this->data['vendasstatus'] = $this->mapos_model->getVendasStatus($vstatus);
-        $this->data['lancamentos'] = $this->mapos_model->getLancamentos();
-        $this->data['ordens_orcamentos'] = $this->mapos_model->getOsOrcamentos();
-        $this->data['ordens_abertas'] = $this->mapos_model->getOsAbertas();
-        $this->data['ordens_aprovadas'] = $this->mapos_model->getOsAprovadas();
-        $this->data['ordens_finalizadas'] = $this->mapos_model->getOsFinalizadas();
-        $this->data['produtos'] = $this->mapos_model->getProdutosMinimo();
-        $this->data['estatisticas_financeiro'] = $this->mapos_model->getEstatisticasFinanceiro();
-        $financeiroAno = $this->mapos_model->getEstatisticasFinanceiroAno($this->input->get('year'));
-        $this->data['financeiro_mes_dia'] = $financeiroAno ? $financeiroAno['dia'] : false;
-        $this->data['financeiro_mes'] = $financeiroAno ? $financeiroAno['mes'] : false;
-        $this->data['financeiro_mesinadipl'] = $financeiroAno ? $financeiroAno['inadimplencia'] : false;
+        // Painel inicial enxuto: cada bloco carrega so o necessario para a tela,
+        // e cada consulta respeita a permissao de quem esta vendo.
+        $perm = $this->session->userdata('permissao');
+        $pode = fn ($atividade) => $this->permission->checkPermission($perm, $atividade);
+
+        $this->load->helper('painel_inicio');
+        $this->load->model('painel_model');
+
+        $contagens = $this->painel_model->contagemPorStatus();
+        $this->data['pi_status'] = Painel_inicio::resumoStatus($contagens);
+        $this->data['pi_em_aberto'] = Painel_inicio::totalEmAberto($contagens);
+        $this->data['pi_agenda'] = $this->painel_model->agendaResumo();
+        $this->data['pi_movimento'] = $this->painel_model->movimentoDeHoje();
+        $this->data['pi_os'] = $pode('vOs') ? $this->painel_model->osEmAberto(8) : [];
+        $this->data['pi_serie'] = Painel_inicio::serieDias($this->painel_model->movimentoPorDia(14));
+        $this->data['pi_status_pontos'] = Painel_inicio::pontosStatus($contagens);
+        $this->data['pi_nome'] = (string) $this->session->userdata('nome_admin');
+        $this->data['pi_iniciais'] = Painel_inicio::iniciais($this->data['pi_nome']);
+
+        // Cobranca e financeiro so para quem tem acesso aos lancamentos
+        $this->data['pi_pendentes'] = null;
+        $this->data['pi_cobrar'] = [];
+        $this->data['pi_mes'] = null;
+        $this->data['pi_meses'] = [];
+        $this->data['pi_ano'] = (int) date('Y');
+        if ($pode('vLancamento')) {
+            $this->data['pi_pendentes'] = $this->painel_model->totaisPendentes();
+            $this->data['pi_cobrar'] = $this->painel_model->lancamentosPendentes(6, true);
+            if ($pode('rFinanceiro')) {
+                $this->data['pi_mes'] = $this->painel_model->financeiroDoMes();
+                $ano = (int) preg_replace('/[^0-9]/', '', (string) $this->input->get('year'));
+                $this->data['pi_ano'] = $ano ?: (int) date('Y');
+                $this->data['pi_meses'] = $this->painel_model->financeiroPorMes($this->data['pi_ano']);
+            }
+        }
+
+        $this->data['pi_estoque'] = $pode('vProduto') ? $this->painel_model->estoqueMinimo(5) : null;
+        $this->data['pi_vendas_mes'] = $pode('vVenda') ? $this->painel_model->vendasDoMes() : null;
+
         // IVA-T9: lembrete da janela de opcao IBS/CBS do Simples (so para quem emite nota)
         $this->data['avisoJanelaIbscbs'] = null;
         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'cNfe')) {

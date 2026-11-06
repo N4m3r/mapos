@@ -121,6 +121,9 @@ label { font-weight: 500; margin-bottom: 4px; }
 .ui-cabecalho h1, .ui-cabecalho .ui-titulo { font-size: 22px; line-height: 1.25; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; }
 .ui-cabecalho p, .ui-cabecalho .ui-subtitulo { margin: 4px 0 0; color: var(--ui-texto-2); font-size: 13px; }
 .ui-acoes { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+/* Em telas grandes o matrix-style.css da 100%/245px a todo .button (regra de 2001px),
+   o que empilhava as acoes do cabecalho uma por linha. Aqui elas seguem lado a lado. */
+.ui-acoes .button { width: auto !important; max-width: none !important; }
 
 /* Barra de filtros/busca */
 .ui-filtros { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; padding: 12px; margin: 0 0 16px; border: 1px solid var(--ui-borda); border-radius: var(--ui-raio); background: var(--ui-suave); }

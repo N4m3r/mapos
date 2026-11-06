@@ -87,6 +87,22 @@ class GraficoSvgTest extends TestCase
         $this->assertStringContainsString('Previsto', $svg);
     }
 
+    public function testColunasComValoresNegativos(): void
+    {
+        $svg = Grafico_svg::colunas([
+            ['rotulo' => 'Jan', 'valor' => 500],
+            ['rotulo' => 'Fev', 'valor' => -300],
+            ['rotulo' => 'Mar', 'valor' => 0],
+        ], ['titulo' => 'Resultado', 'rotulos_x' => 12]);
+        $x = $this->xml($svg);
+        // Positivo e negativo desenham; zero nao
+        $this->assertCount(2, $x->xpath('//s:path[@class="gsvg-barra"]'));
+        $this->assertCount(3, $this->marcas($x));
+        // O eixo traz a linha de base (0) e os rotulos negativos
+        $this->assertStringContainsString('-300', $svg);
+        $this->assertStringContainsString('500', $svg);
+    }
+
     public function testEscala(): void
     {
         [$teto, $passo] = Grafico_svg::escala(7);
