@@ -180,3 +180,26 @@ if (! function_exists('chamado_normalizar')) {
         return $texto === '' ? null : mb_substr($texto, 0, (int) $limite);
     }
 }
+
+if (! function_exists('chamado_digitos')) {
+    /** So os digitos de um documento/telefone (CPF/CNPJ pode vir pontuado). */
+    function chamado_digitos($valor)
+    {
+        return preg_replace('/\D/', '', (string) $valor);
+    }
+}
+
+if (! function_exists('chamado_documento_confere')) {
+    /**
+     * Compara CPF/CNPJ informado com o cadastrado ignorando pontuacao. Vazio
+     * nunca confere: sem documento dos dois lados nao ha prova de identidade, e
+     * a pagina publica nao pode virar consulta de chamado alheio.
+     */
+    function chamado_documento_confere($informado, $cadastrado)
+    {
+        $a = chamado_digitos($informado);
+        $b = chamado_digitos($cadastrado);
+
+        return $a !== '' && $b !== '' && $a === $b;
+    }
+}

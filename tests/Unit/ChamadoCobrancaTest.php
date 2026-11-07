@@ -137,5 +137,29 @@ class ChamadoCobrancaTest extends TestCase
     {
         $this->assertSame('R$ 1.234,50', Chamado_cobranca::moeda(1234.5));
         $this->assertSame('R$ 0,00', Chamado_cobranca::moeda(0));
+    }    public function testDigitosIgnoramPontuacao(): void
+    {
+        $this->assertSame('12345678000199', chamado_digitos('12.345.678/0001-99'));
+        $this->assertSame('12345678909', chamado_digitos('123.456.789-09'));
+        $this->assertSame('', chamado_digitos(''));
+        $this->assertSame('', chamado_digitos(null));
+    }
+
+    public function testDocumentoConfereIgnorandoMascara(): void
+    {
+        $this->assertTrue(chamado_documento_confere('12.345.678/0001-99', '12345678000199'));
+        $this->assertTrue(chamado_documento_confere('12345678000199', '12.345.678/0001-99'));
+        $this->assertFalse(chamado_documento_confere('11122233344', '12345678000199'));
+    }
+
+    public function testDocumentoVazioNuncaConfere(): void
+    {
+        // Sem documento dos dois lados nao ha prova de identidade: a pagina
+        // publica nao pode casar chamado com qualquer pessoa.
+        $this->assertFalse(chamado_documento_confere('', '12345678000199'));
+        $this->assertFalse(chamado_documento_confere('12345678000199', ''));
+        $this->assertFalse(chamado_documento_confere('', ''));
+        $this->assertFalse(chamado_documento_confere('   ', '   '));
+        $this->assertFalse(chamado_documento_confere(null, null));
     }
 }

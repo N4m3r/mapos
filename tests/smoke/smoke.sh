@@ -35,6 +35,7 @@ arquivos|html
 financeiro/lancamentos|html
 cobrancas/cobrancas|html
 chamadoscobranca|html
+aprovacao/solicitar|html
 contratos|html
 obras|html
 relatorioprojetos|html

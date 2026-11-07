@@ -9,6 +9,9 @@ e [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Suporte a PHP 8.2+ (antes apenas 8.3). Constraint do Composer e documentação atualizados; o instalador já exigia 8.2.
 
 ### Added
+- Número do chamado na OS: campo **Nº do chamado** no cadastro, na edição, na lista (com busca), na visualização e nas duas vias impressas. Serve para o cliente citar o protocolo do atendimento e para a equipe achar a OS pela referência usada no suporte. Requer rodar as migrations.
+- Painel **Cobrança dos chamados** (em Cobranças e no menu Financeiro): lista única com o que aguarda aprovação do cliente, o que falta cobrar e o que já está em cobrança, com indicadores, dois gráficos, filtro por cliente, por chamado e por situação, seleção múltipla, confirmação/cancelamento em lote, CSV e impressão.
+- Página pública **aprovação/solicitar**: o cliente pede o link de aprovação informando o número do chamado e o CPF/CNPJ do titular. A resposta é sempre a mesma, exista ou não a OS, para não virar consulta de chamado alheio; o link vai só aos contatos cadastrados, com limite de tentativas por IP.
 - NFS-e: códigos de tributação padrão **cTribNac `010701`** e **cTribMun `100`** (validados por NFS-e autorizada de Manaus), configuráveis em Notas Fiscais → Configurações. Aplicados na **emissão automática (com boleto)** e como sugestão no wizard quando o serviço não tem código — padronizando a automática igual à emissão manual que funciona. Requer rodar `updates/update_nfe_ctrib_padrao.sql`.
 - Log de e-mails enviados: nova página **Configurações → Log de e-mails** que registra **todo** envio (fila e teste), com destino, assunto, tipo, status **Enviado/Falha** e o motivo do erro do SMTP. Requer rodar `updates/update_email_envios.sql`.
 - Teste de envio de e-mail com anexo (simula NF/Boleto): botão na aba E-mail de Configurar Sistema que envia na hora um e-mail com um PDF de exemplo, usando o SMTP salvo, mostrando sucesso ou o erro real do servidor.
