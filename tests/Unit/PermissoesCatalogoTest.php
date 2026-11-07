@@ -131,4 +131,60 @@ class PermissoesCatalogoTest extends TestCase
         $this->assertSame(0, permissoes_resumo([]));
         $this->assertSame('2 de ' . count(permissoes_todas_as_chaves()) . ' permissões', permissoes_texto_resumo(['vOs' => 1, 'eOs' => 1]));
     }
+
+    /**
+     * A promessa do docblock do helper: chave usada no codigo e nao cadastrada no
+     * catalogo quebra a suite. Sem esta varredura, a permissao nova so aparece
+     * quando alguem abre a tela e nota que a caixa nao existe.
+     */
+    public function testChavesUsadasNoCodigoExistemNoCatalogo(): void
+    {
+        $catalogo = permissoes_todas_as_chaves();
+
+        $padroes = [
+            'checkPermission' => '/checkPermission\s*\([^,()]+,\s*[\'"](\w+)[\'"]\s*\)/',
+            '$pode' => '/\$pode\s*\(\s*[\'"](\w+)[\'"]\s*\)/',
+            '->exigir' => '/->exigir\s*\(\s*[\'"](\w+)[\'"]\s*\)/',
+            "'permissao' =>" => '/[\'"]permissao[\'"]\s*=>\s*[\'"](\w+)[\'"]/',
+        ];
+
+        // No helper as chaves sao declaracoes, nao usos.
+        $ignorados = ['helpers/permissoes_helper.php'];
+
+        $fora = [];
+        $lidos = 0;
+
+        $iterador = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator(APPPATH, FilesystemIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterador as $arquivo) {
+            $caminho = str_replace('\\', '/', $arquivo->getPathname());
+            $relativo = str_replace(str_replace('\\', '/', APPPATH), '', $caminho);
+
+            if (strpos($caminho, '/vendor/') !== false || substr($caminho, -4) !== '.php') {
+                continue;
+            }
+
+            if (in_array($relativo, $ignorados, true)) {
+                continue;
+            }
+
+            $lidos++;
+            $conteudo = (string) file_get_contents($caminho);
+
+            foreach ($padroes as $nome => $regex) {
+                preg_match_all($regex, $conteudo, $achados);
+
+                foreach ($achados[1] as $chave) {
+                    if (! in_array($chave, $catalogo, true)) {
+                        $fora[] = $chave . ' (' . $nome . ' em ' . $relativo . ')';
+                    }
+                }
+            }
+        }
+
+        $this->assertGreaterThan(400, $lidos, 'a varredura nao chegou nos fontes');
+        $this->assertSame([], $fora, 'chave usada no codigo sem estar no catalogo de permissoes');
+    }
 }
