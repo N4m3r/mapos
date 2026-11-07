@@ -31,9 +31,13 @@ class Os extends MY_Controller
         $inputDe = $this->input->get('data');
         $inputAte = $this->input->get('data2');
         $filtroObra = (int) $this->input->get('obra_id');
+        $filtroChamado = trim((string) $this->input->get('chamado'));
 
         if ($filtroObra) {
             $where_array['obra_id'] = $filtroObra;
+        }
+        if ($filtroChamado !== '') {
+            $where_array['chamado'] = $filtroChamado;
         }
         if ($pesquisa) {
             $where_array['pesquisa'] = $pesquisa;
@@ -67,8 +71,8 @@ class Os extends MY_Controller
         $this->data['configuration']['base_url'] = site_url('os/gerenciar/');
         $this->data['configuration']['total_rows'] = $this->os_model->count('os');
         if(count($where_array) > 0) {
-            $this->data['configuration']['suffix'] = "?pesquisa={$pesquisa}&status={$status}&data={$inputDe}&data2={$inputAte}&obra_id={$filtroObra}";
-            $this->data['configuration']['first_url'] = base_url("index.php/os/gerenciar")."\?pesquisa={$pesquisa}&status={$status}&data={$inputDe}&data2={$inputAte}&obra_id={$filtroObra}";
+            $this->data['configuration']['suffix'] = "?pesquisa={$pesquisa}&status={$status}&data={$inputDe}&data2={$inputAte}&obra_id={$filtroObra}&chamado=" . rawurlencode($filtroChamado);
+            $this->data['configuration']['first_url'] = base_url("index.php/os/gerenciar")."\?pesquisa={$pesquisa}&status={$status}&data={$inputDe}&data2={$inputAte}&obra_id={$filtroObra}&chamado=" . rawurlencode($filtroChamado);
         }
 
         $this->pagination->initialize($this->data['configuration']);

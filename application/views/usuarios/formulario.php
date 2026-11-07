@@ -87,38 +87,38 @@ if (strpos($validade, '0000-00-00') === 0) {
                             <div class="control-group">
                                 <label for="nome" class="control-label">Nome<span class="required">*</span></label>
                                 <div class="controls">
-                                    <input id="nome" type="text" name="nome" maxlength="80" value="<?= $e($v('nome')) ?>" autocomplete="name">
+                                    <input id="nome" type="text" name="nome" maxlength="80" value="<?= $v('nome') ?>" autocomplete="name">
                                 </div>
                             </div>
                             <div class="control-group">
                                 <label for="rg" class="control-label">RG</label>
                                 <div class="controls">
-                                    <input id="rg" type="text" name="rg" maxlength="20" value="<?= $e($v('rg')) ?>">
+                                    <input id="rg" type="text" name="rg" maxlength="20" value="<?= $v('rg') ?>">
                                 </div>
                             </div>
                             <div class="control-group">
                                 <label for="cpf" class="control-label">CPF</label>
                                 <div class="controls">
-                                    <input id="cpfUser" class="cpfUser" type="text" name="cpf" maxlength="20" value="<?= $e($v('cpf')) ?>">
+                                    <input id="cpfUser" class="cpfUser" type="text" name="cpf" maxlength="20" value="<?= $v('cpf') ?>">
                                     <span class="help-inline">Opcional, mas não pode repetir em outra conta.</span>
                                 </div>
                             </div>
                             <div class="control-group">
                                 <label for="telefone" class="control-label">Telefone<span class="required">*</span></label>
                                 <div class="controls">
-                                    <input id="telefone" type="text" name="telefone" maxlength="20" value="<?= $e($v('telefone')) ?>">
+                                    <input id="telefone" type="text" name="telefone" maxlength="20" value="<?= $v('telefone') ?>">
                                 </div>
                             </div>
                             <div class="control-group">
                                 <label for="celular" class="control-label">Celular</label>
                                 <div class="controls">
-                                    <input id="celular" type="text" name="celular" maxlength="20" value="<?= $e($v('celular')) ?>">
+                                    <input id="celular" type="text" name="celular" maxlength="20" value="<?= $v('celular') ?>">
                                 </div>
                             </div>
                             <div class="control-group">
                                 <label for="email" class="control-label">E-mail<span class="required">*</span></label>
                                 <div class="controls">
-                                    <input id="email" type="email" name="email" maxlength="80" value="<?= $e($v('email')) ?>" autocomplete="email">
+                                    <input id="email" type="email" name="email" maxlength="80" value="<?= $v('email') ?>" autocomplete="email">
                                     <span class="help-inline">É por ele que a pessoa entra no sistema.</span>
                                 </div>
                             </div>
@@ -133,38 +133,38 @@ if (strpos($validade, '0000-00-00') === 0) {
                             <div class="control-group">
                                 <label for="cep" class="control-label">CEP</label>
                                 <div class="controls">
-                                    <input id="cep" type="text" name="cep" maxlength="9" value="<?= $e($v('cep')) ?>" inputmode="numeric">
+                                    <input id="cep" type="text" name="cep" maxlength="9" value="<?= $v('cep') ?>" inputmode="numeric">
                                     <span class="help-inline">Preenche o endereço ao sair do campo.</span>
                                 </div>
                             </div>
                             <div class="control-group">
                                 <label for="rua" class="control-label">Logradouro</label>
                                 <div class="controls">
-                                    <input id="rua" type="text" name="rua" maxlength="70" value="<?= $e($v('rua')) ?>">
+                                    <input id="rua" type="text" name="rua" maxlength="70" value="<?= $v('rua') ?>">
                                 </div>
                             </div>
                             <div class="control-group">
                                 <label for="numero" class="control-label">Número</label>
                                 <div class="controls">
-                                    <input id="numero" type="text" name="numero" maxlength="15" value="<?= $e($v('numero')) ?>">
+                                    <input id="numero" type="text" name="numero" maxlength="15" value="<?= $v('numero') ?>">
                                 </div>
                             </div>
                             <div class="control-group">
                                 <label for="bairro" class="control-label">Bairro</label>
                                 <div class="controls">
-                                    <input id="bairro" type="text" name="bairro" maxlength="45" value="<?= $e($v('bairro')) ?>">
+                                    <input id="bairro" type="text" name="bairro" maxlength="45" value="<?= $v('bairro') ?>">
                                 </div>
                             </div>
                             <div class="control-group">
                                 <label for="cidade" class="control-label">Cidade</label>
                                 <div class="controls">
-                                    <input id="cidade" type="text" name="cidade" maxlength="45" value="<?= $e($v('cidade')) ?>">
+                                    <input id="cidade" type="text" name="cidade" maxlength="45" value="<?= $v('cidade') ?>">
                                 </div>
                             </div>
                             <div class="control-group">
                                 <label for="estado" class="control-label">UF</label>
                                 <div class="controls">
-                                    <input id="estado" type="text" name="estado" maxlength="2" value="<?= $e($v('estado')) ?>" placeholder="SP">
+                                    <input id="estado" type="text" name="estado" maxlength="2" value="<?= $v('estado') ?>" placeholder="SP">
                                 </div>
                             </div>
                         </div>

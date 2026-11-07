@@ -137,7 +137,7 @@ class MenuViewTest extends TestCase
     }
 
     /**
-     * O menu tem 48 destinos e ficava longo demais numa lista so. Cada grupo do
+     * O menu tem 49 destinos e ficava longo demais numa lista so. Cada grupo do
      * catalogo virou uma categoria recolhivel: botao com aria-expanded e a lista
      * de itens logo abaixo, para o usuario abrir so o que interessa.
      */

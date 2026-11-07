@@ -31,6 +31,10 @@
             <input type="text" name="pesquisa" id="pesquisa" placeholder="Nome do cliente a pesquisar" class="span12" value="<?=set_value('pesquisa')?>">
         </div>
         <div class="ui-campo">
+            <label for="chamado">Chamado</label>
+            <input type="text" name="chamado" id="chamado" placeholder="Nº do chamado" class="span12" value="<?= html_escape($this->input->get('chamado')) ?>">
+        </div>
+        <div class="ui-campo">
             <label for="status">Status</label>
             <select name="status" id="status" class="span12">
                     <option value="">Selecione status</option>
@@ -75,6 +79,7 @@
                     <thead>
                         <tr>
                             <th>N°</th>
+                            <th>Chamado</th>
                             <th>Cliente</th>
                             <th class="ph1">Responsável</th>
                             <th>Data Inicial</th>
@@ -92,7 +97,7 @@
                     </thead>
                     <tbody>
                         <?php
-                        $colspan = $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs') ? 11 : 7;
+                        $colspan = $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs') ? 13 : 9;
                         if (!$results) {
                             echo '<tr>
                             <td colspan="' . $colspan . '"><div class="ui-vazio"><i class="bx bx-clipboard"></i><strong>Nenhuma OS encontrada</strong>Ajuste os filtros' . ($this->permission->checkPermission($this->session->userdata('permissao'), 'aOs') ? ' ou <a href="' . base_url() . 'index.php/os/adicionar">crie uma nova OS</a>' : '') . '.</div></td>
@@ -171,6 +176,7 @@
                                 $seloProjeto = $vp ? ' <span title="Projeto: ' . html_escape($vp->obra_nome . ($vp->etapa_nome ? ' › ' . $vp->etapa_nome : '')) . '" style="color:#436eee"><i class="bx bx-buildings"></i></span>' : '';
                                 $this->load->helper('tipo_servico');
                                 echo '<td>' . $r->idOs . $seloProjeto . tipo_servico_selo($r->tipo_servico ?? '') . '</td>';
+                                echo '<td>' . (! empty($r->chamado_id) ? html_escape($r->chamado_id) : '-') . '</td>';
                                 echo '<td class="cli1"><a href="' . base_url() . 'index.php/clientes/visualizar/' . $r->idClientes . '" style="margin-right: 1%">' . html_escape($r->nomeCliente) . '</a></td>';
                                 echo '<td class="ph1">' . html_escape($r->nome) . '</td>';
                                 echo '<td>' . $dataInicial . '</td>';

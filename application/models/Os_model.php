@@ -66,6 +66,11 @@ class Os_model extends CI_Model
             }
         }
 
+        // condicional chamado (protocolo informado pelo cliente)
+        if (array_key_exists('chamado', $where) && $this->db->field_exists('chamado_id', 'os')) {
+            $this->db->like('os.chamado_id', $where['chamado']);
+        }
+
         // condicional data inicial
         if (array_key_exists('de', $where)) {
             $this->db->where('dataInicial >=', $where['de']);

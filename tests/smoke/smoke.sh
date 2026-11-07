@@ -34,6 +34,7 @@ garantias|html
 arquivos|html
 financeiro/lancamentos|html
 cobrancas/cobrancas|html
+chamadoscobranca|html
 contratos|html
 obras|html
 relatorioprojetos|html

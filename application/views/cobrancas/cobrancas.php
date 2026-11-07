@@ -51,6 +51,7 @@ $qs = function ($extra) use ($busca, $filtroStatus, $aba) {
     <div class="cb-abas">
         <a href="<?= $qs([]) ?>" class="<?= $aba === 'cobrancas' ? 'ativa' : '' ?>">Cobranças</a>
         <a href="<?= $qs(['aba' => 'acobrar']) ?>" class="<?= $aba === 'acobrar' ? 'ativa' : '' ?>">A cobrar (<?= (int) $totalACobrar ?>)</a>
+        <a href="<?= site_url('chamadoscobranca') ?>">Painel dos chamados</a>
     </div>
 
     <form method="get" action="<?= site_url('cobrancas/cobrancas') ?>" class="cb-filtros">

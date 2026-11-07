@@ -94,14 +94,14 @@ class MenuNavegacaoTest extends TestCase
         $this->assertSame(['operacao'], array_keys($grupos));
     }
 
-    public function testCatalogoTem48Itens(): void
+    public function testCatalogoTem49Itens(): void
     {
         $total = 0;
         foreach (menu_navegacao_catalogo() as $grupo) {
             $total += count($grupo['itens']);
         }
 
-        $this->assertSame(48, $total, 'o catalogo mudou de tamanho; confira se e intencional');
+        $this->assertSame(49, $total, 'o catalogo mudou de tamanho; confira se e intencional');
     }
 
     /**

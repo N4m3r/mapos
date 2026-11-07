@@ -88,6 +88,7 @@
                         <span>CPF/CNPJ: <?= html_escape($result->documento) ?></span><br />
                         <span><?= html_escape($result->contato_cliente.' '.$result->telefone) ?><?= $result->telefone && $result->celular ? ' / '.$result->celular : $result->celular ?></span><br />
                         <span><?= html_escape($result->email) ?></span><br />
+                        <?php if (!empty($result->chamado_id)) : ?><span>Chamado: <b><?= html_escape($result->chamado_id) ?></b></span><br /><?php endif; ?>
                     </div>
                     <div style="text-align: right;">
                         <span><?= html_escape($result->rua.', '.$result->numero.', '.$result->bairro) ?></span><br />
@@ -399,6 +400,7 @@
                             <span>CPF/CNPJ: <?= html_escape($result->documento) ?></span><br />
                             <span><?= html_escape($result->contato_cliente.' '.$result->telefone) ?><?= $result->telefone && $result->celular ? ' / '.$result->celular : $result->celular ?></span><br />
                             <span><?= html_escape($result->email) ?></span><br />
+                            <?php if (!empty($result->chamado_id)) : ?><span>Chamado: <b><?= html_escape($result->chamado_id) ?></b></span><br /><?php endif; ?>
                         </div>
                         <div style="text-align: right;">
                             <span><?= html_escape($result->rua.', '.$result->numero.', '.$result->bairro) ?></span><br />
