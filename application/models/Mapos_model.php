@@ -460,40 +460,53 @@ class Mapos_model extends CI_Model
         return $this->db->get('emitente')->row();
     }
 
-    public function addEmitente($nome, $cnpj, $ie, $cep, $logradouro, $numero, $bairro, $cidade, $uf, $telefone, $email, $logo)
+    /**
+     * Grava o emitente. Recebe o array pronto do controller e mantem apenas as
+     * colunas que existem no banco: numa instalacao sem a migration dos dados
+     * fiscais, nome fantasia / IM / complemento sao descartados em vez de
+     * derrubar o INSERT com "Unknown column".
+     *
+     * @param array<string, mixed> $dados
+     */
+    public function addEmitente(array $dados)
     {
-        $this->db->set('nome', $nome);
-        $this->db->set('cnpj', $cnpj);
-        $this->db->set('ie', $ie);
-        $this->db->set('cep', $cep);
-        $this->db->set('rua', $logradouro);
-        $this->db->set('numero', $numero);
-        $this->db->set('bairro', $bairro);
-        $this->db->set('cidade', $cidade);
-        $this->db->set('uf', $uf);
-        $this->db->set('telefone', $telefone);
-        $this->db->set('email', $email);
-        $this->db->set('url_logo', $logo);
-
-        return $this->db->insert('emitente');
+        return $this->db->insert('emitente', $this->filtrarColunas('emitente', $dados));
     }
 
-    public function editEmitente($id, $nome, $cnpj, $ie, $cep, $logradouro, $numero, $bairro, $cidade, $uf, $telefone, $email)
+    /**
+     * @param array<string, mixed> $dados
+     */
+    public function editEmitente($id, array $dados)
     {
-        $this->db->set('nome', $nome);
-        $this->db->set('cnpj', $cnpj);
-        $this->db->set('ie', $ie);
-        $this->db->set('cep', $cep);
-        $this->db->set('rua', $logradouro);
-        $this->db->set('numero', $numero);
-        $this->db->set('bairro', $bairro);
-        $this->db->set('cidade', $cidade);
-        $this->db->set('uf', $uf);
-        $this->db->set('telefone', $telefone);
-        $this->db->set('email', $email);
-        $this->db->where('id', $id);
+        $this->db->where('id', (int) $id);
 
-        return $this->db->update('emitente');
+        return $this->db->update('emitente', $this->filtrarColunas('emitente', $dados));
+    }
+
+    /**
+     * Mantem no array apenas as colunas existentes na tabela (mesmo espirito do
+     * Nfe_model::filtrarColunas): campo novo nao quebra instalacao sem update.
+     *
+     * @param array<string, mixed> $dados
+     *
+     * @return array<string, mixed>
+     */
+    private function filtrarColunas($tabela, array $dados)
+    {
+        $colunas = $this->db->list_fields($tabela);
+        if (empty($colunas)) {
+            return $dados;
+        }
+
+        return array_intersect_key($dados, array_flip($colunas));
+    }
+
+    /** Limpa a logo guardada (o arquivo em disco e apagado pelo controller). */
+    public function removerLogo($id)
+    {
+        $this->db->where('id', (int) $id);
+
+        return $this->db->update('emitente', ['url_logo' => null]);
     }
 
     public function editLogo($id, $logo)
