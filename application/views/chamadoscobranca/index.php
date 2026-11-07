@@ -197,7 +197,7 @@ $chips = Chamado_cobranca::STATUS;
                         <tbody>
                             <?php foreach ($itens as $i) { ?>
                                 <tr>
-                                    <td class="cc-col-sel"><input type="checkbox" name="selecionados[]" value="<?= $e($i['chave']) ?>" aria-label="Selecionar <?= $e($i['chave']) ?>"></td>
+                                    <td class="cc-col-sel"><?php if (in_array($i['tipo'], ['os', 'cob'], true)) { ?><input type="checkbox" name="selecionados[]" value="<?= $e($i['chave']) ?>" aria-label="Selecionar <?= $e($i['tipo'] === 'cob' ? 'cobrança #' . (int) $i['ref_id'] : 'OS #' . (int) $i['ref_id']) ?>"><?php } ?></td>
                                     <td><?= $i['chamado'] ? $e($i['chamado']) : '—' ?></td>
                                     <td><a href="<?= site_url($i['link']) ?>"><?= $i['tipo'] === 'cob' ? 'Cobrança #' . (int) $i['ref_id'] : 'OS #' . (int) $i['ref_id'] ?></a></td>
                                     <td><?= $e($i['cliente']) ?></td>

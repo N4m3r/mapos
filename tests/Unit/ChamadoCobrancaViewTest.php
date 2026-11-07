@@ -226,4 +226,22 @@ class ChamadoCobrancaViewTest extends TestCase
         $this->assertStringContainsString('Em aberto', $html);
         $this->assertStringContainsString('R$ 100,00', $html, 'o total em aberto ignora a cobranca paga');
     }
+
+    public function testLinhaDeVendaNaoGanhaCheckbox(): void
+    {
+        $this->libera(['vCobranca', 'vOs']);
+        $html = $this->render($this->dados([
+            'itens' => [
+                $this->item(['chave' => 'vend:7', 'tipo' => 'vend', 'ref_id' => 7, 'link' => 'vendas/visualizar/7']),
+                $this->item(['chave' => 'os:12']),
+            ],
+        ]));
+
+        $this->assertSemErroPhp($html);
+        // LerSelecao so aceita 'os:' e 'cob:'; venda com checkbox seria descartada em silencio.
+        $this->assertStringNotContainsString('value="vend:7"', $html, 'linha de venda nao tem acao em lote');
+        $this->assertStringContainsString('value="os:12"', $html, 'a OS continua selecionavel');
+        $this->assertStringContainsString('vendas/visualizar/7', $html, 'a venda continua acessivel pela coluna de acoes');
+    }
+
 }
