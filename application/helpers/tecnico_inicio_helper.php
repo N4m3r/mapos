@@ -70,6 +70,17 @@ class TecnicoInicio
         if ($status === 'Não Realizado') {
             return 'atrasadas';
         }
+        if ($status === 'Aprovado') {
+            // OS reaberta pelo administrativo (ou orcamento aprovado): fica
+            // acionavel agora. Sem isso ela cairia em "Atrasadas" pela data
+            // original, que e de quando o servico foi feito na primeira vez.
+            $d = self::dataEfetiva($os);
+            if ($d === null || substr($d, 0, 10) <= $hoje) {
+                return 'hoje';
+            }
+
+            return 'proximos';
+        }
         $d = self::dataEfetiva($os);
         if ($d === null) {
             return 'proximos';
@@ -136,6 +147,9 @@ class TecnicoInicio
                 return ['Concluída', 'concluida', 'bx-check-circle'];
             case 'Não Realizado':
                 return ['Não deu para fazer', 'nao-feita', 'bx-x-circle'];
+            case 'Aprovado':
+                // OS reaberta pelo administrativo: volta a ser atendivel.
+                return ['Aprovada', 'agendada', 'bx-check-circle'];
             default:
                 return $atrasada ? ['Atrasada', 'atrasada', 'bx-error'] : ['Agendada', 'agendada', 'bx-calendar'];
         }

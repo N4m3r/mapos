@@ -48,4 +48,38 @@ class AtendimentoRegrasTest extends TestCase
         $this->assertFalse(AtendimentoRegras::statusBloqueiaAtendimento('Aguardando Peças'));
         $this->assertFalse(AtendimentoRegras::statusBloqueiaAtendimento(null));
     }
+
+    public function testStatusPermiteIniciarAtendimento(): void
+    {
+        $this->assertTrue(AtendimentoRegras::statusPermiteIniciarAtendimento('Aberto'));
+        $this->assertTrue(AtendimentoRegras::statusPermiteIniciarAtendimento('Em Andamento'));
+
+        // Reabertura feita pelo administrativo: o tecnico volta a poder atender.
+        $this->assertTrue(AtendimentoRegras::statusPermiteIniciarAtendimento('Aprovado'));
+
+        // Estados que nao liberam atendimento de campo.
+        $this->assertFalse(AtendimentoRegras::statusPermiteIniciarAtendimento('Finalizado'));
+        $this->assertFalse(AtendimentoRegras::statusPermiteIniciarAtendimento('Faturado'));
+        $this->assertFalse(AtendimentoRegras::statusPermiteIniciarAtendimento('Cancelado'));
+        $this->assertFalse(AtendimentoRegras::statusPermiteIniciarAtendimento('Orçamento'));
+        $this->assertFalse(AtendimentoRegras::statusPermiteIniciarAtendimento('Aguardando Peças'));
+        $this->assertFalse(AtendimentoRegras::statusPermiteIniciarAtendimento(null));
+    }
+
+    public function testAssinaturaAntigaNaoBloqueiaOsReaberta(): void
+    {
+        // OS comum: assinatura coletada encerra o fluxo de inicio.
+        $this->assertTrue(AtendimentoRegras::assinaturaBloqueiaInicio('Aberto', true));
+        $this->assertFalse(AtendimentoRegras::assinaturaBloqueiaInicio('Aberto', false));
+
+        // OS reaberta: as assinaturas antigas ficam no historico e nao bloqueiam.
+        $this->assertFalse(AtendimentoRegras::assinaturaBloqueiaInicio('Aprovado', true));
+    }
+
+    public function testStatusReabreAtendimento(): void
+    {
+        $this->assertTrue(AtendimentoRegras::statusReabreAtendimento('Aprovado'));
+        $this->assertFalse(AtendimentoRegras::statusReabreAtendimento('Aberto'));
+        $this->assertFalse(AtendimentoRegras::statusReabreAtendimento(null));
+    }
 }

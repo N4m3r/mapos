@@ -28,6 +28,8 @@ class TecnicoController extends AreaApiController
         $this->load->model('mapos_model');
         $this->load->model('os_model');
         $this->load->helper('tecnico_inicio');
+        // Regras puras do atendimento (status que aceita check-in).
+        require_once APPPATH . 'helpers/atendimento_regras_helper.php';
     }
 
     // ------------------------------------------------------------------
@@ -163,7 +165,11 @@ class TecnicoController extends AreaApiController
             'servicosPrevistos' => $this->servicosPrevistos($osId),
             'produtosPrevistos' => $this->produtosPrevistos($osId),
             'historicoCliente' => $this->historicoCliente((int) $os->clientes_id, $osId),
-            'podeCheckin' => ! $checkin && $this->permission->checkPermission($user->level, 'eTecnicoCheckin'),
+            // Status terminal nao aceita check-in: o endpoint recusa e o app
+            // precisa esconder o botao, senao oferece uma acao que falha.
+            'podeCheckin' => ! $checkin
+                && ! AtendimentoRegras::statusBloqueiaAtendimento($os->status ?? null)
+                && $this->permission->checkPermission($user->level, 'eTecnicoCheckin'),
             'podeCheckout' => (bool) $checkin && $this->permission->checkPermission($user->level, 'eTecnicoCheckout'),
             'podeFoto' => $this->permission->checkPermission($user->level, 'eTecnicoFotos'),
             'podeNaoRealizado' => $this->permission->checkPermission($user->level, 'eTecnicoNaoRealizado'),

@@ -26,10 +26,16 @@ $wazeUrl = $enderecoStr !== '' ? 'https://waze.com/ul?q=' . rawurlencode($endere
 $documentoCliente = isset($cliente->documento) ? $cliente->documento : (isset($cliente->cpf) ? $cliente->cpf : '');
 
 // Estado da OS (usado no cabecalho, no assistente e na barra de acao)
+require_once APPPATH . 'helpers/atendimento_regras_helper.php';
+
 $nr_pendente = isset($nao_realizada_pendente) ? $nao_realizada_pendente : null;
 $os_concluida = in_array($os->status, ['Finalizado', 'Faturado', 'Cancelado'], true);
+$os_reaberta = AtendimentoRegras::statusReabreAtendimento($os->status ?? null);
 $tem_assinatura = !empty($assinaturas);
-$atendimento_encerrado = $os_concluida || (!$checkin_ativo && $tem_assinatura);
+// A assinatura de um atendimento anterior nao encerra a OS reaberta pelo
+// administrativo: ela fica no historico e o novo atendimento coleta as suas.
+$assinatura_bloqueia_inicio = AtendimentoRegras::assinaturaBloqueiaInicio($os->status ?? null, $tem_assinatura);
+$atendimento_encerrado = $os_concluida || (!$checkin_ativo && $assinatura_bloqueia_inicio);
 
 // Status em palavras simples
 if ($nr_pendente) {
@@ -40,6 +46,10 @@ if ($nr_pendente) {
     $statusTxt = 'Em atendimento'; $statusCls = 'andando';
 } elseif ($os->status === 'Aguardando Peças') {
     $statusTxt = 'Aguardando peças'; $statusCls = 'espera';
+} elseif ($os_reaberta) {
+    // OS que voltou ao tecnico depois de finalizada: e atendimento novo, nao
+    // um agendamento qualquer — o rotulo deixa isso explicito na tela.
+    $statusTxt = 'Reaberta pelo escritório'; $statusCls = 'agendada';
 } else {
     $statusTxt = 'Agendada'; $statusCls = 'agendada';
 }
@@ -183,7 +193,7 @@ $statusSimples = function ($st) {
     $assistente_ativo = empty($somente_leitura)
         && !$nr_pendente
         && !$atendimento_encerrado
-        && (($checkin_ativo) || in_array($os->status, ['Aberto', 'Em Andamento'], true))
+        && (($checkin_ativo) || AtendimentoRegras::statusPermiteIniciarAtendimento($os->status ?? null))
         && (!empty($permissao_checkin) || $checkin_ativo);
     $assistente_cfg = [
         'osId'     => (int) $os->idOs,
@@ -335,12 +345,14 @@ $statusSimples = function ($st) {
     $os_concluida = in_array($os->status, ['Finalizado', 'Faturado', 'Cancelado'], true);
     $mostrar_nao_realizado = !empty($permissao_nao_realizado) && empty($nr_pendente) && !$os_concluida;
 
-    // "Iniciar Atendimento" só aparece enquanto a OS ainda está "Aberto" ou
-    // "Em Andamento" E ainda não tem nenhuma assinatura coletada. Assim o botão
-    // some depois que o serviço é assinado/finalizado e não reaparece por engano.
-    $status_permite_iniciar = in_array($os->status, ['Aberto', 'Em Andamento'], true);
+    // "Iniciar Atendimento" só aparece enquanto a OS está num status que aceita
+    // atendimento (Aberto, Aprovado ou Em Andamento) E ainda não tem assinatura
+    // do atendimento atual. A assinatura de um atendimento anterior não trava a
+    // OS reaberta pelo administrativo: o botão some depois de assinar, mas volta
+    // quando a OS é reaprovada.
+    $status_permite_iniciar = AtendimentoRegras::statusPermiteIniciarAtendimento($os->status ?? null);
     $tem_assinatura = !empty($assinaturas);
-    $pode_iniciar = $permissao_checkin && $status_permite_iniciar && !$tem_assinatura;
+    $pode_iniciar = $permissao_checkin && $status_permite_iniciar && !$assinatura_bloqueia_inicio;
     $permissao_fotos = isset($permissao_fotos) ? $permissao_fotos : false;
 
     // A barra de ação fixa só deve existir se ao menos um botão for realmente

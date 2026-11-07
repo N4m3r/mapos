@@ -26,6 +26,18 @@ class TecnicoInicioTest extends TestCase
         $this->assertNull(TecnicoInicio::classificar($this->os('Cancelado', '2026-10-31'), $h));
     }
 
+    public function testAprovadoFicaAcionavelNaDataAtual(): void
+    {
+        $h = '2026-10-31';
+        // Reaberta pelo administrativo: a data original e antiga, mas a OS volta
+        // a ser atendivel agora, em vez de aparecer como atrasada.
+        $this->assertSame('hoje', TecnicoInicio::classificar($this->os('Aprovado', '2026-08-01'), $h));
+        $this->assertSame('hoje', TecnicoInicio::classificar($this->os('Aprovado', '2026-10-31'), $h));
+        $this->assertSame('hoje', TecnicoInicio::classificar($this->os('Aprovado', null), $h));
+        // Agendamento futuro segue em "proximos".
+        $this->assertSame('proximos', TecnicoInicio::classificar($this->os('Aprovado', '2026-11-05'), $h));
+    }
+
     public function testDataAgendamentoTemPrioridade(): void
     {
         $o = $this->os('Aberto', '2026-10-20', ['data_agendamento' => '2026-10-31 14:30:00']);
@@ -42,6 +54,9 @@ class TecnicoInicioTest extends TestCase
         $this->assertSame('Em atendimento', TecnicoInicio::rotuloStatus('Em Andamento')[0]);
         $this->assertSame('Concluída', TecnicoInicio::rotuloStatus('Faturado')[0]);
         $this->assertSame('Não deu para fazer', TecnicoInicio::rotuloStatus('Não Realizado')[0]);
+        $this->assertSame('Aprovada', TecnicoInicio::rotuloStatus('Aprovado')[0]);
+        // Atrasada por data nao muda o rotulo de OS aprovada: ela e acionavel agora.
+        $this->assertSame('Aprovada', TecnicoInicio::rotuloStatus('Aprovado', true)[0]);
     }
 
     public function testProximaVisita(): void

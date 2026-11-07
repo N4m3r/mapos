@@ -50,7 +50,7 @@ class TecnicoAtendimentoController extends AreaApiController
         // mas a API precisa recusar a chamada direta.
         require_once APPPATH . 'helpers/atendimento_regras_helper.php';
         if (AtendimentoRegras::statusBloqueiaAtendimento($os->status ?? null)) {
-            $this->invalido('Esta OS já está ' . $os->status . ' e não aceita novo atendimento.');
+            $this->invalido('Esta OS já está ' . $os->status . ' e não aceita novo atendimento. Peça ao administrativo para reabrir a OS (status Aprovado) se precisar voltar ao local.');
         }
 
         if ($this->checkin_model->hasCheckinAtivo($osId)) {

@@ -55,13 +55,21 @@ class Tecnico_model extends CI_Model
      */
     public function getAgendaTecnico($tecnico_id)
     {
+        // Os status que o tecnico pode atender (inclui "Aprovado", a reabertura
+        // feita pelo administrativo) vem de AtendimentoRegras, para a agenda nao
+        // divergir do botao e do guard do endpoint.
+        require_once APPPATH . 'helpers/atendimento_regras_helper.php';
+
         $this->db->select('os.*, clientes.nomeCliente, clientes.telefone, clientes.celular, clientes.rua, clientes.numero, clientes.bairro, clientes.cidade, clientes.estado');
         $this->db->from('os');
         $this->db->join('clientes', 'clientes.idClientes = os.clientes_id', 'left');
         $this->db->where('os.tecnico_responsavel', $tecnico_id);
         $this->db->where('os.status !=', 'Cancelado');
         $this->db->group_start()
-            ->where_in('os.status', ['Aberto', 'Orçamento', 'Em Andamento', 'Agendado'])
+            ->where_in('os.status', array_unique(array_merge(
+                AtendimentoRegras::STATUS_INICIA_ATENDIMENTO,
+                ['Orçamento', 'Agendado']
+            )))
             ->or_where('os.dataInicial >=', date('Y-m-d', strtotime('-30 days')))
             ->group_end();
         $this->db->order_by('os.dataInicial', 'ASC');
@@ -112,7 +120,10 @@ class Tecnico_model extends CI_Model
     }
 
     /**
-     * Obtem OS pendentes (Aberto/Orçamento) designadas ao tecnico
+     * Obtem OS pendentes (Aberto/Aprovado/Orçamento) designadas ao tecnico.
+     *
+     * "Aprovado" conta como pendente: e o status que o administrativo aplica ao
+     * reabrir uma OS finalizada, e ela volta a exigir atendimento.
      */
     public function getOsPendentes($tecnico_id)
     {
@@ -120,7 +131,7 @@ class Tecnico_model extends CI_Model
         $this->db->from('os');
         $this->db->join('clientes', 'clientes.idClientes = os.clientes_id', 'left');
         $this->db->where('os.tecnico_responsavel', $tecnico_id);
-        $this->db->where_in('os.status', ['Aberto', 'Orçamento']);
+        $this->db->where_in('os.status', ['Aberto', 'Aprovado', 'Orçamento']);
 
         $query = $this->db->get();
 
@@ -189,9 +200,9 @@ class Tecnico_model extends CI_Model
         $this->db->where('status', 'Em Andamento');
         $os_andamento = $this->db->count_all_results('os');
 
-        // OS pendentes
+        // OS pendentes (Aprovado entra: e a OS reaberta pelo administrativo)
         $this->db->where('tecnico_responsavel', $tecnico_id);
-        $this->db->where_in('status', ['Aberto', 'Orçamento']);
+        $this->db->where_in('status', ['Aberto', 'Aprovado', 'Orçamento']);
         $os_pendentes = $this->db->count_all_results('os');
 
         // Tempo medio de atendimento (em horas)

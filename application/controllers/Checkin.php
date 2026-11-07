@@ -264,7 +264,7 @@ class Checkin extends MY_Controller
         }
         require_once APPPATH . 'helpers/atendimento_regras_helper.php';
         if ($os && AtendimentoRegras::statusBloqueiaAtendimento($os->status ?? null)) {
-            echo json_encode(['success' => false, 'message' => 'Esta OS já está ' . $os->status . ' e não aceita novo atendimento.']);
+            echo json_encode(['success' => false, 'message' => 'Esta OS já está ' . $os->status . ' e não aceita novo atendimento. Peça ao administrativo para reabrir a OS (status Aprovado) se precisar voltar ao local.']);
             return;
         }
 

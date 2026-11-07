@@ -47,6 +47,41 @@ class AtendimentoRegras
     }
 
     /**
+     * Status em que o tecnico pode iniciar um atendimento.
+     *
+     * "Aprovado" entra aqui porque e o status que o administrativo aplica para
+     * liberar um novo atendimento numa OS ja finalizada (reabertura controlada).
+     */
+    const STATUS_INICIA_ATENDIMENTO = ['Aberto', 'Aprovado', 'Em Andamento'];
+
+    /** Status que o administrativo usa para reabrir uma OS finalizada. */
+    const STATUS_REABRE_ATENDIMENTO = ['Aprovado'];
+
+    /** O tecnico pode iniciar atendimento neste status? */
+    public static function statusPermiteIniciarAtendimento(?string $status): bool
+    {
+        return in_array($status, self::STATUS_INICIA_ATENDIMENTO, true);
+    }
+
+    /** Este status veio de uma reabertura feita pelo administrativo? */
+    public static function statusReabreAtendimento(?string $status): bool
+    {
+        return in_array($status, self::STATUS_REABRE_ATENDIMENTO, true);
+    }
+
+    /**
+     * A assinatura ja coletada impede iniciar outro atendimento?
+     *
+     * Na OS comum impede: o servico ja foi assinado e o botao nao deve voltar por
+     * engano. Na OS reaberta pelo administrativo nao impede: as assinaturas
+     * antigas ficam no historico da OS e o novo atendimento coleta as suas.
+     */
+    public static function assinaturaBloqueiaInicio(?string $status, bool $temAssinatura): bool
+    {
+        return $temAssinatura && ! self::statusReabreAtendimento($status);
+    }
+
+    /**
      * Data/hora de agendamento ao reagendar: nova data + hora do agendamento anterior
      * (se houver), senao 08:00:00.
      */
