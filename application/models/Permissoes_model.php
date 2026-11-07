@@ -43,6 +43,25 @@ class Permissoes_model extends CI_Model
         return $this->db->get('permissoes')->row();
     }
 
+    /**
+     * Todos os perfis, sem paginação.
+     *
+     * Não use get(..., perpage: 0): o query builder do CodeIgniter trata
+     * zero como "LIMIT 0" e devolve lista vazia — o select de perfil da tela
+     * de usuário ficaria sem opções.
+     *
+     * @return array<int, object>
+     */
+    public function todos()
+    {
+        $this->db->select('idPermissao,nome,situacao');
+        $this->db->from('permissoes');
+        $this->db->order_by('situacao', 'DESC');
+        $this->db->order_by('nome', 'ASC');
+
+        return $this->db->get()->result();
+    }
+
     public function add($table, $data)
     {
         $this->db->insert($table, $data);
@@ -79,6 +98,30 @@ class Permissoes_model extends CI_Model
     public function count($table)
     {
         return $this->db->count_all($table);
+    }
+
+    /**
+     * Quantos usuários ativos (situacao = 1) usam cada perfil, por idPermissao.
+     *
+     * A lista de perfis mostra o uso e o desativar recusa perfil em uso: sem
+     * isso, desativar um perfil deixava as contas nele e a próxima edição de
+     * usuário trocava o acesso sem ninguém notar.
+     *
+     * @return array<int, int>
+     */
+    public function usuariosAtivosPorPerfil()
+    {
+        $this->db->select('permissoes_id, COUNT(*) AS total');
+        $this->db->from('usuarios');
+        $this->db->where('situacao', 1);
+        $this->db->group_by('permissoes_id');
+
+        $mapa = [];
+        foreach ($this->db->get()->result() as $linha) {
+            $mapa[(int) $linha->permissoes_id] = (int) $linha->total;
+        }
+
+        return $mapa;
     }
 }
 

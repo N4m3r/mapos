@@ -266,6 +266,11 @@ class Mapos extends MY_Controller {
         force_download($arquivo, null);
     }
 
+    /**
+     * Tela do emitente: dados da empresa e a conferencia do que falta para
+     * emitir nota. O checklist usa o mesmo criterio da emissao (NfeService),
+     * entao a tela avisa antes, e nao no meio do faturamento.
+     */
     public function emitente()
     {
         if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'cEmitente')) {
@@ -273,13 +278,84 @@ class Mapos extends MY_Controller {
             redirect(base_url());
         }
 
+        $this->load->helper(['emitente', 'form']);
+
+        $dados = $this->mapos_model->getEmitente();
+
+        // O modulo fiscal e opcional: instalacao sem a tabela precisa abrir a
+        // tela do mesmo jeito, so com o checklist incompleto.
+        $configFiscal = null;
+        if ($this->db->table_exists('configuracoes_nfe')) {
+            $this->load->model('nfe_model');
+            $configFiscal = $this->nfe_model->getConfig();
+        }
+
+        $checklist = emitente_checklist_fiscal($dados, $configFiscal, $this->certificadoPresente($configFiscal));
+
+        $this->data['dados'] = $dados;
+        $this->data['checklist'] = $checklist;
+        $this->data['resumoChecklist'] = emitente_checklist_resumo($checklist);
+        $this->data['configFiscalExiste'] = $configFiscal !== null;
+        $this->data['tokenName'] = $this->security->get_csrf_token_name();
+        $this->data['tokenHash'] = $this->security->get_csrf_hash();
         $this->data['menuConfiguracoes'] = 'Configuracoes';
-        $this->data['dados'] = $this->mapos_model->getEmitente();
         $this->data['view'] = 'mapos/emitente';
 
         return $this->layout();
     }
 
+    /**
+     * Ha certificado A1 guardado? Nao carrega o .pfx (isso depende da senha e da
+     * biblioteca fiscal): so confere se o arquivo esta no lugar.
+     */
+    private function certificadoPresente($configFiscal)
+    {
+        $caminho = trim((string) ($configFiscal->certificado_path ?? ''));
+        if ($caminho === '') {
+            return false;
+        }
+        if (is_file($caminho)) {
+            return true;
+        }
+
+        // Deploy pode ter mudado o caminho absoluto; a pasta padrao e o fallback
+        // usado tambem pelo CertificadoHelper.
+        return is_file(APPPATH . 'arquivos_fiscais' . DIRECTORY_SEPARATOR . 'certificado' . DIRECTORY_SEPARATOR . basename($caminho));
+    }
+
+    /**
+     * Cria a pasta de upload com .htaccess e index.html. As pastas sao ignoradas
+     * pelo git (conteudo de runtime), entao a guarda precisa nascer junto com a
+     * pasta — sem isso o servidor passa a servir o que for enviado para la.
+     */
+    private function prepararPasta($pasta, $extensoesPermitidas = '')
+    {
+        if (!is_dir($pasta) && !mkdir($pasta, 0755, true) && !is_dir($pasta)) {
+            return false;
+        }
+
+        $htaccess = $pasta . '.htaccess';
+        if (!is_file($htaccess)) {
+            $conteudo = "Options -Indexes\n"
+                . "<FilesMatch \"\\.(php|phtml|phar|cgi|pl|py|sh|cgi-bin)$\">\n"
+                . "    Require all denied\n"
+                . "</FilesMatch>\n";
+            file_put_contents($htaccess, $conteudo);
+        }
+
+        $index = $pasta . 'index.html';
+        if (!is_file($index)) {
+            file_put_contents($index, '<!DOCTYPE html><title>403 Forbidden</title><p>Acesso negado.</p>');
+        }
+
+        return true;
+    }
+
+    /**
+     * Recebe a logo do emitente e devolve o nome do arquivo, ou null quando nao
+     * veio arquivo ou ele foi recusado. Antes um erro de upload dava print_r e
+     * exit(): pagina branca com texto de debug no lugar da tela.
+     */
     public function do_upload()
     {
         if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'cEmitente')) {
@@ -287,69 +363,114 @@ class Mapos extends MY_Controller {
             redirect(base_url());
         }
 
-        $this->load->library('upload');
-
-        $image_upload_folder = FCPATH . 'assets/uploads';
-
-        if (!file_exists($image_upload_folder)) {
-            mkdir($image_upload_folder, DIR_WRITE_MODE, true);
+        if (!isset($_FILES['userfile']) || (int) $_FILES['userfile']['error'] === UPLOAD_ERR_NO_FILE) {
+            return null;
         }
 
-        $this->upload_config = [
-            'upload_path' => $image_upload_folder,
-            'allowed_types' => 'png|jpg|jpeg|bmp|svg',
-            'max_size' => 2048,
-            'remove_space' => true,
-            'encrypt_name' => true,
-        ];
-
-        $this->upload->initialize($this->upload_config);
-
-        if (!$this->upload->do_upload()) {
-            $upload_error = $this->upload->display_errors();
-            print_r($upload_error);
-            exit();
-        } else {
-            $file_info = [$this->upload->data()];
-
-            return $file_info[0]['file_name'];
-        }
-    }
-
-    public function do_upload_user()
-    {
-        if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'cEmitente')) {
-            $this->session->set_flashdata('error', 'Você não tem permissão para configurar emitente.');
-            redirect(base_url());
+        $image_upload_folder = FCPATH . 'assets/uploads' . DIRECTORY_SEPARATOR;
+        if (!$this->prepararPasta($image_upload_folder)) {
+            $this->session->set_flashdata('error', 'Não foi possível criar a pasta de uploads em assets/uploads.');
+            return null;
         }
 
         $this->load->library('upload');
-
-        $image_upload_folder = FCPATH . 'assets/userImage/';
-
-        if (!file_exists($image_upload_folder)) {
-            mkdir($image_upload_folder, DIR_WRITE_MODE, true);
-        }
-
-        $this->upload_config = [
+        $this->upload->initialize([
             'upload_path' => $image_upload_folder,
             'allowed_types' => 'png|jpg|jpeg|bmp',
             'max_size' => 2048,
-            'remove_space' => true,
+            'remove_spaces' => true,
             'encrypt_name' => true,
-        ];
-
-        $this->upload->initialize($this->upload_config);
+        ]);
 
         if (!$this->upload->do_upload()) {
-            $upload_error = $this->upload->display_errors();
-            print_r($upload_error);
-            exit();
-        } else {
-            $file_info = [$this->upload->data()];
+            $this->session->set_flashdata('error', 'Logo não aceita: ' . strip_tags($this->upload->display_errors('', '')));
 
-            return $file_info[0]['file_name'];
+            return null;
         }
+
+        $info = $this->upload->data();
+
+        return $info['file_name'];
+    }
+
+    /**
+     * Mesma coisa para a foto do usuario, com o gate certo: quem troca a
+     * propria foto nao precisa de cUsuario. A permissao e checada em
+     * uploadUserImage(), que so deixa alterar a conta da propria sessao.
+     */
+    public function do_upload_user()
+    {
+        if (!isset($_FILES['userfile']) || (int) $_FILES['userfile']['error'] === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+
+        $image_upload_folder = FCPATH . 'assets/userImage' . DIRECTORY_SEPARATOR;
+        if (!$this->prepararPasta($image_upload_folder)) {
+            $this->session->set_flashdata('error', 'Não foi possível criar a pasta de fotos em assets/userImage.');
+            return null;
+        }
+
+        $this->load->library('upload');
+        $this->upload->initialize([
+            'upload_path' => $image_upload_folder,
+            'allowed_types' => 'png|jpg|jpeg|bmp',
+            'max_size' => 2048,
+            'remove_spaces' => true,
+            'encrypt_name' => true,
+        ]);
+
+        if (!$this->upload->do_upload()) {
+            $this->session->set_flashdata('error', 'Foto não aceita: ' . strip_tags($this->upload->display_errors('', '')));
+
+            return null;
+        }
+
+        $info = $this->upload->data();
+
+        return $info['file_name'];
+    }
+
+    /** Dados do formulario do emitente, com os nomes de coluna da tabela. */
+    private function dadosDoEmitente()
+    {
+        return [
+            'nome' => trim((string) $this->input->post('nome')),
+            'nome_fantasia' => trim((string) $this->input->post('nome_fantasia')) ?: null,
+            'cnpj' => trim((string) $this->input->post('cnpj')),
+            'ie' => trim((string) $this->input->post('ie')) ?: null,
+            'inscricao_municipal' => trim((string) $this->input->post('inscricao_municipal')) ?: null,
+            'cep' => trim((string) $this->input->post('cep')),
+            'rua' => trim((string) $this->input->post('logradouro')),
+            'numero' => trim((string) $this->input->post('numero')),
+            'complemento' => trim((string) $this->input->post('complemento')) ?: null,
+            'bairro' => trim((string) $this->input->post('bairro')),
+            'cidade' => trim((string) $this->input->post('cidade')),
+            'uf' => strtoupper(trim((string) $this->input->post('uf'))),
+            'telefone' => trim((string) $this->input->post('telefone')),
+            'email' => trim((string) $this->input->post('email')),
+        ];
+    }
+
+    /** Validacao comum do cadastro e da edicao do emitente. */
+    private function validarEmitente()
+    {
+        $this->load->library('form_validation');
+        $this->form_validation->set_rules('nome', 'Razão Social', 'required|trim|max_length[255]');
+        $this->form_validation->set_rules('nome_fantasia', 'Nome fantasia', 'trim|max_length[255]');
+        $this->form_validation->set_rules('cnpj', 'CNPJ', 'required|trim|max_length[45]');
+        $this->form_validation->set_rules('ie', 'Inscrição estadual', 'trim|max_length[50]');
+        $this->form_validation->set_rules('inscricao_municipal', 'Inscrição municipal', 'trim|max_length[20]');
+        $this->form_validation->set_rules('cep', 'CEP', 'required|trim|max_length[20]');
+        $this->form_validation->set_rules('logradouro', 'Logradouro', 'required|trim|max_length[70]');
+        $this->form_validation->set_rules('numero', 'Número', 'required|trim|max_length[15]');
+        $this->form_validation->set_rules('complemento', 'Complemento', 'trim|max_length[45]');
+        $this->form_validation->set_rules('bairro', 'Bairro', 'required|trim|max_length[45]');
+        $this->form_validation->set_rules('cidade', 'Cidade', 'required|trim|max_length[45]');
+        $this->form_validation->set_rules('uf', 'UF', 'required|trim|exact_length[2]');
+        $this->form_validation->set_rules('telefone', 'Telefone', 'required|trim|max_length[20]');
+        $this->form_validation->set_rules('email', 'E-mail', 'required|trim|valid_email|max_length[255]');
+
+        return $this->form_validation->run();
     }
 
     public function cadastrarEmitente()
@@ -359,46 +480,32 @@ class Mapos extends MY_Controller {
             redirect(base_url());
         }
 
-        $this->load->library('form_validation');
-        $this->form_validation->set_rules('nome', 'Razão Social', 'required|trim');
-        $this->form_validation->set_rules('cnpj', 'CNPJ', 'required|trim');
-        $this->form_validation->set_rules('ie', 'IE', 'trim');
-        $this->form_validation->set_rules('cep', 'CEP', 'required|trim');
-        $this->form_validation->set_rules('logradouro', 'Logradouro', 'required|trim');
-        $this->form_validation->set_rules('numero', 'Número', 'required|trim');
-        $this->form_validation->set_rules('bairro', 'Bairro', 'required|trim');
-        $this->form_validation->set_rules('cidade', 'Cidade', 'required|trim');
-        $this->form_validation->set_rules('uf', 'UF', 'required|trim');
-        $this->form_validation->set_rules('telefone', 'Telefone', 'required|trim');
-        $this->form_validation->set_rules('email', 'E-mail', 'required|trim');
-
-        if ($this->form_validation->run() == false) {
-            $this->session->set_flashdata('error', 'Campos obrigatórios não foram preenchidos.');
-            redirect(site_url('mapos/emitente'));
-        } else {
-            $nome = $this->input->post('nome');
-            $cnpj = $this->input->post('cnpj');
-            $ie = $this->input->post('ie');
-            $cep = $this->input->post('cep');
-            $logradouro = $this->input->post('logradouro');
-            $numero = $this->input->post('numero');
-            $bairro = $this->input->post('bairro');
-            $cidade = $this->input->post('cidade');
-            $uf = $this->input->post('uf');
-            $telefone = $this->input->post('telefone');
-            $email = $this->input->post('email');
-            $image = $this->do_upload();
-            $logo = base_url() . 'assets/uploads/' . $image;
-
-            $retorno = $this->mapos_model->addEmitente($nome, $cnpj, $ie, $cep, $logradouro, $numero, $bairro, $cidade, $uf, $telefone, $email, $logo);
-            if ($retorno) {
-                $this->session->set_flashdata('success', 'As informações foram inseridas com sucesso.');
-                log_info('Adicionou informações de emitente.');
-            } else {
-                $this->session->set_flashdata('error', 'Ocorreu um erro ao tentar inserir as informações.');
-            }
+        if ($this->input->method() !== 'post') {
             redirect(site_url('mapos/emitente'));
         }
+
+        $this->load->helper('emitente');
+
+        if (!$this->validarEmitente()) {
+            $this->session->set_flashdata('error', 'Confira os campos obrigatórios: ' . strip_tags(validation_errors(' ', ' ')));
+            redirect(site_url('mapos/emitente'));
+        }
+
+        $dados = $this->dadosDoEmitente();
+
+        $arquivo = $this->do_upload();
+        if ($arquivo !== null) {
+            $dados['url_logo'] = base_url() . 'assets/uploads/' . $arquivo;
+        }
+
+        if ($this->mapos_model->addEmitente($dados)) {
+            $this->session->set_flashdata('success', 'Dados do emitente cadastrados.');
+            log_info('Cadastrou os dados do emitente.');
+        } else {
+            $this->session->set_flashdata('error', 'Não foi possível cadastrar os dados do emitente.');
+        }
+
+        redirect(site_url('mapos/emitente'));
     }
 
     public function editarEmitente()
@@ -408,47 +515,50 @@ class Mapos extends MY_Controller {
             redirect(base_url());
         }
 
-        $this->load->library('form_validation');
-        $this->form_validation->set_rules('nome', 'Razão Social', 'required|trim');
-        $this->form_validation->set_rules('cnpj', 'CNPJ', 'required|trim');
-        $this->form_validation->set_rules('ie', 'IE', 'trim');
-        $this->form_validation->set_rules('cep', 'CEP', 'required|trim');
-        $this->form_validation->set_rules('logradouro', 'Logradouro', 'required|trim');
-        $this->form_validation->set_rules('numero', 'Número', 'required|trim');
-        $this->form_validation->set_rules('bairro', 'Bairro', 'required|trim');
-        $this->form_validation->set_rules('cidade', 'Cidade', 'required|trim');
-        $this->form_validation->set_rules('uf', 'UF', 'required|trim');
-        $this->form_validation->set_rules('telefone', 'Telefone', 'required|trim');
-        $this->form_validation->set_rules('email', 'E-mail', 'required|trim');
-
-        if ($this->form_validation->run() == false) {
-            $this->session->set_flashdata('error', 'Campos obrigatórios não foram preenchidos.');
-            redirect(site_url('mapos/emitente'));
-        } else {
-            $nome = $this->input->post('nome');
-            $cnpj = $this->input->post('cnpj');
-            $ie = $this->input->post('ie');
-            $cep = $this->input->post('cep');
-            $logradouro = $this->input->post('logradouro');
-            $numero = $this->input->post('numero');
-            $bairro = $this->input->post('bairro');
-            $cidade = $this->input->post('cidade');
-            $uf = $this->input->post('uf');
-            $telefone = $this->input->post('telefone');
-            $email = $this->input->post('email');
-            $id = $this->input->post('id');
-
-            $retorno = $this->mapos_model->editEmitente($id, $nome, $cnpj, $ie, $cep, $logradouro, $numero, $bairro, $cidade, $uf, $telefone, $email);
-            if ($retorno) {
-                $this->session->set_flashdata('success', 'As informações foram alteradas com sucesso.');
-                log_info('Alterou informações de emitente.');
-            } else {
-                $this->session->set_flashdata('error', 'Ocorreu um erro ao tentar alterar as informações.');
-            }
+        if ($this->input->method() !== 'post') {
             redirect(site_url('mapos/emitente'));
         }
+
+        $id = (int) $this->input->post('id');
+        if ($id < 1) {
+            $this->session->set_flashdata('error', 'Emitente não informado.');
+            redirect(site_url('mapos/emitente'));
+        }
+
+        $this->load->helper('emitente');
+
+        if (!$this->validarEmitente()) {
+            $this->session->set_flashdata('error', 'Confira os campos obrigatórios: ' . strip_tags(validation_errors(' ', ' ')));
+            redirect(site_url('mapos/emitente'));
+        }
+
+        $dados = $this->dadosDoEmitente();
+
+        // A logo so e tocada quando um arquivo novo chega; trocar o endereco
+        // nao pode apagar a logo existente.
+        $arquivo = $this->do_upload();
+        if ($arquivo !== null) {
+            $anterior = $this->mapos_model->getEmitente();
+            $dados['url_logo'] = base_url() . 'assets/uploads/' . $arquivo;
+            $this->apagarLogoAntiga($anterior, $dados['url_logo']);
+        }
+
+        if ($this->mapos_model->editEmitente($id, $dados)) {
+            $this->session->set_flashdata('success', 'Dados do emitente atualizados.');
+            log_info('Alterou os dados do emitente. ID: ' . $id);
+        } else {
+            $this->session->set_flashdata('error', 'Não foi possível atualizar os dados do emitente.');
+        }
+
+        redirect(site_url('mapos/emitente'));
     }
 
+    /**
+     * Troca a logo. Antes este metodo chamava delete_files() na pasta
+     * assets/uploads inteira — o que tambem apagava a pasta temp/ que o mPDF
+     * usa para gerar PDF — e depois subia a imagem nova. Agora so remove o
+     * arquivo antigo, pelo nome.
+     */
     public function editarLogo()
     {
         if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'cEmitente')) {
@@ -456,57 +566,130 @@ class Mapos extends MY_Controller {
             redirect(base_url());
         }
 
-        $id = $this->input->post('id');
-        if ($id == null || !is_numeric($id)) {
-            $this->session->set_flashdata('error', 'Ocorreu um erro ao tentar alterar a logomarca.');
+        if ($this->input->method() !== 'post') {
             redirect(site_url('mapos/emitente'));
         }
-        $this->load->helper('file');
-        delete_files(FCPATH . 'assets/uploads/');
 
-        $image = $this->do_upload();
-        $logo = base_url() . 'assets/uploads/' . $image;
+        $id = (int) $this->input->post('id');
+        if ($id < 1) {
+            $this->session->set_flashdata('error', 'Emitente não informado.');
+            redirect(site_url('mapos/emitente'));
+        }
 
-        $retorno = $this->mapos_model->editLogo($id, $logo);
-        if ($retorno) {
-            $this->session->set_flashdata('success', 'As informações foram alteradas com sucesso.');
+        $arquivo = $this->do_upload();
+        if ($arquivo === null) {
+            redirect(site_url('mapos/emitente'));
+        }
+
+        $anterior = $this->mapos_model->getEmitente();
+        $logo = base_url() . 'assets/uploads/' . $arquivo;
+
+        if ($this->mapos_model->editLogo($id, $logo)) {
+            $this->apagarLogoAntiga($anterior, $logo);
+            $this->session->set_flashdata('success', 'Logo atualizada.');
             log_info('Alterou a logomarca do emitente.');
         } else {
-            $this->session->set_flashdata('error', 'Ocorreu um erro ao tentar alterar as informações.');
+            $this->session->set_flashdata('error', 'Não foi possível atualizar a logo.');
         }
+
         redirect(site_url('mapos/emitente'));
     }
 
-    public function uploadUserImage()
+    /** Remove a logo e o arquivo dela. */
+    public function removerLogo()
     {
-        if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'cUsuario')) {
-            $this->session->set_flashdata('error', 'Você não tem permissão para mudar a foto.');
+        if (!$this->permission->checkPermission($this->session->userdata('permissao'), 'cEmitente')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para configurar emitente.');
             redirect(base_url());
         }
 
-        $id = $this->session->userdata('id_admin');
-        if ($id == null || !is_numeric($id)) {
+        if ($this->input->method() !== 'post') {
+            redirect(site_url('mapos/emitente'));
+        }
+
+        $id = (int) $this->input->post('id');
+        if ($id < 1) {
+            $this->session->set_flashdata('error', 'Emitente não informado.');
+            redirect(site_url('mapos/emitente'));
+        }
+
+        $anterior = $this->mapos_model->getEmitente();
+        if ($this->mapos_model->removerLogo($id)) {
+            $this->apagarLogoAntiga($anterior, null);
+            $this->session->set_flashdata('success', 'Logo removida.');
+            log_info('Removeu a logomarca do emitente. ID: ' . $id);
+        } else {
+            $this->session->set_flashdata('error', 'Não foi possível remover a logo.');
+        }
+
+        redirect(site_url('mapos/emitente'));
+    }
+
+    /**
+     * Apaga o arquivo da logo anterior, quando ele e desta instalacao (URL da
+     * propria base) e nao coincide com o novo. Nunca apaga a pasta inteira.
+     */
+    private function apagarLogoAntiga($emitente, $novo = null)
+    {
+        $atual = trim((string) ($emitente->url_logo ?? ''));
+        if ($atual === '' || $atual === (string) $novo) {
+            return;
+        }
+
+        $base = base_url() . 'assets/uploads/';
+        if (strpos($atual, $base) !== 0) {
+            return; // logo externa: nao e nossa para apagar
+        }
+
+        $arquivo = FCPATH . 'assets/uploads' . DIRECTORY_SEPARATOR . basename($atual);
+        if (is_file($arquivo)) {
+            @unlink($arquivo);
+        }
+    }
+
+    /**
+     * Troca a foto da propria conta. O gate e o vinculo com a sessao; antes
+     * exigia cUsuario (bloqueando tecnico) e gravava a chave de sessao
+     * `url_image_user`, enquanto o topo le `url_image_user_admin` — a foto so
+     * aparecia depois de sair e entrar.
+     */
+    public function uploadUserImage()
+    {
+        $id = (int) $this->session->userdata('id_admin');
+        if ($id < 1) {
             $this->session->set_flashdata('error', 'Ocorreu um erro ao tentar alterar sua foto.');
             redirect(site_url('mapos/minhaConta'));
         }
 
-        $usuario = $this->mapos_model->getById($id);
-
-        if (is_file(FCPATH . 'assets/userImage/' . $usuario->url_image_user)) {
-            unlink(FCPATH . 'assets/userImage/' . $usuario->url_image_user);
+        if ($this->input->method() !== 'post') {
+            redirect(site_url('mapos/minhaConta'));
         }
 
-        $image = $this->do_upload_user();
-        $imageUserPath = $image;
-        $retorno = $this->mapos_model->editImageUser($id, $imageUserPath);
+        $usuario = $this->mapos_model->getById($id);
+        if (!$usuario) {
+            $this->session->set_flashdata('error', 'Ocorreu um erro ao tentar alterar sua foto.');
+            redirect(site_url('mapos/minhaConta'));
+        }
 
-        if ($retorno) {
-            $this->session->set_userdata('url_image_user', $imageUserPath);
+        $arquivo = $this->do_upload_user();
+        if ($arquivo === null) {
+            redirect(site_url('mapos/minhaConta'));
+        }
+
+        if ($this->mapos_model->editImageUser($id, $arquivo)) {
+            $anterior = FCPATH . 'assets/userImage' . DIRECTORY_SEPARATOR . basename((string) $usuario->url_image_user);
+            if (!empty($usuario->url_image_user) && is_file($anterior)) {
+                @unlink($anterior);
+            }
+
+            $this->session->set_userdata('url_image_user_admin', $arquivo);
+            $this->session->set_userdata('url_image_user', $arquivo);
             $this->session->set_flashdata('success', 'Foto alterada com sucesso.');
             log_info('Alterou a Imagem do Usuario.');
         } else {
             $this->session->set_flashdata('error', 'Ocorreu um erro ao tentar alterar sua foto.');
         }
+
         redirect(site_url('mapos/minhaConta'));
     }
 

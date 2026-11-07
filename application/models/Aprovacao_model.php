@@ -363,4 +363,37 @@ class Aprovacao_model extends CI_Model
 
         return 'ok';
     }
+    /**
+     * OS de um chamado que ainda podem ser aprovadas: link pendente ou OS em
+     * aberto/orcamento/negociacao. Usada quando o proprio cliente pede o link
+     * informando o numero do chamado. Lista vazia em ambiente sem a migration
+     * do campo de chamado.
+     */
+    public function getPendentesPorChamado($chamado)
+    {
+        $chamado = trim((string) $chamado);
+        if (! $this->suportado() || $chamado === '' || ! $this->db->field_exists('chamado_id', 'os')) {
+            return [];
+        }
+
+        $select = 'os.*, clientes.nomeCliente, clientes.documento, clientes.email as email_cliente, clientes.celular as celular_cliente';
+        if ($this->db->field_exists('aprovacao_token_numeros', 'clientes')) {
+            $select .= ', clientes.aprovacao_token_numeros as cliente_token_numeros';
+        }
+
+        $this->db->select($select);
+        $this->db->from('os');
+        $this->db->join('clientes', 'clientes.idClientes = os.clientes_id');
+        $this->db->where('os.chamado_id', $chamado);
+        $this->db->where('os.status <>', 'Cancelado');
+        $this->db->group_start()
+            ->where('os.aprovacao_status', 'pendente')
+            ->or_where_in('os.status', ['Aberto', 'Orçamento', 'Negociação'])
+            ->group_end();
+        $this->db->order_by('os.idOs', 'DESC');
+        $this->db->limit(10);
+
+        return $this->db->get()->result();
+    }
+
 }

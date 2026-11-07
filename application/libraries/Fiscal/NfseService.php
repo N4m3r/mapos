@@ -386,8 +386,15 @@ class NfseService
         if ($fone !== '') {
             $std->infDPS->prest->fone = $fone;
         }
-        if (!empty($this->config->inscricao_municipal)) {
-            $std->infDPS->prest->IM = preg_replace('/\D/', '', (string) $this->config->inscricao_municipal);
+        // IM: vale a do emitente (tela Emitente) e, quando ela ainda nao foi
+        // preenchida la, a das configuracoes fiscais. Antes so a segunda era
+        // lida, e a tela do emitente nao tinha efeito nenhum na nota.
+        $inscricaoMunicipal = trim((string) ($this->emitente->inscricao_municipal ?? ''));
+        if ($inscricaoMunicipal === '') {
+            $inscricaoMunicipal = trim((string) ($this->config->inscricao_municipal ?? ''));
+        }
+        if ($inscricaoMunicipal !== '') {
+            $std->infDPS->prest->IM = preg_replace('/\D/', '', $inscricaoMunicipal);
         }
         $std->infDPS->prest->regTrib = new stdClass();
         $std->infDPS->prest->regTrib->opSimpNac = (int) $this->config->op_simp_nac;

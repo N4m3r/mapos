@@ -147,6 +147,7 @@ class TecnicoController extends AreaApiController
                 'tipo_servico' => $os->tipo_servico ?? null,
                 'prioridade' => $os->prioridade ?? null,
                 'nao_programada' => $os->nao_programada ?? null,
+                'chamado_id' => $os->chamado_id ?? null,
                 'latitude' => $os->latitude ?? null,
                 'longitude' => $os->longitude ?? null,
                 'garantia' => $os->garantia ?? null,

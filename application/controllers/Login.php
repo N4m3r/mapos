@@ -136,6 +136,11 @@ class Login extends CI_Controller
         $this->session->set_userdata($session_admin_data);
         log_info('Efetuou login no sistema');
 
+        // Alimenta a coluna "Último acesso" da lista de usuários. Silencioso
+        // quando a migration ainda não rodou (marcarAcesso confere a coluna).
+        $this->load->model('usuarios_model');
+        $this->usuarios_model->marcarAcesso($user->idUsuarios);
+
         // Redirecionamento inteligente por perfil: tecnicos vao direto para a Area do Tecnico
         // e colaboradores para a Area do Colaborador (ambas mobile). Demais perfis seguem para o painel.
         $temOs = $this->permission->checkPermission($user->permissoes_id, 'vOs');
@@ -165,11 +170,26 @@ class Login extends CI_Controller
         return ($usuario && ! empty($usuario->totp_ativo)) ? $usuario : null;
     }
 
+    /**
+     * A conta venceu?
+     *
+     * Validade em branco (ou 0000-00-00) significa "sem expiracao" — a tela de
+     * usuario permite deixar o campo vazio. Antes, new DateTime(null) virava
+     * "agora" e a conta expirava no mesmo instante do login, alem de emitir
+     * deprecation no PHP 8. A comparacao e por dia: quem vence hoje ainda entra.
+     */
     private function chk_date($data_banco)
     {
-        $data_banco = new DateTime($data_banco);
-        $data_hoje = new DateTime('now');
+        $texto = trim((string) $data_banco);
+        if ($texto === '' || strpos($texto, '0000-00-00') === 0) {
+            return false;
+        }
 
-        return $data_banco < $data_hoje;
+        $limite = DateTime::createFromFormat('!Y-m-d', substr($texto, 0, 10));
+        if ($limite === false) {
+            return false; // data ilegivel nao bloqueia o acesso
+        }
+
+        return $limite < new DateTime('today');
     }
 }

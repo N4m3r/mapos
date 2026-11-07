@@ -93,6 +93,10 @@ $this->load->view('tecnico/_topo', [
                 <label>Defeito / Motivo (opcional)</label>
                 <textarea class="atv-input" name="defeito" placeholder="Defeito relatado ou motivo do atendimento..."></textarea>
             </div>
+            <div class="atv-field">
+                <label>N&ordm; do chamado (opcional)</label>
+                <input type="text" class="atv-input" name="chamado_id" maxlength="60" placeholder="Protocolo informado pelo cliente">
+            </div>
             <div class="atv-field" style="border:2px solid var(--tec-primary, #667eea);border-radius:12px;padding:10px;">
                 <label><strong>Atividade realizada / observações do técnico</strong></label>
                 <textarea class="atv-input" name="atividade_realizada" rows="4" maxlength="2000" placeholder="Descreva o que foi feito..."></textarea>

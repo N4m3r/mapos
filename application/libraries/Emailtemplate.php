@@ -141,6 +141,9 @@ class Emailtemplate
             $tags['empresa_email'] = $this->prop($emitente, 'email');
             $tags['empresa_telefone'] = $this->prop($emitente, 'telefone');
             $tags['empresa_cnpj'] = $this->prop($emitente, 'cnpj');
+            $tags['empresa_fantasia'] = $this->prop($emitente, 'nome_fantasia');
+            $tags['empresa_ie'] = $this->prop($emitente, 'ie');
+            $tags['empresa_im'] = $this->prop($emitente, 'inscricao_municipal');
             $endereco = trim(sprintf(
                 '%s, %s - %s, %s/%s',
                 $this->prop($emitente, 'rua'),

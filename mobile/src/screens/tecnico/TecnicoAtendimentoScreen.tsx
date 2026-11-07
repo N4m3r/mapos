@@ -270,6 +270,7 @@ export function TecnicoAtendimentoScreen({ id }: { id: string }) {
               <Kv k="Abertura" v={dateBr(os.dataInicial)} />
               {os.data_agendamento ? <Kv k="Agendada" v={dateTimeBr(os.data_agendamento)} /> : null}
               {os.tipo_servico ? <Kv k="Tipo de serviço" v={os.tipo_servico} /> : null}
+              {os.chamado_id ? <Kv k="Chamado" v={os.chamado_id} /> : null}
               {os.prioridade ? <Kv k="Prioridade" v={os.prioridade} /> : null}
               {os.garantia ? <Kv k="Garantia" v={String(os.garantia)} /> : null}
               {Number(os.nao_programada) ? <Kv k="Origem" v="Atividade não programada" /> : null}

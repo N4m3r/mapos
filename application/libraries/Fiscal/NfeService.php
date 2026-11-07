@@ -157,8 +157,20 @@ class NfeService
         // emitente (CRT=1: Simples Nacional)
         $std = new stdClass();
         $std->xNome = $this->emitente->nome;
+        // Nome fantasia: a SEFAZ aceita (opcional) e e o nome que o cliente
+        // reconhece na nota.
+        $fantasia = trim((string) ($this->emitente->nome_fantasia ?? ''));
+        if ($fantasia !== '') {
+            $std->xFant = $fantasia;
+        }
         $std->CNPJ = $this->somenteNumeros($this->emitente->cnpj);
         $std->IE = $this->somenteNumeros($this->emitente->ie);
+        // Inscricao municipal: varios municipios exigem na NFS-e e a NF-e
+        // aceita para quem tambem presta servico.
+        $inscricaoMunicipal = preg_replace('/\D/', '', (string) ($this->emitente->inscricao_municipal ?? ''));
+        if ($inscricaoMunicipal !== '') {
+            $std->IM = $inscricaoMunicipal;
+        }
         // CRT: 1 Simples, 3 regime normal. rn_crt devolve 4 para MEI, mas o leiaute da
         // NF-e so aceita CRT 1, 2 ou 3; MEI emite como Simples (CRT 1).
         $crt = rn_crt((int) ($this->config->op_simp_nac ?? 3));
@@ -172,6 +184,10 @@ class NfeService
         $std = new stdClass();
         $std->xLgr = $this->emitente->rua;
         $std->nro = $this->emitente->numero ?: 'S/N';
+        $complemento = trim((string) ($this->emitente->complemento ?? ''));
+        if ($complemento !== '') {
+            $std->xCpl = $complemento;
+        }
         $std->xBairro = $this->emitente->bairro;
         $std->cMun = (int) $this->config->codigo_municipio;
         $std->xMun = $this->emitente->cidade;
@@ -179,6 +195,7 @@ class NfeService
         $std->CEP = $this->somenteNumeros($this->emitente->cep);
         $std->cPais = 1058;
         $std->xPais = 'BRASIL';
+        $std->fone = $this->somenteNumeros($this->emitente->telefone ?? '');
         $make->tagenderEmit($std);
 
         // destinatário (na NFC-e e opcional: so vai se o consumidor informou CPF/CNPJ)

@@ -305,4 +305,201 @@ class Aprovacao extends CI_Controller
 
         return '';
     }
+
+    /**
+     * Pagina PUBLICA para o cliente pedir o link de aprovacao informando o
+     * numero do chamado e o documento. Existe porque a OS pode ter sido aberta
+     * com e-mail ou celular incompletos: sem isto, quem tem o chamado em maos
+     * nao tem por onde pedir o link.
+     */
+    public function solicitar()
+    {
+        if (! $this->aprovacao_model->suportado()) {
+            show_404();
+        }
+
+        $this->load->model('mapos_model');
+        $this->output->set_header('X-Robots-Tag: noindex, nofollow');
+
+        $this->load->view('aprovacao/solicitar', [
+            'erro' => $this->session->flashdata('erro'),
+            'info' => $this->session->flashdata('info'),
+            'emitente' => $this->mapos_model->getEmitente(),
+        ]);
+    }
+
+    /**
+     * POST: confere chamado + documento e envia o link de aprovacao aos
+     * contatos cadastrados do cliente.
+     *
+     * A resposta e sempre a mesma, exista ou nao a OS: responder "nao encontrei"
+     * transformaria o formulario num verificador de chamados alheios.
+     */
+    public function enviarLink()
+    {
+        if (! $this->aprovacao_model->suportado()) {
+            show_404();
+        }
+
+        $this->load->helper('chamado_cobranca');
+        $this->load->library('limite_login');
+        $this->load->model('mapos_model');
+
+        $ip = $this->input->ip_address();
+        if ($espera = $this->limite_login->bloqueado('aprovacao', $ip)) {
+            $this->session->set_flashdata('erro', $this->limite_login->mensagem($espera));
+            redirect('aprovacao/solicitar');
+        }
+
+        $chamado = chamado_normalizar($this->input->post('chamado'));
+        $documento = trim((string) $this->input->post('documento'));
+        if ($chamado === null || chamado_digitos($documento) === '') {
+            $this->limite_login->falhou('aprovacao', $ip);
+            $this->session->set_flashdata('erro', 'Informe o número do chamado e o CPF/CNPJ do titular.');
+            redirect('aprovacao/solicitar');
+        }
+
+        $alvo = [];
+        foreach ($this->aprovacao_model->getPendentesPorChamado($chamado) as $os) {
+            if (chamado_documento_confere($documento, $os->documento ?? '')) {
+                $alvo[] = $os;
+            }
+        }
+
+        $enviados = 0;
+        $emitente = $this->mapos_model->getEmitente();
+        if ($alvo) {
+            $this->load->library('evolution_api');
+            $this->load->model('whatsapp_templates_model');
+
+            foreach ($alvo as $os) {
+                $link = $this->linkAprovacaoDaOs($os);
+                if ($link === null) {
+                    continue;
+                }
+                if ($this->enviarLinkPorWhatsApp($os, $link)) {
+                    $enviados++;
+                    continue;
+                }
+                if ($this->enviarLinkPorEmail($os, $link, $emitente)) {
+                    $enviados++;
+                }
+            }
+        }
+
+        if (! $alvo || $enviados === 0) {
+            $this->limite_login->falhou('aprovacao', $ip);
+        } else {
+            $this->limite_login->sucesso('aprovacao', $ip);
+        }
+
+        log_info('Pedido de link de aprovacao pelo chamado "' . $chamado . '": ' . count($alvo) . ' OS conferida(s), ' . $enviados . ' envio(s).');
+
+        // Mesma resposta nos dois casos, de proposito.
+        $this->session->set_flashdata(
+            'info',
+            'Se houver orçamento aguardando aprovação para este chamado, enviamos o link aos contatos cadastrados. '
+            . 'Se não receber em alguns minutos, fale com a empresa.'
+        );
+        redirect('aprovacao/solicitar');
+    }
+
+    /** Link de aprovacao valido da OS: reaproveita o pendente ou gera um novo. */
+    private function linkAprovacaoDaOs($os)
+    {
+        $pendente = ($os->aprovacao_status ?? '') === 'pendente'
+            && ! empty($os->aprovacao_token)
+            && (empty($os->aprovacao_expira) || strtotime($os->aprovacao_expira) > time());
+
+        if ($pendente) {
+            return site_url('aprovacao/' . $os->aprovacao_token);
+        }
+
+        $info = $this->aprovacao_model->gerarLink((int) $os->idOs, 7);
+
+        return $info ? site_url('aprovacao/' . $info['token']) : null;
+    }
+
+    /** Texto do aviso, usando o modelo de WhatsApp de aprovacao quando existir. */
+    private function mensagemAprovacao($os, $link)
+    {
+        $fallback = 'Ola, {CLIENTE_NOME}. O orcamento da OS #{NUMERO_OS} esta pronto para aprovacao: {LINK}';
+
+        try {
+            return $this->whatsapp_templates_model->renderizar('aprovacao', [
+                '{CLIENTE_NOME}' => (string) $os->nomeCliente,
+                '{NUMERO_OS}' => (string) $os->idOs,
+                '{LINK}' => $link,
+            ], $fallback);
+        } catch (Throwable $e) {
+            return str_replace(
+                ['{CLIENTE_NOME}', '{NUMERO_OS}', '{LINK}'],
+                [(string) $os->nomeCliente, (string) $os->idOs, $link],
+                $fallback
+            );
+        }
+    }
+
+    private function enviarLinkPorWhatsApp($os, $link)
+    {
+        try {
+            if (! $this->evolution_api->estaAtivo()) {
+                return false;
+            }
+
+            $mensagem = $this->mensagemAprovacao($os, $link);
+            $enviados = 0;
+            foreach ($this->aprovacao_model->numerosDestino($os) as $numero) {
+                try {
+                    $this->evolution_api->enviarTexto($numero, $mensagem, [
+                        'tipo' => 'cliente',
+                        'os_id' => (int) $os->idOs,
+                        'evento' => 'link_aprovacao_solicitado',
+                    ]);
+                    $enviados++;
+                } catch (Exception $e) {
+                    log_info('OS #' . $os->idOs . ': falha ao enviar link de aprovacao para ' . $numero . ': ' . $e->getMessage());
+                }
+            }
+
+            return $enviados > 0;
+        } catch (Exception $e) {
+            log_info('OS #' . $os->idOs . ': WhatsApp indisponivel para o link de aprovacao: ' . $e->getMessage());
+
+            return false;
+        }
+    }
+
+    private function enviarLinkPorEmail($os, $link, $emitente)
+    {
+        $email = trim((string) ($os->email_cliente ?? ''));
+        if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL) || ! $emitente || empty($emitente->email)) {
+            return false;
+        }
+
+        try {
+            $this->load->model('email_model');
+            $html = '<p>Ola, ' . html_escape((string) $os->nomeCliente) . '.</p>'
+                . '<p>O orcamento da Ordem de Servico <strong>#' . (int) $os->idOs . '</strong> esta pronto para aprovacao.</p>'
+                . '<p><a href="' . html_escape($link) . '">Abrir o orcamento e decidir</a></p>'
+                . '<p>Se o link expirar, peca um novo a empresa.</p>';
+            $this->email_model->add('email_queue', [
+                'to' => $email,
+                'message' => $html,
+                'status' => 'pending',
+                'date' => date('Y-m-d H:i:s'),
+                'headers' => serialize([
+                    'From' => $emitente->email,
+                    'Subject' => 'Aprovacao da OS #' . (int) $os->idOs,
+                    'Return-Path' => '',
+                ]),
+            ]);
+
+            return true;
+        } catch (Exception $e) {
+            log_info('OS #' . $os->idOs . ': falha ao enfileirar o link de aprovacao: ' . $e->getMessage());
+
+            return false;
+        }
+    }
 }

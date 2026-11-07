@@ -284,6 +284,9 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                         <span>
                                             <h5><b>CLIENTE</b></h5>
                                             <span><i class='bx bxs-business'></i> <b><?php echo html_escape($result->nomeCliente); ?></b></span><br />
+                                            <?php if (!empty($result->chamado_id)): ?>
+                                                <span><i class='bx bx-purchase-tag-alt'></i> Chamado: <b><?= html_escape($result->chamado_id) ?></b></span><br />
+                                            <?php endif; ?>
                                             <?php if (!empty($result->celular_cliente) || !empty($result->telefone_cliente) || !empty($result->contato_cliente)): ?>
                                                 <span><i class='bx bxs-phone'></i>
                                                     <?= !empty($result->contato_cliente) ? html_escape($result->contato_cliente) . ' ' : "" ?>

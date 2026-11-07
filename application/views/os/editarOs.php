@@ -162,6 +162,10 @@
                                                 </select>
                                             </div>
                                             <div class="os-campo">
+                                                <label for="chamado_id">Nº do chamado</label>
+                                                <input id="chamado_id" type="text" name="chamado_id" maxlength="60" value="<?= html_escape($result->chamado_id ?? '') ?>" placeholder="Protocolo informado pelo cliente" />
+                                            </div>
+                                            <div class="os-campo">
                                                 <label for="dataInicial">Data inicial<span class="required">*</span></label>
                                                 <input id="dataInicial" autocomplete="off" class="datepicker" type="text" name="dataInicial" value="<?php echo date('d/m/Y', strtotime($result->dataInicial)); ?>" />
                                             </div>

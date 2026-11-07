@@ -229,7 +229,7 @@ $chaveFmt = trim(chunk_split($d['chave'], 4, ' '));
     <div class="sec">Cálculo do ISSQN</div>
     <table style="border-top:0">
         <tr>
-            <td style="width:25%"><span class="rot">Inscrição Municipal</span><?= html_escape($d['issInscMun'] ?: (isset($emitente->im) ? $emitente->im : '')) ?>&nbsp;</td>
+            <td style="width:25%"><span class="rot">Inscrição Municipal</span><?= html_escape($d['issInscMun'] ?: (isset($emitente->inscricao_municipal) ? $emitente->inscricao_municipal : (isset($emitente->im) ? $emitente->im : ''))) ?>&nbsp;</td>
             <td class="r" style="width:25%"><span class="rot">Valor Total dos Serviços</span><?= $fmt($d['issVServ'] ?: 0) ?></td>
             <td class="r"><span class="rot">Base de Cálculo do ISSQN</span><?= $fmt($d['issVBC'] ?: 0) ?></td>
             <td class="r"><span class="rot">Valor do ISSQN</span><?= $fmt($d['issVISS'] ?: 0) ?></td>

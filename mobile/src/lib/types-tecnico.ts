@@ -18,6 +18,7 @@ export interface OsResumo {
   hora?: string | null;
   descricaoProduto?: string | null;
   defeito?: string | null;
+  chamado_id?: string | null;
   tipo_servico?: string | null;
   prioridade?: string | null;
   nao_programada?: string | number | null;
@@ -106,6 +107,7 @@ export interface TecnicoOsDetalhe {
     defeito?: string | null;
     observacoes?: string | null;
     laudoTecnico?: string | null;
+    chamado_id?: string | null;
     tipo_servico?: string | null;
     prioridade?: string | null;
     nao_programada?: string | number | null;

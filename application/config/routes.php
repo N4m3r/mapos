@@ -54,6 +54,8 @@ if (filter_var($_ENV['API_ENABLED'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
 $route['aprovacao/confirmar'] = 'aprovacao/confirmar';
 $route['aprovacao/enviarCodigo'] = 'aprovacao/enviarCodigo';
 $route['aprovacao/validarCodigo'] = 'aprovacao/validarCodigo';
+$route['aprovacao/solicitar'] = 'aprovacao/solicitar';
+$route['aprovacao/enviarLink'] = 'aprovacao/enviarLink';
 $route['aprovacao/(:any)'] = 'aprovacao/index/$1';
 
 // Rota pública de aceite do serviço realizado (link temporário + assinatura)

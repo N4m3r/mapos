@@ -170,6 +170,9 @@ class TecnicoOcorrenciaController extends AreaApiController
             'status' => 'Aberto',
             'faturado' => 0,
             'nao_programada' => 1,
+            'chamado_id' => $this->db->field_exists('chamado_id', 'os')
+                ? $this->cortar($corpo['chamado_id'] ?? '', 60)
+                : null,
         ]);
         if (! $idOs) {
             $this->invalido('Não foi possível abrir a atividade. Tente novamente.');

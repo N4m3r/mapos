@@ -38,6 +38,7 @@ export function TecnicoAtividadeScreen() {
 
   const [descricao, setDescricao] = useState('');
   const [defeito, setDefeito] = useState('');
+  const [chamado, setChamado] = useState('');
   const [realizado, setRealizado] = useState('');
   const [fotos, setFotos] = useState<string[]>([]);
   const [querAssinatura, setQuerAssinatura] = useState(false);
@@ -125,6 +126,7 @@ export function TecnicoAtividadeScreen() {
         tec.criarAtividade(baseUrl, token, {
           clientes_id: cliente.id,
           descricaoProduto: descricao.trim() || undefined,
+          chamado_id: chamado.trim() || undefined,
           defeito: defeito.trim() || undefined,
           observacoes: descricao.trim() || undefined,
           atividade_realizada: realizado.trim() || undefined,
@@ -205,6 +207,9 @@ export function TecnicoAtividadeScreen() {
 
         <Card>
           <div className="stack">
+            <Field label="Nº do chamado" hint="Protocolo informado pelo cliente (opcional)">
+              <Input value={chamado} onChange={(e) => setChamado(e.target.value)} maxLength={60} />
+            </Field>
             <Field label="Produto / equipamento">
               <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} maxLength={255} />
             </Field>
