@@ -241,3 +241,48 @@ if (! function_exists('emitente_checklist_resumo')) {
         return ['prontos' => $prontos, 'total' => count($itens)];
     }
 }
+
+if (! function_exists('emitente_logo_url')) {
+    /**
+     * URL da logo cadastrada no emitente, usada como logo principal do sistema.
+     *
+     * Devolve null quando nao ha logo utilizavel (campo vazio, tabela ausente ou
+     * arquivo inexistente em assets/uploads); nesse caso a tela mantem a logo
+     * padrao do Map-OS. A consulta roda uma vez por requisicao.
+     *
+     * @return string|null
+     */
+    function emitente_logo_url()
+    {
+        static $resolvido = false;
+        static $url = null;
+
+        if ($resolvido) {
+            return $url;
+        }
+        $resolvido = true;
+
+        try {
+            $CI = function_exists('get_instance') ? get_instance() : null;
+            if (! is_object($CI) || ! isset($CI->db) || ! $CI->db->table_exists('emitente')) {
+                return null;
+            }
+
+            $consulta = $CI->db->select('url_logo')->limit(1)->get('emitente');
+            if (! $consulta) {
+                return null;
+            }
+
+            $logo = trim((string) ($consulta->row()->url_logo ?? ''));
+            if ($logo === '' || ! is_file(convertUrlToUploadsPath($logo))) {
+                return null;
+            }
+
+            $url = $logo;
+        } catch (\Throwable $e) {
+            $url = null;
+        }
+
+        return $url;
+    }
+}

@@ -649,6 +649,13 @@ End hora certa */
   width       : 125px;
 }
 
+/* Logo cadastrada no emitente: cabe na barra lateral sem estourar o espaco */
+#newlog img.logo-emitente {
+  max-width : 100%;
+  max-height: 48px;
+  object-fit: contain;
+}
+
 /* Sidebar Navigation */
 #sidebar {
   display        : flex;
