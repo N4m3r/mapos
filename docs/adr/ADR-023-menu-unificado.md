@@ -74,6 +74,7 @@ O menu do técnico (`views/tema/menu_tecnico.php`) é outro layout, com outro p�
 
 ### Negative
 - A barra lateral ficou longa (48 destinos). Em tela baixa depende da rolagem nova para ser alcançável.
+  **Resolvido depois pelo ADR-025**, que transformou os grupos em categorias recolhíveis.
 - As flags `$menu*` dos controllers deixaram de ser lidas pelo menu administrativo e pelo topo, mas nada foi
   removido. Das 23 chaves que os controllers ainda definem, 11 continuam lidas por dois outros layouts:
   `tema/menu_tecnico.php` (Clientes, Produtos, Serviços, OS e Painel) e `conecte/template.php`, a área do

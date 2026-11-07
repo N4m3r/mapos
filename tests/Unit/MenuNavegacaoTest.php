@@ -47,6 +47,8 @@ class MenuNavegacaoTest extends TestCase
         foreach (menu_navegacao_catalogo() as $chave => $grupo) {
             $this->assertNotSame('', trim($grupo['titulo']), 'grupo sem titulo: ' . $chave);
             $this->assertNotEmpty($grupo['itens'], 'grupo vazio: ' . $chave);
+            $this->assertArrayHasKey('icone', $grupo, 'grupo sem icone de categoria: ' . $chave);
+            $this->assertStringStartsWith('bx-', $grupo['icone'], 'icone de categoria fora do padrao: ' . $chave);
 
             foreach ($grupo['itens'] as $item) {
                 $this->assertArrayHasKey('rotulo', $item);
@@ -81,6 +83,7 @@ class MenuNavegacaoTest extends TestCase
         $this->assertSame(['home', 'clientes'], self::ids($grupos));
         $this->assertSame(['operacao', 'cadastros'], array_keys($grupos));
         $this->assertArrayNotHasKey('permissoes', $grupos['cadastros']['itens'][0], 'a permissao nao vai para a view');
+        $this->assertArrayHasKey('icone', $grupos['cadastros'], 'o filtro precisa manter o icone da categoria');
     }
 
     public function testSemPermissaoFicaSoOInicio(): void

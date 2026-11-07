@@ -129,11 +129,60 @@ class MenuViewTest extends TestCase
         $this->assertSemErroPhp($html);
         $this->assertStringContainsString('id="sidebar"', $html);
         $this->assertStringContainsString('menu-links', $html);
-        $this->assertStringContainsString('nv-grupo', $html, 'titulo de grupo nao renderizou');
+        $this->assertStringContainsString('nv-cat', $html, 'categoria do grupo nao renderizou');
         $this->assertStringContainsString('Ordens de Serviço', $html);
         $this->assertStringContainsString('title-tooltip', $html, 'modo recolhido depende da tooltip');
         $this->assertStringContainsString('login/sair', $html, 'rodape de saida sumiu');
         $this->assertStringContainsString('mapos/pesquisar', $html, 'busca sumiu');
+    }
+
+    /**
+     * O menu tem 48 destinos e ficava longo demais numa lista so. Cada grupo do
+     * catalogo virou uma categoria recolhivel: botao com aria-expanded e a lista
+     * de itens logo abaixo, para o usuario abrir so o que interessa.
+     */
+    public function testCadaGrupoViraCategoriaRecolhivel(): void
+    {
+        $html = $this->render(['vOs', 'eOs', 'rOs', 'vCliente', 'vProduto', 'vServico', 'cSistema']);
+
+        $this->assertSemErroPhp($html);
+        $this->assertStringContainsString('nv-cat', $html, 'categoria nao renderizou');
+        $this->assertStringContainsString('nv-cat-btn', $html, 'botao da categoria nao renderizou');
+        $this->assertStringContainsString('nv-sub', $html, 'lista da categoria nao renderizou');
+        $this->assertStringContainsString('aria-expanded=', $html, 'faltou o estado da categoria');
+
+        // Uma categoria por grupo liberado, e cada uma com a sua lista.
+        $this->assertSame(
+            substr_count($html, 'class="nv-cat-btn"'),
+            substr_count($html, 'class="nv-sub"'),
+            'toda categoria precisa ter a sua lista de itens'
+        );
+        $this->assertGreaterThan(1, substr_count($html, 'class="nv-cat-btn"'), 'esperava mais de uma categoria');
+    }
+
+    /**
+     * A categoria com a tela atual nasce aberta; as outras nascem fechadas. Sem
+     * isso o item marcado pode ficar escondido atras de um clique.
+     */
+    public function testCategoriaDaTelaAtualNasceAberta(): void
+    {
+        $html = $this->render(['vOs', 'eOs', 'rOs', 'vCliente'], 'os/atribuir');
+
+        $this->assertSemErroPhp($html);
+        $this->assertStringContainsString('nv-cat-atual', $html, 'a categoria da tela atual precisa ser marcada');
+        $this->assertSame(1, substr_count($html, 'nv-cat-atual'), 'so uma categoria deve ser a atual');
+
+        // A lista da categoria atual nao leva o atributo hidden; as demais levam.
+        $this->assertMatchesRegularExpression(
+            '/id="nv-sub-operacao"(?!\s+hidden)/',
+            $html,
+            'a lista da categoria atual nao pode nascer escondida'
+        );
+        $this->assertMatchesRegularExpression(
+            '/id="nv-sub-cadastros"\s+hidden/',
+            $html,
+            'categoria sem tela atual deve nascer fechada'
+        );
     }
 
     public function testPerfilSemPermissaoNaoVeOsItens(): void

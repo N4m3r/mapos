@@ -54,22 +54,41 @@ $uri = $this->uri->uri_string();
 
             <ul class="menu-links" style="position: relative;">
                 <?php $ativoId = menu_navegacao_id_ativo($uri, $grupos); ?>
-                <?php foreach ($grupos as $grupo) { ?>
-                    <li class="nv-grupo" aria-hidden="true"><?= html_escape($grupo['titulo']) ?></li>
-                    <?php foreach ($grupo['itens'] as $item) { ?>
-                        <?php
-                        $ativo = $item['id'] === $ativoId;
-                        $destino = $item['rota'] === '' ? base_url() : site_url($item['rota']);
-                        ?>
-                        <li class="<?= $ativo ? 'active' : '' ?>">
-                            <a class="tip-bottom" title="<?= html_escape($item['dica']) ?>"
-                               href="<?= $destino ?>"<?= $ativo ? ' aria-current="page"' : '' ?>>
-                                <i class='bx <?= html_escape($item['icone']) ?> iconX'></i>
-                                <span class="title"><?= html_escape($item['rotulo']) ?></span>
-                                <span class="title-tooltip"><?= html_escape($item['dica']) ?></span>
-                            </a>
-                        </li>
-                    <?php } ?>
+                <?php foreach ($grupos as $chave => $grupo) { ?>
+                    <?php
+                    // A categoria que contem a tela atual nasce aberta e destacada,
+                    // para nao esconder o item marcado atras de um clique.
+                    $categoria_atual = false;
+                    foreach ($grupo['itens'] as $item_grupo) {
+                        if ($item_grupo['id'] === $ativoId) {
+                            $categoria_atual = true;
+                            break;
+                        }
+                    }
+                    ?>
+                    <li class="nv-cat<?= $categoria_atual ? ' nv-cat-atual' : '' ?>" data-cat="<?= html_escape($chave) ?>">
+                        <button type="button" class="nv-cat-btn" aria-expanded="<?= $categoria_atual ? 'true' : 'false' ?>" aria-controls="nv-sub-<?= html_escape($chave) ?>">
+                            <i class='bx <?= html_escape($grupo['icone']) ?> iconX' aria-hidden="true"></i>
+                            <span class="title"><?= html_escape($grupo['titulo']) ?></span>
+                            <i class='bx bx-chevron-down nv-cat-seta' aria-hidden="true"></i>
+                        </button>
+                        <ul class="nv-sub" id="nv-sub-<?= html_escape($chave) ?>"<?= $categoria_atual ? '' : ' hidden' ?>>
+                            <?php foreach ($grupo['itens'] as $item) { ?>
+                                <?php
+                                $ativo = $item['id'] === $ativoId;
+                                $destino = $item['rota'] === '' ? base_url() : site_url($item['rota']);
+                                ?>
+                                <li class="<?= $ativo ? 'active' : '' ?>">
+                                    <a class="tip-bottom" title="<?= html_escape($item['dica']) ?>"
+                                       href="<?= $destino ?>"<?= $ativo ? ' aria-current="page"' : '' ?>>
+                                        <i class='bx <?= html_escape($item['icone']) ?> iconX' aria-hidden="true"></i>
+                                        <span class="title"><?= html_escape($item['rotulo']) ?></span>
+                                        <span class="title-tooltip"><?= html_escape($item['dica']) ?></span>
+                                    </a>
+                                </li>
+                            <?php } ?>
+                        </ul>
+                    </li>
                 <?php } ?>
             </ul>
         </div>

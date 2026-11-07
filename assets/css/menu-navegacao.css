@@ -29,41 +29,123 @@
     padding-bottom: 10px;
 }
 
-/* Titulo de grupo. Sobrescreve a altura fixa de #sidebar li. */
-#sidebar .nv-grupo {
+/* Categoria recolhivel: o titulo do grupo virou um botao que abre e fecha os
+   itens. Sobrescreve a altura fixa de #sidebar li, que cortaria a lista. */
+#sidebar .nv-cat {
     display: block !important;
     height: auto !important;
-    margin: 14px 0 4px !important;
-    padding: 0 0 0 50px;
-    font-size: .7em;
-    font-weight: 700;
-    letter-spacing: .08em;
-    line-height: 1.4;
-    text-transform: uppercase;
-    color: var(--cinza0);
-    opacity: .72;
-    white-space: nowrap;
-    overflow: hidden;
+    margin: 6px 0 2px !important;
+    padding: 0;
     list-style: none;
 }
 
-#sidebar .nv-grupo:first-child {
-    margin-top: 4px !important;
+#sidebar .nv-cat-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+    height: 38px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    color: var(--cinza0);
+    font-size: .74em;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    opacity: .8;
+    transition: var(--tran-02);
 }
 
-/* Recolhido: o rotulo some e o titulo de grupo tambem, para nao sobrar
-   texto solto entre os icones. */
-#sidebar.open .nv-grupo {
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0;
-    opacity: 0;
+#sidebar .nv-cat-btn:hover,
+#sidebar .nv-cat-btn:focus-visible {
+    opacity: 1;
+    background: rgba(127, 127, 127, .12);
+}
+
+#sidebar .nv-cat-btn .title {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 1em;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Seta do estado: gira quando a categoria abre. */
+#sidebar .nv-cat-seta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    font-size: 1.1em;
+    opacity: .6;
+    transition: transform .2s ease, opacity .2s ease;
+}
+
+#sidebar .nv-cat-aberta .nv-cat-seta {
+    transform: rotate(180deg);
+    opacity: .9;
+}
+
+/* Categoria da tela atual: o cabecalho fica destacado, senao o item marcado
+   some quando o usuario fecha o grupo sem querer. */
+#sidebar .nv-cat-atual > .nv-cat-btn {
+    opacity: 1;
+    color: #b3c8d5;
+}
+
+/* Lista de itens da categoria. `hidden` e o estado fechado; o !important
+   impede que o display do tema reabra a lista por conta propria. */
+#sidebar .nv-sub {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+#sidebar .nv-sub[hidden] {
+    display: none !important;
+}
+
+/* Itens dentro da categoria entram recuados, para a hierarquia ficar visivel. */
+#sidebar .nv-sub > li > a {
+    padding-left: 6px;
+}
+
+/* Recolhido (80px): nao ha largura para o submenu, entao tudo volta a ser uma
+   lista unica de icones, que e o comportamento esperado nesse modo.
+   Escopo em min-width: no celular `#sidebar.open` significa a gaveta visivel
+   com 240px, e ali as categorias precisam continuar recolhiveis. */
+@media (min-width: 769px) {
+    #sidebar.open .nv-cat {
+        margin: 2px 0 !important;
+    }
+
+    #sidebar.open .nv-cat-btn {
+        justify-content: flex-start;
+        height: 40px;
+    }
+
+    #sidebar.open .nv-cat-btn .title,
+    #sidebar.open .nv-cat-seta {
+        display: none;
+    }
+
+    #sidebar.open .nv-sub[hidden] {
+        display: block !important;
+    }
 }
 
 @media (max-width: 768px) {
-    #sidebar .nv-grupo {
-        opacity: .62;
+    #sidebar .nv-cat-btn {
+        opacity: .72;
     }
 }
 

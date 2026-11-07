@@ -28,6 +28,7 @@ if (! function_exists('menu_navegacao_catalogo')) {
         return [
             'operacao' => [
                 'titulo' => 'Operação',
+                'icone' => 'bx-grid-alt',
                 'itens' => [
                     ['id' => 'home', 'rotulo' => 'Início', 'dica' => 'Início', 'icone' => 'bx-home-alt', 'rota' => '', 'permissoes' => [], 'aliases' => ['mapos']],
                     ['id' => 'os', 'rotulo' => 'Ordens de Serviço', 'dica' => 'Ordens', 'icone' => 'bx-file', 'rota' => 'os', 'permissoes' => ['vOs'], 'aliases' => ['os/adicionar']],
@@ -40,6 +41,7 @@ if (! function_exists('menu_navegacao_catalogo')) {
             ],
             'cadastros' => [
                 'titulo' => 'Cadastros',
+                'icone' => 'bx-folder',
                 'itens' => [
                     ['id' => 'clientes', 'rotulo' => 'Clientes e Fornecedores', 'dica' => 'Clientes', 'icone' => 'bx-user', 'rota' => 'clientes', 'permissoes' => ['vCliente']],
                     ['id' => 'produtos', 'rotulo' => 'Produtos', 'dica' => 'Produtos', 'icone' => 'bx-basket', 'rota' => 'produtos', 'permissoes' => ['vProduto']],
@@ -51,6 +53,7 @@ if (! function_exists('menu_navegacao_catalogo')) {
             ],
             'comercial' => [
                 'titulo' => 'Comercial e Projetos',
+                'icone' => 'bx-store',
                 'itens' => [
                     ['id' => 'vendas', 'rotulo' => 'Vendas', 'dica' => 'Vendas', 'icone' => 'bx-cart-alt', 'rota' => 'vendas', 'permissoes' => ['vVenda']],
                     ['id' => 'pdv', 'rotulo' => 'PDV', 'dica' => 'PDV', 'icone' => 'bx-store-alt', 'rota' => 'pdv', 'permissoes' => ['aVenda']],
@@ -61,6 +64,7 @@ if (! function_exists('menu_navegacao_catalogo')) {
             ],
             'financeiro' => [
                 'titulo' => 'Financeiro',
+                'icone' => 'bx-wallet',
                 'itens' => [
                     ['id' => 'lancamentos', 'rotulo' => 'Lançamentos', 'dica' => 'Lançamentos', 'icone' => 'bx-bar-chart-alt-2', 'rota' => 'financeiro/lancamentos', 'permissoes' => ['vLancamento']],
                     ['id' => 'cobrancas', 'rotulo' => 'Cobranças', 'dica' => 'Cobranças', 'icone' => 'bx-dollar-circle', 'rota' => 'cobrancas/cobrancas', 'permissoes' => ['vCobranca']],
@@ -73,6 +77,7 @@ if (! function_exists('menu_navegacao_catalogo')) {
             ],
             'relatorios' => [
                 'titulo' => 'Relatórios e análise',
+                'icone' => 'bx-bar-chart-alt-2',
                 'itens' => [
                     ['id' => 'painelgerencial', 'rotulo' => 'Painel gerencial', 'dica' => 'Painel', 'icone' => 'bx-line-chart', 'rota' => 'painelgerencial', 'permissoes' => ['vDashboard', 'rOs']],
                     ['id' => 'rel_clientes', 'rotulo' => 'Clientes', 'dica' => 'Clientes', 'icone' => 'bx-group', 'rota' => 'relatorios/clientes', 'permissoes' => ['rCliente']],
@@ -92,6 +97,7 @@ if (! function_exists('menu_navegacao_catalogo')) {
             ],
             'sistema' => [
                 'titulo' => 'Sistema',
+                'icone' => 'bx-cog',
                 'itens' => [
                     ['id' => 'configuracoes', 'rotulo' => 'Configurações', 'dica' => 'Configurações', 'icone' => 'bx-cog', 'rota' => 'mapos/configurar', 'permissoes' => ['cSistema']],
                     ['id' => 'usuarios', 'rotulo' => 'Usuários', 'dica' => 'Usuários', 'icone' => 'bx-user-circle', 'rota' => 'usuarios', 'permissoes' => ['cUsuario']],
@@ -141,7 +147,11 @@ if (! function_exists('menu_navegacao_para')) {
             }
 
             if (! empty($itens)) {
-                $grupos[$chave] = ['titulo' => $grupo['titulo'], 'itens' => $itens];
+                $grupos[$chave] = [
+                    'titulo' => $grupo['titulo'],
+                    'icone' => $grupo['icone'] ?? 'bx-folder',
+                    'itens' => $itens,
+                ];
             }
         }
 
