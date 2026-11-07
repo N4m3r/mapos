@@ -217,7 +217,7 @@ if (strpos($validade, '0000-00-00') === 0) {
                             <div class="control-group">
                                 <label for="dataExpiracao" class="control-label">Acesso válido até</label>
                                 <div class="controls">
-                                    <input id="dataExpiracao" type="date" name="dataExpiracao" value="<?= $e($validade) ?>">
+                                    <input id="dataExpiracao" type="date" name="dataExpiracao" value="<?= $validade ?>">
                                     <span class="help-inline">Em branco = sem expiração. Depois da data, o login é recusado.</span>
                                 </div>
                             </div>
