@@ -7,7 +7,7 @@ if (! defined('BASEPATH')) {
 /**
  * Formulario de perfil de permissao, usado por adicionar e editar.
  *
- * Antes eram duas views de ~70 KB, quase identicas, e a copia de "editar"
+ * Antes eram duas views de 63 KB e 82 KB, quase identicas, e a copia de "editar"
  * deixava de salvar as permissoes de Contrato que a de "adicionar" tinha. Agora
  * as duas telas desenham o mesmo catalogo (helpers/permissoes_helper.php) e o
  * controller grava exatamente as chaves que estao nele.

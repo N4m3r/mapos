@@ -29,7 +29,7 @@ e [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Trocar a foto em **Minha conta** exigia a permissão `cUsuario` (bloqueando o técnico, que só troca a própria foto) e gravava a chave de sessão `url_image_user`, enquanto o topo do sistema lê `url_image_user_admin` — a foto só aparecia depois de sair e entrar de novo.
 - **Minha conta** mostrava `01/01/1970` como validade de acesso quando a conta não tinha data de expiração.
 - Os cinco cabeçalhos de empresa dos impressos (OS, venda, orçamento, OS e venda do portal do cliente) eram cópias quase iguais, com uma variação em cada: agora usam a partial `views/comum/_emitente_cabecalho.php`, com o nome fantasia, IE e IM vindos do emitente.
-- Removidas as views `usuarios/adicionarUsuario.php`, `usuarios/editarUsuario.php`, `permissoes/adicionarPermissao.php` e `permissoes/editarPermissao.php`, substituídas pelo formulário único de cada tela (a de perfil somava ~70 KB por tela, quase idêntica, e a cópia de "editar" deixou de salvar as permissões de Contrato).
+- Removidas as views `usuarios/adicionarUsuario.php`, `usuarios/editarUsuario.php`, `permissoes/adicionarPermissao.php` e `permissoes/editarPermissao.php`, substituídas pelo formulário único de cada tela (as de perfil somavam 63 KB e 82 KB, quase idênticas, e a cópia de "editar" deixou de salvar as permissões de Contrato).
 - Gatilhos de WhatsApp não disparavam para os eventos **os_aprovada** e **os_finalizada** (só `os_aberta`/`os_editada` estavam ligados). Agora a aprovação (link público e portal) dispara `os_aprovada`, e a finalização da OS dispara `os_finalizada`. O disparo foi centralizado numa biblioteca `Notificador` reutilizável.
 
 ### Added
