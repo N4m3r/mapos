@@ -23,6 +23,7 @@ $aberto = $inventario->status === 'aberto';
         </div>
 
         <form action="<?= site_url('inventarios/salvar/' . (int) $inventario->id) ?>" method="post" id="formInventario">
+            <div class="ui-tabela-rolagem">
             <table class="table table-bordered table-condensed" style="margin-top:12px" id="tabelaInventario">
                 <thead>
                     <tr>
@@ -64,6 +65,7 @@ $aberto = $inventario->status === 'aberto';
                     <?php } ?>
                 </tbody>
             </table>
+            </div>
 
             <?php if ($podeEditar) { ?>
                 <div style="padding:0 14px 14px; display:flex; gap:10px; flex-wrap:wrap">

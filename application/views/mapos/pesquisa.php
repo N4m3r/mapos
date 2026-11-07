@@ -26,7 +26,7 @@
                     </span>
                     <h5>Produtos</h5>
                 </div>
-                <div class="widget-content nopadding tab-content">
+                <div class="widget-content nopadding tab-content ui-tabela-rolagem">
                     <table class="table table-bordered ">
                         <thead>
                         <tr>
@@ -74,7 +74,7 @@
                     </span>
                     <h5>Clientes</h5>
                 </div>
-                <div class="widget-content nopadding tab-content">
+                <div class="widget-content nopadding tab-content ui-tabela-rolagem">
                     <table class="table table-bordered ">
                         <thead>
                         <tr>
@@ -125,7 +125,7 @@
                 </span>
                 <h5>Serviços</h5>
             </div>
-            <div class="widget-content nopadding tab-content">
+            <div class="widget-content nopadding tab-content ui-tabela-rolagem">
                 <table class="table table-bordered ">
                     <thead>
                     <tr>
@@ -169,7 +169,7 @@
                 </span>
                 <h5>Ordens de Serviço</h5>
             </div>
-            <div class="widget-content nopadding tab-content">
+            <div class="widget-content nopadding tab-content ui-tabela-rolagem">
                 <table class="table table-bordered ">
                     <thead>
                     <tr>

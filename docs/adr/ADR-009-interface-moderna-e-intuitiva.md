@@ -74,6 +74,17 @@ roteamento aprender.
 - Listas vazias explicam o que fazer; botões de ícone ganham rótulo ou dica.
 - Tabelas utilizáveis no celular.
 
+### Componentes acrescentados depois
+
+| Classe | Para que serve | Origem |
+|--------|----------------|--------|
+| `ui-tabela-empilha` | abaixo de 767px cada linha vira cartão; usa `data-rotulo` na `<td>` para o rótulo da coluna | ADR-026 |
+| `ui-abas` / `ui-aba` / `ui-aba-num` | abas de seção como links ou botões, com contador | ADR-026 |
+
+`ui-tabela-rolagem` ganhou `max-width: 100%`, barra fina e remoção da margem
+inferior da tabela: sem isso a tabela larga empurrava o conteúdo ao lado e a
+página inteira rolava de lado.
+
 ### Negative
 - Temas antigos com regras muito específicas podem precisar de ajuste fino.
 

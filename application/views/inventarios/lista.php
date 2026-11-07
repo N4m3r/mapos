@@ -20,6 +20,7 @@
             <?php } ?>
         </div>
 
+        <div class="ui-tabela-rolagem">
         <table class="table table-bordered" style="margin-top:12px">
             <thead>
                 <tr>
@@ -52,5 +53,6 @@
                 <?php } ?>
             </tbody>
         </table>
+        </div>
     </div>
 </div>

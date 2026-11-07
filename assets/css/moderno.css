@@ -206,8 +206,20 @@ label { font-weight: 500; margin-bottom: 4px; }
 .ui-acoes-linha { display: inline-flex; gap: 4px; white-space: nowrap; }
 .ui-acoes-linha .btn, .ui-acoes-linha .btn-nwe, .ui-acoes-linha a { padding: 4px 6px; }
 
-/* Tabela com rolagem horizontal no celular */
-.ui-tabela-rolagem { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+/* Tabela com rolagem horizontal no celular. max-width impede que a tabela
+   larga empurre o layout inteiro (o body corta o excesso, mas o conteudo ao
+   lado sumia em telas estreitas). */
+.ui-tabela-rolagem {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(127, 127, 127, .45) transparent;
+}
+.ui-tabela-rolagem::-webkit-scrollbar { height: 6px; }
+.ui-tabela-rolagem::-webkit-scrollbar-thumb { background: rgba(127, 127, 127, .45); border-radius: 999px; }
+/* Sem margin negativa nem padding: o contêiner nao pode cortar o conteudo. */
+.ui-tabela-rolagem > .table { margin-bottom: 0; }
 
 /* Abas de secao (links ou botoes). Mesma linguagem do nt-abas da central de
    notificacoes, sem depender daquele arquivo. */

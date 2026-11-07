@@ -10,12 +10,12 @@ $tabela = function (array $linhas) use ($fmt) {
 
         return;
     }
-    echo '<table class="table table-bordered table-condensed"><thead><tr><th>Documento</th><th>Número</th><th>Data</th><th>IBS estadual</th><th>IBS municipal</th><th>CBS</th><th>Créd. presumido ZFM</th></tr></thead><tbody>';
+    echo '<div class="ui-tabela-rolagem"><table class="table table-bordered table-condensed"><thead><tr><th>Documento</th><th>Número</th><th>Data</th><th>IBS estadual</th><th>IBS municipal</th><th>CBS</th><th>Créd. presumido ZFM</th></tr></thead><tbody>';
     foreach ($linhas as $l) {
         echo '<tr><td>' . html_escape($l['documento']) . '</td><td>' . html_escape($l['numero']) . '</td><td>' . html_escape($l['data'])
             . '</td><td>' . $fmt($l['v_ibs_uf'] ?? 0) . '</td><td>' . $fmt($l['v_ibs_mun'] ?? 0) . '</td><td>' . $fmt($l['v_cbs'] ?? 0) . '</td><td>' . $fmt($l['v_zfm'] ?? 0) . '</td></tr>';
     }
-    echo '</tbody></table>';
+    echo '</tbody></table></div>';
 };
 $quadro = function ($t) use ($fmt) {
     return '<div>IBS estadual: R$ ' . $fmt($t['ibs_uf']) . '</div><div>IBS municipal: R$ ' . $fmt($t['ibs_mun']) . '</div><div>CBS: R$ ' . $fmt($t['cbs']) . '</div>'

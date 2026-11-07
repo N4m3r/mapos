@@ -36,7 +36,7 @@ $filtrando = ($busca !== null && $busca !== '') || $filtro_situacao !== '';
         </div>
     </form>
     <div class="widget-box">
-        <div class="widget-content nopadding tab-content">
+        <div class="widget-content nopadding tab-content ui-tabela-rolagem">
             <?php if (empty($colaboradores)): ?>
                 <div class="ui-vazio">
                     <i class='bx bx-user-plus'></i>

@@ -100,6 +100,7 @@ $fmt = fn ($v) => number_format((float) $v, 2, ',', '.');
                 <?php } ?>
 
                 <!-- Tabela -->
+                <div class="ui-tabela-rolagem">
                 <table class="table table-bordered table-striped">
                     <thead>
                         <tr>
@@ -156,6 +157,7 @@ $fmt = fn ($v) => number_format((float) $v, 2, ',', '.');
                         <?php } ?>
                     </tbody>
                 </table>
+                </div>
 
             </div>
         </div>
