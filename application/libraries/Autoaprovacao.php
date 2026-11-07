@@ -22,6 +22,10 @@ class Autoaprovacao
     public function __construct()
     {
         $this->CI = &get_instance();
+
+        // Regras puras (dia de faturamento, decisão de agendar) em um lugar só,
+        // testável sem subir o framework.
+        require_once APPPATH . 'helpers/automacao_regras_helper.php';
     }
 
     /**
@@ -219,11 +223,12 @@ class Autoaprovacao
      */
     private function deveAgendar($os)
     {
-        if (empty($os->faturamento_agendado)) {
-            return false;
-        }
         // No próprio dia de faturamento, emite na hora (não faz sentido segurar).
-        return (int) date('j') !== $this->diaFaturamento();
+        return AutomacaoRegras::deveAgendar(
+            $os->faturamento_agendado ?? null,
+            (int) date('j'),
+            $this->diaFaturamento()
+        );
     }
 
     /**
@@ -269,9 +274,11 @@ class Autoaprovacao
      */
     public function processarPendentes($limite = 20)
     {
+        $resumo = ['processados' => 0, 'sucesso' => 0, 'falhas' => 0, 'cancelados' => 0];
+
         try {
             if (! $this->CI->db->table_exists('faturamentos_agendados')) {
-                return;
+                return $resumo;
             }
 
             $pendentes = $this->CI->db
@@ -283,7 +290,7 @@ class Autoaprovacao
                 ->result();
 
             if (empty($pendentes)) {
-                return;
+                return $resumo;
             }
 
             $this->CI->load->model('os_model');
@@ -291,11 +298,21 @@ class Autoaprovacao
             $this->CI->load->model('mapos_model');
 
             foreach ($pendentes as $item) {
-                $this->processarAgendado($item);
+                $resumo['processados']++;
+                $situacao = $this->processarAgendado($item);
+                if ($situacao === 'sucesso') {
+                    $resumo['sucesso']++;
+                } elseif ($situacao === 'cancelado') {
+                    $resumo['cancelados']++;
+                } elseif ($situacao === 'falha') {
+                    $resumo['falhas']++;
+                }
             }
         } catch (\Throwable $e) {
             log_info('Automação: falha ao processar fila de faturamento agendado: ' . $e->getMessage());
         }
+
+        return $resumo;
     }
 
     /**
@@ -313,7 +330,7 @@ class Autoaprovacao
                     'processed_at' => date('Y-m-d H:i:s'),
                 ]);
 
-                return;
+                return 'cancelado';
             }
 
             $resultado = $this->emitirAgora($item->os_id, $os);
@@ -327,7 +344,7 @@ class Autoaprovacao
                 ]);
                 log_info('Automação: faturamento agendado da OS ' . $item->os_id . ' emitido (nota ' . ($resultado['nota'] ?? '?') . ').');
 
-                return;
+                return 'sucesso';
             }
 
             // Falhou: incrementa tentativas; após 5, marca erro (para revisão manual).
@@ -337,6 +354,8 @@ class Autoaprovacao
                 'tentativas' => $tentativas,
                 'motivo' => 'Emissão não concluída (tentativa ' . $tentativas . ').',
             ]);
+
+            return 'falha';
         } catch (\Throwable $e) {
             $tentativas = (int) $item->tentativas + 1;
             $this->CI->db->where('id', $item->id)->update('faturamentos_agendados', [
@@ -345,6 +364,8 @@ class Autoaprovacao
                 'motivo' => mb_substr($e->getMessage(), 0, 500),
             ]);
             log_info('Automação: erro ao emitir faturamento agendado da OS ' . $item->os_id . ': ' . $e->getMessage());
+
+            return 'falha';
         }
     }
 
@@ -353,12 +374,7 @@ class Autoaprovacao
      */
     private function diaFaturamento()
     {
-        $dia = (int) $this->cfg('automacao_faturamento_dia');
-        if ($dia < 1 || $dia > 28) {
-            $dia = 1;
-        }
-
-        return $dia;
+        return AutomacaoRegras::diaFaturamento($this->cfg('automacao_faturamento_dia'));
     }
 
     /**
@@ -367,13 +383,7 @@ class Autoaprovacao
      */
     private function proximaDataFaturamento()
     {
-        $dia = $this->diaFaturamento();
-        $hojeDia = (int) date('j');
-
-        $base = ($hojeDia < $dia) ? new \DateTime('first day of this month') : new \DateTime('first day of next month');
-        $base->setDate((int) $base->format('Y'), (int) $base->format('n'), $dia);
-
-        return $base->format('Y-m-d');
+        return AutomacaoRegras::proximaDataFaturamento($this->diaFaturamento(), date('Y-m-d'));
     }
 
     /**

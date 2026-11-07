@@ -209,6 +209,56 @@ label { font-weight: 500; margin-bottom: 4px; }
 /* Tabela com rolagem horizontal no celular */
 .ui-tabela-rolagem { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
+/* Abas de secao (links ou botoes). Mesma linguagem do nt-abas da central de
+   notificacoes, sem depender daquele arquivo. */
+.ui-abas {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    padding: 4px; margin: 0 0 16px;
+    border: 1px solid var(--ui-borda); border-radius: var(--ui-raio);
+    background: var(--ui-suave);
+}
+.ui-aba {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border: 0; border-radius: var(--ui-raio-p);
+    background: transparent; color: inherit; font: inherit;
+    font-size: 13px; font-weight: 600; text-decoration: none;
+    cursor: pointer; white-space: nowrap;
+}
+.ui-aba:hover { background: rgba(127, 127, 127, .1); color: inherit; text-decoration: none; }
+.ui-aba[aria-selected='true'], .ui-aba.ativa {
+    background: var(--ui-primaria); color: #fff;
+    box-shadow: var(--ui-sombra);
+}
+.ui-aba:focus-visible { outline: 2px solid var(--ui-primaria); outline-offset: 2px; }
+.ui-aba .ui-aba-num {
+    font-size: 11px; font-weight: 700; padding: 0 6px; border-radius: 999px;
+    background: rgba(127, 127, 127, .18);
+}
+.ui-aba[aria-selected='true'] .ui-aba-num, .ui-aba.ativa .ui-aba-num { background: rgba(255, 255, 255, .25); }
+
+/* Tabela que vira cartoes no celular. Cada <td> precisa de data-rotulo="..."
+   para o rotulo aparecer ao lado do valor; celulas sem rotulo (acoes) ficam
+   como estao. Evita rolagem lateral em telas estreitas. */
+@media (max-width: 767px) {
+    .ui-tabela-empilha thead { display: none; }
+    .ui-tabela-empilha tbody, .ui-tabela-empilha tr, .ui-tabela-empilha td { display: block; width: 100%; }
+    .ui-tabela-empilha tr {
+        border: 1px solid var(--ui-borda); border-radius: var(--ui-raio);
+        background: var(--ui-suave); margin: 0 0 10px; padding: 4px 0;
+    }
+    .ui-tabela-empilha tr + tr { margin-top: 0; }
+    .ui-tabela-empilha td {
+        display: flex; align-items: center; justify-content: space-between; gap: 10px;
+        border: 0 !important; padding: 7px 12px !important; text-align: right;
+    }
+    .ui-tabela-empilha td[data-rotulo]::before {
+        content: attr(data-rotulo); flex: 0 0 auto;
+        font-size: 12px; font-weight: 600; color: var(--ui-texto-2); text-align: left;
+    }
+    .ui-tabela-empilha td:not([data-rotulo]) { justify-content: flex-end; }
+    .ui-tabela-empilha td.ui-tabela-acoes { padding-top: 2px !important; }
+}
+
 /* Barra de progresso simples */
 .ui-barra { height: 8px; border-radius: 999px; background: var(--ui-suave); overflow: hidden; }
 .ui-barra > span { display: block; height: 100%; background: var(--ui-primaria); border-radius: 999px; }
