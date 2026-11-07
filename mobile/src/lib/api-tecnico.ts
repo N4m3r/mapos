@@ -172,6 +172,7 @@ export function buscarProdutos(baseUrl: string, token: string, q: string): Promi
 export interface AtividadePayload {
   clientes_id: number | string;
   descricaoProduto?: string;
+  chamado_id?: string;
   defeito?: string;
   observacoes?: string;
   servicos?: Array<{ id: number; quantidade: number }>;

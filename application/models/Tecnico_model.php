@@ -506,6 +506,9 @@ class Tecnico_model extends CI_Model
         if (array_key_exists('nao_programada', $data) && ! $this->db->field_exists('nao_programada', 'os')) {
             unset($data['nao_programada']);
         }
+        if (array_key_exists('chamado_id', $data) && ! $this->db->field_exists('chamado_id', 'os')) {
+            unset($data['chamado_id']);
+        }
 
         $this->db->insert('os', $data);
         if ($this->db->affected_rows() >= 1) {

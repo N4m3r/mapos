@@ -1594,6 +1594,11 @@ class Tecnico extends MY_Controller
             'nao_programada'   => 1,
         ];
 
+        if ($this->db->field_exists('chamado_id', 'os')) {
+            $this->load->helper('chamado_cobranca');
+            $osData['chamado_id'] = chamado_normalizar($this->input->post('chamado_id'));
+        }
+
         $idOs = $this->tecnico_model->criarAtividade($osData);
 
         if (!$idOs) {

@@ -27,7 +27,8 @@ não guardava essa referência. Três consequências apareceram na operação:
 
 1. **Campo `chamado_id` na OS**, opcional, com índice próprio e busca na listagem. Preenchido no
    cadastro e na edição, exibido na visualização e nas duas vias impressas. Nada é obrigatório: OS
-   aberta por balcão continua funcionando sem chamado.
+   aberta por balcão continua funcionando sem chamado. A atividade não programada, aberta pelo técnico na tela web ou no
+   app, também pede o número, e o valor volta nos payloads da API que alimentam o aplicativo.
 
 2. **Painel "Cobrança dos chamados"**, um só lugar com três origens reunidas: OS aguardando aprovação,
    documento sem cobrança (`Cobrancas_model::aCobrar`, sem duplicar a regra) e cobrança emitida com
@@ -47,6 +48,8 @@ não guardava essa referência. Três consequências apareceram na operação:
 | Parte | Arquivos |
 |---|---|
 | Campo e busca | `database/migrations/20261107000000_add_os_chamado_id.php` (novo), `models/Os_model.php`, `controllers/Os.php` |
+| Atividade não programada | `controllers/Tecnico.php`, `controllers/api/v1/TecnicoOcorrenciaController.php`, `models/Tecnico_model.php`, `views/tecnico/nova_atividade.php`, `views/tecnico/visualizar_os.php` |
+| App do técnico | `mobile/src/screens/tecnico/TecnicoAtividadeScreen.tsx`, `TecnicoAtendimentoScreen.tsx`, `mobile/src/lib/api-tecnico.ts`, `types-tecnico.ts` |
 | Formulários e impressão | `views/os/adicionarOs.php`, `editarOs.php`, `os.php`, `visualizarOs.php`, `imprimirOs.php` |
 | Regras puras do painel | `helpers/chamado_cobranca_helper.php` (novo) |
 | Dados do painel | `models/Chamado_cobranca_model.php` (novo) |

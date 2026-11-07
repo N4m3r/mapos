@@ -236,6 +236,9 @@ $statusSimples = function ($st) {
     <div class="info-card">
         <h3><i class='bx bx-file'></i> Dados da OS</h3>
         <div class="info-row"><span class="info-label">Número</span><span class="info-value">#<?= sprintf('%04d', $os->idOs) ?></span></div>
+        <?php if (!empty($os->chamado_id)): ?>
+            <div class="info-row"><span class="info-label">Chamado</span><span class="info-value"><?= html_escape($os->chamado_id) ?></span></div>
+        <?php endif; ?>
         <div class="info-row"><span class="info-label">Data</span><span class="info-value"><?= date('d/m/Y', strtotime($os->dataInicial)) ?></span></div>
         <div class="info-row"><span class="info-label">Garantia</span><span class="info-value"><?= html_escape(formatar_garantia($os->garantia, 'N/A')) ?></span></div>
         <?php if ($checkin_ativo): ?>

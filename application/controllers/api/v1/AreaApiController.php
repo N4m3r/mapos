@@ -118,6 +118,7 @@ abstract class AreaApiController extends REST_Controller
             'tipo_servico' => $os->tipo_servico ?? null,
             'prioridade' => $os->prioridade ?? null,
             'nao_programada' => $os->nao_programada ?? null,
+            'chamado_id' => $os->chamado_id ?? null,
             'urlRota' => TecnicoInicio::urlRota($os),
             'urlWhats' => TecnicoInicio::foneWhats($os->celular ?? ($os->telefone ?? '')),
             'aba' => TecnicoInicio::classificar($os, $hoje),
