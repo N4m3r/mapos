@@ -87,6 +87,23 @@ application/arquivos_fiscais/xml/
 /CLAUDE.md
 /.agents/
 
+# Ferramental do ruflo/claude-flow instalado localmente (gerado por `init`)
+# O que e do projeto continua rastreado: .claude/agents/mapos/ e .claude/settings.local.json
+/.claude-flow/
+/.claude/settings.json
+/.claude/settings.json.bak-ruflo-mods-*
+/.claude/proven-config.json
+/.claude/.proven-config-version
+/.claude/agents/browser/
+/.claude/agents/consensus/
+/.claude/agents/core/
+/.claude/agents/sparc/
+/.claude/agents/swarm/
+/.claude/agents/testing/
+/.claude/commands/
+/.claude/helpers/
+/.claude/skills/
+
 # Artefatos publicados a partir de mobile/ e capturas geradas em subpasta de teste
 /mobile/*.zip
 /mobile/*.apk
