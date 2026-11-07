@@ -150,6 +150,10 @@ class Os extends MY_Controller
                 $this->load->helper('tipo_servico');
                 $data['tipo_servico'] = tipo_servico_normalizar($this->input->post('tipo_servico'));
             }
+            if ($this->db->field_exists('chamado_id', 'os')) {
+                $this->load->helper('chamado_cobranca');
+                $data['chamado_id'] = chamado_normalizar($this->input->post('chamado_id'));
+            }
 
             if (is_numeric($id = $this->os_model->add('os', $data, true))) {
                 $this->load->model('mapos_model');
@@ -286,6 +290,10 @@ class Os extends MY_Controller
             if ($this->db->field_exists('tipo_servico', 'os')) {
                 $this->load->helper('tipo_servico');
                 $data['tipo_servico'] = tipo_servico_normalizar($this->input->post('tipo_servico'));
+            }
+            if ($this->db->field_exists('chamado_id', 'os')) {
+                $this->load->helper('chamado_cobranca');
+                $data['chamado_id'] = chamado_normalizar($this->input->post('chamado_id'));
             }
             $os = $this->os_model->getById($this->input->post('idOs'));
 

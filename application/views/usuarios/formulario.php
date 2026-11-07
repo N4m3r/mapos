@@ -1,0 +1,285 @@
+<?php
+
+if (! defined('BASEPATH')) {
+    exit('No direct script access allowed');
+}
+
+/**
+ * Cadastro e edicao de conta de acesso, num formulario so.
+ *
+ * Antes eram duas telas (adicionarUsuario e editarUsuario) com os mesmos
+ * campos em ordens diferentes, sem indicar o que era obrigatorio de fato e
+ * sem a validade poder ficar em branco. Aqui os dados ficam em abas - dados,
+ * endereco, acesso e seguranca - e a senha so e obrigatoria na criacao.
+ *
+ * Variaveis: $usuario (objeto|null), $editar, $custom_error, $perfis,
+ * $tokenName, $tokenHash, $doisFatoresAtivo, $codigosRestantes, $proprioId.
+ */
+$e = static function ($v) {
+    return htmlspecialchars((string) ($v ?? ''), ENT_QUOTES, 'UTF-8');
+};
+
+$usuario = $usuario ?? null;
+$editar = ! empty($editar);
+$id = $usuario ? (int) $usuario->idUsuarios : 0;
+$proprio = $id > 0 && $id === (int) ($proprioId ?? 0);
+$superAdmin = $id === 1;
+$doisFatoresAtivo = ! empty($doisFatoresAtivo);
+$codigosRestantes = (int) ($codigosRestantes ?? 0);
+
+// set_value() devolve o POST quando houve erro e o valor atual na edicao.
+$v = static function ($campo, $padrao = '') use ($usuario) {
+    $atual = ($usuario && isset($usuario->$campo)) ? $usuario->$campo : $padrao;
+
+    return set_value($campo, $atual);
+};
+
+$acao = $editar ? site_url('usuarios/editar/' . $id) : site_url('usuarios/adicionar');
+$validade = (string) $v('dataExpiracao');
+if (strpos($validade, '0000-00-00') === 0) {
+    $validade = '';
+}
+?>
+<div class="new122">
+    <div class="ui-cabecalho">
+        <div>
+            <h1 class="ui-titulo"><i class="bx <?= $editar ? 'bx-user' : 'bx-user-plus' ?>"></i> <?= $editar ? 'Editar usuário' : 'Novo usuário' ?></h1>
+            <p class="ui-subtitulo">
+                <?= $editar
+                    ? 'Altere os dados, o perfil de acesso e a validade desta conta.'
+                    : 'Preencha os dados e escolha o perfil de acesso. A senha definida aqui pode ser trocada depois em Minha conta.' ?>
+            </p>
+        </div>
+        <div class="ui-acoes">
+            <a href="<?= site_url('usuarios') ?>" class="button btn btn-warning">
+                <span class="button__icon"><i class="bx bx-undo"></i></span><span class="button__text2">Voltar</span>
+            </a>
+        </div>
+    </div>
+
+    <?php if (! empty($custom_error)) { ?>
+        <?= $custom_error ?>
+    <?php } ?>
+
+    <form action="<?= $acao ?>" id="formUsuario" method="post">
+        <input type="hidden" name="<?= $e($tokenName ?? $this->security->get_csrf_token_name()) ?>" value="<?= $e($tokenHash ?? $this->security->get_csrf_hash()) ?>">
+        <?php if ($editar) { ?>
+            <input type="hidden" name="idUsuarios" value="<?= $id ?>">
+        <?php } ?>
+
+        <div class="widget-box">
+            <div class="widget-title">
+                <ul class="nav nav-tabs">
+                    <li class="active"><a data-toggle="tab" href="#u-dados">Dados pessoais</a></li>
+                    <li><a data-toggle="tab" href="#u-endereco">Endereço</a></li>
+                    <li><a data-toggle="tab" href="#u-acesso">Acesso</a></li>
+                    <?php if ($editar && $doisFatoresAtivo) { ?>
+                        <li><a data-toggle="tab" href="#u-seguranca">Segurança</a></li>
+                    <?php } ?>
+                </ul>
+            </div>
+
+            <div class="widget-content tab-content">
+                <div id="u-dados" class="tab-pane fade in active">
+                    <div class="ui-secao">
+                        <h4 class="ui-secao-titulo">Identificação e contato</h4>
+                        <div class="ui-grade">
+                            <div class="control-group">
+                                <label for="nome" class="control-label">Nome<span class="required">*</span></label>
+                                <div class="controls">
+                                    <input id="nome" type="text" name="nome" maxlength="80" value="<?= $e($v('nome')) ?>" autocomplete="name">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="rg" class="control-label">RG</label>
+                                <div class="controls">
+                                    <input id="rg" type="text" name="rg" maxlength="20" value="<?= $e($v('rg')) ?>">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="cpf" class="control-label">CPF</label>
+                                <div class="controls">
+                                    <input id="cpfUser" class="cpfUser" type="text" name="cpf" maxlength="20" value="<?= $e($v('cpf')) ?>">
+                                    <span class="help-inline">Opcional, mas não pode repetir em outra conta.</span>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="telefone" class="control-label">Telefone<span class="required">*</span></label>
+                                <div class="controls">
+                                    <input id="telefone" type="text" name="telefone" maxlength="20" value="<?= $e($v('telefone')) ?>">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="celular" class="control-label">Celular</label>
+                                <div class="controls">
+                                    <input id="celular" type="text" name="celular" maxlength="20" value="<?= $e($v('celular')) ?>">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="email" class="control-label">E-mail<span class="required">*</span></label>
+                                <div class="controls">
+                                    <input id="email" type="email" name="email" maxlength="80" value="<?= $e($v('email')) ?>" autocomplete="email">
+                                    <span class="help-inline">É por ele que a pessoa entra no sistema.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="u-endereco" class="tab-pane fade">
+                    <div class="ui-secao">
+                        <h4 class="ui-secao-titulo">Endereço</h4>
+                        <div class="ui-grade">
+                            <div class="control-group">
+                                <label for="cep" class="control-label">CEP</label>
+                                <div class="controls">
+                                    <input id="cep" type="text" name="cep" maxlength="9" value="<?= $e($v('cep')) ?>" inputmode="numeric">
+                                    <span class="help-inline">Preenche o endereço ao sair do campo.</span>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="rua" class="control-label">Logradouro</label>
+                                <div class="controls">
+                                    <input id="rua" type="text" name="rua" maxlength="70" value="<?= $e($v('rua')) ?>">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="numero" class="control-label">Número</label>
+                                <div class="controls">
+                                    <input id="numero" type="text" name="numero" maxlength="15" value="<?= $e($v('numero')) ?>">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="bairro" class="control-label">Bairro</label>
+                                <div class="controls">
+                                    <input id="bairro" type="text" name="bairro" maxlength="45" value="<?= $e($v('bairro')) ?>">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="cidade" class="control-label">Cidade</label>
+                                <div class="controls">
+                                    <input id="cidade" type="text" name="cidade" maxlength="45" value="<?= $e($v('cidade')) ?>">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="estado" class="control-label">UF</label>
+                                <div class="controls">
+                                    <input id="estado" type="text" name="estado" maxlength="2" value="<?= $e($v('estado')) ?>" placeholder="SP">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="u-acesso" class="tab-pane fade">
+                    <div class="ui-secao">
+                        <h4 class="ui-secao-titulo">Acesso ao sistema</h4>
+                        <div class="ui-grade">
+                            <div class="control-group">
+                                <label for="permissoes_id" class="control-label">Perfil de permissão<span class="required">*</span></label>
+                                <div class="controls">
+                                    <?php $perfilAtual = (int) $v('permissoes_id', 0); ?>
+                                    <select name="permissoes_id" id="permissoes_id">
+                                        <option value="">— escolha um perfil —</option>
+                                        <?php foreach ($perfis as $perfil) {
+                                            $inativo = (int) $perfil->situacao !== 1;
+                                            $selecionado = (int) $perfil->idPermissao === $perfilAtual;
+                                            // Perfil inativo continua listado quando ja e o atual,
+                                            // senao editar outro campo trocaria o acesso sem aviso.
+                                            if ($inativo && ! $selecionado) {
+                                                continue;
+                                            }
+                                            ?>
+                                            <option value="<?= (int) $perfil->idPermissao ?>" <?= $selecionado ? 'selected' : '' ?>>
+                                                <?= $e($perfil->nome) ?><?= $inativo ? ' (inativo)' : '' ?>
+                                            </option>
+                                        <?php } ?>
+                                    </select>
+                                    <?php if (! empty($podeVerPerfis)) { ?>
+                                        <span class="help-inline">Para criar ou ajustar perfis, use <a href="<?= site_url('permissoes') ?>">Perfis de permissão</a>.</span>
+                                    <?php } ?>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="situacao" class="control-label">Situação</label>
+                                <div class="controls">
+                                    <?php $situacaoAtual = (string) $v('situacao', '1'); ?>
+                                    <select name="situacao" id="situacao" <?= $superAdmin ? 'disabled' : '' ?>>
+                                        <option value="1" <?= $situacaoAtual === '1' ? 'selected' : '' ?>>Ativo</option>
+                                        <option value="0" <?= $situacaoAtual === '0' ? 'selected' : '' ?>>Inativo</option>
+                                    </select>
+                                    <?php if ($superAdmin) { ?>
+                                        <input type="hidden" name="situacao" value="1">
+                                        <span class="help-inline">O super admin não pode ser desativado.</span>
+                                    <?php } ?>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="dataExpiracao" class="control-label">Acesso válido até</label>
+                                <div class="controls">
+                                    <input id="dataExpiracao" type="date" name="dataExpiracao" value="<?= $e($validade) ?>">
+                                    <span class="help-inline">Em branco = sem expiração. Depois da data, o login é recusado.</span>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="senha" class="control-label">Senha<?= $editar ? '' : '<span class="required">*</span>' ?></label>
+                                <div class="controls">
+                                    <input id="senha" type="password" name="senha" value="" autocomplete="new-password"
+                                        placeholder="<?= $editar ? 'Deixe em branco para manter a atual' : 'Mínimo 6 caracteres' ?>">
+                                    <?php if ($editar) { ?>
+                                        <span class="help-inline">Só preencha se quiser trocar a senha desta conta.</span>
+                                    <?php } ?>
+                                </div>
+                            </div>
+                        </div>
+
+                        <?php if ($editar) { ?>
+                            <div class="ui-dica">
+                                <i class="bx bx-info-circle"></i>
+                                <div>
+                                    <strong>Último acesso:</strong>
+                                    <?= ! empty($usuario->ultimo_acesso) ? date('d/m/Y H:i', strtotime($usuario->ultimo_acesso)) : 'nunca entrou' ?>.
+                                    Cadastrado em <?= ! empty($usuario->dataCadastro) ? date('d/m/Y', strtotime($usuario->dataCadastro)) : '—' ?>.
+                                </div>
+                            </div>
+                        <?php } ?>
+                    </div>
+                </div>
+
+                <?php if ($editar && $doisFatoresAtivo) { ?>
+                    <div id="u-seguranca" class="tab-pane fade">
+                        <div class="ui-secao">
+                            <h4 class="ui-secao-titulo">Verificação em duas etapas</h4>
+                            <p>
+                                <span class="ui-selo sucesso">Ativa</span>
+                                Códigos de recuperação restantes: <strong><?= $codigosRestantes ?></strong>.
+                            </p>
+                            <?php if ($codigosRestantes <= 3) { ?>
+                                <div class="ui-dica alerta">
+                                    <i class="bx bx-error"></i>
+                                    <div>Restam poucos códigos. Peça à pessoa para gerar novos em Minha conta antes de acabar.</div>
+                                </div>
+                            <?php } ?>
+                            <label class="ui-opcao" style="display:inline-flex">
+                                <input type="checkbox" name="desativar_dois_fatores" value="1">
+                                Desativar (use só se a pessoa perdeu o celular e os códigos de recuperação)
+                            </label>
+                        </div>
+                    </div>
+                <?php } ?>
+            </div>
+        </div>
+
+        <div class="ui-rodape-form">
+            <a href="<?= site_url('usuarios') ?>" class="button btn btn-warning">
+                <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span>
+            </a>
+            <button type="submit" class="button btn btn-primary">
+                <span class="button__icon"><i class="bx bx-save"></i></span><span class="button__text2"><?= $editar ? 'Salvar alterações' : 'Cadastrar usuário' ?></span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/jquery.mask.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/funcoes.js"></script>

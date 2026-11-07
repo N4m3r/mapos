@@ -4,6 +4,14 @@ if (! defined('BASEPATH')) {
     exit('No direct script access allowed');
 }
 
+/**
+ * Perfis de permissao.
+ *
+ * O formulario vem do catalogo unico (helpers/permissoes_helper.php). Antes,
+ * cadastrar e editar tinham cada um a sua lista de campos e a de editar salvava
+ * menos chaves: editar um perfil apagava as permissoes de Contrato. Agora as
+ * duas rotas passam por salvar(), que grava exatamente as chaves do catalogo.
+ */
 class Permissoes extends MY_Controller
 {
     public function __construct()
@@ -15,7 +23,7 @@ class Permissoes extends MY_Controller
             redirect(base_url());
         }
 
-        $this->load->helper(['form', 'codegen_helper']);
+        $this->load->helper(['form', 'codegen_helper', 'permissoes']);
         $this->load->model('permissoes_model');
         $this->data['menuConfiguracoes'] = 'Permissões';
     }
@@ -34,7 +42,22 @@ class Permissoes extends MY_Controller
 
         $this->pagination->initialize($this->data['configuration']);
 
-        $this->data['results'] = $this->permissoes_model->get('permissoes', 'idPermissao,nome,data,situacao', '', $this->data['configuration']['per_page'], $this->uri->segment(3));
+        $resultados = $this->permissoes_model->get(
+            'permissoes',
+            'idPermissao,nome,data,situacao,permissoes',
+            '',
+            $this->data['configuration']['per_page'],
+            $this->uri->segment(3)
+        );
+
+        $uso = $this->permissoes_model->usuariosAtivosPorPerfil();
+        $this->data['results'] = [];
+        foreach ($resultados as $perfil) {
+            $perfil->liberadas = permissoes_resumo($this->lerBlob($perfil->permissoes));
+            $perfil->total_chaves = count(permissoes_todas_as_chaves());
+            $perfil->usuarios = (int) ($uso[$perfil->idPermissao] ?? 0);
+            $this->data['results'][] = $perfil;
+        }
 
         $this->data['view'] = 'permissoes/permissoes';
 
@@ -43,347 +66,239 @@ class Permissoes extends MY_Controller
 
     public function adicionar()
     {
-        $this->load->library('form_validation');
+        $inicial = $this->estadoInicial();
+
+        $this->data['secoes'] = permissoes_catalogo();
+        $this->data['salvas'] = $inicial['salvas'];
+        $this->data['nome'] = $inicial['nome'];
+        $this->data['situacao'] = 1;
+        $this->data['idPermissao'] = null;
+        $this->data['acao'] = site_url('permissoes/adicionar');
+        $this->data['titulo'] = 'Novo perfil de permissão';
+        $this->data['subtitulo'] = 'Escolha o que este perfil pode ver e fazer. Um perfil novo nasce com as leituras essenciais.';
+        $this->data['base'] = $inicial['base'];
         $this->data['custom_error'] = '';
 
-        $this->form_validation->set_rules('nome', 'Nome', 'trim|required');
-        if ($this->form_validation->run() == false) {
-            $this->data['custom_error'] = (validation_errors() ? '<div class="form_error">' . validation_errors() . '</div>' : false);
-        } else {
-            $nomePermissao = $this->input->post('nome');
-            $cadastro = date('Y-m-d');
-            $situacao = 1;
-
-            $permissoes = [
-
-                'aCliente' => $this->input->post('aCliente'),
-                'eCliente' => $this->input->post('eCliente'),
-                'dCliente' => $this->input->post('dCliente'),
-                'vCliente' => $this->input->post('vCliente'),
-
-                'aProduto' => $this->input->post('aProduto'),
-                'eProduto' => $this->input->post('eProduto'),
-                'dProduto' => $this->input->post('dProduto'),
-                'vProduto' => $this->input->post('vProduto'),
-
-                'aServico' => $this->input->post('aServico'),
-                'eServico' => $this->input->post('eServico'),
-                'dServico' => $this->input->post('dServico'),
-                'vServico' => $this->input->post('vServico'),
-
-                'aOs' => $this->input->post('aOs'),
-                'eOs' => $this->input->post('eOs'),
-                'dOs' => $this->input->post('dOs'),
-                'vOs' => $this->input->post('vOs'),
-                'vBtnAtendimento' => $this->input->post('vBtnAtendimento'),
-                'vTecnicoOS' => $this->input->post('vTecnicoOS'),
-                'eTecnicoCheckin' => $this->input->post('eTecnicoCheckin'),
-                'eTecnicoCheckout' => $this->input->post('eTecnicoCheckout'),
-                'eTecnicoFotos' => $this->input->post('eTecnicoFotos'),
-                'vTecnicoMapa' => $this->input->post('vTecnicoMapa'),
-                'aTecnicoAtividade' => $this->input->post('aTecnicoAtividade'),
-                'vTecnicoDashboard' => $this->input->post('vTecnicoDashboard'),
-                'eTecnicoNaoRealizado' => $this->input->post('eTecnicoNaoRealizado'),
-                'cMotivoNaoRealizado' => $this->input->post('cMotivoNaoRealizado'),
-
-                'aVenda' => $this->input->post('aVenda'),
-                'eVenda' => $this->input->post('eVenda'),
-                'dVenda' => $this->input->post('dVenda'),
-                'vVenda' => $this->input->post('vVenda'),
-
-                'aGarantia' => $this->input->post('aGarantia'),
-                'eGarantia' => $this->input->post('eGarantia'),
-                'dGarantia' => $this->input->post('dGarantia'),
-                'vGarantia' => $this->input->post('vGarantia'),
-
-                'aArquivo' => $this->input->post('aArquivo'),
-                'eArquivo' => $this->input->post('eArquivo'),
-                'dArquivo' => $this->input->post('dArquivo'),
-                'vArquivo' => $this->input->post('vArquivo'),
-
-                'aPagamento' => $this->input->post('aPagamento'),
-                'ePagamento' => $this->input->post('ePagamento'),
-                'dPagamento' => $this->input->post('dPagamento'),
-                'vPagamento' => $this->input->post('vPagamento'),
-
-                'aLancamento' => $this->input->post('aLancamento'),
-                'eLancamento' => $this->input->post('eLancamento'),
-                'dLancamento' => $this->input->post('dLancamento'),
-                'vLancamento' => $this->input->post('vLancamento'),
-
-                'cUsuario' => $this->input->post('cUsuario'),
-                'cEmitente' => $this->input->post('cEmitente'),
-                'cPermissao' => $this->input->post('cPermissao'),
-                'cBackup' => $this->input->post('cBackup'),
-                'cAuditoria' => $this->input->post('cAuditoria'),
-                'cEmail' => $this->input->post('cEmail'),
-                'cSistema' => $this->input->post('cSistema'),
-                'cAutomacao' => $this->input->post('cAutomacao'),
-                'cFormularioAtendimento' => $this->input->post('cFormularioAtendimento'),
-
-                'rCliente' => $this->input->post('rCliente'),
-                'rProduto' => $this->input->post('rProduto'),
-                'rServico' => $this->input->post('rServico'),
-                'rOs' => $this->input->post('rOs'),
-                'rVenda' => $this->input->post('rVenda'),
-                'rFinanceiro' => $this->input->post('rFinanceiro'),
-
-                'aCobranca' => $this->input->post('aCobranca'),
-                'eCobranca' => $this->input->post('eCobranca'),
-                'dCobranca' => $this->input->post('dCobranca'),
-                'vCobranca' => $this->input->post('vCobranca'),
-
-                // Permissões Fiscais (NF-e / NFS-e)
-                'cNfe' => $this->input->post('cNfe'),
-                'eNfe' => $this->input->post('eNfe'),
-                'vNfe' => $this->input->post('vNfe'),
-                'dNfe' => $this->input->post('dNfe'),
-
-                'vEntrada' => $this->input->post('vEntrada'),
-                'cEntrada' => $this->input->post('cEntrada'),
-                'dEntrada' => $this->input->post('dEntrada'),
-
-                // Permissões RH
-                'vRh' => $this->input->post('vRh'),
-                'eRh' => $this->input->post('eRh'),
-                'aprovarRh' => $this->input->post('aprovarRh'),
-                'vRhFinanceiro' => $this->input->post('vRhFinanceiro'),
-                'fecharFolha' => $this->input->post('fecharFolha'),
-                'vAreaColaborador' => $this->input->post('vAreaColaborador'),
-                'baterPonto' => $this->input->post('baterPonto'),
-
-                // Permissões Dashboard
-                'vDashboard' => $this->input->post('vDashboard'),
-                'vRelatorioCompleto' => $this->input->post('vRelatorioCompleto'),
-                'vExportarDados' => $this->input->post('vExportarDados'),
-
-                // Permissões Obras
-                'vObras' => $this->input->post('vObras'),
-                'cObras' => $this->input->post('cObras'),
-                'eObras' => $this->input->post('eObras'),
-                'dObras' => $this->input->post('dObras'),
-                'vObraCronograma' => $this->input->post('vObraCronograma'),
-                'eObraCronograma' => $this->input->post('eObraCronograma'),
-                'vObraRdo' => $this->input->post('vObraRdo'),
-                'cObraRdo' => $this->input->post('cObraRdo'),
-                'vObraMedicao' => $this->input->post('vObraMedicao'),
-                'cObraMedicao' => $this->input->post('cObraMedicao'),
-                'aObraMedicao' => $this->input->post('aObraMedicao'),
-                'vObraCusto' => $this->input->post('vObraCusto'),
-                'vObraMaterial' => $this->input->post('vObraMaterial'),
-                'cObraMaterial' => $this->input->post('cObraMaterial'),
-                'rObraMaterial' => $this->input->post('rObraMaterial'),
-                'sObraMaterial' => $this->input->post('sObraMaterial'),
-                'cObraEquipe' => $this->input->post('cObraEquipe'),
-                'vObraCampo' => $this->input->post('vObraCampo'),
-
-                // Permissões Contratos
-                'vContrato' => $this->input->post('vContrato'),
-                'cContrato' => $this->input->post('cContrato'),
-                'eContrato' => $this->input->post('eContrato'),
-                'dContrato' => $this->input->post('dContrato'),
-                'fContrato' => $this->input->post('fContrato'),
-            ];
-            $permissoes = serialize($permissoes);
-
-            $data = [
-                'nome' => $nomePermissao,
-                'data' => $cadastro,
-                'permissoes' => $permissoes,
-                'situacao' => $situacao,
-            ];
-
-            if ($this->permissoes_model->add('permissoes', $data) == true) {
-                $this->session->set_flashdata('success', 'Permissão adicionada com sucesso!');
-                log_info('Adicionou uma permissão');
-                redirect(site_url('permissoes/adicionar/'));
-            } else {
-                $this->data['custom_error'] = '<div class="form_error"><p>Ocorreu um erro.</p></div>';
+        if ($this->input->post()) {
+            if ($this->salvar(null)) {
+                return;
             }
+            $this->data['salvas'] = permissoes_do_post(fn ($c) => $this->input->post($c));
+            $this->data['nome'] = (string) $this->input->post('nome');
         }
 
-        $this->data['view'] = 'permissoes/adicionarPermissao';
+        $this->prepararCsrf();
+        $this->data['view'] = 'permissoes/formulario';
 
         return $this->layout();
     }
 
     public function editar()
     {
-        $this->load->library('form_validation');
-        $this->data['custom_error'] = '';
-
-        $this->form_validation->set_rules('nome', 'Nome', 'trim|required');
-        if ($this->form_validation->run() == false) {
-            $this->data['custom_error'] = (validation_errors() ? '<div class="form_error">' . validation_errors() . '</div>' : false);
-        } else {
-            $nomePermissao = $this->input->post('nome');
-            $situacao = $this->input->post('situacao');
-            $permissoes = [
-
-                'aCliente' => $this->input->post('aCliente'),
-                'eCliente' => $this->input->post('eCliente'),
-                'dCliente' => $this->input->post('dCliente'),
-                'vCliente' => $this->input->post('vCliente'),
-
-                'aProduto' => $this->input->post('aProduto'),
-                'eProduto' => $this->input->post('eProduto'),
-                'dProduto' => $this->input->post('dProduto'),
-                'vProduto' => $this->input->post('vProduto'),
-
-                'aServico' => $this->input->post('aServico'),
-                'eServico' => $this->input->post('eServico'),
-                'dServico' => $this->input->post('dServico'),
-                'vServico' => $this->input->post('vServico'),
-
-                'aOs' => $this->input->post('aOs'),
-                'eOs' => $this->input->post('eOs'),
-                'dOs' => $this->input->post('dOs'),
-                'vOs' => $this->input->post('vOs'),
-                'vBtnAtendimento' => $this->input->post('vBtnAtendimento'),
-                'vTecnicoOS' => $this->input->post('vTecnicoOS'),
-                'eTecnicoCheckin' => $this->input->post('eTecnicoCheckin'),
-                'eTecnicoCheckout' => $this->input->post('eTecnicoCheckout'),
-                'eTecnicoFotos' => $this->input->post('eTecnicoFotos'),
-                'vTecnicoMapa' => $this->input->post('vTecnicoMapa'),
-                'aTecnicoAtividade' => $this->input->post('aTecnicoAtividade'),
-                'vTecnicoDashboard' => $this->input->post('vTecnicoDashboard'),
-                'eTecnicoNaoRealizado' => $this->input->post('eTecnicoNaoRealizado'),
-                'cMotivoNaoRealizado' => $this->input->post('cMotivoNaoRealizado'),
-
-                'aVenda' => $this->input->post('aVenda'),
-                'eVenda' => $this->input->post('eVenda'),
-                'dVenda' => $this->input->post('dVenda'),
-                'vVenda' => $this->input->post('vVenda'),
-
-                'aGarantia' => $this->input->post('aGarantia'),
-                'eGarantia' => $this->input->post('eGarantia'),
-                'dGarantia' => $this->input->post('dGarantia'),
-                'vGarantia' => $this->input->post('vGarantia'),
-
-                'aArquivo' => $this->input->post('aArquivo'),
-                'eArquivo' => $this->input->post('eArquivo'),
-                'dArquivo' => $this->input->post('dArquivo'),
-                'vArquivo' => $this->input->post('vArquivo'),
-
-                'aPagamento' => $this->input->post('aPagamento'),
-                'ePagamento' => $this->input->post('ePagamento'),
-                'dPagamento' => $this->input->post('dPagamento'),
-                'vPagamento' => $this->input->post('vPagamento'),
-
-                'aLancamento' => $this->input->post('aLancamento'),
-                'eLancamento' => $this->input->post('eLancamento'),
-                'dLancamento' => $this->input->post('dLancamento'),
-                'vLancamento' => $this->input->post('vLancamento'),
-
-                'cUsuario' => $this->input->post('cUsuario'),
-                'cEmitente' => $this->input->post('cEmitente'),
-                'cPermissao' => $this->input->post('cPermissao'),
-                'cBackup' => $this->input->post('cBackup'),
-                'cAuditoria' => $this->input->post('cAuditoria'),
-                'cEmail' => $this->input->post('cEmail'),
-                'cSistema' => $this->input->post('cSistema'),
-                'cAutomacao' => $this->input->post('cAutomacao'),
-                'cFormularioAtendimento' => $this->input->post('cFormularioAtendimento'),
-
-                'rCliente' => $this->input->post('rCliente'),
-                'rProduto' => $this->input->post('rProduto'),
-                'rServico' => $this->input->post('rServico'),
-                'rOs' => $this->input->post('rOs'),
-                'rVenda' => $this->input->post('rVenda'),
-                'rFinanceiro' => $this->input->post('rFinanceiro'),
-
-                'aCobranca' => $this->input->post('aCobranca'),
-                'eCobranca' => $this->input->post('eCobranca'),
-                'dCobranca' => $this->input->post('dCobranca'),
-                'vCobranca' => $this->input->post('vCobranca'),
-
-                // Permissões Fiscais (NF-e / NFS-e)
-                'cNfe' => $this->input->post('cNfe'),
-                'eNfe' => $this->input->post('eNfe'),
-                'vNfe' => $this->input->post('vNfe'),
-                'dNfe' => $this->input->post('dNfe'),
-
-                'vEntrada' => $this->input->post('vEntrada'),
-                'cEntrada' => $this->input->post('cEntrada'),
-                'dEntrada' => $this->input->post('dEntrada'),
-
-                // Permissões RH
-                'vRh' => $this->input->post('vRh'),
-                'eRh' => $this->input->post('eRh'),
-                'aprovarRh' => $this->input->post('aprovarRh'),
-                'vRhFinanceiro' => $this->input->post('vRhFinanceiro'),
-                'fecharFolha' => $this->input->post('fecharFolha'),
-                'vAreaColaborador' => $this->input->post('vAreaColaborador'),
-                'baterPonto' => $this->input->post('baterPonto'),
-
-                // Permissões Dashboard
-                'vDashboard' => $this->input->post('vDashboard'),
-                'vRelatorioCompleto' => $this->input->post('vRelatorioCompleto'),
-                'vExportarDados' => $this->input->post('vExportarDados'),
-
-                // Permissões Obras
-                'vObras' => $this->input->post('vObras'),
-                'cObras' => $this->input->post('cObras'),
-                'eObras' => $this->input->post('eObras'),
-                'dObras' => $this->input->post('dObras'),
-                'vObraCronograma' => $this->input->post('vObraCronograma'),
-                'eObraCronograma' => $this->input->post('eObraCronograma'),
-                'vObraRdo' => $this->input->post('vObraRdo'),
-                'cObraRdo' => $this->input->post('cObraRdo'),
-                'vObraMedicao' => $this->input->post('vObraMedicao'),
-                'cObraMedicao' => $this->input->post('cObraMedicao'),
-                'aObraMedicao' => $this->input->post('aObraMedicao'),
-                'vObraCusto' => $this->input->post('vObraCusto'),
-                'vObraMaterial' => $this->input->post('vObraMaterial'),
-                'cObraMaterial' => $this->input->post('cObraMaterial'),
-                'rObraMaterial' => $this->input->post('rObraMaterial'),
-                'sObraMaterial' => $this->input->post('sObraMaterial'),
-                'cObraEquipe' => $this->input->post('cObraEquipe'),
-                'vObraCampo' => $this->input->post('vObraCampo'),
-
-            ];
-            $permissoes = serialize($permissoes);
-
-            $data = [
-                'nome' => $nomePermissao,
-                'permissoes' => $permissoes,
-                'situacao' => $situacao,
-            ];
-
-            if ($this->permissoes_model->edit('permissoes', $data, 'idPermissao', $this->input->post('idPermissao')) == true) {
-                $this->session->set_flashdata('success', 'Permissão editada com sucesso!');
-                log_info('Alterou uma permissão. ID: ' . $this->input->post('idPermissao'));
-                redirect(site_url('permissoes/editar/') . $this->input->post('idPermissao'));
-            } else {
-                $this->data['custom_error'] = '<div class="form_error"><p>Ocorreu um errro.</p></div>';
-            }
+        $id = $this->uri->segment(3);
+        if (! $id || ! is_numeric($id)) {
+            $this->session->set_flashdata('error', 'Perfil não encontrado, parâmetro não foi passado corretamente.');
+            redirect(site_url('permissoes'));
         }
 
-        $this->data['result'] = $this->permissoes_model->getById($this->uri->segment(3));
+        $perfil = $this->permissoes_model->getById($id);
+        if (! $perfil) {
+            $this->session->set_flashdata('error', 'Perfil não encontrado.');
+            redirect(site_url('permissoes'));
+        }
 
-        $this->data['view'] = 'permissoes/editarPermissao';
+        $this->data['secoes'] = permissoes_catalogo();
+        $this->data['salvas'] = permissoes_normalizar($this->lerBlob($perfil->permissoes));
+        $this->data['nome'] = $perfil->nome;
+        $this->data['situacao'] = (int) $perfil->situacao;
+        $this->data['idPermissao'] = $perfil->idPermissao;
+        $this->data['acao'] = site_url('permissoes/editar/' . $perfil->idPermissao);
+        $this->data['titulo'] = 'Editar perfil de permissão';
+        $this->data['subtitulo'] = 'As alterações valem para todos os usuários deste perfil, no próximo acesso de cada um.';
+        $this->data['base'] = null;
+        $this->data['custom_error'] = '';
+
+        if ($this->input->post()) {
+            if ($this->salvar($perfil)) {
+                return;
+            }
+            // Repovoa com o que foi enviado, para não perder a escolha em caso de erro.
+            $this->data['salvas'] = permissoes_do_post(fn ($c) => $this->input->post($c));
+            $this->data['nome'] = (string) $this->input->post('nome');
+            $this->data['situacao'] = (int) $this->input->post('situacao');
+        }
+
+        $this->prepararCsrf();
+        $this->data['view'] = 'permissoes/formulario';
 
         return $this->layout();
     }
 
+    /**
+     * Duplica um perfil existente como ponto de partida para um novo.
+     * `/permissoes/adicionar?perfil=ID`
+     */
+    public function duplicar()
+    {
+        $id = $this->uri->segment(3);
+        if (! $id || ! is_numeric($id)) {
+            redirect(site_url('permissoes'));
+        }
+        redirect(site_url('permissoes/adicionar?perfil=' . (int) $id));
+    }
+
     public function desativar()
     {
-        $id = $this->input->post('id');
-        if (! $id) {
-            $this->session->set_flashdata('error', 'Erro ao tentar desativar permissão.');
-            redirect(site_url('permissoes/gerenciar/'));
-        }
-        $data = [
-            'situacao' => false,
-        ];
-        if ($this->permissoes_model->edit('permissoes', $data, 'idPermissao', $id)) {
-            log_info('Desativou uma permissão. ID: ' . $id);
-            $this->session->set_flashdata('success', 'Permissão desativada com sucesso!');
-        } else {
-            $this->session->set_flashdata('error', 'Erro ao desativar permissão!');
+        return $this->mudarSituacao(0);
+    }
+
+    public function reativar()
+    {
+        return $this->mudarSituacao(1);
+    }
+
+    /**
+     * Grava o perfil (novo ou existente). Devolve true quando redirecionou.
+     *
+     * @param object|null $perfil perfil sendo editado; null cria um novo
+     */
+    private function salvar($perfil)
+    {
+        $id = $perfil ? (int) $perfil->idPermissao : null;
+
+        $this->load->library('form_validation');
+        $this->form_validation->set_rules('nome', 'Nome', 'trim|required|max_length[80]');
+        if ($this->form_validation->run() == false) {
+            $this->data['custom_error'] = '<div class="alert alert-danger">' . validation_errors() . '</div>';
+
+            return false;
         }
 
-        redirect(site_url('permissoes/gerenciar/'));
+        $situacao = (int) $this->input->post('situacao') === 1 ? 1 : 0;
+        $permissoes = permissoes_do_post(fn ($chave) => $this->input->post($chave));
+        $dados = [
+            'nome' => (string) $this->input->post('nome'),
+            'permissoes' => serialize($permissoes),
+            'situacao' => $situacao,
+        ];
+
+        if ($id === null) {
+            $dados['data'] = date('Y-m-d');
+            $ok = $this->permissoes_model->add('permissoes', $dados);
+            log_info('Adicionou um perfil de permissão: ' . $dados['nome']);
+            $this->session->set_flashdata(
+                $ok ? 'success' : 'error',
+                $ok ? 'Perfil adicionado com sucesso!' : 'Ocorreu um erro ao adicionar o perfil.'
+            );
+            redirect(site_url('permissoes'));
+
+            return true;
+        }
+
+        $ok = $this->permissoes_model->edit('permissoes', $dados, 'idPermissao', $id);
+        log_info('Alterou o perfil de permissão ID: ' . $id);
+        $this->session->set_flashdata(
+            $ok ? 'success' : 'error',
+            $ok ? 'Perfil atualizado com sucesso!' : 'Ocorreu um erro ao atualizar o perfil.'
+        );
+        redirect(site_url('permissoes/editar/' . $id));
+
+        return true;
+    }
+
+    /**
+     * Ativa ou desativa um perfil. Um perfil com usuários ativos não é
+     * desativado: isso deixaria essas contas num perfil que a tela de usuário
+     * não oferece mais, e a próxima edição trocaria o acesso sem aviso.
+     */
+    private function mudarSituacao($situacao)
+    {
+        $id = (int) $this->input->post('id');
+        if ($id < 1) {
+            $this->session->set_flashdata('error', 'Perfil não informado.');
+            redirect(site_url('permissoes'));
+        }
+
+        if ($id === 1 && $situacao === 0) {
+            $this->session->set_flashdata('error', 'O perfil Administrador não pode ser desativado.');
+            redirect(site_url('permissoes'));
+        }
+
+        if ($situacao === 0) {
+            $uso = $this->permissoes_model->usuariosAtivosPorPerfil();
+            $quantos = (int) ($uso[$id] ?? 0);
+            if ($quantos > 0) {
+                $this->session->set_flashdata(
+                    'error',
+                    'Este perfil ainda está em uso por ' . $quantos . ' usuário(s) ativo(s). Troque o perfil dessas contas antes de desativá-lo.'
+                );
+                redirect(site_url('permissoes'));
+            }
+        }
+
+        if ($this->permissoes_model->edit('permissoes', ['situacao' => $situacao], 'idPermissao', $id)) {
+            log_info(($situacao === 1 ? 'Reativou' : 'Desativou') . ' um perfil de permissão. ID: ' . $id);
+            $this->session->set_flashdata('success', $situacao === 1 ? 'Perfil reativado.' : 'Perfil desativado.');
+        } else {
+            $this->session->set_flashdata('error', 'Não foi possível alterar a situação do perfil.');
+        }
+
+        redirect(site_url('permissoes'));
+    }
+
+    /**
+     * Estado inicial do formulario de um perfil novo: as leituras padrao do
+     * catalogo, ou a copia de um perfil existente quando ?perfil=ID.
+     *
+     * @return array{salvas: array<string, int>, nome: string, base: ?object}
+     */
+    private function estadoInicial()
+    {
+        $id = (int) $this->input->get('perfil');
+        if ($id > 0) {
+            $perfil = $this->permissoes_model->getById($id);
+            if ($perfil) {
+                return [
+                    'salvas' => permissoes_normalizar($this->lerBlob($perfil->permissoes)),
+                    'nome' => trim($perfil->nome . ' (cópia)'),
+                    'base' => $perfil,
+                ];
+            }
+        }
+
+        return [
+            'salvas' => permissoes_normalizar(array_fill_keys(permissoes_chaves_padrao(), 1)),
+            'nome' => '',
+            'base' => null,
+        ];
+    }
+
+    /**
+     * Desserializa o blob de permissoes tolerando lixo depois do array (o
+     * "Extra data" que ja apareceu em producao) sem derrubar a pagina.
+     *
+     * @return array<string, mixed>
+     */
+    private function lerBlob($bruto)
+    {
+        $bruto = (string) $bruto;
+        if ($bruto === '') {
+            return [];
+        }
+
+        set_error_handler(static function () {
+            return true;
+        });
+        $perms = unserialize($bruto, ['allowed_classes' => false]);
+        restore_error_handler();
+
+        return is_array($perms) ? $perms : [];
+    }
+
+    private function prepararCsrf()
+    {
+        $this->data['tokenName'] = $this->security->get_csrf_token_name();
+        $this->data['tokenHash'] = $this->security->get_csrf_hash();
     }
 }
 

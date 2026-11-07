@@ -122,6 +122,7 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
   `permissoes_id` INT NOT NULL,
   `dataExpiracao` date DEFAULT NULL,
   `url_image_user` VARCHAR(255) DEFAULT NULL,
+  `ultimo_acesso` DATETIME NULL DEFAULT NULL,
   PRIMARY KEY (`idUsuarios`),
   INDEX `fk_usuarios_permissoes1_idx` (`permissoes_id` ASC),
   CONSTRAINT `fk_usuarios_permissoes1`
@@ -578,10 +579,13 @@ DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 CREATE  TABLE IF NOT EXISTS `emitente` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `nome` VARCHAR(255) NULL ,
+  `nome_fantasia` VARCHAR(255) NULL ,
   `cnpj` VARCHAR(45) NULL ,
   `ie` VARCHAR(50) NULL ,
+  `inscricao_municipal` VARCHAR(20) NULL ,
   `rua` VARCHAR(70) NULL ,
   `numero` VARCHAR(15) NULL ,
+  `complemento` VARCHAR(45) NULL ,
   `bairro` VARCHAR(45) NULL ,
   `cidade` VARCHAR(45) NULL ,
   `uf` VARCHAR(20) NULL ,
