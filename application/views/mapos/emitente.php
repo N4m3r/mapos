@@ -22,7 +22,7 @@ $e = static function ($v) {
 $dados = $dados ?? null;
 $checklist = $checklist ?? [];
 $resumo = $resumoChecklist ?? ['prontos' => 0, 'total' => 0];
-$id = $dados ? (int) $dados->id : 0;
+$id = ($dados && isset($dados->id)) ? (int) $dados->id : 0;
 $v = static function ($campo, $padrao = '') use ($dados) {
     return $dados && isset($dados->$campo) ? (string) $dados->$campo : $padrao;
 };
@@ -298,4 +298,5 @@ $tudoPronto = $resumo['total'] > 0 && $resumo['prontos'] === $resumo['total'];
 </style>
 
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/jquery.mask.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/sweetalert2.all.min.js"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/funcoes.js"></script>

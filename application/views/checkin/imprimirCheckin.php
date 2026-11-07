@@ -369,7 +369,9 @@
                         <?php } ?>
                         <div class="company-name"><?php echo html_escape($emitente->nome); ?></div>
                         <div class="company-details">
-                            <?php if ($emitente->cnpj) echo 'CNPJ: ' . $emitente->cnpj . '<br>'; ?>
+                            <?php if ($emitente->cnpj) echo 'CNPJ: ' . html_escape($emitente->cnpj) . '<br>'; ?>
+                            <?php if (!empty($emitente->ie)) echo 'IE: ' . html_escape($emitente->ie) . '<br>'; ?>
+                            <?php if (!empty($emitente->inscricao_municipal)) echo 'IM: ' . html_escape($emitente->inscricao_municipal) . '<br>'; ?>
                             <?php if ($emitente->rua) {
                                 echo $emitente->rua;
                                 if ($emitente->numero) echo ', ' . $emitente->numero;

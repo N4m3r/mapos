@@ -130,7 +130,17 @@
                         <li class="bg_lo span12" style="margin-left: 0"><strong>Nível:
                                 <?= $usuario->permissao; ?></strong></li>
                         <li class="bg_lh span12" style="margin-left: 0; border-bottom-left-radius: 9px;border-bottom-right-radius: 9px"><strong>Acesso expira em:
-                                <?= date('d/m/Y', strtotime($usuario->dataExpiracao)); ?></strong></li>
+                                <?php
+                                // Validade em branco = conta sem expiracao. Sem a checagem,
+                                // strtotime(null) vira 01/01/1970 na tela.
+                                $validade = trim((string) ($usuario->dataExpiracao ?? ''));
+                                if ($validade === '' || strpos($validade, '0000-00-00') === 0) {
+                                    echo 'sem expiração';
+                                } else {
+                                    $ts = strtotime($validade);
+                                    echo html_escape($ts ? date('d/m/Y', $ts) : $validade);
+                                }
+                                ?></strong></li>
                     </ul>
                 </div>
 

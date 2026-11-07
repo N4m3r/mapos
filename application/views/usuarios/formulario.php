@@ -282,4 +282,5 @@ if (strpos($validade, '0000-00-00') === 0) {
 </div>
 
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/jquery.mask.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/sweetalert2.all.min.js"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/funcoes.js"></script>

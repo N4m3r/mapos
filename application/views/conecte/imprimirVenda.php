@@ -15,30 +15,7 @@
     <div class="main-page">
         <div class="sub-page">
             <header>
-                <?php if ($emitente == null) : ?>
-                    <div class="alert alert-danger" role="alert">
-                        Você precisa configurar os dados do emitente. >>> <a href="<?=base_url()?>index.php/mapos/emitente">Configurar</a>
-                    </div>
-                <?php else : ?>
-                    <div class="imgLogo" class="align-middle">
-                        <img src="<?= $emitente->url_logo ?>" class="img-fluid" style="width:140px;">
-                    </div>
-                    <div class="emitente">
-                        <span style="font-size: 16px;"><b><?= html_escape($emitente->nome) ?></b></span><br>
-                        <?php if($emitente->cnpj != "00.000.000/0000-00") : ?>
-                            <span class="align-middle">CNPJ: <?= html_escape($emitente->cnpj) ?></span><br>
-                        <?php endif; ?>
-                        <span class="align-middle">
-                            <?= html_escape($emitente->rua.', '.$emitente->numero.', '.$emitente->bairro) ?><br>
-                            <?= html_escape($emitente->cidade.' - '.$emitente->uf.' - '.$emitente->cep) ?>
-                        </span>
-                    </div>
-                    <div class="contatoEmitente">
-                        <span style="font-weight: bold;">Tel: <?= html_escape($emitente->telefone) ?></span><br>
-                        <span style="font-weight: bold;"><?= html_escape($emitente->email) ?></span><br>
-                        <span style="word-break: break-word;">Vendedor: <b><?= html_escape($result->nome) ?></b></span>
-                    </div>
-                <?php endif; ?>
+                <?php $this->load->view('comum/_emitente_cabecalho', ['emitente' => $emitente, 'quem' => $result->nome ?? '', 'rotulo_quem' => 'Vendedor']); ?>
             </header>
             <section>
                 <div class="title">

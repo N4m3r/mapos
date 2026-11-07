@@ -46,7 +46,8 @@ header .alert {
     width: 100%;
 }
 
-#imgLogo {
+#imgLogo,
+.imgLogo {
     display: flex;
     align-items: center;
 }

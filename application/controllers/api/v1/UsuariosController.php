@@ -307,6 +307,7 @@ class UsuariosController extends REST_Controller
 
                 $this->limite_login->sucesso('api', $email);
                 $this->log_app('Efetuou login no sistema', $user->nome);
+                $this->usuarios_model->marcarAcesso($user->idUsuarios);
                 $permissoes = $this->getInstanceDatabase('permissoes', '*', 'idPermissao = ' . $user->permissoes_id, 1, true);
                 $permissoes = unserialize($permissoes['permissoes']);
 
@@ -402,11 +403,22 @@ class UsuariosController extends REST_Controller
         ], REST_Controller::HTTP_OK);
     }
 
+    /**
+     * A conta venceu? Ver a mesma funcao no Login: validade em branco e "sem
+     * expiracao", e a comparacao e por dia.
+     */
     private function chk_date($data_banco)
     {
-        $data_banco = new DateTime($data_banco);
-        $data_hoje = new DateTime('now');
+        $texto = trim((string) $data_banco);
+        if ($texto === '' || strpos($texto, '0000-00-00') === 0) {
+            return false;
+        }
 
-        return $data_banco < $data_hoje;
+        $limite = DateTime::createFromFormat('!Y-m-d', substr($texto, 0, 10));
+        if ($limite === false) {
+            return false;
+        }
+
+        return $limite < new DateTime('today');
     }
 }

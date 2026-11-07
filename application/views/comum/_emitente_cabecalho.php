@@ -34,10 +34,14 @@ if (empty($emitente)) {
     return;
 }
 
+// A partial roda dentro dos impressos, cujos controllers nao carregam este
+// helper: ele se resolve aqui em vez de depender do autoload.
+$this->load->helper('emitente');
+
 $linhas = emitente_cabecalho($emitente);
 $nome = emitente_nome_exibicao($emitente);
 ?>
-<div class="imgLogo" class="align-middle">
+<div class="imgLogo align-middle">
     <?php if (! empty($emitente->url_logo)) { ?>
         <img src="<?= html_escape($emitente->url_logo) ?>" class="img-fluid" style="width:140px" alt="">
     <?php } ?>
