@@ -145,7 +145,6 @@ class PermissoesCatalogoTest extends TestCase
             'checkPermission' => '/checkPermission\s*\([^,()]+,\s*[\'"](\w+)[\'"]\s*\)/',
             '$pode' => '/\$pode\s*\(\s*[\'"](\w+)[\'"]\s*\)/',
             '->exigir' => '/->exigir\s*\(\s*[\'"](\w+)[\'"]\s*\)/',
-            "'permissao' =>" => '/[\'"]permissao[\'"]\s*=>\s*[\'"](\w+)[\'"]/',
         ];
 
         // No helper as chaves sao declaracoes, nao usos.
@@ -186,5 +185,35 @@ class PermissoesCatalogoTest extends TestCase
 
         $this->assertGreaterThan(400, $lidos, 'a varredura nao chegou nos fontes');
         $this->assertSame([], $fora, 'chave usada no codigo sem estar no catalogo de permissoes');
+    }
+
+    /**
+     * O menu so mostra o item que a permissao libera. Uma chave do catalogo de
+     * navegacao fora do catalogo de permissoes deixaria o item invisivel para
+     * todo mundo, inclusive para quem tem todas as permissoes.
+     */
+    public function testChavesDoMenuExistemNoCatalogoDePermissoes(): void
+    {
+        require_once APPPATH . 'helpers/menu_navegacao_helper.php';
+
+        $catalogo = permissoes_todas_as_chaves();
+
+        $cruzadas = 0;
+        $fora = [];
+
+        foreach (menu_navegacao_catalogo() as $secao => $grupo) {
+            foreach ($grupo['itens'] as $item) {
+                foreach ($item['permissoes'] ?? [] as $chave) {
+                    $cruzadas++;
+
+                    if (! in_array($chave, $catalogo, true)) {
+                        $fora[] = $chave . ' (item ' . $item['id'] . ' em ' . $secao . ')';
+                    }
+                }
+            }
+        }
+
+        $this->assertGreaterThan(40, $cruzadas, 'o catalogo de menu veio vazio');
+        $this->assertSame([], $fora, 'item de menu exige permissao que nao existe no catalogo');
     }
 }

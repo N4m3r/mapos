@@ -12,13 +12,14 @@
 Três telas de configuração cresceram em paralelo e divergiram do resto do sistema:
 
 1. **A lista de permissões existia em quatro lugares.** As views de perfil eram duas
-   cópias quase inteiras (918 e 1.322 linhas, cadastrar e editar), o array de cada action do controller
-   repetia as chaves e o seed do banco tinha a sua própria versão. O resultado era
-   medível: `editar()` gravava 103 chaves e `adicionar()` gravava 109, então **editar um
-   perfil apagava as cinco permissões de Contrato**; `aPagamento`/`ePagamento`/
-   `dPagamento`/`vPagamento` continuavam no formulário sem nenhum uso no código; e o
-   seed do Administrador tinha 53 chaves enquanto o sistema já usava mais de cem — um
-   perfil recém-instalado abria telas que o banco dizia que ele não podia abrir.
+   cópias quase inteiras (918 e 1.322 linhas, cadastrar e editar), o array de cada
+   action do controller repetia as chaves e o seed do banco tinha a sua própria versão.
+   O resultado era medível: `editar()` gravava 103 chaves e `adicionar()` gravava 109,
+   então **editar um perfil apagava as cinco permissões de Contrato**;
+   `aPagamento`/`ePagamento`/`dPagamento`/`vPagamento` continuavam no formulário sem
+   nenhum uso no código; e o seed do Administrador tinha 53 chaves enquanto o sistema já
+   usava mais de cem — um perfil recém-instalado abria telas que o banco dizia que ele
+   não podia abrir.
 
 2. **Cadastrar e editar usuário eram duas telas** com os mesmos campos em ordens
    diferentes. A edição não mostrava quando a conta entrou pela última vez, não avisava
@@ -30,6 +31,7 @@ Três telas de configuração cresceram em paralelo e divergiram do resto do sis
    municipal e complemento. A NFS-e lia a IM das configurações fiscais e ignorava o
    cadastro do emitente, a NF-e não enviava `xFant`/`IM`/`xCpl`, e o cabeçalho dos
    impressos — copiado em cinco views, com uma variação em cada — nunca mostrava IE nem IM.
+   O check-in, que monta o próprio cabeçalho, passou a mostrar IE e IM.
 
 ## Decision
 
@@ -82,11 +84,12 @@ Três telas de configuração cresceram em paralelo e divergiram do resto do sis
 ## Consequences
 
 **Ganhos.** Editar um perfil deixa de apagar permissões; instalação nova nasce coerente
-com a tela que configura; a suíte cobre as três telas (52 casos novos) e falha se o
+com a tela que configura; a suíte cobre as três telas (53 casos novos) e falha se o
 catálogo divergir do código — `testChavesUsadasNoCodigoExistemNoCatalogo` varre os
-fontes atrás de `checkPermission`, `$pode`, `->exigir` e `'permissao' =>` e recusa
-chave que não esteja no catálogo. A emissão passa a usar o cadastro do emitente, e o
-cabeçalho dos documentos deixa de ser cinco cópias que precisavam ser corrigidas juntas.
+fontes atrás de `checkPermission`, `$pode` e `->exigir` e recusa chave que não esteja
+no catálogo, e `testChavesDoMenuExistemNoCatalogoDePermissoes` faz o mesmo com as 35
+chaves citadas pelo catálogo de navegação. A emissão passa a usar o cadastro do emitente,
+e o cabeçalho dos documentos deixa de ser cinco cópias que precisavam ser corrigidas juntas.
 
 **Custos e limites.** A migration completa perfis mas **não inventa acesso**: chave
 nova sem "mãe" equivalente entra desligada, e quem administra precisa abrir a tela e
@@ -96,7 +99,7 @@ lê `configuracoes_nfe` só quando a tabela existe.
 
 **Não coberto.** Os testes de navegador (`tests/navegador/telas.mjs`) e o smoke não
 foram executados nesta rodada: o ambiente não tem MySQL nem servidor PHP no ar. A
-validação foi a suíte de unidade (583 casos), o lint de todos os arquivos PHP e a
+validação foi a suíte de unidade inteira, o lint de todos os arquivos PHP e a
 renderização das telas e dos seis impressos com um CodeIgniter mínimo em memória.
 
 ## Links

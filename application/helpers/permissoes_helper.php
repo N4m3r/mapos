@@ -6,15 +6,15 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * Catalogo unico das permissoes do sistema.
  *
  * Antes, a lista de chaves existia em tres lugares que divergiam entre si: as
- * views de perfil (duas copias de ~800 linhas, uma para cadastrar e outra para
- * editar), o array de cada controller que salvava o POST, e o seed do banco.
+ * views de perfil (duas copias, de 918 e 1.322 linhas, uma para cadastrar e
+ * outra para editar), o array de cada controller que salvava o POST, e o seed.
  * O resultado era conhecido:
  *
  *  - `editar()` do controller salvava 103 chaves e `adicionar()` salvava 109:
  *    editar um perfil apagava as cinco permissoes de Contrato;
  *  - `aPagamento`/`ePagamento`/`dPagamento`/`vPagamento` nunca chegavam a ser
  *    usadas pelo codigo e continuavam no formulario confundindo quem configurava;
- *  - duas views de ~70 KB, distintas so no estado inicial das caixas.
+ *  - duas views de 63 KB e 82 KB, distintas so no estado inicial das caixas.
  *
  * Aqui a lista vive uma vez: chave, rotulo, descricao e secao. As views so
  * desenham; o controller so grava as chaves que estao aqui. Chave fora do
