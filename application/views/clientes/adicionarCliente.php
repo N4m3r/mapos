@@ -218,6 +218,18 @@
                                 </label>
                             </div>
                         </div>
+                        <?php if ($this->db->field_exists('exige_chamado', 'clientes')) { ?>
+                        <div class="control-group">
+                            <label class="control-label">Atividade n&atilde;o programada</label>
+                            <div class="controls">
+                                <label for="exige_chamado" class="btn btn-default">Exige N&ordm; do chamado
+                                    <input type="checkbox" id="exige_chamado" name="exige_chamado" class="badgebox" value="1">
+                                    <span class="badge">&check;</span>
+                                </label>
+                                <span class="help-block">O t&eacute;cnico s&oacute; abre atividade n&atilde;o programada informando o chamado do cliente.</span>
+                            </div>
+                        </div>
+                        <?php } ?>
                         <div class="ui-secao">
                         <h4 class="ui-secao-titulo">Dados fiscais (opcional)</h4>
                         <div class="control-group">

@@ -768,7 +768,13 @@ export function createFakeApi({ authedPermissions, area = 'admin', twoFactorUser
         res,
         state.clientes
           .filter((c) => !q || c.nomeCliente.toLowerCase().includes(q))
-          .map((c) => ({ id: c.idClientes, nome: c.nomeCliente, documento: c.documento, telefone: c.celular })),
+          .map((c) => ({
+            id: c.idClientes,
+            nome: c.nomeCliente,
+            documento: c.documento,
+            telefone: c.celular,
+            exige_chamado: Boolean(c.exige_chamado),
+          })),
       );
     }
 

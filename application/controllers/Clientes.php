@@ -110,6 +110,10 @@ class Clientes extends MY_Controller
                 $data['aprovacao_exige_token'] = $this->input->post('aprovacao_exige_token') ? 1 : 0;
             }
 
+            if ($this->db->field_exists('exige_chamado', 'clientes')) {
+                $data['exige_chamado'] = $this->input->post('exige_chamado') ? 1 : 0;
+            }
+
             if ($this->db->field_exists('aprovacao_token_numeros', 'clientes')) {
                 $data['aprovacao_token_numeros'] = trim((string) $this->input->post('aprovacao_token_numeros')) ?: null;
             }
@@ -211,6 +215,10 @@ class Clientes extends MY_Controller
 
             if ($this->db->field_exists('aprovacao_exige_token', 'clientes')) {
                 $data['aprovacao_exige_token'] = $this->input->post('aprovacao_exige_token') ? 1 : 0;
+            }
+
+            if ($this->db->field_exists('exige_chamado', 'clientes')) {
+                $data['exige_chamado'] = $this->input->post('exige_chamado') ? 1 : 0;
             }
 
             if ($this->db->field_exists('aprovacao_token_numeros', 'clientes')) {

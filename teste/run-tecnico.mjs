@@ -366,6 +366,27 @@ async function main() {
     state.naoProgramada = false;
   });
 
+  await step('Cliente que exige chamado bloqueia atividade sem o Nº', async () => {
+    state.clientes.push({ idClientes: 9, nomeCliente: 'Pátio Gourmet TGFoods', celular: '(11) 95555-4444', documento: '98.765.432/0001-10', exige_chamado: 1 });
+    state.ultimaAtividade = null;
+    await page.goto(`${base}/#/tecnico/atividade`);
+    await page.getByLabel('Buscar cliente').fill('Pátio');
+    await page.getByRole('button', { name: /Pátio Gourmet TGFoods/ }).click();
+    await page.getByText('Nº do chamado (obrigatório)').waitFor({ timeout: 6000 });
+    check('Campo do chamado vira obrigatório', true);
+
+    await page.getByRole('button', { name: 'Abrir atividade' }).click();
+    await page.getByText('Este cliente exige o Nº do chamado').first().waitFor({ timeout: 6000 });
+    check('Não envia sem o chamado', state.ultimaAtividade === null);
+
+    await page.getByLabel('Nº do chamado (obrigatório)').fill('CH-2026-118');
+    await page.getByLabel('Atividade realizada').fill('Troca de fonte do DVR');
+    await page.getByRole('button', { name: 'Abrir atividade' }).click();
+    await page.waitForTimeout(1200);
+    check('Envia com o chamado', state.ultimaAtividade?.chamado_id === 'CH-2026-118', JSON.stringify(state.ultimaAtividade?.chamado_id));
+    await shot('12-atividade-chamado');
+  });
+
   await step('Posição enviada para o mapa em tempo real', async () => {
     const p = state.posicoes?.[0];
     check('App enviou a posição com GPS já permitido', Boolean(p) && Number(p.latitude) < -23, JSON.stringify(p));

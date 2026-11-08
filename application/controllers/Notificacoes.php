@@ -14,7 +14,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 class Notificacoes extends MY_Controller
 {
     /** Abas validas da central. */
-    private const ABAS = ['eventos', 'canais', 'modelos', 'historico'];
+    private const ABAS = ['eventos', 'pendencias', 'canais', 'modelos', 'historico'];
 
     public function __construct()
     {
@@ -31,6 +31,7 @@ class Notificacoes extends MY_Controller
         $this->load->library('notificacoes_credenciais');
         $this->load->model('notification_triggers_model');
         $this->load->model('notificacoes_central_model');
+        $this->load->model('atividade_pendencias_model');
     }
 
     /* ------------------------------------------------------------------ */
@@ -85,6 +86,9 @@ class Notificacoes extends MY_Controller
         );
         $this->data['totais'] = $this->notificacoes_central_model->totaisHistorico();
         $this->data['filaPendente'] = $this->notificacoes_central_model->filaEmailPendente();
+
+        // Atividade não programada sem assinatura ou sem Nº do chamado (aba Pendências).
+        $this->data['pendencias'] = $this->atividade_pendencias_model->listar();
 
         $this->data['view'] = 'notificacoes/central';
 

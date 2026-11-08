@@ -489,6 +489,8 @@ export interface ClienteBusca {
   nome: string;
   documento?: string | null;
   telefone?: string | null;
+  /** Cliente só aceita atividade não programada com o Nº do chamado. */
+  exige_chamado?: boolean;
 }
 
 export interface ServicoBusca {
