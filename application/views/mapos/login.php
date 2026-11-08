@@ -74,6 +74,7 @@
     }
 
     .brand img { max-width: 190px; height: auto; }
+    .brand img.logo-emitente { max-height: 48px; object-fit: contain; }
     .brand .versao { display: block; margin-top: 6px; color: var(--muted); font-size: 12px; }
 
     .field { position: relative; margin-bottom: 16px; }
@@ -202,7 +203,12 @@
 
     <main class="login-form">
       <div class="brand">
-        <img src="<?= base_url() ?>assets/img/logo-mapos.png" data-fallback="<?= base_url() ?>assets/img/logo-two.png" alt="Map-OS">
+        <?php $logoEmitente = emitente_logo_url(); ?>
+        <?php if ($logoEmitente !== null) { ?>
+          <img class="logo-emitente" src="<?= htmlspecialchars($logoEmitente, ENT_QUOTES, 'UTF-8') ?>" data-fallback="<?= base_url() ?>assets/img/logo-two.png" alt="Logo">
+        <?php } else { ?>
+          <img src="<?= base_url() ?>assets/img/logo-mapos.png" data-fallback="<?= base_url() ?>assets/img/logo-two.png" alt="Map-OS">
+        <?php } ?>
         <span class="versao">Versão: <?= $this->config->item('app_version'); ?></span>
       </div>
 

@@ -19,15 +19,25 @@ $pode = function ($atividade) use ($permissao) {
 
 $grupos = menu_navegacao_para($pode);
 $uri = $this->uri->uri_string();
+$logoEmitente = emitente_logo_url();
+$logoEmitenteEsc = $logoEmitente !== null ? htmlspecialchars($logoEmitente, ENT_QUOTES, 'UTF-8') : null;
 ?>
 <!--sidebar-menu-->
 <nav id="sidebar">
     <div id="newlog">
         <div class="icon2">
-            <img src="<?php echo base_url() ?>assets/img/logo-two.png" alt="">
+            <?php if ($logoEmitenteEsc !== null) { ?>
+                <img src="<?= $logoEmitenteEsc ?>" class="logo-emitente" alt="Logo">
+            <?php } else { ?>
+                <img src="<?php echo base_url() ?>assets/img/logo-two.png" alt="">
+            <?php } ?>
         </div>
         <div class="title1">
-            <?= $configuration['app_theme'] == 'white' || $configuration['app_theme'] == 'whitegreen' ? '<img src="' . base_url() . 'assets/img/logo-mapos.png">' : '<img src="' . base_url() . 'assets/img/logo-mapos-branco.png">'; ?>
+            <?php if ($logoEmitenteEsc !== null) { ?>
+                <img src="<?= $logoEmitenteEsc ?>" class="logo-emitente" alt="Logo">
+            <?php } else { ?>
+                <?= $configuration['app_theme'] == 'white' || $configuration['app_theme'] == 'whitegreen' ? '<img src="' . base_url() . 'assets/img/logo-mapos.png">' : '<img src="' . base_url() . 'assets/img/logo-mapos-branco.png">'; ?>
+            <?php } ?>
         </div>
     </div>
     <a href="#" class="visible-phone">
