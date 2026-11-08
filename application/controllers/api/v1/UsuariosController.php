@@ -396,6 +396,13 @@ class UsuariosController extends REST_Controller
         $usuarioLogado->usuario->url_image_user = ! is_null($usuarioLogado->usuario->url_image_user) ? base_url() . 'assets/userImage/' . $usuarioLogado->usuario->url_image_user : null;
         unset($usuarioLogado->usuario->senha);
 
+        // Permissoes atuais do perfil: o app guarda as do login e, sem isto,
+        // uma permissao concedida depois (ex.: Area do Colaborador) so
+        // apareceria saindo e entrando de novo.
+        $perfil = $this->getInstanceDatabase('permissoes', '*', 'idPermissao = ' . (int) $usuarioLogado->level, 1, true);
+        $atuais = $perfil ? @unserialize((string) $perfil['permissoes'], ['allowed_classes' => false]) : false;
+        $usuarioLogado->permissions = is_array($atuais) ? [$atuais] : null;
+
         $this->response([
             'status' => true,
             'message' => 'Dados do Usuário!',

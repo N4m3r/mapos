@@ -325,6 +325,23 @@ async function main() {
     await shot('09-agenda');
   });
 
+  // ---------------------------------------------------------------- permissão nova sem novo login
+  await step('Área do RH liberada depois do login aparece no seletor', async () => {
+    await page.goto(`${base}/#/home`);
+    await page.getByRole('heading', { name: /Assistência Tech/ }).waitFor({ timeout: 8000 });
+    check('Sem a permissão, não há aba RH', (await page.getByRole('tab', { name: 'RH' }).count()) === 0);
+    state.permissoesAtuais = { ...state.permissoes, vAreaColaborador: '1' };
+    await page.reload();
+    await page.getByRole('tab', { name: 'RH' }).waitFor({ timeout: 8000 });
+    check('Seletor mostra Sistema e RH', (await page.getByRole('tab', { name: 'Sistema' }).count()) === 1);
+    await page.getByRole('tab', { name: 'RH' }).click();
+    await page.waitForFunction(() => location.hash.startsWith('#/colaborador'), null, { timeout: 8000 });
+    check('Abre a área do colaborador', true);
+    await page.getByRole('tab', { name: 'Sistema' }).click();
+    await page.waitForFunction(() => location.hash === '#/home', null, { timeout: 8000 });
+    check('Volta para o sistema', true);
+  });
+
   // ---------------------------------------------------------------- configurações e tema
   await step('Configurações e tema', async () => {
     await page.goto(`${base}/#/config`);

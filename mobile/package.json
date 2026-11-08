@@ -1,7 +1,7 @@
 {
   "name": "mapos-mobile",
   "private": true,
-  "version": "1.2.0",
+  "version": "1.2.1",
   "type": "module",
   "description": "Aplicativo mobile (PWA) do MAPOS — consome a API v1 do sistema",
   "scripts": {
