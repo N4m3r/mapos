@@ -9,6 +9,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * batidas, espelho, ocorrências, ausências, holerite e contato/PIX. O vínculo
  * com o cadastro de colaborador vem do token, nunca de um id enviado pelo app.
  */
+require_once __DIR__ . '/AreaApiController.php';
+
 class ColaboradorController extends AreaApiController
 {
     /** @var object colaborador vinculado ao usuário do token */

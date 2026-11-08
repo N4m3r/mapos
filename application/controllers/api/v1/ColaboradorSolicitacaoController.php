@@ -10,6 +10,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * sempre para o colaborador do token com status "pendente", e uma batida só
  * pode ser vinculada se pertencer a ele.
  */
+require_once __DIR__ . '/AreaApiController.php';
+
 class ColaboradorSolicitacaoController extends AreaApiController
 {
     private $colaborador = null;

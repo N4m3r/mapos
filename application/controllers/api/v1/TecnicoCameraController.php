@@ -13,6 +13,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * configuração: `plano` devolve o que o projeto previu e o app usa isso para
  * casar cada câmera descoberta com o ponto correspondente.
  */
+require_once __DIR__ . '/AreaApiController.php';
+
 class TecnicoCameraController extends AreaApiController
 {
     public function __construct()
