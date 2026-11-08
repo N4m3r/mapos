@@ -4,9 +4,9 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ReactNode } from 'react';
 import * as api from './api';
 import { ApiError } from './http';
-import { clearBrand, clearServerUrl, getBrand, getServerUrl, resolveServerUrl, setBrand, setServerUrl, type Brand } from './config';
+import { clearBrand, clearServerUrl, getAreaPreferida, getBrand, setAreaPreferida, getServerUrl, resolveServerUrl, setBrand, setServerUrl, type Brand } from './config';
 import { can as canPermission, clearSession, flattenPermissions, getSession, saveSession, type Session } from './session';
-import { detectArea, homePathFor, type Area } from './area';
+import { areasDisponiveis, detectArea, homePathFor, type Area } from './area';
 import { navigate } from './router';
 
 export type Status = 'booting' | 'no-server' | 'logged-out' | 'ready';
@@ -16,6 +16,8 @@ interface AppState {
   serverUrl: string | null;
   session: Session | null;
   area: Area;
+  areas: Area[];
+  trocarArea: (area: Area) => void;
   brand: Brand | null;
   error: string | null;
   twoFactor: boolean;
@@ -37,6 +39,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status>('booting');
   const [error, setError] = useState<string | null>(null);
   const [twoFactor, setTwoFactor] = useState(false);
+  const [areaPreferida, setAreaPreferidaState] = useState<Area | null>(() => getAreaPreferida() as Area | null);
 
   const refreshBrand = useCallback(async () => {
     const url = serverUrl;
@@ -126,7 +129,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setStatus('ready');
         // Cada perfil cai na sua área — a URL antiga do hash não pode manter
         // um técnico numa tela administrativa que ele não enxerga.
-        navigate(homePathFor(detectArea(next)));
+        navigate(homePathFor(detectArea(next, areaPreferida)));
       } catch (err) {
         if (err instanceof ApiError) {
           setTwoFactor(/duas etapas|codigo/i.test(err.message));
@@ -137,7 +140,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         throw err;
       }
     },
-    [serverUrl],
+    [serverUrl, areaPreferida],
   );
 
   const signOut = useCallback(() => {
@@ -168,7 +171,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const can = useCallback((permission: string) => canPermission(session, permission), [session]);
-  const area = useMemo(() => detectArea(session), [session]);
+  const area = useMemo(() => detectArea(session, areaPreferida), [session, areaPreferida]);
+  const areas = useMemo(() => areasDisponiveis(session), [session]);
+  const trocarArea = useCallback((nova: Area) => {
+    setAreaPreferida(nova);
+    setAreaPreferidaState(nova);
+    navigate(homePathFor(nova));
+  }, []);
 
   const value = useMemo<AppState>(
     () => ({
@@ -176,6 +185,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       serverUrl,
       session,
       area,
+      areas,
+      trocarArea,
       brand,
       error,
       twoFactor,
@@ -187,7 +198,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       refreshBrand,
       clearError: () => setError(null),
     }),
-    [status, serverUrl, session, area, brand, error, twoFactor, signIn, signOut, connect, disconnect, can, refreshBrand],
+    [status, serverUrl, session, area, areas, trocarArea, brand, error, twoFactor, signIn, signOut, connect, disconnect, can, refreshBrand],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

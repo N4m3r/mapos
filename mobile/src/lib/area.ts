@@ -9,7 +9,27 @@ import { can, type Session } from './session';
 
 export type Area = 'admin' | 'tecnico' | 'colaborador';
 
-export function detectArea(session: Session | null): Area {
+/**
+ * Áreas que o usuário pode abrir. Quem tem mais de uma (ex.: técnico que
+ * também é colaborador do RH) escolhe pelo seletor das telas iniciais.
+ */
+export function areasDisponiveis(session: Session | null): Area[] {
+  const lista: Area[] = [];
+  if (can(session, 'vOs')) lista.push('admin');
+  if (can(session, 'vTecnicoDashboard')) lista.push('tecnico');
+  if (can(session, 'vAreaColaborador')) lista.push('colaborador');
+  return lista;
+}
+
+export const ROTULO_AREA: Record<Area, string> = {
+  admin: 'Sistema',
+  tecnico: 'Técnico',
+  colaborador: 'RH',
+};
+
+export function detectArea(session: Session | null, preferida?: Area | null): Area {
+  if (preferida && areasDisponiveis(session).includes(preferida)) return preferida;
+
   const hasTecnico = can(session, 'vTecnicoDashboard');
   const hasSistema = can(session, 'vOs');
   const hasColaborador = can(session, 'vAreaColaborador');

@@ -1,6 +1,6 @@
 /** Endpoints da API v1 do MAPOS, um por rota real (application/config/routes_api.php). */
 
-import { ApiError, request } from './http';
+import { ApiError, requestBlob, request } from './http';
 import type {
   ApiEnvelope,
   Cliente,
@@ -248,3 +248,13 @@ export async function listServicos(
 }
 
 export type { OsAnotacao };
+
+/** GET /api/v1/os/{id}/pdf — OS em PDF (admin com vOs ou técnico da OS). */
+export function osPdf(baseUrl: string, token: string, id: number): Promise<Blob> {
+  return requestBlob(baseUrl, `/api/v1/os/${id}/pdf`, { token, timeoutMs: 60000 });
+}
+
+/** GET /api/v1/projetos/{id}/pdf — as-built do projeto em PDF. */
+export function projetoPdf(baseUrl: string, token: string, id: number): Promise<Blob> {
+  return requestBlob(baseUrl, `/api/v1/projetos/${id}/pdf`, { token, timeoutMs: 60000 });
+}

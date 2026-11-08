@@ -1389,3 +1389,29 @@ a {
   gap: 10px;
 }
 
+
+/* Seletor de área (sistema / técnico / RH) */
+.area-switcher {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--surface-2, rgba(127, 127, 127, 0.12));
+}
+
+.area-switcher__item {
+  flex: 1;
+  min-height: 36px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.area-switcher__item--ativo {
+  background: var(--surface, #fff);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}

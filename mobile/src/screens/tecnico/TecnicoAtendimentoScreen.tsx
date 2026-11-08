@@ -14,6 +14,8 @@ import { Alert, Button, Card, Field, Input, Kv, Select, SkeletonList, StatusPill
 import { Assinatura, lerAssinatura } from '../../components/Assinatura';
 import { Fotos } from '../../components/Fotos';
 import type { TecnicoOsDetalhe } from '../../lib/types-tecnico';
+import { BotoesPdf } from '../../components/BotoesPdf';
+import * as api from '../../lib/api';
 
 type Modo = null | 'checkin' | 'checkout' | 'nao-realizado' | 'observacao' | 'foto';
 
@@ -183,6 +185,7 @@ export function TecnicoAtendimentoScreen({ id }: { id: string }) {
       />
 
       <div className="content">
+        <BotoesPdf carregar={() => api.osPdf(baseUrl, token, Number(id))} nome={`OS-${String(id).padStart(4, '0')}.pdf`} />
         {loading ? <SkeletonList count={4} /> : null}
         {error ? <Alert kind="error">{error}</Alert> : null}
         {ok ? <Alert kind="ok">{ok}</Alert> : null}
