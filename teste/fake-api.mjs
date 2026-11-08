@@ -80,6 +80,9 @@ export function createFakeApi({ authedPermissions, area = 'admin', twoFactorUser
   const permissoes = authedPermissions ?? PERMISSOES_POR_AREA[area] ?? PERMISSIONS;
   const state = {
     area,
+    permissoes,
+    /** Quando definido, /conta devolve estas permissões (perfil alterado depois do login). */
+    permissoesAtuais: null,
     loggedIn: false,
     twoFactorPending: false,
     nextOsId: 1002,
@@ -307,6 +310,7 @@ export function createFakeApi({ authedPermissions, area = 'admin', twoFactorUser
           permissoes_id: 1,
         },
         level: 1,
+        ...(state.permissoesAtuais ? { permissions: [state.permissoesAtuais] } : {}),
       });
     }
 

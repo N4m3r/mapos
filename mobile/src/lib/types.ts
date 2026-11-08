@@ -25,6 +25,8 @@ export interface ContaResult {
   data: { uid: number; email: string; permissao: number };
   usuario: Usuario;
   level: number;
+  /** Permissões atuais do perfil (servidor novo); null/ausente em versão antiga. */
+  permissions?: Array<Record<string, string | number>> | null;
 }
 
 export interface DashboardResult {

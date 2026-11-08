@@ -95,15 +95,42 @@ export function AppProvider({ children }: { children: ReactNode }) {
     void refreshBrand();
   }, [serverUrl, session, refreshBrand]);
 
-  // A logo pode mudar no sistema com o app aberto: busca de novo quando ele
-  // volta ao primeiro plano.
+  // Permissões guardadas no login ficam velhas quando o perfil muda no
+  // sistema (ex.: liberar a Área do Colaborador). Relê de /conta ao abrir e ao
+  // voltar ao primeiro plano; servidor antigo não manda a lista e nada muda.
+  const refreshPermissions = useCallback(async () => {
+    const url = serverUrl;
+    const atual = session;
+    if (!url || !atual) return;
+    try {
+      const conta = await api.conta(url, atual.token);
+      if (!conta.permissions) return;
+      const novas = flattenPermissions({ permissions: conta.permissions } as Parameters<typeof flattenPermissions>[0]);
+      if (JSON.stringify(novas) === JSON.stringify(atual.permissions)) return;
+      setSessionState(saveSession(atual.token, atual.user, novas));
+    } catch {
+      /* sem rede ou token vencido: as telas tratam; mantém as permissões guardadas */
+    }
+  }, [serverUrl, session]);
+
+  useEffect(() => {
+    void refreshPermissions();
+    // só ao abrir com a sessão (token): refreshPermissions muda a cada sessão salva
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverUrl, session?.token]);
+
+  // A logo e as permissões podem mudar no sistema com o app aberto: busca de
+  // novo quando ele volta ao primeiro plano.
   useEffect(() => {
     const onVisible = () => {
-      if (document.visibilityState === 'visible') void refreshBrand();
+      if (document.visibilityState === 'visible') {
+        void refreshBrand();
+        void refreshPermissions();
+      }
     };
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [refreshBrand]);
+  }, [refreshBrand, refreshPermissions]);
 
   // Ícone da aba/PWA acompanha a logo da empresa.
   useEffect(() => {
