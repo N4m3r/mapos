@@ -421,7 +421,8 @@ class Tecnico_model extends CI_Model
      */
     public function buscarClientes($q, $limite = 20)
     {
-        $this->db->select('idClientes, nomeCliente, telefone, celular, documento');
+        $this->db->select('idClientes, nomeCliente, telefone, celular, documento'
+            . ($this->db->field_exists('exige_chamado', 'clientes') ? ', exige_chamado' : ''));
         $this->db->group_start();
         $this->db->like('nomeCliente', $q);
         $this->db->or_like('telefone', $q);

@@ -202,6 +202,7 @@ class TecnicoController extends AreaApiController
     public function clientes_get()
     {
         $this->exigir('aTecnicoAtividade');
+        $this->load->model('atividade_pendencias_model');
         $q = trim((string) $this->get('q'));
 
         $this->ok(array_map(function ($c) {
@@ -210,6 +211,9 @@ class TecnicoController extends AreaApiController
                 'nome' => $c->nomeCliente,
                 'documento' => $this->documento($c->documento ?? ''),
                 'telefone' => $c->celular ?: ($c->telefone ?? null),
+                'exige_chamado' => isset($c->exige_chamado)
+                    ? (bool) $c->exige_chamado
+                    : Atividade_pendencias_model::nomeExigeChamado($c->nomeCliente),
             ];
         }, $this->tecnico_model->buscarClientes($q)), 'Clientes');
     }

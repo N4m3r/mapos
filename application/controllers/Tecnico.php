@@ -1597,6 +1597,13 @@ class Tecnico extends MY_Controller
         if ($this->db->field_exists('chamado_id', 'os')) {
             $this->load->helper('chamado_cobranca');
             $osData['chamado_id'] = chamado_normalizar($this->input->post('chamado_id'));
+
+            // Clientes como Nova Era - Mercantil e Pátio Gourmet só aceitam com o chamado.
+            $this->load->model('atividade_pendencias_model');
+            if ((string) $osData['chamado_id'] === '' && $this->atividade_pendencias_model->exigeChamado($clientes_id)) {
+                $this->session->set_flashdata('error', 'Este cliente exige o Nº do chamado. Informe o chamado para abrir a atividade.');
+                redirect('tecnico/nova_atividade');
+            }
         }
 
         $idOs = $this->tecnico_model->criarAtividade($osData);
@@ -1744,6 +1751,7 @@ class Tecnico extends MY_Controller
      */
     public function buscar_clientes()
     {
+        $this->load->model('atividade_pendencias_model');
         $q = (string) $this->input->get('q');
         $lista = $this->tecnico_model->buscarClientes($q);
 
@@ -1757,6 +1765,9 @@ class Tecnico extends MY_Controller
                 'label'     => implode(' · ', $partes),
                 'nome'      => $c->nomeCliente,
                 'documento' => $doc,
+                'exige_chamado' => isset($c->exige_chamado)
+                    ? (bool) $c->exige_chamado
+                    : Atividade_pendencias_model::nomeExigeChamado($c->nomeCliente),
             ];
         }
 

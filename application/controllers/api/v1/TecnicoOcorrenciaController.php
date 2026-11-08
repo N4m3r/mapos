@@ -159,6 +159,14 @@ class TecnicoOcorrenciaController extends AreaApiController
             $this->invalido('Selecione um cliente válido para abrir a atividade.');
         }
 
+        // Clientes como Nova Era - Mercantil e Pátio Gourmet só aceitam com o chamado.
+        $temChamado = $this->db->field_exists('chamado_id', 'os');
+        $chamado = $temChamado ? $this->cortar($corpo['chamado_id'] ?? '', 60) : null;
+        $this->load->model('atividade_pendencias_model');
+        if ($temChamado && $chamado === null && $this->atividade_pendencias_model->exigeChamado($clienteId)) {
+            $this->invalido('Este cliente exige o Nº do chamado. Informe o chamado para abrir a atividade.');
+        }
+
         $idOs = $this->tecnico_model->criarAtividade([
             'dataInicial' => date('Y-m-d'),
             'dataFinal' => date('Y-m-d'),
@@ -172,9 +180,7 @@ class TecnicoOcorrenciaController extends AreaApiController
             'status' => 'Aberto',
             'faturado' => 0,
             'nao_programada' => 1,
-            'chamado_id' => $this->db->field_exists('chamado_id', 'os')
-                ? $this->cortar($corpo['chamado_id'] ?? '', 60)
-                : null,
+            'chamado_id' => $chamado,
         ]);
         if (! $idOs) {
             $this->invalido('Não foi possível abrir a atividade. Tente novamente.');

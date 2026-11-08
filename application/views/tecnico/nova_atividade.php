@@ -94,8 +94,9 @@ $this->load->view('tecnico/_topo', [
                 <textarea class="atv-input" name="defeito" placeholder="Defeito relatado ou motivo do atendimento..."></textarea>
             </div>
             <div class="atv-field">
-                <label>N&ordm; do chamado (opcional)</label>
-                <input type="text" class="atv-input" name="chamado_id" maxlength="60" placeholder="Protocolo informado pelo cliente">
+                <label id="chamado-rotulo">N&ordm; do chamado (opcional)</label>
+                <input type="text" class="atv-input" name="chamado_id" id="chamado_id" maxlength="60" placeholder="Protocolo informado pelo cliente">
+                <small id="chamado-aviso" style="display:none;color:var(--tec-danger, #c0392b);">Este cliente exige o N&ordm; do chamado.</small>
             </div>
             <div class="atv-field" style="border:2px solid var(--tec-primary, #667eea);border-radius:12px;padding:10px;">
                 <label><strong>Atividade realizada / observações do técnico</strong></label>
@@ -224,9 +225,17 @@ $this->load->view('tecnico/_topo', [
             document.getElementById('cliente-nome').textContent = it.nome + (it.documento ? ' · ' + it.documento : '');
             document.getElementById('cliente-selecionado').style.display = 'block';
             document.getElementById('ac-cliente-wrap').style.display = 'none';
+            exigirChamado(!!it.exige_chamado);
         }
     });
+    function exigirChamado(exige) {
+        var campo = document.getElementById('chamado_id');
+        campo.required = exige;
+        document.getElementById('chamado-rotulo').innerHTML = exige ? 'N&ordm; do chamado (obrigat&oacute;rio)' : 'N&ordm; do chamado (opcional)';
+        document.getElementById('chamado-aviso').style.display = exige ? 'block' : 'none';
+    }
     document.getElementById('cliente-remover').addEventListener('click', function () {
+        exigirChamado(false);
         document.getElementById('clientes_id').value = '';
         document.getElementById('cliente-selecionado').style.display = 'none';
         document.getElementById('ac-cliente-wrap').style.display = 'block';
@@ -316,6 +325,13 @@ $this->load->view('tecnico/_topo', [
         if (!document.getElementById('clientes_id').value) {
             e.preventDefault();
             alert('Selecione um cliente para abrir a atividade.');
+            return false;
+        }
+        var chamado = document.getElementById('chamado_id');
+        if (chamado.required && !chamado.value.trim()) {
+            e.preventDefault();
+            alert('Este cliente exige o Nº do chamado. Informe o chamado para abrir a atividade.');
+            chamado.focus();
             return false;
         }
         document.getElementById('atv-assinatura-hidden').value =

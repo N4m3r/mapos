@@ -109,6 +109,10 @@ export function TecnicoAtividadeScreen() {
   };
 
   const salvar = async () => {
+    if (cliente?.exige_chamado && !chamado.trim()) {
+      setErro('Este cliente exige o Nº do chamado. Informe o chamado para abrir a atividade.');
+      return;
+    }
     if (!cliente) {
       setErro('Selecione o cliente da atividade.');
       return;
@@ -207,8 +211,21 @@ export function TecnicoAtividadeScreen() {
 
         <Card>
           <div className="stack">
-            <Field label="Nº do chamado" hint="Protocolo informado pelo cliente (opcional)">
-              <Input value={chamado} onChange={(e) => setChamado(e.target.value)} maxLength={60} />
+            <Field
+              label={cliente?.exige_chamado ? 'Nº do chamado (obrigatório)' : 'Nº do chamado'}
+              hint={
+                cliente?.exige_chamado
+                  ? 'Este cliente exige o Nº do chamado para atividade não programada.'
+                  : 'Protocolo informado pelo cliente (opcional)'
+              }
+            >
+              <Input
+                value={chamado}
+                onChange={(e) => setChamado(e.target.value)}
+                maxLength={60}
+                required={Boolean(cliente?.exige_chamado)}
+                aria-invalid={Boolean(cliente?.exige_chamado) && !chamado.trim()}
+              />
             </Field>
             <Field label="Produto / equipamento">
               <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} maxLength={255} />

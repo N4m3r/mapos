@@ -2,7 +2,8 @@
 /**
  * Central de Notificacoes — tela unica (Notificacoes::index).
  *
- * Abas: Eventos (o que avisa), Canais (por onde avisa), Modelos (os textos) e
+ * Abas: Eventos (o que avisa), Pendencias (atividades nao programadas sem
+ * assinatura ou sem chamado), Canais (por onde avisa), Modelos (os textos) e
  * Historico (o que foi enviado). Substitui a tela de gatilhos, o log de envios
  * e as abas de Notificacoes/E-mail de Configuracoes.
  *
@@ -18,6 +19,7 @@ $e = function ($v) {
 
 $abas = [
     'eventos' => ['Eventos', 'bx-bell'],
+    'pendencias' => ['Pendências', 'bx-error-circle'],
     'canais' => ['Canais', 'bx-slider-alt'],
     'modelos' => ['Modelos', 'bx-comment-dots'],
     'historico' => ['Histórico', 'bx-history'],
@@ -53,6 +55,8 @@ $linkAba = function ($aba) {
                 <i class="bx <?= $aba[1] ?>"></i><?= $aba[0] ?>
                 <?php if ($slug === 'eventos') { ?>
                     <span class="nt-aba-num"><?= count($porEvento) ?></span>
+                <?php } elseif ($slug === 'pendencias' && ! empty($pendencias)) { ?>
+                    <span class="nt-aba-num" style="background:var(--ui-perigo, #c0392b);color:#fff"><?= count($pendencias) ?></span>
                 <?php } elseif ($slug === 'modelos') { ?>
                     <span class="nt-aba-num"><?= count($modelosEmail) + count($modelosWhatsapp) ?></span>
                 <?php } elseif ($slug === 'historico' && (int) $totais['falhas'] > 0) { ?>
