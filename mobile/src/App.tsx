@@ -27,6 +27,8 @@ import { TecnicoPontoScreen } from './screens/tecnico/TecnicoPontoScreen';
 import { TecnicoCameraConfigScreen } from './screens/tecnico/TecnicoCameraConfigScreen';
 import { TecnicoFilaScreen } from './screens/tecnico/TecnicoFilaScreen';
 import { TecnicoPerfilScreen } from './screens/tecnico/TecnicoPerfilScreen';
+import { TecnicoRelatorioScreen } from './screens/tecnico/TecnicoRelatorioScreen';
+import { usePosicaoTecnico } from './lib/posicao';
 import { ColaboradorHomeScreen } from './screens/colaborador/ColaboradorHomeScreen';
 import { ColaboradorPontoScreen } from './screens/colaborador/ColaboradorPontoScreen';
 import { ColaboradorEspelhoScreen } from './screens/colaborador/ColaboradorEspelhoScreen';
@@ -52,6 +54,8 @@ const SEM_TABS = new Set([
 function Shell() {
   const { status, area, can } = useApp();
   const route = useRoute();
+  // Mapa em tempo real: posição só enquanto a Área do Técnico está aberta.
+  usePosicaoTecnico(status === 'ready' && area === 'tecnico');
 
   // Um técnico não pode ficar preso numa rota administrativa (e vice-versa).
   useEffect(() => {
@@ -146,6 +150,9 @@ function Shell() {
       break;
     case 'tec-perfil':
       screen = <TecnicoPerfilScreen />;
+      break;
+    case 'tec-relatorio':
+      screen = <TecnicoRelatorioScreen />;
       break;
 
     // -------- Área do colaborador --------

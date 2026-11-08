@@ -326,32 +326,6 @@ class TecnicoController extends AreaApiController
         ], 'Minha fila');
     }
 
-    /** GET /api/v1/tecnico/relatorio?tipo=diario|semanal|mensal&data=AAAA-MM-DD */
-    public function relatorio_get()
-    {
-        $user = $this->exigir('vTecnicoDashboard');
-        $uid = (int) $user->usuario->idUsuarios;
-        $this->load->model('projeto_acompanhamento_model');
-
-        $tipo = (string) $this->get('tipo');
-        if (! in_array($tipo, ['diario', 'semanal', 'mensal'], true)) {
-            $tipo = 'diario';
-        }
-        $dataRef = (string) $this->get('data');
-        if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $dataRef) || ! strtotime($dataRef)) {
-            $dataRef = date('Y-m-d');
-        }
-
-        $periodo = Projeto_acompanhamento_model::periodo($tipo, $dataRef);
-        $rel = $this->projeto_acompanhamento_model->relatorio($periodo['inicio'], $periodo['fim'], ['usuario_id' => $uid]);
-
-        $this->ok([
-            'tipo' => $periodo['tipo'],
-            'periodo' => ['inicio' => $periodo['inicio'], 'fim' => $periodo['fim']],
-            'totais' => $rel['totais'] ?? [],
-        ], 'Meu relatório');
-    }
-
     // ------------------------------------------------------------------
     // Perfil
     // ------------------------------------------------------------------

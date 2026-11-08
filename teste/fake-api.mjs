@@ -83,6 +83,8 @@ export function createFakeApi({ authedPermissions, area = 'admin', twoFactorUser
     permissoes,
     /** Quando definido, /conta devolve estas permissões (perfil alterado depois do login). */
     permissoesAtuais: null,
+    /** Liga o aviso do PHP antes do JSON em todas as respostas. */
+    avisoPhp: false,
     loggedIn: false,
     twoFactorPending: false,
     nextOsId: 1002,
@@ -224,7 +226,11 @@ export function createFakeApi({ authedPermissions, area = 'admin', twoFactorUser
   });
 
   function json(res, code, payload) {
-    const body = JSON.stringify(payload);
+    // Servidor com display_errors ligado: aviso do PHP impresso antes do JSON.
+    const aviso = state.avisoPhp
+      ? '<br />\n<b>Deprecated</b>:  Creation of dynamic property Os_model::$x is deprecated in <b>/home/app/Os_model.php</b> on line <b>12</b><br />\n'
+      : '';
+    const body = aviso + JSON.stringify(payload);
     res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Content-Length': Buffer.byteLength(body) });
     res.end(body);
   }
@@ -642,7 +648,7 @@ export function createFakeApi({ authedPermissions, area = 'admin', twoFactorUser
           laudoTecnico: '',
           tipo_servico: 'manutencao',
           prioridade: null,
-          nao_programada: 0,
+          nao_programada: state.naoProgramada ? 1 : 0,
           garantia: os.garantia,
         },
         cliente: {
@@ -962,7 +968,66 @@ export function createFakeApi({ authedPermissions, area = 'admin', twoFactorUser
     }
 
     if (path === '/api/v1/tecnico/relatorio' && method === 'GET') {
-      return ok(res, { tipo: 'diario', periodo: { inicio: '2026-11-04', fim: '2026-11-04' }, totais: { avancos: 3 } });
+      const tipo = url.searchParams.get('tipo') || 'diario';
+      const data = url.searchParams.get('data') || '2026-11-04';
+      state.relatorioPedidos = [...(state.relatorioPedidos ?? []), { tipo, data }];
+      return ok(res, {
+        tipo,
+        periodo: { inicio: data, fim: data, rotulo: `${tipo} de ${data}`, anterior: '2026-11-03', proximo: '2026-11-05' },
+        totais: { registros: 2, projetos: 1, fotos: 4, ocorrencias: 1, avancos: 3, cabo_m: 35.5 },
+        projetos: [
+          {
+            idObra: 1,
+            nome: 'Condomínio Vila Verde',
+            cliente: 'Construtora Alfa',
+            percentual_concluido: 42.5,
+            registros: [{ data, atividades: 'Passagem de cabos no bloco B', ocorrencias: 'Falta de escada' }],
+            avancos: [{ data: `${data} 14:05:00`, evento: 'status', identificacao: 'CAM-07', local: 'Corredor B', para_rotulo: 'Cabo passado', metragem_cabo: 35 }],
+          },
+        ],
+      });
+    }
+
+    if (path === '/api/v1/tecnico/a-caminho' && method === 'POST') {
+      state.aCaminho = await readBody(req);
+      return ok(res, { hora: '09:10', repetido: false }, 'Cliente avisado às 09:10');
+    }
+
+    if (path === '/api/v1/tecnico/posicao' && method === 'POST') {
+      state.posicoes = [...(state.posicoes ?? []), await readBody(req)];
+      return ok(res, { registrado: true, em_atendimento: false }, 'Posição recebida');
+    }
+
+    const solic = /^\/api\/v1\/tecnico\/os\/(\d+)\/(assinatura-solicitante|link-solicitante|link-solicitante\/email)$/.exec(path);
+    if (solic) {
+      state.solicitante ??= { situacao: 'invalido', link: null, assinado: false };
+      const sol = state.solicitante;
+      const acao = solic[2];
+      if (acao === 'assinatura-solicitante' && method === 'GET') {
+        return ok(res, {
+          suportado: true,
+          situacao: sol.situacao,
+          link: sol.link,
+          email_cliente: 'ana@cliente.com',
+          assinado: sol.assinado,
+          assinaturas: sol.assinado ? [{ tipo: 'solicitante', nome: sol.nome, data: '2026-11-04 10:00:00' }] : [],
+        });
+      }
+      if (acao === 'assinatura-solicitante' && method === 'POST') {
+        const body = await readBody(req);
+        if (!String(body.assinatura ?? '').startsWith('data:image/png;base64,')) return fail(res, 'Assinatura em branco.', 400);
+        Object.assign(sol, { assinado: true, nome: body.nome, documento: body.documento, imagem: body.assinatura });
+        return ok(res, { assinado: true }, 'Assinatura registrada com sucesso!');
+      }
+      if (acao === 'link-solicitante' && method === 'POST') {
+        Object.assign(sol, { situacao: 'pendente', link: `${url.origin}/aceite/abc123` });
+        return ok(res, { link: sol.link, expira: '11/11/2026' }, 'Link gerado com sucesso!');
+      }
+      if (acao === 'link-solicitante/email' && method === 'POST') {
+        const body = await readBody(req);
+        sol.email = body.email;
+        return ok(res, { link: sol.link ?? `${url.origin}/aceite/abc123` }, `E-mail enfileirado para ${body.email}.`);
+      }
     }
 
     return fail(res, 'Rota do técnico não encontrada na API.', 404);

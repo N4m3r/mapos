@@ -342,6 +342,21 @@ async function main() {
     check('Volta para o sistema', true);
   });
 
+  // ---------------------------------------------------------------- aviso do PHP antes do JSON
+  await step('Aviso do PHP antes do JSON não quebra o app', async () => {
+    state.avisoPhp = true;
+    try {
+      await page.goto(`${base}/#/home`);
+      await page.reload();
+      await page.getByRole('heading', { name: /Assistência Tech/ }).waitFor({ timeout: 8000 });
+      await page.waitForTimeout(800);
+      const texto = await page.locator('body').innerText();
+      check('Painel carrega mesmo com o aviso', !/não é JSON/i.test(texto), texto.slice(0, 120));
+    } finally {
+      state.avisoPhp = false;
+    }
+  });
+
   // ---------------------------------------------------------------- configurações e tema
   await step('Configurações e tema', async () => {
     await page.goto(`${base}/#/config`);

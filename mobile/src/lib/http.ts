@@ -152,23 +152,51 @@ function detalheDoErro(bruto: string): string {
 export async function request<T>(baseUrl: string, path: string, options: RequestOptions = {}): Promise<T> {
   const response = await rawRequest(baseUrl, path, options);
   const text = await response.text();
-  let payload: unknown = null;
-  if (text) {
-    try {
-      payload = JSON.parse(text);
-    } catch {
-      payload = null;
-    }
-  }
+  const payload = lerJson(text);
 
   if (!response.ok) {
     throw new ApiError(mensagemDeErro(payload, response.status, text), response.status);
   }
   if (payload === null) {
-    throw new ApiError('Resposta inválida do servidor (não é JSON).', response.status);
+    const detalhe = detalheDoErro(text) || resumoTexto(text);
+    throw new ApiError(
+      detalhe ? `Resposta inválida do servidor (não é JSON): ${detalhe}` : 'Resposta inválida do servidor (não é JSON).',
+      response.status,
+    );
   }
 
   return payload as T;
+}
+
+/**
+ * Lê o JSON da resposta. Servidor com display_errors ligado imprime avisos do
+ * PHP (Warning, Deprecated) antes do JSON; a resposta continua válida depois
+ * deles, então o envelope é recuperado em vez de virar "não é JSON".
+ */
+export function lerJson(text: string): unknown {
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    /* tenta achar o envelope depois do aviso */
+  }
+  const inicio = text.search(/\{\s*"status"\s*:/);
+  if (inicio < 0) return null;
+  const fim = text.lastIndexOf('}');
+  if (fim <= inicio) return null;
+  try {
+    const payload = JSON.parse(text.slice(inicio, fim + 1));
+    console.warn('[api] aviso do servidor antes do JSON:', resumoTexto(text.slice(0, inicio)));
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+/** Primeiros caracteres úteis de uma resposta que não é JSON (sem HTML). */
+function resumoTexto(text: string): string {
+  const limpo = stripTags(text.replace(/<(style|script)[\s\S]*?<\/\1>/gi, ' '));
+  return limpo.length > 200 ? `${limpo.slice(0, 200)}…` : limpo;
 }
 
 /**
@@ -183,13 +211,7 @@ export async function requestBlob(
   const response = await rawRequest(baseUrl, path, options);
   if (!response.ok) {
     const text = await response.text();
-    let payload: unknown = null;
-    try {
-      payload = text ? JSON.parse(text) : null;
-    } catch {
-      payload = null;
-    }
-    throw new ApiError(mensagemDeErro(payload, response.status, text), response.status);
+    throw new ApiError(mensagemDeErro(lerJson(text), response.status, text), response.status);
   }
 
   return response.blob();

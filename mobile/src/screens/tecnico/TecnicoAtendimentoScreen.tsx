@@ -15,6 +15,7 @@ import { Assinatura, lerAssinatura } from '../../components/Assinatura';
 import { Fotos } from '../../components/Fotos';
 import type { TecnicoOsDetalhe } from '../../lib/types-tecnico';
 import { BotoesPdf } from '../../components/BotoesPdf';
+import { CampoAtendimento } from '../../components/tecnico/CampoAtendimento';
 import * as api from '../../lib/api';
 
 type Modo = null | 'checkin' | 'checkout' | 'nao-realizado' | 'observacao' | 'foto';
@@ -267,6 +268,13 @@ export function TecnicoAtendimentoScreen({ id }: { id: string }) {
                 Esta OS está {os.status.toLowerCase()} e não aceita novas ações de campo.
               </Alert>
             )}
+
+            <CampoAtendimento
+              osId={os.idOs}
+              status={os.status}
+              emAtendimento={Boolean(detalhe.checkinAtivo)}
+              naoProgramada={Boolean(Number(os.nao_programada))}
+            />
 
             <Card>
               <p className="section-title">Ordem de serviço</p>
