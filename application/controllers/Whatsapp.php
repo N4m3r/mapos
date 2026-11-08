@@ -267,6 +267,7 @@ class Whatsapp extends MY_Controller
             '{CLIENTE_NOME}' => $os->nomeCliente,
             '{NUMERO_OS}' => $idOs,
             '{LINK}' => $url,
+            '{CHAMADO}' => trim((string) ($os->chamado_id ?? '')),
         ], 'Olá {CLIENTE_NOME}! Seu serviço (OS #{NUMERO_OS}) foi concluído. Confirme o aceite e assine pelo link:' . "\n" . '{LINK}');
 
         try {

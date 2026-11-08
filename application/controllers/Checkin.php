@@ -617,52 +617,8 @@ class Checkin extends MY_Controller
      */
     private function dispararAceiteWhatsapp($os_id)
     {
-        try {
-            $this->load->model('aceite_model');
-            if (! $this->aceite_model->suportado()) {
-                return;
-            }
-
-            $os = $this->os_model->getById($os_id);
-            if (! $os) {
-                return;
-            }
-
-            // Reaproveita o token pendente; senão, gera um novo (7 dias).
-            $token = (! empty($os->aceite_token) && $this->aceite_model->situacao($os) === 'pendente')
-                ? $os->aceite_token
-                : null;
-            if (! $token) {
-                $res = $this->aceite_model->gerarLink($os_id, 7);
-                if (! $res) {
-                    return;
-                }
-                $token = $res['token'];
-            }
-
-            $url = site_url('aceite/' . $token);
-            $this->load->library('encurtador');
-            $link = $this->encurtador->encurtar($url, 7);
-
-            $numeroCliente = $this->os_model->numeroNotificacao($os);
-            $clienteId = isset($os->clientes_id) ? (int) $os->clientes_id : 0;
-
-            $this->load->library('notificador');
-            $this->notificador->whatsappLinkEvento(
-                'os_aceite',
-                [
-                    '{CLIENTE_NOME}' => $os->nomeCliente ?? '',
-                    '{NUMERO_OS}' => $os_id,
-                    '{LINK}' => $link,
-                ],
-                $clienteId,
-                $numeroCliente,
-                'aceite',
-                "Olá {CLIENTE_NOME}! O serviço (OS #{NUMERO_OS}) foi concluído. Confirme o aceite e assine pelo link:\n{LINK}"
-            );
-        } catch (\Throwable $e) {
-            log_info('Falha ao disparar aceite por WhatsApp (OS #' . $os_id . '): ' . $e->getMessage());
-        }
+        $this->load->library('aviso_aceite');
+        $this->aviso_aceite->enviar($os_id);
     }
 
     /**
