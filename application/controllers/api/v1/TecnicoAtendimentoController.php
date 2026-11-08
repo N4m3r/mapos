@@ -281,6 +281,10 @@ class TecnicoAtendimentoController extends AreaApiController
         $this->projeto_sync->lancarHorasDoCheckin((int) $checkin->idCheckin);
         log_info('API: técnico ' . $uid . ' finalizou a OS ' . $osId);
 
+        // Mesmo aviso da finalização web: link de aceite por WhatsApp (gatilho "os_aceite").
+        $this->load->library('aviso_aceite');
+        $this->aviso_aceite->enviar($osId);
+
         $this->ok([
             'os_id' => $osId,
             'status' => 'Finalizado',
