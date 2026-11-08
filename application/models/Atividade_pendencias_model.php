@@ -89,6 +89,19 @@ class Atividade_pendencias_model extends CI_Model
     }
 
     /**
+     * O link de aprovação desta OS precisa pedir o Nº do chamado ao cliente?
+     * Só atividade não programada de cliente que exige o chamado.
+     */
+    public function exigeChamadoNaOs($os)
+    {
+        if (! $os || empty($os->nao_programada) || ! $this->db->field_exists('chamado_id', 'os')) {
+            return false;
+        }
+
+        return $this->exigeChamado($os->clientes_id ?? 0);
+    }
+
+    /**
      * Atividades não programadas com pendência, mais recentes primeiro.
      *
      * @return array<int, array{idOs:int, cliente:string, tecnico:?string, data:?string, status:string, chamado:?string, falta_assinatura:bool, falta_chamado:bool}>

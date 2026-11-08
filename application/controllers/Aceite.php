@@ -42,6 +42,7 @@ class Aceite extends CI_Controller
             'totalProdutos' => 0,
             'totalServico' => 0,
             'valorDesconto' => 0,
+            'exigeChamado' => false,
         ];
 
         if ($os && $situacao !== 'invalido') {
@@ -67,6 +68,10 @@ class Aceite extends CI_Controller
 
             // Assinaturas de saída do técnico/cliente feitas no atendimento
             $data['assinaturas'] = $this->assinaturas_model->getByOs($os->idOs);
+
+            // Atividade não programada de cliente que exige o Nº do chamado.
+            $this->load->model('atividade_pendencias_model');
+            $data['exigeChamado'] = $this->atividade_pendencias_model->exigeChamadoNaOs($os);
         }
 
         $this->load->view('aceite/publico', $data);
@@ -102,6 +107,16 @@ class Aceite extends CI_Controller
             redirect('aceite/' . $token);
         }
 
+        // Atividade não programada de cliente que exige chamado: o aceite só vale com o Nº.
+        $this->load->model('atividade_pendencias_model');
+        $this->load->helper('chamado_cobranca');
+        $exigeChamado = $this->atividade_pendencias_model->exigeChamadoNaOs($os);
+        $chamado = $exigeChamado ? (string) chamado_normalizar($this->input->post('chamado_id')) : '';
+        if ($exigeChamado && $decisao === 'aceito' && $chamado === '') {
+            $this->session->set_flashdata('erro', 'Informe o Nº do chamado para aprovar o serviço.');
+            redirect('aceite/' . $token);
+        }
+
         $assinaturaId = null;
         if ($decisao === 'aceito') {
             if (empty($assinaturaBase64) || strlen($assinaturaBase64) < 100) {
@@ -115,6 +130,10 @@ class Aceite extends CI_Controller
             $assinaturaId = is_array($res) ? ($res['id'] ?? null) : null;
         }
 
+        if ($chamado !== '') {
+            $this->db->where('idOs', (int) $os->idOs)->update('os', ['chamado_id' => $chamado]);
+        }
+
         $this->aceite_model->registrarDecisao(
             $os->idOs,
             $decisao,
@@ -124,7 +143,8 @@ class Aceite extends CI_Controller
             $assinaturaId
         );
 
-        log_info('OS #' . $os->idOs . ' teve aceite "' . $decisao . '" registrado por ' . $nome . ' via link público.');
+        log_info('OS #' . $os->idOs . ' teve aceite "' . $decisao . '" registrado por ' . $nome . ' via link público.'
+            . ($chamado !== '' ? ' Chamado: ' . $chamado . '.' : ''));
 
         // Automação opcional de faturamento: ao ACEITAR a resolução do serviço,
         // emite NFS-e e gera boleto (se ligada globalmente e habilitada para o

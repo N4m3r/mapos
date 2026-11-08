@@ -246,6 +246,18 @@ $totalFotos = count($fotos_etapa['entrada']) + count($fotos_etapa['durante']) + 
                                     </div>
                                 </div>
 
+                                <?php if (! empty($exigeChamado)) { ?>
+                                <div class="control-group">
+                                    <label class="control-label" for="chamado_id"><strong>N&ordm; do chamado *</strong></label>
+                                    <div class="controls">
+                                        <input type="text" name="chamado_id" id="chamado_id" maxlength="60" required
+                                            value="<?= html_escape((string) ($os->chamado_id ?? '')) ?>"
+                                            placeholder="N&uacute;mero do chamado aberto para este servi&ccedil;o">
+                                        <span class="help-block">Obrigat&oacute;rio para aprovar este atendimento.</span>
+                                    </div>
+                                </div>
+                                <?php } ?>
+
                                 <div class="control-group" id="assinaturaBox">
                                     <label class="control-label"><strong>Assinatura *</strong></label>
                                     <div class="ac-canvas-box">
@@ -296,6 +308,11 @@ $totalFotos = count($fotos_etapa['entrada']) + count($fotos_etapa['durante']) + 
                     if (!$.trim($('#nome').val())) {
                         alert('Por favor, informe seu nome.');
                         $('#nome').focus();
+                        return;
+                    }
+                    if ($('#chamado_id').length && !$.trim($('#chamado_id').val())) {
+                        alert('Informe o N\u00ba do chamado para aprovar o servi\u00e7o.');
+                        $('#chamado_id').focus();
                         return;
                     }
                     if (assinatura.estaVazio()) {
