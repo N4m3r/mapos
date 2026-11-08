@@ -1,7 +1,7 @@
 {
   "name": "mapos-mobile",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "Aplicativo mobile (PWA) do MAPOS — consome a API v1 do sistema",
   "scripts": {
@@ -13,7 +13,8 @@
     "test:tecnico": "node ../teste/run-tecnico.mjs",
     "test:colaborador": "node ../teste/run-colaborador.mjs",
     "sync:android": "npm run build && cap sync android",
-    "apk": "npm run sync:android && cd android && gradlew.bat assembleDebug"
+    "icone": "powershell -NoProfile -ExecutionPolicy Bypass -File ../scripts/gerar-icone-app.ps1",
+    "apk": "npm run icone && npm run sync:android && cd android && .\\gradlew.bat assembleDebug"
   },
   "dependencies": {
     "@capacitor/android": "7.4.3",

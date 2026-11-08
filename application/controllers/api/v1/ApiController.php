@@ -139,6 +139,31 @@ class ApiController extends REST_Controller
         ], REST_Controller::HTTP_OK);
     }
 
+    /**
+     * Marca publica (sem login): nome e logo da empresa para a tela de login
+     * do app e para o gerador do icone do APK. Devolve so o que ja aparece
+     * na tela de login e nos impressos; o resto do emitente segue em
+     * emitente_get, que exige token.
+     */
+    public function marca_get()
+    {
+        $emitente = $this->mapos_model->getEmitente();
+        $logo = trim((string) ($emitente->url_logo ?? ''));
+        if ($logo !== '' && ! is_file(convertUrlToUploadsPath($logo))) {
+            $logo = '';
+        }
+
+        $this->response([
+            'status' => true,
+            'message' => 'Marca do Map-OS',
+            'result' => [
+                'appName' => $this->getConfig('app_name'),
+                'nome' => $emitente ? (string) ($emitente->nome ?? '') : '',
+                'url_logo' => $logo !== '' ? $logo : null,
+            ],
+        ], REST_Controller::HTTP_OK);
+    }
+
     public function audit_get()
     {
         $this->logged_user();

@@ -106,6 +106,11 @@ export async function emitente(baseUrl: string, token: string): Promise<{ appNam
   return unwrap<{ appName: string; emitente: Emitente | false }>(baseUrl, '/api/v1/emitente', { token });
 }
 
+/** /api/v1/marca — nome e logo da empresa, sem login (tela de login). */
+export async function marca(baseUrl: string): Promise<{ appName: string; nome: string; url_logo: string | null }> {
+  return unwrap<{ appName: string; nome: string; url_logo: string | null }>(baseUrl, '/api/v1/marca');
+}
+
 /** /api/v1/os — listagem com search/status/from/to em dd/mm/aaaa. */
 export async function listOs(
   baseUrl: string,

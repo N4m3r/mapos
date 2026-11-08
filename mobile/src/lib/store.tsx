@@ -41,7 +41,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const refreshBrand = useCallback(async () => {
     const url = serverUrl;
     const token = session?.token;
-    if (!url || !token) return;
+    if (!url) return;
+    if (!token) {
+      // Antes do login só a marca pública: assim a logo trocada no sistema
+      // já aparece na tela de login, sem esperar o usuário entrar.
+      try {
+        const marca = await api.marca(url);
+        setBrandState((prev) => {
+          const next: Brand = {
+            appName: marca.appName || marca.nome || 'MAPOS',
+            emitente: { ...(prev?.emitente ?? {}), nome: marca.nome || prev?.emitente?.nome, url_logo: marca.url_logo ?? undefined },
+          };
+          setBrand(next);
+          return next;
+        });
+      } catch {
+        /* servidor sem /marca (versão antiga): mantém o que já havia */
+      }
+      return;
+    }
     try {
       const data = await api.emitente(url, token);
       const emitente = data.emitente === false ? null : data.emitente;
@@ -70,13 +88,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setStatus('no-server');
       return;
     }
-    if (!session) {
-      setStatus('logged-out');
-      return;
-    }
-    setStatus('ready');
+    setStatus(session ? 'ready' : 'logged-out');
     void refreshBrand();
   }, [serverUrl, session, refreshBrand]);
+
+  // A logo pode mudar no sistema com o app aberto: busca de novo quando ele
+  // volta ao primeiro plano.
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void refreshBrand();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [refreshBrand]);
+
+  // Ícone da aba/PWA acompanha a logo da empresa.
+  useEffect(() => {
+    const logo = brand?.emitente?.url_logo;
+    document.querySelectorAll<HTMLLinkElement>('link[rel="icon"], link[rel="apple-touch-icon"]').forEach((link) => {
+      if (!link.dataset.padrao) link.dataset.padrao = link.getAttribute('href') ?? '';
+      link.href = logo || link.dataset.padrao;
+      if (link.rel === 'icon') link.type = logo ? '' : 'image/svg+xml';
+    });
+  }, [brand?.emitente?.url_logo]);
 
   const signIn = useCallback(
     async (email: string, password: string, codigo?: string) => {
