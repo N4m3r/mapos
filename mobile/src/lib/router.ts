@@ -26,6 +26,7 @@ export type Route =
   | { name: 'tec-camera'; id: string }
   | { name: 'tec-fila' }
   | { name: 'tec-perfil' }
+  | { name: 'tec-relatorio' }
   // Área do colaborador
   | { name: 'col-home' }
   | { name: 'col-ponto' }
@@ -100,6 +101,8 @@ function parseTecnico(second: string, third: string, quarto: string): Route {
       return { name: 'tec-fila' };
     case 'perfil':
       return { name: 'tec-perfil' };
+    case 'relatorio':
+      return { name: 'tec-relatorio' };
     default:
       return { name: 'tec-home' };
   }

@@ -262,10 +262,39 @@ export interface FilaResult {
   statusLista: Record<string, PontoStatus>;
 }
 
+export interface RelatorioAvanco {
+  data?: string | null;
+  evento?: string;
+  identificacao: string;
+  local?: string;
+  para_rotulo?: string;
+  destinatario?: string;
+  metragem_cabo?: number;
+}
+
+export interface RelatorioProjeto {
+  idObra: number;
+  nome: string;
+  cliente?: string;
+  percentual_concluido: number;
+  registros: { data?: string | null; atividades: string; ocorrencias: string }[];
+  avancos: RelatorioAvanco[];
+}
+
 export interface RelatorioTecnico {
   tipo: string;
-  periodo: { inicio: string; fim: string };
+  periodo: { inicio: string; fim: string; rotulo?: string | null; anterior?: string | null; proximo?: string | null };
   totais: Record<string, number | string | null>;
+  projetos?: RelatorioProjeto[];
+}
+
+export interface AssinaturaSolicitante {
+  suportado: boolean;
+  situacao: string;
+  link: string | null;
+  email_cliente?: string | null;
+  assinado: boolean;
+  assinaturas: { tipo: string | null; nome: string | null; data: string | null }[];
 }
 
 // ------------------------------------------------------------------

@@ -33,6 +33,9 @@ export function TecnicoProjetosScreen() {
       />
 
       <div className="content">
+        <button type="button" className="btn btn--ghost btn--block" onClick={() => navigate('tecnico/relatorio')}>
+          Meu relatório
+        </button>
         {error ? (
           <div className="stack">
             <Alert kind="error">{error}</Alert>

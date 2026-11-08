@@ -1415,3 +1415,19 @@ a {
   background: var(--surface, #fff);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
+
+/* Meu relatório do técnico: números do período em grade de 2 colunas */
+.relatorio-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.relatorio-grid .card {
+  text-align: center;
+  margin: 0;
+}
+.relatorio-grid__num {
+  font-size: 1.6em;
+  font-weight: 700;
+  margin: 0;
+}

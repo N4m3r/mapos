@@ -247,6 +247,9 @@ export function TecnicoHomeScreen() {
             <button type="button" className="btn btn--ghost btn--block" onClick={() => navigate('tecnico/os')}>
               Ver todas as minhas OS
             </button>
+            <button type="button" className="btn btn--ghost btn--block" onClick={() => navigate('tecnico/relatorio')}>
+              Meu relatório
+            </button>
 
             {brand?.emitente?.nome ? (
               <p className="card__meta" style={{ textAlign: 'center' }}>

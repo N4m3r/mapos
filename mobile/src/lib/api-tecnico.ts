@@ -3,6 +3,7 @@
 import { ApiError, request } from './http';
 import type { ApiEnvelope } from './types';
 import type {
+  AssinaturaSolicitante,
   ClienteBusca,
   FilaResult,
   MotivoNaoRealizado,
@@ -312,4 +313,67 @@ export function atualizarPerfil(
   payload: { telefone?: string; celular?: string },
 ): Promise<TecnicoPerfil> {
   return unwrap<TecnicoPerfil>(baseUrl, '/api/v1/tecnico/perfil', { method: 'PUT', token, body: payload });
+}
+
+// ------------------------------------------------------------------
+// Campo: a caminho, posição e assinatura do solicitante
+// ------------------------------------------------------------------
+
+/** POST /api/v1/tecnico/a-caminho — avisa o cliente por WhatsApp. */
+export function aCaminho(baseUrl: string, token: string, osId: number | string) {
+  return request<{ status: boolean; message: string; result?: { hora: string; repetido: boolean } }>(
+    baseUrl,
+    '/api/v1/tecnico/a-caminho',
+    { method: 'POST', token, body: { os_id: osId } },
+  );
+}
+
+/** POST /api/v1/tecnico/posicao — posição para o mapa em tempo real. */
+export function enviarPosicao(
+  baseUrl: string,
+  token: string,
+  payload: { latitude: number; longitude: number; precisao?: number | null; velocidade?: number | null; bateria?: number | null },
+) {
+  return unwrap<{ registrado: boolean; em_atendimento: boolean }>(baseUrl, '/api/v1/tecnico/posicao', {
+    method: 'POST',
+    token,
+    body: payload,
+    timeoutMs: 15000,
+  });
+}
+
+const osPath = (id: number | string) => `/api/v1/tecnico/os/${encodeURIComponent(String(id))}`;
+
+export function assinaturaSolicitante(baseUrl: string, token: string, osId: number | string) {
+  return unwrap<AssinaturaSolicitante>(baseUrl, `${osPath(osId)}/assinatura-solicitante`, { token });
+}
+
+export function salvarAssinaturaSolicitante(
+  baseUrl: string,
+  token: string,
+  osId: number | string,
+  payload: { assinatura: string; nome?: string; documento?: string },
+) {
+  return unwrap<{ assinado: boolean }>(baseUrl, `${osPath(osId)}/assinatura-solicitante`, {
+    method: 'POST',
+    token,
+    body: payload,
+    timeoutMs: 45000,
+  });
+}
+
+export function gerarLinkSolicitante(baseUrl: string, token: string, osId: number | string) {
+  return unwrap<{ link: string; expira: string }>(baseUrl, `${osPath(osId)}/link-solicitante`, {
+    method: 'POST',
+    token,
+    body: {},
+  });
+}
+
+export function enviarLinkSolicitanteEmail(baseUrl: string, token: string, osId: number | string, email: string) {
+  return request<{ status: boolean; message: string; result?: { link: string } }>(
+    baseUrl,
+    `${osPath(osId)}/link-solicitante/email`,
+    { method: 'POST', token, body: { email } },
+  );
 }

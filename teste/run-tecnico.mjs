@@ -168,6 +168,14 @@ async function main() {
   });
 
   // ------------------------------------------------------------ atendimento
+  await step('Estou a caminho avisa o cliente', async () => {
+    await page.goto(`${base}/#/tecnico/atendimento/1000`);
+    await page.getByText('Ordem de serviço').waitFor({ timeout: 8000 });
+    await page.getByRole('button', { name: /Estou a caminho/ }).click();
+    await page.getByText('Cliente avisado às 09:10').waitFor({ timeout: 6000 });
+    check('Aviso enviado para a OS certa', Number(state.aCaminho?.os_id) === 1000, JSON.stringify(state.aCaminho));
+  });
+
   await step('Atendimento: check-in com observação', async () => {
     await page.goto(`${base}/#/tecnico/atendimento/1000`);
     await page.getByText('Ordem de serviço').waitFor({ timeout: 8000 });
@@ -307,6 +315,60 @@ async function main() {
     await page.getByText('Contato atualizado.').waitFor({ timeout: 6000 });
     check('PUT do perfil enviado', state.perfilAtualizado?.celular === '(11) 91234-0000', JSON.stringify(state.perfilAtualizado));
     await shot('09-perfil');
+  });
+
+  // ------------------------------------------------------------ relatório
+  await step('Meu relatório: totais, projetos e troca de período', async () => {
+    await page.goto(`${base}/#/tecnico`);
+    await page.getByRole('button', { name: 'Meu relatório' }).click();
+    await page.getByText('Condomínio Vila Verde').waitFor({ timeout: 6000 });
+    check('Mostra os números do período', (await tem('Pontos avançados')) && (await tem('35,5')));
+    check('Mostra registro e ocorrência', (await tem('Passagem de cabos no bloco B')) && (await tem('Falta de escada')));
+    check('Mostra o avanço do ponto', await tem('CAM-07 (Corredor B) → Cabo passado · 35 m'));
+    await page.getByRole('tab', { name: 'Semana' }).click();
+    await page.waitForTimeout(600);
+    check('Pede o relatório semanal', state.relatorioPedidos?.at(-1)?.tipo === 'semanal', JSON.stringify(state.relatorioPedidos?.at(-1)));
+    await page.getByRole('button', { name: 'Período anterior' }).click();
+    await page.waitForTimeout(600);
+    check('Volta para o período anterior', state.relatorioPedidos?.at(-1)?.data === '2026-11-03');
+    check('Sem rolagem horizontal no relatório', await semScroll());
+    await shot('10-relatorio');
+  });
+
+  // ------------------------------------------------------------ solicitante
+  await step('Assinatura do solicitante na atividade não programada', async () => {
+    state.naoProgramada = true;
+    await page.goto(`${base}/#/tecnico/atendimento/1000`);
+    await page.getByText('Assinatura do solicitante').first().waitFor({ timeout: 8000 });
+
+    await page.getByRole('button', { name: 'Gerar link para o solicitante' }).click();
+    await page.getByText(/Link gerado/).waitFor({ timeout: 6000 });
+    check('Link aparece para copiar', await tem('/aceite/abc123'));
+
+    await page.getByRole('button', { name: 'Enviar link por e-mail' }).click();
+    const painelEmail = page.locator('.sheet');
+    check('E-mail do cliente já preenchido', (await painelEmail.getByLabel('E-mail do solicitante').inputValue()) === 'ana@cliente.com');
+    await painelEmail.getByRole('button', { name: 'Enviar' }).click();
+    await page.getByText(/E-mail enfileirado/).waitFor({ timeout: 6000 });
+    check('Servidor recebeu o e-mail', state.solicitante?.email === 'ana@cliente.com');
+
+    await page.getByRole('button', { name: 'Assinar no aparelho' }).click();
+    const painel = page.locator('.sheet');
+    await painel.getByLabel('Nome de quem assina').fill('João Solicitante');
+    const salvar = painel.getByRole('button', { name: 'Salvar assinatura' });
+    check('Salvar bloqueado sem traço', await salvar.isDisabled());
+    await assinar(page, painel.locator('canvas'));
+    await page.waitForTimeout(300);
+    await salvar.click();
+    await page.getByText('Assinado por João Solicitante').waitFor({ timeout: 6000 });
+    check('Assinatura em PNG com o nome', state.solicitante?.nome === 'João Solicitante' && String(state.solicitante?.imagem).startsWith('data:image/png;base64,'));
+    await shot('11-solicitante');
+    state.naoProgramada = false;
+  });
+
+  await step('Posição enviada para o mapa em tempo real', async () => {
+    const p = state.posicoes?.[0];
+    check('App enviou a posição com GPS já permitido', Boolean(p) && Number(p.latitude) < -23, JSON.stringify(p));
   });
 
   // ------------------------------------------------------------ limpeza
