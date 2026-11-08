@@ -310,6 +310,11 @@ export function createFakeApi({ authedPermissions, area = 'admin', twoFactorUser
       });
     }
 
+    // Marca pública (sem token): nome e logo para a tela de login.
+    if (path === '/api/v1/marca' && method === 'GET') {
+      return ok(res, { appName: 'Assistência Tech', nome: 'Assistência Tech LTDA', url_logo: null });
+    }
+
     if (path === '/api/v1/emitente' && method === 'GET') {
       if (!requireAuth(req, res)) return;
       return ok(res, {

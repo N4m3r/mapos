@@ -8,11 +8,14 @@ export function Topbar({
   subtitle,
   onBack,
   right,
+  logo,
 }: {
   title: string;
   subtitle?: string;
   onBack?: () => void;
   right?: ReactNode;
+  /** Logo da empresa (emitente); some sozinha se a imagem não carregar. */
+  logo?: string | null;
 }) {
   return (
     <header className="topbar">
@@ -22,6 +25,16 @@ export function Topbar({
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
+      ) : null}
+      {logo ? (
+        <img
+          src={logo}
+          alt=""
+          className="topbar__logo"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
+        />
       ) : null}
       <div className="topbar__grow">
         <h1 className="topbar__title">{title}</h1>

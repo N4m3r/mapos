@@ -22,7 +22,7 @@ function Atalho({ titulo, sub, onClick, d }: { titulo: string; sub: string; onCl
 }
 
 export function ColaboradorHomeScreen() {
-  const { session, signOut } = useApp();
+  const { brand, session, signOut } = useApp();
   const agora = useRelogio();
   const { data, loading, error, recarregar } = useCarga<ColaboradorDashboard>((baseUrl, token) =>
     col.dashboard(baseUrl, token),
@@ -36,6 +36,7 @@ export function ColaboradorHomeScreen() {
   return (
     <div className="screen">
       <Topbar
+        logo={brand?.emitente?.url_logo}
         title={saudacao(agora)}
         subtitle={
           data?.colaborador.primeiroNome

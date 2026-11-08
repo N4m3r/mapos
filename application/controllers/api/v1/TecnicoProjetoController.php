@@ -11,6 +11,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * etiqueta e checklist de teste obrigatórios antes de "Instalado"/"Testado",
  * e ponto testado não pode ser repassado.
  */
+require_once __DIR__ . '/AreaApiController.php';
+
 class TecnicoProjetoController extends AreaApiController
 {
     public function __construct()
@@ -81,8 +83,8 @@ class TecnicoProjetoController extends AreaApiController
             $this->invalido('Ponto testado não pode ser repassado.');
         }
 
-        $etiquetas = $this->fotos((array) ($corpo['fotos_etiqueta'] ?? []));
-        $fotos = array_slice($this->fotos((array) ($corpo['fotos'] ?? [])), 0, max(0, 6 - count($etiquetas)));
+        $etiquetas = $this->fotosDataUrl((array) ($corpo['fotos_etiqueta'] ?? []));
+        $fotos = array_slice($this->fotosDataUrl((array) ($corpo['fotos'] ?? [])), 0, max(0, 6 - count($etiquetas)));
 
         if (Obra_pontos_model::exigeEtiqueta($status, $ponto->tipo)
             && ! $etiquetas && ! $this->obra_pontos_model->temFotoEtiqueta((int) $ponto->idPonto)) {
@@ -297,7 +299,7 @@ class TecnicoProjetoController extends AreaApiController
             $this->invalido('Não foi possível registrar o RDO.');
         }
 
-        foreach ($this->fotos((array) ($corpo['fotos'] ?? [])) as $bin) {
+        foreach ($this->fotosDataUrl((array) ($corpo['fotos'] ?? [])) as $bin) {
             $this->obras_model->addRdoFoto($rdoId, $bin);
         }
 
@@ -408,7 +410,7 @@ class TecnicoProjetoController extends AreaApiController
     }
 
     /** Data URLs válidas decodificadas em binário (máx. 6). */
-    protected function fotos(array $dataUrls)
+    protected function fotosDataUrl(array $dataUrls)
     {
         $out = [];
         foreach (array_slice($dataUrls, 0, 6) as $dataUrl) {

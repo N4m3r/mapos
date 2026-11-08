@@ -10,6 +10,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * valida dono da OS, exige as permissões eTecnico*, valida geofence, imagem e
  * assinatura antes de gravar. Nada aqui confia no id enviado pelo app.
  */
+require_once __DIR__ . '/AreaApiController.php';
+
 class TecnicoAtendimentoController extends AreaApiController
 {
     public function __construct()

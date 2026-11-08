@@ -11,6 +11,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * observação são obrigatórios, e o preço de serviços/produtos é resolvido no
  * servidor — o app nunca envia valores.
  */
+require_once __DIR__ . '/AreaApiController.php';
+
 class TecnicoOcorrenciaController extends AreaApiController
 {
     public function __construct()

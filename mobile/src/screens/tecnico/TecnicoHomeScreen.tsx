@@ -118,6 +118,7 @@ export function TecnicoHomeScreen() {
   return (
     <div className="screen">
       <Topbar
+        logo={brand?.emitente?.url_logo}
         title={saudacao(agora)}
         subtitle={primeiro ? `${primeiro} · ${dataPorExtenso(agora)}` : dataPorExtenso(agora)}
         right={

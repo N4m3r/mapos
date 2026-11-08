@@ -194,7 +194,8 @@ async function main() {
     const painel = page.locator('.sheet');
     await painel.getByLabel('Observação do atendimento').fill('Fonte substituída e testada.');
     await painel.getByRole('button', { name: 'Salvar' }).click();
-    await page.getByText('Observação registrada.').waitFor({ timeout: 8000 });
+    // .first(): durante o recarregamento o aviso pode aparecer duas vezes por um instante.
+    await page.getByText('Observação registrada.').first().waitFor({ timeout: 8000 });
     check('Observação salva no servidor', state.observacoes.length === antes + 1);
     // a tela recarrega o detalhe depois do aviso; espera o texto chegar
     await page.getByText('Fonte substituída e testada.').waitFor({ timeout: 8000 });

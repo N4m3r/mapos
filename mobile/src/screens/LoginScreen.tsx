@@ -54,7 +54,14 @@ export function LoginScreen() {
         <div className="stack" style={{ alignItems: 'center', textAlign: 'center', marginBottom: 8 }}>
           <div className="avatar" style={{ width: 64, height: 64, fontSize: '1.3rem', borderRadius: 20 }}>
             {brand?.emitente?.url_logo ? (
-              <img src={brand.emitente.url_logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 20 }} />
+              <img
+                src={brand.emitente.url_logo}
+                alt=""
+                style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 20 }}
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
             ) : (
               'M'
             )}

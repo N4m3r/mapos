@@ -12,6 +12,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * Toda consulta é restrita ao usuário do token: um técnico nunca lê OS de outro.
  * Ações de campo (check-in, fotos, não realizado) ficam em TecnicoAtendimentoController.
  */
+require_once __DIR__ . '/AreaApiController.php';
+
 class TecnicoController extends AreaApiController
 {
     public function __construct()

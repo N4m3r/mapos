@@ -8,6 +8,7 @@ if (! defined('BASEPATH')) {
 $route['api/v1'] = 'api/v1/ApiController/index';
 $route['api/v1/audit'] = 'api/v1/ApiController/audit';
 $route['api/v1/emitente'] = 'api/v1/ApiController/emitente';
+$route['api/v1/marca'] = 'api/v1/ApiController/marca';
 $route['api/v1/calendario'] = 'api/v1/ApiController/calendario';
 $route['api/v1/login'] = 'api/v1/UsuariosController/login';
 $route['api/v1/reGenToken'] = 'api/v1/UsuariosController/reGenToken';

@@ -62,6 +62,7 @@ export function HomeScreen() {
       <Topbar
         title={brand?.emitente?.nome ?? brand?.appName ?? 'MAPOS'}
         subtitle={session?.user.nome ?? ''}
+        logo={brand?.emitente?.url_logo}
         right={
           <button type="button" className="icon-btn" onClick={() => navigate('config')} aria-label="Configurações">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">

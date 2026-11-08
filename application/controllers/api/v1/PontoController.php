@@ -10,6 +10,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * unidade, e selfie como prova. O que muda é só o transporte: JSON em vez de
  * formulário, e o colaborador vem do token.
  */
+require_once __DIR__ . '/AreaApiController.php';
+
 class PontoController extends AreaApiController
 {
     public function __construct()
