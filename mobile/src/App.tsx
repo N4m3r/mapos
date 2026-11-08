@@ -62,9 +62,8 @@ function Shell() {
     const daAreaAdmin = ['home', 'os-list', 'os-new', 'os-detail', 'os-edit', 'clientes', 'cliente-new', 'cliente-detail', 'agenda'].includes(nome);
 
     if (daAreaTecnico && area !== 'tecnico') navigate(homePathFor(area));
-    else if (daAreaColaborador && area === 'tecnico') navigate(homePathFor(area));
-    // A área do colaborador exige vínculo de RH: administrador não entra nela.
-    else if (daAreaColaborador && area === 'admin') navigate('home');
+    // Para entrar no RH o usuário escolhe a área (seletor nas telas iniciais).
+    else if (daAreaColaborador && area !== 'colaborador') navigate(homePathFor(area));
     else if (daAreaAdmin && area !== 'admin') navigate(homePathFor(area));
   }, [status, area, route]);
 

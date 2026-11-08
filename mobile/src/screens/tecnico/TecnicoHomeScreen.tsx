@@ -9,6 +9,7 @@ import { quandoVisita, telHref, whatsHref } from '../../lib/format';
 import { dataPorExtenso, saudacao } from '../../lib/geo';
 import { Alert, Card, Empty, SkeletonList, StatusPill, Topbar } from '../../components/ui';
 import type { OsResumo, TecnicoDashboard } from '../../lib/types-tecnico';
+import { AreaSwitcher } from '../../components/AreaSwitcher';
 
 function Icone({ path }: { path: string }) {
   return (
@@ -136,6 +137,7 @@ export function TecnicoHomeScreen() {
       />
 
       <div className="content">
+        <AreaSwitcher />
         {error ? (
           <div className="stack">
             <Alert kind="error">{error}</Alert>

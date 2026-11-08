@@ -5,6 +5,7 @@
 
 const KEY_SERVER = 'mapos.serverUrl';
 const KEY_BRAND = 'mapos.brand';
+const KEY_AREA = 'mapos.area';
 
 export interface Brand {
   appName: string;
@@ -144,4 +145,14 @@ export function setBrand(brand: Brand): void {
 
 export function clearBrand(): void {
   remove(KEY_BRAND);
+}
+
+/** Área escolhida pelo usuário que tem mais de uma (sistema, técnico, RH). */
+export function getAreaPreferida(): string | null {
+  return read(KEY_AREA);
+}
+
+export function setAreaPreferida(area: string | null): void {
+  if (area) write(KEY_AREA, area);
+  else remove(KEY_AREA);
 }

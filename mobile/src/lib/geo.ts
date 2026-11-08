@@ -4,7 +4,29 @@
  * quanto dentro do APK, onde window.open não abre nada.
  */
 
+import { registerPlugin } from '@capacitor/core';
 import { isNativeApp } from './config';
+
+/** Plugin nativo (ArquivoPlugin.java): grava o arquivo e abre no app do sistema. */
+const Arquivo = registerPlugin<{ abrir(opts: { base64: string; nome: string; mime: string; compartilhar?: boolean }): Promise<void> }>('Arquivo');
+
+function blobParaBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const leitor = new FileReader();
+    leitor.onload = () => resolve(String(leitor.result).replace(/^data:[^,]*,/, ''));
+    leitor.onerror = () => reject(new Error('Não foi possível ler o arquivo.'));
+    leitor.readAsDataURL(blob);
+  });
+}
+
+/**
+ * No APK o WebView não baixa blob: o arquivo vai para o app nativo, que o abre
+ * no visualizador do Android (de onde dá para imprimir, salvar e compartilhar).
+ */
+export async function abrirNoAparelho(blob: Blob, nome: string, compartilhar = false): Promise<void> {
+  const base64 = await blobParaBase64(blob);
+  await Arquivo.abrir({ base64, nome, mime: blob.type || 'application/pdf', compartilhar });
+}
 
 /** Distância em metros entre dois pontos (Haversine), igual ao servidor. */
 export function distanciaMetros(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -58,6 +80,10 @@ export function selfieDoVideo(video: HTMLVideoElement | null, qualidade = 0.8): 
  * o WebView baixa e entrega pelo DownloadManager/visualizador do sistema.
  */
 export function baixarBlob(blob: Blob, nome: string): void {
+  if (isNativeApp()) {
+    void abrirNoAparelho(blob, nome).catch((err: Error) => window.alert(err.message));
+    return;
+  }
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -74,7 +100,7 @@ export function baixarBlob(blob: Blob, nome: string): void {
 /** Abre o PDF numa nova aba (navegador) — no APK, cai para download. */
 export function visualizarBlob(blob: Blob, nome: string): void {
   if (isNativeApp()) {
-    baixarBlob(blob, nome);
+    void abrirNoAparelho(blob, nome).catch((err: Error) => window.alert(err.message));
     return;
   }
   const url = URL.createObjectURL(blob);

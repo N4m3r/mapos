@@ -118,12 +118,35 @@ async function rawRequest(baseUrl: string, path: string, options: RequestOptions
 }
 
 /** Mensagem de erro do envelope, já sem HTML de validation_errors(). */
-function mensagemDeErro(payload: unknown, status: number): string {
+function mensagemDeErro(payload: unknown, status: number, bruto = ''): string {
   if (payload && typeof payload === 'object' && 'message' in payload) {
     const texto = String((payload as { message: unknown }).message);
     if (texto.trim()) return stripTags(texto);
   }
-  return `Falha na requisição (HTTP ${status}).`;
+  const detalhe = status >= 500 ? detalheDoErro(bruto) : '';
+  return detalhe ? `Falha na requisição (HTTP ${status}): ${detalhe}` : `Falha na requisição (HTTP ${status}).`;
+}
+
+/**
+ * Erro fatal/banco do CodeIgniter vem em HTML. Extrai a linha útil ("Table
+ * ... doesn't exist", "Class ... not found") para quem estiver testando saber
+ * o que corrigir no servidor, em vez de um 500 sem explicação.
+ */
+function detalheDoErro(bruto: string): string {
+  if (!bruto) return '';
+  const semComentario = bruto.replace(/<!--([\s\S]*?)-->/g, ' $1 ');
+  const texto = stripTags(
+    semComentario
+      .replace(/<(style|script)[\s\S]*?<\/\1>/gi, ' ')
+      .replace(/<\/?(p|h\d|div|br)[^>]*>/gi, ' ')
+      .replace(/&quot;/g, '"')
+      .replace(/&#0?39;/g, "'"),
+  );
+  const achado =
+    texto.match(/(Error Number:.*?)(?:Filename:|SELECT |INSERT |UPDATE |$)/i) ??
+    texto.match(/(?:Message|Error):\s*(.*?)(?:Filename:| in \/|$)/i);
+  const linha = (achado?.[1] ?? '').trim();
+  return linha.length > 220 ? `${linha.slice(0, 220)}…` : linha;
 }
 
 export async function request<T>(baseUrl: string, path: string, options: RequestOptions = {}): Promise<T> {
@@ -139,7 +162,7 @@ export async function request<T>(baseUrl: string, path: string, options: Request
   }
 
   if (!response.ok) {
-    throw new ApiError(mensagemDeErro(payload, response.status), response.status);
+    throw new ApiError(mensagemDeErro(payload, response.status, text), response.status);
   }
   if (payload === null) {
     throw new ApiError('Resposta inválida do servidor (não é JSON).', response.status);
@@ -166,7 +189,7 @@ export async function requestBlob(
     } catch {
       payload = null;
     }
-    throw new ApiError(mensagemDeErro(payload, response.status), response.status);
+    throw new ApiError(mensagemDeErro(payload, response.status, text), response.status);
   }
 
   return response.blob();

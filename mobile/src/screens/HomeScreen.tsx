@@ -7,6 +7,7 @@ import { count, dateBr, initials, statusColor } from '../lib/format';
 import { navigate } from '../lib/router';
 import { Badge, Card, Empty, SkeletonList, Topbar } from '../components/ui';
 import type { DashboardResult, Os } from '../lib/types';
+import { AreaSwitcher } from '../components/AreaSwitcher';
 
 function OsRow({ os }: { os: Os }) {
   return (
@@ -74,6 +75,7 @@ export function HomeScreen() {
       />
 
       <div className="content">
+        <AreaSwitcher />
         {error ? (
           <div className="stack">
             <div className="alert alert--error">{error}</div>

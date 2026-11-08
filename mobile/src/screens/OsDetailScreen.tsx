@@ -7,6 +7,7 @@ import { dateBr, dateTimeBr, money, statusColor, telHref, toApiDate, whatsHref }
 import { navigate } from '../lib/router';
 import { Alert, Badge, Button, Card, Kv, SkeletonList, Textarea, Topbar } from '../components/ui';
 import { OS_STATUS, type Os } from '../lib/types';
+import { BotoesPdf } from '../components/BotoesPdf';
 
 export function OsDetailScreen({ id }: { id: string }) {
   const { baseUrl, token, handle } = useApi();
@@ -87,6 +88,7 @@ export function OsDetailScreen({ id }: { id: string }) {
       <Topbar title={os ? `OS #${os.idOs}` : 'Ord. de serviço'} subtitle={os?.nomeCliente} onBack={() => navigate('os')} />
 
       <div className="content">
+        <BotoesPdf carregar={() => api.osPdf(baseUrl, token, Number(id))} nome={`OS-${String(id).padStart(4, '0')}.pdf`} />
         {loading ? <SkeletonList count={3} /> : null}
         {error ? <Alert kind="error">{error}</Alert> : null}
         {feedback ? <Alert kind="ok">{feedback}</Alert> : null}

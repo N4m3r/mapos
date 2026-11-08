@@ -8,6 +8,8 @@ import { navigate } from '../../lib/router';
 import { dateBr } from '../../lib/format';
 import { Alert, Button, Card, Empty, Progress, Sheet, SkeletonList, Textarea, Topbar } from '../../components/ui';
 import type { PontoProjeto, ProjetoDetalhe } from '../../lib/types-tecnico';
+import { BotoesPdf } from '../../components/BotoesPdf';
+import * as api from '../../lib/api';
 
 function progresso(pontos: PontoProjeto[], lista: Record<string, { rotulo: string; peso?: number }>): number {
   if (!pontos.length) return 0;
@@ -99,6 +101,7 @@ export function TecnicoProjetoScreen({ id }: { id: string }) {
       />
 
       <div className="content">
+        <BotoesPdf carregar={() => api.projetoPdf(baseUrl, token, Number(id))} nome={`Projeto-${id}.pdf`} />
         {error ? (
           <div className="stack">
             <Alert kind="error">{error}</Alert>

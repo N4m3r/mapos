@@ -8,6 +8,7 @@ import { competenciaLabel, minutesToHm } from '../../lib/format';
 import { dataPorExtenso, horaAgora, saudacao } from '../../lib/geo';
 import { Alert, Button, Card, SkeletonList, Topbar } from '../../components/ui';
 import { PONTO_LABELS, type ColaboradorDashboard } from '../../lib/types-tecnico';
+import { AreaSwitcher } from '../../components/AreaSwitcher';
 
 function Atalho({ titulo, sub, onClick, d }: { titulo: string; sub: string; onClick: () => void; d: string }) {
   return (
@@ -58,6 +59,7 @@ export function ColaboradorHomeScreen() {
       />
 
       <div className="content">
+        <AreaSwitcher />
         {error ? (
           <div className="stack">
             <Alert kind="error">{error}</Alert>
