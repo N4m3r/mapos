@@ -44,6 +44,29 @@ $rotuloDestino = Notification_triggers_model::destinatariosDisponiveis();
     </div>
 <?php } ?>
 
+<?php if (! empty($tabelaGatilhos) && $podeSistema) { ?>
+    <form class="nt-criar-evento" method="get" action="<?= site_url('notificacoes/novo') ?>">
+        <label for="nt-novo-evento"><strong>Criar evento de notificação</strong></label>
+        <select id="nt-novo-evento" name="evento" required>
+            <option value="">Escolha quando o aviso deve sair…</option>
+            <?php foreach ($ordem as $grupoSel) { ?>
+                <?php if (empty($grupos[$grupoSel])) { continue; } ?>
+                <optgroup label="<?= $e($grupoSel) ?>">
+                    <?php foreach ($grupos[$grupoSel] as $slugSel => $itemSel) { ?>
+                        <option value="<?= $e($slugSel) ?>">
+                            <?= $e($itemSel['evento']['nome']) ?><?= empty($itemSel['gatilhos']) ? ' (não configurado)' : '' ?>
+                        </option>
+                    <?php } ?>
+                </optgroup>
+            <?php } ?>
+        </select>
+        <button type="submit" class="button btn btn-success">
+            <span class="button__icon"><i class="bx bx-plus-circle"></i></span>
+            <span class="button__text2">Criar evento</span>
+        </button>
+    </form>
+<?php } ?>
+
 <div class="ui-dica">
     <i class="bx bx-info-circle"></i>
     <div>
