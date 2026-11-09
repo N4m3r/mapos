@@ -73,6 +73,57 @@ class Emailtemplates extends MY_Controller
         redirect(site_url('emailtemplates/editar/' . $id));
     }
 
+    /** Novo modelo de e-mail: nasce como cópia de um modelo existente (assunto, corpo e tags). */
+    public function novo()
+    {
+        $modelos = $this->email_templates_model->getAll();
+        if (! $modelos) {
+            $this->session->set_flashdata('error', 'Nenhum modelo base encontrado. Rode a atualização do banco para criar os modelos padrão.');
+            redirect(site_url('notificacoes?aba=modelos'));
+        }
+
+        $this->data['menuConfiguracoes'] = 'Email';
+        $this->data['modelosBase'] = $modelos;
+        $this->data['view'] = 'emails/novoTemplate';
+
+        return $this->layout();
+    }
+
+    public function criar()
+    {
+        $nome = trim(strip_tags((string) $this->input->post('nome')));
+        if ($nome === '') {
+            $this->session->set_flashdata('error', 'Informe o nome do modelo.');
+            redirect(site_url('emailtemplates/novo'));
+        }
+
+        $base = $this->email_templates_model->getBySlug((string) $this->input->post('base'));
+        if (! $base) {
+            $this->session->set_flashdata('error', 'Escolha em qual modelo o novo e-mail se baseia.');
+            redirect(site_url('emailtemplates/novo'));
+        }
+
+        $slug = $this->email_templates_model->gerarSlug($nome);
+        $id = $this->email_templates_model->create([
+            'slug' => $slug,
+            'nome' => mb_substr($nome, 0, 120),
+            'descricao' => mb_substr(trim(strip_tags((string) $this->input->post('descricao'))), 0, 255) ?: null,
+            'assunto' => $base->assunto,
+            'corpo' => $base->corpo,
+            'tags' => $base->tags,
+            'ativo' => 1,
+        ]);
+
+        if (! $id) {
+            $this->session->set_flashdata('error', 'Não foi possível criar o modelo.');
+            redirect(site_url('emailtemplates/novo'));
+        }
+
+        log_info('Criou o modelo de e-mail: ' . $slug . ' (base: ' . $base->slug . ')');
+        $this->session->set_flashdata('success', 'Modelo criado a partir de "' . $base->nome . '". Ajuste o texto e escolha este modelo no evento.');
+        redirect(site_url('emailtemplates/editar/' . (int) $id));
+    }
+
     public function editarLayout()
     {
         $this->data['menuConfiguracoes'] = 'Email';

@@ -303,9 +303,19 @@ class Notificacoes extends MY_Controller
         redirect(site_url('notificacoes?aba=historico'));
     }
 
+    /** "Criar evento": abre a configuração do evento escolhido (o gatilho nasce ao salvar). */
     public function novo()
     {
-        redirect(site_url('notificacoes'));
+        $evento = (string) $this->input->get('evento');
+        if ($evento === '') {
+            redirect(site_url('notificacoes'));
+        }
+        if (! isset(Notification_triggers_model::eventosCatalogo()[$evento])) {
+            $this->session->set_flashdata('error', 'Escolha um evento da lista para criar a notificação.');
+            redirect(site_url('notificacoes'));
+        }
+
+        redirect(site_url('notificacoes/evento/' . rawurlencode($evento)));
     }
 
     public function editar($id = null)

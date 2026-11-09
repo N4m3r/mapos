@@ -198,3 +198,20 @@
     .nt-aba .nt-aba-num { display: none; }
     .nt-tabela th:nth-child(n+5), .nt-tabela td:nth-child(n+5) { display: none; }
 }
+
+/* "Criar evento de notificação" no topo da aba Eventos */
+.nt-criar-evento {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+}
+.nt-criar-evento label {
+    margin: 0;
+}
+.nt-criar-evento select {
+    flex: 1 1 260px;
+    max-width: 100%;
+    margin: 0;
+}

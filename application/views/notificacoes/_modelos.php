@@ -57,6 +57,10 @@ $e = function ($v) {
     <?php } ?>
 
     <div class="ui-acoes ui-mt">
+        <a href="<?= site_url('emailtemplates/novo') ?>" class="button btn btn-success">
+            <span class="button__icon"><i class="bx bx-plus-circle"></i></span>
+            <span class="button__text2">Novo modelo de e-mail</span>
+        </a>
         <a href="<?= site_url('emailtemplates/editarLayout') ?>" class="button btn">
             <span class="button__icon"><i class="bx bx-palette"></i></span>
             <span class="button__text2">Layout e CSS dos e-mails</span>
