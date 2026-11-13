@@ -215,6 +215,12 @@ export function createFakeApi({ authedPermissions, area = 'admin', twoFactorUser
       await handleApi(req, res, path, method, url);
       return;
     }
+    // Com rewrite, o CodeIgniter também atende pelo index.php (o app tenta esse
+    // caminho depois de um 404, e precisa receber o mesmo 404 em JSON).
+    if (path.startsWith('/index.php/api/')) {
+      await handleApi(req, res, path.slice('/index.php'.length), method, url);
+      return;
+    }
 
     // Simula o app publicado numa subpasta da instalação (ex.: /mobile-app/).
     if (path === '/mobile-app' || path.startsWith('/mobile-app/')) {
@@ -706,6 +712,7 @@ export function createFakeApi({ authedPermissions, area = 'admin', twoFactorUser
         texto: body.texto,
         hora: '04/11/2026 10:00',
         autor: 'Carlos Técnico',
+        registrado_em: body.registrado_em ?? null,
       };
       state.observacoes.unshift(nota);
       return ok(res, nota, 'Observação registrada.');
@@ -836,9 +843,11 @@ export function createFakeApi({ authedPermissions, area = 'admin', twoFactorUser
       });
     }
 
-    if (path === '/api/v1/tecnico/pontos/1' && method === 'GET') {
+    const pontoGet = /^\/api\/v1\/tecnico\/pontos\/(\d+)$/.exec(path);
+    if (pontoGet && method === 'GET') {
+      const idP = Number(pontoGet[1]);
       return ok(res, {
-        ponto: { idPonto: 1, obra_id: 1, identificacao: 'CAM-01', tipo: 'camera', local: 'Entrada', status: 'previsto', status_rotulo: 'Previsto', minha: true, qtd_fotos: 0 },
+        ponto: { idPonto: idP, obra_id: 1, identificacao: `CAM-0${idP}`, tipo: 'camera', local: 'Entrada', status: 'previsto', status_rotulo: 'Previsto', minha: true, qtd_fotos: 0 },
         statusLista: {
           previsto: { rotulo: 'Previsto', classe: 'neutro', peso: 0 },
           infra: { rotulo: 'Infraestrutura pronta', classe: 'info', peso: 20 },

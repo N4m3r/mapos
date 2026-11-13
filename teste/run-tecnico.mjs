@@ -392,6 +392,43 @@ async function main() {
     check('App enviou a posição com GPS já permitido', Boolean(p) && Number(p.latitude) < -23, JSON.stringify(p));
   });
 
+  // ------------------------------------------------------------ offline
+  await step('Sem internet: abre o que foi baixado, guarda o envio e entrega depois', async () => {
+    await page.goto(`${base}/#/tecnico`);
+    await page.waitForFunction(() => Boolean(localStorage.getItem('mapos.offline.download')), null, { timeout: 15000 });
+    check('Baixou os dados para usar offline', true);
+
+    await context.setOffline(true);
+    await page.evaluate(() => { location.hash = '#/tecnico/atendimento/1001'; });
+    await page.getByText('Mercado Bom Preço').first().waitFor({ timeout: 8000 });
+    check('OS baixada abre sem internet', true);
+    check('Avisa que está sem internet', await tem('Sem internet'));
+
+    const antes = state.observacoes.length;
+    await page.getByRole('button', { name: /^Observação/ }).click();
+    const painel = page.locator('.sheet');
+    await painel.getByLabel('Observação do atendimento').fill('Feita no subsolo, sem sinal.');
+    await painel.getByRole('button', { name: 'Salvar' }).click();
+    await page.getByText('Feita no subsolo, sem sinal.').first().waitFor({ timeout: 8000 });
+    check('Observação aparece na tela mesmo sem internet', true);
+    check('Nada chegou ao servidor ainda', state.observacoes.length === antes);
+    const pendente = await page.getByText(/1 envio\(s\) aguardando internet/).first().waitFor({ timeout: 6000 }).then(() => true, () => false);
+    check('Mostra o envio pendente', pendente);
+
+    await page.evaluate(() => { location.hash = '#/tecnico/atividade'; });
+    await page.getByLabel('Buscar cliente').fill('mercado');
+    await page.getByRole('button', { name: /Mercado Bom Preço/ }).waitFor({ timeout: 6000 });
+    check('Busca de cliente funciona sem internet', true);
+    await shot('13-offline');
+
+    await context.setOffline(false);
+    const entregue = await page
+      .waitForFunction(() => !document.body.innerText.includes('aguardando internet'), null, { timeout: 20000 })
+      .then(() => true, () => false);
+    check('Internet voltou: envio entregue sozinho', entregue && state.observacoes.length === antes + 1);
+    check('Servidor recebeu a hora do aparelho', /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(String(state.observacoes[0]?.registrado_em)), String(state.observacoes[0]?.registrado_em));
+  });
+
   // ------------------------------------------------------------ limpeza
   await step('Console do navegador', async () => {
     const relevantes = consoleErrors.filter((m) => !/favicon|Failed to fetch|net::ERR|401|403/i.test(m));

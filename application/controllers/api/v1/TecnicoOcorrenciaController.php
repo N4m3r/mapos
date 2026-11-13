@@ -167,9 +167,10 @@ class TecnicoOcorrenciaController extends AreaApiController
             $this->invalido('Este cliente exige o Nº do chamado. Informe o chamado para abrir a atividade.');
         }
 
+        $dia = substr($this->momentoInformado($corpo['registrado_em'] ?? null), 0, 10);
         $idOs = $this->tecnico_model->criarAtividade([
-            'dataInicial' => date('Y-m-d'),
-            'dataFinal' => date('Y-m-d'),
+            'dataInicial' => $dia,
+            'dataFinal' => $dia,
             'clientes_id' => $clienteId,
             'usuarios_id' => $uid,
             'tecnico_responsavel' => $uid,

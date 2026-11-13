@@ -234,6 +234,29 @@ async function main() {
   });
 
   // ------------------------------------------------------------ limpeza
+  await step('Sem internet: batida guardada no aparelho sai com a hora certa', async () => {
+    await page.waitForFunction(() => Boolean(localStorage.getItem('mapos.offline.download')), null, { timeout: 15000 });
+    await context.setOffline(true);
+    await page.evaluate(() => { location.hash = '#/colaborador/ponto'; });
+    await page.getByText('Próxima batida').waitFor({ timeout: 8000 });
+    await page.waitForTimeout(1200);
+
+    const antes = state.batidas.length;
+    await page.getByRole('button', { name: 'Registrar Entrada' }).click();
+    await page.getByText(/registrada às/).waitFor({ timeout: 9000 });
+    check('Batida aceita sem internet', state.batidas.length === antes);
+    const pendente = await page.getByText(/aguardando internet/).first().waitFor({ timeout: 6000 }).then(() => true, () => false);
+    check('Batida fica aguardando internet', pendente);
+    await shot('09-ponto-offline');
+
+    await context.setOffline(false);
+    const entregue = await page
+      .waitForFunction(() => !document.body.innerText.includes('aguardando internet'), null, { timeout: 20000 })
+      .then(() => true, () => false);
+    check('Internet voltou: batida entregue', entregue && state.batidas.length === antes + 1, String(state.batidas.length - antes));
+    check('Batida leva a hora do aparelho', /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(String(state.ultimaBatida?.registrado_em)), String(state.ultimaBatida?.registrado_em));
+  });
+
   await step('Console do navegador', async () => {
     const relevantes = consoleErrors.filter((m) => !/favicon|Failed to fetch|net::ERR|401|403/i.test(m));
     check('Sem erros de JS', relevantes.length === 0, relevantes.slice(0, 3).join(' | '));

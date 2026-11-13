@@ -284,16 +284,18 @@ class TecnicoProjetoController extends AreaApiController
             : 'praticavel';
         $assinatura = dataurl_imagem($corpo['assinatura'] ?? '');
 
+        // Registro feito sem internet vale para o dia em que foi feito (até 72 h).
+        $agora = $this->momentoInformado($corpo['registrado_em'] ?? null);
         $rdoId = $this->obras_model->addRdo([
             'obra_id' => $obraId,
             'numero' => $this->obras_model->proximoNumeroRdo($obraId),
-            'data' => date('Y-m-d'),
+            'data' => substr($agora, 0, 10),
             'condicao' => $condicao,
             'responsavel_id' => $uid,
             'atividades' => $atividades ?? '(sem descrição)',
             'status' => 'finalizado',
             'assinatura' => $assinatura,
-            'data_registro' => date('Y-m-d H:i:s'),
+            'data_registro' => $agora,
         ]);
         if (! $rdoId) {
             $this->invalido('Não foi possível registrar o RDO.');
@@ -303,7 +305,6 @@ class TecnicoProjetoController extends AreaApiController
             $this->obras_model->addRdoFoto($rdoId, $bin);
         }
 
-        $agora = date('Y-m-d H:i:s');
         $controlaEstoque = $this->config('control_estoque');
 
         foreach ($materiais as $item) {

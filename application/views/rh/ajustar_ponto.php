@@ -31,7 +31,7 @@ $diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
                     <td><?= date('d/m', $ts) ?> <small><?= $diasSemana[(int)date('w',$ts)] ?></small></td>
                     <td><strong><?= date('H:i', $ts) ?></strong></td>
                     <td><?= $lblTipo[$r->tipo] ?? $r->tipo ?></td>
-                    <td><?= $r->origem === 'manual' ? '<span style="color:#d97706">Manual</span>' : ($r->origem === 'whatsapp' ? 'WhatsApp' : 'App') ?></td>
+                    <td><?= $r->origem === 'manual' ? '<span style="color:#d97706">Manual</span>' : ($r->origem === 'whatsapp' ? 'WhatsApp' : ($r->origem === 'app_offline' ? 'App (sem internet)' : 'App')) ?></td>
                     <td><?= $r->status === 'ajustado' ? '<span style="color:#d97706">Ajustado</span>' : ($r->status === 'rejeitado' ? '<span style="color:#dc2626">Rejeitado</span>' : 'Válido') ?></td>
                     <td><?php if ($r->dentro_geofence === '1') echo '<span style="color:#16a34a">Na área</span>';
                         elseif ($r->dentro_geofence === '0') echo '<span style="color:#dc2626">Fora ('.(int)$r->distancia_metros.'m)</span>';

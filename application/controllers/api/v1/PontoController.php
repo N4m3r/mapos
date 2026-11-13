@@ -144,11 +144,14 @@ class PontoController extends AreaApiController
 
         $fotoMime = $foto && preg_match('#^data:(image/[\w+.-]+);base64,#', $foto, $m) ? $m[1] : null;
 
+        // Batida feita sem internet chega pela fila do app com a hora do aparelho
+        // (aceita até 72 h atrás) e fica marcada como "app_offline" para o RH.
+        $offline = ! empty($corpo['registrado_em']);
         $dados = [
             'colaborador_id' => (int) $c->id,
-            'data_hora' => date('Y-m-d H:i:s'),
+            'data_hora' => $this->momentoInformado($corpo['registrado_em'] ?? null),
             'tipo' => $tipo,
-            'origem' => 'api',
+            'origem' => $offline ? 'app_offline' : 'api',
             'unidade_id' => $unidadeId ?: null,
             'latitude' => $lat,
             'longitude' => $lng,

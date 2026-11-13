@@ -141,6 +141,12 @@ export function TecnicoAtividadeScreen() {
           assinatura_nome: nomeAssinatura.trim() || undefined,
         }),
       );
+      if (!r.idOs) {
+        // Sem internet: a atividade vai para a fila e ganha número ao ser enviada.
+        setOk('Sem internet: a atividade ficou guardada no aparelho e será aberta no sistema quando a internet voltar.');
+        window.setTimeout(() => navigate('tecnico'), 2500);
+        return;
+      }
       setOk(`Atividade aberta (OS ${String(r.idOs).padStart(4, '0')}).`);
       navigate(`tecnico/atendimento/${r.idOs}`);
     } catch (err) {

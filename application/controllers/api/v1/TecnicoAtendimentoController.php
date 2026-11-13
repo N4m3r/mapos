@@ -337,7 +337,7 @@ class TecnicoAtendimentoController extends AreaApiController
             'url' => $r['url'],
             'descricao' => $this->cortar($corpo['descricao'] ?? '', 255),
             'etapa' => $etapa,
-            'data_upload' => date('Y-m-d H:i:s'),
+            'data_upload' => $this->momentoInformado($corpo['registrado_em'] ?? null),
             'tamanho' => $r['tamanho'],
             'tipo_arquivo' => $r['tipo'],
             'imagem_base64' => $r['imagem_base64'],
@@ -394,7 +394,8 @@ class TecnicoAtendimentoController extends AreaApiController
         }
 
         $checkin = $this->checkin_model->getCheckinAtivo($osId);
-        $id = $this->os_observacoes_tecnico_model->adicionar($osId, $uid, $texto, $checkin ? $checkin->idCheckin : null);
+        $momento = $this->momentoInformado($corpo['registrado_em'] ?? null);
+        $id = $this->os_observacoes_tecnico_model->adicionar($osId, $uid, $texto, $checkin ? $checkin->idCheckin : null, $momento);
         if (! $id) {
             $this->invalido('Não foi possível salvar a observação.');
         }
@@ -402,7 +403,7 @@ class TecnicoAtendimentoController extends AreaApiController
         $this->ok([
             'id' => (int) $id,
             'texto' => $texto,
-            'hora' => date('d/m/Y H:i'),
+            'hora' => date('d/m/Y H:i', strtotime($momento)),
             'autor' => $user->usuario->nome,
         ], 'Observação registrada.');
     }

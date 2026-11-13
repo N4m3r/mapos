@@ -1,6 +1,7 @@
 /** Endpoints da Área do Técnico (application/config/routes_api.php, /api/v1/tecnico). */
 
 import { ApiError, request } from './http';
+import { leituraGuardada } from './offline';
 import type { ApiEnvelope } from './types';
 import type {
   AssinaturaSolicitante,
@@ -158,16 +159,54 @@ export function reabrir(baseUrl: string, token: string, ocorrenciaId: number) {
 // Atividade não programada (cadastros sem preço)
 // ------------------------------------------------------------------
 
+type Busca = 'clientes' | 'servicos' | 'produtos';
+
+const LIMITE_LISTA = 3000;
+const listaPath = (tipo: Busca) => `/api/v1/tecnico/${tipo}${query({ limite: LIMITE_LISTA })}`;
+
+/** Lista inteira de clientes/serviços/produtos, baixada para buscar sem internet. */
+export function listaCompletaBusca(baseUrl: string, token: string, tipo: Busca): Promise<unknown[]> {
+  return unwrap<unknown[]>(baseUrl, listaPath(tipo), { token, timeoutMs: 60000 });
+}
+
+function semAcento(texto: unknown): string {
+  return String(texto ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+/**
+ * Busca no servidor; sem internet, filtra a lista completa baixada no aparelho
+ * (cada palavra digitada precisa aparecer em algum dos campos).
+ */
+async function buscar<T>(baseUrl: string, token: string, tipo: Busca, q: string, campos: Array<keyof T>): Promise<T[]> {
+  try {
+    return await unwrap<T[]>(baseUrl, `/api/v1/tecnico/${tipo}${query({ q })}`, { token });
+  } catch (err) {
+    if (!(err instanceof ApiError) || err.status !== 0) throw err;
+    const guardada = (await leituraGuardada(baseUrl, listaPath(tipo)))?.dados as { result?: T[] } | null;
+    if (!guardada?.result) throw err;
+    const palavras = semAcento(q).split(/\s+/).filter(Boolean);
+    return guardada.result
+      .filter((item) => {
+        const texto = campos.map((c) => semAcento(item[c])).join(' ');
+        return palavras.every((p) => texto.includes(p));
+      })
+      .slice(0, 30);
+  }
+}
+
 export function buscarClientes(baseUrl: string, token: string, q: string): Promise<ClienteBusca[]> {
-  return unwrap<ClienteBusca[]>(baseUrl, `/api/v1/tecnico/clientes${query({ q })}`, { token });
+  return buscar<ClienteBusca>(baseUrl, token, 'clientes', q, ['nome', 'documento', 'telefone']);
 }
 
 export function buscarServicos(baseUrl: string, token: string, q: string): Promise<ServicoBusca[]> {
-  return unwrap<ServicoBusca[]>(baseUrl, `/api/v1/tecnico/servicos${query({ q })}`, { token });
+  return buscar<ServicoBusca>(baseUrl, token, 'servicos', q, ['nome']);
 }
 
 export function buscarProdutos(baseUrl: string, token: string, q: string): Promise<ProdutoBusca[]> {
-  return unwrap<ProdutoBusca[]>(baseUrl, `/api/v1/tecnico/produtos${query({ q })}`, { token });
+  return buscar<ProdutoBusca>(baseUrl, token, 'produtos', q, ['nome']);
 }
 
 export interface AtividadePayload {
