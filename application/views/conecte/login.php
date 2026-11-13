@@ -10,7 +10,7 @@
     <meta name="csrf-cookie-name" content="<?= config_item("csrf_cookie_name") ?>">
     <link rel="stylesheet" href="<?php echo base_url() ?>assets/css/bootstrap.min.css" />
     <link rel="stylesheet" href="<?php echo base_url() ?>assets/css/bootstrap-responsive.min.css" />
-    <link rel="stylesheet" href="<?php echo base_url() ?>assets/css/matrix-login.css" />
+    <link rel="stylesheet" href="<?= base_url('assets/css/matrix-login.css') ?>?v=<?= asset_versao('assets/css/matrix-login.css') ?>" />
     <link href="<?= base_url('assets/css/particula.css'); ?>" rel="stylesheet">
     <link href="<?php echo base_url(); ?>assets/font-awesome/css/font-awesome.css" rel="stylesheet" />
     <?= jquery_tags() ?>
