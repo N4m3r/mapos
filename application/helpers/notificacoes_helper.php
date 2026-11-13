@@ -36,7 +36,7 @@ if (! function_exists('notif_ordem_grupos')) {
      */
     function notif_ordem_grupos()
     {
-        return ['Ordem de Serviço', 'Atendimento em campo', 'Projetos', 'Cobrança', 'Fiscal', 'Cliente'];
+        return ['Ordem de Serviço', 'Aceite do cliente', 'Atendimento em campo', 'Projetos', 'Cobrança', 'Fiscal', 'Cliente'];
     }
 }
 
@@ -52,6 +52,10 @@ if (! function_exists('notif_evento_icone')) {
             'os_aprovada' => 'bx-check-circle',
             'os_finalizada' => 'bx-check-square',
             'os_aceite' => 'bx-pen',
+            'atividade_np_finalizada' => 'bx-task',
+            'aceite_concluido' => 'bx-badge-check',
+            'aceite_recusado' => 'bx-x-circle',
+            'aceite_esgotado' => 'bx-time-five',
             'os_tecnico_a_caminho' => 'bx-run',
             'os_tecnico_chegou' => 'bx-map-pin',
             'os_nao_realizada' => 'bx-block',
