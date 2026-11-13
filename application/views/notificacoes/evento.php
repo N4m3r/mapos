@@ -189,7 +189,8 @@ $marcado = function ($valor, $lista) {
                     <p style="font-size:12px;color:var(--ui-texto-2);margin:0 0 8px">
                         Enquanto o cliente não aceitar ou recusar, o link é reenviado só para ele (modelo "Aceite: lembrete de assinatura").
                         Para ao assinar, ao recusar, se a OS for cancelada ou quando acabam as tentativas (evento "Aceite sem resposta").
-                        Precisa do agendamento <code>php index.php lembretes/aceite</code> a cada 15 minutos.
+                        O próprio MAPOS confere a fila a cada <?= (int) max(30, $intervaloDisparo ?? 120) ?> segundos, junto com a fila de e-mails
+                        (intervalo ajustável na aba Canais da central), sempre que alguém usa o sistema ou o app. Não precisa de cron.
                     </p>
                     <div class="ui-grade">
                         <div class="control-group">
@@ -236,6 +237,47 @@ $marcado = function ($valor, $lista) {
         </div>
     </div>
 </form>
+
+<?php if (! empty($temReenvio) && is_array($reenvioResumo ?? null)) { ?>
+<?php
+    $rotulosSituacao = ['ativo' => 'Em reenvio', 'aceito' => 'Assinaram', 'recusado' => 'Recusaram', 'esgotado' => 'Sem resposta', 'cancelado' => 'Cancelados'];
+?>
+<div class="widget-box">
+    <div class="widget-content">
+        <div class="ui-secao"><h4>Reenvios do link de aceite</h4></div>
+        <p style="font-size:13px;color:var(--ui-texto-2);margin:0 0 10px">
+            <?php foreach ($rotulosSituacao as $sit => $rot) { ?>
+                <span style="margin-right:14px"><?= $e($rot) ?>: <strong><?= (int) ($reenvioResumo['totais'][$sit] ?? 0) ?></strong></span>
+            <?php } ?>
+        </p>
+        <?php if (! empty($reenvioResumo['ativos'])) { ?>
+            <table class="table table-condensed" style="font-size:13px">
+                <thead><tr><th>OS</th><th>Cliente</th><th>Lembretes</th><th>Próximo envio</th></tr></thead>
+                <tbody>
+                <?php foreach ($reenvioResumo['ativos'] as $r) { ?>
+                    <tr>
+                        <td><a href="<?= site_url('os/visualizar/' . (int) $r->os_id) ?>">#<?= (int) $r->os_id ?></a></td>
+                        <td><?= $e($r->nomeCliente ?? '') ?></td>
+                        <td><?= (int) $r->tentativas ?> de <?= (int) $r->max_tentativas ?></td>
+                        <td><?= $e($r->proximo_envio ? date('d/m/Y H:i', strtotime($r->proximo_envio)) : '—') ?></td>
+                    </tr>
+                <?php } ?>
+                </tbody>
+            </table>
+        <?php } ?>
+        <?php if ($podeSistema) { ?>
+            <form action="<?= site_url('notificacoes/processarReenvios') ?>" method="post" style="margin:0">
+                <input type="hidden" name="<?= $tokenName ?>" value="<?= $tokenHash ?>">
+                <input type="hidden" name="evento" value="<?= $e($eventoSlug) ?>">
+                <button type="submit" class="button btn">
+                    <span class="button__icon"><i class="bx bx-refresh"></i></span>
+                    <span class="button__text2">Processar agora</span>
+                </button>
+            </form>
+        <?php } ?>
+    </div>
+</div>
+<?php } ?>
 
 <?php if ($podeSistema && $gatilho) { ?>
 <div class="widget-box">

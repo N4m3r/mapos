@@ -8,8 +8,10 @@ if (! defined('BASEPATH')) {
  * Loop de reenvio do link de aceite até o cliente assinar.
  *
  * Ao finalizar, Aviso_aceite agenda a OS aqui (tabela aceite_reenvios) com o
- * intervalo e o limite do gatilho. O cron "php index.php notificacoes/reenviar_aceite"
- * (a cada 15 min) chama executar(): reenvia o que venceu e encerra o loop quando
+ * intervalo e o limite do gatilho. O próprio sistema chama executar() no pulso
+ * da fila de e-mails (hook post_system, sem cron externo), pelo botão
+ * "Processar agora" da tela do evento ou por "php index.php lembretes/aceite".
+ * Ele reenvia o que venceu e encerra o loop quando
  * o cliente aceita ou recusa, quando a OS é cancelada ou o link revogado, ou
  * quando acabam as tentativas (aí dispara "aceite_esgotado").
  */
@@ -157,6 +159,34 @@ class Aceite_reenvio
         }
 
         return $resultado;
+    }
+
+    /**
+     * Para a tela do evento: OS em loop agora e quantas encerraram por motivo.
+     *
+     * @return array{ativos: object[], totais: array<string, int>}
+     */
+    public function resumo($limite = 20)
+    {
+        if (! $this->disponivel()) {
+            return ['ativos' => [], 'totais' => []];
+        }
+
+        $totais = [];
+        foreach ($this->ci->db->select('situacao, COUNT(*) AS total')->group_by('situacao')->get('aceite_reenvios')->result() as $r) {
+            $totais[$r->situacao] = (int) $r->total;
+        }
+
+        $ativos = $this->ci->db->select('aceite_reenvios.*, clientes.nomeCliente')
+            ->from('aceite_reenvios')
+            ->join('os', 'os.idOs = aceite_reenvios.os_id', 'left')
+            ->join('clientes', 'clientes.idClientes = os.clientes_id', 'left')
+            ->where('aceite_reenvios.situacao', 'ativo')
+            ->order_by('aceite_reenvios.proximo_envio', 'ASC')
+            ->limit((int) $limite)
+            ->get()->result();
+
+        return ['ativos' => $ativos, 'totais' => $totais];
     }
 
     /* ------------------------------------------------------------------ */

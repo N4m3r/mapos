@@ -9,7 +9,8 @@ if (! defined('BASEPATH')) {
  *
  *   php index.php lembretes/executar          envia (precisa LEMBRETES_ATIVO=true)
  *   php index.php lembretes/executar simular  so mostra o que seria enviado
- *   php index.php lembretes/aceite            reenvia links de aceite pendentes (a cada 15 min)
+ *   php index.php lembretes/aceite            reenvia links de aceite pendentes (opcional: o
+ *                                             sistema já faz isso sozinho no hook da fila de e-mails)
  */
 class Lembretes extends CI_Controller
 {

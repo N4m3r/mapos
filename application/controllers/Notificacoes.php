@@ -137,6 +137,8 @@ class Notificacoes extends MY_Controller
         $this->data['ehOs'] = ($catalogo[$evento]['grupo'] === 'Ordem de Serviço');
         $this->data['ehProjeto'] = ($catalogo[$evento]['grupo'] === 'Projetos');
         $this->data['temReenvio'] = in_array($evento, Aceite_reenvio::EVENTOS, true);
+        $this->data['reenvioResumo'] = $this->data['temReenvio'] ? $this->aceite_reenvio->resumo() : null;
+        $this->data['intervaloDisparo'] = (int) ($this->data['configuration']['notif_intervalo_disparo'] ?? 120);
 
         $this->data['view'] = 'notificacoes/evento';
 
@@ -204,6 +206,25 @@ class Notificacoes extends MY_Controller
 
         $this->session->set_flashdata('success', 'Configuração do evento salva.');
         redirect(site_url('notificacoes/evento/' . rawurlencode($evento)));
+    }
+
+    /** Processa agora a fila de reenvio do link de aceite (sem esperar o pulso automático). */
+    public function processarReenvios()
+    {
+        $this->exigirSistema();
+        $evento = (string) $this->input->post('evento');
+        $volta = in_array($evento, Aceite_reenvio::EVENTOS, true) ? 'notificacoes/evento/' . $evento : 'notificacoes';
+        if ($this->input->method() !== 'post' || ! $this->aceite_reenvio->disponivel()) {
+            $this->session->set_flashdata('error', 'Reenvio de aceite indisponível. Rode a atualização do banco.');
+            redirect(site_url($volta));
+        }
+
+        $resultado = $this->aceite_reenvio->executar();
+        $enviados = count(array_filter($resultado, static fn ($r) => $r['acao'] === 'reenviar' && $r['enviado']));
+        $encerrados = count(array_filter($resultado, static fn ($r) => $r['acao'] !== 'reenviar'));
+        log_info('Processou a fila de reenvio de aceite manualmente: ' . $enviados . ' reenvio(s), ' . $encerrados . ' encerrado(s).');
+        $this->session->set_flashdata('success', 'Fila processada: ' . $enviados . ' lembrete(s) enviado(s), ' . $encerrados . ' encerrado(s).');
+        redirect(site_url($volta));
     }
 
     /** Ligar/desligar um evento (todos os gatilhos dele andam juntos). */

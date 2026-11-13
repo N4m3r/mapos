@@ -221,6 +221,46 @@ class NotificacoesViewsTest extends TestCase
         }
     }
 
+    public function testEventoDeAceiteMostraReenvioSemCron(): void
+    {
+        require_once APPPATH . 'libraries/Aceite_reenvio.php';
+        $gatilho = $this->gatilho(['evento' => 'atividade_np_finalizada', 'reenvio_intervalo_horas' => 24, 'reenvio_max_tentativas' => 5]);
+
+        $this->load->vars = array_merge($this->contextoBase(), [
+            'eventoSlug' => 'atividade_np_finalizada',
+            'eventoInfo' => ['nome' => 'Atividade não programada finalizada', 'grupo' => 'Aceite do cliente'],
+            'gatilho' => $gatilho,
+            'gatilhosEvento' => [$gatilho],
+            'canais' => Notification_triggers_model::canaisDisponiveis(),
+            'destinatarios' => Notification_triggers_model::destinatariosDisponiveis(),
+            'blocos' => [],
+            'anexos' => [],
+            'whatsappTemplates' => [],
+            'emailTemplates' => [],
+            'clientesSelecionados' => [],
+            'projetosSelecionados' => [],
+            'ehOs' => false,
+            'ehProjeto' => false,
+            'temReenvio' => true,
+            'intervaloDisparo' => 120,
+            'reenvioResumo' => [
+                'totais' => ['ativo' => 1, 'aceito' => 4],
+                'ativos' => [(object) ['os_id' => 812, 'nomeCliente' => 'TG Foods', 'tentativas' => 2, 'max_tentativas' => 5, 'proximo_envio' => '2026-11-13 09:00:00']],
+            ],
+        ]);
+
+        $html = $this->load->view('notificacoes/evento', null, true);
+
+        $this->assertStringContainsString('name="reenvio_intervalo_horas" value="24"', $html);
+        $this->assertStringContainsString('name="reenvio_max_tentativas" value="5"', $html);
+        $this->assertStringContainsString('Não precisa de cron', $html);
+        $this->assertStringNotContainsString('lembretes/aceite', $html);
+        $this->assertStringContainsString('notificacoes/processarReenvios', $html);
+        $this->assertStringContainsString('#812', $html);
+        $this->assertStringContainsString('2 de 5', $html);
+        $this->assertStringContainsString('13/11/2026 09:00', $html);
+    }
+
     public function testEventoDeOsRenderiza(): void
     {
         $this->load->vars = array_merge($this->contextoBase(), [

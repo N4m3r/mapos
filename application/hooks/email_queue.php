@@ -10,7 +10,8 @@ if (! defined('BASEPATH')) {
  * Roda no hook post_system (depois que a página já foi enviada ao navegador),
  * limitado a uma execução a cada INTERVALO segundos. Assim a fila de e-mails
  * (cobranças, boletos, OS, etc.) é enviada pelo próprio sistema a cada ~2 min,
- * sem depender de cron externo. O throttle usa o mtime de um arquivo de lock
+ * sem depender de cron externo. No mesmo pulso: faturamento agendado e
+ * reenvio do link de aceite (Aceite_reenvio). O throttle usa o mtime de um arquivo de lock
  * e um flock não-bloqueante evita que duas requisições simultâneas processem a
  * fila ao mesmo tempo.
  */
@@ -97,6 +98,17 @@ function dispatch_email_queue()
         $CI->autoaprovacao->processarPendentes();
     } catch (\Throwable $e) {
         log_message('error', 'Falha ao processar faturamento agendado: ' . $e->getMessage());
+    }
+
+    // Reenvio do link de aceite até a assinatura (configurado no gatilho, sem cron).
+    try {
+        $CI = &get_instance();
+        $CI->load->library('aceite_reenvio');
+        if ($CI->aceite_reenvio->disponivel()) {
+            $CI->aceite_reenvio->executar();
+        }
+    } catch (\Throwable $e) {
+        log_message('error', 'Falha ao processar reenvio de aceite: ' . $e->getMessage());
     }
 
     flock($handle, LOCK_UN);
