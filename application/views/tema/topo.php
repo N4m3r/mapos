@@ -10,7 +10,7 @@
   <link rel="shortcut icon" type="image/png" href="<?= base_url(); ?>assets/img/favicon.png" />
   <link rel="stylesheet" href="<?= base_url(); ?>assets/css/bootstrap.min.css" />
   <link rel="stylesheet" href="<?= base_url(); ?>assets/css/bootstrap-responsive.min.css" />
-  <link rel="stylesheet" href="<?= base_url(); ?>assets/css/matrix-style.css" />
+  <link rel="stylesheet" href="<?= base_url('assets/css/matrix-style.css') ?>?v=<?= asset_versao('assets/css/matrix-style.css') ?>" />
   <link rel="stylesheet" href="<?= base_url(); ?>assets/css/matrix-media.css" />
   <?php if ($this->uri->segment(1) === 'rh'): ?>
   <link rel="stylesheet" href="<?= base_url('assets/css/rh.css') ?>?v=<?= asset_versao('assets/css/rh.css', '3') ?>" />
