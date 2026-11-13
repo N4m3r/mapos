@@ -10,22 +10,23 @@ $logoEmitenteEsc = $logoEmitente !== null ? htmlspecialchars($logoEmitente, ENT_
 ?>
 <!--sidebar-menu tecnico-->
 <nav id="sidebar" style="background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);">
-    <div id="newlog">
-        <div class="icon2">
-            <?php if ($logoEmitenteEsc !== null) { ?>
-                <img src="<?= $logoEmitenteEsc ?>" class="logo-emitente" alt="Logo">
-            <?php } else { ?>
-                <img src="<?php echo base_url() ?>assets/img/logo-two.png">
-            <?php } ?>
-        </div>
-        <div class="title1">
-            <?php if ($logoEmitenteEsc !== null) { ?>
-                <img src="<?= $logoEmitenteEsc ?>" class="logo-emitente" alt="Logo">
-            <?php } else { ?>
-                <img src="<?php echo base_url() ?>assets/img/logo-mapos-branco.png">
-            <?php } ?>
+    <?php if ($logoEmitenteEsc !== null) { ?>
+    <!-- Logo do emitente: uma imagem so, que acompanha a largura do menu -->
+    <div id="newlog" class="com-logo-emitente">
+        <div class="logo-emitente-box">
+            <img src="<?= $logoEmitenteEsc ?>" class="logo-emitente" alt="Logo">
         </div>
     </div>
+    <?php } else { ?>
+    <div id="newlog">
+        <div class="icon2">
+            <img src="<?php echo base_url() ?>assets/img/logo-two.png">
+        </div>
+        <div class="title1">
+            <img src="<?php echo base_url() ?>assets/img/logo-mapos-branco.png">
+        </div>
+    </div>
+    <?php } ?>
     <a href="#" class="visible-phone">
         <div class="mode">
             <div class="moon-menu">

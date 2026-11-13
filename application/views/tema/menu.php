@@ -24,22 +24,23 @@ $logoEmitenteEsc = $logoEmitente !== null ? htmlspecialchars($logoEmitente, ENT_
 ?>
 <!--sidebar-menu-->
 <nav id="sidebar">
-    <div id="newlog">
-        <div class="icon2">
-            <?php if ($logoEmitenteEsc !== null) { ?>
-                <img src="<?= $logoEmitenteEsc ?>" class="logo-emitente" alt="Logo">
-            <?php } else { ?>
-                <img src="<?php echo base_url() ?>assets/img/logo-two.png" alt="">
-            <?php } ?>
-        </div>
-        <div class="title1">
-            <?php if ($logoEmitenteEsc !== null) { ?>
-                <img src="<?= $logoEmitenteEsc ?>" class="logo-emitente" alt="Logo">
-            <?php } else { ?>
-                <?= $configuration['app_theme'] == 'white' || $configuration['app_theme'] == 'whitegreen' ? '<img src="' . base_url() . 'assets/img/logo-mapos.png">' : '<img src="' . base_url() . 'assets/img/logo-mapos-branco.png">'; ?>
-            <?php } ?>
+    <?php if ($logoEmitenteEsc !== null) { ?>
+    <!-- Logo do emitente: uma imagem so, que acompanha a largura do menu -->
+    <div id="newlog" class="com-logo-emitente">
+        <div class="logo-emitente-box">
+            <img src="<?= $logoEmitenteEsc ?>" class="logo-emitente" alt="Logo">
         </div>
     </div>
+    <?php } else { ?>
+    <div id="newlog">
+        <div class="icon2">
+            <img src="<?php echo base_url() ?>assets/img/logo-two.png" alt="">
+        </div>
+        <div class="title1">
+            <?= $configuration['app_theme'] == 'white' || $configuration['app_theme'] == 'whitegreen' ? '<img src="' . base_url() . 'assets/img/logo-mapos.png">' : '<img src="' . base_url() . 'assets/img/logo-mapos-branco.png">'; ?>
+        </div>
+    </div>
+    <?php } ?>
     <a href="#" class="visible-phone">
         <div class="mode">
             <div class="moon-menu">

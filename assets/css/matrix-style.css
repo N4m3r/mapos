@@ -656,6 +656,25 @@ End hora certa */
   object-fit: contain;
 }
 
+/* Com logo do emitente ha uma imagem so (sem icone + titulo): ocupa a largura
+   disponivel, aberta (240px) ou recolhida (80px) */
+#newlog.com-logo-emitente {
+  padding: 0 12px;
+}
+
+/* Os temas escuros invertem #newlog para clarear a logo do MAP-OS; a logo do
+   emitente fica com as cores originais */
+#sidebar #newlog.com-logo-emitente,
+#sidebar #newlog .logo-emitente-box {
+  filter: none;
+}
+
+#newlog .logo-emitente-box {
+  width          : 100%;
+  display        : flex;
+  justify-content: center;
+}
+
 /* Sidebar Navigation */
 #sidebar {
   display        : flex;
