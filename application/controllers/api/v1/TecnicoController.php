@@ -215,7 +215,7 @@ class TecnicoController extends AreaApiController
                     ? (bool) $c->exige_chamado
                     : Atividade_pendencias_model::nomeExigeChamado($c->nomeCliente),
             ];
-        }, $this->tecnico_model->buscarClientes($q)), 'Clientes');
+        }, $this->tecnico_model->buscarClientes($q, $this->limiteBusca(20))), 'Clientes');
     }
 
     /** GET /api/v1/tecnico/servicos?q= — autocomplete de serviços, sem preço. */
@@ -226,7 +226,7 @@ class TecnicoController extends AreaApiController
 
         $this->ok(array_map(static function ($s) {
             return ['id' => (int) $s->idServicos, 'nome' => $s->nome];
-        }, $this->tecnico_model->buscarServicos($q)), 'Serviços');
+        }, $this->tecnico_model->buscarServicos($q, $this->limiteBusca(25))), 'Serviços');
     }
 
     /** GET /api/v1/tecnico/produtos?q= — autocomplete de produtos, sem preço. */
@@ -242,7 +242,7 @@ class TecnicoController extends AreaApiController
                 'unidade' => $p->unidade ?? null,
                 'estoque' => $p->estoque ?? null,
             ];
-        }, $this->tecnico_model->buscarProdutos($q)), 'Produtos');
+        }, $this->tecnico_model->buscarProdutos($q, $this->limiteBusca(25))), 'Produtos');
     }
 
     // ------------------------------------------------------------------
@@ -545,5 +545,16 @@ class TecnicoController extends AreaApiController
             'qtd_fotos' => (int) ($p->qtd_fotos ?? 0),
             'minha' => (int) ($p->responsavel_id ?? 0) === (int) $uid,
         ];
+    }
+
+    /**
+     * Tamanho da lista da busca. O app pede a lista inteira (?limite=) ao baixar
+     * os dados para usar offline e filtra no aparelho; o padrão continua curto.
+     */
+    private function limiteBusca($padrao)
+    {
+        $limite = (int) $this->get('limite');
+
+        return $limite > 0 ? min($limite, 3000) : $padrao;
     }
 }

@@ -1,4 +1,13 @@
-/** Cliente HTTP do app: Bearer JWT, timeout, erros tipados e retry de sessão. */
+/** Cliente HTTP do app: Bearer JWT, timeout, erros tipados, retry de sessão e modo offline. */
+
+import {
+  arquivoGuardado,
+  guardarArquivo,
+  guardarLeitura,
+  leituraGuardada,
+  mudarEstado,
+  tratarEnvioSemRede,
+} from './offline';
 
 export class ApiError extends Error {
   readonly status: number;
@@ -149,7 +158,71 @@ function detalheDoErro(bruto: string): string {
   return linha.length > 220 ? `${linha.slice(0, 220)}…` : linha;
 }
 
+/** Falha de rede (sem sinal, servidor fora do ar ou tempo esgotado), não recusa do servidor. */
+function semRede(err: unknown): boolean {
+  return err instanceof ApiError && err.status === 0;
+}
+
+function aparelhoOffline(): boolean {
+  return typeof navigator !== 'undefined' && navigator.onLine === false;
+}
+
+const PRECISA_INTERNET = 'Sem internet: esta ação precisa de conexão com o servidor. Tente de novo quando a internet voltar.';
+
+/**
+ * Requisição com o modo offline: leitura que dá certo é guardada no aparelho
+ * e, sem rede, a tela recebe a última cópia; envio sem rede entra na fila
+ * quando a ação permite (offline-regras.ts).
+ */
 export async function request<T>(baseUrl: string, path: string, options: RequestOptions = {}): Promise<T> {
+  const metodo = options.method ?? 'GET';
+  if (!options.token) return requestRede<T>(baseUrl, path, options);
+
+  if (metodo === 'GET') {
+    const usarGuardado = async (): Promise<T | null> => {
+      const guardado = await leituraGuardada(baseUrl, path);
+      if (!guardado) return null;
+      mudarEstado({ semRede: true, usandoGuardado: guardado.salvoEm });
+      return guardado.dados as T;
+    };
+    if (aparelhoOffline()) {
+      const guardado = await usarGuardado();
+      if (guardado !== null) return guardado;
+    }
+    try {
+      const payload = await requestRede<T>(baseUrl, path, options);
+      const recusado = payload && typeof payload === 'object' && (payload as { status?: unknown }).status === false;
+      if (!recusado) void guardarLeitura(baseUrl, path, payload);
+      mudarEstado({ semRede: false, usandoGuardado: null });
+      return payload;
+    } catch (err) {
+      if (semRede(err)) {
+        const guardado = await usarGuardado();
+        if (guardado !== null) return guardado;
+        throw new ApiError('Sem internet e esta tela ainda não foi baixada no aparelho. Conecte-se e use "Baixar para usar offline".', 0);
+      }
+      throw err;
+    }
+  }
+
+  const envioSemRede = async (): Promise<T> => {
+    const envelope = await tratarEnvioSemRede(baseUrl, path, metodo, options.body);
+    if (envelope) return envelope as T;
+    throw new ApiError(PRECISA_INTERNET, 0);
+  };
+  if (aparelhoOffline()) return envioSemRede();
+  try {
+    const payload = await requestRede<T>(baseUrl, path, options);
+    mudarEstado({ semRede: false });
+    return payload;
+  } catch (err) {
+    if (semRede(err)) return envioSemRede();
+    throw err;
+  }
+}
+
+/** Só a rede, sem cópia guardada nem fila (usado também pela sincronização). */
+export async function requestRede<T>(baseUrl: string, path: string, options: RequestOptions = {}): Promise<T> {
   const response = await rawRequest(baseUrl, path, options);
   const text = await response.text();
   const payload = lerJson(text);
@@ -208,13 +281,29 @@ export async function requestBlob(
   path: string,
   options: RequestOptions = {},
 ): Promise<Blob> {
-  const response = await rawRequest(baseUrl, path, options);
+  const guardavel = Boolean(options.token) && (options.method ?? 'GET') === 'GET';
+  if (guardavel && aparelhoOffline()) {
+    const guardado = await arquivoGuardado(baseUrl, path);
+    if (guardado) return guardado;
+  }
+  let response: Response;
+  try {
+    response = await rawRequest(baseUrl, path, options);
+  } catch (err) {
+    if (guardavel && semRede(err)) {
+      const guardado = await arquivoGuardado(baseUrl, path);
+      if (guardado) return guardado;
+    }
+    throw err;
+  }
   if (!response.ok) {
     const text = await response.text();
     throw new ApiError(mensagemDeErro(lerJson(text), response.status, text), response.status);
   }
 
-  return response.blob();
+  const blob = await response.blob();
+  if (guardavel) void guardarArquivo(baseUrl, path, blob);
+  return blob;
 }
 
 /** Os controllers devolvem HTML em validation_errors(); limpamos para exibir texto. */

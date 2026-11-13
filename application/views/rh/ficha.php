@@ -121,7 +121,7 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
                             <tr><td>Nenhuma batida.</td></tr>
                         <?php else: foreach ($ultimas_batidas as $b): ?>
                             <tr>
-                                <td><?= $lblTipo[$b->tipo] ?? $b->tipo ?> <?= $b->origem==='manual' ? '<small style="color:#d97706">(manual)</small>':'' ?>
+                                <td><?= $lblTipo[$b->tipo] ?? $b->tipo ?> <?= $b->origem==='manual' ? '<small style="color:#d97706">(manual)</small>':'' ?><?= $b->origem==='app_offline' ? '<small style="color:#2563eb">(sem internet)</small>':'' ?>
                                     <?php if (! empty($b->latitude) && ! empty($b->longitude)): ?>
                                         <a href="https://www.google.com/maps?q=<?= $b->latitude ?>,<?= $b->longitude ?>" target="_blank" rel="noopener" title="Ver no mapa"><i class='bx bx-map-pin'></i></a>
                                     <?php endif; ?>

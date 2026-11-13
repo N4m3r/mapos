@@ -6,6 +6,7 @@ import { AppProvider, useApp } from './lib/store';
 import { navigate, useRoute } from './lib/router';
 import { homePathFor } from './lib/area';
 import { AreaTabBar } from './components/AreaTabBar';
+import { OfflineAviso } from './components/OfflineAviso';
 import { LoginScreen } from './screens/LoginScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { OsListScreen } from './screens/OsListScreen';
@@ -186,6 +187,7 @@ function Shell() {
 
   return (
     <>
+      <OfflineAviso />
       {screen}
       {mostrarTabs ? (
         <AreaTabBar area={area} active={route.name} podeBaterPonto={can('baterPonto')} can={can} />

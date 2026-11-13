@@ -10,7 +10,7 @@ class Os_observacoes_tecnico_model extends CI_Model
         return $this->db->table_exists('os_observacoes_tecnico');
     }
 
-    public function adicionar($os_id, $usuarios_id, $texto, $checkin_id = null)
+    public function adicionar($os_id, $usuarios_id, $texto, $checkin_id = null, $data_hora = null)
     {
         if (!$this->disponivel()) {
             return false;
@@ -20,7 +20,7 @@ class Os_observacoes_tecnico_model extends CI_Model
             'checkin_id' => $checkin_id ? (int) $checkin_id : null,
             'usuarios_id' => (int) $usuarios_id,
             'texto' => $texto,
-            'data_hora' => date('Y-m-d H:i:s'),
+            'data_hora' => $data_hora ?: date('Y-m-d H:i:s'),
         ]);
 
         return $ok ? $this->db->insert_id() : false;

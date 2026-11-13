@@ -113,7 +113,7 @@ export function TecnicoPontoScreen({ obra, id }: { obra: string; id: string }) {
       const r = await handle(() => tec.mudarStatusPonto(baseUrl, token, ponto.idPonto, payload));
       setOk(`Ponto atualizado para ${lista[destino]?.rotulo ?? destino}.`);
       setAvancar(false);
-      setData({ ...data!, ponto: r.ponto });
+      setData({ ...data!, ponto: r.ponto ?? { ...data!.ponto, status: destino } });
       recarregar();
     } catch (err) {
       setErro((err as Error).message);
