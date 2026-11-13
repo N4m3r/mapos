@@ -227,7 +227,9 @@ function html_seguro_sanitizar($html)
     $dom = new DOMDocument('1.0', 'UTF-8');
     $dom->loadHTML(
         '<?xml encoding="UTF-8"><div id="html-seguro-raiz">' . $html . '</div>',
-        LIBXML_NODEFDTD
+        // LIBXML_NODEFDTD só existe com libxml >= 2.7.8; o DOCTYPE extra não
+        // afeta a saída, que copia apenas os filhos da div raiz.
+        defined('LIBXML_NODEFDTD') ? LIBXML_NODEFDTD : 0
     );
 
     $xpath = new DOMXPath($dom);
