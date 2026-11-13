@@ -51,22 +51,23 @@
 
     <?php $logoEmitente = emitente_logo_url(); ?>
     <nav id="sidebar">
-        <div id="newlog">
-            <div class="icon2">
-                <?php if ($logoEmitente !== null) { ?>
-                    <img src="<?= htmlspecialchars($logoEmitente, ENT_QUOTES, 'UTF-8') ?>" class="logo-emitente" alt="Logo">
-                <?php } else { ?>
-                    <img src="<?php echo base_url() ?>assets/img/logo-two.png">
-                <?php } ?>
-            </div>
-            <div class="title1">
-                <?php if ($logoEmitente !== null) { ?>
-                    <img src="<?= htmlspecialchars($logoEmitente, ENT_QUOTES, 'UTF-8') ?>" class="logo-emitente" alt="Logo">
-                <?php } else { ?>
-                    <img src="<?= base_url() ?>assets/img/logo-mapos-branco.png">
-                <?php } ?>
+        <?php if ($logoEmitente !== null) { ?>
+        <!-- Logo do emitente: uma imagem so, que acompanha a largura do menu -->
+        <div id="newlog" class="com-logo-emitente">
+            <div class="logo-emitente-box">
+                <img src="<?= htmlspecialchars($logoEmitente, ENT_QUOTES, 'UTF-8') ?>" class="logo-emitente" alt="Logo">
             </div>
         </div>
+        <?php } else { ?>
+        <div id="newlog">
+            <div class="icon2">
+                <img src="<?php echo base_url() ?>assets/img/logo-two.png">
+            </div>
+            <div class="title1">
+                <img src="<?= base_url() ?>assets/img/logo-mapos-branco.png">
+            </div>
+        </div>
+        <?php } ?>
         <a href="#" class="visible-phone">
             <div class="mode">
                 <div class="moon-menu">

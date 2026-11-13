@@ -59,6 +59,14 @@ body * {
   object-fit: contain;
 }
 
+/* Com logo do emitente ha uma imagem so (sem icone + titulo) */
+#newlog .logo-emitente-box {
+  width          : 100%;
+  max-width      : 220px;
+  display        : flex;
+  justify-content: center;
+}
+
 #mcell {
   font-size: 1em;
   color     : var(--cinza1);
