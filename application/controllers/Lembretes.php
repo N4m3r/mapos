@@ -9,6 +9,7 @@ if (! defined('BASEPATH')) {
  *
  *   php index.php lembretes/executar          envia (precisa LEMBRETES_ATIVO=true)
  *   php index.php lembretes/executar simular  so mostra o que seria enviado
+ *   php index.php lembretes/aceite            reenvia links de aceite pendentes (a cada 15 min)
  */
 class Lembretes extends CI_Controller
 {
@@ -58,6 +59,28 @@ class Lembretes extends CI_Controller
 
         $enviados = count(array_filter($resultado, static fn ($r) => (bool) $r['canais']));
         echo ($simular ? 'Seriam enviados: ' : 'Enviados: ') . ($simular ? count($resultado) : $enviados) . PHP_EOL;
+    }
+
+    /**
+     * Reenvio do link de aceite até a assinatura. Liga-se pelo gatilho
+     * (Notificações > "Aceite da OS" ou "Atividade não programada finalizada").
+     */
+    public function aceite()
+    {
+        $this->load->library('aceite_reenvio');
+        if (! $this->aceite_reenvio->disponivel()) {
+            fwrite(STDERR, 'Tabela aceite_reenvios nao existe. Rode: php index.php tools migrate' . PHP_EOL);
+            exit(1);
+        }
+
+        $resultado = $this->aceite_reenvio->executar();
+        foreach ($resultado as $r) {
+            $linha = sprintf('Aceite OS #%d: %s', $r['os'], $r['acao'])
+                . ($r['acao'] === 'reenviar' ? sprintf(' (lembrete %d, %s)', $r['tentativa'], $r['enviado'] ? 'enviado' : 'nao enviado') : '');
+            echo $linha . PHP_EOL;
+            log_message('info', $linha);
+        }
+        echo 'Itens processados: ' . count($resultado) . PHP_EOL;
     }
 
     /**

@@ -146,6 +146,10 @@ class Aceite extends CI_Controller
         log_info('OS #' . $os->idOs . ' teve aceite "' . $decisao . '" registrado por ' . $nome . ' via link público.'
             . ($chamado !== '' ? ' Chamado: ' . $chamado . '.' : ''));
 
+        // Encerra o loop de reenvio do link e avisa (aceite_concluido / aceite_recusado).
+        $this->load->library('aviso_aceite');
+        $this->aviso_aceite->aoDecidir($os->idOs, $decisao, $nome, $obs);
+
         // Automação opcional de faturamento: ao ACEITAR a resolução do serviço,
         // emite NFS-e e gera boleto (se ligada globalmente e habilitada para o
         // cliente). É best-effort — nunca interrompe o fluxo de aceite.

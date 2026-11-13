@@ -32,6 +32,7 @@ class Notificacoes extends MY_Controller
         $this->load->model('notification_triggers_model');
         $this->load->model('notificacoes_central_model');
         $this->load->model('atividade_pendencias_model');
+        $this->load->library('aceite_reenvio');
     }
 
     /* ------------------------------------------------------------------ */
@@ -135,6 +136,7 @@ class Notificacoes extends MY_Controller
         $this->data['projetosSelecionados'] = $this->projetosDoGatilho($principal);
         $this->data['ehOs'] = ($catalogo[$evento]['grupo'] === 'Ordem de Serviço');
         $this->data['ehProjeto'] = ($catalogo[$evento]['grupo'] === 'Projetos');
+        $this->data['temReenvio'] = in_array($evento, Aceite_reenvio::EVENTOS, true);
 
         $this->data['view'] = 'notificacoes/evento';
 
@@ -181,6 +183,13 @@ class Notificacoes extends MY_Controller
         }
         if ($this->db->field_exists('email_conversa', 'notification_triggers')) {
             $data['email_conversa'] = $this->input->post('email_conversa') ? 1 : 0;
+        }
+        if (in_array($evento, Aceite_reenvio::EVENTOS, true)
+            && $this->db->field_exists('reenvio_intervalo_horas', 'notification_triggers')) {
+            [$data['reenvio_intervalo_horas'], $data['reenvio_max_tentativas']] = Aceite_reenvio::normalizarConfig(
+                $this->input->post('reenvio_intervalo_horas'),
+                $this->input->post('reenvio_max_tentativas')
+            );
         }
 
         if ($gatilho) {
