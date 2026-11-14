@@ -534,7 +534,7 @@ body.tec-body input[type=checkbox], body.tec-body input[type=radio] { background
 body.tec-body input[type=file], body.tec-body input[type=range] { background: transparent; border-color: transparent; }
 body.tec-body a:not([class]) { color: var(--tec-link); }
 body.tec-body label, body.tec-body legend { color: var(--tec-ink); }
-body.tec-body .help-block, body.tec-body .muted, body.tec-body small { color: var(--tec-muted); }
+body.tec-body .form-text, body.tec-body .text-muted, body.tec-body small { color: var(--tec-muted); }
 body.tec-body hr { border-color: var(--tec-line); }
 body.tec-body .btn-tec.primary, body.tec-body .btn-tec.warning, body.tec-body .btn-tec.success,
 body.tec-body .btn-tec.danger, body.tec-body .btn-tec.info { color: #fff; }
@@ -546,7 +546,7 @@ body.tec-body .tec-bottomnav a.active { color: var(--tec-primary); }
 body.tec-body :focus-visible { outline-color: var(--tec-primary); }
 
 @media (prefers-color-scheme: dark) {
-  body.tec-body .well { background: var(--tec-surface-2); border-color: var(--tec-line); color: var(--tec-ink); }
+  body.tec-body .card.card-body { background: var(--tec-surface-2); border-color: var(--tec-line); color: var(--tec-ink); }
   body.tec-body .modal { background: var(--tec-card); color: var(--tec-ink); border-color: var(--tec-line); }
   body.tec-body .modal-header { border-bottom-color: var(--tec-line); }
   body.tec-body .modal-header h1, body.tec-body .modal-header h2, body.tec-body .modal-header h3,
@@ -561,13 +561,13 @@ body.tec-body :focus-visible { outline-color: var(--tec-primary); }
   body.tec-body .table-bordered, body.tec-body .table-bordered th, body.tec-body .table-bordered td { border-color: var(--tec-line); }
   body.tec-body .alert { background: var(--tec-warning-bg); color: var(--tec-warning); border-color: var(--tec-warning); text-shadow: none; }
   body.tec-body .alert-success { background: var(--tec-success-bg); color: var(--tec-success); border-color: var(--tec-success); }
-  body.tec-body .alert-danger, body.tec-body .alert-error { background: var(--tec-danger-bg); color: var(--tec-danger); border-color: var(--tec-danger); }
+  body.tec-body .alert-danger { background: var(--tec-danger-bg); color: var(--tec-danger); border-color: var(--tec-danger); }
   body.tec-body .alert-info { background: var(--tec-info-bg); color: var(--tec-info); border-color: var(--tec-info); }
-  body.tec-body .label, body.tec-body .badge { background: var(--tec-chip-bg); color: var(--tec-ink); text-shadow: none; }
-  body.tec-body .label-success, body.tec-body .badge-success { background: var(--tec-success-bg); color: var(--tec-success); }
-  body.tec-body .label-important, body.tec-body .badge-important, body.tec-body .label-danger { background: var(--tec-danger-bg); color: var(--tec-danger); }
-  body.tec-body .label-warning, body.tec-body .badge-warning { background: var(--tec-warning-bg); color: var(--tec-warning); }
-  body.tec-body .label-info, body.tec-body .badge-info { background: var(--tec-info-bg); color: var(--tec-info); }
+  body.tec-body .badge { background: var(--tec-chip-bg); color: var(--tec-ink); text-shadow: none; }
+  body.tec-body .text-bg-success { background: var(--tec-success-bg); color: var(--tec-success); }
+  body.tec-body .text-bg-danger { background: var(--tec-danger-bg); color: var(--tec-danger); }
+  body.tec-body .text-bg-warning { background: var(--tec-warning-bg); color: var(--tec-warning); }
+  body.tec-body .text-bg-info { background: var(--tec-info-bg); color: var(--tec-info); }
   body.tec-body .btn { background: var(--tec-neutral-bg); color: var(--tec-ink); border-color: var(--tec-input-line); text-shadow: none; background-image: none; box-shadow: none; }
   body.tec-body .btn:hover, body.tec-body .btn:focus { background: var(--tec-chip-bg); color: var(--tec-ink); }
   body.tec-body .btn.disabled, body.tec-body .btn[disabled] { opacity: .55; color: var(--tec-muted); }
@@ -575,13 +575,13 @@ body.tec-body :focus-visible { outline-color: var(--tec-primary); }
   body.tec-body .btn-danger { background: var(--tec-danger); color: var(--tec-on-primary); border-color: transparent; }
   body.tec-body .btn-warning { background: var(--tec-warning); color: var(--tec-on-primary); border-color: transparent; }
   body.tec-body .nav-tabs { border-bottom-color: var(--tec-line); }
-  body.tec-body .nav-tabs > li > a { color: var(--tec-link); }
-  body.tec-body .nav-tabs > li > a:hover { background: var(--tec-surface-2); border-color: var(--tec-line); }
-  body.tec-body .nav-tabs > .active > a, body.tec-body .nav-tabs > .active > a:hover {
+  body.tec-body .nav-tabs .nav-link { color: var(--tec-link); }
+  body.tec-body .nav-tabs .nav-link:hover { background: var(--tec-surface-2); border-color: var(--tec-line); }
+  body.tec-body .nav-tabs .nav-link.active, body.tec-body .nav-tabs .nav-link.active:hover {
     background: var(--tec-card); color: var(--tec-ink); border-color: var(--tec-line); border-bottom-color: transparent; }
   body.tec-body .dropdown-menu { background: var(--tec-card); border-color: var(--tec-line); }
-  body.tec-body .dropdown-menu > li > a { color: var(--tec-ink); }
-  body.tec-body .dropdown-menu > li > a:hover { background: var(--tec-chip-bg); color: var(--tec-ink); }
-  body.tec-body .dropdown-menu .divider { background: var(--tec-line); border-bottom-color: transparent; }
+  body.tec-body .dropdown-menu .dropdown-item { color: var(--tec-ink); }
+  body.tec-body .dropdown-menu .dropdown-item:hover { background: var(--tec-chip-bg); color: var(--tec-ink); }
+  body.tec-body .dropdown-menu .dropdown-divider { background: var(--tec-line); border-bottom-color: transparent; }
   body.tec-body .popover, body.tec-body .tooltip-inner { background: var(--tec-card); color: var(--tec-ink); }
 }

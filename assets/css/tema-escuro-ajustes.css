@@ -19,12 +19,12 @@
     body[data-theme="darkviolet"] .projeto-nav-lista > li > a:not(.ativo),
     body[data-theme="darkorange"] .projeto-nav-lista > li > a:not(.ativo) { color: #f0efec; }
 
-    body[data-theme="puredark"] .button:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info):not(.btn-inverse) .button__text2,
-    body[data-theme="darkviolet"] .button:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info):not(.btn-inverse) .button__text2,
-    body[data-theme="darkorange"] .button:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info):not(.btn-inverse) .button__text2,
-    body[data-theme="puredark"] .button:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info):not(.btn-inverse) .button__icon,
-    body[data-theme="darkviolet"] .button:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info):not(.btn-inverse) .button__icon,
-    body[data-theme="darkorange"] .button:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info):not(.btn-inverse) .button__icon { color: #f0efec; }
+    body[data-theme="puredark"] .button:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info):not(.btn-dark) .button__text2,
+    body[data-theme="darkviolet"] .button:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info):not(.btn-dark) .button__text2,
+    body[data-theme="darkorange"] .button:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info):not(.btn-dark) .button__text2,
+    body[data-theme="puredark"] .button:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info):not(.btn-dark) .button__icon,
+    body[data-theme="darkviolet"] .button:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info):not(.btn-dark) .button__icon,
+    body[data-theme="darkorange"] .button:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info):not(.btn-dark) .button__icon { color: #f0efec; }
 
     body[data-theme="puredark"] .pl-tudo-certo,
     body[data-theme="darkviolet"] .pl-tudo-certo,

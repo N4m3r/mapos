@@ -9,11 +9,10 @@ input[type="email"],
 input[type="password"],
 input[type="tel"],
 textarea,
-.row-fluid input[class*="span"],
-.row-fluid textarea[class*="span"],
+.form-control,
+textarea.form-control,
 input[type="number"],
-select[class*="span"],
-.row-fluid select[class*="span"] {
+.form-select {
   background  : var(--dark-violet-cont);
   border-color: var(--dark-viol);
   color: var(--branco);
@@ -121,7 +120,7 @@ body {
     background: var(--dark-violet-cont);
 }
 
-#user-nav > ul > li > a:hover,#user-nav > ul > li.open > a {
+#user-nav > ul > li > a:hover, #user-nav > ul > li > a.show {
     color: #090909;
 }
 
@@ -150,7 +149,7 @@ body {
     opacity: 0.7;
 }
 
-#sidebar > ul > li > a > .label:hover {
+#sidebar > ul > li > a > .badge:hover {
     background-color: #ffffff;
 }
 
@@ -518,7 +517,7 @@ hr {
 }
 
 /* PAGINAS EDITAR OS */
-.nav-tabs > .active > a, .nav-tabs > .active > a:hover, .nav-tabs > .active > a:focus {
+.nav-tabs .nav-link.active, .nav-tabs .nav-link.active:hover, .nav-tabs .nav-link.active:focus {
     color: var(--branco);
     background-color: var(--dark-2);
     border: 1px solid var(--dark-1);
@@ -528,11 +527,11 @@ hr {
     border-bottom: 1px solid var(--dark-1);
 }
 
-.nav-tabs > li > a {
+.nav-tabs .nav-link {
     color: var(--cinza0);
 }
 
-.nav-tabs > li > a:hover {
+.nav-tabs .nav-link:hover {
     color     : var(--dark-lar);
     background: var(--dark-2);
     border    : 1px solid var(--dark-1);
@@ -575,7 +574,7 @@ textarea, .uneditable-input {
     border: 1px solid var(--dark-1);
 }
 
-.well {
+.card.card-body {
     background-color: var(--wid-dark);
     border: 0 solid #e3e3e3;
 }
@@ -673,11 +672,6 @@ textarea, .uneditable-input {
         font-size   : 2.4em;
         padding-left: 8px;
     }
-
-    .row-fluid .Sspan12 {
-        margin-top: 2px;
-    }
-
     #sidebar.open {
         background: #32056b;
     }

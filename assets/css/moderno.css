@@ -81,8 +81,8 @@ input:focus, select:focus, textarea:focus {
 }
 label { font-weight: 500; margin-bottom: 4px; }
 .control-group { margin-bottom: 14px; }
-.help-block, .help-inline { color: var(--ui-texto-2); font-size: 12px; }
-.well { border-radius: var(--ui-raio); box-shadow: none; border: 1px solid var(--ui-borda); background-image: none; }
+.form-text { color: var(--ui-texto-2); font-size: 12px; }
+.card.card-body { border-radius: var(--ui-raio); box-shadow: none; border: 1px solid var(--ui-borda); background-image: none; }
 
 /* ---------- Tabelas ---------- */
 .table { border-collapse: separate; border-spacing: 0; }
@@ -99,14 +99,14 @@ label { font-weight: 500; margin-bottom: 4px; }
 .table tbody tr:hover > td { background-color: var(--ui-suave); }
 
 /* ---------- Rotulos, alertas, modais, abas ---------- */
-.label, .badge { border-radius: 999px; padding: 3px 9px; font-weight: 600; text-shadow: none; }
+.badge { border-radius: 999px; padding: 3px 9px; font-weight: 600; text-shadow: none; }
 .alert { border-radius: var(--ui-raio); text-shadow: none; }
 .modal { border-radius: var(--ui-raio); box-shadow: var(--ui-sombra-alta); border: 0; overflow: hidden; }
 .modal-header { border-bottom: 1px solid var(--ui-borda); }
 .modal-footer { border-top: 1px solid var(--ui-borda); box-shadow: none; border-radius: 0; }
-.nav-tabs > li > a { border-radius: var(--ui-raio-p) var(--ui-raio-p) 0 0; }
-.pagination ul { box-shadow: none; border-radius: var(--ui-raio-p); }
-.pagination ul > li > a, .pagination ul > li > span { border-color: var(--ui-borda); }
+.nav-tabs .nav-link { border-radius: var(--ui-raio-p) var(--ui-raio-p) 0 0; }
+.pagination { box-shadow: none; border-radius: var(--ui-raio-p); }
+.pagination .page-link { border-color: var(--ui-borda); }
 
 /* ---------- Menu lateral ---------- */
 #sidebar > ul > li > a { border-radius: 8px; margin: 2px 8px; }

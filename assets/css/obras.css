@@ -4,7 +4,7 @@
 .obra-progress-bar { background:var(--ui-sucesso); height:100%; }
 
 .obra-header { margin-bottom:10px; }
-.obra-header .label { margin-top:6px; display:inline-block; }
+.obra-header .badge { margin-top:6px; display:inline-block; }
 
 .obra-tabs { margin:0 0 10px; border-bottom:2px solid #dcdcdc; padding-left:0; display:flex; flex-wrap:wrap; list-style:none; }
 .obra-tabs li { margin:0 2px -2px 0; }
