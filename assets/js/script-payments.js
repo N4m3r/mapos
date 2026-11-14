@@ -185,7 +185,7 @@
     // Marcar/desmarcar um item à mão mantém o agrupamento escolhido.
     $modal.on('change', '.cb-chk', recalcular);
 
-    $modal.on('show.bs.modal shown', function () {
+    $modal.on('show.bs.modal', function () {
         montarGateways();
         carregarResumo();
     });
