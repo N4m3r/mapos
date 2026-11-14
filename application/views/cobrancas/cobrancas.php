@@ -12,7 +12,7 @@ $formaNome = function ($r) {
 
     return $mapa[$m] ?? ($r->payment_method !== '' ? ucfirst($r->payment_method) : '-');
 };
-$badge = ['pendente' => ['label-warning', 'A receber'], 'vencida' => ['label-important label-danger', 'Vencida'], 'paga' => ['label-success', 'Paga'], 'cancelada' => ['', 'Cancelada']];
+$badge = ['pendente' => ['text-bg-warning', 'A receber'], 'vencida' => ['text-bg-danger', 'Vencida'], 'paga' => ['text-bg-success', 'Paga'], 'cancelada' => ['text-bg-secondary', 'Cancelada']];
 $qs = function ($extra) use ($busca, $filtroStatus, $aba) {
     return site_url('cobrancas/cobrancas') . '?' . http_build_query(array_filter(array_merge(['q' => $busca], $extra)));
 };
@@ -145,7 +145,7 @@ $qs = function ($extra) use ($busca, $filtroStatus, $aba) {
                         echo '<td>' . html_escape($formaNome($r)) . '</td>';
                         echo '<td class="cb-venc">' . ($r->expire_at ? date('d/m/Y', strtotime($r->expire_at)) : '-') . ($prazo ? '<small>' . $prazo . '</small>' : '') . '</td>';
                         echo '<td><strong>' . $brl($r->total / 100) . '</strong></td>';
-                        echo '<td><span class="label ' . $bcls . '" title="' . html_escape($descStatus) . '">' . $btxt . '</span></td>';
+                        echo '<td><span class="badge ' . $bcls . '" title="' . html_escape($descStatus) . '">' . $btxt . '</span></td>';
                         echo '<td><span class="ui-acoes-linha">';
                         if ($perm('vCobranca')) {
                             echo '<a href="#modal-cancelar" role="button" data-bs-toggle="modal" cancela_id="' . $r->idCobranca . '" class="btn-nwe4" title="Cancelar Cobrança" aria-label="Cancelar Cobrança"><i class="bx bx-x" ></i></a>';
@@ -200,7 +200,7 @@ $qs = function ($extra) use ($busca, $filtroStatus, $aba) {
                 <h5 style="text-align: center">Deseja realmente confirmar pagamento desta cobrança?</h5>
             </div>
             <div class="modal-footer">
-                <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
                 <button class="btn btn-success">Confirmar</button>
             </div>
         </form>
@@ -217,7 +217,7 @@ $qs = function ($extra) use ($busca, $filtroStatus, $aba) {
                 <h5 style="text-align: center">Deseja realmente Cancelar esta cobrança?</h5>
             </div>
             <div class="modal-footer">
-                <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
                 <button class="btn btn-danger">Confirmar</button>
             </div>
         </form>

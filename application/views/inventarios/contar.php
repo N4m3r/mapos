@@ -13,8 +13,8 @@ $aberto = $inventario->status === 'aberto';
             </div>
         </div>
         <div style="padding:12px 14px 0; display:flex; gap:12px; flex-wrap:wrap; align-items:center">
-            <a href="<?= site_url('inventarios') ?>" class="btn btn-sm"><i class="bx bx-arrow-back"></i> Inventários</a>
-            <span class="badge text-bg-secondary <?= $aberto ? 'badge-warning' : ($inventario->status === 'finalizado' ? 'badge-success' : '') ?>"><?= html_escape(ucfirst($inventario->status)) ?></span>
+            <a href="<?= site_url('inventarios') ?>" class="btn btn-sm btn-outline-secondary"><i class="bx bx-arrow-back"></i> Inventários</a>
+            <span class="badge <?= $aberto ? 'text-bg-warning' : ($inventario->status === 'finalizado' ? 'text-bg-success' : 'text-bg-secondary') ?>"><?= html_escape(ucfirst($inventario->status)) ?></span>
             <input class="form-control" type="search" id="filtroInventario" placeholder="Filtrar por nome ou código..." aria-label="Filtrar por nome ou código" style="margin:0; width:260px">
             <label style="margin:0"><input class="form-check-input" type="checkbox" id="soDiferencas"> Só diferenças</label>
             <?php if ($aberto) { ?>

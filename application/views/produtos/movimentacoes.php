@@ -34,12 +34,12 @@
             <?php $this->load->view('produtos/_movimentacoes_tabela', ['movimentacoes' => $movimentacoes, 'mostrarProduto' => ! $produto]); ?>
 
             <?php if ($paginas > 1) { ?>
-                <div class="pagination" style="margin:0 0 14px"><ul>
+                <nav aria-label="Paginação"><ul class="pagination flex-wrap" style="margin:0 0 14px">
                     <?php for ($p = 1; $p <= $paginas; $p++) {
                         $q = array_filter(array_merge($filtros, ['produto' => $produto ? $produto->idProdutos : null, 'pagina' => $p])); ?>
-                        <li class="<?= $p === $pagina ? 'active' : '' ?>"><a href="<?= site_url('produtos/movimentacoes') . '?' . http_build_query($q) ?>"><?= $p ?></a></li>
+                        <li class="page-item<?= $p === $pagina ? ' active' : '' ?>"><a class="page-link" href="<?= site_url('produtos/movimentacoes') . '?' . http_build_query($q) ?>"<?= $p === $pagina ? ' aria-current="page"' : '' ?>><?= $p ?></a></li>
                     <?php } ?>
-                </ul></div>
+                </ul></nav>
             <?php } ?>
         </div>
     </div>

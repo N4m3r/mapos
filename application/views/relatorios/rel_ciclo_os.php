@@ -143,7 +143,7 @@ $money = function ($v) {
                                     if (! empty($l->data_boleto)) {
                                         $boleto = $fmt($l->data_boleto) . (! empty($l->boleto_pago)
                                             ? ' <span class="badge text-bg-success">pago</span>'
-                                            : ' <span class="label">pendente</span>');
+                                            : ' <span class="badge text-bg-secondary">pendente</span>');
                                     } else {
                                         $boleto = '—';
                                     }
