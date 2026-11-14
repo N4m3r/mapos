@@ -14,7 +14,7 @@
  #modal-anexo .modal-content{height:100vh;height:100dvh;border:0;border-radius:0;background:#000;overflow:hidden;box-shadow:none}
  #modal-anexo .modal-header{position:absolute;top:0;left:0;right:0;z-index:10;height:52px;padding:0 8px 0 14px;border:0;background:rgba(0,0,0,.65);color:#fff;box-sizing:border-box}
  #modal-anexo .modal-header h3{color:#fff;font-size:16px;line-height:52px;margin:0}
- #modal-anexo .modal-header .btn-close{position:absolute;right:0;top:0;width:52px;height:52px;min-width:44px;min-height:44px;margin:0;padding:0;box-sizing:border-box;background-size:18px;filter:var(--bs-btn-close-white-filter);opacity:1}
+ #modal-anexo .modal-header .btn-close{position:absolute;right:0;top:0;width:52px;height:52px;min-width:44px;min-height:44px;margin:0;padding:0;box-sizing:border-box;background-size:18px;filter:invert(1) grayscale(100%) brightness(200%);opacity:1}
  #modal-anexo .modal-body{position:absolute;top:0;bottom:0;left:0;right:0;max-height:none!important;height:100%;padding:0;margin:0;overflow:hidden;background:#000;box-sizing:border-box}
  #modal-anexo #div-visualizar-anexo{height:100%;margin:0;padding:52px 0 64px;box-sizing:border-box;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#fff}
  #modal-anexo #div-visualizar-anexo.av-zoom{overflow:auto;display:block;-webkit-overflow-scrolling:touch}

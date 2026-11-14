@@ -590,7 +590,7 @@ body.tec-body .pagination {
 
 @media (prefers-color-scheme: dark) {
   body.tec-body .card.card-body { background: var(--tec-surface-2); border-color: var(--tec-line); color: var(--tec-ink); }
-  body.tec-body .btn-close { filter: var(--bs-btn-close-white-filter); }
+  body.tec-body .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
   body.tec-body .modal-header { border-bottom-color: var(--tec-line); }
   body.tec-body .modal-header h1, body.tec-body .modal-header h2, body.tec-body .modal-header h3,
   body.tec-body .modal-header h4, body.tec-body .modal-body { color: var(--tec-ink); }

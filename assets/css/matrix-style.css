@@ -2797,7 +2797,7 @@ div.dataTables_wrapper .ui-widget-header {
 
 /* cabeçalho é azul em todos os temas: o X fica branco */
 .modal-header .btn-close {
-  filter : var(--bs-btn-close-white-filter);
+  filter : invert(1) grayscale(100%) brightness(200%);
   opacity: 0.8;
   margin : 0 0 0 auto;
 }
