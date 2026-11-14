@@ -38,7 +38,7 @@ $temArquivo = $holerite && ! empty($holerite->arquivo_base64);
         <div class="col-md-6">
             <div class="widget-box">
                 <div class="widget-title"><span class="icon"><i class="fas fa-list"></i></span><h5>Demonstrativo (lançamentos + CLT)</h5>
-                    <a href="<?= site_url('rh/lancamentos?competencia='.$competencia.'&colaborador_id='.$colaborador->id) ?>" class="btn btn-sm" style="float:right;margin:8px">Editar lançamentos</a>
+                    <a href="<?= site_url('rh/lancamentos?competencia='.$competencia.'&colaborador_id='.$colaborador->id) ?>" class="btn btn-sm btn-outline-secondary" style="float:right;margin:8px">Editar lançamentos</a>
                 </div>
                 <div class="widget-content">
                     <?php

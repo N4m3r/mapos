@@ -101,7 +101,7 @@ $tudoPronto = $resumo['total'] > 0 && $resumo['prontos'] === $resumo['total'];
                             <div class="">
                                 <div class="emitente-campo-botao">
                                     <input id="documento" class="cnpjEmitente form-control" type="text" name="cnpj" maxlength="45" value="<?= $e($v('cnpj')) ?>" required>
-                                    <button id="buscar_info_cnpj" class="btn btn-sm" type="button" title="Buscar dados do CNPJ">
+                                    <button id="buscar_info_cnpj" class="btn btn-sm btn-outline-secondary" type="button" title="Buscar dados do CNPJ">
                                         <i class="bx bx-search"></i>
                                     </button>
                                 </div>

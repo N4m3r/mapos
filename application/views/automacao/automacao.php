@@ -56,7 +56,7 @@ $rotuloSituacao = [
         </p>
     </div>
     <div class="ui-acoes">
-        <a href="<?= site_url('nfe/gerenciar') ?>" class="btn">
+        <a href="<?= site_url('nfe/gerenciar') ?>" class="btn btn-outline-secondary">
             <i class="bx bx-receipt"></i> Notas fiscais
         </a>
     </div>
@@ -287,7 +287,7 @@ $rotuloSituacao = [
                                             data-confirmar="Devolver este item para a fila? Ele será tentado de novo automaticamente.">
                                             <input type="hidden" name="<?= $e($tokenName) ?>" value="<?= $e($tokenHash) ?>">
                                             <input type="hidden" name="id" value="<?= (int) $a->id ?>">
-                                            <button type="submit" class="btn btn-sm"><i class="bx bx-refresh"></i> Tentar de novo</button>
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="bx bx-refresh"></i> Tentar de novo</button>
                                         </form>
                                     <?php endif; ?>
                                     <?php if (AutomacaoRegras::podeCancelar($a->status ?? '')): ?>

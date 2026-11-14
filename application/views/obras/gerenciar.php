@@ -58,26 +58,26 @@ $urlCsv = site_url('obras/exportarCsv') . ($pCsv ? '?' . http_build_query($pCsv)
         <label for="filtro-pesquisa" class="pl-sr">Buscar</label>
         <input class="form-control" type="text" id="filtro-pesquisa" name="pesquisa" placeholder="Buscar por nome, código ou cliente" value="<?= html_escape($pesquisa) ?>">
         <label for="filtro-tipo" class="pl-sr">Tipo</label>
-        <select class="form-select" id="filtro-tipo" name="tipo">
+        <select class="form-select w-auto" id="filtro-tipo" name="tipo">
             <option value="">Todos os tipos</option>
             <?php foreach (($tipos_projeto ?? []) as $t): ?>
                 <option value="<?= html_escape($t) ?>" <?= $tipoAtual === $t ? 'selected' : '' ?>><?= html_escape($t) ?></option>
             <?php endforeach; ?>
         </select>
         <label for="filtro-resp" class="pl-sr">Responsável</label>
-        <select class="form-select" id="filtro-resp" name="responsavel">
+        <select class="form-select w-auto" id="filtro-resp" name="responsavel">
             <option value="">Todos os responsáveis</option>
             <?php foreach (($responsaveis_projeto ?? []) as $u): ?>
                 <option value="<?= (int) $u->idUsuarios ?>" <?= $respAtual === (int) $u->idUsuarios ? 'selected' : '' ?>><?= html_escape($u->nome) ?></option>
             <?php endforeach; ?>
         </select>
         <label for="filtro-ordem" class="pl-sr">Ordenar por</label>
-        <select class="form-select" id="filtro-ordem" name="ordem">
+        <select class="form-select w-auto" id="filtro-ordem" name="ordem">
             <?php foreach ($ordens as $k => $v): ?>
                 <option value="<?= html_escape($k) ?>" <?= $ordemAtual === $k ? 'selected' : '' ?>><?= html_escape($v) ?></option>
             <?php endforeach; ?>
         </select>
-        <select class="form-select" name="dir" aria-label="Sentido da ordenação">
+        <select class="form-select w-auto" name="dir" aria-label="Sentido da ordenação">
             <option value="asc" <?= $dirAtual === 'asc' ? 'selected' : '' ?>>Crescente</option>
             <option value="desc" <?= $dirAtual === 'desc' ? 'selected' : '' ?>>Decrescente</option>
         </select>

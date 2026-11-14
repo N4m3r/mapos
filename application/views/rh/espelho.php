@@ -147,7 +147,9 @@ $corBat = [
         </table>
         </div>
     </div></div>
+    <div class="col-12">
     <a href="<?= html_escape($rh_voltar_url ?? site_url('rh/colaboradores')) ?>" class="button btn btn-warning"><span class="button__text2"><?= html_escape($rh_voltar_rotulo ?? 'Voltar') ?></span></a>
+    </div>
 </div>
 <script nonce="<?= csp_nonce() ?>">
 document.getElementById('competencia').addEventListener('change', function(){

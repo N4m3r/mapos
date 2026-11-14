@@ -76,14 +76,14 @@ $kpis = [
             <div class="widget-box">
                 <div class="widget-title"><span class="icon"><i class="fas fa-bolt"></i></span><h5>Atalhos</h5></div>
                 <div class="widget-content rh-atalhos">
-                    <a href="<?= site_url('rh/ocorrencias?status=pendente') ?>" class="btn btn-block"><i class='bx bx-error-circle'></i> Ocorrências <?php if ($pt['ocorrencias'] > 0): ?><span class="rh-subnav-badge"><?= (int) $pt['ocorrencias'] ?></span><?php endif; ?></a>
-                    <a href="<?= site_url('rh/ausencias?status=pendente') ?>" class="btn btn-block"><i class='bx bx-calendar-star'></i> Folgas e férias <?php if ($pt['ausencias'] > 0): ?><span class="rh-subnav-badge"><?= (int) $pt['ausencias'] ?></span><?php endif; ?></a>
+                    <a href="<?= site_url('rh/ocorrencias?status=pendente') ?>" class="btn btn-outline-secondary d-block w-100"><i class='bx bx-error-circle'></i> Ocorrências <?php if ($pt['ocorrencias'] > 0): ?><span class="rh-subnav-badge"><?= (int) $pt['ocorrencias'] ?></span><?php endif; ?></a>
+                    <a href="<?= site_url('rh/ausencias?status=pendente') ?>" class="btn btn-outline-secondary d-block w-100"><i class='bx bx-calendar-star'></i> Folgas e férias <?php if ($pt['ausencias'] > 0): ?><span class="rh-subnav-badge"><?= (int) $pt['ausencias'] ?></span><?php endif; ?></a>
                     <?php if (! empty($pode_financeiro)): ?>
-                        <a href="<?= site_url('rh/lancamentos?pendentes=1') ?>" class="btn btn-block"><i class='bx bx-money'></i> Horas extras a aprovar <?php if ($pt['lancamentos'] > 0): ?><span class="rh-subnav-badge"><?= (int) $pt['lancamentos'] ?></span><?php endif; ?></a>
-                        <a href="<?= site_url('rh/folha') ?>" class="btn btn-block"><i class='bx bx-file'></i> Folha e holerites <?php if (! empty($holerites_pendentes)): ?><span class="rh-subnav-badge"><?= (int) $holerites_pendentes ?></span><?php endif; ?></a>
+                        <a href="<?= site_url('rh/lancamentos?pendentes=1') ?>" class="btn btn-outline-secondary d-block w-100"><i class='bx bx-money'></i> Horas extras a aprovar <?php if ($pt['lancamentos'] > 0): ?><span class="rh-subnav-badge"><?= (int) $pt['lancamentos'] ?></span><?php endif; ?></a>
+                        <a href="<?= site_url('rh/folha') ?>" class="btn btn-outline-secondary d-block w-100"><i class='bx bx-file'></i> Folha e holerites <?php if (! empty($holerites_pendentes)): ?><span class="rh-subnav-badge"><?= (int) $holerites_pendentes ?></span><?php endif; ?></a>
                     <?php endif; ?>
-                    <a href="<?= site_url('rh/unidades') ?>" class="btn btn-block"><i class='bx bx-buildings'></i> Unidades</a>
-                    <a href="<?= site_url('rh/jornadas') ?>" class="btn btn-block"><i class='bx bx-time'></i> Jornadas</a>
+                    <a href="<?= site_url('rh/unidades') ?>" class="btn btn-outline-secondary d-block w-100"><i class='bx bx-buildings'></i> Unidades</a>
+                    <a href="<?= site_url('rh/jornadas') ?>" class="btn btn-outline-secondary d-block w-100"><i class='bx bx-time'></i> Jornadas</a>
                 </div>
             </div>
         </div>

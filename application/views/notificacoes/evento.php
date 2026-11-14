@@ -91,7 +91,7 @@ $marcado = function ($valor, $lista) {
                 <div class="ui-secao">
                     <h4>Texto no WhatsApp</h4>
                     <div class="ui-grade">
-                        <div class="row mb-2">
+                        <div class="mb-2">
                             <label for="whatsapp_template">Modelo de mensagem</label>
                             <select class="form-select" id="whatsapp_template" name="whatsapp_template">
                                 <option value="">— padrão do sistema —</option>
@@ -108,7 +108,7 @@ $marcado = function ($valor, $lista) {
                 <div class="ui-secao">
                     <h4>Texto no e-mail</h4>
                     <div class="ui-grade">
-                        <div class="row mb-2">
+                        <div class="mb-2">
                             <label for="template_slug">Modelo de e-mail</label>
                             <select class="form-select" id="template_slug" name="template_slug">
                                 <option value="">— padrão do sistema —</option>
@@ -192,11 +192,11 @@ $marcado = function ($valor, $lista) {
                         Precisa do agendamento <code>php index.php lembretes/aceite</code> a cada 15 minutos.
                     </p>
                     <div class="ui-grade">
-                        <div class="row mb-2">
+                        <div class="mb-2">
                             <label for="reenvio_intervalo_horas">Reenviar a cada (horas)</label>
                             <input class="form-control" type="number" min="0" max="<?= (int) Aceite_reenvio::INTERVALO_MAX_HORAS ?>" id="reenvio_intervalo_horas" name="reenvio_intervalo_horas" value="<?= $e($gatilho->reenvio_intervalo_horas ?? '') ?>" placeholder="24">
                         </div>
-                        <div class="row mb-2">
+                        <div class="mb-2">
                             <label for="reenvio_max_tentativas">Máximo de reenvios</label>
                             <input class="form-control" type="number" min="0" max="<?= (int) Aceite_reenvio::TENTATIVAS_MAX ?>" id="reenvio_max_tentativas" name="reenvio_max_tentativas" value="<?= $e($gatilho->reenvio_max_tentativas ?? '') ?>" placeholder="5">
                         </div>

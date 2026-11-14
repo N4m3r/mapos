@@ -41,7 +41,7 @@ $logoEmitenteEsc = $logoEmitente !== null ? htmlspecialchars($logoEmitente, ENT_
         <form style="display: flex" action="<?= site_url('mapos/pesquisar') ?>">
             <button style="background:transparent;border:transparent" type="submit" class="tip-bottom" title="">
                 <i class='bx bx-search iconX'></i></button>
-            <input class="form-control" style="background:transparent;color:#fff;border:transparent" type="search" name="termo" placeholder="Pesquise aqui...">
+            <input style="background:transparent;color:#fff;border:transparent" type="search" name="termo" placeholder="Pesquise aqui...">
             <span class="title-tooltip">Pesquisar</span>
         </form>
     </li>

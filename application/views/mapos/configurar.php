@@ -322,19 +322,19 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-8 row">
-                                <span6 class="col-md-10" style="margin-left: 2em;"> Defina a vizualização padrão, onde o que ficar checado será exibida na listagem de OS por padrão. </span6>
+                            <div class="col-md-8" style="margin-left: 3em; margin-top: 1em;">
+                                <p class="mb-1"> Defina a vizualização padrão, onde o que ficar checado será exibida na listagem de OS por padrão. </p>
                                 <?php $osStatusList = json_decode($configuration['os_status_list'] ?? '', true) ?: []; ?>
-                                <div class="col-md-10" style="margin-left: 3em;">
-                                    <label> <input <?= in_array("Aberto", $osStatusList, true) ? 'checked' : ''; ?> name="os_status_list[]" class="marcar" type="checkbox" value="Aberto"> <span class="lbl"> Aberto</span> </label>
-                                    <label> <input <?= in_array("Orçamento", $osStatusList, true) ? 'checked' : ''; ?> name="os_status_list[]" class="marcar" type="checkbox" value="Orçamento"> <span class="lbl"> Orçamento</span> </label>
-                                    <label> <input <?= in_array("Negociação", $osStatusList, true) ? 'checked' : ''; ?> name="os_status_list[]" class="marcar" type="checkbox" value="Negociação"> <span class="lbl"> Negociação</span> </label>
-                                    <label> <input <?= in_array("Aprovado", $osStatusList, true) ? 'checked' : ''; ?> name="os_status_list[]" class="marcar" type="checkbox" value="Aprovado"> <span class="lbl"> Aprovado </span> </label>
-                                    <label> <input <?= in_array("Aguardando Peças", $osStatusList, true) ? 'checked' : ''; ?> name="os_status_list[]" class="marcar" type="checkbox" value="Aguardando Peças"> <span class="lbl"> Aguardando Peças </span> </label>
-                                    <label> <input <?= in_array("Em Andamento", $osStatusList, true) ? 'checked' : ''; ?> name="os_status_list[]" class="marcar" type="checkbox" value="Em Andamento"> <span class="lbl"> Em Andamento</span> </label>
-                                    <label> <input <?= in_array("Finalizado", $osStatusList, true) ? 'checked' : ''; ?> name="os_status_list[]" class="marcar" type="checkbox" value="Finalizado"> <span class="lbl"> Finalizado</span> </label>
-                                    <label> <input <?= in_array("Faturado", $osStatusList, true) ? 'checked' : ''; ?> name="os_status_list[]" class="marcar" type="checkbox" value="Faturado"> <span class="lbl"> Faturado</span> </label>
-                                    <label> <input <?= in_array("Cancelado", $osStatusList, true) ? 'checked' : ''; ?> name="os_status_list[]" class="marcar" type="checkbox" value="Cancelado"> <span class="lbl"> Cancelado</span> </label>
+                                <div>
+                                    <label class="form-check form-check-inline"> <input <?= in_array("Aberto", $osStatusList, true) ? 'checked' : ''; ?> name="os_status_list[]" class="marcar form-check-input" type="checkbox" value="Aberto"> <span class="lbl form-check-label"> Aberto</span> </label>
+                                    <label class="form-check form-check-inline"> <input <?= in_array("Orçamento", $osStatusList, true) ? 'checked' : ''; ?> name="os_status_list[]" class="marcar form-check-input" type="checkbox" value="Orçamento"> <span class="lbl form-check-label"> Orçamento</span> </label>
+                                    <label class="form-check form-check-inline"> <input <?= in_array("Negociação", $osStatusList, true) ? 'checked' : ''; ?> name="os_status_list[]" class="marcar form-check-input" type="checkbox" value="Negociação"> <span class="lbl form-check-label"> Negociação</span> </label>
+                                    <label class="form-check form-check-inline"> <input <?= in_array("Aprovado", $osStatusList, true) ? 'checked' : ''; ?> name="os_status_list[]" class="marcar form-check-input" type="checkbox" value="Aprovado"> <span class="lbl form-check-label"> Aprovado </span> </label>
+                                    <label class="form-check form-check-inline"> <input <?= in_array("Aguardando Peças", $osStatusList, true) ? 'checked' : ''; ?> name="os_status_list[]" class="marcar form-check-input" type="checkbox" value="Aguardando Peças"> <span class="lbl form-check-label"> Aguardando Peças </span> </label>
+                                    <label class="form-check form-check-inline"> <input <?= in_array("Em Andamento", $osStatusList, true) ? 'checked' : ''; ?> name="os_status_list[]" class="marcar form-check-input" type="checkbox" value="Em Andamento"> <span class="lbl form-check-label"> Em Andamento</span> </label>
+                                    <label class="form-check form-check-inline"> <input <?= in_array("Finalizado", $osStatusList, true) ? 'checked' : ''; ?> name="os_status_list[]" class="marcar form-check-input" type="checkbox" value="Finalizado"> <span class="lbl form-check-label"> Finalizado</span> </label>
+                                    <label class="form-check form-check-inline"> <input <?= in_array("Faturado", $osStatusList, true) ? 'checked' : ''; ?> name="os_status_list[]" class="marcar form-check-input" type="checkbox" value="Faturado"> <span class="lbl form-check-label"> Faturado</span> </label>
+                                    <label class="form-check form-check-inline"> <input <?= in_array("Cancelado", $osStatusList, true) ? 'checked' : ''; ?> name="os_status_list[]" class="marcar form-check-input" type="checkbox" value="Cancelado"> <span class="lbl form-check-label"> Cancelado</span> </label>
                                 </div>
                             </div>
                             <div class="col-md-8">
@@ -372,8 +372,8 @@
                         </div>
                         <div class="row mb-2">
                             <label for="apiEnabled" class="col-sm-3 col-form-label">URL API</label>
-                            <div class="col-sm-9 row">
-                                <span class="col-md-10" id="urlApi" style="margin-top:7px;"><?= trim($_ENV['APP_BASEURL'], '/') . '/' ?>index.php/api/v1</span>
+                            <div class="col-sm-9">
+                                <span class="form-control-plaintext" id="urlApi"><?= trim($_ENV['APP_BASEURL'], '/') . '/' ?>index.php/api/v1</span>
                             </div>
                         </div>
                         <div class="row mb-2">

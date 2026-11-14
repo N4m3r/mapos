@@ -21,7 +21,7 @@ $this->load->view('rh/_subnav', ['ativo' => $rh_ativo ?? 'colaboradores']);
 
         <fieldset class="rh-secao">
             <legend><i class='bx bx-user'></i> Dados pessoais</legend>
-            <div class="row" style="display:flex;align-items:center;gap:16px;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:10px">
                 <div style="text-align:center">
                     <?php $temFoto = $edit && ! empty($c->foto_base64); ?>
                     <?php $avatarPlaceholder = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="110" height="110"><rect width="110" height="110" rx="12" fill="#eef0f4"/><circle cx="55" cy="42" r="22" fill="#c3c9d4"/><path d="M20 100c0-19 16-30 35-30s35 11 35 30z" fill="#c3c9d4"/></svg>'); ?>

@@ -72,7 +72,7 @@
             <div class="col-md-6" style="margin-left:0"><label>CPF/CNPJ (terceiro)</label><input type="text" class="w-100 form-control" name="documento" id="eq_doc"></div>
             <div class="col-md-6" style="margin-left:0"><label>Contato</label><input type="text" class="w-100 form-control" name="contato" id="eq_contato"></div>
             <div class="col-md-6" style="margin-left:0"><label>Telefone</label><input type="text" class="w-100 form-control" name="telefone" id="eq_tel"></div>
-            <div class="col-md-12" style="margin-left:0"><label class="checkbox"><input class="form-check-input" type="checkbox" name="ativo" id="eq_ativo" value="1" checked> Ativa</label></div>
+            <div class="col-md-12" style="margin-left:0"><div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="ativo" id="eq_ativo" value="1" checked><label class="form-check-label" for="eq_ativo">Ativa</label></div></div>
         </div></div>
         <div class="modal-footer"><button type="button" class="button btn btn-warning" data-bs-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Salvar</span></button></div>
     </form>

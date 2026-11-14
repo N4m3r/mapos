@@ -27,7 +27,7 @@ $diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
             <?php else: foreach ($registros as $r):
                 $ts = strtotime($r->data_hora);
                 $dtLocal = date('Y-m-d\TH:i', $ts); ?>
-                <tr class="<?= $r->status === 'rejeitado' ? 'text-error' : '' ?>">
+                <tr class="<?= $r->status === 'rejeitado' ? 'table-danger' : '' ?>">
                     <td><?= date('d/m', $ts) ?> <small><?= $diasSemana[(int)date('w',$ts)] ?></small></td>
                     <td><strong><?= date('H:i', $ts) ?></strong></td>
                     <td><?= $lblTipo[$r->tipo] ?? $r->tipo ?></td>
@@ -52,8 +52,10 @@ $diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
             </tbody>
         </table>
     </div></div>
+    <div class="col-12 d-flex flex-wrap gap-2">
     <a href="<?= site_url('rh/ficha/'.$colaborador->id) ?>" class="button btn btn-warning"><span class="button__text2">Voltar à ficha</span></a>
     <a href="<?= site_url('rh/espelho/'.$colaborador->id.'/'.$competencia) ?>" class="button btn btn-dark"><span class="button__text2">Ver espelho</span></a>
+    </div>
 </div>
 
 <!-- Modal criar/editar batida -->

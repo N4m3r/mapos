@@ -374,7 +374,7 @@ $rotuloPrazo = function ($data) {
                         <form method="get" action="<?= site_url('mapos') ?>" class="pi-filtro-ano" style="justify-content:flex-end;margin-bottom:8px">
                             <label for="year" class="text-muted" style="font-size:12px;margin:0">Ano</label>
                             <input class="form-control" type="number" id="year" name="year" min="2000" max="2100" value="<?= (int) $pi_ano ?>" />
-                            <button type="submit" class="btn btn-sm" aria-label="Trocar ano"><i class="bx bx-refresh"></i></button>
+                            <button type="submit" class="btn btn-sm btn-outline-secondary" aria-label="Trocar ano"><i class="bx bx-refresh"></i></button>
                         </form>
 
                         <?php

@@ -19,7 +19,7 @@
             <?php endif; ?>
 
             <form class="row" action="<?= current_url() ?>" method="post">
-                <div class="col-md-12 row">
+                <div class="col-md-12"><div class="row">
                     <div class="col-md-4" style="margin-left:0">
                         <label>Equipe</label>
                         <select name="equipe_id" class="w-100 form-select">
@@ -35,7 +35,7 @@
                             <?php foreach ($etapas as $e): ?><option value="<?= $e->idEtapa ?>"><?= html_escape($e->nome) ?></option><?php endforeach; ?>
                         </select>
                     </div>
-                </div>
+                </div></div>
 
                 <div class="col-md-12" style="margin-left:0">
                     <div class="scanner-box">
@@ -72,10 +72,10 @@
 
                 <div class="col-md-12" style="margin-left:0"><label>Observação</label><textarea class="w-100 form-control" name="observacao" rows="2"></textarea></div>
 
-                <div class="col-md-12 row" style="padding:1%; margin-left:0"><div class="col-md-6 offset-md-3 obra-actionbar" style="display:flex;justify-content:center">
+                <div class="col-md-12" style="padding:1%; margin-left:0"><div class="row"><div class="col-md-6 offset-md-3 obra-actionbar" style="display:flex;justify-content:center">
                     <button class="button btn btn-success"><span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Confirmar entrega</span></button>
                     <a href="<?= site_url('obras/visualizar/' . $obra->idObra) ?>" class="button btn btn-sm btn-warning"><span class="button__icon"><i class="bx bx-undo"></i></span><span class="button__text2">Voltar</span></a>
-                </div></div>
+                </div></div></div>
             </form>
         </div>
     </div>
