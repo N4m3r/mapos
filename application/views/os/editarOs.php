@@ -644,7 +644,7 @@
                                             <button type="button" class="btn btn-primary" id="btn-confirmar-inicio">
                                                 <i class="bx bx-check"></i> Confirmar Início do Atendimento
                                             </button>
-                                            <button type="button" class="btn btn-secondary" id="btn-cancelar-inicio">Cancelar</button>
+                                            <button type="button" class="btn btn-light border" id="btn-cancelar-inicio">Cancelar</button>
                                         </div>
                                     </div></div>
                                 </div>
@@ -712,7 +712,7 @@
                                             <button type="button" class="btn btn-success" id="btn-confirmar-fim">
                                                 <i class="bx bx-check-double"></i> Confirmar Finalização
                                             </button>
-                                            <button type="button" class="btn btn-secondary" id="btn-cancelar-fim">Cancelar</button>
+                                            <button type="button" class="btn btn-light border" id="btn-cancelar-fim">Cancelar</button>
                                         </div>
                                     </div></div>
                                 </div>

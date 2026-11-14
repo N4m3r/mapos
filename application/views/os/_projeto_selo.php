@@ -76,7 +76,7 @@ if (! empty($vinculoProjeto) || $mostrarAcoes || $mostrarConverter):
                 </select>
             </div>
             <div class="col-md-12" style="margin-left:0">
-                <label class="checkbox"><input class="form-check-input" type="checkbox" name="fatura_no_projeto" value="1" checked> Faturar pelo projeto</label>
+                <label class="form-check"><input class="form-check-input" type="checkbox" name="fatura_no_projeto" value="1" checked> Faturar pelo projeto</label>
             </div>
         </div></div>
         <div class="modal-footer"><button type="button" class="button btn btn-warning" data-bs-dismiss="modal"><span class="button__text2">Cancelar</span></button><button type="submit" class="button btn btn-success"><span class="button__text2">Vincular</span></button></div>
@@ -159,12 +159,12 @@ $(function () {
             <div class="col-md-6"><label for="cp_fim">Fim previsto</label><input type="date" name="data_fim_prevista" id="cp_fim" class="w-100 form-control"></div>
             <div class="col-md-12" style="margin-left:0">
                 <label>Etapas</label>
-                <label class="radio"><input class="form-check-input" type="radio" name="etapas" value="servicos" checked> Uma etapa por serviço da OS (peso pelo valor)</label>
-                <label class="radio"><input class="form-check-input" type="radio" name="etapas" value="padrao"> Etapas padrão do tipo (itens na primeira etapa)</label>
+                <label class="form-check"><input class="form-check-input" type="radio" name="etapas" value="servicos" checked> Uma etapa por serviço da OS (peso pelo valor)</label>
+                <label class="form-check"><input class="form-check-input" type="radio" name="etapas" value="padrao"> Etapas padrão do tipo (itens na primeira etapa)</label>
                 <div id="cp_etapas" class="text-muted" style="margin:6px 0"><small>Carregando prévia...</small></div>
             </div>
             <div class="col-md-12" style="margin-left:0">
-                <label class="checkbox"><input class="form-check-input" type="checkbox" name="gerar_pontos" value="1" id="cp_gerar"> Gerar pontos dos produtos (câmeras, leitores, pontos de rede...)</label>
+                <label class="form-check"><input class="form-check-input" type="checkbox" name="gerar_pontos" value="1" id="cp_gerar"> Gerar pontos dos produtos (câmeras, leitores, pontos de rede...)</label>
                 <div id="cp_pontos" style="display:none;margin-top:6px"></div>
             </div>
             <div class="col-md-12" style="margin-left:0"><small class="text-muted">O status da OS e o estoque não são alterados. O faturamento passa a ser pelo projeto.</small></div>

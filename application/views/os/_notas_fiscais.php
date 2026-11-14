@@ -165,8 +165,8 @@ $configNfeBoleto = $this->nfe_model->getConfig();
         </div>
         <div class="mb-3">
             <label><strong>Como cobrar esta nota</strong></label>
-            <label class="radio" style="margin:2px 0"><input class="form-check-input" type="radio" name="boletoModo" value="unico" checked /> <strong>Um boleto com o valor da nota</strong> (à vista ou parcelado)</label>
-            <label class="radio" style="margin:2px 0"><input class="form-check-input" type="radio" name="boletoModo" value="por_item" /> <strong>Um boleto para cada item da nota</strong> (cada serviço/produto separado)</label>
+            <label class="form-check" style="margin:2px 0"><input class="form-check-input" type="radio" name="boletoModo" value="unico" checked /> <strong>Um boleto com o valor da nota</strong> (à vista ou parcelado)</label>
+            <label class="form-check" style="margin:2px 0"><input class="form-check-input" type="radio" name="boletoModo" value="por_item" /> <strong>Um boleto para cada item da nota</strong> (cada serviço/produto separado)</label>
             <span style="color:#999;font-size:11px">Por item: o valor da nota é dividido entre os itens, cada um no seu boleto, todos com o mesmo vencimento. Mínimo de R$ 5,00 por boleto.</span>
         </div>
         <div class="mb-3" id="boletoParcelasBox">
