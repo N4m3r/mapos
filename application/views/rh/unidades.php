@@ -54,7 +54,7 @@
                     <label>Endereço</label>
                     <div style="display:flex;gap:6px">
                         <input type="text" name="endereco" id="u-endereco" class="w-100 form-control" style="flex:1" placeholder="Rua, número, cidade...">
-                        <button type="button" class="btn" data-chamar="buscarEndereco" title="Buscar no mapa"><i class='bx bx-search'></i></button>
+                        <button type="button" class="btn btn-outline-secondary" data-chamar="buscarEndereco" title="Buscar no mapa"><i class='bx bx-search'></i></button>
                     </div>
                     <div style="display:flex;gap:8px">
                         <div style="flex:1"><label>Latitude</label><input type="text" name="latitude" id="u-lat" class="w-100 form-control"></div>
@@ -62,7 +62,7 @@
                     </div>
                     <label>Raio da área permitida (metros)</label>
                     <input type="number" name="raio_metros" id="u-raio" class="w-100 form-control" value="150" min="20" step="10">
-                    <button type="button" class="btn btn-sm" data-chamar="minhaLoc" style="margin-top:6px"><i class='bx bx-current-location'></i> Usar minha localização</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-chamar="minhaLoc" style="margin-top:6px"><i class='bx bx-current-location'></i> Usar minha localização</button>
                     <div style="margin-top:8px"><label>Situação</label>
                         <select name="situacao" id="u-situacao" class="w-100 form-select"><option value="1">Ativa</option><option value="0">Inativa</option></select>
                     </div>

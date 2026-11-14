@@ -87,13 +87,13 @@ foreach ($salvas as $valor) {
                 </div>
 
                 <div class="perfil-acoes-rapidas">
-                    <button type="button" class="btn btn-sm" data-marcar="todas">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-marcar="todas">
                         <i class="bx bx-check-square"></i> Marcar todas
                     </button>
-                    <button type="button" class="btn btn-sm" data-marcar="visiveis">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-marcar="visiveis">
                         <i class="bx bx-filter"></i> Marcar as visíveis
                     </button>
-                    <button type="button" class="btn btn-sm" data-marcar="nenhuma">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-marcar="nenhuma">
                         <i class="bx bx-square"></i> Desmarcar todas
                     </button>
                 </div>

@@ -91,7 +91,7 @@ $comOpcoes = $tiposComOpcoes ?? ['select', 'radio', 'checkbox'];
             <button type="submit" class="btn btn-success">
                 <i class="bx bx-save"></i> Salvar formulário
             </button>
-            <a href="<?= site_url('formularios') ?>" class="btn">Voltar</a>
+            <a href="<?= site_url('formularios') ?>" class="btn btn-outline-secondary">Voltar</a>
         </form>
     </div>
 </div>

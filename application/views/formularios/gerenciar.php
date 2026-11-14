@@ -58,7 +58,7 @@
                             <a href="<?= site_url('formularios/editar/' . $r->idFormulario) ?>" class="btn btn-primary btn-sm" title="Editar">
                                 <i class="bx bx-edit"></i> Editar
                             </a>
-                            <a href="<?= site_url('formularios/duplicar/' . $r->idFormulario) ?>" class="btn btn-sm" title="Duplicar">
+                            <a href="<?= site_url('formularios/duplicar/' . $r->idFormulario) ?>" class="btn btn-sm btn-outline-secondary" title="Duplicar">
                                 <i class="bx bx-copy"></i>
                             </a>
                             <a href="<?= site_url('formularios/excluir/' . $r->idFormulario) ?>" class="btn btn-danger btn-sm btn-excluir-formulario" title="Excluir">
