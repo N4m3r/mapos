@@ -67,12 +67,12 @@ $versao = htmlspecialchars($this->config->item('app_version'), ENT_QUOTES, 'UTF-
 
         <div class="cftv-campo">
           <i class="bx bx-envelope"></i>
-          <input class="form-control" id="email" name="email" type="email" inputmode="email" autocomplete="username" placeholder="E-mail" aria-label="E-mail" autofocus>
+          <input id="email" name="email" type="email" inputmode="email" autocomplete="username" placeholder="E-mail" aria-label="E-mail" autofocus>
         </div>
 
         <div class="cftv-campo">
           <i class="bx bx-lock-alt"></i>
-          <input class="form-control" id="senha" name="senha" type="password" autocomplete="current-password" placeholder="Senha" aria-label="Senha">
+          <input id="senha" name="senha" type="password" autocomplete="current-password" placeholder="Senha" aria-label="Senha">
           <button type="button" class="cftv-olho" id="togglePass" aria-label="Mostrar senha"><i class="bx bx-show"></i></button>
         </div>
 
@@ -158,7 +158,7 @@ $versao = htmlspecialchars($this->config->item('app_version'), ENT_QUOTES, 'UTF-
 
           return false;
         },
-        errorClass: "invalid-feedback",
+        errorClass: "help-inline",
         errorElement: "span",
         errorPlacement: function(error, element) { error.appendTo(element.closest('.cftv-campo')); },
         highlight: function(element) { $(element).closest('.cftv-campo').addClass('erro'); },
