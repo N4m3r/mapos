@@ -399,3 +399,25 @@ if (! function_exists('tema_arquivo_css')) {
         return isset($arquivos[$tema]) ? 'assets/css/' . $arquivos[$tema] : '';
     }
 }
+
+if (! function_exists('senha_nova_erro')) {
+    /**
+     * Valida a nova senha da tela Minha Conta (mesmo minimo de 6 caracteres do
+     * cadastro de usuarios). Retorna a mensagem de erro ou null quando esta ok.
+     */
+    function senha_nova_erro($nova, $confirmacao)
+    {
+        $nova = (string) $nova;
+        if ($nova === '') {
+            return 'Informe a nova senha.';
+        }
+        if (mb_strlen($nova) < 6) {
+            return 'A nova senha precisa ter pelo menos 6 caracteres.';
+        }
+        if ($nova !== (string) $confirmacao) {
+            return 'A confirmação não é igual à nova senha.';
+        }
+
+        return null;
+    }
+}

@@ -89,12 +89,17 @@ $urlCssTema = function ($tema) {
             aria-label="<?= $modoEscuro ? 'Ativar modo claro' : 'Ativar modo escuro' ?>" title="<?= $modoEscuro ? 'Ativar modo claro' : 'Ativar modo escuro' ?>"><i class='bx <?= $modoEscuro ? 'bx-sun' : 'bx-moon' ?> iconN' aria-hidden="true"></i></a>
         </li>
         <li class="dropdown">
-          <a href="#" class="dropdown-toggle" role="button" data-bs-toggle="dropdown" title="Perfis" aria-label="Perfis" aria-expanded="false"><i class='bx bx-user-circle iconN'></i><span class="text"></span></a>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" title="Área do Cliente" href="<?= site_url(); ?>/mine" target="_blank"> <span class="text">Área do Cliente</span></a></li>
-            <li><a class="dropdown-item" title="Meu Perfil" href="<?= site_url('mapos/minhaConta'); ?>"><span class="text">Meu Perfil</span></a></li>
+          <a href="#" class="dropdown-toggle" role="button" data-bs-toggle="dropdown" title="Minha conta e sair" aria-label="Menu da conta" aria-expanded="false"><i class='bx bx-user-circle iconN'></i><span class="text"></span></a>
+          <ul class="dropdown-menu menu-perfil">
+            <li class="menu-perfil-cabecalho">
+              <strong><?= html_escape($this->session->userdata('nome_admin')) ?></strong>
+              <small><?= html_escape($this->session->userdata('email_admin')) ?></small>
+            </li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" title="Sair do Sistema" href="<?= site_url('login/sair'); ?>"><i class='bx bx-log-out-circle'></i> <span class="text">Sair do Sistema</span></a></li>
+            <li><a class="dropdown-item" href="<?= site_url('mapos/minhaConta'); ?>"><i class='bx bx-user' aria-hidden="true"></i> <span class="text">Minha Conta</span></a></li>
+            <li><a class="dropdown-item" href="<?= site_url(); ?>/mine" target="_blank" rel="noopener"><i class='bx bx-link-external' aria-hidden="true"></i> <span class="text">Área do Cliente</span></a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="<?= site_url('login/sair'); ?>"><i class='bx bx-log-out-circle' aria-hidden="true"></i> <span class="text">Sair do Sistema</span></a></li>
           </ul>
         </li>
       </ul>

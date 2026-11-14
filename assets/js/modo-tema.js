@@ -1,10 +1,12 @@
 /*
- * Botao de modo claro/escuro do topo do painel (#btn-modo-escuro).
+ * Modo claro/escuro do painel: botao do topo (#btn-modo-escuro) e a secao
+ * Aparencia da Minha Conta (window.MaposModoTema).
  *
  * O servidor ja entrega a pagina no tema certo (cookie mapos_modo_<id> lido no
  * MY_Controller), entao nao ha piscada ao carregar. Aqui so a troca sem recarregar:
  * a folha do tema nova e carregada antes de a antiga sair, e o atributo
  * data-bs-theme do <html> acompanha para os componentes do Bootstrap 5.
+ * Cada troca dispara o evento 'mapos:modo-tema' no document.
  */
 (function () {
     'use strict';
@@ -12,45 +14,69 @@
     var LOGO_ESCURO = ['white', 'whitegreen'];
     var UM_ANO = 60 * 60 * 24 * 365;
 
-    function iniciar() {
-        var botao = document.getElementById('btn-modo-escuro');
-        var corpo = document.body;
-        if (!botao || !corpo || !corpo.getAttribute('data-tema-escuro')) {
+    function corpo() {
+        return document.body;
+    }
+
+    function escuroAgora() {
+        return document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    }
+
+    function gravarCookie(valor, maxAge) {
+        var b = corpo();
+        var nome = b && b.getAttribute('data-modo-cookie');
+        if (!nome) {
             return;
         }
+        var seguro = location.protocol === 'https:' ? '; Secure' : '';
+        document.cookie = nome + '=' + valor + '; Max-Age=' + maxAge + '; Path=' +
+            (b.getAttribute('data-cookie-path') || '/') + '; SameSite=Lax' + seguro;
+    }
 
-        botao.addEventListener('click', function (evento) {
-            evento.preventDefault();
-            var escuroAgora = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-            aplicar(escuroAgora ? 'claro' : 'escuro');
-        });
+    // modo: 'claro' | 'escuro' | 'sistema' (volta ao tema das Configuracoes: precisa recarregar)
+    function aplicar(modo) {
+        var b = corpo();
+        if (!b || !b.getAttribute('data-tema-escuro')) {
+            return;
+        }
+        if (modo === 'sistema') {
+            gravarCookie('', 0);
+            location.reload();
+            return;
+        }
+        var escuro = modo === 'escuro';
+        var tema = b.getAttribute('data-tema-' + modo);
 
-        function aplicar(modo) {
-            var tema = corpo.getAttribute('data-tema-' + modo);
-            var css = corpo.getAttribute('data-css-' + modo) || '';
-            var escuro = modo === 'escuro';
+        trocarFolha(b.getAttribute('data-css-' + modo) || '');
+        b.setAttribute('data-theme', tema);
+        document.documentElement.setAttribute('data-bs-theme', escuro ? 'dark' : 'light');
+        trocarLogo(tema);
+        atualizarBotao(escuro);
+        gravarCookie(modo, UM_ANO);
 
-            trocarFolha(css);
-            corpo.setAttribute('data-theme', tema);
-            document.documentElement.setAttribute('data-bs-theme', escuro ? 'dark' : 'light');
-            trocarLogo(tema);
+        var evento;
+        try {
+            evento = new CustomEvent('mapos:modo-tema', { detail: { modo: modo } });
+        } catch (e) {
+            evento = document.createEvent('CustomEvent');
+            evento.initCustomEvent('mapos:modo-tema', false, false, { modo: modo });
+        }
+        document.dispatchEvent(evento);
+    }
 
-            var rotulo = escuro ? 'Ativar modo claro' : 'Ativar modo escuro';
-            botao.setAttribute('aria-pressed', escuro ? 'true' : 'false');
-            botao.setAttribute('aria-label', rotulo);
-            botao.setAttribute('title', rotulo);
-            var icone = botao.querySelector('i');
-            if (icone) {
-                icone.classList.toggle('bx-sun', escuro);
-                icone.classList.toggle('bx-moon', !escuro);
-            }
-
-            var cookie = corpo.getAttribute('data-modo-cookie');
-            if (cookie) {
-                var seguro = location.protocol === 'https:' ? '; Secure' : '';
-                document.cookie = cookie + '=' + modo + '; Max-Age=' + UM_ANO + '; Path=' +
-                    (corpo.getAttribute('data-cookie-path') || '/') + '; SameSite=Lax' + seguro;
-            }
+    function atualizarBotao(escuro) {
+        var botao = document.getElementById('btn-modo-escuro');
+        if (!botao) {
+            return;
+        }
+        var rotulo = escuro ? 'Ativar modo claro' : 'Ativar modo escuro';
+        botao.setAttribute('aria-pressed', escuro ? 'true' : 'false');
+        botao.setAttribute('aria-label', rotulo);
+        botao.setAttribute('title', rotulo);
+        var icone = botao.querySelector('i');
+        if (icone) {
+            icone.classList.toggle('bx-sun', escuro);
+            icone.classList.toggle('bx-moon', !escuro);
         }
     }
 
@@ -89,6 +115,18 @@
             imagens[i].src = imagens[i].src.replace(/logo-mapos(-branco)?\.png/, arquivo);
         }
     }
+
+    function iniciar() {
+        var botao = document.getElementById('btn-modo-escuro');
+        if (botao) {
+            botao.addEventListener('click', function (evento) {
+                evento.preventDefault();
+                aplicar(escuroAgora() ? 'claro' : 'escuro');
+            });
+        }
+    }
+
+    window.MaposModoTema = { aplicar: aplicar, escuro: escuroAgora };
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', iniciar);
