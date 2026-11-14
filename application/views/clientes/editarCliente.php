@@ -207,14 +207,16 @@
                         <div class="row mb-2">
                             <label for="senha" class="col-sm-3 col-form-label">Senha</label>
                             <div class="col-sm-9">
-                                <input class="form-control" id="senha" type="password" name="senha" value="" placeholder="Não preencha se não quiser alterar." />
-                                <img id="imgSenha" src="<?php echo base_url() ?>assets/img/eye.svg" alt="">
+                                <div class="input-group">
+                                    <input class="form-control" id="senha" type="password" name="senha" value="" placeholder="Não preencha se não quiser alterar." />
+                                    <span class="input-group-text"><img id="imgSenha" src="<?php echo base_url() ?>assets/img/eye.svg" alt="Mostrar senha"></span>
+                                </div>
                             </div>
                         </div>
                         <div class="row mb-2">
                             <label class="col-sm-3 col-form-label">Tipo de Cliente</label>
                             <div class="col-sm-9">
-                                <label for="fornecedor" class="btn btn-secondary">Fornecedor
+                                <label for="fornecedor" class="btn btn-light border">Fornecedor
                                     <input type="checkbox" id="fornecedor" name="fornecedor" class="badgebox form-check-input" value="1" <?= ($result->fornecedor == 1) ? 'checked' : '' ?>>
                                     <span class="badge text-bg-secondary">&check;</span>
                                 </label>
@@ -224,7 +226,7 @@
                         <div class="row mb-2">
                             <label class="col-sm-3 col-form-label">Atividade n&atilde;o programada</label>
                             <div class="col-sm-9">
-                                <label for="exige_chamado" class="btn btn-secondary">Exige N&ordm; do chamado
+                                <label for="exige_chamado" class="btn btn-light border">Exige N&ordm; do chamado
                                     <input type="checkbox" id="exige_chamado" name="exige_chamado" class="badgebox form-check-input" value="1" <?= !empty($result->exige_chamado) ? 'checked' : '' ?>>
                                     <span class="badge text-bg-secondary">&check;</span>
                                 </label>

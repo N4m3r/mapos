@@ -153,8 +153,10 @@
                     <div class="row mb-2">
                         <label for="senha" class="visually-hidden"><span class="required"></span></label>
                         <div class="col-12">
-                            <input class="form-control" id="senha" type="password" placeholder="Senha*" name="senha" value="<?= set_value('senha') ?>" />
-                            <img id="imgSenha" src="<?= base_url() ?>assets/img/eye.svg" alt="">
+                            <div class="input-group">
+                                <input class="form-control" id="senha" type="password" placeholder="Senha*" name="senha" value="<?= set_value('senha') ?>" />
+                                <span class="input-group-text"><img id="imgSenha" src="<?= base_url() ?>assets/img/eye.svg" alt="Mostrar senha"></span>
+                            </div>
                         </div>
                     </div>
 
