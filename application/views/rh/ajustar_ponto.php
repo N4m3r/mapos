@@ -27,7 +27,7 @@ $diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
             <?php else: foreach ($registros as $r):
                 $ts = strtotime($r->data_hora);
                 $dtLocal = date('Y-m-d\TH:i', $ts); ?>
-                <tr class="<?= $r->status === 'rejeitado' ? 'text-error' : '' ?>">
+                <tr class="<?= $r->status === 'rejeitado' ? 'table-danger' : '' ?>">
                     <td><?= date('d/m', $ts) ?> <small><?= $diasSemana[(int)date('w',$ts)] ?></small></td>
                     <td><strong><?= date('H:i', $ts) ?></strong></td>
                     <td><?= $lblTipo[$r->tipo] ?? $r->tipo ?></td>
