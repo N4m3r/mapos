@@ -1,9 +1,7 @@
-<div class="row">
-    <div id="footer" class="col-md-12">
-        <a class="pecolor" href="https://github.com/RamonSilva20/mapos" target="_blank">
-            <?= date('Y') ?> &copy; Ramon Silva - Map-OS - Versão: <?= $this->config->item('app_version') ?>
-        </a>
-    </div>
+<div id="footer">
+    <a class="pecolor" href="https://github.com/RamonSilva20/mapos" target="_blank">
+        <?= date('Y') ?> &copy; Ramon Silva - Map-OS - Versão: <?= $this->config->item('app_version') ?>
+    </a>
 </div>
 <!--end-Footer-part-->
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/bootstrap.bundle.min.js"></script>
