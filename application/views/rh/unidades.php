@@ -43,7 +43,7 @@
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 
 <!-- Modal unidade (com mapa) -->
-<div id="modal-unidade" class="modal fade rh-modal-wide" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
+<div id="modal-unidade" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog modal-lg rh-modal-wide"><div class="modal-content">
     <form action="<?= site_url('rh/salvarUnidade') ?>" method="post">
         <div class="modal-header"><h5 id="u-titulo">Unidade</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body">
@@ -148,8 +148,8 @@ function abrirMapaUnidade(){
     else { uMap.setView([-14.235, -51.925], 4); if (uMarker){uMap.removeLayer(uMarker);uMarker=null;} if (uCircle){uMap.removeLayer(uCircle);uCircle=null;} }
     setTimeout(function(){ uMap.invalidateSize(); }, 150);
 }
-// Robusto: tanto no evento 'shown' do modal quanto num fallback pós-clique do gatilho
-// (funciona mesmo que o tema não dispare 'shown').
+// Robusto: tanto no evento 'shown.bs.modal' quanto num fallback pós-clique do gatilho
+// (funciona mesmo que o evento não dispare).
 $('#modal-unidade').on('shown.bs.modal', abrirMapaUnidade);
 $(document).on('click', 'a[href="#modal-unidade"][data-bs-toggle="modal"]', function(){ setTimeout(abrirMapaUnidade, 350); });
 

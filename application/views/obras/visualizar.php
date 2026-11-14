@@ -1027,12 +1027,12 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
 <div id="modal-os-etapa" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('obras/gerarOsEtapa') ?>" method="post">
         <div class="modal-header"><h5>Gerar OS da etapa <span id="os_etapa_nome"></span></h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
-        <div class="modal-body">
+        <div class="modal-body"><div class="row">
             <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
             <input type="hidden" name="etapa_id" id="os_etapa_id">
             <?= $camposOs(true) ?>
             <small>Os materiais e serviços da etapa são copiados para a OS.</small>
-        </div>
+        </div></div>
         <div class="modal-footer"><button type="button" class="button btn btn-warning" data-bs-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Gerar OS</span></button></div>
     </form>
 </div></div></div>
@@ -1153,7 +1153,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
 <?php endif; ?>
 
 <!-- Modal Detalhes do ponto -->
-<div id="modal-ponto-detalhes" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ptd-titulo" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
+<div id="modal-ponto-detalhes" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ptd-titulo" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
     <div class="modal-header"><h5 id="ptd-titulo" tabindex="-1">Detalhes do ponto</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body" id="ptd-corpo" aria-live="polite"></div>
     <div class="modal-footer">
@@ -1171,7 +1171,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
             $('#ptd-editar').toggle(!!editArgs);
             $('#ptd-titulo').text('Detalhes do ponto');
             $('#ptd-corpo').html('<p>Carregando...</p>');
-            // dois modais abertos no Bootstrap 2 disputam o foco sem fim: fecha os outros antes
+            // dois modais abertos disputam o foco: fecha os outros antes
             $('.modal.show').not('#modal-ponto-detalhes').modal('hide');
             $('#modal-ponto-detalhes').modal('show');
             $.get('<?= site_url('obras/pontoDetalhes') ?>', { obra_id: <?= (int) $obra->idObra ?>, ponto_id: id })
@@ -1183,11 +1183,11 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                 })
                 .fail(function () { if (n === req) { $('#ptd-corpo').html('<p>Não foi possível carregar os detalhes. Verifique a conexão e tente novamente.</p>'); } });
         });
-        // foco nativo: trigger('focus') do jQuery 3 entra em laco com o controle de foco do modal do Bootstrap 2
+        // foco nativo no titulo assim que o modal termina de abrir
         $('#modal-ponto-detalhes').on('shown.bs.modal', function (e) { if (e.target === this) { var t = document.getElementById('ptd-titulo'); if (t) { t.focus(); } } });
         $(document).on('click', '#ptd-editar', function () {
             var args = editArgs;
-            $('#modal-ponto-detalhes').one('hidden', function () { if (args) { editarPonto.apply(null, args); } }).modal('hide');
+            $('#modal-ponto-detalhes').one('hidden.bs.modal', function () { if (args) { editarPonto.apply(null, args); } }).modal('hide');
         });
     })();
 </script>
@@ -1346,9 +1346,9 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
             if (! $('#tab-' + tab).length) return;
             $('.obra-pane').hide();
             $('#tab-' + tab).show();
-            $('#obraTabs li').removeClass('active');
+            $('#obraTabs .nav-link').removeClass('active').removeAttr('aria-current');
             var $a = $('#obraTabs a[data-tab="' + tab + '"]');
-            $a.parent().addClass('active');
+            $a.addClass('active').attr('aria-current', 'page');
             if ($a[0] && $a[0].scrollIntoView) { try { $a[0].scrollIntoView({ block: 'nearest', inline: 'center' }); } catch (e) {} }
         }
         $('#obraTabs a').on('click', function (e) {
