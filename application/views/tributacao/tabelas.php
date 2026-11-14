@@ -33,7 +33,7 @@
                         &middot; ainda não importada
                     <?php } ?>
                 </p>
-                <form method="post" action="<?= site_url('tributacao/tabelas') ?>" enctype="multipart/form-data" class="form-inline">
+                <form method="post" action="<?= site_url('tributacao/tabelas') ?>" enctype="multipart/form-data" class="d-flex flex-wrap gap-2 align-items-center">
                     <input type="hidden" name="<?= $this->security->get_csrf_token_name() ?>" value="<?= $this->security->get_csrf_hash() ?>">
                     <input type="hidden" name="tabela" value="<?= htmlspecialchars($k) ?>">
                     <input class="form-control" type="file" name="arquivo" accept=".csv,.txt" required>

@@ -163,8 +163,8 @@
                             echo '<td><span class="ui-selo ' . ($corGarantia === "#4d9c79" ? "sucesso" : ($corGarantia === "#f24c6f" ? "perigo" : "")) . '">' . $vencGarantia . '</span> </td>';
                             echo '<td><span class="ui-selo ' . (["Aberto"=>"sucesso","Finalizado"=>"sucesso","Faturado"=>"sucesso","Aprovado"=>"sucesso","Em Andamento"=>"info","Orçamento"=>"info","Negociação"=>"info","Aguardando Peças"=>"alerta","Cancelado"=>"perigo"][$o->status] ?? "") . '">' . $o->status . '</span> </td>';
                             echo '<td style="text-align:right">';
-                            echo '<a href="' . base_url() . 'index.php/mine/visualizarOs/' . $o->idOs . '" class="btn"> <i class="fas fa-eye" ></i></a> ';
-                            echo '<a href="' . base_url('index.php/mine/imprimirOs/' . $o->idOs) . '" class="btn" target="_blank"> <i class="fas fa-print"></i></a>';
+                            echo '<a href="' . base_url() . 'index.php/mine/visualizarOs/' . $o->idOs . '" class="btn btn-light"> <i class="fas fa-eye" ></i></a> ';
+                            echo '<a href="' . base_url('index.php/mine/imprimirOs/' . $o->idOs) . '" class="btn btn-light" target="_blank"> <i class="fas fa-print"></i></a>';
                             echo '</td>';
                             echo '</tr>';
                         }
@@ -267,8 +267,8 @@
                     echo '<td><span class="ui-selo ' . ($corGarantia === "#4d9c79" ? "sucesso" : ($corGarantia === "#f24c6f" ? "perigo" : "")) . '">' . $vencGarantia . '</span> </td>';
                     echo '<td><span class="ui-selo ' . (["Aberto"=>"sucesso","Finalizado"=>"sucesso","Faturado"=>"sucesso","Aprovado"=>"sucesso","Em Andamento"=>"info","Orçamento"=>"info","Negociação"=>"info","Aguardando Peças"=>"alerta","Cancelado"=>"perigo"][$c->status] ?? "") . '">' . $c->status . '</span> </td>';
                     echo '<td style="text-align:right">';
-                    echo '<a href="' . base_url() . 'index.php/mine/visualizarCompra/' . $c->idVendas . '" class="btn"> <i class="fas fa-eye" ></i> </a> ';
-                    echo '<a href="' . base_url() . 'index.php/mine/imprimirCompra/' . $c->idVendas . '" class="btn"> <i class="fas fa-print" ></i> </a>';
+                    echo '<a href="' . base_url() . 'index.php/mine/visualizarCompra/' . $c->idVendas . '" class="btn btn-light"> <i class="fas fa-eye" ></i> </a> ';
+                    echo '<a href="' . base_url() . 'index.php/mine/imprimirCompra/' . $c->idVendas . '" class="btn btn-light"> <i class="fas fa-print" ></i> </a>';
                     echo '</td>';
                     echo '</tr>';
                 }

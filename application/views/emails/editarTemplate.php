@@ -66,7 +66,7 @@ $tokenHash = $this->security->get_csrf_hash();
                     <p style="color:#6b7191; font-size:12px;">Clique para inserir no campo selecionado (assunto ou corpo).</p>
                     <div id="listaTags">
                         <?php foreach ($tagsDisponiveis as $tag) { ?>
-                            <a href="#" class="btn btn-sm tag-chip" data-tag="{{<?= html_escape($tag) ?>}}" style="margin:0 4px 6px 0;">{{<?= html_escape($tag) ?>}}</a>
+                            <a href="#" class="btn btn-sm btn-light border tag-chip" data-tag="{{<?= html_escape($tag) ?>}}" style="margin:0 4px 6px 0;">{{<?= html_escape($tag) ?>}}</a>
                         <?php } ?>
                     </div>
                 </div>

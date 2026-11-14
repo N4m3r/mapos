@@ -272,7 +272,7 @@ echo number_format($soma_descontos_pagos, 2, ',', '.')?></strong></td>
 	      </div>
 		            
           <div class="col-md-3">  
-          <label for="valor_desconto">Val.Desc <i class="icon-info-sign tip-left" title="Não altere esta campo, caso clicar nele e sair e ficar vázio, terá que recarregar á pagina e inserir de novo"></i></label>
+          <label for="valor_desconto">Val.Desc <i class="bx bx-info-circle tip-left" title="Não altere esta campo, caso clicar nele e sair e ficar vázio, terá que recarregar á pagina e inserir de novo"></i></label>
           <input class="money w-100 form-control" id="valor_desconto" readOnly="true" title="Não altere este campo" type="text" name="valor_desconto" value="<?php echo number_format("0.00", 2, ',', '.') ?>"/>
         </div>
 
@@ -388,7 +388,7 @@ echo number_format($soma_descontos_pagos, 2, ',', '.')?></strong></td>
 	      </div>
 		         
           <div class="col-md-3" style="margin-left: 0">  
-	        <label for="desconto_parc">Desconto <i class="icon-info-sign tip-left" title="Não altere esta campo, caso clicar nele e sair e ficar vázio, terá que recarregar á pagina e inserir de novo"></i></label>
+	        <label for="desconto_parc">Desconto <i class="bx bx-info-circle tip-left" title="Não altere esta campo, caso clicar nele e sair e ficar vázio, terá que recarregar á pagina e inserir de novo"></i></label>
             <input class="money w-50 form-control"  id="desconto_parc" readOnly="true" title="Não altere este campo" type="text" name="desconto_parc" value="<?php echo number_format("0.00", 2, ',', '.') ?>" style="float: left;" />
 	      </div>
 			
@@ -430,7 +430,7 @@ echo number_format($soma_descontos_pagos, 2, ',', '.')?></strong></td>
 
 	    <div class="col-md-12 row" style="margin-left: 0;"> 
 	    	<div class="col-md-4">
-	    		<label for="entrada">Entrada <i class="icon-info-sign tip-right" title="O valor da entrada será lançado como pago no dia atual (Hoje)"></i></label>
+	    		<label for="entrada">Entrada <i class="bx bx-info-circle tip-right" title="O valor da entrada será lançado como pago no dia atual (Hoje)"></i></label>
 	    		<input class="money w-100 form-control" id="entrada" type="text" name="entrada" value="0" />
 	    	</div>
 
@@ -440,7 +440,7 @@ echo number_format($soma_descontos_pagos, 2, ',', '.')?></strong></td>
 	    	</div>
 	    	
 	    	<div class="col-md-4" style="margin-left: 1">
-	    		<label for="dia_base_pgto">Data Base de Pgto* <i class="icon-info-sign tip-left" title="Dia do mês que serão lançadas as parcelas restantes, iniciando-se pela data selecionada."></i></label>
+	    		<label for="dia_base_pgto">Data Base de Pgto* <i class="bx bx-info-circle tip-left" title="Dia do mês que serão lançadas as parcelas restantes, iniciando-se pela data selecionada."></i></label>
 	    		<input class="datepicker w-100 form-control" id="dia_base_pgto" type="text" autocomplete="off" name="dia_base_pgto" required  />
 	    	</div>
 
@@ -888,7 +888,7 @@ echo number_format($soma_descontos_pagos, 2, ',', '.')?></strong></td>
                 success: function(data) {
                     if (data.result == true) {
                         $("#btnCancelExcluir").trigger('click');
-                        $("#divLancamentos").html('<div class="progress active"><div class="bar" style="width: 100%;"></div></div>');
+                        $("#divLancamentos").html('<div class="progress"><div class="progress-bar progress-bar-striped progress-bar-animated bg-info" style="width: 100%;"></div></div>');
                         $("#divLancamentos").load($(location).attr('href') + " #divLancamentos");
 
                     } else {

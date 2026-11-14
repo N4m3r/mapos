@@ -5,17 +5,14 @@
     </div>
 </div>
 <div class="accordion" id="collapse-group">
-    <div class="accordion-group widget-box">
-        <div class="accordion-heading">
-            <div class="widget-title" style="margin: -20px 0 0">
-                <a data-bs-parent="#collapse-group" href="#collapseGOne" data-bs-toggle="collapse">
-                    <span class="icon"><i class="fas fa-shopping-bag"></i></span>
-                    <h5>Dados do Produto</h5>
-                </a>
-            </div>
-        </div>
-        <div class="collapse show accordion-body">
-            <div class="widget-content">
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGOne" aria-expanded="true" aria-controls="collapseGOne">
+                <i class="fas fa-shopping-bag me-2"></i> Dados do Produto
+            </button>
+        </h2>
+        <div class="accordion-collapse collapse show" id="collapseGOne" data-bs-parent="#collapse-group">
+            <div class="accordion-body">
                 <table class="table table-bordered">
                     <tbody>
                         <tr>

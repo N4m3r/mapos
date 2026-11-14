@@ -95,7 +95,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                         <div style="font-size:12px; color:#6b7191; margin-bottom:3px">PIX copia e cola</div>
                                         <div style="display:flex; gap:6px; align-items:center">
                                             <input type="text" readonly value="<?= html_escape($b->pix) ?>" class="w-100 form-control" style="font-size:11px; margin:0" data-acao="selecionar">
-                                            <button type="button" class="btn btn-sm copiar-doc" data-valor="<?= html_escape($b->pix) ?>"><i class="bx bx-copy"></i> Copiar</button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary copiar-doc" data-valor="<?= html_escape($b->pix) ?>"><i class="bx bx-copy"></i> Copiar</button>
                                         </div>
                                     </div>
                                 <?php } ?>
@@ -104,7 +104,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                         <div style="font-size:12px; color:#6b7191; margin-bottom:3px">Linha digitável</div>
                                         <div style="display:flex; gap:6px; align-items:center">
                                             <input type="text" readonly value="<?= html_escape($b->barcode) ?>" class="w-100 form-control" style="font-size:11px; margin:0" data-acao="selecionar">
-                                            <button type="button" class="btn btn-sm copiar-doc" data-valor="<?= html_escape($b->barcode) ?>"><i class="bx bx-copy"></i> Copiar</button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary copiar-doc" data-valor="<?= html_escape($b->barcode) ?>"><i class="bx bx-copy"></i> Copiar</button>
                                         </div>
                                     </div>
                                 <?php } ?>
@@ -255,6 +255,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                 </thead>
                                 <tbody>
                                     <th>
+                                    <div class="row">
                                     <?php foreach ($anexos as $a) {
                                         if ($a->thumb == null) {
                                             $thumb = base_url() . 'assets/img/icon-file.png';
@@ -263,8 +264,9 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                             $thumb = $a->url . '/thumbs/' . $a->thumb;
                                             $link = $a->url . '/' . $a->anexo;
                                         }
-                                        echo '<div class="col-md-3" style="min-height: 150px; margin-left: 0"><a style="min-height: 150px;" href="#modal-anexo" imagem="' . (int) $a->idAnexos . '" link="' . html_escape($link) . '" role="button" class="btn anexo col-md-12" data-bs-toggle="modal"><img src="' . html_escape($thumb) . '" alt=""></a></div>';
+                                        echo '<div class="col-md-3" style="min-height: 150px; margin-left: 0"><a style="min-height: 150px;" href="#modal-anexo" imagem="' . (int) $a->idAnexos . '" link="' . html_escape($link) . '" role="button" class="btn btn-light anexo col-md-12" data-bs-toggle="modal"><img src="' . html_escape($thumb) . '" alt=""></a></div>';
                                     } ?>
+                                    </div>
                                     </th>
                                 </tbody>
                             </table>
@@ -381,8 +383,8 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
             var target = $(this).data('target');
             $('.doc-pane').hide();
             $('#' + target).show();
-            $(this).closest('ul').find('li').removeClass('active');
-            $(this).closest('li').addClass('active');
+            $(this).closest('ul').find('.nav-link').removeClass('active');
+            $(this).addClass('active');
         });
 
         $(document).on('click', '.copiar-doc', function() {
@@ -420,7 +422,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
         </div>
     </div></div>
     <div class="modal-footer">
-        <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Fechar</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Fechar</button>
         <a href="" id-imagem="" class="btn btn-dark" id="download">Download</a>
     </div>
 </div></div></div>

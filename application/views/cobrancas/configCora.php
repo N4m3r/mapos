@@ -11,8 +11,6 @@ $webhookUrl = site_url('webhook/cora');
 $pronto = $ativo && $clientId && $certPath && $chavePath;
 ?>
 <style>
-    .form-horizontal .control-label { padding-top: 9px; width: 220px; }
-    .form-horizontal .controls { margin-left: 240px; }
     .hint { display: block; color: #999; font-size: 11px; margin-top: 2px; }
 </style>
 
@@ -91,7 +89,7 @@ $pronto = $ativo && $clientId && $certPath && $chavePath;
                     <div class="row mb-2">
                         <label class="col-sm-3 col-form-label" for="client_id">Client ID</label>
                         <div class="col-sm-9">
-                            <input class="form-control" type="text" id="client_id" name="client_id" value="<?= html_escape($clientId) ?>" style="width:360px" autocomplete="off" />
+                            <input class="form-control" type="text" id="client_id" name="client_id" value="<?= html_escape($clientId) ?>" style="max-width:360px" autocomplete="off" />
                             <span class="hint">Identificador da integração direta (ex: int-xxxxx).</span>
                         </div>
                     </div>
@@ -131,7 +129,7 @@ $pronto = $ativo && $clientId && $certPath && $chavePath;
                     <div class="row mb-2">
                         <label class="col-sm-3 col-form-label" for="boleto_expiration">Vencimento</label>
                         <div class="col-sm-9">
-                            <input class="form-control" type="text" id="boleto_expiration" name="boleto_expiration" value="<?= html_escape($expiracao) ?>" style="width:100px" />
+                            <input class="form-control" type="text" id="boleto_expiration" name="boleto_expiration" value="<?= html_escape($expiracao) ?>" style="max-width:100px" />
                             <span class="hint">Formato ISO 8601 a partir de hoje. Ex: <code>P3D</code> = 3 dias, <code>P7D</code> = 7 dias.</span>
                         </div>
                     </div>
@@ -139,7 +137,7 @@ $pronto = $ativo && $clientId && $certPath && $chavePath;
                     <div class="form-actions">
                         <button type="submit" class="btn btn-success"><i class="bx bx-save"></i> Salvar Configurações</button>
                         <button type="button" id="btn-testar-cora" class="btn btn-info"><i class="bx bx-plug"></i> Testar Conexão</button>
-                        <button type="button" id="btn-diagnostico-cora" class="btn"><i class="bx bx-search-alt"></i> Diagnóstico</button>
+                        <button type="button" id="btn-diagnostico-cora" class="btn btn-outline-secondary"><i class="bx bx-search-alt"></i> Diagnóstico</button>
                         <span id="resultado-teste-cora" style="margin-left:10px"></span>
                     </div>
                 </form>
@@ -155,8 +153,10 @@ $pronto = $ativo && $clientId && $certPath && $chavePath;
                 <div class="mb-3">
                     <label class="form-label" for="webhook_url">URL do webhook</label>
                     <div class="">
-                        <input class="form-control" type="text" id="webhook_url" value="<?= html_escape($webhookUrl) ?>" style="width:360px" readonly />
-                        <a href="#" class="btn btn-sm" id="btn-copiar-webhook"><i class="bx bx-copy"></i> Copiar</a>
+                        <div class="input-group" style="max-width:460px">
+                            <input class="form-control" type="text" id="webhook_url" value="<?= html_escape($webhookUrl) ?>" readonly />
+                            <a href="#" class="btn btn-outline-secondary" id="btn-copiar-webhook"><i class="bx bx-copy"></i> Copiar</a>
+                        </div>
                         <span class="hint">
                             <?php if (! empty($webhookId)) { ?>
                                 <span style="color:#4d9c79"><i class="bx bx-check-circle"></i> Webhook registrado (id: <?= html_escape($webhookId) ?>).</span>

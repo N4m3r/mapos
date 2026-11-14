@@ -199,7 +199,7 @@ foreach ($servicos as $s) {
                                 <?php
                                 } ?>
 
-                                <div class="col-md-12" id="divAnexos" style="margin-left: 0">
+                                <div class="col-md-12 row" id="divAnexos" style="margin-left: 0">
                                     <?php foreach ($anexos as $a) {
                                         if ($a->thumb == null) {
                                             $thumb = base_url() . 'assets/img/icon-file.png';
@@ -209,7 +209,7 @@ foreach ($servicos as $s) {
                                             $link = $a->url . '/' . $a->anexo;
                                         }
                                         echo '<div class="col-md-3" style="min-height: 150px; margin-left: 0">
-                                            <a style="min-height: 150px;" href="#modal-anexo" imagem="' . $a->idAnexos . '" link="' . $link . '" role="button" class="btn anexo col-md-12" data-bs-toggle="modal">
+                                            <a style="min-height: 150px;" href="#modal-anexo" imagem="' . $a->idAnexos . '" link="' . $link . '" role="button" class="btn btn-light anexo col-md-12" data-bs-toggle="modal">
                                             <img src="' . $thumb . '" alt="">
                                             </a>
                                             <span>' . $a->anexo . '</span>
@@ -253,7 +253,7 @@ foreach ($servicos as $s) {
         </div>
     </div></div>
     <div class="modal-footer">
-        <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Fechar</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Fechar</button>
         <a href="" id-imagem="" class="btn btn-dark" id="download">Download</a>
     </div>
 </div></div></div>
@@ -329,7 +329,7 @@ foreach ($servicos as $s) {
             </div>
         </div></div>
         <div class="modal-footer">
-            <button class="btn" data-bs-dismiss="modal" aria-hidden="true" id="btn-cancelar-faturar">Cancelar</button>
+            <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true" id="btn-cancelar-faturar">Cancelar</button>
             <button class="btn btn-primary">Faturar</button>
         </div>
     </form>

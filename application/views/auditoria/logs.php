@@ -53,7 +53,7 @@
             <h5 style="text-align: center">Deseja realmente remover os logs mais antigos?</h5>
         </div>
         <div class="modal-footer">
-            <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
+            <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
             <button class="btn btn-danger">Excluir</button>
         </div>
     </form>

@@ -14,7 +14,7 @@ $urlAcao = base_url() . 'index.php/' . $acaoFiltro;
 <div class="col-md-12" style="margin-left: 0">
     <div class="widget-box">
         <div class="widget-content" style="padding: 15px;">
-            <form method="get" action="<?php echo $urlAcao; ?>" class="form-inline os-filtros" style="margin: 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;">
+            <form method="get" action="<?php echo $urlAcao; ?>" class="os-filtros d-flex flex-wrap gap-2 align-items-end" style="margin: 0;">
                 <?php if (count($clientesFiltro) > 1) { ?>
                     <div>
                         <label style="display:block; font-weight:600;">CNPJ / Cliente</label>
@@ -39,7 +39,7 @@ $urlAcao = base_url() . 'index.php/' . $acaoFiltro;
                 <div>
                     <button type="submit" class="btn btn-primary"><i class="bx bx-search"></i> Filtrar</button>
                     <?php if ($temFiltro) { ?>
-                        <a href="<?php echo $urlAcao; ?>" class="btn">Limpar</a>
+                        <a href="<?php echo $urlAcao; ?>" class="btn btn-outline-secondary">Limpar</a>
                     <?php } ?>
                 </div>
             </form>

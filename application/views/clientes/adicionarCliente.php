@@ -32,22 +32,20 @@
         text-indent: 0;
     }
 
-    .control-group.error .form-text {
+    .is-invalid ~ .invalid-feedback {
         display: flex;
     }
 
-    .form-horizontal .control-group {
+    .form-horizontal .row.mb-2 {
         border-bottom: 1px solid #ffffff;
     }
 
-    .form-horizontal .controls {
-        margin-left: 20px;
-        padding-bottom: 8px 0;
+    .form-horizontal .col-sm-9 {
+        padding-bottom: 8px;
     }
 
-    .form-horizontal .control-label {
+    .form-horizontal .col-form-label {
         text-align: left;
-        padding-top: 15px;
     }
 
     .nopadding {
@@ -67,7 +65,7 @@
             display: contents !important;
         }
 
-        .form-horizontal .control-label {
+        .form-horizontal .col-form-label {
             margin-bottom: -6px;
         }
 
@@ -89,15 +87,17 @@
                 echo '<div class="alert alert-danger">' . $custom_error . '</div>';
             } ?>
             <form action="<?php echo current_url(); ?>" id="formCliente" method="post" class="form-horizontal">
-                <div class="widget-content nopadding tab-content">
-                    <div class="col-md-6 row">
+                <div class="widget-content nopadding tab-content row">
+                    <div class="col-md-6">
                         <div class="ui-secao">
                         <h4 class="ui-secao-titulo">Dados gerais</h4>
                         <div class="row mb-2">
                             <label for="documento" class="col-sm-3 col-form-label">CPF/CNPJ</label>
                             <div class="col-sm-9">
-                                <input id="documento" class="cpfcnpj form-control" type="text" name="documento" value="<?php echo set_value('documento'); ?>" />
-                                <button id="buscar_info_cnpj" class="btn btn-sm" type="button">Buscar(CNPJ)</button>
+                                <div class="input-group">
+                                    <input id="documento" class="cpfcnpj form-control" type="text" name="documento" value="<?php echo set_value('documento'); ?>" />
+                                    <button id="buscar_info_cnpj" class="btn btn-outline-secondary" type="button">Buscar(CNPJ)</button>
+                                </div>
                             </div>
                         </div>
                         <div class="row mb-2">
@@ -205,14 +205,16 @@
                         <div class="row mb-2">
                             <label for="senha" class="col-sm-3 col-form-label">Senha</label>
                             <div class="col-sm-9">
-                                <input class="form-control" id="senha" type="password" name="senha" autocomplete="new-password" value="<?php echo set_value('senha'); ?>" />
-                                <img id="imgSenha" src="<?php echo base_url() ?>assets/img/eye.svg" alt="">
+                                <div class="input-group">
+                                    <input class="form-control" id="senha" type="password" name="senha" autocomplete="new-password" value="<?php echo set_value('senha'); ?>" />
+                                    <span class="input-group-text"><img id="imgSenha" src="<?php echo base_url() ?>assets/img/eye.svg" alt="Mostrar senha"></span>
+                                </div>
                             </div>
                         </div>
                         <div class="row mb-2">
                             <label class="col-sm-3 col-form-label">Tipo de Cliente</label>
                             <div class="col-sm-9">
-                                <label for="fornecedor" class="btn btn-secondary">Fornecedor
+                                <label for="fornecedor" class="btn btn-light border">Fornecedor
                                     <input type="checkbox" id="fornecedor" name="fornecedor" class="badgebox" value="1">
                                     <span class="badge text-bg-secondary">&check;</span>
                                 </label>
@@ -222,7 +224,7 @@
                         <div class="row mb-2">
                             <label class="col-sm-3 col-form-label">Atividade n&atilde;o programada</label>
                             <div class="col-sm-9">
-                                <label for="exige_chamado" class="btn btn-secondary">Exige N&ordm; do chamado
+                                <label for="exige_chamado" class="btn btn-light border">Exige N&ordm; do chamado
                                     <input type="checkbox" id="exige_chamado" name="exige_chamado" class="badgebox" value="1">
                                     <span class="badge text-bg-secondary">&check;</span>
                                 </label>
@@ -230,6 +232,7 @@
                             </div>
                         </div>
                         <?php } ?>
+                        </div>
                         <div class="ui-secao">
                         <h4 class="ui-secao-titulo">Dados fiscais (opcional)</h4>
                         <div class="row mb-2">
@@ -277,13 +280,13 @@
                     <div class="col-md-6">
                         <div class="ui-secao">
                         <h4 class="ui-secao-titulo">Endereço</h4>
-                        <div class="row mb-2" class="form-label">
+                        <div class="row mb-2">
                             <label for="cep" class="col-sm-3 col-form-label">CEP</label>
                             <div class="col-sm-9">
                                 <input class="form-control" id="cep" type="text" name="cep" value="<?php echo set_value('cep'); ?>" />
                             </div>
                         </div>
-                        <div class="row mb-2" class="form-label">
+                        <div class="row mb-2">
                             <label for="rua" class="col-sm-3 col-form-label">Rua</label>
                             <div class="col-sm-9">
                                 <input class="form-control" id="rua" type="text" name="rua" value="<?php echo set_value('rua'); ?>" />
@@ -301,19 +304,19 @@
                                 <input class="form-control" id="complemento" type="text" name="complemento" value="<?php echo set_value('complemento'); ?>" />
                             </div>
                         </div>
-                        <div class="row mb-2" class="form-label">
+                        <div class="row mb-2">
                             <label for="bairro" class="col-sm-3 col-form-label">Bairro</label>
                             <div class="col-sm-9">
                                 <input class="form-control" id="bairro" type="text" name="bairro" value="<?php echo set_value('bairro'); ?>" />
                             </div>
                         </div>
-                        <div class="row mb-2" class="form-label">
+                        <div class="row mb-2">
                             <label for="cidade" class="col-sm-3 col-form-label">Cidade</label>
                             <div class="col-sm-9">
                                 <input class="form-control" id="cidade" type="text" name="cidade" value="<?php echo set_value('cidade'); ?>" />
                             </div>
                         </div>
-                        <div class="row mb-2" class="form-label">
+                        <div class="row mb-2">
                             <label for="estado" class="col-sm-3 col-form-label">Estado</label>
                             <div class="col-sm-9">
                                 <select class="form-select" id="estado" name="estado">

@@ -46,7 +46,7 @@ foreach ((array) $this->config->item('payment_gateways') as $chave => $gw) {
                 <div class="modal-header">
                     
                     <h4 class="modal-title">Gerar cobrança</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
                 <div class="modal-body">
                     <input value="<?= html_escape($id) ?>" name="id" type="hidden">
                     <input value="<?= html_escape($tipo) ?>" name="tipo" type="hidden">

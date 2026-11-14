@@ -38,7 +38,10 @@ $qs = http_build_query(['janela' => $filtro['janela'], 'prazo' => $filtro['prazo
                 <input class="form-control" type="number" id="cobertura" min="1" max="365" name="cobertura" value="<?= (int) $filtro['cobertura'] ?>" />
             </div>
             <div class="ui-campo">
-                <label class="checkbox"><input class="form-check-input" type="checkbox" name="somente" value="1" <?= $filtro['somente'] ? 'checked' : '' ?> /> Só o que precisa comprar</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="somente" name="somente" value="1" <?= $filtro['somente'] ? 'checked' : '' ?> />
+                    <label class="form-check-label" for="somente">Só o que precisa comprar</label>
+                </div>
             </div>
             <div class="ui-campo ui-campo-acao">
                 <button class="button btn btn-dark"><span class="button__icon"><i class="bx bx-filter-alt"></i></span><span class="button__text">Calcular</span></button>

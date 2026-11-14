@@ -15,17 +15,14 @@
     <div class="widget-content tab-content">
         <div id="tab1" class="tab-pane active" style="min-height: 300px">
             <div class="accordion" id="collapse-group">
-                <div class="accordion-group widget-box">
-                    <div class="accordion-heading">
-                        <div class="widget-title">
-                            <a data-bs-parent="#collapse-group" href="#collapseGOne" data-bs-toggle="collapse">
-                                <span><i class='bx bx-user icon-cli' ></i></span>
-                                <h5 style="padding-left: 28px">Dados Pessoais</h5>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="collapse show accordion-body" id="collapseGOne">
-                        <div class="widget-content">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGOne" aria-expanded="true" aria-controls="collapseGOne">
+                            <i class="bx bx-user me-2"></i> Dados Pessoais
+                        </button>
+                    </h2>
+                    <div class="accordion-collapse collapse show" id="collapseGOne" data-bs-parent="#collapse-group">
+                        <div class="accordion-body">
                             <table class="table table-bordered" style="border: 1px solid #ddd">
                                 <tbody>
                                 <tr>
@@ -57,17 +54,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="accordion-group widget-box">
-                    <div class="accordion-heading">
-                        <div class="widget-title">
-                            <a data-bs-parent="#collapse-group" href="#collapseGTwo" data-bs-toggle="collapse">
-                                <span><i class='bx bx-phone icon-cli'></i></span>
-                                <h5 style="padding-left: 28px">Contatos</h5>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="collapse accordion-body" id="collapseGTwo">
-                        <div class="widget-content">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGTwo" aria-expanded="false" aria-controls="collapseGTwo">
+                            <i class="bx bx-phone me-2"></i> Contatos
+                        </button>
+                    </h2>
+                    <div class="accordion-collapse collapse" id="collapseGTwo" data-bs-parent="#collapse-group">
+                        <div class="accordion-body">
                             <table class="table table-bordered" style="border: 1px solid #ddd">
                                 <tbody>
                                 <tr>
@@ -99,17 +93,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="accordion-group widget-box">
-                    <div class="accordion-heading">
-                        <div class="widget-title">
-                            <a data-bs-parent="#collapse-group" href="#collapseGThree" data-bs-toggle="collapse">
-                                <span><i class='bx bx-map-alt icon-cli' ></i></span>
-                                <h5 style="padding-left: 28px">Endereço</h5>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="collapse accordion-body" id="collapseGThree">
-                        <div class="widget-content">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGThree" aria-expanded="false" aria-controls="collapseGThree">
+                            <i class="bx bx-map-alt me-2"></i> Endereço
+                        </button>
+                    </h2>
+                    <div class="accordion-collapse collapse" id="collapseGThree" data-bs-parent="#collapse-group">
+                        <div class="accordion-body">
                             <table class="table table-bordered th" style="border: 1px solid #ddd;border-left: 1px solid #ddd">
                                 <tbody>
                                 <tr>
@@ -203,7 +194,7 @@
 
                         echo '<td>';
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
-                            echo '<a href="' . base_url() . 'index.php/os/visualizar/' . $r->idOs . '" style="margin-right: 1%" class="btn tip-top" title="Ver mais detalhes" aria-label="Ver mais detalhes"><i class="fas fa-eye"></i></a>';
+                            echo '<a href="' . base_url() . 'index.php/os/visualizar/' . $r->idOs . '" style="margin-right: 1%" class="btn btn-light tip-top" title="Ver mais detalhes" aria-label="Ver mais detalhes"><i class="fas fa-eye"></i></a>';
                         }
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
                             echo '<a href="' . base_url() . 'index.php/os/editar/' . $r->idOs . '" class="btn btn-info tip-top" title="Editar OS" aria-label="Editar OS"><i class="fas fa-edit"></i></a>';
@@ -267,7 +258,7 @@
 
                         echo '<td>';
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
-                            echo '<a href="' . base_url() . 'index.php/vendas/visualizar/' . $r->idVendas . '" style="margin-right: 1%" class="btn tip-top" title="Ver mais detalhes" aria-label="Ver mais detalhes"><i class="fas fa-eye"></i></a>';
+                            echo '<a href="' . base_url() . 'index.php/vendas/visualizar/' . $r->idVendas . '" style="margin-right: 1%" class="btn btn-light tip-top" title="Ver mais detalhes" aria-label="Ver mais detalhes"><i class="fas fa-eye"></i></a>';
                         }
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
                             echo '<a href="' . base_url() . 'index.php/vendas/editar/' . $r->idVendas . '" class="btn btn-info tip-top" title="Editar OS" aria-label="Editar OS"><i class="fas fa-edit"></i></a>';

@@ -1,6 +1,6 @@
 <?php
 // Variaveis: $itens (trib_status_atualizacao), $verificacao (array|null), $libs, $janela (array|null)
-$rotulos = ['ok' => ['OK', 'label-success'], 'atencao' => ['Atenção', 'label-warning'], 'desatualizado' => ['Desatualizado', 'label-important']];
+$rotulos = ['ok' => ['OK', 'text-bg-success'], 'atencao' => ['Atenção', 'text-bg-warning'], 'desatualizado' => ['Desatualizado', 'text-bg-danger']];
 $pendencias = 0;
 foreach ($itens as $i) {
     if ($i['situacao'] !== 'ok') {
@@ -41,7 +41,7 @@ foreach ($itens as $i) {
                     <?php foreach ($itens as $i) { $r = $rotulos[$i['situacao']] ?? ['-', '']; ?>
                         <tr>
                             <td><?= htmlspecialchars($i['item']) ?></td>
-                            <td><span class="label <?= $r[1] ?>"><?= $r[0] ?></span></td>
+                            <td><span class="badge <?= $r[1] ?>"><?= $r[0] ?></span></td>
                             <td><?= htmlspecialchars($i['mensagem']) ?></td>
                         </tr>
                     <?php } ?>

@@ -204,11 +204,11 @@ $link = function (array $over = []) use ($base) {
             <input type="hidden" name="tipo" value="<?= $e($filtro['tipo']) ?>" />
             <div class="rel-periodos">
                 <?php foreach ($tiposRotulo as $chave => $rotulo) : ?>
-                    <a class="btn <?= $filtro['tipo'] === $chave ? 'btn-inverse ativo' : '' ?>" href="<?= $e($link(['tipo' => $chave])) ?>"><?= $e($rotulo) ?></a>
+                    <a class="btn <?= $filtro['tipo'] === $chave ? 'btn-dark ativo' : 'btn-outline-secondary' ?>" href="<?= $e($link(['tipo' => $chave])) ?>"><?= $e($rotulo) ?></a>
                 <?php endforeach; ?>
                 <span class="rel-setas">
-                    <a class="btn" href="<?= $e($link(['data' => $periodo['anterior']])) ?>" title="Período anterior">&lsaquo;</a>
-                    <a class="btn" href="<?= $e($link(['data' => $periodo['proximo']])) ?>" title="Próximo período">&rsaquo;</a>
+                    <a class="btn btn-outline-secondary" href="<?= $e($link(['data' => $periodo['anterior']])) ?>" title="Período anterior">&lsaquo;</a>
+                    <a class="btn btn-outline-secondary" href="<?= $e($link(['data' => $periodo['proximo']])) ?>" title="Próximo período">&rsaquo;</a>
                 </span>
             </div>
             <div class="ui-campo">
@@ -243,7 +243,7 @@ $link = function (array $over = []) use ($base) {
             </div>
             <div class="ui-campo ui-campo-acao">
                 <button class="button btn btn-dark"><span class="button__icon"><i class="bx bx-filter-alt"></i></span><span class="button__text">Filtrar</span></button>
-                <a class="btn" href="<?= site_url('relatorioprojetos') ?>" title="Limpar filtros"><i class="bx bx-x"></i> Limpar</a>
+                <a class="btn btn-outline-secondary" href="<?= site_url('relatorioprojetos') ?>" title="Limpar filtros"><i class="bx bx-x"></i> Limpar</a>
             </div>
         </form>
 

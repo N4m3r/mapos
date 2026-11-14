@@ -38,12 +38,12 @@
                 <?php if (empty($inventarios)) { ?>
                     <tr><td colspan="8"><div class="ui-vazio"><i class="bx bx-list-check"></i><strong>Nenhum inventário ainda</strong>Informe uma descrição e clique em "Novo inventário" para começar.</div></td></tr>
                 <?php }
-                $cores = ['aberto' => 'badge-warning', 'finalizado' => 'badge-success', 'cancelado' => ''];
+                $cores = ['aberto' => 'text-bg-warning', 'finalizado' => 'text-bg-success', 'cancelado' => 'text-bg-secondary'];
                 foreach ($inventarios as $i) { ?>
                     <tr>
                         <td><?= (int) $i->id ?></td>
                         <td><?= html_escape($i->descricao) ?></td>
-                        <td style="text-align:center"><span class="badge text-bg-secondary <?= $cores[$i->status] ?? '' ?>"><?= html_escape(ucfirst($i->status)) ?></span></td>
+                        <td style="text-align:center"><span class="badge <?= $cores[$i->status] ?? 'text-bg-secondary' ?>"><?= html_escape(ucfirst($i->status)) ?></span></td>
                         <td style="text-align:center"><?= (int) $i->contados ?> / <?= (int) $i->itens ?></td>
                         <td><?= date('d/m/Y H:i', strtotime($i->criado_em)) ?></td>
                         <td><?= $i->finalizado_em ? date('d/m/Y H:i', strtotime($i->finalizado_em)) : '-' ?></td>
