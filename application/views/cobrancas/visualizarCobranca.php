@@ -1,14 +1,12 @@
 <div class="accordion" id="collapse-group">
-    <div class="accordion-group widget-box">
-        <div class="accordion-heading">
-            <div class="widget-title" style="margin: -20px 0 0">
-                <a data-parent="#collapse-group" href="#collapseGOne" data-toggle="collapse">
-                    <h5>Detalhes da Cobrança</h5>
-                </a>
-            </div>
-        </div>
-        <div class="collapse in accordion-body">
-            <div class="widget-content">
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGOne" aria-expanded="true" aria-controls="collapseGOne">
+                Detalhes da Cobrança
+            </button>
+        </h2>
+        <div class="accordion-collapse collapse show" id="collapseGOne" data-bs-parent="#collapse-group">
+            <div class="accordion-body">
                 <table class="table table-bordered">
                     <tbody>
                         <tr>
@@ -81,7 +79,7 @@
                                 <?php echo number_format((float) $result->v_ibs_estimado + (float) $result->v_cbs_estimado, 2, ',', '.'); ?>
                                 · Líquido estimado: R$
                                 <?php echo number_format((float) $result->v_liquido_estimado, 2, ',', '.'); ?>
-                                <br><small class="muted">informativo — preparação para o split payment</small>
+                                <br><small class="text-muted">informativo — preparação para o split payment</small>
                             </td>
                         </tr>
                         <?php } ?>
@@ -174,6 +172,7 @@
             </div>
         </div>
     </div>
+</div>
 
 <?php
 if (! empty($whatsappApiAtivo)) { ?>

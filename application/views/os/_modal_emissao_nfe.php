@@ -2,11 +2,10 @@
 // Partial: wizard de emissão de NF-e (produtos) a partir de uma OS.
 // Acionado por qualquer elemento com a classe .btn-transmitir-nfe e data-os="{idOs}".
 ?>
-<div id="modal-nfe" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-nfe" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h5>Emitir NF-e (produtos) — <span id="nfeStepLabel">Revisão</span></h5>
-    </div>
+        <h5 class="modal-title">Emitir NF-e (produtos) — <span id="nfeStepLabel">Revisão</span></h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <input type="hidden" id="nfeIdOs" value="" />
 
@@ -15,14 +14,14 @@
             <div id="nfePreviewLoading" class="alert alert-info">Carregando dados da OS...</div>
             <div id="nfePreview" style="display:none">
                 <p style="margin-bottom:6px"><strong>Cliente:</strong> <span id="nfeCliente"></span></p>
-                <table class="table table-bordered table-condensed">
+                <table class="table table-bordered table-sm">
                     <thead><tr><th>Produto</th><th style="width:60px">Qtd</th><th style="width:90px">Unit.</th><th style="width:100px">Subtotal</th></tr></thead>
                     <tbody id="nfeItens"></tbody>
                     <tfoot><tr><th colspan="3" style="text-align:right">Total</th><th id="nfeTotal"></th></tr></tfoot>
                 </table>
                 <div id="nfeAvisos"></div>
                 <div style="text-align:center;margin:8px 0">
-                    <button type="button" id="nfeVerPrevia" class="button btn btn-mini btn-inverse">
+                    <button type="button" id="nfeVerPrevia" class="button btn btn-sm btn-dark">
                         <span class="button__icon"><i class="bx bx-show"></i></span><span class="button__text2">Ver prévia do documento (DANFE)</span>
                     </button>
                 </div>
@@ -31,9 +30,9 @@
 
         <!-- Passo 2: Dados da emissão -->
         <div id="nfePasso2" style="display:none">
-            <div class="control-group">
+            <div class="mb-3">
                 <label for="nfeInfoCpl"><strong>Informações complementares</strong></label>
-                <textarea id="nfeInfoCpl" rows="3" class="span12" maxlength="500" placeholder="Texto livre impresso no campo de dados adicionais da NF-e"></textarea>
+                <textarea id="nfeInfoCpl" rows="3" class="w-100 form-control" maxlength="500" placeholder="Texto livre impresso no campo de dados adicionais da NF-e"></textarea>
             </div>
             <div class="alert alert-info" style="padding:6px;font-size:12px">
                 Impostos: Simples Nacional (CSOSN <?php echo html_escape(isset($configNfe) && $configNfe ? $configNfe->csosn_padrao : '102'); ?>), sem destaque de ICMS/PIS/COFINS. Os dados fiscais dos itens (NCM/CFOP) vêm do cadastro dos produtos.
@@ -47,17 +46,17 @@
                 <a id="nfeBtnXml" href="#" class="button btn btn-info">
                     <span class="button__icon"><i class='bx bx-code-alt'></i></span><span class="button__text2">Baixar XML</span>
                 </a>
-                <a id="nfeBtnDanfe" href="#" target="_blank" class="button btn btn-inverse">
+                <a id="nfeBtnDanfe" href="#" target="_blank" class="button btn btn-dark">
                     <span class="button__icon"><i class='bx bx-printer'></i></span><span class="button__text2">Imprimir DANFE</span>
                 </a>
             </div>
         </div>
     </div>
     <div class="modal-footer" style="display:flex;justify-content:center">
-        <button type="button" class="button btn btn-warning" data-dismiss="modal">
+        <button type="button" class="button btn btn-warning" data-bs-dismiss="modal">
             <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Fechar</span>
         </button>
-        <button type="button" id="nfeBtnVoltar" class="button btn btn-inverse" style="display:none">
+        <button type="button" id="nfeBtnVoltar" class="button btn btn-dark" style="display:none">
             <span class="button__icon"><i class="bx bx-arrow-back"></i></span><span class="button__text2">Voltar</span>
         </button>
         <button type="button" id="nfeBtnAvancar" class="button btn btn-primary">
@@ -67,7 +66,7 @@
             <span class="button__icon"><i class='bx bx-send'></i></span><span class="button__text2">Transmitir</span>
         </button>
     </div>
-</div>
+</div></div></div>
 
 <script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {

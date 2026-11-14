@@ -7,7 +7,7 @@
 <head>
     <title><?= $this->config->item('app_name') ?> - Venda Nº#<?= $result->idVendas ?> - <?= html_escape($result->nomeCliente) ?></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="<?= base_url() ?>assets/css/bootstrap5.3.2.min.css" />
+    <link rel="stylesheet" href="<?= base_url() ?>assets/css/bootstrap.min.css?v=<?= asset_versao('assets/css/bootstrap.min.css') ?>" />
     <link rel="stylesheet" href="<?= base_url() ?>assets/font-awesome/css/font-awesome.css" />
     <link rel="stylesheet" href="<?= base_url() ?>assets/css/imprimir.css">
 </head>
@@ -176,7 +176,6 @@
                     <span><b>Vendedor : <?php echo html_escape($result->nome); ?> </b></span>
                 </div>
             </footer>
-        </div>
         </div>
     </div>
     <script nonce="<?= csp_nonce() ?>" type="text/javascript">

@@ -22,11 +22,11 @@ $f = isset($filtros) ? $filtros : ['pesquisa' => '', 'status' => ''];
             <form action="<?= site_url('contratos/gerenciar') ?>" method="get" class="ui-filtros">
                 <div class="ui-campo">
                     <label for="filtro-pesquisa">Buscar</label>
-                    <input type="text" id="filtro-pesquisa" name="pesquisa" value="<?= html_escape($f['pesquisa']) ?>" placeholder="Descrição, código ou cliente">
+                    <input class="form-control" type="text" id="filtro-pesquisa" name="pesquisa" value="<?= html_escape($f['pesquisa']) ?>" placeholder="Descrição, código ou cliente">
                 </div>
                 <div class="ui-campo">
                     <label for="filtro-status">Status</label>
-                    <select id="filtro-status" name="status">
+                    <select class="form-select" id="filtro-status" name="status">
                         <option value="">Todos os status</option>
                         <?php foreach ($statusLabels as $k => $v): ?>
                             <option value="<?= $k ?>" <?= $f['status'] === $k ? 'selected' : '' ?>><?= $v ?></option>
@@ -34,7 +34,7 @@ $f = isset($filtros) ? $filtros : ['pesquisa' => '', 'status' => ''];
                     </select>
                 </div>
                 <div class="ui-campo-acao">
-                    <button class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-search'></i></span><span class="button__text2">Filtrar</span></button>
+                    <button class="button btn btn-sm btn-primary"><span class="button__icon"><i class='bx bx-search'></i></span><span class="button__text2">Filtrar</span></button>
                 </div>
             </form>
 
@@ -62,7 +62,7 @@ $f = isset($filtros) ? $filtros : ['pesquisa' => '', 'status' => ''];
                                     <a href="<?= site_url('contratos/editar/' . $c->idContrato) ?>" class="btn-nwe3" title="Editar" aria-label="Editar contrato"><i class="bx bx-edit"></i></a>
                                 <?php endif; ?>
                                 <?php if ($perm('dContrato')): ?>
-                                    <a href="#modal-excluir" role="button" data-toggle="modal" data-id="<?= $c->idContrato ?>" class="btn-nwe4 btn-excluir" title="Excluir" aria-label="Excluir contrato"><i class="bx bx-trash"></i></a>
+                                    <a href="#modal-excluir" role="button" data-bs-toggle="modal" data-id="<?= $c->idContrato ?>" class="btn-nwe4 btn-excluir" title="Excluir" aria-label="Excluir contrato"><i class="bx bx-trash"></i></a>
                                 <?php endif; ?>
                                 </div>
                             </td>
@@ -77,22 +77,22 @@ $f = isset($filtros) ? $filtros : ['pesquisa' => '', 'status' => ''];
 </div>
 
 <!-- Modal excluir -->
-<div id="modal-excluir" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-excluir" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('contratos/excluir') ?>" method="post">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            
             <h5>Excluir Contrato</h5>
-        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <input type="hidden" id="idContrato" name="idContrato" value="">
             <p style="text-align:center">Deseja realmente excluir este contrato? As OS vinculadas serão apenas desvinculadas.</p>
         </div>
         <div class="modal-footer" style="display:flex;justify-content:center">
-            <button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
+            <button type="button" class="button btn btn-warning" data-bs-dismiss="modal"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
             <button class="button btn btn-danger"><span class="button__icon"><i class='bx bx-trash'></i></span><span class="button__text2">Excluir</span></button>
         </div>
     </form>
-</div>
+</div></div></div>
 
 <script nonce="<?= csp_nonce() ?>">
     $(function () {

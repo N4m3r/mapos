@@ -20,9 +20,9 @@ $resumo = $caixa->resumo_fechamento ? json_decode($caixa->resumo_fechamento, tru
 <div class="widget-box">
     <div class="widget-content">
 
-        <div class="row-fluid">
-            <div class="span5">
-                <table class="table table-bordered table-condensed">
+        <div class="row">
+            <div class="col-md-5">
+                <table class="table table-bordered table-sm">
                     <tr><td>Abertura (fundo de troco)</td><td style="text-align:right"><?= $moeda($caixa->valor_abertura) ?></td></tr>
                     <?php foreach ($formas as $chave => $nome) { ?>
                         <tr><td>Vendas em <?= html_escape(mb_strtolower($nome)) ?></td><td style="text-align:right"><?= $moeda($totais['por_forma'][$chave]) ?></td></tr>
@@ -41,29 +41,29 @@ $resumo = $caixa->resumo_fechamento ? json_decode($caixa->resumo_fechamento, tru
 
                 <?php if ($meu) { ?>
                     <h5>Sangria / suprimento</h5>
-                    <p class="help-block">Sangria é retirada de dinheiro da gaveta; suprimento é reforço de troco.</p>
+                    <p class="form-text">Sangria é retirada de dinheiro da gaveta; suprimento é reforço de troco.</p>
                     <form action="<?= site_url('caixa/movimentar') ?>" method="post" style="display:flex; gap:6px; flex-wrap:wrap; align-items:center">
                         <input type="hidden" name="caixa_id" value="<?= (int) $caixa->id ?>">
-                        <select name="tipo" style="width:130px; margin:0"><option value="sangria">Sangria (retirada)</option><option value="suprimento">Suprimento (reforço)</option></select>
-                        <input type="text" name="valor" inputmode="decimal" placeholder="Valor" required style="width:90px; margin:0; text-align:right">
-                        <input type="text" name="descricao" placeholder="Motivo" style="width:160px; margin:0">
-                        <button type="submit" class="btn btn-small">Registrar</button>
+                        <select class="form-select" name="tipo" style="width:130px; margin:0"><option value="sangria">Sangria (retirada)</option><option value="suprimento">Suprimento (reforço)</option></select>
+                        <input class="form-control" type="text" name="valor" inputmode="decimal" placeholder="Valor" required style="width:90px; margin:0; text-align:right">
+                        <input class="form-control" type="text" name="descricao" placeholder="Motivo" style="width:160px; margin:0">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">Registrar</button>
                     </form>
 
                     <h5 style="margin-top:18px">Fechar caixa</h5>
                     <form action="<?= site_url('caixa/fechar') ?>" method="post" data-confirmar="Fechar o caixa? Depois disso não é possível vender com ele.">
                         <input type="hidden" name="caixa_id" value="<?= (int) $caixa->id ?>">
                         <label>Dinheiro contado na gaveta (R$)</label>
-                        <input type="text" name="contado_dinheiro" inputmode="decimal" required style="width:140px; text-align:right">
+                        <input class="form-control" type="text" name="contado_dinheiro" inputmode="decimal" required style="width:140px; text-align:right">
                         <label>Observação</label>
-                        <input type="text" name="observacao" maxlength="250" style="width:100%">
+                        <input class="form-control" type="text" name="observacao" maxlength="250" style="width:100%">
                         <div><button type="submit" class="button btn btn-danger"><span class="button__icon"><i class="bx bx-lock"></i></span><span class="button__text2">Fechar caixa</span></button></div>
                     </form>
                 <?php } ?>
             </div>
-            <div class="span7">
+            <div class="col-md-7">
                 <h5 style="margin-top:0">Movimentos</h5>
-                <div class="ui-tabela-rolagem"><table class="table table-bordered table-condensed">
+                <div class="ui-tabela-rolagem"><table class="table table-bordered table-sm">
                     <thead><tr><th style="width:110px">Hora</th><th style="width:90px">Tipo</th><th>Forma</th><th>Descrição</th><th style="width:100px; text-align:right">Valor</th></tr></thead>
                     <tbody>
                         <?php if (empty($movimentos)) { ?><tr><td colspan="5"><div class="ui-vazio"><i class="bx bx-transfer"></i><strong>Nenhum movimento ainda</strong>As vendas e retiradas deste caixa aparecem aqui.</div></td></tr><?php }

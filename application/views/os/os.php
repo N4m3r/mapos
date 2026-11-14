@@ -28,15 +28,15 @@
     <form method="get" action="<?php echo base_url(); ?>index.php/os/gerenciar" class="ui-filtros">
         <div class="ui-campo" style="flex-grow: 2">
             <label for="pesquisa">Cliente</label>
-            <input type="text" name="pesquisa" id="pesquisa" placeholder="Nome do cliente a pesquisar" class="span12" value="<?=set_value('pesquisa')?>">
+            <input type="text" name="pesquisa" id="pesquisa" placeholder="Nome do cliente a pesquisar" class="w-100 form-control" value="<?=set_value('pesquisa')?>">
         </div>
         <div class="ui-campo">
             <label for="chamado">Chamado</label>
-            <input type="text" name="chamado" id="chamado" placeholder="Nº do chamado" class="span12" value="<?= html_escape($this->input->get('chamado')) ?>">
+            <input type="text" name="chamado" id="chamado" placeholder="Nº do chamado" class="w-100 form-control" value="<?= html_escape($this->input->get('chamado')) ?>">
         </div>
         <div class="ui-campo">
             <label for="status">Status</label>
-            <select name="status" id="status" class="span12">
+            <select name="status" id="status" class="w-100 form-select">
                     <option value="">Selecione status</option>
                     <option value="Aberto" <?=$this->input->get('status') == 'Aberto' ? 'selected' : ''?>>Aberto</option>
                     <option value="Faturado" <?=$this->input->get('status') == 'Faturado' ? 'selected' : ''?>>Faturado</option>
@@ -51,7 +51,7 @@
         </div>
         <div class="ui-campo">
             <label for="obra_id">Projeto</label>
-            <select name="obra_id" id="obra_id" class="span12">
+            <select name="obra_id" id="obra_id" class="w-100 form-select">
                 <option value="">Todos</option>
                 <?php foreach (($projetosFiltro ?? []) as $pj): ?>
                     <option value="<?= (int) $pj->idObra ?>" <?= (int) $this->input->get('obra_id') === (int) $pj->idObra ? 'selected' : '' ?>><?= html_escape($pj->nome) ?></option>
@@ -60,11 +60,11 @@
         </div>
         <div class="ui-campo">
             <label for="data">De</label>
-            <input type="text" name="data" autocomplete="off" id="data" placeholder="Data inicial" class="span12 datepicker" value="<?= html_escape($this->input->get('data')) ?>">
+            <input type="text" name="data" autocomplete="off" id="data" placeholder="Data inicial" class="datepicker w-100 form-control" value="<?= html_escape($this->input->get('data')) ?>">
         </div>
         <div class="ui-campo">
             <label for="data2">Até</label>
-            <input type="text" name="data2" autocomplete="off" id="data2" placeholder="Data final" class="span12 datepicker" value="<?= html_escape($this->input->get('data2')) ?>">
+            <input type="text" name="data2" autocomplete="off" id="data2" placeholder="Data final" class="datepicker w-100 form-control" value="<?= html_escape($this->input->get('data2')) ?>">
         </div>
         <div class="ui-campo-acao">
             <button class="button btn btn-warning" title="Filtrar" aria-label="Filtrar">
@@ -181,7 +181,7 @@
                                 echo '<td class="ph1">' . html_escape($r->nome) . '</td>';
                                 echo '<td>' . $dataInicial . '</td>';
                                 echo '<td class="ph2">' . $dataFinal . '</td>';
-                                echo '<td class="ph3"><span class="badge" style="background-color: ' . $corGarantia . '; border-color: ' . $corGarantia . '">' . $vencGarantia . '</span> </td>';
+                                echo '<td class="ph3"><span class="badge text-bg-secondary" style="background-color: ' . $corGarantia . '; border-color: ' . $corGarantia . '">' . $vencGarantia . '</span> </td>';
                                 if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
                                     echo '<td>R$ ' . number_format($r->totalProdutos + $r->totalServicos, 2, ',', '.') . '</td>';
                                     echo '<td>R$ ' . number_format(floatval($r->desconto), 2, ',', '.') . '</td>';
@@ -194,9 +194,9 @@
                                     && $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')
                                     && ! in_array($r->status, ['Finalizado', 'Faturado', 'Cancelado', 'Não Realizado'], true);
                                 if ($statusRapido) {
-                                    echo '<td><span class="badge os-status-rapido" role="button" tabindex="0" data-os="' . $r->idOs . '" data-atual="' . html_escape($r->status) . '" title="Clique para mudar o status" style="cursor: pointer; background-color: ' . $cor . '; border-color: ' . $cor . '">' . $r->status . ' <i class="bx bx-chevron-down"></i></span> </td>';
+                                    echo '<td><span class="badge os-status-rapido text-bg-secondary" role="button" tabindex="0" data-os="' . $r->idOs . '" data-atual="' . html_escape($r->status) . '" title="Clique para mudar o status" style="cursor: pointer; background-color: ' . $cor . '; border-color: ' . $cor . '">' . $r->status . ' <i class="bx bx-chevron-down"></i></span> </td>';
                                 } else {
-                                    echo '<td><span class="badge" style="background-color: ' . $cor . '; border-color: ' . $cor . '">' . $r->status . '</span> </td>';
+                                    echo '<td><span class="badge text-bg-secondary" style="background-color: ' . $cor . '; border-color: ' . $cor . '">' . $r->status . '</span> </td>';
                                 }
                                 echo '<td><span class="ui-acoes-linha">';
 
@@ -218,14 +218,14 @@
                                     echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/os/editar/' . $r->idOs . '" class="btn-nwe3" title="Editar OS"><i class="bx bx-edit"></i></a>';
                                 }
                                 if ($this->permission->checkPermission($this->session->userdata('permissao'), 'aOs')) {
-                                    echo '<a style="margin-right: 1%" href="#modal-duplicar" role="button" data-toggle="modal" data-os-origem="' . $r->idOs . '" class="btn-nwe3 btn-duplicar-os" title="Copiar OS para outro cliente/CNPJ"><i class="bx bx-copy"></i></a>';
+                                    echo '<a style="margin-right: 1%" href="#modal-duplicar" role="button" data-bs-toggle="modal" data-os-origem="' . $r->idOs . '" class="btn-nwe3 btn-duplicar-os" title="Copiar OS para outro cliente/CNPJ"><i class="bx bx-copy"></i></a>';
                                 }
                                 if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dOs') && $editavel) {
-                                    echo '<a href="#modal-excluir" role="button" data-toggle="modal" os="' . $r->idOs . '" class="btn-nwe4" title="Excluir OS"><i class="bx bx-trash-alt"></i></a>  ';
+                                    echo '<a href="#modal-excluir" role="button" data-bs-toggle="modal" os="' . $r->idOs . '" class="btn-nwe4" title="Excluir OS"><i class="bx bx-trash-alt"></i></a>  ';
                                 }
                                 if (in_array($r->status, ['Finalizado', 'Faturado', 'Aprovado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) {
-                                    echo '<a style="margin-right: 1%" href="#modal-nfse" role="button" data-toggle="modal" data-os="' . $r->idOs . '" class="btn-nwe5 btn-transmitir-nfse" title="Transmitir NFS-e (serviços)"><i class="bx bx-receipt bx-xs"></i></a>';
-                                    echo '<a style="margin-right: 1%" href="#modal-nfe" role="button" data-toggle="modal" data-os="' . $r->idOs . '" class="btn-nwe5 btn-transmitir-nfe" title="Transmitir NF-e (produtos)"><i class="bx bx-box bx-xs"></i></a>';
+                                    echo '<a style="margin-right: 1%" href="#modal-nfse" role="button" data-bs-toggle="modal" data-os="' . $r->idOs . '" class="btn-nwe5 btn-transmitir-nfse" title="Transmitir NFS-e (serviços)"><i class="bx bx-receipt bx-xs"></i></a>';
+                                    echo '<a style="margin-right: 1%" href="#modal-nfe" role="button" data-bs-toggle="modal" data-os="' . $r->idOs . '" class="btn-nwe5 btn-transmitir-nfe" title="Transmitir NF-e (produtos)"><i class="bx bx-box bx-xs"></i></a>';
                                 }
                                 echo '</span></td>';
                                 echo '</tr>';
@@ -239,46 +239,44 @@
     <?php echo $this->pagination->create_links(); ?>
 
     <!-- Modal -->
-    <div id="modal-excluir" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div id="modal-excluir" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
         <form action="<?php echo base_url() ?>index.php/os/excluir" method="post">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                <h5 id="myModalLabel">Excluir OS</h5>
-            </div>
+                <h5 class="modal-title" id="myModalLabel">Excluir OS</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
             <div class="modal-body">
                 <input type="hidden" id="idOs" name="id" value="" />
                 <h5 style="text-align: center">Deseja realmente excluir esta OS?</h5>
             </div>
             <div class="modal-footer" style="display:flex;justify-content: center">
-                <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true">
+                <button class="button btn btn-warning" data-bs-dismiss="modal" aria-hidden="true">
                     <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
                 <button class="button btn btn-danger"><span class="button__icon"><i class='bx bx-trash'></i></span> <span class="button__text2">Excluir</span></button>
             </div>
         </form>
-    </div>
+    </div></div></div>
 
     <!-- Modal Duplicar OS para outro cliente/CNPJ -->
-    <div id="modal-duplicar" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div id="modal-duplicar" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
         <form id="form-duplicar" action="<?php echo base_url() ?>index.php/os/duplicar" method="post">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                <h5>Copiar OS para outro cliente/CNPJ</h5>
-            </div>
+                <h5 class="modal-title">Copiar OS para outro cliente/CNPJ</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
             <div class="modal-body">
                 <input type="hidden" id="dup-idOs" name="idOs" value="" />
                 <input type="hidden" id="dup-clientes_id" name="clientes_id" value="" />
                 <p>A OS <strong>#<span id="dup-num"></span></strong> será copiada (cabeçalho, produtos e serviços) para o cliente selecionado. A nova OS nasce como <strong>Orçamento</strong> não faturado. Assinaturas, cobranças e notas fiscais não são copiadas.</p>
                 <label for="dup-cliente">Cliente / CNPJ de destino</label>
-                <input type="text" id="dup-cliente" class="span12" autocomplete="off" placeholder="Digite o nome do cliente de destino" />
+                <input type="text" id="dup-cliente" class="w-100 form-control" autocomplete="off" placeholder="Digite o nome do cliente de destino" />
                 <span id="dup-erro" style="color:#f24c6f; display:none">Selecione um cliente da lista.</span>
             </div>
             <div class="modal-footer" style="display:flex;justify-content: center">
-                <button type="button" class="button btn btn-warning" data-dismiss="modal" aria-hidden="true">
+                <button type="button" class="button btn btn-warning" data-bs-dismiss="modal" aria-hidden="true">
                     <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
                 <button type="submit" class="button btn btn-success"><span class="button__icon"><i class='bx bx-copy'></i></span> <span class="button__text2">Copiar OS</span></button>
             </div>
         </form>
-    </div>
+    </div></div></div>
 
 </div>
 

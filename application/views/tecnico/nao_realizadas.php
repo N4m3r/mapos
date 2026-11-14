@@ -62,7 +62,7 @@ $this->load->view('tecnico/_topo', [
         <p class="nr-modal-sub">Escolha a nova data. A visita volta para a sua agenda.</p>
         <input type="hidden" id="reag-ocorrencia" value="">
         <label class="nr-label">Nova data</label>
-        <input type="date" id="reag-data" class="atv-input" min="<?= date('Y-m-d') ?>" value="<?= date('Y-m-d') ?>">
+        <input type="date" id="reag-data" class="atv-input form-control" min="<?= date('Y-m-d') ?>" value="<?= date('Y-m-d') ?>">
         <div class="nr-modal-actions">
             <button type="button" class="btn-tec ghost" data-chamar="fecharReagendar">Cancelar</button>
             <button type="button" class="btn-tec warning" data-chamar="confirmarReagendar"><i class='bx bx-check'></i> Reagendar</button>

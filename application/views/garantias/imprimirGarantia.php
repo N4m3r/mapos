@@ -5,10 +5,10 @@
     <title>Map OS</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/matrix-style.css" />
+    <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/bootstrap.min.css?v=<?= asset_versao('assets/css/bootstrap.min.css') ?>" />
+    <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/matrix-style.css?v=<?= asset_versao('assets/css/matrix-style.css') ?>" />
     <link href="<?php echo base_url(); ?>assets/font-awesome/css/font-awesome.css" rel="stylesheet" />
-    <link href="<?= base_url('assets/css/custom.css'); ?>" rel="stylesheet">
+    <link href="<?= base_url('assets/css/custom.css'); ?>?v=<?= asset_versao('assets/css/custom.css') ?>" rel="stylesheet">
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,800' rel='stylesheet' type='text/css'>
     <style>
         body {
@@ -74,13 +74,13 @@
 
     <div class="container-fluid page" id="viaCliente">
         <div class="subpage">
-            <div class="row-fluid">
-                <div class="span12">
+            <div class="row">
+                <div class="col-md-12">
 
                     <div class="invoice-content">
                         <div class="invoice-head" style="margin-bottom: 0">
 
-                            <table class="table table-condensed">
+                            <table class="table table-sm">
                                 <tbody>
                                     <?php if ($emitente == null) { ?>
                                         <tr>
@@ -136,7 +136,7 @@
                                     </tr>
                                 </tbody>
                             </table>
-                            <table class="table table-bordered table-condensed">
+                            <table class="table table-bordered table-sm">
                                 <tbody>
                                     <tr>
                                         <td>Data
@@ -159,7 +159,8 @@
             </div>
         </div>
     </div>
-    <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/bootstrap.min.js"></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/bootstrap.bundle.min.js"></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/bootstrap-jquery.js"></script>
     <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/matrix.js"></script>
     <script nonce="<?= csp_nonce() ?>">
         // Aguarda o carregamento completo de todas as imagens antes de imprimir

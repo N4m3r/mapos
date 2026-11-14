@@ -58,28 +58,28 @@ foreach ($salvas as $valor) {
             <div class="widget-content">
                 <div class="perfil-topo">
                     <div class="ui-grade">
-                        <div class="control-group">
-                            <label for="nome" class="control-label">Nome do perfil<span class="required">*</span></label>
-                            <div class="controls">
-                                <input type="text" id="nome" name="nome" value="<?= $e($nome) ?>" maxlength="80" required>
-                                <span class="help-inline">Ex.: Técnico externo, Financeiro, Atendimento.</span>
+                        <div class="mb-3">
+                            <label for="nome" class="form-label">Nome do perfil<span class="required">*</span></label>
+                            <div class="">
+                                <input class="form-control" type="text" id="nome" name="nome" value="<?= $e($nome) ?>" maxlength="80" required>
+                                <span class="form-text">Ex.: Técnico externo, Financeiro, Atendimento.</span>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="situacao" class="control-label">Situação</label>
-                            <div class="controls">
-                                <select name="situacao" id="situacao">
+                        <div class="mb-3">
+                            <label for="situacao" class="form-label">Situação</label>
+                            <div class="">
+                                <select class="form-select" name="situacao" id="situacao">
                                     <option value="1" <?= (int) $situacao === 1 ? 'selected' : '' ?>>Ativo</option>
                                     <option value="0" <?= (int) $situacao === 0 ? 'selected' : '' ?>>Inativo</option>
                                 </select>
-                                <span class="help-inline">Perfil inativo não pode ser atribuído a um usuário novo.</span>
+                                <span class="form-text">Perfil inativo não pode ser atribuído a um usuário novo.</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="perfil-busca">
                         <label for="filtro-permissoes">Buscar permissão</label>
-                        <input type="search" id="filtro-permissoes" placeholder="Digite parte do nome (ex.: excluir, nota, folha)" autocomplete="off">
+                        <input class="form-control" type="search" id="filtro-permissoes" placeholder="Digite parte do nome (ex.: excluir, nota, folha)" autocomplete="off">
                         <span class="perfil-contagem" id="perfil-contagem" aria-live="polite">
                             <?= (int) $marcadas ?> de <?= (int) $totalChaves ?> permissões
                         </span>
@@ -87,13 +87,13 @@ foreach ($salvas as $valor) {
                 </div>
 
                 <div class="perfil-acoes-rapidas">
-                    <button type="button" class="btn btn-mini" data-marcar="todas">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-marcar="todas">
                         <i class="bx bx-check-square"></i> Marcar todas
                     </button>
-                    <button type="button" class="btn btn-mini" data-marcar="visiveis">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-marcar="visiveis">
                         <i class="bx bx-filter"></i> Marcar as visíveis
                     </button>
-                    <button type="button" class="btn btn-mini" data-marcar="nenhuma">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-marcar="nenhuma">
                         <i class="bx bx-square"></i> Desmarcar todas
                     </button>
                 </div>

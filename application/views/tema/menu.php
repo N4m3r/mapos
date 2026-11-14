@@ -41,7 +41,7 @@ $logoEmitenteEsc = $logoEmitente !== null ? htmlspecialchars($logoEmitente, ENT_
         </div>
     </div>
     <?php } ?>
-    <a href="#" class="visible-phone">
+    <a href="#" class="d-md-none">
         <div class="mode">
             <div class="moon-menu">
                 <i class='bx bx-chevron-right iconX open-2'></i>

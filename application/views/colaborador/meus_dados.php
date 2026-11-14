@@ -20,15 +20,15 @@ $csrf_h = $this->security->get_csrf_hash();
         <input type="hidden" name="<?= $csrf_n ?>" value="<?= $csrf_h ?>">
         <input type="hidden" name="salvar" value="1">
         <label>E-mail</label>
-        <input type="email" name="email" value="<?= htmlspecialchars($colaborador->email) ?>" class="span12" style="width:100%">
+        <input type="email" name="email" value="<?= htmlspecialchars($colaborador->email) ?>" class="w-100 form-control" style="width:100%">
         <label style="margin-top:8px">Celular</label>
-        <input type="text" name="celular" value="<?= htmlspecialchars($colaborador->celular) ?>" class="span12" style="width:100%">
+        <input type="text" name="celular" value="<?= htmlspecialchars($colaborador->celular) ?>" class="w-100 form-control" style="width:100%">
         <div style="display:flex;gap:8px;margin-top:8px">
             <div style="flex:1"><label>Tipo PIX</label>
-                <input type="text" name="pix_tipo" value="<?= htmlspecialchars($colaborador->pix_tipo) ?>" class="span12" style="width:100%" placeholder="CPF, e-mail...">
+                <input type="text" name="pix_tipo" value="<?= htmlspecialchars($colaborador->pix_tipo) ?>" class="w-100 form-control" style="width:100%" placeholder="CPF, e-mail...">
             </div>
             <div style="flex:2"><label>Chave PIX</label>
-                <input type="text" name="pix_chave" value="<?= htmlspecialchars($colaborador->pix_chave) ?>" class="span12" style="width:100%">
+                <input type="text" name="pix_chave" value="<?= htmlspecialchars($colaborador->pix_chave) ?>" class="w-100 form-control" style="width:100%">
             </div>
         </div>
         <button type="submit" class="btn-bater" style="margin-top:12px"><i class='bx bx-save'></i> Salvar</button>

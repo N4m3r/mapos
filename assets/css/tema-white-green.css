@@ -5,11 +5,10 @@
 input[type="search"],
 select,
 input[type="text"],
-.row-fluid input[class*="span"],
+.form-control,
 input[type="number"],
-select[class*="span"],
-.row-fluid select[class*="span"] {
-  background  : var(--white);
+.form-select {
+  background-color  : var(--white);
   border-color: var(--white-gre0);
   color: var(--white-gre2);
 }
@@ -111,7 +110,7 @@ body {
     border: 1px solid var(--white-gre0);
 }
 
-#user-nav > ul > li > a:hover,#user-nav > ul > li.open > a {
+#user-nav > ul > li > a:hover, #user-nav > ul > li > a.show {
     color: #090909;
 }
 
@@ -154,7 +153,7 @@ body {
     opacity: 0.7;
 }
 
-#sidebar > ul > li > a > .label:hover {
+#sidebar > ul > li > a > .badge:hover {
     background-color: #ffffff;
 }
 
@@ -350,7 +349,7 @@ table tbody tr:hover {
 }
 
 /* PAGINAS EDITAR OS */
-.nav-tabs > .active > a, .nav-tabs > .active > a:hover, .nav-tabs > .active > a:focus {
+.nav-tabs .nav-link.active, .nav-tabs .nav-link.active:hover, .nav-tabs .nav-link.active:focus {
     color: var(--white);
     background-color: var(--white-gre);
     border: 1px solid var(--white-gre);
@@ -360,11 +359,11 @@ table tbody tr:hover {
     border-bottom: 1px solid var(--white-gre0);
 }
 
-.nav-tabs > li > a {
+.nav-tabs .nav-link {
     color: var(--cinza0);
 }
 
-.nav-tabs > li > a:hover {
+.nav-tabs .nav-link:hover {
     color     : var(--white-gre2);
     background: var(--white-gre0);
     border    : 1px solid var(--white-gre);
@@ -404,7 +403,7 @@ label {
     background: var(--white-bran);
 }
 
-.well {
+.card.card-body {
     background-color: var(--white);
     border: 0 solid #e3e3e3;
 }
@@ -431,6 +430,12 @@ label {
 .modal-header {
     background: var(--white-gre0);
     color: var(--white-gre2);
+}
+
+/* cabeçalho claro neste tema: o X volta a ser escuro (matrix-style o deixa branco) */
+.modal-header .btn-close {
+    filter: none;
+    opacity: 0.6;
 }
 
 .modal-body {

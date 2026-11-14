@@ -19,7 +19,7 @@ if ($permE) {
         <?php endforeach; ?>
     </ul>
     <?php if ($permC && in_array($ativo, ['painel', 'obras'], true)): ?>
-        <a href="<?= site_url('obras/adicionar') ?>" class="button btn btn-mini btn-primary projeto-nav-novo">
+        <a href="<?= site_url('obras/adicionar') ?>" class="button btn btn-sm btn-primary projeto-nav-novo">
             <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Novo projeto</span></a>
     <?php endif; ?>
 </nav>

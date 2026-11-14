@@ -53,7 +53,7 @@ $chips = Chamado_cobranca::STATUS;
         .cc-so-impressao { display: block !important; margin-bottom: 12px; }
         .cc-so-impressao h2 { margin: 0 0 4px; font-size: 18px; color: #000 !important; }
         .cc-so-impressao p { margin: 0; font-size: 12px; color: #000 !important; }
-        body, #content, #content-header, .container-fluid, .row-fluid, .span12 {
+        body, #content, #content-header, .container-fluid, .row, .col-md-12 {
             background: #fff !important; color: #000 !important; margin: 0 !important; padding: 0 !important;
             width: 100% !important; min-height: 0 !important;
         }
@@ -73,8 +73,8 @@ $chips = Chamado_cobranca::STATUS;
     }
 </style>
 
-<div class="row-fluid" style="margin-top: 0">
-    <div class="span12">
+<div class="row" style="margin-top: 0">
+    <div class="col-md-12">
         <div class="cc-so-impressao">
             <h2>Cobrança dos chamados</h2>
             <p>
@@ -91,8 +91,8 @@ $chips = Chamado_cobranca::STATUS;
                 <p>O que aguarda aprovação, o que falta cobrar e o que está em cobrança, numa lista só.</p>
             </div>
             <div class="ui-acoes">
-                <button type="button" class="button btn btn-mini btn-inverse" data-acao="imprimir"><span class="button__icon"><i class="bx bx-printer"></i></span><span class="button__text">Imprimir</span></button>
-                <a class="button btn btn-mini btn-primary" href="<?= site_url('chamadoscobranca/csv') ?>" data-csv="1"><span class="button__icon"><i class="bx bx-spreadsheet"></i></span><span class="button__text">CSV</span></a>
+                <button type="button" class="button btn btn-sm btn-dark" data-acao="imprimir"><span class="button__icon"><i class="bx bx-printer"></i></span><span class="button__text">Imprimir</span></button>
+                <a class="button btn btn-sm btn-primary" href="<?= site_url('chamadoscobranca/csv') ?>" data-csv="1"><span class="button__icon"><i class="bx bx-spreadsheet"></i></span><span class="button__text">CSV</span></a>
             </div>
         </div>
 
@@ -103,21 +103,21 @@ $chips = Chamado_cobranca::STATUS;
         <form method="get" action="<?= site_url('chamadoscobranca') ?>" class="ui-filtros">
             <div class="ui-campo">
                 <label for="q">Cliente</label>
-                <input type="text" id="q" name="q" value="<?= $e($filtro['busca']) ?>" placeholder="Nome do cliente" />
+                <input class="form-control" type="text" id="q" name="q" value="<?= $e($filtro['busca']) ?>" placeholder="Nome do cliente" />
             </div>
             <div class="ui-campo">
                 <label for="chamado">Chamado</label>
-                <input type="text" id="chamado" name="chamado" value="<?= $e($filtro['chamado']) ?>" placeholder="Número do chamado" />
+                <input class="form-control" type="text" id="chamado" name="chamado" value="<?= $e($filtro['chamado']) ?>" placeholder="Número do chamado" />
             </div>
             <div class="ui-campo ui-campo-acao">
-                <button class="button btn btn-inverse"><span class="button__icon"><i class="bx bx-filter-alt"></i></span><span class="button__text">Filtrar</span></button>
-                <a class="btn" href="<?= site_url('chamadoscobranca') ?>" title="Limpar filtros"><i class="bx bx-x"></i> Limpar</a>
+                <button class="button btn btn-dark"><span class="button__icon"><i class="bx bx-filter-alt"></i></span><span class="button__text">Filtrar</span></button>
+                <a class="btn btn-outline-secondary" href="<?= site_url('chamadoscobranca') ?>" title="Limpar filtros"><i class="bx bx-x"></i> Limpar</a>
             </div>
             <div class="cc-chips">
                 <span>Situação:</span>
                 <?php foreach ($chips as $chave => $cfg) { ?>
                     <label class="cc-chip">
-                        <input type="checkbox" name="status[]" value="<?= $e($chave) ?>"<?= in_array($chave, $selecionados, true) ? ' checked' : '' ?> />
+                        <input class="form-check-input" type="checkbox" name="status[]" value="<?= $e($chave) ?>"<?= in_array($chave, $selecionados, true) ? ' checked' : '' ?> />
                         <span class="ui-selo <?= $e($cfg['classe']) ?>"><?= $e($cfg['rotulo']) ?> (<?= (int) ($kpis[$chave]['qtd'] ?? 0) ?>)</span>
                     </label>
                 <?php } ?>
@@ -171,11 +171,11 @@ $chips = Chamado_cobranca::STATUS;
                 <div class="cc-lote" id="cc-lote" hidden>
                     <strong><span id="cc-qtd">0</span> selecionado(s)</strong>
                     <?php if ($podeAprovar) { ?>
-                        <button class="button btn btn-mini btn-primary" type="submit" formaction="<?= site_url('chamadoscobranca/solicitarAprovacao') ?>"><span class="button__icon"><i class="bx bx-check-shield"></i></span><span class="button__text">Solicitar aprovação</span></button>
+                        <button class="button btn btn-sm btn-primary" type="submit" formaction="<?= site_url('chamadoscobranca/solicitarAprovacao') ?>"><span class="button__icon"><i class="bx bx-check-shield"></i></span><span class="button__text">Solicitar aprovação</span></button>
                     <?php } ?>
                     <?php if ($podeCobranca) { ?>
-                        <button class="button btn btn-mini btn-success" type="submit" name="acao" value="confirmar"><span class="button__icon"><i class="bx bx-check"></i></span><span class="button__text">Confirmar pagamento</span></button>
-                        <button class="button btn btn-mini btn-danger" type="submit" name="acao" value="cancelar"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text">Cancelar cobrança</span></button>
+                        <button class="button btn btn-sm btn-success" type="submit" name="acao" value="confirmar"><span class="button__icon"><i class="bx bx-check"></i></span><span class="button__text">Confirmar pagamento</span></button>
+                        <button class="button btn btn-sm btn-danger" type="submit" name="acao" value="cancelar"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text">Cancelar cobrança</span></button>
                     <?php } ?>
                 </div>
 
@@ -183,7 +183,7 @@ $chips = Chamado_cobranca::STATUS;
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th class="cc-col-sel"><input type="checkbox" id="cc-todos" title="Selecionar todas" aria-label="Selecionar todas as linhas"></th>
+                                <th class="cc-col-sel"><input class="form-check-input" type="checkbox" id="cc-todos" title="Selecionar todas" aria-label="Selecionar todas as linhas"></th>
                                 <th>Chamado</th>
                                 <th>OS / Cobrança</th>
                                 <th>Cliente</th>
@@ -197,7 +197,7 @@ $chips = Chamado_cobranca::STATUS;
                         <tbody>
                             <?php foreach ($itens as $i) { ?>
                                 <tr>
-                                    <td class="cc-col-sel"><?php if (in_array($i['tipo'], ['os', 'cob'], true)) { ?><input type="checkbox" name="selecionados[]" value="<?= $e($i['chave']) ?>" aria-label="Selecionar <?= $e($i['tipo'] === 'cob' ? 'cobrança #' . (int) $i['ref_id'] : 'OS #' . (int) $i['ref_id']) ?>"><?php } ?></td>
+                                    <td class="cc-col-sel"><?php if (in_array($i['tipo'], ['os', 'cob'], true)) { ?><input class="form-check-input" type="checkbox" name="selecionados[]" value="<?= $e($i['chave']) ?>" aria-label="Selecionar <?= $e($i['tipo'] === 'cob' ? 'cobrança #' . (int) $i['ref_id'] : 'OS #' . (int) $i['ref_id']) ?>"><?php } ?></td>
                                     <td><?= $i['chamado'] ? $e($i['chamado']) : '—' ?></td>
                                     <td><a href="<?= site_url($i['link']) ?>"><?= $i['tipo'] === 'cob' ? 'Cobrança #' . (int) $i['ref_id'] : 'OS #' . (int) $i['ref_id'] ?></a></td>
                                     <td><?= $e($i['cliente']) ?></td>
@@ -207,11 +207,11 @@ $chips = Chamado_cobranca::STATUS;
                                     <td><?= $e($i['detalhe']) ?></td>
                                     <td>
                                         <?php if ($i['tipo'] === 'os' && $podeAprovar) { ?>
-                                            <button class="button btn btn-mini btn-info" type="submit" formaction="<?= site_url('chamadoscobranca/solicitarAprovacao') ?>" name="selecionados[]" value="<?= $e($i['chave']) ?>"><span class="button__icon"><i class="bx bx-check-shield"></i></span><span class="button__text">Aprovação</span></button>
+                                            <button class="button btn btn-sm btn-info" type="submit" formaction="<?= site_url('chamadoscobranca/solicitarAprovacao') ?>" name="selecionados[]" value="<?= $e($i['chave']) ?>"><span class="button__icon"><i class="bx bx-check-shield"></i></span><span class="button__text">Aprovação</span></button>
                                         <?php } elseif ($i['tipo'] === 'cob') { ?>
-                                            <a class="btn" href="<?= site_url($i['link']) ?>" title="Ver cobrança"><i class="bx bx-show"></i></a>
+                                            <a class="btn btn-sm btn-light" href="<?= site_url($i['link']) ?>" title="Ver cobrança"><i class="bx bx-show"></i></a>
                                         <?php } else { ?>
-                                            <a class="btn" href="<?= site_url($i['link']) ?>" title="Abrir documento"><i class="bx bx-show"></i></a>
+                                            <a class="btn btn-sm btn-light" href="<?= site_url($i['link']) ?>" title="Abrir documento"><i class="bx bx-show"></i></a>
                                         <?php } ?>
                                     </td>
                                 </tr>

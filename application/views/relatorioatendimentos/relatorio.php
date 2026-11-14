@@ -1,5 +1,5 @@
-<div class="row-fluid">
-    <div class="span12">
+<div class="row">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="ui-cabecalho rel-cabecalho">
                 <div>
@@ -18,17 +18,17 @@
                 <form id="form-filtros" class="ui-filtros">
                     <div class="ui-campo">
                         <label for="filtro-data-inicio">Data início</label>
-                        <input type="date" id="filtro-data-inicio" value="<?php echo $results['data_inicio']; ?>">
+                        <input class="form-control" type="date" id="filtro-data-inicio" value="<?php echo $results['data_inicio']; ?>">
                     </div>
 
                     <div class="ui-campo">
                         <label for="filtro-data-fim">Data fim</label>
-                        <input type="date" id="filtro-data-fim" value="<?php echo $results['data_fim']; ?>">
+                        <input class="form-control" type="date" id="filtro-data-fim" value="<?php echo $results['data_fim']; ?>">
                     </div>
 
                     <div class="ui-campo">
                         <label for="filtro-tecnico">Técnico</label>
-                        <select id="filtro-tecnico">
+                        <select class="form-select" id="filtro-tecnico">
                             <option value="">Todos os técnicos</option>
                             <?php foreach ($results['tecnicos'] as $tecnico): ?>
                                 <option value="<?php echo $tecnico->idUsuarios; ?>"
@@ -70,9 +70,9 @@
                 </div>
 
                 <!-- Gráficos -->
-                <div class="row-fluid rel-linha">
+                <div class="row rel-linha">
                     <!-- Gráfico de Atendimentos por Dia -->
-                    <div class="span6">
+                    <div class="col-md-6">
                         <div class="widget-box">
                             <div class="widget-title">
                                 <span class="icon"><i class="bx bx-line-chart"></i></span>
@@ -85,7 +85,7 @@
                     </div>
 
                     <!-- Gráfico por Técnico -->
-                    <div class="span6">
+                    <div class="col-md-6">
                         <div class="widget-box">
                             <div class="widget-title">
                                 <span class="icon"><i class="bx bx-bar-chart"></i></span>
@@ -98,9 +98,9 @@
                     </div>
                 </div>
 
-                <div class="row-fluid rel-linha">
+                <div class="row rel-linha">
                     <!-- Gráfico por Status -->
-                    <div class="span6">
+                    <div class="col-md-6">
                         <div class="widget-box">
                             <div class="widget-title">
                                 <span class="icon"><i class="bx bx-pie-chart-alt"></i></span>
@@ -113,7 +113,7 @@
                     </div>
 
                     <!-- Gráfico de Tempo Médio -->
-                    <div class="span6">
+                    <div class="col-md-6">
                         <div class="widget-box">
                             <div class="widget-title">
                                 <span class="icon"><i class="bx bx-time"></i></span>

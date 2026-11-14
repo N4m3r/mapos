@@ -1,12 +1,11 @@
-<div class="row-fluid">
-    <div id="footer" class="span12">
-        <a class="pecolor" href="https://github.com/RamonSilva20/mapos" target="_blank">
-            <?= date('Y') ?> &copy; Ramon Silva - Map-OS - Versão: <?= $this->config->item('app_version') ?>
-        </a>
-    </div>
+<div id="footer">
+    <a class="pecolor" href="https://github.com/RamonSilva20/mapos" target="_blank">
+        <?= date('Y') ?> &copy; Ramon Silva - Map-OS - Versão: <?= $this->config->item('app_version') ?>
+    </a>
 </div>
 <!--end-Footer-part-->
-<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/bootstrap.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/bootstrap.bundle.min.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/bootstrap-jquery.js"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/matrix.js"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/paleta-comandos.js') ?>?v=<?= asset_versao('assets/js/paleta-comandos.js') ?>" data-url-pesquisa="<?= site_url('mapos/pesquisar') ?>"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/menu-lateral.js') ?>?v=<?= asset_versao('assets/js/menu-lateral.js') ?>"></script>

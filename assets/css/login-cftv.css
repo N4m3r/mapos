@@ -315,7 +315,7 @@ body.cftv {
 }
 .cftv-olho:hover, .cftv-olho:focus-visible { color: var(--cftv-destaque); outline: none; }
 
-.help-inline { display: block; margin: 6px 2px 0; color: var(--cftv-erro); font-size: 12.5px; }
+.help-inline, .invalid-feedback { display: block; margin: 6px 2px 0; color: var(--cftv-erro); font-size: 12.5px; }
 
 .cftv-linha { display: flex; justify-content: flex-end; margin: -4px 0 14px; }
 .cftv-link { color: var(--cftv-suave); font-size: 13px; text-decoration: none; }

@@ -7,7 +7,7 @@
 .os-nova .os-col-2 { grid-column: span 2; }
 .os-nova .os-campo label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 5px; }
 .os-nova .os-campo input[type=text], .os-nova .os-campo input[type=number], .os-nova .os-campo select { width: 100%; height: 38px; box-sizing: border-box; margin: 0; }
-.os-nova .os-campo .help-inline { display: block; padding: 4px 0 0; }
+.os-nova .os-campo .form-text { display: block; padding: 4px 0 0; }
 .os-nova .required { color: var(--ui-perigo); margin-left: 2px; }
 .os-nova .os-editores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 .os-nova .os-editores .os-campo > label { font-size: 14px; }
@@ -48,8 +48,8 @@
 .os-topo .cascading-buttons { top: 100%; padding-top: 4px; min-width: 170px; z-index: 30; }
 .os-topo .cascading-buttons .button { width: 100% !important; margin: 0 0 4px !important; }
 .os-abas-wrap > .nav-tabs { display: flex; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: thin; margin-bottom: 0; }
-.os-abas-wrap > .nav-tabs > li { float: none; flex: 0 0 auto; }
-.os-abas-wrap > .nav-tabs > li > a { white-space: nowrap; }
+.os-abas-wrap > .nav-tabs > .nav-item { float: none; flex: 0 0 auto; }
+.os-abas-wrap > .nav-tabs .nav-link { white-space: nowrap; }
 .os-nova .os-numero { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 14px; }
 .os-nova .os-numero h3 { margin: 0; font-size: 20px; line-height: 1.2; }
 .os-nova .os-campo small { display: block; opacity: .7; margin-top: 4px; }

@@ -48,7 +48,7 @@ $emailCliente = !empty($cliente->email) ? $cliente->email : '';
     <?php if (!empty($assinaturas)): ?>
         <div class="info-card">
             <h3><i class='bx bx-check-shield'></i> Assinaturas registradas</h3>
-            <div class="row" style="display:flex; flex-wrap:wrap; gap:14px;">
+            <div style="display:flex; flex-wrap:wrap; gap:14px;">
                 <?php foreach ($assinaturas as $a): ?>
                     <div style="flex:1 1 140px; text-align:center;">
                         <h5 style="font-size:12px; color:var(--tec-muted, #8a8fa3); margin:0 0 8px;"><?= ucfirst(str_replace('_', ' ', $a->tipo)) ?></h5>
@@ -77,8 +77,8 @@ $emailCliente = !empty($cliente->email) ? $cliente->email : '';
 
         <!-- Pane: assinar no aparelho -->
         <div class="asg-pane active" id="pane-local">
-            <input type="text" class="asg-input" id="asg-nome" placeholder="Nome do solicitante (opcional)" value="<?= html_escape($cliente->nomeCliente) ?>">
-            <input type="text" class="asg-input" id="asg-doc" placeholder="Documento CPF/RG (opcional)">
+            <input type="text" class="asg-input form-control" id="asg-nome" placeholder="Nome do solicitante (opcional)" value="<?= html_escape($cliente->nomeCliente) ?>">
+            <input type="text" class="asg-input form-control" id="asg-doc" placeholder="Documento CPF/RG (opcional)">
             <p style="font-size:13px; color:var(--tec-muted); margin:0 0 8px;">
                 <i class='bx bx-info-circle'></i> Entregue o aparelho ao solicitante para assinar abaixo.
             </p>
@@ -125,7 +125,7 @@ $emailCliente = !empty($cliente->email) ? $cliente->email : '';
                             <i class='bx bxl-whatsapp'></i> Enviar por WhatsApp
                         </label>
                         <div style="display:flex; gap:8px;">
-                            <input type="tel" class="asg-input" id="asg-wa-num" placeholder="Número com DDD" value="<?= html_escape($fone) ?>" style="margin-bottom:0; flex:1;">
+                            <input type="tel" class="asg-input form-control" id="asg-wa-num" placeholder="Número com DDD" value="<?= html_escape($fone) ?>" style="margin-bottom:0; flex:1;">
                             <button type="button" class="btn-tec success" id="asg-whats" style="flex:0 0 auto;">
                                 <i class='bx bxl-whatsapp'></i> Abrir
                             </button>
@@ -137,7 +137,7 @@ $emailCliente = !empty($cliente->email) ? $cliente->email : '';
                             <i class='bx bx-envelope'></i> Enviar por e-mail
                         </label>
                         <div style="display:flex; gap:8px;">
-                            <input type="email" class="asg-input" id="asg-email" placeholder="email@exemplo.com" value="<?= html_escape($emailCliente) ?>" style="margin-bottom:0; flex:1;">
+                            <input type="email" class="asg-input form-control" id="asg-email" placeholder="email@exemplo.com" value="<?= html_escape($emailCliente) ?>" style="margin-bottom:0; flex:1;">
                             <button type="button" class="btn-tec primary" id="asg-enviar-email" style="flex:0 0 auto;">
                                 <i class='bx bx-send'></i> Enviar
                             </button>

@@ -32,22 +32,20 @@
         text-indent: 0;
     }
 
-    .control-group.error .help-inline {
+    .is-invalid ~ .invalid-feedback {
         display: flex;
     }
 
-    .form-horizontal .control-group {
+    .form-horizontal .row.mb-2 {
         border-bottom: 1px solid #ffffff;
     }
 
-    .form-horizontal .controls {
-        margin-left: 20px;
-        padding-bottom: 8px 0;
+    .form-horizontal .col-sm-9 {
+        padding-bottom: 8px;
     }
 
-    .form-horizontal .control-label {
+    .form-horizontal .col-form-label {
         text-align: left;
-        padding-top: 15px;
     }
 
     .nopadding {
@@ -67,7 +65,7 @@
             display: contents !important;
         }
 
-        .form-horizontal .control-label {
+        .form-horizontal .col-form-label {
             margin-bottom: -6px;
         }
 
@@ -76,8 +74,8 @@
         }
     }
 </style>
-<div class="row-fluid" style="margin-top:0">
-    <div class="span12">
+<div class="row" style="margin-top:0">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="ui-cabecalho" style="padding: 16px 16px 0">
                 <div>
@@ -89,165 +87,170 @@
                 echo '<div class="alert alert-danger">' . $custom_error . '</div>';
             } ?>
             <form action="<?php echo current_url(); ?>" id="formCliente" method="post" class="form-horizontal">
-                <div class="widget-content nopadding tab-content">
-                    <div class="span6">
+                <div class="widget-content nopadding tab-content row">
+                    <div class="col-md-6">
                         <div class="ui-secao">
                         <h4 class="ui-secao-titulo">Dados gerais</h4>
-                        <div class="control-group">
-                            <label for="documento" class="control-label">CPF/CNPJ</label>
-                            <div class="controls">
-                                <input id="documento" class="cpfcnpj" type="text" name="documento" value="<?php echo set_value('documento'); ?>" />
-                                <button id="buscar_info_cnpj" class="btn btn-xs" type="button">Buscar(CNPJ)</button>
+                        <div class="row mb-2">
+                            <label for="documento" class="col-sm-3 col-form-label">CPF/CNPJ</label>
+                            <div class="col-sm-9">
+                                <div class="input-group">
+                                    <input id="documento" class="cpfcnpj form-control" type="text" name="documento" value="<?php echo set_value('documento'); ?>" />
+                                    <button id="buscar_info_cnpj" class="btn btn-outline-secondary" type="button">Buscar(CNPJ)</button>
+                                </div>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="ie" class="control-label">Inscrição Estadual</label>
-                            <div class="controls">
-                                <input id="ie" type="text" name="ie" value="<?php echo set_value('ie'); ?>" placeholder="ISENTO se não contribuinte" />
+                        <div class="row mb-2">
+                            <label for="ie" class="col-sm-3 col-form-label">Inscrição Estadual</label>
+                            <div class="col-sm-9">
+                                <input class="form-control" id="ie" type="text" name="ie" value="<?php echo set_value('ie'); ?>" placeholder="ISENTO se não contribuinte" />
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="im" class="control-label">Inscrição Municipal</label>
-                            <div class="controls">
-                                <input id="im" type="text" name="im" value="<?php echo set_value('im'); ?>" />
+                        <div class="row mb-2">
+                            <label for="im" class="col-sm-3 col-form-label">Inscrição Municipal</label>
+                            <div class="col-sm-9">
+                                <input class="form-control" id="im" type="text" name="im" value="<?php echo set_value('im'); ?>" />
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="nomeCliente" class="control-label">Nome/Razão Social<span class="required">*</span></label>
-                            <div class="controls">
-                                <input id="nomeCliente" type="text" name="nomeCliente" value="<?php echo set_value('nomeCliente'); ?>" />
+                        <div class="row mb-2">
+                            <label for="nomeCliente" class="col-sm-3 col-form-label">Nome/Razão Social<span class="required">*</span></label>
+                            <div class="col-sm-9">
+                                <input class="form-control" id="nomeCliente" type="text" name="nomeCliente" value="<?php echo set_value('nomeCliente'); ?>" />
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="contato" class="control-label">Contato:</label>
-                            <div class="controls">
-                                <input class="contato" type="text" name="contato" value="<?php echo set_value('contato'); ?>" />
+                        <div class="row mb-2">
+                            <label for="contato" class="col-sm-3 col-form-label">Contato:</label>
+                            <div class="col-sm-9">
+                                <input class="contato form-control" type="text" name="contato" value="<?php echo set_value('contato'); ?>" />
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="telefone" class="control-label">Telefone</label>
-                            <div class="controls">
-                                <input id="telefone" type="text" name="telefone" value="<?php echo set_value('telefone'); ?>" />
+                        <div class="row mb-2">
+                            <label for="telefone" class="col-sm-3 col-form-label">Telefone</label>
+                            <div class="col-sm-9">
+                                <input class="form-control" id="telefone" type="text" name="telefone" value="<?php echo set_value('telefone'); ?>" />
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="celular" class="control-label">Celular</label>
-                            <div class="controls">
-                                <input id="celular" type="text" name="celular" value="<?php echo set_value('celular'); ?>" />
+                        <div class="row mb-2">
+                            <label for="celular" class="col-sm-3 col-form-label">Celular</label>
+                            <div class="col-sm-9">
+                                <input class="form-control" id="celular" type="text" name="celular" value="<?php echo set_value('celular'); ?>" />
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="whatsapp_notificacao" class="control-label">Nº de notificação (WhatsApp)</label>
-                            <div class="controls">
-                                <input id="whatsapp_notificacao" type="text" name="whatsapp_notificacao" value="<?php echo set_value('whatsapp_notificacao'); ?>" />
-                                <span class="help-inline">Onde este cliente recebe as notificações. Se vazio, usa o Celular.</span>
+                        <div class="row mb-2">
+                            <label for="whatsapp_notificacao" class="col-sm-3 col-form-label">Nº de notificação (WhatsApp)</label>
+                            <div class="col-sm-9">
+                                <input class="form-control" id="whatsapp_notificacao" type="text" name="whatsapp_notificacao" value="<?php echo set_value('whatsapp_notificacao'); ?>" />
+                                <span class="form-text">Onde este cliente recebe as notificações. Se vazio, usa o Celular.</span>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="email" class="control-label">Email</label>
-                            <div class="controls">
-                                <input id="email" type="text" name="email" value="<?php echo set_value('email'); ?>" autocomplete="off" />
+                        <div class="row mb-2">
+                            <label for="email" class="col-sm-3 col-form-label">Email</label>
+                            <div class="col-sm-9">
+                                <input class="form-control" id="email" type="text" name="email" value="<?php echo set_value('email'); ?>" autocomplete="off" />
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="email_secundario" class="control-label">Email secundário (cobrança/financeiro)</label>
-                            <div class="controls">
-                                <input id="email_secundario" type="text" name="email_secundario" value="<?php echo set_value('email_secundario'); ?>" autocomplete="off" placeholder="Recebe cópia de cobranças e boletos da NF" />
+                        <div class="row mb-2">
+                            <label for="email_secundario" class="col-sm-3 col-form-label">Email secundário (cobrança/financeiro)</label>
+                            <div class="col-sm-9">
+                                <input class="form-control" id="email_secundario" type="text" name="email_secundario" value="<?php echo set_value('email_secundario'); ?>" autocomplete="off" placeholder="Recebe cópia de cobranças e boletos da NF" />
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label class="control-label">Automação na aprovação</label>
-                            <div class="controls">
+                        <div class="row mb-2">
+                            <label class="col-sm-3 col-form-label">Automação na aprovação</label>
+                            <div class="col-sm-9">
                                 <label for="automacao_aprovacao" style="display:flex; align-items:center; gap:8px;">
-                                    <input id="automacao_aprovacao" type="checkbox" name="automacao_aprovacao" value="1" <?php echo set_value('automacao_aprovacao') ? 'checked' : ''; ?> />
+                                    <input class="form-check-input" id="automacao_aprovacao" type="checkbox" name="automacao_aprovacao" value="1" <?php echo set_value('automacao_aprovacao') ? 'checked' : ''; ?> />
                                     Ao aprovar a OS, emitir NFS-e e gerar boleto automaticamente
                                 </label>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label class="control-label">Aprovação com código</label>
-                            <div class="controls">
+                        <div class="row mb-2">
+                            <label class="col-sm-3 col-form-label">Aprovação com código</label>
+                            <div class="col-sm-9">
                                 <label for="aprovacao_exige_token" style="display:flex; align-items:center; gap:8px;">
-                                    <input id="aprovacao_exige_token" type="checkbox" name="aprovacao_exige_token" value="1" <?php echo set_value('aprovacao_exige_token') ? 'checked' : ''; ?> />
+                                    <input class="form-check-input" id="aprovacao_exige_token" type="checkbox" name="aprovacao_exige_token" value="1" <?php echo set_value('aprovacao_exige_token') ? 'checked' : ''; ?> />
                                     Exigir código de verificação (WhatsApp/e-mail) antes de aprovar a OS
                                 </label>
-                                <span class="help-inline">Vale para todas as OS deste cliente. Também pode ser ligado avulso em cada OS.</span>
+                                <span class="form-text">Vale para todas as OS deste cliente. Também pode ser ligado avulso em cada OS.</span>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label class="control-label" for="aprovacao_token_numeros">Números para o código (WhatsApp)</label>
-                            <div class="controls">
-                                <textarea id="aprovacao_token_numeros" name="aprovacao_token_numeros" rows="3" placeholder="Um número por linha, com DDD. Ex.:&#10;(92) 99215-0107&#10;(92) 98888-7777"><?php echo set_value('aprovacao_token_numeros'); ?></textarea>
-                                <span class="help-inline">Além do celular do cliente, o código também será enviado para estes números (um por linha).</span>
+                        <div class="row mb-2">
+                            <label class="col-sm-3 col-form-label" for="aprovacao_token_numeros">Números para o código (WhatsApp)</label>
+                            <div class="col-sm-9">
+                                <textarea class="form-control" id="aprovacao_token_numeros" name="aprovacao_token_numeros" rows="3" placeholder="Um número por linha, com DDD. Ex.:&#10;(92) 99215-0107&#10;(92) 98888-7777"><?php echo set_value('aprovacao_token_numeros'); ?></textarea>
+                                <span class="form-text">Além do celular do cliente, o código também será enviado para estes números (um por linha).</span>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label class="control-label">Faturamento agendado</label>
-                            <div class="controls">
+                        <div class="row mb-2">
+                            <label class="col-sm-3 col-form-label">Faturamento agendado</label>
+                            <div class="col-sm-9">
                                 <label for="faturamento_agendado" style="display:flex; align-items:center; gap:8px;">
-                                    <input id="faturamento_agendado" type="checkbox" name="faturamento_agendado" value="1" <?php echo set_value('faturamento_agendado') ? 'checked' : ''; ?> />
+                                    <input class="form-check-input" id="faturamento_agendado" type="checkbox" name="faturamento_agendado" value="1" <?php echo set_value('faturamento_agendado') ? 'checked' : ''; ?> />
                                     Segurar a emissão (NFS-e + boleto) até o dia de faturamento
                                 </label>
-                                <span class="help-inline">Ao aprovar no meio do mês, a nota fica em espera e é emitida no dia configurado (ex.: dia 01).</span>
+                                <span class="form-text">Ao aprovar no meio do mês, a nota fica em espera e é emitida no dia configurado (ex.: dia 01).</span>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="tp_ret_issqn" class="control-label">ISS na NFS-e</label>
-                            <div class="controls">
-                                <select id="tp_ret_issqn" name="tp_ret_issqn">
+                        <div class="row mb-2">
+                            <label for="tp_ret_issqn" class="col-sm-3 col-form-label">ISS na NFS-e</label>
+                            <div class="col-sm-9">
+                                <select class="form-select" id="tp_ret_issqn" name="tp_ret_issqn">
                                     <option value="" <?php echo set_value('tp_ret_issqn') === '' ? 'selected' : ''; ?>>— padrão (config fiscal) —</option>
                                     <option value="1" <?php echo set_value('tp_ret_issqn') === '1' ? 'selected' : ''; ?>>Não retido</option>
                                     <option value="2" <?php echo set_value('tp_ret_issqn') === '2' ? 'selected' : ''; ?>>Retido</option>
                                 </select>
-                                <span class="help-inline">Usado na emissão da nota de serviço deste cliente.</span>
+                                <span class="form-text">Usado na emissão da nota de serviço deste cliente.</span>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="senha" class="control-label">Senha</label>
-                            <div class="controls">
-                                <input class="form-control" id="senha" type="password" name="senha" autocomplete="new-password" value="<?php echo set_value('senha'); ?>" />
-                                <img id="imgSenha" src="<?php echo base_url() ?>assets/img/eye.svg" alt="">
+                        <div class="row mb-2">
+                            <label for="senha" class="col-sm-3 col-form-label">Senha</label>
+                            <div class="col-sm-9">
+                                <div class="input-group">
+                                    <input class="form-control" id="senha" type="password" name="senha" autocomplete="new-password" value="<?php echo set_value('senha'); ?>" />
+                                    <span class="input-group-text"><img id="imgSenha" src="<?php echo base_url() ?>assets/img/eye.svg" alt="Mostrar senha"></span>
+                                </div>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label class="control-label">Tipo de Cliente</label>
-                            <div class="controls">
-                                <label for="fornecedor" class="btn btn-default">Fornecedor
+                        <div class="row mb-2">
+                            <label class="col-sm-3 col-form-label">Tipo de Cliente</label>
+                            <div class="col-sm-9">
+                                <label for="fornecedor" class="btn btn-light border">Fornecedor
                                     <input type="checkbox" id="fornecedor" name="fornecedor" class="badgebox" value="1">
-                                    <span class="badge">&check;</span>
+                                    <span class="badge text-bg-secondary">&check;</span>
                                 </label>
                             </div>
                         </div>
                         <?php if ($this->db->field_exists('exige_chamado', 'clientes')) { ?>
-                        <div class="control-group">
-                            <label class="control-label">Atividade n&atilde;o programada</label>
-                            <div class="controls">
-                                <label for="exige_chamado" class="btn btn-default">Exige N&ordm; do chamado
+                        <div class="row mb-2">
+                            <label class="col-sm-3 col-form-label">Atividade n&atilde;o programada</label>
+                            <div class="col-sm-9">
+                                <label for="exige_chamado" class="btn btn-light border">Exige N&ordm; do chamado
                                     <input type="checkbox" id="exige_chamado" name="exige_chamado" class="badgebox" value="1">
-                                    <span class="badge">&check;</span>
+                                    <span class="badge text-bg-secondary">&check;</span>
                                 </label>
-                                <span class="help-block">O t&eacute;cnico s&oacute; abre atividade n&atilde;o programada informando o chamado do cliente.</span>
+                                <span class="form-text">O t&eacute;cnico s&oacute; abre atividade n&atilde;o programada informando o chamado do cliente.</span>
                             </div>
                         </div>
                         <?php } ?>
+                        </div>
                         <div class="ui-secao">
                         <h4 class="ui-secao-titulo">Dados fiscais (opcional)</h4>
-                        <div class="control-group">
-                            <label for="ind_ie_dest" class="control-label">Indicador de IE (NF-e)</label>
-                            <div class="controls">
-                                <select id="ind_ie_dest" name="ind_ie_dest">
+                        <div class="row mb-2">
+                            <label for="ind_ie_dest" class="col-sm-3 col-form-label">Indicador de IE (NF-e)</label>
+                            <div class="col-sm-9">
+                                <select class="form-select" id="ind_ie_dest" name="ind_ie_dest">
                                     <option value="" <?php echo (string) (set_value('ind_ie_dest')) === '' ? 'selected' : ''; ?>>— deduzir da Inscrição Estadual (padrão) —</option>
                                     <option value="1" <?php echo (string) (set_value('ind_ie_dest')) === '1' ? 'selected' : ''; ?>>Contribuinte de ICMS (tem IE)</option>
                                     <option value="2" <?php echo (string) (set_value('ind_ie_dest')) === '2' ? 'selected' : ''; ?>>Isento de Inscrição Estadual</option>
                                     <option value="9" <?php echo (string) (set_value('ind_ie_dest')) === '9' ? 'selected' : ''; ?>>Não contribuinte</option>
                                 </select>
-                                <span class="help-inline">Se não souber, deixe no padrão. Define como a nota identifica o destinatário.</span>
+                                <span class="form-text">Se não souber, deixe no padrão. Define como a nota identifica o destinatário.</span>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="regime_tributario" class="control-label">Regime tributário</label>
-                            <div class="controls">
-                                <select id="regime_tributario" name="regime_tributario">
+                        <div class="row mb-2">
+                            <label for="regime_tributario" class="col-sm-3 col-form-label">Regime tributário</label>
+                            <div class="col-sm-9">
+                                <select class="form-select" id="regime_tributario" name="regime_tributario">
                                     <option value="" <?php echo (string) (set_value('regime_tributario')) === '' ? 'selected' : ''; ?>>— não informado —</option>
                                     <option value="mei" <?php echo (string) (set_value('regime_tributario')) === 'mei' ? 'selected' : ''; ?>>MEI</option>
                                     <option value="simples" <?php echo (string) (set_value('regime_tributario')) === 'simples' ? 'selected' : ''; ?>>Simples Nacional</option>
@@ -255,68 +258,68 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label class="control-label">Órgão público</label>
-                            <div class="controls">
+                        <div class="row mb-2">
+                            <label class="col-sm-3 col-form-label">Órgão público</label>
+                            <div class="col-sm-9">
                                 <label for="orgao_publico" style="display:flex; align-items:center; gap:8px;">
-                                    <input id="orgao_publico" type="checkbox" name="orgao_publico" value="1" <?php echo set_value('orgao_publico') ? 'checked' : ''; ?> />
+                                    <input class="form-check-input" id="orgao_publico" type="checkbox" name="orgao_publico" value="1" <?php echo set_value('orgao_publico') ? 'checked' : ''; ?> />
                                     Prefeitura, governo, autarquia ou outro órgão público
                                 </label>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="inscricao_suframa" class="control-label">Inscrição SUFRAMA</label>
-                            <div class="controls">
-                                <input id="inscricao_suframa" type="text" name="inscricao_suframa" maxlength="9" inputmode="numeric" value="<?php echo htmlspecialchars((string) (set_value('inscricao_suframa')), ENT_QUOTES, 'UTF-8'); ?>" />
-                                <span class="help-inline">Só para quem tem benefício da Zona Franca de Manaus. São 9 números, ou deixe em branco.</span>
+                        <div class="row mb-2">
+                            <label for="inscricao_suframa" class="col-sm-3 col-form-label">Inscrição SUFRAMA</label>
+                            <div class="col-sm-9">
+                                <input class="form-control" id="inscricao_suframa" type="text" name="inscricao_suframa" maxlength="9" inputmode="numeric" value="<?php echo htmlspecialchars((string) (set_value('inscricao_suframa')), ENT_QUOTES, 'UTF-8'); ?>" />
+                                <span class="form-text">Só para quem tem benefício da Zona Franca de Manaus. São 9 números, ou deixe em branco.</span>
                             </div>
                         </div>
                         </div>
                     </div>
 
-                    <div class="span6">
+                    <div class="col-md-6">
                         <div class="ui-secao">
                         <h4 class="ui-secao-titulo">Endereço</h4>
-                        <div class="control-group" class="control-label">
-                            <label for="cep" class="control-label">CEP</label>
-                            <div class="controls">
-                                <input id="cep" type="text" name="cep" value="<?php echo set_value('cep'); ?>" />
+                        <div class="row mb-2">
+                            <label for="cep" class="col-sm-3 col-form-label">CEP</label>
+                            <div class="col-sm-9">
+                                <input class="form-control" id="cep" type="text" name="cep" value="<?php echo set_value('cep'); ?>" />
                             </div>
                         </div>
-                        <div class="control-group" class="control-label">
-                            <label for="rua" class="control-label">Rua</label>
-                            <div class="controls">
-                                <input id="rua" type="text" name="rua" value="<?php echo set_value('rua'); ?>" />
+                        <div class="row mb-2">
+                            <label for="rua" class="col-sm-3 col-form-label">Rua</label>
+                            <div class="col-sm-9">
+                                <input class="form-control" id="rua" type="text" name="rua" value="<?php echo set_value('rua'); ?>" />
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="numero" class="control-label">Número</label>
-                            <div class="controls">
-                                <input id="numero" type="text" name="numero" value="<?php echo set_value('numero'); ?>" />
+                        <div class="row mb-2">
+                            <label for="numero" class="col-sm-3 col-form-label">Número</label>
+                            <div class="col-sm-9">
+                                <input class="form-control" id="numero" type="text" name="numero" value="<?php echo set_value('numero'); ?>" />
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="complemento" class="control-label">Complemento</label>
-                            <div class="controls">
-                                <input id="complemento" type="text" name="complemento" value="<?php echo set_value('complemento'); ?>" />
+                        <div class="row mb-2">
+                            <label for="complemento" class="col-sm-3 col-form-label">Complemento</label>
+                            <div class="col-sm-9">
+                                <input class="form-control" id="complemento" type="text" name="complemento" value="<?php echo set_value('complemento'); ?>" />
                             </div>
                         </div>
-                        <div class="control-group" class="control-label">
-                            <label for="bairro" class="control-label">Bairro</label>
-                            <div class="controls">
-                                <input id="bairro" type="text" name="bairro" value="<?php echo set_value('bairro'); ?>" />
+                        <div class="row mb-2">
+                            <label for="bairro" class="col-sm-3 col-form-label">Bairro</label>
+                            <div class="col-sm-9">
+                                <input class="form-control" id="bairro" type="text" name="bairro" value="<?php echo set_value('bairro'); ?>" />
                             </div>
                         </div>
-                        <div class="control-group" class="control-label">
-                            <label for="cidade" class="control-label">Cidade</label>
-                            <div class="controls">
-                                <input id="cidade" type="text" name="cidade" value="<?php echo set_value('cidade'); ?>" />
+                        <div class="row mb-2">
+                            <label for="cidade" class="col-sm-3 col-form-label">Cidade</label>
+                            <div class="col-sm-9">
+                                <input class="form-control" id="cidade" type="text" name="cidade" value="<?php echo set_value('cidade'); ?>" />
                             </div>
                         </div>
-                        <div class="control-group" class="control-label">
-                            <label for="estado" class="control-label">Estado</label>
-                            <div class="controls">
-                                <select id="estado" name="estado">
+                        <div class="row mb-2">
+                            <label for="estado" class="col-sm-3 col-form-label">Estado</label>
+                            <div class="col-sm-9">
+                                <select class="form-select" id="estado" name="estado">
                                     <option value="">Selecione...</option>
                                 </select>
                             </div>
@@ -325,7 +328,7 @@
                     </div>
                 </div>
                 <div class="ui-rodape-form">
-                    <button type="submit" class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-save'></i></span> <span class="button__text2">Salvar</span></button>
+                    <button type="submit" class="button btn btn-sm btn-success"><span class="button__icon"><i class='bx bx-save'></i></span> <span class="button__text2">Salvar</span></button>
                     <a title="Voltar" class="button btn btn-warning" href="<?php echo site_url() ?>/clientes"><span class="button__icon"><i class="bx bx-undo"></i></span> <span class="button__text2">Voltar</span></a>
                 </div>
             </form>
@@ -372,14 +375,14 @@
                 },
             },
 
-            errorClass: "help-inline",
+            errorClass: "invalid-feedback",
             errorElement: "span",
             highlight: function(element, errorClass, validClass) {
-                $(element).parents('.control-group').addClass('error');
+                $(element).addClass('is-invalid');
             },
             unhighlight: function(element, errorClass, validClass) {
-                $(element).parents('.control-group').removeClass('error');
-                $(element).parents('.control-group').addClass('success');
+                $(element).removeClass('is-invalid');
+                $(element).addClass('is-valid');
             }
         });
     });

@@ -15,7 +15,7 @@ $corBat = [
     'fim_intervalo' => '#1e40af',
 ];
 ?>
-<div class="new122">
+<div class="new122 row">
     <?php $this->load->view('rh/_subnav', ['ativo' => $rh_ativo ?? 'colaboradores']); ?>
     <?php $this->load->view('rh/_migalha', ['atual' => 'Espelho de ponto de ' . $colaborador->nome]); ?>
     <div class="ui-cabecalho">
@@ -25,21 +25,21 @@ $corBat = [
         </div>
     </div>
 
-    <div class="span12" style="margin-left:0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <div class="col-md-12" style="margin-left:0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
         <form method="get" data-bloquear-envio style="display:flex;gap:6px;align-items:center">
-            <input type="month" id="competencia" value="<?= $competencia ?>">
+            <input class="form-control" type="month" id="competencia" value="<?= $competencia ?>">
             <span style="color:#888">competência</span>
         </form>
         <div style="display:flex;gap:6px">
             <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eRh')): ?>
-                <a href="<?= site_url("rh/ajustarPonto/{$colaborador->id}/{$competencia}") ?>" class="button btn btn-mini btn-warning"><span class="button__icon"><i class='bx bx-edit-alt'></i></span><span class="button__text2"> Ajustar ponto</span></a>
-                <a href="<?= site_url("rh/recalcular/{$colaborador->id}/{$competencia}") . ($rh_voltar_qs ?? '') ?>" class="button btn btn-mini btn-primary" title="Recalcula as horas e o banco de horas desta competência"><span class="button__text2">Recalcular horas do período</span></a>
+                <a href="<?= site_url("rh/ajustarPonto/{$colaborador->id}/{$competencia}") ?>" class="button btn btn-sm btn-warning"><span class="button__icon"><i class='bx bx-edit-alt'></i></span><span class="button__text2"> Ajustar ponto</span></a>
+                <a href="<?= site_url("rh/recalcular/{$colaborador->id}/{$competencia}") . ($rh_voltar_qs ?? '') ?>" class="button btn btn-sm btn-primary" title="Recalcula as horas e o banco de horas desta competência"><span class="button__text2">Recalcular horas do período</span></a>
                 <?php if ($podeFin): ?>
-                    <a href="<?= site_url("rh/recalcular/{$colaborador->id}/{$competencia}?extras=1" . ($rh_voltar_qs ? '&' . substr($rh_voltar_qs, 1) : '')) ?>" class="button btn btn-mini btn-success"
+                    <a href="<?= site_url("rh/recalcular/{$colaborador->id}/{$competencia}?extras=1" . ($rh_voltar_qs ? '&' . substr($rh_voltar_qs, 1) : '')) ?>" class="button btn btn-sm btn-success"
                        data-confirmar="Gerar horas extras como lançamentos PENDENTES de aprovação?"><span class="button__text2">Gerar horas extras (pendentes de aprovação)</span></a>
                 <?php endif; ?>
             <?php endif; ?>
-            <a href="<?= site_url("rh/espelhoPdf/{$colaborador->id}/{$competencia}") ?>" target="_blank" class="button btn btn-mini btn-inverse"><span class="button__text2">PDF</span></a>
+            <a href="<?= site_url("rh/espelhoPdf/{$colaborador->id}/{$competencia}") ?>" target="_blank" class="button btn btn-sm btn-dark"><span class="button__text2">PDF</span></a>
         </div>
     </div>
 
@@ -147,7 +147,9 @@ $corBat = [
         </table>
         </div>
     </div></div>
+    <div class="col-12">
     <a href="<?= html_escape($rh_voltar_url ?? site_url('rh/colaboradores')) ?>" class="button btn btn-warning"><span class="button__text2"><?= html_escape($rh_voltar_rotulo ?? 'Voltar') ?></span></a>
+    </div>
 </div>
 <script nonce="<?= csp_nonce() ?>">
 document.getElementById('competencia').addEventListener('change', function(){

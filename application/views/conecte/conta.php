@@ -1,7 +1,7 @@
 <div class="widget-box">
     <div class="widget-title">
         <ul class="nav nav-tabs">
-            <li class="active"><a data-toggle="tab" href="#tab1">Meus Dados</a></li>
+            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab1">Meus Dados</a></li>
 
             <div>
                 <a title="Editar" class="button btn btn-success" style="max-width: 140px;margin: 5px" href="<?php echo base_url() ?>index.php/mine/editarDados/<?php echo $result->idClientes ?>">
@@ -13,17 +13,14 @@
         <div id="tab1" class="tab-pane active" style="min-height: 300px">
 
             <div class="accordion" id="collapse-group">
-                <div class="accordion-group widget-box">
-                    <div class="accordion-heading">
-                        <div class="widget-title">
-                            <a data-parent="#collapse-group" href="#collapseGOne" data-toggle="collapse">
-                              <span><i class='bx bx-user icon-cli' ></i></span>
-                              <h5 style="padding-left: 28px">Dados Pessoais</h5>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="collapse in accordion-body" id="collapseGOne">
-                        <div class="widget-content">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGOne" aria-expanded="true" aria-controls="collapseGOne">
+                            <i class="bx bx-user me-2"></i> Dados Pessoais
+                        </button>
+                    </h2>
+                    <div class="accordion-collapse collapse show" id="collapseGOne" data-bs-parent="#collapse-group">
+                        <div class="accordion-body">
                             <table class="table table-bordered">
                                 <tbody>
                                     <tr>
@@ -55,17 +52,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="accordion-group widget-box">
-                    <div class="accordion-heading">
-                        <div class="widget-title">
-                            <a data-parent="#collapse-group" href="#collapseGTwo" data-toggle="collapse">
-                              <span><i class='bx bx-phone icon-cli'></i></span>
-                              <h5 style="padding-left: 28px">Contatos</h5>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="collapse accordion-body" id="collapseGTwo">
-                        <div class="widget-content">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGTwo" aria-expanded="false" aria-controls="collapseGTwo">
+                            <i class="bx bx-phone me-2"></i> Contatos
+                        </button>
+                    </h2>
+                    <div class="accordion-collapse collapse" id="collapseGTwo" data-bs-parent="#collapse-group">
+                        <div class="accordion-body">
                             <table class="table table-bordered">
                                 <tbody>
                                     <tr>
@@ -91,17 +85,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="accordion-group widget-box">
-                    <div class="accordion-heading">
-                        <div class="widget-title">
-                            <a data-parent="#collapse-group" href="#collapseGThree" data-toggle="collapse">
-                              <span><i class='bx bx-map-alt icon-cli' ></i></span>
-                              <h5 style="padding-left: 28px">Endereço</h5>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="collapse accordion-body" id="collapseGThree">
-                        <div class="widget-content">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGThree" aria-expanded="false" aria-controls="collapseGThree">
+                            <i class="bx bx-map-alt me-2"></i> Endereço
+                        </button>
+                    </h2>
+                    <div class="accordion-collapse collapse" id="collapseGThree" data-bs-parent="#collapse-group">
+                        <div class="accordion-body">
                             <table class="table table-bordered">
                                 <tbody>
                                     <tr>

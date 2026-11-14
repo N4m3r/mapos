@@ -6,7 +6,7 @@
 <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/trumbowyg.js"></script>
 <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/langs/pt_br.js"></script>
 
-<link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/custom.css" />
+<link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/custom.css?v=<?= asset_versao('assets/css/custom.css') ?>" />
 
 <div class="ui-cabecalho">
     <div>
@@ -15,8 +15,8 @@
     </div>
 </div>
 <link rel="stylesheet" href="<?= base_url('assets/css/os-form.css') ?>?v=<?= asset_versao('assets/css/os-form.css') ?>" />
-<div class="row-fluid" style="margin-top:0">
-    <div class="span12">
+<div class="row" style="margin-top:0">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="widget-content os-nova" id="divCadastrarOs">
                 <?php if ($custom_error == true) { ?>
@@ -28,12 +28,12 @@
                         <div class="os-grade">
                             <div class="os-campo os-col-2">
                                 <label for="cliente">Cliente<span class="required">*</span></label>
-                                <input id="cliente" type="text" name="cliente" value="" placeholder="Digite o nome para buscar" autocomplete="off" />
+                                <input class="form-control" id="cliente" type="text" name="cliente" value="" placeholder="Digite o nome para buscar" autocomplete="off" />
                                 <input id="clientes_id" type="hidden" name="clientes_id" value="" />
                             </div>
                             <div class="os-campo os-col-2">
                                 <label for="tecnico">Técnico / Responsável<span class="required">*</span></label>
-                                <input id="tecnico" type="text" name="tecnico" value="<?= html_escape($this->session->userdata('nome_admin')); ?>" autocomplete="off" />
+                                <input class="form-control" id="tecnico" type="text" name="tecnico" value="<?= html_escape($this->session->userdata('nome_admin')); ?>" autocomplete="off" />
                                 <input id="usuarios_id" type="hidden" name="usuarios_id" value="<?= $this->session->userdata('id_admin'); ?>" />
                             </div>
                         </div>
@@ -44,7 +44,7 @@
                         <div class="os-grade">
                             <div class="os-campo">
                                 <label for="status">Status<span class="required">*</span></label>
-                                <select name="status" id="status">
+                                <select class="form-select" name="status" id="status">
                                     <option value="Aberto">Aberto</option>
                                     <option value="Orçamento">Orçamento</option>
                                     <option value="Negociação">Negociação</option>
@@ -58,7 +58,7 @@
                             </div>
                             <div class="os-campo">
                                 <label for="tipo_servico">Tipo de serviço</label>
-                                <select name="tipo_servico" id="tipo_servico">
+                                <select class="form-select" name="tipo_servico" id="tipo_servico">
                                     <option value="">Não informado</option>
                                     <?php $this->load->helper('tipo_servico'); foreach (tipos_servico() as $k => $t) { ?>
                                         <option value="<?= $k ?>"><?= html_escape($t['rotulo']) ?></option>
@@ -67,24 +67,24 @@
                             </div>
                             <div class="os-campo">
                                 <label for="chamado_id">Nº do chamado</label>
-                                <input id="chamado_id" type="text" name="chamado_id" maxlength="60" value="<?= html_escape(set_value('chamado_id')) ?>" placeholder="Protocolo informado pelo cliente" />
+                                <input class="form-control" id="chamado_id" type="text" name="chamado_id" maxlength="60" value="<?= html_escape(set_value('chamado_id')) ?>" placeholder="Protocolo informado pelo cliente" />
                             </div>
                             <div class="os-campo">
                                 <label for="dataInicial">Data inicial<span class="required">*</span></label>
-                                <input id="dataInicial" autocomplete="off" class="datepicker" type="text" name="dataInicial" value="<?php echo date('d/m/Y'); ?>" />
+                                <input id="dataInicial" autocomplete="off" class="datepicker form-control" type="text" name="dataInicial" value="<?php echo date('d/m/Y'); ?>" />
                             </div>
                             <div class="os-campo">
                                 <label for="dataFinal">Data final<span class="required">*</span></label>
-                                <input id="dataFinal" autocomplete="off" class="datepicker" type="text" name="dataFinal" value="" placeholder="dd/mm/aaaa" />
+                                <input id="dataFinal" autocomplete="off" class="datepicker form-control" type="text" name="dataFinal" value="" placeholder="dd/mm/aaaa" />
                             </div>
                             <div class="os-campo">
                                 <label for="garantia">Garantia (dias)</label>
-                                <input id="garantia" type="number" placeholder="0 = sem garantia" min="0" max="9999" name="garantia" value="" inputmode="numeric" />
+                                <input class="form-control" id="garantia" type="number" placeholder="0 = sem garantia" min="0" max="9999" name="garantia" value="" inputmode="numeric" />
                                 <?php echo form_error('garantia'); ?>
                             </div>
                             <div class="os-campo os-col-2">
                                 <label for="termoGarantia">Termo de garantia</label>
-                                <input id="termoGarantia" type="text" name="termoGarantia" value="" placeholder="Digite para buscar um termo cadastrado" autocomplete="off" />
+                                <input class="form-control" id="termoGarantia" type="text" name="termoGarantia" value="" placeholder="Digite para buscar um termo cadastrado" autocomplete="off" />
                                 <input id="garantias_id" type="hidden" name="garantias_id" value="" />
                             </div>
                         </div>
@@ -95,19 +95,19 @@
                         <div class="os-editores">
                             <div class="os-campo">
                                 <label for="descricaoProduto">Descrição do produto/serviço</label>
-                                <textarea class="editor" name="descricaoProduto" id="descricaoProduto" rows="5"></textarea>
+                                <textarea class="editor form-control" name="descricaoProduto" id="descricaoProduto" rows="5"></textarea>
                             </div>
                             <div class="os-campo">
                                 <label for="defeito">Defeito relatado</label>
-                                <textarea class="editor" name="defeito" id="defeito" rows="5"></textarea>
+                                <textarea class="editor form-control" name="defeito" id="defeito" rows="5"></textarea>
                             </div>
                             <div class="os-campo">
                                 <label for="observacoes">Observações</label>
-                                <textarea class="editor" name="observacoes" id="observacoes" rows="5"></textarea>
+                                <textarea class="editor form-control" name="observacoes" id="observacoes" rows="5"></textarea>
                             </div>
                             <div class="os-campo">
                                 <label for="laudoTecnico">Laudo técnico</label>
-                                <textarea class="editor" name="laudoTecnico" id="laudoTecnico" rows="5"></textarea>
+                                <textarea class="editor form-control" name="laudoTecnico" id="laudoTecnico" rows="5"></textarea>
                             </div>
                         </div>
                     </div>
@@ -175,14 +175,14 @@
                     required: 'Campo Requerido.'
                 }
             },
-            errorClass: "help-inline",
+            errorClass: "invalid-feedback",
             errorElement: "span",
             highlight: function(element, errorClass, validClass) {
-                $(element).parents('.control-group').addClass('error');
+                $(element).addClass('is-invalid');
             },
             unhighlight: function(element, errorClass, validClass) {
-                $(element).parents('.control-group').removeClass('error');
-                $(element).parents('.control-group').addClass('success');
+                $(element).removeClass('is-invalid');
+                $(element).addClass('is-valid');
             }
         });
         $(".datepicker").datepicker({

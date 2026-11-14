@@ -9,7 +9,7 @@
         </div>
         <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'aArquivo')) : ?>
             <div class="ui-acoes">
-                <a href="<?= base_url(); ?>index.php/arquivos/adicionar" class="button btn btn-mini btn-success">
+                <a href="<?= base_url(); ?>index.php/arquivos/adicionar" class="button btn btn-sm btn-success">
                     <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Arquivo</span></a>
             </div>
         <?php endif ?>
@@ -18,18 +18,18 @@
         <form class="ui-filtros" method="get" action="<?= current_url(); ?>">
             <div class="ui-campo">
                 <label for="pesquisa">Nome do documento</label>
-                <input type="text" name="pesquisa" id="pesquisa" placeholder="Digite o nome do documento" value="<?= html_escape($this->input->get('pesquisa')) ?>">
+                <input class="form-control" type="text" name="pesquisa" id="pesquisa" placeholder="Digite o nome do documento" value="<?= html_escape($this->input->get('pesquisa')) ?>">
             </div>
             <div class="ui-campo">
                 <label for="data">Enviado de</label>
-                <input type="text" name="data" id="data" placeholder="Data inicial" class="datepicker" value="<?= html_escape($this->input->get('data')) ?>">
+                <input type="text" name="data" id="data" placeholder="Data inicial" class="datepicker form-control" value="<?= html_escape($this->input->get('data')) ?>">
             </div>
             <div class="ui-campo">
                 <label for="data2">Enviado até</label>
-                <input type="text" name="data2" id="data2" placeholder="Data final" class="datepicker" value="<?= html_escape($this->input->get('data2')) ?>">
+                <input type="text" name="data2" id="data2" placeholder="Data final" class="datepicker form-control" value="<?= html_escape($this->input->get('data2')) ?>">
             </div>
             <div class="ui-campo ui-campo-acao">
-                <button class="button btn btn-mini btn-warning" title="Buscar" aria-label="Buscar"><span class="button__icon"><i class='bx bx-search-alt'></i></span><span class="button__text2">Buscar</span></button>
+                <button class="button btn btn-sm btn-warning" title="Buscar" aria-label="Buscar"><span class="button__icon"><i class='bx bx-search-alt'></i></span><span class="button__text2">Buscar</span></button>
             </div>
         </form>
 
@@ -82,7 +82,7 @@
                                         <?php endif ?>
 
                                         <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dArquivo')) : ?>
-                                            <a href="#modal-excluir" style="margin-right: 1%" role="button" data-toggle="modal" arquivo="<?= $r->idDocumentos ?>" class="btn-nwe4" title="Excluir" aria-label="Excluir"><i class="bx bx-trash-alt"></i></a>
+                                            <a href="#modal-excluir" style="margin-right: 1%" role="button" data-bs-toggle="modal" arquivo="<?= $r->idDocumentos ?>" class="btn-nwe4" title="Excluir" aria-label="Excluir"><i class="bx bx-trash-alt"></i></a>
                                     <?php endif ?>
                                 </td>
                             </tr>
@@ -96,23 +96,23 @@
 
     <?= $this->pagination->create_links() ?>
 
-    <div id="modal-excluir" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div id="modal-excluir" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
         <form action="<?= base_url() ?>index.php/arquivos/excluir" method="post">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                
                 <h5 id="myModalLabel">Excluir Arquivo</h5>
-            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
             <div class="modal-body">
                 <input type="hidden" id="idDocumento" name="id" value="" />
                 <h5 style="text-align: center">Deseja realmente excluir este arquivo?</h5>
             </div>
             <div class="modal-footer" style="display:flex;justify-content: center">
-                <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true">
+                <button class="button btn btn-warning" data-bs-dismiss="modal" aria-hidden="true">
                     <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
                 <button class="button btn btn-danger"><span class="button__icon"><i class='bx bx-trash'></i></span> <span class="button__text2">Excluir</span></button>
             </div>
         </form>
-    </div>
+    </div></div></div>
 </div>
 
 <script nonce="<?= csp_nonce() ?>" type="text/javascript">

@@ -33,7 +33,7 @@ $blocoFoto = function ($rotulo, $etiqueta = false) {
     ?>
     <label class="btn-tec ghost block" style="cursor:pointer;margin-top:8px;">
         <i class='bx <?= $etiqueta ? 'bx-barcode-reader' : 'bx-camera' ?>'></i> <?= html_escape($rotulo) ?>
-        <input type="file" accept="image/*"<?= $etiqueta ? ' capture="environment"' : '' ?> multiple data-foto-compacta<?= $etiqueta ? ' data-etiqueta data-foto-nome="fotos_etiqueta[]"' : '' ?> style="display:none;">
+        <input class="form-control" type="file" accept="image/*"<?= $etiqueta ? ' capture="environment"' : '' ?> multiple data-foto-compacta<?= $etiqueta ? ' data-etiqueta data-foto-nome="fotos_etiqueta[]"' : '' ?> style="display:none;">
     </label>
     <div data-foto-preview style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
     <div data-foto-erro role="alert" style="display:none;color:var(--tec-danger, #e74c3c);font-weight:600;margin-top:6px;"></div>
@@ -109,13 +109,13 @@ $cartao = function ($it, $minha) use ($executores, $uidAtual, $status_lista, $ti
                     <input type="hidden" name="status" value="configurado">
                     <input type="hidden" name="voltar" value="fila">
                     <label class="ponto-campo">IP
-                        <input type="text" name="ip" value="<?= html_escape((string) ($it->ip ?? '')) ?>" maxlength="45" class="ponto-input">
+                        <input type="text" name="ip" value="<?= html_escape((string) ($it->ip ?? '')) ?>" maxlength="45" class="ponto-input form-control">
                     </label>
                     <label class="ponto-campo">Canal (NVR)
-                        <input type="text" name="canal" value="<?= html_escape((string) ($it->canal ?? '')) ?>" maxlength="10" class="ponto-input">
+                        <input type="text" name="canal" value="<?= html_escape((string) ($it->canal ?? '')) ?>" maxlength="10" class="ponto-input form-control">
                     </label>
                     <label class="ponto-campo">Porta
-                        <input type="text" name="porta" value="<?= html_escape((string) ($it->porta ?? '')) ?>" maxlength="30" class="ponto-input">
+                        <input type="text" name="porta" value="<?= html_escape((string) ($it->porta ?? '')) ?>" maxlength="30" class="ponto-input form-control">
                     </label>
                     <button type="submit" class="btn-tec primary block lg ponto-acao" style="margin-top:10px;">Configurei ✓</button>
                 </form>
@@ -142,16 +142,16 @@ $cartao = function ($it, $minha) use ($executores, $uidAtual, $status_lista, $ti
                     <?php $blocoFoto(Obra_pontos_model::exigeEtiqueta('instalado', $it->tipo) ? 'Foto do equipamento instalado (opcional)' : 'Foto do equipamento e etiqueta (obrigatória)'); ?>
                     <?php $blocoFoto($exigeEtiqueta ? 'Foto da etiqueta (obrigatória, preenche modelo e série)' : 'Foto da etiqueta (preenche modelo e série)', true); ?>
                     <label class="ponto-campo">Modelo
-                        <input type="text" name="modelo" value="<?= html_escape((string) ($it->modelo ?? '')) ?>" maxlength="80" class="ponto-input">
+                        <input type="text" name="modelo" value="<?= html_escape((string) ($it->modelo ?? '')) ?>" maxlength="80" class="ponto-input form-control">
                     </label>
                     <label class="ponto-campo">Série / MAC
-                        <input type="text" name="serie" value="<?= html_escape((string) ($it->serie ?? '')) ?>" maxlength="60" class="ponto-input">
+                        <input type="text" name="serie" value="<?= html_escape((string) ($it->serie ?? '')) ?>" maxlength="60" class="ponto-input form-control">
                     </label>
                     <label class="ponto-campo">Local
-                        <input type="text" name="local" value="<?= html_escape((string) ($it->local ?? '')) ?>" maxlength="150" class="ponto-input">
+                        <input type="text" name="local" value="<?= html_escape((string) ($it->local ?? '')) ?>" maxlength="150" class="ponto-input form-control">
                     </label>
                     <label class="ponto-campo">Quem vai configurar?
-                        <select name="repassar_para" class="ponto-input">
+                        <select name="repassar_para" class="ponto-input form-select">
                             <option value="">Eu mesmo</option>
                             <option value="equipe">Equipe (qualquer técnico)</option>
                             <?php foreach ($destinos as $ex): ?>
@@ -160,7 +160,7 @@ $cartao = function ($it, $minha) use ($executores, $uidAtual, $status_lista, $ti
                         </select>
                     </label>
                     <label class="ponto-campo">Instrução para quem configura
-                        <textarea name="instrucao" rows="2" maxlength="255" placeholder="Ex.: canal 7, lente 2.8 mm. Não escreva senhas aqui." class="ponto-input"></textarea>
+                        <textarea name="instrucao" rows="2" maxlength="255" placeholder="Ex.: canal 7, lente 2.8 mm. Não escreva senhas aqui." class="ponto-input form-control"></textarea>
                     </label>
                     <button type="submit" class="btn-tec primary block lg ponto-acao" style="margin-top:10px;">Instalei ✓</button>
                 </form>
@@ -185,7 +185,7 @@ $cartao = function ($it, $minha) use ($executores, $uidAtual, $status_lista, $ti
                         <input type="hidden" name="ponto_id" value="<?= $pid ?>">
                         <input type="hidden" name="voltar" value="fila">
                         <label class="ponto-campo">Para quem
-                            <select name="repassar_para" class="ponto-input" required>
+                            <select name="repassar_para" class="ponto-input form-select" required>
                                 <option value="">Escolha...</option>
                                 <option value="equipe">Equipe (qualquer técnico)</option>
                                 <?php foreach ($destinos as $ex): ?>
@@ -194,7 +194,7 @@ $cartao = function ($it, $minha) use ($executores, $uidAtual, $status_lista, $ti
                             </select>
                         </label>
                         <label class="ponto-campo">Instrução
-                            <textarea name="instrucao" rows="2" maxlength="255" placeholder="Ex.: canal 7, lente 2.8 mm. Não escreva senhas aqui." class="ponto-input"></textarea>
+                            <textarea name="instrucao" rows="2" maxlength="255" placeholder="Ex.: canal 7, lente 2.8 mm. Não escreva senhas aqui." class="ponto-input form-control"></textarea>
                         </label>
                         <button type="submit" class="btn-tec ghost block lg ponto-acao" style="margin-top:10px;"><i class='bx bx-transfer-alt'></i> Repassar</button>
                     </form>

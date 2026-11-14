@@ -1,6 +1,6 @@
 <?php $totalProdutos = 0; ?>
-<div class="row-fluid" style="margin-top: 0">
-    <div class="span12">
+<div class="row" style="margin-top: 0">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="ui-cabecalho" style="padding: 16px 16px 0">
                 <div>
@@ -9,10 +9,10 @@
                 </div>
                 <div class="ui-acoes">
                     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eGarantia')) {
-                        echo '<a title="Editar Termo de Garantia" class="button btn btn-mini btn-success" href="' . base_url() . 'index.php/garantias/editar/' . $result->idGarantias . '">
+                        echo '<a title="Editar Termo de Garantia" class="button btn btn-sm btn-success" href="' . base_url() . 'index.php/garantias/editar/' . $result->idGarantias . '">
     <span class="button__icon"><i class="bx bx-edit"></i> </span> <span class="button__text">Editar</span></a>';
                     } ?>
-                    <a target="_blank" title="Imprimir" class="button btn btn-mini btn-inverse" href="<?php echo site_url() ?>/garantias/imprimir/<?php echo $result->idGarantias; ?>">
+                    <a target="_blank" title="Imprimir" class="button btn btn-sm btn-dark" href="<?php echo site_url() ?>/garantias/imprimir/<?php echo $result->idGarantias; ?>">
                       <span class="button__icon"><i class="bx bx-printer"></i></span> <span class="button__text">Imprimir</span></a>
                 </div>
             </div>

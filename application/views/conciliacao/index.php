@@ -1,6 +1,6 @@
 <?php $csrf = '<input type="hidden" name="' . $this->security->get_csrf_token_name() . '" value="' . $this->security->get_csrf_hash() . '" />'; ?>
-<div class="row-fluid" style="margin-top: 0">
-    <div class="span12">
+<div class="row" style="margin-top: 0">
+    <div class="col-md-12">
         <div class="ui-cabecalho">
             <div>
                 <h1><i class="bx bx-transfer"></i> Conciliação bancária</h1>
@@ -17,7 +17,7 @@
             <?= $csrf ?>
             <div class="ui-campo">
                 <label for="ofx">Extrato OFX (até 2 MB)</label>
-                <input type="file" id="ofx" name="ofx" accept=".ofx" required />
+                <input class="form-control" type="file" id="ofx" name="ofx" accept=".ofx" required />
             </div>
             <div class="ui-campo ui-campo-acao">
                 <button type="submit" class="button btn btn-success"><span class="button__icon"><i class="bx bx-upload"></i></span><span class="button__text2">Importar</span></button>
@@ -44,12 +44,12 @@
                                 <form action="<?= site_url('conciliacao/conciliar') ?>" method="post" style="margin:0">
                                     <?= $csrf ?>
                                     <input type="hidden" name="item" value="<?= (int) $i->id ?>" />
-                                    <select name="lancamento" aria-label="Lançamento correspondente">
+                                    <select class="form-select" name="lancamento" aria-label="Lançamento correspondente">
                                     <?php foreach ($l['candidatos'] as $c) : ?>
                                         <option value="<?= (int) $c->idLancamentos ?>">#<?= (int) $c->idLancamentos ?> - <?= html_escape($c->descricao) ?> (<?= html_escape($c->cliente_fornecedor) ?>) venc. <?= html_escape(date('d/m/Y', strtotime($c->data_vencimento))) ?></option>
                                     <?php endforeach; ?>
                                     </select>
-                                    <button type="submit" class="button btn btn-mini btn-success" title="Conciliar com o lançamento selecionado"><span class="button__icon"><i class="bx bx-check"></i></span><span class="button__text2">Conciliar</span></button>
+                                    <button type="submit" class="button btn btn-sm btn-success" title="Conciliar com o lançamento selecionado"><span class="button__icon"><i class="bx bx-check"></i></span><span class="button__text2">Conciliar</span></button>
                                 </form>
                             <?php else : ?>
                                 <span class="ui-selo">Sem correspondência</span>
@@ -59,7 +59,7 @@
                                 <form action="<?= site_url('conciliacao/ignorar') ?>" method="post" style="margin:0">
                                     <?= $csrf ?>
                                     <input type="hidden" name="item" value="<?= (int) $i->id ?>" />
-                                    <button type="submit" class="button btn btn-mini btn-warning" title="Ignorar esta transação"><span class="button__icon"><i class="bx bx-hide"></i></span><span class="button__text2">Ignorar</span></button>
+                                    <button type="submit" class="button btn btn-sm btn-warning" title="Ignorar esta transação"><span class="button__icon"><i class="bx bx-hide"></i></span><span class="button__text2">Ignorar</span></button>
                                 </form>
                             </td>
                         </tr>

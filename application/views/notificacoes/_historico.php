@@ -114,7 +114,7 @@ $rotuloCanal = ['email' => 'E-mail', 'whatsapp' => 'WhatsApp'];
                                 <span class="nt-erro"><?= $e(mb_substr($item['erro'], 0, 220)) ?></span>
                             <?php } ?>
                             <?php if ($item['canal'] === 'email' && ! $ok && ! empty($item['fila_id'])) { ?>
-                                <a href="<?= site_url('mapos/reenviarEmail/' . (int) $item['id']) ?>" class="btn btn-mini btn-inverse" style="margin-top:6px"
+                                <a href="<?= site_url('mapos/reenviarEmail/' . (int) $item['id']) ?>" class="btn btn-sm btn-dark" style="margin-top:6px"
                                    data-confirmar="Reenviar este e-mail para <?= $e($item['destino']) ?> com os mesmos anexos?">
                                     <i class="bx bx-mail-send"></i> Reenviar
                                 </a>
@@ -131,17 +131,17 @@ $rotuloCanal = ['email' => 'E-mail', 'whatsapp' => 'WhatsApp'];
 </div>
 
 <?php if ($paginas > 1) { ?>
-<div class="pagination alternate" style="text-align:center">
-    <ul>
-        <li class="<?= $pagina <= 1 ? 'disabled' : '' ?>">
-            <a href="<?= $link($canalFiltro, $statusFiltro, max(1, $pagina - 1)) ?>">Anterior</a>
+<nav aria-label="Paginação do histórico">
+    <ul class="pagination justify-content-center">
+        <li class="page-item<?= $pagina <= 1 ? ' disabled' : '' ?>">
+            <a class="page-link" href="<?= $link($canalFiltro, $statusFiltro, max(1, $pagina - 1)) ?>"<?= $pagina <= 1 ? ' tabindex="-1" aria-disabled="true"' : '' ?>>Anterior</a>
         </li>
-        <li class="active"><a href="#"><?= $pagina ?> de <?= $paginas ?></a></li>
-        <li class="<?= $pagina >= $paginas ? 'disabled' : '' ?>">
-            <a href="<?= $link($canalFiltro, $statusFiltro, min($paginas, $pagina + 1)) ?>">Próxima</a>
+        <li class="page-item active" aria-current="page"><span class="page-link"><?= $pagina ?> de <?= $paginas ?></span></li>
+        <li class="page-item<?= $pagina >= $paginas ? ' disabled' : '' ?>">
+            <a class="page-link" href="<?= $link($canalFiltro, $statusFiltro, min($paginas, $pagina + 1)) ?>"<?= $pagina >= $paginas ? ' tabindex="-1" aria-disabled="true"' : '' ?>>Próxima</a>
         </li>
     </ul>
-</div>
+</nav>
 <?php } ?>
 
 <p style="color:var(--ui-texto-2);font-size:12px;margin:10px 0 0">

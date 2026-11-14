@@ -1,5 +1,15 @@
+<?php
+// Tema da tela: o do sistema ou o do botao claro/escuro do usuario (MY_Controller).
+$temaAtual = $configuration['app_theme'] ?: 'white';
+$temaPar = tema_par_claro_escuro($configuration['app_theme_sistema'] ?? $temaAtual);
+$modoEscuro = tema_e_escuro($temaAtual);
+$urlCssTema = function ($tema) {
+    $arquivo = tema_arquivo_css($tema);
+    return $arquivo ? base_url($arquivo) . '?v=' . asset_versao($arquivo) : '';
+};
+?>
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" data-bs-theme="<?= $modoEscuro ? 'dark' : 'light' ?>">
 
 <head>
   <title><?= $configuration['app_name'] ?: 'Map-OS' ?></title>
@@ -8,33 +18,15 @@
   <meta name="csrf-token-name" content="<?= config_item("csrf_token_name") ?>">
   <meta name="csrf-cookie-name" content="<?= config_item("csrf_cookie_name") ?>">
   <link rel="shortcut icon" type="image/png" href="<?= base_url(); ?>assets/img/favicon.png" />
-  <link rel="stylesheet" href="<?= base_url(); ?>assets/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="<?= base_url(); ?>assets/css/bootstrap-responsive.min.css" />
+  <link rel="stylesheet" href="<?= base_url(); ?>assets/css/bootstrap.min.css?v=<?= asset_versao('assets/css/bootstrap.min.css') ?>" />
   <link rel="stylesheet" href="<?= base_url('assets/css/matrix-style.css') ?>?v=<?= asset_versao('assets/css/matrix-style.css') ?>" />
-  <link rel="stylesheet" href="<?= base_url(); ?>assets/css/matrix-media.css" />
+  <link rel="stylesheet" href="<?= base_url(); ?>assets/css/matrix-media.css?v=<?= asset_versao('assets/css/matrix-media.css') ?>" />
   <?php if ($this->uri->segment(1) === 'rh'): ?>
   <link rel="stylesheet" href="<?= base_url('assets/css/rh.css') ?>?v=<?= asset_versao('assets/css/rh.css', '3') ?>" />
   <?php endif; ?>
   <link href="<?= base_url(); ?>assets/font-awesome/css/font-awesome.css" rel="stylesheet" />
   <link rel="stylesheet" href="<?= base_url(); ?>assets/css/fullcalendar.css" />
-  <?php if ($configuration['app_theme'] == 'white') { ?>
-    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-white.css" />
-  <?php } ?>
-  <?php if ($configuration['app_theme'] == 'puredark') { ?>
-    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-pure-dark.css" />
-  <?php } ?>
-  <?php if ($configuration['app_theme'] == 'darkviolet') { ?>
-    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-dark-violet.css" />
-  <?php } ?>
-  <?php if ($configuration['app_theme'] == 'darkorange') { ?>
-    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-dark-orange.css" />
-  <?php } ?>
-  <?php if ($configuration['app_theme'] == 'whitegreen') { ?>
-    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-white-green.css" />
-  <?php } ?>
-  <?php if ($configuration['app_theme'] == 'whiteblack') { ?>
-    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-white-black.css" />
-  <?php } ?>
+  <link id="tema-css" rel="stylesheet"<?= $urlCssTema($temaAtual) ? ' href="' . $urlCssTema($temaAtual) . '"' : '' ?> />
   <link rel="stylesheet" href="<?= base_url('assets/css/tema-escuro-ajustes.css') ?>?v=<?= asset_versao('assets/css/tema-escuro-ajustes.css') ?>">
   <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,800' rel='stylesheet' type='text/css'>
   <link href='https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;500;700&display=swap' rel='stylesheet' type='text/css'>
@@ -81,20 +73,33 @@
     window.BaseUrl = "<?= base_url() ?>";
   </script>
     <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/modo-tema.js') ?>?v=<?= asset_versao('assets/js/modo-tema.js') ?>" defer></script>
 </head>
 
-<body data-theme="<?= html_escape($configuration['app_theme'] ?: 'white') ?>">
+<body data-theme="<?= html_escape($temaAtual) ?>"
+  data-tema-claro="<?= html_escape($temaPar['claro']) ?>" data-css-claro="<?= html_escape($urlCssTema($temaPar['claro'])) ?>"
+  data-tema-escuro="<?= html_escape($temaPar['escuro']) ?>" data-css-escuro="<?= html_escape($urlCssTema($temaPar['escuro'])) ?>"
+  data-modo-cookie="mapos_modo_<?= (int) $this->session->userdata('id_admin') ?>" data-cookie-path="<?= html_escape(config_item('cookie_path') ?: '/') ?>">
   <!--top-Header-menu-->
   <div class="navebarn">
-    <div id="user-nav" class="navbar navbar-inverse">
-      <ul class="nav">
+    <div id="user-nav" class="user-nav">
+      <ul class="user-nav-lista">
+        <li class="modo-tema">
+          <a href="#" id="btn-modo-escuro" role="button" aria-pressed="<?= $modoEscuro ? 'true' : 'false' ?>"
+            aria-label="<?= $modoEscuro ? 'Ativar modo claro' : 'Ativar modo escuro' ?>" title="<?= $modoEscuro ? 'Ativar modo claro' : 'Ativar modo escuro' ?>"><i class='bx <?= $modoEscuro ? 'bx-sun' : 'bx-moon' ?> iconN' aria-hidden="true"></i></a>
+        </li>
         <li class="dropdown">
-          <a href="#" class="tip-right dropdown-toggle" data-toggle="dropdown" title="Perfis"><i class='bx bx-user-circle iconN'></i><span class="text"></span></a>
-          <ul class="dropdown-menu">
-            <li class=""><a title="Área do Cliente" href="<?= site_url(); ?>/mine" target="_blank"> <span class="text">Área do Cliente</span></a></li>
-            <li class=""><a title="Meu Perfil" href="<?= site_url('mapos/minhaConta'); ?>"><span class="text">Meu Perfil</span></a></li>
-            <li class="divider"></li>
-            <li class=""><a title="Sair do Sistema" href="<?= site_url('login/sair'); ?>"><i class='bx bx-log-out-circle'></i> <span class="text">Sair do Sistema</span></a></li>
+          <a href="#" class="dropdown-toggle" role="button" data-bs-toggle="dropdown" title="Minha conta e sair" aria-label="Menu da conta" aria-expanded="false"><i class='bx bx-user-circle iconN'></i><span class="text"></span></a>
+          <ul class="dropdown-menu menu-perfil">
+            <li class="menu-perfil-cabecalho">
+              <strong><?= html_escape($this->session->userdata('nome_admin')) ?></strong>
+              <small><?= html_escape($this->session->userdata('email_admin')) ?></small>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="<?= site_url('mapos/minhaConta'); ?>"><i class='bx bx-user' aria-hidden="true"></i> <span class="text">Minha Conta</span></a></li>
+            <li><a class="dropdown-item" href="<?= site_url(); ?>/mine" target="_blank" rel="noopener"><i class='bx bx-link-external' aria-hidden="true"></i> <span class="text">Área do Cliente</span></a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="<?= site_url('login/sair'); ?>"><i class='bx bx-log-out-circle' aria-hidden="true"></i> <span class="text">Sair do Sistema</span></a></li>
           </ul>
         </li>
       </ul>

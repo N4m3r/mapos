@@ -17,8 +17,8 @@ $money = function ($v) {
 };
 ?>
 
-<div class="row-fluid" style="margin-top: 0">
-    <div class="span12">
+<div class="row" style="margin-top: 0">
+    <div class="col-md-12">
         <div class="ui-cabecalho">
             <div>
                 <h1><i class="fas fa-funnel-dollar"></i> Ciclo / Faturamento das OS</h1>
@@ -27,32 +27,32 @@ $money = function ($v) {
         </div>
         <div class="widget-box">
             <div class="widget-content">
-                <form action="<?php echo site_url('relatorios/cicloFaturamento'); ?>" method="get">
-                    <div class="span12 well" style="margin-left:0">
-                        <div class="span3">
+                <form class="row" action="<?php echo site_url('relatorios/cicloFaturamento'); ?>" method="get">
+                    <div class="col-md-12 card card-body" style="margin-left:0"><div class="row">
+                        <div class="col-md-3">
                             <label>Data de:</label>
-                            <input type="date" name="dataInicial" class="span12" value="<?php echo html_escape($filtro['dataInicial']); ?>" />
+                            <input type="date" name="dataInicial" class="w-100 form-control" value="<?php echo html_escape($filtro['dataInicial']); ?>" />
                         </div>
-                        <div class="span3">
+                        <div class="col-md-3">
                             <label>até:</label>
-                            <input type="date" name="dataFinal" class="span12" value="<?php echo html_escape($filtro['dataFinal']); ?>" />
+                            <input type="date" name="dataFinal" class="w-100 form-control" value="<?php echo html_escape($filtro['dataFinal']); ?>" />
                         </div>
-                        <div class="span3">
+                        <div class="col-md-3">
                             <label>Período por:</label>
-                            <select name="periodo" class="span12">
+                            <select name="periodo" class="w-100 form-select">
                                 <?php foreach ($periodos as $val => $rot): ?>
                                     <option value="<?php echo $val; ?>" <?php echo $filtro['periodo'] === $val ? 'selected' : ''; ?>><?php echo $rot; ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="span3">
+                        <div class="col-md-3">
                             <label>Cliente:</label>
-                            <input type="text" id="cliente" class="span12" />
+                            <input type="text" id="cliente" class="w-100 form-control" />
                             <input type="hidden" name="cliente" id="clienteHide" value="<?php echo html_escape($filtro['cliente']); ?>" />
                         </div>
-                    </div>
-                    <div class="span12" style="display:flex;justify-content:center;gap:8px">
-                        <button class="button btn btn-inverse" type="submit">
+                    </div></div>
+                    <div class="col-md-12" style="display:flex;justify-content:center;gap:8px">
+                        <button class="button btn btn-dark" type="submit">
                             <span class="button__icon"><i class="bx bx-search-alt"></i></span>
                             <span class="button__text">Gerar</span>
                         </button>
@@ -75,35 +75,35 @@ $money = function ($v) {
 </div>
 
 <?php if ($resultados !== null): ?>
-    <div class="row-fluid">
-        <div class="span12">
+    <div class="row">
+        <div class="col-md-12">
             <div class="widget-box">
                 <div class="widget-title">
                     <span class="icon"><i class="fas fa-chart-pie"></i></span>
                     <h5>Resumo do período (<?php echo $periodos[$filtro['periodo']]; ?>)</h5>
                 </div>
                 <div class="widget-content">
-                    <div class="row-fluid" style="text-align:center">
-                        <div class="span2"><h3 style="margin:0"><?php echo $resumo['total']; ?></h3><small>Total de OS</small></div>
-                        <div class="span2"><h3 style="margin:0;color:#c09853"><?php echo $resumo['em_aberto']; ?></h3><small>Em aberto</small></div>
-                        <div class="span2"><h3 style="margin:0;color:#468847"><?php echo $resumo['faturado']; ?></h3><small>Faturadas</small></div>
-                        <div class="span2"><h3 style="margin:0;color:#3a87ad"><?php echo $resumo['com_nf']; ?></h3><small>Com NF</small></div>
-                        <div class="span2"><h3 style="margin:0;color:#3a87ad"><?php echo $resumo['com_boleto']; ?></h3><small>Com boleto</small></div>
-                        <div class="span2"><h3 style="margin:0;color:#468847"><?php echo $resumo['boleto_pago']; ?></h3><small>Boleto pago</small></div>
+                    <div class="row" style="text-align:center">
+                        <div class="col-md-2"><h3 style="margin:0"><?php echo $resumo['total']; ?></h3><small>Total de OS</small></div>
+                        <div class="col-md-2"><h3 style="margin:0;color:#c09853"><?php echo $resumo['em_aberto']; ?></h3><small>Em aberto</small></div>
+                        <div class="col-md-2"><h3 style="margin:0;color:#468847"><?php echo $resumo['faturado']; ?></h3><small>Faturadas</small></div>
+                        <div class="col-md-2"><h3 style="margin:0;color:#3a87ad"><?php echo $resumo['com_nf']; ?></h3><small>Com NF</small></div>
+                        <div class="col-md-2"><h3 style="margin:0;color:#3a87ad"><?php echo $resumo['com_boleto']; ?></h3><small>Com boleto</small></div>
+                        <div class="col-md-2"><h3 style="margin:0;color:#468847"><?php echo $resumo['boleto_pago']; ?></h3><small>Boleto pago</small></div>
                     </div>
                     <hr>
-                    <div class="row-fluid" style="text-align:center">
-                        <div class="span4"><b>Valor total:</b> <?php echo $money($resumo['valor_total']); ?></div>
-                        <div class="span4" style="color:#c09853"><b>Em aberto:</b> <?php echo $money($resumo['valor_em_aberto']); ?></div>
-                        <div class="span4" style="color:#468847"><b>Faturado:</b> <?php echo $money($resumo['valor_faturado']); ?></div>
+                    <div class="row" style="text-align:center">
+                        <div class="col-md-4"><b>Valor total:</b> <?php echo $money($resumo['valor_total']); ?></div>
+                        <div class="col-md-4" style="color:#c09853"><b>Em aberto:</b> <?php echo $money($resumo['valor_em_aberto']); ?></div>
+                        <div class="col-md-4" style="color:#468847"><b>Faturado:</b> <?php echo $money($resumo['valor_faturado']); ?></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row-fluid">
-        <div class="span12">
+    <div class="row">
+        <div class="col-md-12">
             <div class="widget-box">
                 <div class="widget-title">
                     <span class="icon"><i class="fas fa-list"></i></span>
@@ -134,16 +134,16 @@ $money = function ($v) {
                                     $faturado = ($l->status === 'Faturado') || ((int) $l->faturado === 1);
                                     $cancelado = ($l->status === 'Cancelado');
                                     if ($cancelado) {
-                                        $badge = '<span class="label label-important">Cancelada</span>';
+                                        $badge = '<span class="badge text-bg-danger">Cancelada</span>';
                                     } elseif ($faturado) {
-                                        $badge = '<span class="label label-success">Faturada</span>';
+                                        $badge = '<span class="badge text-bg-success">Faturada</span>';
                                     } else {
-                                        $badge = '<span class="label label-warning">Em aberto</span>';
+                                        $badge = '<span class="badge text-bg-warning">Em aberto</span>';
                                     }
                                     if (! empty($l->data_boleto)) {
                                         $boleto = $fmt($l->data_boleto) . (! empty($l->boleto_pago)
-                                            ? ' <span class="label label-success">pago</span>'
-                                            : ' <span class="label">pendente</span>');
+                                            ? ' <span class="badge text-bg-success">pago</span>'
+                                            : ' <span class="badge text-bg-secondary">pendente</span>');
                                     } else {
                                         $boleto = '—';
                                     }

@@ -25,7 +25,7 @@ $vaziosMsg = [
         <?php endforeach; ?>
     </nav>
 
-    <input type="search" id="buscaOs" class="ti-busca" placeholder="Buscar cliente, número ou endereço" aria-label="Buscar cliente, número ou endereço" autocomplete="off">
+    <input type="search" id="buscaOs" class="ti-busca form-control" placeholder="Buscar cliente, número ou endereço" aria-label="Buscar cliente, número ou endereço" autocomplete="off">
 
     <div id="listaOs">
         <?php foreach ($ordens as $os):

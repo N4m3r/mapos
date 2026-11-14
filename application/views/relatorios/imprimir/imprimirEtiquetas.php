@@ -13,8 +13,8 @@
 <body style="background-color: transparent">
 
 	<div class="container-fluid">
-		<div class="row-fluid">
-			<div class="span12">
+		<div class="row">
+			<div class="col-md-12">
 				<div class="widget-box">
 					<div class="widget-content nopadding tab-content">
 						<?php

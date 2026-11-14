@@ -41,7 +41,7 @@
                                 <br><small class="text-muted"><?= html_escape($r->descricao) ?></small>
                             <?php } ?>
                             <?php if ((int) $r->obrigatorio === 1) { ?>
-                                <br><span class="badge badge-important">Obrigatório</span>
+                                <br><span class="badge text-bg-danger">Obrigatório</span>
                             <?php } ?>
                         </td>
                         <td><?= html_escape($etapas[$r->etapa] ?? $r->etapa) ?></td>
@@ -49,19 +49,19 @@
                         <td style="text-align:center"><?= (int) ($camposCount[$r->idFormulario] ?? 0) ?></td>
                         <td style="text-align:center">
                             <?php if ((int) $r->ativo === 1) { ?>
-                                <span class="badge badge-success">Ativo</span>
+                                <span class="badge text-bg-success">Ativo</span>
                             <?php } else { ?>
-                                <span class="badge badge-warning">Desativado</span>
+                                <span class="badge text-bg-warning">Desativado</span>
                             <?php } ?>
                         </td>
                         <td style="text-align:center">
-                            <a href="<?= site_url('formularios/editar/' . $r->idFormulario) ?>" class="btn btn-primary btn-mini" title="Editar">
+                            <a href="<?= site_url('formularios/editar/' . $r->idFormulario) ?>" class="btn btn-primary btn-sm" title="Editar">
                                 <i class="bx bx-edit"></i> Editar
                             </a>
-                            <a href="<?= site_url('formularios/duplicar/' . $r->idFormulario) ?>" class="btn btn-mini" title="Duplicar">
+                            <a href="<?= site_url('formularios/duplicar/' . $r->idFormulario) ?>" class="btn btn-sm btn-outline-secondary" title="Duplicar">
                                 <i class="bx bx-copy"></i>
                             </a>
-                            <a href="<?= site_url('formularios/excluir/' . $r->idFormulario) ?>" class="btn btn-danger btn-mini btn-excluir-formulario" title="Excluir">
+                            <a href="<?= site_url('formularios/excluir/' . $r->idFormulario) ?>" class="btn btn-danger btn-sm btn-excluir-formulario" title="Excluir">
                                 <i class="bx bx-trash"></i>
                             </a>
                         </td>

@@ -759,7 +759,7 @@ var CheckinFotos = {
         if (!fotos || fotos.length === 0) {
             html = '<p class="text-muted">Nenhuma foto encontrada.</p>';
         } else {
-            html += '<div class="row-fluid">';
+            html += '<div class="row">';
 
             for (var i = 0; i < fotos.length; i++) {
                 var foto = fotos[i];
@@ -772,22 +772,22 @@ var CheckinFotos = {
                     imgUrl = this.config.baseUrl + 'index.php/checkin/verFotoDB/' + foto.idFoto;
                 }
 
-                html += '<div class="span' + span + ' text-center" style="margin-bottom: 15px;">';
-                html += '<div class="thumbnail">';
-                html += '<img src="' + imgUrl + '" style="max-height: 150px; cursor: pointer;" class="foto-preview" data-foto-id="' + foto.idFoto + '">';
+                html += '<div class="col-md-' + span + ' text-center" style="margin-bottom: 15px;">';
+                html += '<div class="img-thumbnail">';
+                html += '<img src="' + imgUrl + '" style="max-height: 150px; cursor: pointer;" class="img-fluid foto-preview" data-foto-id="' + foto.idFoto + '">';
 
                 if (op.mostrarDescricao && foto.descricao) {
-                    html += '<p class="muted" style="margin-top: 5px; font-size: 11px;">' + foto.descricao + '</p>';
+                    html += '<p class="text-muted" style="margin-top: 5px; font-size: 11px;">' + foto.descricao + '</p>';
                 }
 
                 html += '<div class="btn-group" style="margin-top: 5px;">';
 
                 if (op.mostrarDownload) {
-                    html += '<a href="' + this.config.baseUrl + 'index.php/checkin/downloadFoto/' + foto.idFoto + '" class="btn btn-mini btn-info" title="Download"><i class="bx bx-download"></i></a>';
+                    html += '<a href="' + this.config.baseUrl + 'index.php/checkin/downloadFoto/' + foto.idFoto + '" class="btn btn-sm btn-info" title="Download"><i class="bx bx-download"></i></a>';
                 }
 
                 if (op.mostrarExcluir) {
-                    html += '<button class="btn btn-mini btn-danger btn-remover-foto" data-foto-id="' + foto.idFoto + '" title="Remover"><i class="bx bx-trash"></i></button>';
+                    html += '<button class="btn btn-sm btn-danger btn-remover-foto" data-foto-id="' + foto.idFoto + '" title="Remover"><i class="bx bx-trash"></i></button>';
                 }
 
                 html += '</div>';

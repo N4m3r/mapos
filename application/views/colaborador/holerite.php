@@ -12,7 +12,7 @@ $labelTipo = [
 ];
 ?>
 <div class="ponto-wrap">
-    <input type="month" id="competencia" value="<?= $competencia ?>" class="span12" style="width:100%;margin-bottom:12px">
+    <input type="month" id="competencia" value="<?= $competencia ?>" class="w-100 form-control" style="width:100%;margin-bottom:12px">
 
     <?php if (! empty($holerite) && ! empty($holerite->arquivo_base64)): ?>
         <a href="<?= site_url('colaborador/baixarHolerite/'.$competencia) ?>" target="_blank" class="btn-bater" style="text-align:center;text-decoration:none;margin-bottom:12px;display:block">

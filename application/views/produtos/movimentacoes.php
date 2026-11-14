@@ -14,18 +14,18 @@
             <?php } ?>
             <div>
                 <label>Origem</label>
-                <select name="tipo" style="width:150px">
+                <select class="form-select" name="tipo" style="width:150px">
                     <option value="">Todas</option>
                     <?php foreach (['os' => 'OS', 'venda' => 'Venda', 'tecnico' => 'Área do técnico', 'projeto' => 'Projeto', 'api' => 'API', 'ajuste' => 'Ajuste manual', 'cadastro' => 'Cadastro', 'inventario' => 'Inventário'] as $valor => $nome) { ?>
                         <option value="<?= $valor ?>" <?= $filtros['tipo'] === $valor ? 'selected' : '' ?>><?= $nome ?></option>
                     <?php } ?>
                 </select>
             </div>
-            <div class="ui-campo"><label>De</label><input type="date" name="de" value="<?= html_escape($filtros['de']) ?>" style="width:140px"></div>
-            <div class="ui-campo"><label>Até</label><input type="date" name="ate" value="<?= html_escape($filtros['ate']) ?>" style="width:140px"></div>
-            <div class="ui-campo-acao"><button class="button btn btn-mini btn-warning" type="submit" title="Filtrar" aria-label="Filtrar"><span class="button__icon"><i class="bx bx-search-alt"></i></span><span class="button__text2">Filtrar</span></button></div>
+            <div class="ui-campo"><label>De</label><input class="form-control" type="date" name="de" value="<?= html_escape($filtros['de']) ?>" style="width:140px"></div>
+            <div class="ui-campo"><label>Até</label><input class="form-control" type="date" name="ate" value="<?= html_escape($filtros['ate']) ?>" style="width:140px"></div>
+            <div class="ui-campo-acao"><button class="button btn btn-sm btn-warning" type="submit" title="Filtrar" aria-label="Filtrar"><span class="button__icon"><i class="bx bx-search-alt"></i></span><span class="button__text2">Filtrar</span></button></div>
             <div style="margin-left:auto">
-                <a href="<?= site_url('inventarios') ?>" class="button btn btn-mini btn-info"><span class="button__icon"><i class="bx bx-list-check"></i></span><span class="button__text2">Inventários</span></a>
+                <a href="<?= site_url('inventarios') ?>" class="button btn btn-sm btn-info"><span class="button__icon"><i class="bx bx-list-check"></i></span><span class="button__text2">Inventários</span></a>
             </div>
         </form>
 
@@ -34,12 +34,12 @@
             <?php $this->load->view('produtos/_movimentacoes_tabela', ['movimentacoes' => $movimentacoes, 'mostrarProduto' => ! $produto]); ?>
 
             <?php if ($paginas > 1) { ?>
-                <div class="pagination" style="margin:0 0 14px"><ul>
+                <nav aria-label="Paginação"><ul class="pagination flex-wrap" style="margin:0 0 14px">
                     <?php for ($p = 1; $p <= $paginas; $p++) {
                         $q = array_filter(array_merge($filtros, ['produto' => $produto ? $produto->idProdutos : null, 'pagina' => $p])); ?>
-                        <li class="<?= $p === $pagina ? 'active' : '' ?>"><a href="<?= site_url('produtos/movimentacoes') . '?' . http_build_query($q) ?>"><?= $p ?></a></li>
+                        <li class="page-item<?= $p === $pagina ? ' active' : '' ?>"><a class="page-link" href="<?= site_url('produtos/movimentacoes') . '?' . http_build_query($q) ?>"<?= $p === $pagina ? ' aria-current="page"' : '' ?>><?= $p ?></a></li>
                     <?php } ?>
-                </ul></div>
+                </ul></nav>
             <?php } ?>
         </div>
     </div>

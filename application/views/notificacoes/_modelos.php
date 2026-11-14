@@ -47,7 +47,7 @@ $e = function ($v) {
                     </div>
                     <p class="nt-modelo-desc ui-m0"><?= $e($m->descricao ?: 'Sem descrição.') ?></p>
                     <div>
-                        <a href="<?= site_url('emailtemplates/editar/' . (int) $m->id) ?>" class="btn btn-mini btn-primary">
+                        <a href="<?= site_url('emailtemplates/editar/' . (int) $m->id) ?>" class="btn btn-sm btn-primary">
                             <i class="bx bx-edit"></i> Editar texto
                         </a>
                     </div>
@@ -103,12 +103,12 @@ $e = function ($v) {
                         <div class="nt-modelo-preview"><?= $e($previa) ?></div>
                     <?php } ?>
                     <div class="ui-acoes-linha">
-                        <a href="<?= site_url('whatsapptemplates/editar/' . rawurlencode((string) $t->slug)) ?>" class="btn btn-mini btn-primary">
+                        <a href="<?= site_url('whatsapptemplates/editar/' . rawurlencode((string) $t->slug)) ?>" class="btn btn-sm btn-primary">
                             <i class="bx bx-edit"></i> Editar
                         </a>
                         <?php if (! in_array($t->slug, $whatsappSlugsCore ?? [], true)) { ?>
                             <a href="<?= site_url('whatsapptemplates/excluir/' . rawurlencode((string) $t->slug)) ?>"
-                               class="btn btn-mini btn-danger"
+                               class="btn btn-sm btn-danger"
                                data-confirmar="Excluir o modelo '<?= $e($t->nome) ?>'?"
                                title="Excluir modelo" aria-label="Excluir modelo">
                                 <i class="bx bx-trash"></i>

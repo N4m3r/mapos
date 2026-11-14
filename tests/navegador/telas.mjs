@@ -128,6 +128,69 @@ const final = await pagina.evaluate(() => { const e = document.getElementById('p
 ok(/registrada/.test(final), 'venda finalizada pelo F4 (' + final.replace(/\s+/g, ' ').slice(0, 40) + ')');
 ok(problemas.length === 0, 'PDV sem erro de JS/CSP ' + JSON.stringify(problemas));
 
+// --- Botao de modo claro/escuro do topo -------------------------------------
+await ir('clientes');
+problemas = [];
+const modo = () => pagina.evaluate(() => ({
+    bs: document.documentElement.getAttribute('data-bs-theme'),
+    tema: document.body.getAttribute('data-theme'),
+    folha: (document.getElementById('tema-css') || {}).href || '',
+    rotulo: document.getElementById('btn-modo-escuro').getAttribute('aria-label'),
+}));
+const antes = await modo();
+ok(!!(await pagina.$('#btn-modo-escuro[aria-label][title]')), 'botao de modo com aria-label e title');
+const navegacoes = await pagina.evaluate(() => (window.__semRecarga = true));
+await pagina.click('#btn-modo-escuro');
+await espera(800);
+const depois = await modo();
+ok(depois.bs !== antes.bs && (depois.bs === 'dark' || depois.bs === 'light'), `modo alterna sem recarregar (${antes.bs} -> ${depois.bs})`);
+ok(navegacoes && (await pagina.evaluate(() => window.__semRecarga === true)), 'troca de modo sem recarregar a pagina');
+ok(depois.tema !== antes.tema && depois.folha !== antes.folha, `tema e folha trocados (${antes.tema} -> ${depois.tema})`);
+await ir('os');
+const recarregado = await modo();
+ok(recarregado.bs === depois.bs && recarregado.tema === depois.tema, 'modo escolhido vale na proxima tela (servidor, sem piscar)');
+await pagina.click('#btn-modo-escuro');
+await espera(800);
+ok((await modo()).bs === antes.bs, 'segundo clique volta ao modo inicial');
+ok(problemas.length === 0, 'modo claro/escuro sem erro de JS/CSP ' + JSON.stringify(problemas));
+
+// --- Menu do perfil e tela Minha Conta ---------------------------------------
+await ir('mapos/minhaConta');
+problemas = [];
+await pagina.click('#user-nav .dropdown-toggle');
+await espera(400);
+ok(await pagina.evaluate(() => {
+    const menu = document.querySelector('#user-nav .menu-perfil');
+    if (!menu || !menu.classList.contains('show')) return false;
+    const r = menu.getBoundingClientRect();
+    const item = document.elementFromPoint(r.left + 20, r.bottom - 12);
+    return r.left >= 0 && !!item && menu.contains(item);
+}), 'menu do perfil abre visivel (nao fica sob o menu lateral)');
+await pagina.keyboard.press('Escape');
+ok(await pagina.evaluate(() => ['Aparência', 'Alterar senha', 'Verificação em duas etapas', 'Acessos recentes'].every((t) => document.body.innerText.includes(t))), 'Minha Conta com as secoes');
+const modoInicialConta = await pagina.evaluate(() => document.documentElement.getAttribute('data-bs-theme'));
+const outroModo = modoInicialConta === 'dark' ? 'claro' : 'escuro';
+await pagina.click(`.conta-modos [data-modo="${outroModo}"]`);
+await espera(800);
+ok(await pagina.evaluate((m) => document.documentElement.getAttribute('data-bs-theme') === (m === 'escuro' ? 'dark' : 'light')
+    && document.querySelector(`.conta-modos [data-modo="${m}"]`).getAttribute('aria-checked') === 'true', outroModo), 'Aparencia troca o modo e marca a opcao');
+await pagina.click(`.conta-modos [data-modo="${outroModo === 'escuro' ? 'claro' : 'escuro'}"]`);
+await espera(600);
+await pagina.type('#novaSenha', 'Abc123!xyz');
+ok(/Forte/.test(await pagina.$eval('#forcaSenhaTexto', (e) => e.textContent)), 'indicador de forca da nova senha');
+// O servidor recusa senha curta mesmo sem o JS (POST direto com a senha atual certa)
+const respostaSenha = await pagina.evaluate(async (senha) => {
+    const f = document.getElementById('formSenha');
+    const dados = new FormData(f);
+    dados.set('oldSenha', senha);
+    dados.set('novaSenha', '123');
+    dados.set('confirmarSenha', '123');
+    const r = await fetch(f.action, { method: 'POST', body: dados, credentials: 'same-origin' });
+    return r.text();
+}, SENHA);
+ok(/pelo menos 6 caracteres/.test(respostaSenha), 'servidor recusa nova senha curta');
+ok(problemas.length === 0, 'Minha Conta sem erro de JS/CSP ' + JSON.stringify(problemas));
+
 await navegador.close();
 console.log(falhas ? `\n${falhas} verificacao(oes) falharam` : '\nTodas as telas OK');
 process.exit(falhas ? 1 : 0);

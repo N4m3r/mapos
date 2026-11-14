@@ -70,56 +70,56 @@ if (strpos($validade, '0000-00-00') === 0) {
         <div class="widget-box">
             <div class="widget-title">
                 <ul class="nav nav-tabs">
-                    <li class="active"><a data-toggle="tab" href="#u-dados">Dados pessoais</a></li>
-                    <li><a data-toggle="tab" href="#u-endereco">Endereço</a></li>
-                    <li><a data-toggle="tab" href="#u-acesso">Acesso</a></li>
+                    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#u-dados">Dados pessoais</a></li>
+                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#u-endereco">Endereço</a></li>
+                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#u-acesso">Acesso</a></li>
                     <?php if ($editar && $doisFatoresAtivo) { ?>
-                        <li><a data-toggle="tab" href="#u-seguranca">Segurança</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#u-seguranca">Segurança</a></li>
                     <?php } ?>
                 </ul>
             </div>
 
             <div class="widget-content tab-content">
-                <div id="u-dados" class="tab-pane fade in active">
+                <div id="u-dados" class="tab-pane fade show active">
                     <div class="ui-secao">
                         <h4 class="ui-secao-titulo">Identificação e contato</h4>
                         <div class="ui-grade">
-                            <div class="control-group">
-                                <label for="nome" class="control-label">Nome<span class="required">*</span></label>
-                                <div class="controls">
-                                    <input id="nome" type="text" name="nome" maxlength="80" value="<?= $v('nome') ?>" autocomplete="name">
+                            <div class="mb-3">
+                                <label for="nome" class="form-label">Nome<span class="required">*</span></label>
+                                <div class="">
+                                    <input class="form-control" id="nome" type="text" name="nome" maxlength="80" value="<?= $v('nome') ?>" autocomplete="name">
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="rg" class="control-label">RG</label>
-                                <div class="controls">
-                                    <input id="rg" type="text" name="rg" maxlength="20" value="<?= $v('rg') ?>">
+                            <div class="mb-3">
+                                <label for="rg" class="form-label">RG</label>
+                                <div class="">
+                                    <input class="form-control" id="rg" type="text" name="rg" maxlength="20" value="<?= $v('rg') ?>">
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="cpf" class="control-label">CPF</label>
-                                <div class="controls">
-                                    <input id="cpfUser" class="cpfUser" type="text" name="cpf" maxlength="20" value="<?= $v('cpf') ?>">
-                                    <span class="help-inline">Opcional, mas não pode repetir em outra conta.</span>
+                            <div class="mb-3">
+                                <label for="cpf" class="form-label">CPF</label>
+                                <div class="">
+                                    <input id="cpfUser" class="cpfUser form-control" type="text" name="cpf" maxlength="20" value="<?= $v('cpf') ?>">
+                                    <span class="form-text">Opcional, mas não pode repetir em outra conta.</span>
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="telefone" class="control-label">Telefone<span class="required">*</span></label>
-                                <div class="controls">
-                                    <input id="telefone" type="text" name="telefone" maxlength="20" value="<?= $v('telefone') ?>">
+                            <div class="mb-3">
+                                <label for="telefone" class="form-label">Telefone<span class="required">*</span></label>
+                                <div class="">
+                                    <input class="form-control" id="telefone" type="text" name="telefone" maxlength="20" value="<?= $v('telefone') ?>">
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="celular" class="control-label">Celular</label>
-                                <div class="controls">
-                                    <input id="celular" type="text" name="celular" maxlength="20" value="<?= $v('celular') ?>">
+                            <div class="mb-3">
+                                <label for="celular" class="form-label">Celular</label>
+                                <div class="">
+                                    <input class="form-control" id="celular" type="text" name="celular" maxlength="20" value="<?= $v('celular') ?>">
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="email" class="control-label">E-mail<span class="required">*</span></label>
-                                <div class="controls">
-                                    <input id="email" type="email" name="email" maxlength="80" value="<?= $v('email') ?>" autocomplete="email">
-                                    <span class="help-inline">É por ele que a pessoa entra no sistema.</span>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">E-mail<span class="required">*</span></label>
+                                <div class="">
+                                    <input class="form-control" id="email" type="email" name="email" maxlength="80" value="<?= $v('email') ?>" autocomplete="email">
+                                    <span class="form-text">É por ele que a pessoa entra no sistema.</span>
                                 </div>
                             </div>
                         </div>
@@ -130,41 +130,41 @@ if (strpos($validade, '0000-00-00') === 0) {
                     <div class="ui-secao">
                         <h4 class="ui-secao-titulo">Endereço</h4>
                         <div class="ui-grade">
-                            <div class="control-group">
-                                <label for="cep" class="control-label">CEP</label>
-                                <div class="controls">
-                                    <input id="cep" type="text" name="cep" maxlength="9" value="<?= $v('cep') ?>" inputmode="numeric">
-                                    <span class="help-inline">Preenche o endereço ao sair do campo.</span>
+                            <div class="mb-3">
+                                <label for="cep" class="form-label">CEP</label>
+                                <div class="">
+                                    <input class="form-control" id="cep" type="text" name="cep" maxlength="9" value="<?= $v('cep') ?>" inputmode="numeric">
+                                    <span class="form-text">Preenche o endereço ao sair do campo.</span>
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="rua" class="control-label">Logradouro</label>
-                                <div class="controls">
-                                    <input id="rua" type="text" name="rua" maxlength="70" value="<?= $v('rua') ?>">
+                            <div class="mb-3">
+                                <label for="rua" class="form-label">Logradouro</label>
+                                <div class="">
+                                    <input class="form-control" id="rua" type="text" name="rua" maxlength="70" value="<?= $v('rua') ?>">
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="numero" class="control-label">Número</label>
-                                <div class="controls">
-                                    <input id="numero" type="text" name="numero" maxlength="15" value="<?= $v('numero') ?>">
+                            <div class="mb-3">
+                                <label for="numero" class="form-label">Número</label>
+                                <div class="">
+                                    <input class="form-control" id="numero" type="text" name="numero" maxlength="15" value="<?= $v('numero') ?>">
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="bairro" class="control-label">Bairro</label>
-                                <div class="controls">
-                                    <input id="bairro" type="text" name="bairro" maxlength="45" value="<?= $v('bairro') ?>">
+                            <div class="mb-3">
+                                <label for="bairro" class="form-label">Bairro</label>
+                                <div class="">
+                                    <input class="form-control" id="bairro" type="text" name="bairro" maxlength="45" value="<?= $v('bairro') ?>">
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="cidade" class="control-label">Cidade</label>
-                                <div class="controls">
-                                    <input id="cidade" type="text" name="cidade" maxlength="45" value="<?= $v('cidade') ?>">
+                            <div class="mb-3">
+                                <label for="cidade" class="form-label">Cidade</label>
+                                <div class="">
+                                    <input class="form-control" id="cidade" type="text" name="cidade" maxlength="45" value="<?= $v('cidade') ?>">
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="estado" class="control-label">UF</label>
-                                <div class="controls">
-                                    <input id="estado" type="text" name="estado" maxlength="2" value="<?= $v('estado') ?>" placeholder="SP">
+                            <div class="mb-3">
+                                <label for="estado" class="form-label">UF</label>
+                                <div class="">
+                                    <input class="form-control" id="estado" type="text" name="estado" maxlength="2" value="<?= $v('estado') ?>" placeholder="SP">
                                 </div>
                             </div>
                         </div>
@@ -175,11 +175,11 @@ if (strpos($validade, '0000-00-00') === 0) {
                     <div class="ui-secao">
                         <h4 class="ui-secao-titulo">Acesso ao sistema</h4>
                         <div class="ui-grade">
-                            <div class="control-group">
-                                <label for="permissoes_id" class="control-label">Perfil de permissão<span class="required">*</span></label>
-                                <div class="controls">
+                            <div class="mb-3">
+                                <label for="permissoes_id" class="form-label">Perfil de permissão<span class="required">*</span></label>
+                                <div class="">
                                     <?php $perfilAtual = (int) $v('permissoes_id', 0); ?>
-                                    <select name="permissoes_id" id="permissoes_id">
+                                    <select class="form-select" name="permissoes_id" id="permissoes_id">
                                         <option value="">— escolha um perfil —</option>
                                         <?php foreach ($perfis as $perfil) {
                                             $inativo = (int) $perfil->situacao !== 1;
@@ -196,38 +196,38 @@ if (strpos($validade, '0000-00-00') === 0) {
                                         <?php } ?>
                                     </select>
                                     <?php if (! empty($podeVerPerfis)) { ?>
-                                        <span class="help-inline">Para criar ou ajustar perfis, use <a href="<?= site_url('permissoes') ?>">Perfis de permissão</a>.</span>
+                                        <span class="form-text">Para criar ou ajustar perfis, use <a href="<?= site_url('permissoes') ?>">Perfis de permissão</a>.</span>
                                     <?php } ?>
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="situacao" class="control-label">Situação</label>
-                                <div class="controls">
+                            <div class="mb-3">
+                                <label for="situacao" class="form-label">Situação</label>
+                                <div class="">
                                     <?php $situacaoAtual = (string) $v('situacao', '1'); ?>
-                                    <select name="situacao" id="situacao" <?= $superAdmin ? 'disabled' : '' ?>>
+                                    <select class="form-select" name="situacao" id="situacao" <?= $superAdmin ? 'disabled' : '' ?>>
                                         <option value="1" <?= $situacaoAtual === '1' ? 'selected' : '' ?>>Ativo</option>
                                         <option value="0" <?= $situacaoAtual === '0' ? 'selected' : '' ?>>Inativo</option>
                                     </select>
                                     <?php if ($superAdmin) { ?>
                                         <input type="hidden" name="situacao" value="1">
-                                        <span class="help-inline">O super admin não pode ser desativado.</span>
+                                        <span class="form-text">O super admin não pode ser desativado.</span>
                                     <?php } ?>
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="dataExpiracao" class="control-label">Acesso válido até</label>
-                                <div class="controls">
-                                    <input id="dataExpiracao" type="date" name="dataExpiracao" value="<?= $validade ?>">
-                                    <span class="help-inline">Em branco = sem expiração. Depois da data, o login é recusado.</span>
+                            <div class="mb-3">
+                                <label for="dataExpiracao" class="form-label">Acesso válido até</label>
+                                <div class="">
+                                    <input class="form-control" id="dataExpiracao" type="date" name="dataExpiracao" value="<?= $validade ?>">
+                                    <span class="form-text">Em branco = sem expiração. Depois da data, o login é recusado.</span>
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="senha" class="control-label">Senha<?= $editar ? '' : '<span class="required">*</span>' ?></label>
-                                <div class="controls">
-                                    <input id="senha" type="password" name="senha" value="" autocomplete="new-password"
+                            <div class="mb-3">
+                                <label for="senha" class="form-label">Senha<?= $editar ? '' : '<span class="required">*</span>' ?></label>
+                                <div class="">
+                                    <input class="form-control" id="senha" type="password" name="senha" value="" autocomplete="new-password"
                                         placeholder="<?= $editar ? 'Deixe em branco para manter a atual' : 'Mínimo 6 caracteres' ?>">
                                     <?php if ($editar) { ?>
-                                        <span class="help-inline">Só preencha se quiser trocar a senha desta conta.</span>
+                                        <span class="form-text">Só preencha se quiser trocar a senha desta conta.</span>
                                     <?php } ?>
                                 </div>
                             </div>
@@ -261,7 +261,7 @@ if (strpos($validade, '0000-00-00') === 0) {
                                 </div>
                             <?php } ?>
                             <label class="ui-opcao" style="display:inline-flex">
-                                <input type="checkbox" name="desativar_dois_fatores" value="1">
+                                <input class="form-check-input" type="checkbox" name="desativar_dois_fatores" value="1">
                                 Desativar (use só se a pessoa perdeu o celular e os códigos de recuperação)
                             </label>
                         </div>

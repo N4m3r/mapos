@@ -18,17 +18,17 @@ $csrf_h = $this->security->get_csrf_hash();
         <input type="hidden" name="<?= $csrf_n ?>" value="<?= $csrf_h ?>">
         <h4 style="margin:0 0 10px"><i class='bx bx-plus-circle'></i> Nova solicitação</h4>
         <label>Tipo</label>
-        <select name="tipo" class="span12" style="width:100%">
+        <select name="tipo" class="w-100 form-select" style="width:100%">
             <?php foreach ($tipos as $k=>$v): ?><option value="<?= $k ?>"><?= $v ?></option><?php endforeach; ?>
         </select>
         <div style="display:flex;gap:8px;margin-top:8px">
-            <div style="flex:1"><label>Início</label><input type="date" name="data_inicio" class="span12" style="width:100%" required></div>
-            <div style="flex:1"><label>Fim</label><input type="date" name="data_fim" class="span12" style="width:100%"></div>
+            <div style="flex:1"><label>Início</label><input type="date" name="data_inicio" class="w-100 form-control" style="width:100%" required></div>
+            <div style="flex:1"><label>Fim</label><input type="date" name="data_fim" class="w-100 form-control" style="width:100%"></div>
         </div>
         <label style="margin-top:8px">Motivo</label>
-        <textarea name="motivo" rows="2" class="span12" style="width:100%"></textarea>
+        <textarea name="motivo" rows="2" class="w-100 form-control" style="width:100%"></textarea>
         <label style="margin-top:8px">Anexo (ex.: atestado) — opcional</label>
-        <input type="file" name="anexo" accept="image/*,application/pdf" class="span12" style="width:100%">
+        <input type="file" name="anexo" accept="image/*,application/pdf" class="w-100 form-control" style="width:100%">
         <button type="submit" class="btn-bater" style="margin-top:12px"><i class='bx bx-send'></i> Enviar ao RH</button>
     </form>
 
