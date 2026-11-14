@@ -118,7 +118,7 @@ $situacaoTexto = $filtro['situacao']
             </div>
             <div class="ui-campo ui-campo-acao">
                 <button class="button btn btn-dark"><span class="button__icon"><i class="bx bx-filter-alt"></i></span><span class="button__text">Filtrar</span></button>
-                <a class="btn" href="<?= site_url('relatoriocobranca') ?>" title="Limpar filtros"><i class="bx bx-x"></i> Limpar</a>
+                <a class="btn btn-outline-secondary" href="<?= site_url('relatoriocobranca') ?>" title="Limpar filtros"><i class="bx bx-x"></i> Limpar</a>
             </div>
             <div class="cobranca-chips-linha">
                 <span>Situação (marque para filtrar a tabela):</span>

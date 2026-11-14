@@ -194,7 +194,7 @@
 
                         echo '<td>';
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
-                            echo '<a href="' . base_url() . 'index.php/os/visualizar/' . $r->idOs . '" style="margin-right: 1%" class="btn tip-top" title="Ver mais detalhes" aria-label="Ver mais detalhes"><i class="fas fa-eye"></i></a>';
+                            echo '<a href="' . base_url() . 'index.php/os/visualizar/' . $r->idOs . '" style="margin-right: 1%" class="btn btn-light tip-top" title="Ver mais detalhes" aria-label="Ver mais detalhes"><i class="fas fa-eye"></i></a>';
                         }
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
                             echo '<a href="' . base_url() . 'index.php/os/editar/' . $r->idOs . '" class="btn btn-info tip-top" title="Editar OS" aria-label="Editar OS"><i class="fas fa-edit"></i></a>';
@@ -258,7 +258,7 @@
 
                         echo '<td>';
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
-                            echo '<a href="' . base_url() . 'index.php/vendas/visualizar/' . $r->idVendas . '" style="margin-right: 1%" class="btn tip-top" title="Ver mais detalhes" aria-label="Ver mais detalhes"><i class="fas fa-eye"></i></a>';
+                            echo '<a href="' . base_url() . 'index.php/vendas/visualizar/' . $r->idVendas . '" style="margin-right: 1%" class="btn btn-light tip-top" title="Ver mais detalhes" aria-label="Ver mais detalhes"><i class="fas fa-eye"></i></a>';
                         }
                         if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
                             echo '<a href="' . base_url() . 'index.php/vendas/editar/' . $r->idVendas . '" class="btn btn-info tip-top" title="Editar OS" aria-label="Editar OS"><i class="fas fa-edit"></i></a>';

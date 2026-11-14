@@ -111,7 +111,7 @@ $chips = Chamado_cobranca::STATUS;
             </div>
             <div class="ui-campo ui-campo-acao">
                 <button class="button btn btn-dark"><span class="button__icon"><i class="bx bx-filter-alt"></i></span><span class="button__text">Filtrar</span></button>
-                <a class="btn" href="<?= site_url('chamadoscobranca') ?>" title="Limpar filtros"><i class="bx bx-x"></i> Limpar</a>
+                <a class="btn btn-outline-secondary" href="<?= site_url('chamadoscobranca') ?>" title="Limpar filtros"><i class="bx bx-x"></i> Limpar</a>
             </div>
             <div class="cc-chips">
                 <span>Situação:</span>
@@ -209,9 +209,9 @@ $chips = Chamado_cobranca::STATUS;
                                         <?php if ($i['tipo'] === 'os' && $podeAprovar) { ?>
                                             <button class="button btn btn-sm btn-info" type="submit" formaction="<?= site_url('chamadoscobranca/solicitarAprovacao') ?>" name="selecionados[]" value="<?= $e($i['chave']) ?>"><span class="button__icon"><i class="bx bx-check-shield"></i></span><span class="button__text">Aprovação</span></button>
                                         <?php } elseif ($i['tipo'] === 'cob') { ?>
-                                            <a class="btn" href="<?= site_url($i['link']) ?>" title="Ver cobrança"><i class="bx bx-show"></i></a>
+                                            <a class="btn btn-sm btn-light" href="<?= site_url($i['link']) ?>" title="Ver cobrança"><i class="bx bx-show"></i></a>
                                         <?php } else { ?>
-                                            <a class="btn" href="<?= site_url($i['link']) ?>" title="Abrir documento"><i class="bx bx-show"></i></a>
+                                            <a class="btn btn-sm btn-light" href="<?= site_url($i['link']) ?>" title="Abrir documento"><i class="bx bx-show"></i></a>
                                         <?php } ?>
                                     </td>
                                 </tr>

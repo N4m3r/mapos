@@ -89,9 +89,9 @@ $slaBadge = function ($os) {
                 <div class="widget-title"><h5><i class='bx bx-dollar-circle'></i> Faturamento (mensalidades)</h5></div>
                 <div class="widget-content">
                     <?php if ($perm('fContrato')): ?>
-                        <form action="<?= site_url('contratos/faturar') ?>" method="post" class="form-inline" style="margin-bottom:10px">
+                        <form action="<?= site_url('contratos/faturar') ?>" method="post" class="d-flex flex-wrap gap-2 align-items-center" style="margin-bottom:10px">
                             <input type="hidden" name="idContrato" value="<?= $contrato->idContrato ?>">
-                            <label style="display:inline">Competência</label>
+                            <label class="mb-0">Competência</label>
                             <input class="form-control" type="month" name="competencia" value="<?= date('Y-m') ?>" style="width:auto">
                             <button class="button btn btn-sm btn-success" <?= $jaFaturadoMes ? 'disabled title="Já faturado neste mês"' : '' ?>>
                                 <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Gerar mensalidade</span></button>
