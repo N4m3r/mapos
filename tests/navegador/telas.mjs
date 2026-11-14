@@ -128,6 +128,32 @@ const final = await pagina.evaluate(() => { const e = document.getElementById('p
 ok(/registrada/.test(final), 'venda finalizada pelo F4 (' + final.replace(/\s+/g, ' ').slice(0, 40) + ')');
 ok(problemas.length === 0, 'PDV sem erro de JS/CSP ' + JSON.stringify(problemas));
 
+// --- Botao de modo claro/escuro do topo -------------------------------------
+await ir('clientes');
+problemas = [];
+const modo = () => pagina.evaluate(() => ({
+    bs: document.documentElement.getAttribute('data-bs-theme'),
+    tema: document.body.getAttribute('data-theme'),
+    folha: (document.getElementById('tema-css') || {}).href || '',
+    rotulo: document.getElementById('btn-modo-escuro').getAttribute('aria-label'),
+}));
+const antes = await modo();
+ok(!!(await pagina.$('#btn-modo-escuro[aria-label][title]')), 'botao de modo com aria-label e title');
+const navegacoes = await pagina.evaluate(() => (window.__semRecarga = true));
+await pagina.click('#btn-modo-escuro');
+await espera(800);
+const depois = await modo();
+ok(depois.bs !== antes.bs && (depois.bs === 'dark' || depois.bs === 'light'), `modo alterna sem recarregar (${antes.bs} -> ${depois.bs})`);
+ok(navegacoes && (await pagina.evaluate(() => window.__semRecarga === true)), 'troca de modo sem recarregar a pagina');
+ok(depois.tema !== antes.tema && depois.folha !== antes.folha, `tema e folha trocados (${antes.tema} -> ${depois.tema})`);
+await ir('os');
+const recarregado = await modo();
+ok(recarregado.bs === depois.bs && recarregado.tema === depois.tema, 'modo escolhido vale na proxima tela (servidor, sem piscar)');
+await pagina.click('#btn-modo-escuro');
+await espera(800);
+ok((await modo()).bs === antes.bs, 'segundo clique volta ao modo inicial');
+ok(problemas.length === 0, 'modo claro/escuro sem erro de JS/CSP ' + JSON.stringify(problemas));
+
 await navegador.close();
 console.log(falhas ? `\n${falhas} verificacao(oes) falharam` : '\nTodas as telas OK');
 process.exit(falhas ? 1 : 0);

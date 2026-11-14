@@ -1,5 +1,15 @@
+<?php
+// Tema da tela: o do sistema ou o do botao claro/escuro do usuario (MY_Controller).
+$temaAtual = $configuration['app_theme'] ?: 'white';
+$temaPar = tema_par_claro_escuro($configuration['app_theme_sistema'] ?? $temaAtual);
+$modoEscuro = tema_e_escuro($temaAtual);
+$urlCssTema = function ($tema) {
+    $arquivo = tema_arquivo_css($tema);
+    return $arquivo ? base_url($arquivo) . '?v=' . asset_versao($arquivo) : '';
+};
+?>
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" data-bs-theme="<?= $modoEscuro ? 'dark' : 'light' ?>">
 
 <head>
   <title><?= $configuration['app_name'] ?: 'Map-OS' ?></title>
@@ -16,24 +26,7 @@
   <?php endif; ?>
   <link href="<?= base_url(); ?>assets/font-awesome/css/font-awesome.css" rel="stylesheet" />
   <link rel="stylesheet" href="<?= base_url(); ?>assets/css/fullcalendar.css" />
-  <?php if ($configuration['app_theme'] == 'white') { ?>
-    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-white.css?v=<?= asset_versao('assets/css/tema-white.css') ?>" />
-  <?php } ?>
-  <?php if ($configuration['app_theme'] == 'puredark') { ?>
-    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-pure-dark.css?v=<?= asset_versao('assets/css/tema-pure-dark.css') ?>" />
-  <?php } ?>
-  <?php if ($configuration['app_theme'] == 'darkviolet') { ?>
-    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-dark-violet.css?v=<?= asset_versao('assets/css/tema-dark-violet.css') ?>" />
-  <?php } ?>
-  <?php if ($configuration['app_theme'] == 'darkorange') { ?>
-    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-dark-orange.css?v=<?= asset_versao('assets/css/tema-dark-orange.css') ?>" />
-  <?php } ?>
-  <?php if ($configuration['app_theme'] == 'whitegreen') { ?>
-    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-white-green.css?v=<?= asset_versao('assets/css/tema-white-green.css') ?>" />
-  <?php } ?>
-  <?php if ($configuration['app_theme'] == 'whiteblack') { ?>
-    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-white-black.css?v=<?= asset_versao('assets/css/tema-white-black.css') ?>" />
-  <?php } ?>
+  <link id="tema-css" rel="stylesheet"<?= $urlCssTema($temaAtual) ? ' href="' . $urlCssTema($temaAtual) . '"' : '' ?> />
   <link rel="stylesheet" href="<?= base_url('assets/css/tema-escuro-ajustes.css') ?>?v=<?= asset_versao('assets/css/tema-escuro-ajustes.css') ?>">
   <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,800' rel='stylesheet' type='text/css'>
   <link href='https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;500;700&display=swap' rel='stylesheet' type='text/css'>
@@ -80,13 +73,21 @@
     window.BaseUrl = "<?= base_url() ?>";
   </script>
     <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/modo-tema.js') ?>?v=<?= asset_versao('assets/js/modo-tema.js') ?>" defer></script>
 </head>
 
-<body data-theme="<?= html_escape($configuration['app_theme'] ?: 'white') ?>">
+<body data-theme="<?= html_escape($temaAtual) ?>"
+  data-tema-claro="<?= html_escape($temaPar['claro']) ?>" data-css-claro="<?= html_escape($urlCssTema($temaPar['claro'])) ?>"
+  data-tema-escuro="<?= html_escape($temaPar['escuro']) ?>" data-css-escuro="<?= html_escape($urlCssTema($temaPar['escuro'])) ?>"
+  data-modo-cookie="mapos_modo_<?= (int) $this->session->userdata('id_admin') ?>" data-cookie-path="<?= html_escape(config_item('cookie_path') ?: '/') ?>">
   <!--top-Header-menu-->
   <div class="navebarn">
     <div id="user-nav" class="user-nav">
       <ul class="user-nav-lista">
+        <li class="modo-tema">
+          <a href="#" id="btn-modo-escuro" role="button" aria-pressed="<?= $modoEscuro ? 'true' : 'false' ?>"
+            aria-label="<?= $modoEscuro ? 'Ativar modo claro' : 'Ativar modo escuro' ?>" title="<?= $modoEscuro ? 'Ativar modo claro' : 'Ativar modo escuro' ?>"><i class='bx <?= $modoEscuro ? 'bx-sun' : 'bx-moon' ?> iconN' aria-hidden="true"></i></a>
+        </li>
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" role="button" data-bs-toggle="dropdown" title="Perfis" aria-label="Perfis" aria-expanded="false"><i class='bx bx-user-circle iconN'></i><span class="text"></span></a>
           <ul class="dropdown-menu dropdown-menu-end">

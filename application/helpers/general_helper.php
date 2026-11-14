@@ -329,3 +329,73 @@ if (! function_exists('dataurl_imagem')) {
         return $valor;
     }
 }
+
+if (! function_exists('tema_e_escuro')) {
+    /**
+     * Temas do painel com fundo escuro (os que carregam variaveis escuras do Bootstrap).
+     */
+    function tema_e_escuro($tema)
+    {
+        return in_array((string) $tema, ['puredark', 'darkviolet', 'darkorange'], true);
+    }
+}
+
+if (! function_exists('tema_par_claro_escuro')) {
+    /**
+     * Par claro/escuro usado pelo botao de modo rapido do topo, a partir do tema
+     * escolhido em Configuracoes > Sistema: o configurado fica de um lado e o outro
+     * lado e o padrao do sistema (white ou puredark).
+     *
+     * @return array{claro: string, escuro: string}
+     */
+    function tema_par_claro_escuro($temaSistema)
+    {
+        $temaSistema = (string) ($temaSistema ?: 'white');
+
+        if (tema_e_escuro($temaSistema)) {
+            return ['claro' => 'white', 'escuro' => $temaSistema];
+        }
+        // 'default' (Matrix original, rotulado "Escuro" nas Configuracoes) nao tem folha
+        // de tema nem variaveis escuras: o botao alterna entre white e puredark.
+        if (! tema_arquivo_css($temaSistema)) {
+            return ['claro' => 'white', 'escuro' => 'puredark'];
+        }
+
+        return ['claro' => $temaSistema, 'escuro' => 'puredark'];
+    }
+}
+
+if (! function_exists('tema_por_modo')) {
+    /**
+     * Tema a aplicar conforme o modo escolhido pelo usuario no botao do topo
+     * ('claro' ou 'escuro'). Sem escolha (ou valor invalido), vale o tema do sistema.
+     */
+    function tema_por_modo($temaSistema, $modo)
+    {
+        $par = tema_par_claro_escuro($temaSistema);
+        if ($modo === 'escuro' || $modo === 'claro') {
+            return $par[$modo];
+        }
+
+        return (string) ($temaSistema ?: 'white');
+    }
+}
+
+if (! function_exists('tema_arquivo_css')) {
+    /**
+     * Folha de estilo de cada tema do painel ('' para o tema default, que nao tem arquivo).
+     */
+    function tema_arquivo_css($tema)
+    {
+        $arquivos = [
+            'white' => 'tema-white.css',
+            'puredark' => 'tema-pure-dark.css',
+            'darkviolet' => 'tema-dark-violet.css',
+            'darkorange' => 'tema-dark-orange.css',
+            'whitegreen' => 'tema-white-green.css',
+            'whiteblack' => 'tema-white-black.css',
+        ];
+
+        return isset($arquivos[$tema]) ? 'assets/css/' . $arquivos[$tema] : '';
+    }
+}

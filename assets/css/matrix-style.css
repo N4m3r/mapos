@@ -592,6 +592,13 @@ textarea.form-control,
   padding        : 0;
 }
 
+/* Botão de modo claro/escuro ao lado do perfil (modo-tema.js) */
+#user-nav > ul.user-nav-lista {
+  display    : flex;
+  align-items: center;
+  gap        : 2px;
+}
+
 #user-nav>ul>li>a {
   padding    : 3px;
   display    : flex;

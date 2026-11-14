@@ -61,6 +61,15 @@ class MY_Controller extends CI_Controller
         foreach ($configuracoes as $c) {
             $this->data['configuration'][$c->config] = $c->valor;
         }
+
+        // Modo claro/escuro escolhido pelo usuario no botao do topo (cookie por usuario,
+        // lido aqui para o tema certo sair ja no HTML, sem piscar). O tema do sistema
+        // continua em app_theme_sistema para a tela de Configuracoes.
+        $temaSistema = $this->data['configuration']['app_theme'] ?? 'white';
+        $idUsuario = isset($this->session) ? (int) $this->session->userdata('id_admin') : 0;
+        $modo = $idUsuario ? $this->input->cookie('mapos_modo_' . $idUsuario) : null;
+        $this->data['configuration']['app_theme_sistema'] = $temaSistema;
+        $this->data['configuration']['app_theme'] = tema_por_modo($temaSistema, $modo);
     }
 
     /**
