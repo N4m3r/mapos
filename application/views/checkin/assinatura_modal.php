@@ -61,7 +61,7 @@ $canvas_id = $modal_id . '-canvas';
 
 <style nonce="<?= csp_nonce() ?>">
     @media (max-width: 768px) {
-        .modal-assinatura { width: 96% !important; left: 2% !important; margin-left: 0 !important; top: 8px !important; }
+        .modal-assinatura .modal-dialog { margin: 8px auto; max-width: 96% !important; }
         .modal-assinatura .modal-body { max-height: 74vh; overflow-y: auto; }
         .assinatura-botoes-modal .btn, .modal-assinatura .modal-footer .btn { min-height: 46px; font-size: 15px; }
         .modal-assinatura .modal-footer .btn { display: block; width: 100%; box-sizing: border-box; margin: 6px 0 0; float: none; }

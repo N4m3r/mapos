@@ -25,7 +25,7 @@ $nao_programada = !empty($nao_programada);
     .assinatura-canvas-wrapper canvas { touch-action: none; -webkit-user-select: none; user-select: none; }
     #modal-checkin .modal-body, #modal-checkout .modal-body { max-height: 74vh; overflow-y: auto; }
     @media (max-width: 768px) {
-        #modal-checkin, #modal-checkout { width: 94% !important; left: 3% !important; margin-left: 0 !important; top: 10px !important; }
+        #modal-checkin .modal-dialog, #modal-checkout .modal-dialog { margin: 10px auto; max-width: 94%; }
         #modal-checkout .row .col-md-6 { width: 100% !important; float: none !important; margin-left: 0 !important; margin-bottom: 14px; }
         .assinatura-canvas-wrapper canvas { width: 100% !important; height: auto !important; min-height: 200px !important; }
     }
@@ -41,7 +41,7 @@ $nao_programada = !empty($nao_programada);
 
 
 <!-- Modal Check-in -->
-<div id="modal-checkin" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
+<div id="modal-checkin" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog modal-lg"><div class="modal-content">
     <div class="modal-header">
         <h3 class="modal-title"><i class="bx bx-log-in"></i> Cheguei no local</h3>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
@@ -86,7 +86,7 @@ $nao_programada = !empty($nao_programada);
 </div></div></div>
 
 <!-- Modal Check-out -->
-<div id="modal-checkout" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" data-nao-programada="<?= $nao_programada ? 1 : 0 ?>"><div class="modal-dialog"><div class="modal-content">
+<div id="modal-checkout" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" data-nao-programada="<?= $nao_programada ? 1 : 0 ?>"><div class="modal-dialog modal-lg"><div class="modal-content">
     <div class="modal-header">
         <h3 class="modal-title"><i class="bx bx-log-out"></i> Concluir atendimento</h3>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>

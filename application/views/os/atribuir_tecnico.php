@@ -32,16 +32,16 @@ a.ui-kpi:hover{color:inherit;text-decoration:none;box-shadow:var(--ui-sombra-alt
 </style>
 
 <?php if ($this->session->flashdata('success') != null) { ?>
-    <div class="alert alert-success">
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="alert alert-success alert-dismissible fade show">
         <?php echo $this->session->flashdata('success'); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
     </div>
 <?php } ?>
 
 <?php if ($this->session->flashdata('error') != null) { ?>
-    <div class="alert alert-danger">
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="alert alert-danger alert-dismissible fade show">
         <?php echo $this->session->flashdata('error'); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
     </div>
 <?php } ?>
 
@@ -351,7 +351,7 @@ $kpiLista = [
         </div>
 
         <?php if (isset($pagination) && $pagination) { ?>
-            <div class="pagination alternate" style="text-align: center;"><?= $pagination ?></div>
+            <div class="d-flex justify-content-center"><?= $pagination ?></div>
         <?php } ?>
     <?php } ?>
 </div>
