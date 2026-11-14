@@ -294,7 +294,7 @@ $statusSimples = function ($st) {
     <?php if (!empty($assinaturas_exibicao)): ?>
         <div class="info-card">
             <h3><i class='bx bx-pen'></i> Assinaturas</h3>
-            <div class="row" style="display:flex; flex-wrap:wrap; gap:14px;">
+            <div style="display:flex; flex-wrap:wrap; gap:14px;">
                 <?php foreach ($assinaturas_exibicao as $assinatura): ?>
                     <div style="flex:1 1 140px; text-align:center;">
                         <h5 style="font-size:12px; color:var(--tec-muted, #8a8fa3); margin:0 0 8px;"><?= in_array($assinatura->tipo, ['solicitante', 'cliente_aceite'], true) ? 'Solicitante' : ucfirst(str_replace('_', ' ', $assinatura->tipo)) ?></h5>
