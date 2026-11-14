@@ -28,7 +28,7 @@
                                     <div class="col-md-12 alert alert-danger" id="divInfo" style="padding: 1%;">Dados incompletos, verifique os campos com asterisco ou se selecionou corretamente cliente e responsável.</div>
                                 <?php } ?>
                                 <form class="row" action="<?php echo current_url(); ?>" method="post" id="formVendas">
-                                    <div class="col-md-12" style="padding: 1%">
+                                    <div class="row" style="padding: 1%">
                                         <div class="col-md-2">
                                             <label for="dataInicial">Data da Venda<span class="required">*</span></label>
                                             <input id="dataVenda" class="datepicker w-100 form-control" type="text" name="dataVenda" value="<?php echo date('d/m/Y'); ?>" />
@@ -63,6 +63,7 @@
                                             <input id="garantia" type="number" placeholder="Em Dias" min="0" max="9999" class="w-100 form-control" name="garantia" value="" />
                                             <?php echo form_error('garantia'); ?>
                                         </div>
+                                    </div>
 
                                     <div class="col-md-6" style="padding: 1%; margin-left: 0">
                                         <label for="observacoes">

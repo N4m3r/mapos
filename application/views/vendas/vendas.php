@@ -182,9 +182,8 @@
 <div id="modal-excluir" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?php echo base_url() ?>index.php/vendas/excluir" method="post">
         <div class="modal-header">
-            
-            <h5 id="myModalLabel">Excluir Venda</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+            <h5 class="modal-title" id="myModalLabel">Excluir Venda</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <input type="hidden" id="idVenda" name="id" value="" />
             <h5 style="text-align: center">Deseja realmente excluir esta Venda?</h5>
@@ -200,9 +199,8 @@
 <!-- Modal Transmitir NF-e -->
 <div id="modal-nfe" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        
-        <h5>Transmitir NF-e</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <h5 class="modal-title">Transmitir NF-e</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <input type="hidden" id="nfeIdVenda" value="" />
         <div id="nfeConfirmacao">

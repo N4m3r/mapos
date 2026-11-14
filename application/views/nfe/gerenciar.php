@@ -129,9 +129,8 @@
 <!-- Modal de cancelamento -->
 <div id="modal-cancelar-nota" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        
-        <h5>Cancelar Nota Fiscal</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <h5 class="modal-title">Cancelar Nota Fiscal</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <input type="hidden" id="cancelarIdNota" value="" />
         <p>Cancelar a nota <strong id="cancelarNumeroNota"></strong>? Esta ação é registrada na SEFAZ/Sefin e não pode ser desfeita.</p>
@@ -152,9 +151,8 @@
 <!-- Modal de retransmissão -->
 <div id="modal-retransmitir" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        
-        <h5>Retransmitir Nota Fiscal</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <h5 class="modal-title">Retransmitir Nota Fiscal</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <input type="hidden" id="retransmitirEndpoint" value="" />
         <p>Retransmitir a nota <strong id="retransmitirNumero"></strong>? O <strong>mesmo número</strong> será reaproveitado. Corrija os dados na origem (OS/Venda) antes, se necessário.</p>
@@ -178,9 +176,8 @@
 <!-- Modal de substituição de NFS-e -->
 <div id="modal-substituir-nota" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        
-        <h5>Substituir NFS-e</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <h5 class="modal-title">Substituir NFS-e</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <input type="hidden" id="substituirIdNota" value="" />
         <p>Substituir a NFS-e <strong id="substituirNumero"></strong> por uma <strong>nova</strong> NFS-e (com os dados atuais da OS). A original ficará marcada como <strong>substituída</strong>.</p>

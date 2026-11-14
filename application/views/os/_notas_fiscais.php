@@ -154,9 +154,8 @@ $configNfeBoleto = $this->nfe_model->getConfig();
 <?php if (! defined('MAPOS_BOLETO_NOTA_JS')) { define('MAPOS_BOLETO_NOTA_JS', true); ?>
 <div id="modal-gerar-boleto" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        
-        <h5>Gerar Boleto/PIX (Cora)</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <h5 class="modal-title">Gerar Boleto/PIX (Cora)</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <input type="hidden" id="boletoNotaId" value="" />
         <p style="margin-bottom:4px">Valor da nota fiscal: <strong id="boletoValorNota">—</strong></p>

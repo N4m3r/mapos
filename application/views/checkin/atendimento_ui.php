@@ -43,9 +43,8 @@ $nao_programada = !empty($nao_programada);
 <!-- Modal Check-in -->
 <div id="modal-checkin" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        
-        <h3><i class="bx bx-log-in"></i> Cheguei no local</h3>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <h3 class="modal-title"><i class="bx bx-log-in"></i> Cheguei no local</h3>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Assine no quadro e toque em "Cheguei" para registrar sua chegada.</div></div>
         <form id="form-checkin">
@@ -62,7 +61,7 @@ $nao_programada = !empty($nao_programada);
                 <div class="upload-area">
                     <input type="file" id="fotos-entrada-input" class="checkin-foto-input form-control" data-etapa="entrada" accept="image/*" style="display:none;">
                     <button type="button" class="btn btn-info btn-capturar-foto" data-etapa="entrada"><i class="bx bx-camera"></i> Tirar Foto</button>
-                    <button type="button" class="btn" data-acao="clicar" data-alvo="#fotos-entrada-input"><i class="bx bx-upload"></i> Escolher da Galeria</button>
+                    <button type="button" class="btn btn-outline-secondary" data-acao="clicar" data-alvo="#fotos-entrada-input"><i class="bx bx-upload"></i> Escolher da Galeria</button>
                     <p class="text-muted" style="margin:10px 0 0;">Máximo 5MB por foto (JPG, PNG)</p>
                 </div>
                 <div id="preview-fotos-entrada" class="preview-fotos-container"></div>
@@ -81,7 +80,7 @@ $nao_programada = !empty($nao_programada);
         </form>
     </div>
     <div class="modal-footer">
-        <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
         <button class="btn btn-success ui-acao-grande" id="btn-confirmar-checkin"><i class="bx bx-log-in"></i> Cheguei</button>
     </div>
 </div></div></div>
@@ -89,9 +88,8 @@ $nao_programada = !empty($nao_programada);
 <!-- Modal Check-out -->
 <div id="modal-checkout" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" data-nao-programada="<?= $nao_programada ? 1 : 0 ?>"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        
-        <h3><i class="bx bx-log-out"></i> Concluir atendimento</h3>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <h3 class="modal-title"><i class="bx bx-log-out"></i> Concluir atendimento</h3>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <div class="ui-dica alerta"><i class="bx bx-info-circle"></i><div>Peça a assinatura do cliente, confira e toque em "Concluir". Depois disso o atendimento é encerrado.</div></div>
         <form id="form-checkout">
@@ -120,7 +118,7 @@ $nao_programada = !empty($nao_programada);
                 <div class="upload-area">
                     <input type="file" id="fotos-saida-input" class="checkin-foto-input form-control" data-etapa="saida" accept="image/*" style="display:none;">
                     <button type="button" class="btn btn-info btn-capturar-foto" data-etapa="saida"><i class="bx bx-camera"></i> Tirar Foto</button>
-                    <button type="button" class="btn" data-acao="clicar" data-alvo="#fotos-saida-input"><i class="bx bx-upload"></i> Escolher da Galeria</button>
+                    <button type="button" class="btn btn-outline-secondary" data-acao="clicar" data-alvo="#fotos-saida-input"><i class="bx bx-upload"></i> Escolher da Galeria</button>
                     <p class="text-muted" style="margin:10px 0 0;">Máximo 5MB por foto (JPG, PNG)</p>
                 </div>
                 <div id="preview-fotos-saida" class="preview-fotos-container"></div>
@@ -144,7 +142,7 @@ $nao_programada = !empty($nao_programada);
         </form>
     </div>
     <div class="modal-footer">
-        <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
         <button class="btn btn-danger ui-acao-grande" id="btn-confirmar-checkout"><i class="bx bx-log-out"></i> Concluir atendimento</button>
     </div>
 </div></div></div>
@@ -152,15 +150,14 @@ $nao_programada = !empty($nao_programada);
 <!-- Modal: Checklist do serviço (passo 3 do assistente) -->
 <div id="modal-checklist" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        
-        <h3><i class="bx bx-list-check"></i> Checklist do serviço</h3>
+        <h3 class="modal-title"><i class="bx bx-list-check"></i> Checklist do serviço</h3>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <div id="formularios-checklist" class="checkin-section"></div>
         <div id="checklist-erro" class="tec-aviso-msg tec-aviso-error" role="alert" style="display:none;"></div>
     </div>
     <div class="modal-footer">
-        <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Fechar</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Fechar</button>
         <button class="btn btn-success ui-acao-grande" id="btn-salvar-checklist"><i class="bx bx-check"></i> Salvar checklist</button>
     </div>
 </div></div></div>
@@ -168,9 +165,8 @@ $nao_programada = !empty($nao_programada);
 <!-- Modal: Enviar Foto do Serviço (etapa "durante") -->
 <div id="modal-foto-servico" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        
-        <h3><i class="bx bx-camera"></i> Foto do serviço</h3>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <h3 class="modal-title"><i class="bx bx-camera"></i> Foto do serviço</h3>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <div class="checkin-section">
             <div class="upload-area">
@@ -191,7 +187,7 @@ $nao_programada = !empty($nao_programada);
         </div>
     </div>
     <div class="modal-footer">
-        <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Fechar</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Fechar</button>
         <button class="btn btn-success" id="btn-fs-enviar" disabled><i class="bx bx-upload"></i> Enviar fotos</button>
     </div>
 </div></div></div>

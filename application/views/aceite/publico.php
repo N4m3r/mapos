@@ -262,7 +262,7 @@ $totalFotos = count($fotos_etapa['entrada']) + count($fotos_etapa['durante']) + 
                                     <div class="ac-canvas-box">
                                         <canvas id="canvasAssinatura"></canvas>
                                     </div>
-                                    <button type="button" class="btn btn-sm" id="btnLimparAssinatura" style="margin-top:6px"><i class="fa fa-eraser"></i> Limpar</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btnLimparAssinatura" style="margin-top:6px"><i class="fa fa-eraser"></i> Limpar</button>
                                 </div>
 
                                 <div class="mb-3" id="obsBox">

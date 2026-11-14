@@ -199,9 +199,8 @@
 <div id="modal-pix" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
     aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        
-        <h3 id="myModalLabel">Pagamento via PIX</h3>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <h3 class="modal-title" id="myModalLabel">Pagamento via PIX</h3>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body"><div class="row">
         <div class="col-md-12" id="div-pix" style="text-align: center">
             <td style="width: 15%; padding: 0;text-align:center;">

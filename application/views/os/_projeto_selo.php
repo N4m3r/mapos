@@ -54,7 +54,7 @@ if (! empty($vinculoProjeto) || $mostrarAcoes || $mostrarConverter):
 <?php if (empty($vinculoProjeto)): ?>
 <div id="modal-vincular-projeto" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form id="formVincularProjeto" method="post" action="#">
-        <div class="modal-header"><h5>Vincular OS a um projeto</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+        <div class="modal-header"><h5 class="modal-title">Vincular OS a um projeto</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body"><div class="row">
             <input type="hidden" name="os_id" value="<?= (int) $osIdProjeto ?>">
             <div class="col-md-12" style="margin-left:0"><label for="vp_obra">Projeto do cliente *</label>
@@ -143,7 +143,7 @@ $(function () {
 <?php if ($mostrarConverter): ?>
 <div id="modal-converter-projeto" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form id="formConverterProjeto" method="post" action="<?= site_url('obras/converterOs') ?>">
-        <div class="modal-header"><h5>Converter OS #<?= (int) $osIdProjeto ?> em projeto</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+        <div class="modal-header"><h5 class="modal-title">Converter OS #<?= (int) $osIdProjeto ?> em projeto</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body"><div class="row">
             <input type="hidden" name="os_id" value="<?= (int) $osIdProjeto ?>">
             <div class="col-md-12" style="margin-left:0"><label for="cp_nome">Nome do projeto</label>

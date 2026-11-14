@@ -177,7 +177,6 @@
                 </div>
             </footer>
         </div>
-        </div>
     </div>
     <script nonce="<?= csp_nonce() ?>" type="text/javascript">
         // Aguarda o carregamento completo de todas as imagens antes de imprimir

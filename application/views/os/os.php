@@ -242,9 +242,8 @@
     <div id="modal-excluir" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
         <form action="<?php echo base_url() ?>index.php/os/excluir" method="post">
             <div class="modal-header">
-                
-                <h5 id="myModalLabel">Excluir OS</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+                <h5 class="modal-title" id="myModalLabel">Excluir OS</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
             <div class="modal-body">
                 <input type="hidden" id="idOs" name="id" value="" />
                 <h5 style="text-align: center">Deseja realmente excluir esta OS?</h5>
@@ -261,9 +260,8 @@
     <div id="modal-duplicar" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
         <form id="form-duplicar" action="<?php echo base_url() ?>index.php/os/duplicar" method="post">
             <div class="modal-header">
-                
-                <h5>Copiar OS para outro cliente/CNPJ</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+                <h5 class="modal-title">Copiar OS para outro cliente/CNPJ</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
             <div class="modal-body">
                 <input type="hidden" id="dup-idOs" name="idOs" value="" />
                 <input type="hidden" id="dup-clientes_id" name="clientes_id" value="" />

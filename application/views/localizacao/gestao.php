@@ -113,8 +113,8 @@
                 <label style="margin:0; font-size:13px;">
                     <input class="form-check-input" type="checkbox" id="loc-auto" checked> Atualização automática
                 </label>
-                <button class="btn btn-sm" id="loc-refresh"><i class="bx bx-refresh"></i> Atualizar agora</button>
-                <button class="btn btn-sm" id="loc-fit"><i class="bx bx-expand"></i> Enquadrar</button>
+                <button class="btn btn-sm btn-outline-secondary" id="loc-refresh"><i class="bx bx-refresh"></i> Atualizar agora</button>
+                <button class="btn btn-sm btn-outline-secondary" id="loc-fit"><i class="bx bx-expand"></i> Enquadrar</button>
             </div>
 
             <div class="loc-legenda">
@@ -156,16 +156,16 @@
                     <input class="form-control" type="number" id="traj-os" placeholder="nº da OS" min="1" style="width:110px;">
                 </div>
                 <button class="btn btn-primary" id="traj-buscar"><i class="bx bx-search"></i> Ver percurso</button>
-                <button class="btn btn-sm" id="traj-gpx" disabled><i class="bx bx-download"></i> GPX</button>
-                <button class="btn btn-sm" id="traj-kml" disabled><i class="bx bx-download"></i> KML</button>
+                <button class="btn btn-sm btn-outline-secondary" id="traj-gpx" disabled><i class="bx bx-download"></i> GPX</button>
+                <button class="btn btn-sm btn-outline-secondary" id="traj-kml" disabled><i class="bx bx-download"></i> KML</button>
             </div>
 
             <div class="traj-toolbar2">
                 <label><input class="form-check-input" type="checkbox" id="traj-rota-plan"> Rota planejada</label>
                 <label><input class="form-check-input" type="checkbox" id="traj-vias"> Seguir vias (OSRM)</label>
                 <label><input class="form-check-input" type="checkbox" id="traj-heat"> Heatmap</label>
-                <button class="btn btn-sm" id="traj-otimizar" disabled><i class="bx bx-shuffle"></i> Sugerir roteiro</button>
-                <button class="btn btn-sm" id="traj-replay-btn" disabled><i class="bx bx-play"></i> Replay</button>
+                <button class="btn btn-sm btn-outline-secondary" id="traj-otimizar" disabled><i class="bx bx-shuffle"></i> Sugerir roteiro</button>
+                <button class="btn btn-sm btn-outline-secondary" id="traj-replay-btn" disabled><i class="bx bx-play"></i> Replay</button>
             </div>
 
             <div class="traj-kpis" id="traj-kpis" style="display:none;">
@@ -183,7 +183,7 @@
                 <div class="traj-mapa-col">
                     <div id="mapa-trajeto"></div>
                     <div class="traj-replay" id="traj-replay">
-                        <button class="btn btn-sm" id="rp-play"><i class="bx bx-play"></i></button>
+                        <button class="btn btn-sm btn-outline-secondary" id="rp-play"><i class="bx bx-play"></i></button>
                         <input type="range" id="rp-range" min="0" max="0" value="0">
                         <span class="rp-hora" id="rp-hora">—</span>
                     </div>
@@ -288,10 +288,10 @@
             html += '<div class="loc-popup-linha" style="margin-top:4px;color:#888;">Última posição: ' + quando + '</div>';
             html += '<div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">';
             if (t.os_id) {
-                html += '<a class="btn btn-sm" href="' + BASE +
+                html += '<a class="btn btn-sm btn-outline-secondary" href="' + BASE +
                         'index.php/os/visualizar/' + t.os_id + '" target="_blank">Abrir OS</a>';
             }
-            html += '<a class="btn btn-sm" href="#" data-chamar="locVerPercursoHoje" data-args="[' + parseInt(t.usuarios_id, 10) + ']">Percurso de hoje</a>';
+            html += '<a class="btn btn-sm btn-outline-secondary" href="#" data-chamar="locVerPercursoHoje" data-args="[' + parseInt(t.usuarios_id, 10) + ']">Percurso de hoje</a>';
             html += '</div>';
             return html;
         }
@@ -554,7 +554,7 @@
                             (os.cliente ? '<br>' + escapar(os.cliente) : '') +
                             (os.endereco ? '<br><span style="color:#888">' + escapar(os.endereco) + '</span>' : '') +
                             (distReal != null ? '<br><span style="color:#b9770e">Atendida a ' + fmtDist(distReal) + ' do local</span>' : '') +
-                            '<br><a class="btn btn-sm" style="margin-top:6px" href="' + BASE +
+                            '<br><a class="btn btn-sm btn-outline-secondary" style="margin-top:6px" href="' + BASE +
                             'index.php/os/visualizar/' + os.idOs + '" target="_blank">Abrir OS</a>');
                     pinosOs[os.idOs] = m;
                     comCoord.push({ os: os, latlng: [os.latitude, os.longitude] });

@@ -4,9 +4,8 @@
 ?>
 <div id="modal-nfse" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        
-        <h5>Emitir NFS-e (serviços) — <span id="nfseStepLabel">Revisão</span></h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <h5 class="modal-title">Emitir NFS-e (serviços) — <span id="nfseStepLabel">Revisão</span></h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <input type="hidden" id="nfseIdOs" value="" />
 

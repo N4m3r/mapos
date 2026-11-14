@@ -481,6 +481,7 @@ $statusSimples = function ($st) {
 .obs-tec-card textarea{width:100%;box-sizing:border-box;min-height:90px;padding:11px 12px;border:1px solid rgba(0,0,0,.2);border-radius:10px;font-size:16px;}
 .obs-tec-card .obs-tec-btn{display:block;width:100%;min-height:52px;margin-top:8px;border:0;border-radius:12px;background:var(--tec-primary, #667eea);color:var(--tec-on-primary, #fff);font-size:16px;font-weight:700;}
 .obs-tec-card .obs-tec-btn[disabled]{opacity:.6;}
+.obs-tec-card.hidden{display:none;}
 .obs-tec-item{padding:8px 0;border-bottom:1px solid var(--tec-line, #eee);font-size:14px;word-wrap:break-word;}
 .obs-tec-item small{display:block;color:var(--tec-muted, #777);}
 .obs-tec-msg{font-size:13px;margin-top:6px;color:var(--tec-danger, #c0392b);}
