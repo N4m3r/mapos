@@ -523,7 +523,7 @@ body.tec-menu-travado { overflow: hidden; }
    Base da area do tecnico: campos, links e Bootstrap 2 que vazam no escuro
    ========================================================================== */
 body.tec-body input, body.tec-body select, body.tec-body textarea {
-  background: var(--tec-input-bg);
+  background-color: var(--tec-input-bg);
   color: var(--tec-input-ink);
   border-color: var(--tec-input-line);
 }
@@ -545,9 +545,52 @@ body.tec-body .tec-bottomnav a { color: var(--tec-muted); }
 body.tec-body .tec-bottomnav a.active { color: var(--tec-primary); }
 body.tec-body :focus-visible { outline-color: var(--tec-primary); }
 
+/* Bootstrap 5.3: o Reboot usa 16px e sublinha links; a area do tecnico usava 14px sem sublinhado.
+   Os componentes leem as variaveis abaixo, que seguem a paleta --tec-* (clara ou escura). */
+body.tec-body { --bs-body-font-size: 14px; --bs-body-line-height: 1.43; --bs-body-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body.tec-body a { text-decoration: none; }
+body.tec-body .form-control, body.tec-body .form-select,
+body.tec-body .form-control:focus, body.tec-body .form-select:focus { background-color: var(--tec-input-bg); color: var(--tec-input-ink); border-color: var(--tec-input-line); }
+body.tec-body .form-control:focus, body.tec-body .form-select:focus { border-color: var(--tec-primary); }
+body.tec-body .form-control:disabled, body.tec-body .form-select:disabled { background-color: var(--tec-surface-2); color: var(--tec-muted); }
+body.tec-body .input-group-text { background-color: var(--tec-surface-2); color: var(--tec-ink); border-color: var(--tec-input-line); }
+body.tec-body .modal {
+  --bs-modal-bg: var(--tec-card); --bs-modal-color: var(--tec-ink); --bs-modal-border-color: var(--tec-line);
+  --bs-modal-header-border-color: var(--tec-line); --bs-modal-footer-border-color: var(--tec-line); --bs-modal-footer-bg: var(--tec-surface-2);
+}
+body.tec-body .dropdown-menu {
+  --bs-dropdown-bg: var(--tec-card); --bs-dropdown-color: var(--tec-ink); --bs-dropdown-border-color: var(--tec-line);
+  --bs-dropdown-link-color: var(--tec-ink); --bs-dropdown-link-hover-color: var(--tec-ink); --bs-dropdown-link-hover-bg: var(--tec-chip-bg);
+  --bs-dropdown-divider-bg: var(--tec-line);
+}
+body.tec-body .card { --bs-card-bg: var(--tec-card); --bs-card-color: var(--tec-ink); --bs-card-border-color: var(--tec-line); --bs-card-cap-bg: var(--tec-surface-2); }
+body.tec-body .list-group {
+  --bs-list-group-bg: var(--tec-card); --bs-list-group-color: var(--tec-ink); --bs-list-group-border-color: var(--tec-line);
+  --bs-list-group-action-color: var(--tec-ink); --bs-list-group-action-hover-color: var(--tec-ink); --bs-list-group-action-hover-bg: var(--tec-chip-bg);
+}
+body.tec-body .table {
+  --bs-table-bg: transparent; --bs-table-color: var(--tec-ink); --bs-table-border-color: var(--tec-line);
+  --bs-table-striped-bg: var(--tec-surface-2); --bs-table-striped-color: var(--tec-ink);
+  --bs-table-hover-bg: var(--tec-chip-bg); --bs-table-hover-color: var(--tec-ink);
+}
+body.tec-body .nav-tabs {
+  --bs-nav-tabs-border-color: var(--tec-line); --bs-nav-tabs-link-hover-border-color: var(--tec-line);
+  --bs-nav-tabs-link-active-color: var(--tec-ink); --bs-nav-tabs-link-active-bg: var(--tec-card);
+  --bs-nav-tabs-link-active-border-color: var(--tec-line) var(--tec-line) var(--tec-card);
+}
+body.tec-body .nav { --bs-nav-link-color: var(--tec-link); --bs-nav-link-hover-color: var(--tec-link); }
+body.tec-body .pagination {
+  --bs-pagination-color: var(--tec-link); --bs-pagination-bg: var(--tec-card); --bs-pagination-border-color: var(--tec-line);
+  --bs-pagination-hover-color: var(--tec-ink); --bs-pagination-hover-bg: var(--tec-chip-bg); --bs-pagination-hover-border-color: var(--tec-line);
+  --bs-pagination-active-color: var(--tec-on-primary); --bs-pagination-active-bg: var(--tec-primary); --bs-pagination-active-border-color: var(--tec-primary);
+  --bs-pagination-disabled-color: var(--tec-muted); --bs-pagination-disabled-bg: var(--tec-surface-2); --bs-pagination-disabled-border-color: var(--tec-line);
+}
+/* utilitaria do BS2 que o JS ainda pode usar (o BS5 nao tem) */
+.hide { display: none; }
+
 @media (prefers-color-scheme: dark) {
   body.tec-body .card.card-body { background: var(--tec-surface-2); border-color: var(--tec-line); color: var(--tec-ink); }
-  body.tec-body .modal { background: var(--tec-card); color: var(--tec-ink); border-color: var(--tec-line); }
+  body.tec-body .btn-close { filter: var(--bs-btn-close-white-filter); }
   body.tec-body .modal-header { border-bottom-color: var(--tec-line); }
   body.tec-body .modal-header h1, body.tec-body .modal-header h2, body.tec-body .modal-header h3,
   body.tec-body .modal-header h4, body.tec-body .modal-body { color: var(--tec-ink); }
@@ -555,8 +598,6 @@ body.tec-body :focus-visible { outline-color: var(--tec-primary); }
   body.tec-body .modal-backdrop { background: #000; }
   body.tec-body .table { color: var(--tec-ink); }
   body.tec-body .table th, body.tec-body .table td { border-top-color: var(--tec-line); }
-  body.tec-body .table-striped tbody > tr:nth-child(odd) > td,
-  body.tec-body .table-striped tbody > tr:nth-child(odd) > th { background: var(--tec-surface-2); }
   body.tec-body .table-hover tbody tr:hover > td { background: var(--tec-chip-bg); }
   body.tec-body .table-bordered, body.tec-body .table-bordered th, body.tec-body .table-bordered td { border-color: var(--tec-line); }
   body.tec-body .alert { background: var(--tec-warning-bg); color: var(--tec-warning); border-color: var(--tec-warning); text-shadow: none; }
