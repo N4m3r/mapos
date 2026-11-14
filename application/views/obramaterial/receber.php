@@ -13,7 +13,7 @@
         <div class="widget-content">
             <form class="row" action="<?= current_url() ?>" method="post">
 
-                <div class="col-md-12 row">
+                <div class="col-md-12"><div class="row">
                     <div class="col-md-3" style="margin-left:0">
                         <label>Origem</label>
                         <select name="origem" class="w-100 form-select">
@@ -28,7 +28,7 @@
                     <div class="col-md-12" style="margin-left:0">
                         <span class="scanner-status"><i class='bx bx-info-circle'></i> Em <strong>Compra própria</strong>, informe o <strong>valor unitário</strong> — o material comprado pela empresa entra no custo realizado do projeto.</span>
                     </div>
-                </div>
+                </div></div>
 
                 <!-- Scanner -->
                 <div class="col-md-12" style="margin-left:0">
@@ -68,10 +68,10 @@
 
                 <div class="col-md-12" style="margin-left:0"><label>Observação</label><textarea class="w-100 form-control" name="observacao" rows="2"></textarea></div>
 
-                <div class="col-md-12 row" style="padding:1%; margin-left:0"><div class="col-md-6 offset-md-3 obra-actionbar" style="display:flex;justify-content:center">
+                <div class="col-md-12" style="padding:1%; margin-left:0"><div class="row"><div class="col-md-6 offset-md-3 obra-actionbar" style="display:flex;justify-content:center">
                     <button class="button btn btn-success"><span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Confirmar recebimento</span></button>
                     <a href="<?= site_url('obras/visualizar/' . $obra->idObra) ?>" class="button btn btn-sm btn-warning"><span class="button__icon"><i class="bx bx-undo"></i></span><span class="button__text2">Voltar</span></a>
-                </div></div>
+                </div></div></div>
             </form>
         </div>
     </div>

@@ -1,16 +1,4 @@
 <style>
-    .col-lg-12,
-    .col-lg-3,
-    .col-lg-9,
-    .col-md-12,
-    .col-md-3,
-    .col-md-9,
-    .col-sm-12,
-    .col-xs-12 {
-        position: relative;
-        min-height: 1px;
-    }
-
     .img-user {
       bottom: 15px;
       right: 18px;
@@ -53,31 +41,6 @@
         width: 100px;
     }
 
-    @media (min-width: 1200px) {
-        .col-lg-3 {
-            width: 25%;
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .col-lg-12,
-        .col-lg-3,
-        .col-lg-9 {
-            float: left;
-            width: 100%;
-        }
-    }
-
-    @media (min-width: 480px) and (max-width: 992px) {
-        .col-md-3 {
-            width: 25%;
-        }
-
-        .col-lg-9 {
-            width: 85%;
-        }
-    }
-
     @media (max-width: 480px) {
         .table-sm td {
             padding: 4px 5px;
@@ -100,12 +63,13 @@
         <p class="ui-subtitulo">Foto, senha e verificação em duas etapas do seu acesso.</p>
     </div>
 </div>
+<div class="row">
 <div class="col-md-6" style="margin-left: 0">
     <div class="widget-box">
         <div class="widget-contentMC" style="margin: 20px 0 0;">
             <div id="userMC">
                 <div class="row">
-                    <div class="col-md-3 col-lg-3 " style="text-align:center;">
+                    <div class="col-12" style="text-align:center;">
                         <section>
                             <div class="profileMC">
                                 <div class="profile-img">
@@ -216,24 +180,24 @@
         </div>
     </div>
 </div>
+</div>
 
 <div id="modalImageUser" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('mapos/uploadUserImage'); ?>" id="formImageUser" enctype="multipart/form-data" method="post" class="form-horizontal">
         <div class="modal-header">
-            
-            <h3 id="">MapOS - Atualizar Imagem do Usuario</h3>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
-        <div class="modal-body"><div class="row">
-            <div class="col-md-12 alert alert-info">Selecione uma nova imagem do usuario. Tamanho indicado (130 X 130).</div>
+            <h5 class="modal-title" id="myModalLabel">MapOS - Atualizar Imagem do Usuario</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+        <div class="modal-body">
+            <div class="alert alert-info">Selecione uma nova imagem do usuario. Tamanho indicado (130 X 130).</div>
             <div class="row mb-2">
                 <label for="userfile" class="col-sm-3 col-form-label"><span class="required">Foto*</span></label>
                 <div class="col-sm-9">
                     <input class="form-control" type="file" name="userfile" value="" />
                 </div>
             </div>
-        </div></div>
+        </div>
         <div class="modal-footer" style="display:flex;justify-content: center">
-            <button class="button btn btn-warning" data-bs-dismiss="modal" aria-hidden="true" id="btnCancelExcluir"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
+            <button type="button" class="button btn btn-warning" data-bs-dismiss="modal" id="btnCancelExcluir"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
             <button class="button btn btn-primary"><span class="button__icon"><i class="bx bx-sync"></i></span><span class="button__text2">Atualizar</span></button>
         </div>
     </form>

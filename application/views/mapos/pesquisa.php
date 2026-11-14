@@ -1,4 +1,4 @@
- <div class="col-md-12 row" style="margin-left: 0; margin-top: 0">
+ <div class="col-md-12" style="margin-left: 0; margin-top: 0"><div class="row">
     <div class="ui-cabecalho">
         <div>
             <h1 class="ui-titulo"><i class="bx bx-search-alt"></i> Pesquisa</h1>
@@ -16,7 +16,7 @@
             </div>
         </form>
     </div>
-    <div class="col-md-12 row" style="margin-left: 0; margin-top: 0">
+    <div class="col-md-12" style="margin-left: 0; margin-top: 0"><div class="row">
         <!--Produtoss-->
         <div class="col-md-6" style="margin-left: 0; margin-top: 0">
             <div class="widget-box" style="min-height: 200px">
@@ -115,7 +115,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div></div>
     <!--Serviços-->
     <div class="col-md-6" style="margin-left: 0">
         <div class="widget-box" style="min-height: 200px">
@@ -211,4 +211,4 @@
             </div>
         </div>
     </div>
-</div>
+</div></div>
