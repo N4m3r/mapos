@@ -27,7 +27,7 @@
 </head>
 
 <body>
-    <div class="row" style="width: 100vw;height: 100vh;display: flex;align-items: center;justify-content: center">
+    <div style="width: 100%;min-height: 100vh;display: flex;align-items: center;justify-content: center">
         <div class="widget-box" style="align-items: center;padding: 0 15px;">
             <div class="widget-title">
                 <h5 style="padding-left: 10px">Token</h5>
@@ -85,7 +85,7 @@
     <?php } ?>
 
     <!--Footer-part-->
-    <div class="row">
+    <div class="row g-0">
         <div id="footer" class="col-md-12" style="padding: 10px"> <a class="pecolor" href="https://github.com/RamonSilva20/mapos" target="_blank">
                 <?= date('Y') ?> &copy; Ramon Silva - <?php echo $this->config->item('app_name') ?> - Versão: <?= $this->config->item('app_version'); ?>
             </a></div>

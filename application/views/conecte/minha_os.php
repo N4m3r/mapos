@@ -236,7 +236,7 @@
 
     </div>
     <!--Footer-part-->
-    <div class="row">
+    <div class="row g-0">
         <div id="footer" class="col-md-12"> <?= date('Y') ?> &copy; <?php echo $this->config->item('app_name'); ?> - Versão <?php echo $this->config->item('app_version'); ?></div>
     </div>
 

@@ -83,7 +83,7 @@ $this->load->view('conecte/filtros_portal', ['acaoFiltro' => 'mine/cobrancas']);
             <h5 style="text-align: center">Deseja realmente excluir esta cobrança? A cobrança será cancelada.</h5>
         </div>
         <div class="modal-footer">
-            <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
+            <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
             <button class="btn btn-danger">Excluir</button>
         </div>
     </form>
@@ -101,7 +101,7 @@ $this->load->view('conecte/filtros_portal', ['acaoFiltro' => 'mine/cobrancas']);
             <h5 style="text-align: center">Deseja realmente confirmar pagamento desta cobrança?</h5>
         </div>
         <div class="modal-footer">
-            <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
+            <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
             <button class="btn btn-success">Confirmar</button>
         </div>
     </form>
@@ -119,7 +119,7 @@ $this->load->view('conecte/filtros_portal', ['acaoFiltro' => 'mine/cobrancas']);
             <h5 style="text-align: center">Deseja realmente Cancelar esta cobrança?</h5>
         </div>
         <div class="modal-footer">
-            <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
+            <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
             <button class="btn btn-danger">Confirmar</button>
         </div>
     </form>

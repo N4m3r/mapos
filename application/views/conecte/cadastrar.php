@@ -29,22 +29,16 @@
             cursor: pointer;
         }
 
-        .control-group.error .form-text {
+        .is-invalid ~ .invalid-feedback {
             display: flex;
         }
 
-        .form-horizontal .control-group {
+        .form-horizontal .row.mb-2 {
             border-bottom: 1px solid #ffffff;
         }
 
-        .form-horizontal .controls {
-            margin-left: 20px;
-            padding-bottom: 8px 0;
-        }
-
-        .form-horizontal .control-label {
-            text-align: left;
-            padding-top: 0;
+        .form-horizontal .row.mb-2 > .col-12 {
+            padding-bottom: 8px;
         }
 
         .nopadding {
@@ -76,20 +70,8 @@
                 display: block !important;
             }
 
-            .form-horizontal .control-label {
-                margin-bottom: -6px;
-            }
-
             .btn-xs {
                 position: initial !important;
-            }
-            .controls {
-                margin-left: 50%;
-            }
-
-            .btn {
-                position: absolute; /* Reposiciona o botão na posição absoluta */
-                width: auto; /* Define a largura automática do botão */
             }
         }
 
@@ -98,22 +80,11 @@
                 display: block; /* Exibe os campos em bloco */
             }
 
-            .control-group {
+            .form-horizontal .row.mb-2 {
                 margin-bottom: 15px; /* Espaçamento entre os campos */
             }
 
-            .controls {
-                margin-left: 0; /* Remove o deslocamento à esquerda */
-            }
-
-            .control-group input[type="text"],
-            .control-group input[type="password"],
-            .control-group select {
-                width: 100%; /* Faz os inputs ocuparem toda a largura disponível */
-            }
-
-            .btn {
-                position: static; /* Remove a posição absoluta do botão */
+            .form-actions .btn {
                 width: 100%; /* Faz o botão ocupar a largura total do campo */
                 margin-top: 10px; /* Adiciona espaçamento acima do botão */
             }
@@ -131,7 +102,7 @@
         }
     </style>
 
-    <div class="row" style="width: 100vw;height: 96%;display: grid;align-items: center;justify-content: center">
+    <div style="width: 100%;height: 96%;display: grid;align-items: center;justify-content: center">
         <div class="widget-box">
             <div class="widget-title">
                 <h5>Cadastre-se no Sistema</h5>
@@ -140,8 +111,8 @@
                 <div class="widget-content nopadding tab-content">
                     <input type="hidden" name="<?= $this->security->get_csrf_token_name(); ?>" value="<?= $this->security->get_csrf_hash(); ?>">
                     <div class="row mb-2">
-                        <label for="nomeCliente" class="col-sm-3 col-form-label"><span class="required"></span></label>
-                        <div class="col-sm-9">
+                        <label for="nomeCliente" class="visually-hidden"><span class="required"></span></label>
+                        <div class="col-12">
                             <input class="form-control" id="nomeCliente" type="text" placeholder="Nome*" name="nomeCliente" value="<?= set_value('nomeCliente') ?>" />
                         </div>
                     </div>
@@ -149,92 +120,94 @@
                         <?php if (isset($custom_error) && $custom_error != '') {
                             echo '<div class="alert alert-danger">' . $custom_error . '</div>';
                         } ?>
-                        <label for="documento" class="col-sm-3 col-form-label"><span class="required"></span></label>
-                        <div class="col-sm-9">
-                            <input id="documento" class="cpfcnpj form-control" type="text" placeholder="CPF/CNPJ*" name="documento" value="<?= set_value('documento') ?>" />
-                            <button style="top:70px;right:40px;position:absolute" id="buscar_info_cnpj" class="btn btn-sm" type="button"><i class="fas fa-search"></i></button>
+                        <label for="documento" class="visually-hidden"><span class="required"></span></label>
+                        <div class="col-12">
+                            <div class="input-group">
+                                <input id="documento" class="cpfcnpj form-control" type="text" placeholder="CPF/CNPJ*" name="documento" value="<?= set_value('documento') ?>" />
+                                <button id="buscar_info_cnpj" class="btn btn-outline-secondary" type="button" title="Buscar CNPJ" aria-label="Buscar CNPJ"><i class="fas fa-search"></i></button>
+                            </div>
                         </div>
                     </div>
 
                     <div class="row mb-2">
-                        <label for="telefone" class="col-sm-3 col-form-label"><span class="required"></span></label>
-                        <div class="col-sm-9">
+                        <label for="telefone" class="visually-hidden"><span class="required"></span></label>
+                        <div class="col-12">
                             <input class="form-control" id="telefone" type="text" placeholder="Telefone*" name="telefone" value="<?= set_value('telefone') ?>" />
                         </div>
                     </div>
 
                     <div class="row mb-2">
-                        <label for="celular" class="col-sm-3 col-form-label"></label>
-                        <div class="col-sm-9">
+                        <label for="celular" class="visually-hidden"></label>
+                        <div class="col-12">
                             <input class="form-control" id="celular" type="text" placeholder="Celular" name="celular" value="<?= set_value('celular') ?>" />
                         </div>
                     </div>
 
                     <div class="row mb-2">
-                        <label for="email" class="col-sm-3 col-form-label"><span class="required"></span></label>
-                        <div class="col-sm-9">
+                        <label for="email" class="visually-hidden"><span class="required"></span></label>
+                        <div class="col-12">
                             <input class="form-control" id="email" type="text" placeholder="Email*" name="email" value="<?= set_value('email') ?>" />
                         </div>
                     </div>
 
                     <div class="row mb-2">
-                        <label for="senha" class="col-sm-3 col-form-label"><span class="required"></span></label>
-                        <div class="col-sm-9">
+                        <label for="senha" class="visually-hidden"><span class="required"></span></label>
+                        <div class="col-12">
                             <input class="form-control" id="senha" type="password" placeholder="Senha*" name="senha" value="<?= set_value('senha') ?>" />
                             <img id="imgSenha" src="<?= base_url() ?>assets/img/eye.svg" alt="">
                         </div>
                     </div>
 
-                    <div class="row mb-2" class="form-label">
-                        <label for="cep" class="col-sm-3 col-form-label"><span class="required"></span></label>
-                        <div class="col-sm-9">
+                    <div class="row mb-2">
+                        <label for="cep" class="visually-hidden"><span class="required"></span></label>
+                        <div class="col-12">
                             <input class="form-control" id="cep" type="text" placeholder="CEP*" name="cep" value="<?= set_value('cep') ?>" />
                         </div>
                     </div>
 
-                    <div class="row mb-2" class="form-label">
-                        <label for="rua" class="col-sm-3 col-form-label"><span class="required"></span></label>
-                        <div class="col-sm-9">
+                    <div class="row mb-2">
+                        <label for="rua" class="visually-hidden"><span class="required"></span></label>
+                        <div class="col-12">
                             <input class="form-control" id="rua" type="text" placeholder="Rua*" name="rua" value="<?= set_value('rua') ?>" />
                         </div>
                     </div>
 
                     <div class="row mb-2">
-                        <label for="numero" class="col-sm-3 col-form-label"><span class="required"></span></label>
-                        <div class="col-sm-9">
+                        <label for="numero" class="visually-hidden"><span class="required"></span></label>
+                        <div class="col-12">
                             <input class="form-control" id="numero" type="text" placeholder="Número*" name="numero" value="<?= set_value('numero') ?>" />
                         </div>
                     </div>
                     <div class="row mb-2">
-                        <label for="complemento" class="col-sm-3 col-form-label"></label>
-                        <div class="col-sm-9">
+                        <label for="complemento" class="visually-hidden"></label>
+                        <div class="col-12">
                             <input class="form-control" id="complemento" type="text" placeholder="Complemento" name="complemento" value="<?= set_value('complemento') ?>" />
                         </div>
                     </div>
-                    <div class="row mb-2" class="form-label">
-                        <label for="bairro" class="col-sm-3 col-form-label"><span class="required"></span></label>
-                        <div class="col-sm-9">
+                    <div class="row mb-2">
+                        <label for="bairro" class="visually-hidden"><span class="required"></span></label>
+                        <div class="col-12">
                             <input class="form-control" id="bairro" type="text" placeholder="Bairro*" name="bairro" value="<?= set_value('bairro') ?>" />
                         </div>
                     </div>
 
-                    <div class="row mb-2" class="form-label">
-                        <label for="cidade" class="col-sm-3 col-form-label"><span class="required"></span></label>
-                        <div class="col-sm-9">
+                    <div class="row mb-2">
+                        <label for="cidade" class="visually-hidden"><span class="required"></span></label>
+                        <div class="col-12">
                             <input class="form-control" id="cidade" type="text" placeholder="Cidade*" name="cidade" value="<?= set_value('cidade') ?>" />
                         </div>
                     </div>
 
-                    <div class="row mb-2" class="form-label">
-                        <label for="contato" class="col-sm-3 col-form-label"></label>
-                        <div class="col-sm-9">
+                    <div class="row mb-2">
+                        <label for="contato" class="visually-hidden"></label>
+                        <div class="col-12">
                             <input class="form-control" id="contato" type="text" placeholder="Contato*" name="contato" value="<?= set_value('contato') ?>" />
                         </div>
                     </div>
 
-                    <div class="row mb-2" class="form-label">
-                        <label for="estado" class="col-sm-3 col-form-label"><span class="required"></span></label>
-                        <div class="col-sm-9">
+                    <div class="row mb-2">
+                        <label for="estado" class="visually-hidden"><span class="required"></span></label>
+                        <div class="col-12">
                             <select class="form-select" id="estado" name="estado">
                                 <option value="">Selecione Seu Estado...</option>
                             </select>
@@ -401,7 +374,7 @@
 
 
     <!--Footer-part-->
-    <div class="row">
+    <div class="row g-0">
         <div id="footer" class="col-md-12" style="padding: 10px">
             <a class="pecolor" href="https://github.com/RamonSilva20/mapos" target="_blank">
                 <?= date('Y') ?> &copy; Ramon Silva - <?= $this->config->item('app_name') ?> - Versão: <?= $this->config->item('app_version'); ?>

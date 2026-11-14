@@ -36,8 +36,10 @@
                         } ?>
                         <label for="documento" class="col-sm-3 col-form-label">CPF/CNPJ<span class="required">*</span></label>
                         <div class="col-sm-9">
-                            <input id="documento" class="cpfcnpjmine form-control" type="text" name="documento" value="<?php echo html_escape($result->documento); ?>" />
-                            <button id="buscar_info_cnpj" class="btn btn-sm" type="button"><i class="fas fa-search"></i></button>
+                            <div class="input-group">
+                                <input id="documento" class="cpfcnpjmine form-control" type="text" name="documento" value="<?php echo html_escape($result->documento); ?>" />
+                                <button id="buscar_info_cnpj" class="btn btn-outline-secondary" type="button" title="Buscar CNPJ" aria-label="Buscar CNPJ"><i class="fas fa-search"></i></button>
+                            </div>
                         </div>
                     </div>
                     <div class="row mb-2">
