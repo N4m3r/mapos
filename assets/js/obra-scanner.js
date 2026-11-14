@@ -47,7 +47,7 @@
             : '';
         tr.innerHTML =
             '<td data-label="Item"><input type="hidden" name="produto_id" value="' + (dados.produto_id || '') + '">' +
-            '<input type="text" name="descricao" class="span12" value="' + (dados.descricao || '') + '" placeholder="Descrição do item"></td>' +
+            '<input type="text" name="descricao" class="w-100" value="' + (dados.descricao || '') + '" placeholder="Descrição do item"></td>' +
             '<td data-label="Código"><input type="text" name="cod_barras" value="' + (dados.cod_barras || '') + '" style="width:120px"></td>' +
             '<td data-label="Un."><input type="text" name="unidade" value="' + (dados.unidade || '') + '" style="width:60px"></td>' +
             colQtd + colValor +

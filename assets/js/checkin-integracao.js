@@ -356,7 +356,7 @@ var CheckinIntegracao = {
         var container = $('#fotos-' + etapa + '-container');
         if (!container.length) return;
 
-        var html = '<div class="row-fluid">';
+        var html = '<div class="row">';
         for (var i = 0; i < fotos.length; i++) {
             var foto = fotos[i];
             // Usa URL correta - url_visualizacao para base64 ou url normal
@@ -365,9 +365,9 @@ var CheckinIntegracao = {
             if (!imgUrl && foto.idFoto) {
                 imgUrl = this.config.baseUrl + 'index.php/checkin/verFotoDB/' + foto.idFoto;
             }
-            html += '<div class="span4" style="margin-bottom: 10px;">';
-            html += '<div class="thumbnail">';
-            html += '<a href="' + imgUrl + '" target="_blank"><img src="' + imgUrl + '" style="max-height: 120px;"></a>';
+            html += '<div class="col-md-4" style="margin-bottom: 10px;">';
+            html += '<div class="img-thumbnail">';
+            html += '<a href="' + imgUrl + '" target="_blank"><img src="' + imgUrl + '" class="img-fluid" style="max-height: 120px;"></a>';
             html += '</div>';
             html += '</div>';
         }
