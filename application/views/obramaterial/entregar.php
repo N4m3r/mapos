@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="<?= base_url() ?>assets/css/obras.css">
+<link rel="stylesheet" href="<?= base_url() ?>assets/css/obras.css?v=<?= asset_versao('assets/css/obras.css') ?>">
 
 <div id="obra-material" data-buscar-url="<?= site_url('obramaterial/buscarProduto') ?>" data-modo="entregar">
     <div class="widget-box">

@@ -72,7 +72,7 @@ if ($obra->status === 'em_execucao' && ! empty($pode_executar)) {
 $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
 ?>
 <link rel="stylesheet" href="<?= base_url('assets/css/projeto-pagina.css') ?>?v=<?= asset_versao('assets/css/projeto-pagina.css', '1') ?>">
-<link rel="stylesheet" href="<?= base_url('assets/css/obras.css') ?>">
+<link rel="stylesheet" href="<?= base_url('assets/css/obras.css') ?>?v=<?= asset_versao('assets/css/obras.css') ?>">
 
 <div class="pj-pagina">
 

@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="<?= base_url() ?>assets/css/obras.css">
+<link rel="stylesheet" href="<?= base_url() ?>assets/css/obras.css?v=<?= asset_versao('assets/css/obras.css') ?>">
 <?php $perm = function ($p) { return $this->permission->checkPermission($this->session->userdata('permissao'), $p); }; ?>
 
 <?php $this->load->view('obras/_nav'); ?>

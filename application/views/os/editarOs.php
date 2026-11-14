@@ -7,8 +7,8 @@
 <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/langs/pt_br.js"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= asset_versao('assets/js/rascunho-form.js') ?>"></script>
 
-<link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/custom.css" />
-<link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/assinatura.css" />
+<link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/custom.css?v=<?= asset_versao('assets/css/custom.css') ?>" />
+<link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/assinatura.css?v=<?= asset_versao('assets/css/assinatura.css') ?>" />
 <link rel="stylesheet" href="<?= base_url('assets/css/os-form.css') ?>?v=<?= asset_versao('assets/css/os-form.css') ?>" />
 
 <div class="row" style="margin-top:0">

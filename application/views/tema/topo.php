@@ -10,29 +10,29 @@
   <link rel="shortcut icon" type="image/png" href="<?= base_url(); ?>assets/img/favicon.png" />
   <link rel="stylesheet" href="<?= base_url(); ?>assets/css/bootstrap.min.css?v=<?= asset_versao('assets/css/bootstrap.min.css') ?>" />
   <link rel="stylesheet" href="<?= base_url('assets/css/matrix-style.css') ?>?v=<?= asset_versao('assets/css/matrix-style.css') ?>" />
-  <link rel="stylesheet" href="<?= base_url(); ?>assets/css/matrix-media.css" />
+  <link rel="stylesheet" href="<?= base_url(); ?>assets/css/matrix-media.css?v=<?= asset_versao('assets/css/matrix-media.css') ?>" />
   <?php if ($this->uri->segment(1) === 'rh'): ?>
   <link rel="stylesheet" href="<?= base_url('assets/css/rh.css') ?>?v=<?= asset_versao('assets/css/rh.css', '3') ?>" />
   <?php endif; ?>
   <link href="<?= base_url(); ?>assets/font-awesome/css/font-awesome.css" rel="stylesheet" />
   <link rel="stylesheet" href="<?= base_url(); ?>assets/css/fullcalendar.css" />
   <?php if ($configuration['app_theme'] == 'white') { ?>
-    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-white.css" />
+    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-white.css?v=<?= asset_versao('assets/css/tema-white.css') ?>" />
   <?php } ?>
   <?php if ($configuration['app_theme'] == 'puredark') { ?>
-    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-pure-dark.css" />
+    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-pure-dark.css?v=<?= asset_versao('assets/css/tema-pure-dark.css') ?>" />
   <?php } ?>
   <?php if ($configuration['app_theme'] == 'darkviolet') { ?>
-    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-dark-violet.css" />
+    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-dark-violet.css?v=<?= asset_versao('assets/css/tema-dark-violet.css') ?>" />
   <?php } ?>
   <?php if ($configuration['app_theme'] == 'darkorange') { ?>
-    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-dark-orange.css" />
+    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-dark-orange.css?v=<?= asset_versao('assets/css/tema-dark-orange.css') ?>" />
   <?php } ?>
   <?php if ($configuration['app_theme'] == 'whitegreen') { ?>
-    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-white-green.css" />
+    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-white-green.css?v=<?= asset_versao('assets/css/tema-white-green.css') ?>" />
   <?php } ?>
   <?php if ($configuration['app_theme'] == 'whiteblack') { ?>
-    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-white-black.css" />
+    <link rel="stylesheet" href="<?= base_url(); ?>assets/css/tema-white-black.css?v=<?= asset_versao('assets/css/tema-white-black.css') ?>" />
   <?php } ?>
   <link rel="stylesheet" href="<?= base_url('assets/css/tema-escuro-ajustes.css') ?>?v=<?= asset_versao('assets/css/tema-escuro-ajustes.css') ?>">
   <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,800' rel='stylesheet' type='text/css'>

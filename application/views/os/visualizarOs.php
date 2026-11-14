@@ -3,7 +3,7 @@
 // eOs && !técnico. Default defensivo caso a view seja renderizada sem ele.
 $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
 ?>
-<link href="<?= base_url('assets/css/custom.css'); ?>" rel="stylesheet">
+<link href="<?= base_url('assets/css/custom.css'); ?>?v=<?= asset_versao('assets/css/custom.css') ?>" rel="stylesheet">
 
 <!-- Scripts do Sistema de Check-in (carregados antes dos modais) -->
 <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/assinatura-canvas.js?v=4"></script>
