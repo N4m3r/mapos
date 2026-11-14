@@ -8,8 +8,7 @@
   <meta name="csrf-token-name" content="<?= config_item("csrf_token_name") ?>">
   <meta name="csrf-cookie-name" content="<?= config_item("csrf_cookie_name") ?>">
   <link rel="shortcut icon" type="image/png" href="<?= base_url(); ?>assets/img/favicon.png" />
-  <link rel="stylesheet" href="<?= base_url(); ?>assets/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="<?= base_url(); ?>assets/css/bootstrap-responsive.min.css" />
+  <link rel="stylesheet" href="<?= base_url(); ?>assets/css/bootstrap.min.css?v=<?= asset_versao('assets/css/bootstrap.min.css') ?>" />
   <link rel="stylesheet" href="<?= base_url('assets/css/matrix-style.css') ?>?v=<?= asset_versao('assets/css/matrix-style.css') ?>" />
   <link rel="stylesheet" href="<?= base_url(); ?>assets/css/matrix-media.css" />
   <?php if ($this->uri->segment(1) === 'rh'): ?>

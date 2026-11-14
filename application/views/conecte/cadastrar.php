@@ -9,13 +9,11 @@
     <meta name="csrf-token-name" content="<?= config_item("csrf_token_name") ?>">
     <meta name="csrf-cookie-name" content="<?= config_item("csrf_cookie_name") ?>">
     <link rel="shortcut icon" type="image/png" href="<?= base_url(); ?>assets/img/favicon.png" />
-    <link rel="stylesheet" href="<?= base_url() ?>assets/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="<?= base_url() ?>assets/css/bootstrap-responsive.min.css" />
+    <link rel="stylesheet" href="<?= base_url() ?>assets/css/bootstrap.min.css?v=<?= asset_versao('assets/css/bootstrap.min.css') ?>" />
     <link rel="stylesheet" href="<?= base_url() ?>assets/css/matrix-style.css" />
     <link rel="stylesheet" href="<?= base_url() ?>assets/css/matrix-media.css" />
     <link rel="stylesheet" href="<?= base_url() ?>assets/font-awesome/css/font-awesome.css" />
     <link rel="stylesheet" href="<?= base_url() ?>assets/css/fullcalendar.css" />
-    <link rel="stylesheet" href="<?= base_url() ?>assets/css/bootstrap-responsive.min.css">
     <link rel="stylesheet" href="<?= base_url('assets/boxicons/css/boxicons.min.css') ?>">
     <?= jquery_tags() ?>
     <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url(); ?>assets/js/funcoesGlobal.js"></script>
@@ -270,7 +268,8 @@
     <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url() ?>assets/js/sweetalert2.all.min.js"></script>
     <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url() ?>assets/js/funcoes.js"></script>
     <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url() ?>assets/js/jquery.validate.js"></script>
-    <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url() ?>assets/js/bootstrap.min.js"></script>
+    <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url() ?>assets/js/bootstrap.bundle.min.js"></script>
+    <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?= base_url() ?>assets/js/bootstrap-jquery.js"></script>
     <script nonce="<?= csp_nonce() ?>" type="text/javascript">
         <?php if ($this->session->flashdata('error') != null) { ?>
             console.log('Erro');
