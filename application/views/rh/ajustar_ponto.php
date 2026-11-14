@@ -52,8 +52,10 @@ $diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
             </tbody>
         </table>
     </div></div>
+    <div class="col-12 d-flex flex-wrap gap-2">
     <a href="<?= site_url('rh/ficha/'.$colaborador->id) ?>" class="button btn btn-warning"><span class="button__text2">Voltar à ficha</span></a>
     <a href="<?= site_url('rh/espelho/'.$colaborador->id.'/'.$competencia) ?>" class="button btn btn-dark"><span class="button__text2">Ver espelho</span></a>
+    </div>
 </div>
 
 <!-- Modal criar/editar batida -->
