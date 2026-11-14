@@ -60,12 +60,14 @@ $comOpcoes = $tiposComOpcoes ?? ['select', 'radio', 'checkbox'];
                 </div>
                 <div class="col-md-2">
                     <label>&nbsp;</label>
-                    <label class="checkbox">
-                        <input class="form-check-input" type="checkbox" name="ativo" value="1" <?= (! $isEdit || (int) $formulario->ativo === 1) ? 'checked' : '' ?>> Ativo
-                    </label>
-                    <label class="checkbox">
-                        <input class="form-check-input" type="checkbox" name="obrigatorio" value="1" <?= ($isEdit && (int) $formulario->obrigatorio === 1) ? 'checked' : '' ?>> Obrigatório
-                    </label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="form-ativo" name="ativo" value="1" <?= (! $isEdit || (int) $formulario->ativo === 1) ? 'checked' : '' ?>>
+                        <label class="form-check-label" for="form-ativo">Ativo</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="form-obrigatorio" name="obrigatorio" value="1" <?= ($isEdit && (int) $formulario->obrigatorio === 1) ? 'checked' : '' ?>>
+                        <label class="form-check-label" for="form-obrigatorio">Obrigatório</label>
+                    </div>
                 </div>
             </div>
 
@@ -133,23 +135,23 @@ $comOpcoes = $tiposComOpcoes ?? ['select', 'radio', 'checkbox'];
                 '<div class="campo-item" style="border:1px solid #e2e5ef;border-radius:6px;padding:12px;margin-bottom:10px;background:#fafbff">'
                 + '<div class="row">'
                 +   '<div class="col-md-5"><label>Rótulo do campo</label>'
-                +     '<input type="text" name="' + p + '[label]" class="col-md-12" maxlength="200" placeholder="Ex.: Nível do óleo" value="' + escAttr(dados.label) + '"></div>'
+                +     '<input type="text" name="' + p + '[label]" class="form-control" maxlength="200" placeholder="Ex.: Nível do óleo" value="' + escAttr(dados.label) + '"></div>'
                 +   '<div class="col-md-4"><label>Tipo</label>'
-                +     '<select name="' + p + '[tipo]" class="col-md-12 campo-tipo">' + opcoesTipo(tipo) + '</select></div>'
+                +     '<select name="' + p + '[tipo]" class="form-select campo-tipo">' + opcoesTipo(tipo) + '</select></div>'
                 +   '<div class="col-md-3"><label>&nbsp;</label><br>'
-                +     '<label class="checkbox inline"><input type="checkbox" name="' + p + '[obrigatorio]" value="1"' + (dados.obrigatorio ? ' checked' : '') + '> Obrigatório</label>'
+                +     '<div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="' + p + '-obrigatorio" name="' + p + '[obrigatorio]" value="1"' + (dados.obrigatorio ? ' checked' : '') + '> <label class="form-check-label" for="' + p + '-obrigatorio">Obrigatório</label></div>'
                 +     '<button type="button" class="btn btn-danger btn-sm btn-remover-campo" style="margin-left:6px" title="Remover"><i class="bx bx-trash"></i></button>'
                 +   '</div>'
                 + '</div>'
                 + '<div class="row campo-opcoes-wrap" style="margin-top:6px;' + (mostraOpcoes ? '' : 'display:none') + '"><div class="col-md-12">'
                 +   '<label>Opções (uma por linha)</label>'
-                +   '<textarea name="' + p + '[opcoes]" class="col-md-12" rows="3" placeholder="Opção 1&#10;Opção 2&#10;Opção 3">' + escHtml(dados.opcoes) + '</textarea>'
+                +   '<textarea name="' + p + '[opcoes]" class="form-control" rows="3" placeholder="Opção 1&#10;Opção 2&#10;Opção 3">' + escHtml(dados.opcoes) + '</textarea>'
                 + '</div></div>'
                 + '<div class="row" style="margin-top:6px">'
                 +   '<div class="col-md-6"><label>Texto de exemplo (placeholder)</label>'
-                +     '<input type="text" name="' + p + '[placeholder]" class="col-md-12" maxlength="200" value="' + escAttr(dados.placeholder) + '"></div>'
+                +     '<input type="text" name="' + p + '[placeholder]" class="form-control" maxlength="200" value="' + escAttr(dados.placeholder) + '"></div>'
                 +   '<div class="col-md-6"><label>Texto de ajuda</label>'
-                +     '<input type="text" name="' + p + '[ajuda]" class="col-md-12" maxlength="255" value="' + escAttr(dados.ajuda) + '"></div>'
+                +     '<input type="text" name="' + p + '[ajuda]" class="form-control" maxlength="255" value="' + escAttr(dados.ajuda) + '"></div>'
                 + '</div>'
                 + '</div>';
 
