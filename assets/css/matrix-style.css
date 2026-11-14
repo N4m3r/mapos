@@ -89,6 +89,19 @@ body {
   --tran-05: all 0.5s ease;
 }
 
+/* Integração com o Bootstrap 5.3: o Reboot usa 16px/1.5 e sublinha links;
+   o Matrix sempre foi ~12px no corpo com links sem sublinhado. */
+:root {
+  --bs-body-font-family: "Roboto", sans-serif;
+  --bs-body-font-size  : 0.77rem;
+  --bs-body-line-height: 1.43;
+  --bs-body-color      : #333333;
+  --bs-link-color      : #333333;
+  --bs-link-color-rgb  : 51, 51, 51;
+  --bs-link-hover-color: #696967;
+  --bs-link-hover-color-rgb: 105, 105, 103;
+}
+
 /*Bootstrap-overlay*/
 body {
   font-family: "Roboto", sans-serif;
@@ -100,12 +113,19 @@ body {
 a {
   color: var(--black4);
   color: inherit;
+  text-decoration: none;
 }
 
 a:hover,
 a:focus {
   text-decoration: none;
   color          : #696967;
+}
+
+/* utilitária do BS2 que o JS do app ainda usa (sem !important: o .modal('show') e o
+   .show() do jQuery põem display inline e precisam vencer) */
+.hide {
+  display: none;
 }
 
 .pecolor {
@@ -117,8 +137,10 @@ a:focus {
 }
 
 .dropdown-menu {
+  --bs-dropdown-font-size: 12px;
+  --bs-dropdown-padding-y: 5px;
+  --bs-dropdown-link-active-bg: #666666;
   min-width: 120px;
-  top      : 25px;
 }
 
 .dropdown-menu .dropdown-item {
@@ -165,14 +187,28 @@ input[type="color"],
   box-shadow  : none;
 }
 
-.progress,
-.progress-bar.bg-success,
-.progress-bar.bg-warning,
-.progress-bar.bg-danger,
-.progress-bar.bg-info,
-.btn,
-.btn-primary {
-  background-image: none;
+/* Campos: o BS5 usa 1rem (16px) e padding .375rem .75rem; o Matrix usava 14px/20px.
+   background-color (e não o atalho background) para não apagar a seta do .form-select. */
+.form-control,
+.form-select {
+  font-size  : 14px;
+  line-height: 20px;
+  padding    : 6px 8px;
+}
+
+.form-select {
+  padding-right: 28px;
+  background-position: right 8px center;
+}
+
+.form-control-sm,
+.form-select-sm {
+  font-size: 12px;
+  padding  : 3px 6px;
+}
+
+.form-select-sm {
+  padding-right: 24px;
 }
 
 input[type="search"],
@@ -181,8 +217,156 @@ input[type="text"],
 .form-control,
 input[type="number"],
 .form-select {
-  background  : #e6e9f3;
-  border-color: #b1b9be;
+  background-color: #e6e9f3;
+  border-color    : #b1b9be;
+}
+
+/* BS2 tinha .uneditable-input (texto em caixa de campo); o BS5 não tem */
+.uneditable-input {
+  display      : block;
+  min-height   : 34px;
+  padding      : 6px 8px;
+  font-size    : 14px;
+  line-height  : 20px;
+  border       : 1px solid #b1b9be;
+  border-radius: 6px;
+  overflow     : hidden;
+  white-space  : nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Validação (jquery.validate com errorClass invalid-feedback + is-invalid/is-valid) */
+.invalid-feedback {
+  font-size: 12px;
+}
+
+/* Botões: medidas do BS2 (14px, 4px 12px) em vez do 1rem/.375rem .75rem do BS5 */
+.btn {
+  --bs-btn-padding-x  : 12px;
+  --bs-btn-padding-y  : 4px;
+  --bs-btn-font-size  : 14px;
+  --bs-btn-line-height: 20px;
+  --bs-btn-border-radius: 4px;
+}
+
+.btn-sm,
+.btn-group-sm > .btn {
+  --bs-btn-padding-x  : 8px;
+  --bs-btn-padding-y  : 2px;
+  --bs-btn-font-size  : 11.9px;
+  --bs-btn-line-height: 18px;
+}
+
+.btn-lg,
+.btn-group-lg > .btn {
+  --bs-btn-padding-x  : 19px;
+  --bs-btn-padding-y  : 11px;
+  --bs-btn-font-size  : 17.5px;
+  --bs-btn-line-height: 24px;
+}
+
+/* Cores das variantes como no Matrix/BS2 (o BS5 trocou o tom e põe texto preto
+   no warning/info, o que some com o texto branco dos .button__text) */
+.btn-primary {
+  --bs-btn-color: #fff; --bs-btn-bg: #006dcc; --bs-btn-border-color: #0058a5;
+  --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #0058a5; --bs-btn-hover-border-color: #004a8a;
+  --bs-btn-active-color: #fff; --bs-btn-active-bg: #004a8a; --bs-btn-active-border-color: #004a8a;
+  --bs-btn-disabled-color: #fff; --bs-btn-disabled-bg: #006dcc; --bs-btn-disabled-border-color: #0058a5;
+}
+
+.btn-warning {
+  --bs-btn-color: #fff; --bs-btn-bg: #faa732; --bs-btn-border-color: #f89406;
+  --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #f89406; --bs-btn-hover-border-color: #c67605;
+  --bs-btn-active-color: #fff; --bs-btn-active-bg: #c67605; --bs-btn-active-border-color: #c67605;
+  --bs-btn-disabled-color: #fff; --bs-btn-disabled-bg: #faa732; --bs-btn-disabled-border-color: #f89406;
+}
+
+/* .btn-info: verde-água do Matrix */
+.btn-info {
+  --bs-btn-color: #fff; --bs-btn-bg: #26a38e; --bs-btn-border-color: #088a74;
+  --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #1fb5a8; --bs-btn-hover-border-color: #088a74;
+  --bs-btn-active-color: #fff; --bs-btn-active-bg: #1fb5a8; --bs-btn-active-border-color: #088a74;
+  --bs-btn-disabled-color: #fff; --bs-btn-disabled-bg: #26a38e; --bs-btn-disabled-border-color: #088a74;
+}
+
+.btn-success {
+  --bs-btn-color: #090909; --bs-btn-bg: #54c795; --bs-btn-border-color: #45b283;
+  --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #3cd391; --bs-btn-hover-border-color: #34b87e;
+  --bs-btn-active-color: #fff; --bs-btn-active-bg: #34b87e; --bs-btn-active-border-color: #34b87e;
+  --bs-btn-disabled-color: #090909; --bs-btn-disabled-bg: #54c795; --bs-btn-disabled-border-color: #45b283;
+}
+
+.btn-danger {
+  --bs-btn-color: #2c2b31; --bs-btn-bg: #e56982; --bs-btn-border-color: #d9536e;
+  --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #f55776; --bs-btn-hover-border-color: #e23d5e;
+  --bs-btn-active-color: #fff; --bs-btn-active-bg: #e23d5e; --bs-btn-active-border-color: #e23d5e;
+  --bs-btn-disabled-color: #2c2b31; --bs-btn-disabled-bg: #e56982; --bs-btn-disabled-border-color: #d9536e;
+}
+
+.btn-dark {
+  --bs-btn-color: #fff; --bs-btn-bg: #363636; --bs-btn-border-color: #222222;
+  --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #222222; --bs-btn-hover-border-color: #111111;
+  --bs-btn-active-color: #fff; --bs-btn-active-bg: #111111; --bs-btn-active-border-color: #111111;
+  --bs-btn-disabled-color: #fff; --bs-btn-disabled-bg: #363636; --bs-btn-disabled-border-color: #222222;
+}
+
+/* Tabelas: o BS5 pinta toda célula com --bs-table-bg (branco) e fixa a cor do texto;
+   no Matrix a tabela herda o fundo do widget e a cor do tema. */
+.table {
+  --bs-table-bg           : transparent;
+  --bs-table-color        : inherit;
+  --bs-table-striped-color: inherit;
+  --bs-table-hover-color  : inherit;
+  --bs-table-active-color : inherit;
+  --bs-table-border-color : #dddddd;
+}
+
+.table-sm > :not(caption) > * > * {
+  padding: 4px 5px;
+}
+
+/* Modais: o BS2 tinha 560px de largura; no BS5 o .modal é a camada de tela cheia e a
+   caixa é a .modal-dialog/.modal-content */
+.modal {
+  --bs-modal-width       : 560px;
+  --bs-modal-padding     : 15px;
+  --bs-modal-border-radius: 6px;
+  --bs-modal-inner-border-radius: 5px;
+  --bs-modal-footer-bg   : #f5f5f5;
+}
+
+/* Acordeões do Matrix (accordion-item + widget-box): o widget já dá fundo, borda e padding */
+.accordion {
+  --bs-accordion-bg            : transparent;
+  --bs-accordion-color         : currentColor;
+  --bs-accordion-border-width  : 0;
+  --bs-accordion-body-padding-x: 0;
+  --bs-accordion-body-padding-y: 0;
+}
+
+/* Cards vindos do .well (class="card card-body"): mesmo fundo/borda do well do BS2 */
+.card.card-body {
+  --bs-card-bg          : #f5f5f5;
+  --bs-card-border-color: #e3e3e3;
+  padding      : 19px;
+  margin-bottom: 20px;
+}
+
+/* .label sem cor do BS2 era cinza; o .badge do BS5 sem text-bg-* não tem fundo
+   (texto branco sumia) */
+.badge:not([class*="bg-"]) {
+  background-color: #999999;
+}
+
+/* Barra de navegação do topo (#user-nav): no BS2 era bloco simples, no BS5 é flex com padding */
+#user-nav.navbar {
+  display: block;
+  padding: 0;
+}
+
+/* o BS5 desenha um triângulo em todo .dropdown-toggle; o menu do perfil nunca teve */
+#user-nav .dropdown-toggle::after {
+  display: none;
 }
 
 .form-actions {
@@ -269,16 +453,15 @@ hr {
 }
 
 .row > [class*="col-"] {
-  float: left !important;
   font-size: 12px;
 }
 
 .form-select,
 textarea.form-control,
 .uneditable-input {
-  margin-top  : 0;
-  background  : #e6e9f3;
-  border-color: #b1bac0;
+  margin-top      : 0;
+  background-color: #e6e9f3;
+  border-color    : #b1bac0;
 }
 
 .trumbowyg-box.trumbowyg-editor-visible .trumbowyg-textarea {
@@ -2380,7 +2563,6 @@ span.icon .checker {
 }
 
 .dataTables_paginate .ui-button,
-.pagination .page-link,
 .pagination.alternate li > a {
   font-size   : 12px;
   padding     : 4px 10px !important;
@@ -2397,7 +2579,6 @@ span.icon .checker {
 }
 
 .dataTables_paginate .ui-button:hover,
-.pagination .page-link:hover,
 .pagination.alternate li > a:hover {
   background : #e8e8e8;
   color      : #222222;
@@ -2415,25 +2596,67 @@ span.icon .checker {
 
 .dataTables_paginate .ui-state-disabled,
 .fc-state-disabled,
-.pagination .page-item.disabled .page-link,
 .pagination.alternate li.disabled > a {
   color: #aaaaaa !important;
 }
 
 .dataTables_paginate .ui-state-disabled:hover,
 .fc-state-disabled:hover,
-.pagination .page-item.disabled .page-link:hover,
 .pagination.alternate li.disabled > a:hover {
   background: #f5f5f5;
   cursor    : default !important;
 }
 
 .dataTables_paginate span .ui-state-disabled,
-.pagination .page-item.active .page-link,
 .pagination.alternate li.active > a {
   background: #41bedd !important;
   color     : #ffffff !important;
   cursor    : default !important;
+}
+
+/* Paginação do CodeIgniter no BS5 (ul.pagination > li.page-item > a.page-link):
+   mesmo visual do .pagination.alternate do Matrix, por variáveis para os temas trocarem */
+.pagination {
+  --bs-pagination-padding-x         : 10px;
+  --bs-pagination-padding-y         : 4px;
+  --bs-pagination-font-size         : 12px;
+  --bs-pagination-color             : #333333;
+  --bs-pagination-bg                : #f5f5f5;
+  --bs-pagination-border-color      : rgba(0, 0, 0, 0.1);
+  --bs-pagination-border-radius     : 4px;
+  --bs-pagination-hover-color       : #222222;
+  --bs-pagination-hover-bg          : #e8e8e8;
+  --bs-pagination-hover-border-color: rgba(0, 0, 0, 0.1);
+  --bs-pagination-focus-color       : #222222;
+  --bs-pagination-focus-bg          : #e8e8e8;
+  --bs-pagination-focus-box-shadow  : none;
+  --bs-pagination-active-color      : #ffffff;
+  --bs-pagination-active-bg         : #41bedd;
+  --bs-pagination-active-border-color: #41bedd;
+  --bs-pagination-disabled-color    : #aaaaaa;
+  --bs-pagination-disabled-bg       : #f5f5f5;
+  --bs-pagination-disabled-border-color: rgba(0, 0, 0, 0.1);
+  flex-wrap      : wrap;
+  justify-content: center;
+  margin         : 20px 0;
+}
+
+.pagination .page-link {
+  line-height: 16px;
+}
+
+/* paginação montada à mão no formato antigo (div.pagination > ul > li > a) */
+.pagination > ul {
+  display    : flex;
+  flex-wrap  : wrap;
+  justify-content: center;
+  margin     : 0;
+  padding    : 0;
+  list-style : none;
+}
+
+.pagination.alternate li > a {
+  margin-left: -1px;
 }
 
 div.dataTables_wrapper .ui-widget-header {
@@ -2534,8 +2757,29 @@ div.dataTables_wrapper .ui-widget-header {
   text-align-last        : center;
 }
 
+/* no BS5 o cabeçalho é flex e o botão fechar vai para o fim: o título ocupa o resto e
+   continua centralizado como no Matrix */
+.modal-header > h1,
+.modal-header > h2,
+.modal-header > h3,
+.modal-header > h4,
+.modal-header > h5,
+.modal-header > .modal-title {
+  flex      : 1 1 auto;
+  margin    : 0;
+  text-align: center;
+}
+
+/* cabeçalho é azul em todos os temas: o X fica branco */
+.modal-header .btn-close {
+  filter : var(--bs-btn-close-white-filter);
+  opacity: 0.8;
+  margin : 0 0 0 auto;
+}
+
 .modal-footer {
   border-radius: 0 0 4px 4px;
+  padding      : 14px 15px 15px;
 }
 
 .modal-header h5 {
@@ -2580,25 +2824,51 @@ form {
   margin-bottom: 0;
 }
 
-.form-horizontal .control-group {
-  border-top   : 0px solid #ffffff;
-  border-bottom: 0px solid #eeeeee;
-  margin-bottom: 0;
+/* form-horizontal: control-group virou "row mb-2", control-label "col-sm-3 col-form-label"
+   e controls "col-sm-9" (offset-sm-3 sem rótulo). No Matrix o rótulo tinha 180px e os
+   campos começavam em 200px com 10px de respiro; o espaçamento vem das controls, então
+   a linha não tem margem própria. */
+.form-horizontal .row.mb-2 {
+  margin-bottom: 0 !important;
 }
 
-.form-horizontal .control-group:last-child {
-  border-bottom: 0;
+.form-horizontal .row.mb-2 > .col-sm-9 {
+  padding-top   : 10px;
+  padding-bottom: 10px;
 }
 
-.form-horizontal .control-label {
-  padding-top: 15px;
-  width      : 180px;
+@media (min-width: 576px) {
+  .form-horizontal .row.mb-2 > .col-form-label {
+    flex      : 0 0 192px;
+    width     : 192px;
+    max-width : 192px;
+    padding-top: 15px;
+    text-align: right;
+  }
+
+  .form-horizontal .row.mb-2 > .col-sm-9 {
+    flex : 1 1 0;
+    width: auto;
+  }
+
+  .form-horizontal .row.mb-2 > .col-sm-9.offset-sm-3 {
+    margin-left: 192px;
+  }
 }
 
-.form-horizontal .controls {
-  margin-left: 200px;
-  padding    : 10px 0;
+/* No BS2 responsivo os campos spanN viravam 100% no celular; as larguras w-25/50/75
+   que substituíram o spanN fazem o mesmo abaixo de 768px */
+@media (max-width: 767.98px) {
+  .form-control.w-25,
+  .form-control.w-50,
+  .form-control.w-75,
+  .form-select.w-25,
+  .form-select.w-50,
+  .form-select.w-75 {
+    width: 100% !important;
+  }
 }
+
 .form-horizontal .form-actions {
   margin-top   : 0;
   margin-bottom: 0;
@@ -3184,9 +3454,6 @@ form {
     padding: 20px 0;
     grid-gap: 0;
   }
-  .row > [class*="col-"] {
-    float      : left;
-  }
 
   .new-balance {
     grid-gap: 12px;
@@ -3535,9 +3802,6 @@ form {
     font-size: 15px;
   }
 
-  .form-horizontal .controls {
-    margin-left: 0 !important;
-  }
 
   .dropdown-menu .dropdown-item {
     padding  : 5px 13px;
@@ -3626,7 +3890,7 @@ form {
     left       : 3px;
   }
 
-  .form-select {
+  select.form-select {
     width     : 100% !important;
     margin-top: 0px;
   }
@@ -3703,9 +3967,6 @@ form {
     top  : 36px;
   }
 
-  .form-horizontal .control-label {
-    padding-top: 0;
-  }
 
   #tabela_wrapper {
     margin-top: 20px;
@@ -3720,10 +3981,6 @@ form {
     margin: -8px 2px;
   }
 
-  .btn-sm {
-    bottom: 23px;
-    left  : 20px;
-  }
 
   .ionicon s-ion-icon {
     left: 20px;
@@ -4064,48 +4321,7 @@ form {
   }
 }
 
-/* My buttons */
-/* btn-info */
-.btn-info {
-  color           : #ffffff;
-  background-color: #26a38e;
-  border-color    : #088a74;
-}
-
-.btn-info:hover,
-.btn-info:focus,
-.btn-info:active,
-.btn-info.active,
-.open .dropdown-toggle.btn-info {
-  color           : #ffffff;
-  background-color: #1fb5a8;
-  border-color    : #088a74;
-}
-
-.btn-info:active,
-.btn-info.active,
-.open .dropdown-toggle.btn-info {
-  background-image: none;
-}
-
-.btn-info.disabled,
-.btn-info[disabled],
-fieldset[disabled] .btn-info,
-.btn-info.disabled:hover,
-.btn-info[disabled]:hover,
-fieldset[disabled] .btn-info:hover,
-.btn-info.disabled:focus,
-.btn-info[disabled]:focus,
-fieldset[disabled] .btn-info:focus,
-.btn-info.disabled:active,
-.btn-info[disabled]:active,
-fieldset[disabled] .btn-info:active,
-.btn-info.disabled.active,
-.btn-info[disabled].active,
-fieldset[disabled] .btn-info.active {
-  background-color: #26a38e;
-  border-color    : #088a74;
-}
+/* My buttons: .btn-info do Matrix definido por variáveis junto das outras variantes, no topo */
 
 .btn-info .badge {
   color           : #26a38e;
