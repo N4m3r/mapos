@@ -9,12 +9,11 @@ input[type="email"],
 input[type="password"],
 input[type="tel"],
 textarea,
-.row-fluid input[class*="span"],
-.row-fluid textarea[class*="span"],
+.form-control,
+textarea.form-control,
 input[type="number"],
-select[class*="span"],
-.row-fluid select[class*="span"] {
-  background  : var(--dark-violet-cont);
+.form-select {
+  background-color  : var(--dark-violet-cont);
   border-color: var(--dark-viol);
   color: var(--branco);
 }
@@ -121,7 +120,7 @@ body {
     background: var(--dark-violet-cont);
 }
 
-#user-nav > ul > li > a:hover,#user-nav > ul > li.open > a {
+#user-nav > ul > li > a:hover, #user-nav > ul > li > a.show {
     color: #090909;
 }
 
@@ -150,7 +149,7 @@ body {
     opacity: 0.7;
 }
 
-#sidebar > ul > li > a > .label:hover {
+#sidebar > ul > li > a > .badge:hover {
     background-color: #ffffff;
 }
 
@@ -518,7 +517,7 @@ hr {
 }
 
 /* PAGINAS EDITAR OS */
-.nav-tabs > .active > a, .nav-tabs > .active > a:hover, .nav-tabs > .active > a:focus {
+.nav-tabs .nav-link.active, .nav-tabs .nav-link.active:hover, .nav-tabs .nav-link.active:focus {
     color: var(--branco);
     background-color: var(--dark-2);
     border: 1px solid var(--dark-1);
@@ -528,11 +527,11 @@ hr {
     border-bottom: 1px solid var(--dark-1);
 }
 
-.nav-tabs > li > a {
+.nav-tabs .nav-link {
     color: var(--cinza0);
 }
 
-.nav-tabs > li > a:hover {
+.nav-tabs .nav-link:hover {
     color     : var(--dark-lar);
     background: var(--dark-2);
     border    : 1px solid var(--dark-1);
@@ -575,7 +574,7 @@ textarea, .uneditable-input {
     border: 1px solid var(--dark-1);
 }
 
-.well {
+.card.card-body {
     background-color: var(--wid-dark);
     border: 0 solid #e3e3e3;
 }
@@ -673,11 +672,6 @@ textarea, .uneditable-input {
         font-size   : 2.4em;
         padding-left: 8px;
     }
-
-    .row-fluid .Sspan12 {
-        margin-top: 2px;
-    }
-
     #sidebar.open {
         background: #32056b;
     }
@@ -685,4 +679,153 @@ textarea, .uneditable-input {
     #sidebar .search-box {
         background: #291a57;
     }
+}
+
+/* BOOTSTRAP 5.3: modal, dropdown, card, campos, tabela, list-group, paginação e abas
+   leem variáveis --bs-* que, sem isto, dão fundo branco e texto escuro no tema escuro */
+.modal {
+    --bs-modal-bg: var(--wid-dark);
+    --bs-modal-color: var(--branco);
+    --bs-modal-border-color: var(--dark-viol);
+    --bs-modal-header-border-color: var(--dark-viol);
+    --bs-modal-footer-bg: var(--dark-2);
+    --bs-modal-footer-border-color: var(--dark-viol);
+}
+
+.dropdown-menu {
+    --bs-dropdown-bg: var(--dark-violet-widg);
+    --bs-dropdown-color: var(--branco);
+    --bs-dropdown-border-color: var(--dark-viol);
+    --bs-dropdown-link-color: var(--cinza0);
+    --bs-dropdown-link-hover-color: var(--branco);
+    --bs-dropdown-link-hover-bg: var(--dark-violet-cont);
+    --bs-dropdown-link-active-color: #ffffff;
+    --bs-dropdown-link-active-bg: var(--dark-violet-side);
+    --bs-dropdown-divider-bg: var(--dark-viol);
+    --bs-dropdown-header-color: var(--cinza0);
+}
+
+.card {
+    --bs-card-bg: var(--dark-violet-widg);
+    --bs-card-color: var(--branco);
+    --bs-card-border-color: var(--dark-viol);
+    --bs-card-cap-bg: rgba(255, 255, 255, 0.04);
+    --bs-card-cap-color: var(--branco);
+    --bs-card-title-color: var(--branco);
+}
+
+.list-group {
+    --bs-list-group-bg: var(--dark-violet-widg);
+    --bs-list-group-color: var(--branco);
+    --bs-list-group-border-color: var(--dark-viol);
+    --bs-list-group-action-color: var(--cinza0);
+    --bs-list-group-action-hover-color: var(--branco);
+    --bs-list-group-action-hover-bg: var(--dark-violet-cont);
+    --bs-list-group-action-active-color: var(--branco);
+    --bs-list-group-action-active-bg: var(--dark-violet-cont);
+    --bs-list-group-disabled-color: var(--cinza0);
+    --bs-list-group-disabled-bg: var(--dark-violet-widg);
+    --bs-list-group-active-bg: var(--dark-violet-side);
+    --bs-list-group-active-border-color: var(--dark-violet-side);
+}
+
+.table {
+    --bs-table-border-color: var(--dark-1);
+    --bs-table-striped-bg: rgba(255, 255, 255, 0.03);
+    --bs-table-hover-bg: rgba(255, 255, 255, 0.05);
+    --bs-table-active-bg: rgba(255, 255, 255, 0.08);
+}
+
+/* o :focus do BS5 volta o campo para var(--bs-body-bg) (branco) */
+.form-control,
+.form-select,
+.form-control:focus,
+.form-select:focus {
+    background-color: var(--dark-violet-cont);
+    color: var(--branco);
+    border-color: var(--dark-viol);
+}
+
+.form-control::placeholder {
+    color: var(--cinza0);
+}
+
+.form-control:disabled,
+.form-control[readonly],
+.form-select:disabled {
+    background-color: var(--dark-violet-widg);
+    color: var(--cinza0);
+}
+
+.input-group-text {
+    background-color: var(--dark-violet-widg);
+    color: var(--cinza0);
+    border-color: var(--dark-viol);
+}
+
+.pagination {
+    --bs-pagination-color: var(--cinza0);
+    --bs-pagination-bg: var(--dark-violet-cont);
+    --bs-pagination-border-color: var(--dark-viol);
+    --bs-pagination-hover-color: var(--branco);
+    --bs-pagination-hover-bg: var(--dark-violet-cont);
+    --bs-pagination-hover-border-color: var(--dark-viol);
+    --bs-pagination-focus-color: var(--branco);
+    --bs-pagination-focus-bg: var(--dark-violet-cont);
+    --bs-pagination-active-bg: var(--dark-violet-side);
+    --bs-pagination-active-border-color: var(--dark-violet-side);
+    --bs-pagination-disabled-color: #6c6f80;
+    --bs-pagination-disabled-bg: var(--dark-violet-widg);
+    --bs-pagination-disabled-border-color: var(--dark-viol);
+}
+
+/* paginação montada à mão (div.pagination.alternate > ul > li > a) */
+.pagination.alternate li > a,
+.pagination.alternate li.disabled > a:hover {
+    background: var(--dark-violet-cont);
+    color: var(--cinza0);
+    border-color: var(--dark-viol);
+    text-shadow: none;
+}
+
+.pagination.alternate li > a:hover {
+    background: var(--dark-violet-cont);
+    color: var(--branco);
+    text-shadow: none;
+}
+
+.nav-tabs {
+    --bs-nav-tabs-border-color: var(--dark-viol);
+    --bs-nav-tabs-link-hover-border-color: var(--dark-viol);
+    --bs-nav-tabs-link-active-color: var(--branco);
+    --bs-nav-tabs-link-active-bg: var(--dark-2);
+    --bs-nav-tabs-link-active-border-color: var(--dark-viol);
+}
+
+.nav {
+    --bs-nav-link-color: var(--cinza0);
+    --bs-nav-link-hover-color: var(--branco);
+}
+
+.nav-pills {
+    --bs-nav-pills-link-active-bg: var(--dark-violet-side);
+}
+
+.popover {
+    --bs-popover-bg: var(--dark-violet-widg);
+    --bs-popover-border-color: var(--dark-viol);
+    --bs-popover-header-bg: var(--dark-violet-cont);
+    --bs-popover-header-color: var(--branco);
+    --bs-popover-body-color: var(--branco);
+    --bs-popover-arrow-border: var(--dark-viol);
+}
+
+.card.card-body {
+    --bs-card-bg: var(--wid-dark);
+    --bs-card-border-color: var(--dark-viol);
+}
+
+/* X de fechar (alertas, modais, popovers) em branco */
+.btn-close {
+    filter: var(--bs-btn-close-white-filter);
 }

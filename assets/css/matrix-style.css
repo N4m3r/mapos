@@ -89,6 +89,19 @@ body {
   --tran-05: all 0.5s ease;
 }
 
+/* Integração com o Bootstrap 5.3: o Reboot usa 16px/1.5 e sublinha links;
+   o Matrix sempre foi ~12px no corpo com links sem sublinhado. */
+:root {
+  --bs-body-font-family: "Roboto", sans-serif;
+  --bs-body-font-size  : 0.77rem;
+  --bs-body-line-height: 1.43;
+  --bs-body-color      : #333333;
+  --bs-link-color      : #333333;
+  --bs-link-color-rgb  : 51, 51, 51;
+  --bs-link-hover-color: #696967;
+  --bs-link-hover-color-rgb: 105, 105, 103;
+}
+
 /*Bootstrap-overlay*/
 body {
   font-family: "Roboto", sans-serif;
@@ -100,6 +113,7 @@ body {
 a {
   color: var(--black4);
   color: inherit;
+  text-decoration: none;
 }
 
 a:hover,
@@ -108,26 +122,57 @@ a:focus {
   color          : #696967;
 }
 
+/* utilitária do BS2 que o JS do app ainda usa (sem !important: o .modal('show') e o
+   .show() do jQuery põem display inline e precisam vencer) */
+.hide {
+  display: none;
+}
+
+/* o BS2 limitava toda imagem ao contêiner; o Reboot do BS5 não (a logo do menu
+   lateral saía do #sidebar) */
+img {
+  max-width     : 100%;
+  height        : auto;
+  vertical-align: middle;
+  border        : 0;
+}
+
+#newlog .icon2 img,
+#newlog .title1 img {
+  display: block;
+  width  : 100%;
+}
+
+/* checkbox/radio do BS5 em fundo claro: borda mais visível e no tamanho do texto do tema */
+.form-check-input {
+  --bs-border-color: #8a8f98;
+  width : 1.15em;
+  height: 1.15em;
+  border-color: #8a8f98;
+}
+
 .pecolor {
   color: var(--cinza0);
 }
 
-.dropdown-menu .divider {
+.dropdown-menu .dropdown-divider {
   margin: 4px 0px;
 }
 
 .dropdown-menu {
+  --bs-dropdown-font-size: 12px;
+  --bs-dropdown-padding-y: 5px;
+  --bs-dropdown-link-active-bg: #666666;
   min-width: 120px;
-  top      : 25px;
 }
 
-.dropdown-menu>li>a {
+.dropdown-menu .dropdown-item {
   padding  : 3px 10px;
   color    : #666;
   font-size: 12px;
 }
 
-.dropdown-menu>li>a i {
+.dropdown-menu .dropdown-item i {
   padding-right: 3px;
 }
 
@@ -153,58 +198,198 @@ input[type="search"],
 input[type="tel"],
 input[type="color"],
 .uneditable-input,
-.label,
+.badge,
 .dropdown-menu,
 .btn,
-.well,
+.card.card-body,
 .progress,
 .table-bordered,
 .btn-group>.btn:first-child,
 .btn-group>.btn:last-child,
-.btn-group>.btn:last-child,
-.btn-group>.dropdown-toggle,
-.btn,
-textarea,
-input[type="text"],
-input[type="password"],
-input[type="datetime"],
-input[type="datetime-local"],
-input[type="date"],
-input[type="month"],
-input[type="time"],
-input[type="week"],
-input[type="number"],
-input[type="email"],
-input[type="url"],
-input[type="search"],
-input[type="tel"],
-input[type="color"],
-.uneditable-input {
+.btn-group>.dropdown-toggle {
   box-shadow  : none;
 }
 
-.progress,
-.progress-success .bar,
-.progress .bar-success,
-.progress-warning .bar,
-.progress .bar-warning,
-.progress-danger .bar,
-.progress .bar-danger,
-.progress-info .bar,
-.progress .bar-info,
-.btn,
-.btn-primary {
-  background-image: none;
+/* Campos: o BS5 usa 1rem (16px) e padding .375rem .75rem; o Matrix usava 14px/20px.
+   background-color (e não o atalho background) para não apagar a seta do .form-select. */
+.form-control,
+.form-select {
+  font-size  : 14px;
+  line-height: 20px;
+  padding    : 6px 8px;
+}
+
+.form-select {
+  padding-right: 28px;
+  background-position: right 8px center;
+}
+
+.form-control-sm,
+.form-select-sm {
+  font-size: 12px;
+  padding  : 3px 6px;
+}
+
+.form-select-sm {
+  padding-right: 24px;
 }
 
 input[type="search"],
 select,
 input[type="text"],
-.row-fluid input[class*="span"],
+.form-control,
 input[type="number"],
-select[class*="span"] {
-  background  : #e6e9f3;
-  border-color: #b1b9be;
+.form-select {
+  background-color: #e6e9f3;
+  border-color    : #b1b9be;
+}
+
+/* BS2 tinha .uneditable-input (texto em caixa de campo); o BS5 não tem */
+.uneditable-input {
+  display      : block;
+  min-height   : 34px;
+  padding      : 6px 8px;
+  font-size    : 14px;
+  line-height  : 20px;
+  border       : 1px solid #b1b9be;
+  border-radius: 6px;
+  overflow     : hidden;
+  white-space  : nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Validação (jquery.validate com errorClass invalid-feedback + is-invalid/is-valid) */
+.invalid-feedback {
+  font-size: 12px;
+}
+
+/* Botões: medidas do BS2 (14px, 4px 12px) em vez do 1rem/.375rem .75rem do BS5 */
+.btn {
+  --bs-btn-padding-x  : 12px;
+  --bs-btn-padding-y  : 4px;
+  --bs-btn-font-size  : 14px;
+  --bs-btn-line-height: 20px;
+  --bs-btn-border-radius: 4px;
+}
+
+.btn-sm,
+.btn-group-sm > .btn {
+  --bs-btn-padding-x  : 8px;
+  --bs-btn-padding-y  : 2px;
+  --bs-btn-font-size  : 11.9px;
+  --bs-btn-line-height: 18px;
+}
+
+.btn-lg,
+.btn-group-lg > .btn {
+  --bs-btn-padding-x  : 19px;
+  --bs-btn-padding-y  : 11px;
+  --bs-btn-font-size  : 17.5px;
+  --bs-btn-line-height: 24px;
+}
+
+/* Cores das variantes como no Matrix/BS2 (o BS5 trocou o tom e põe texto preto
+   no warning/info, o que some com o texto branco dos .button__text) */
+.btn-primary {
+  --bs-btn-color: #fff; --bs-btn-bg: #006dcc; --bs-btn-border-color: #0058a5;
+  --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #0058a5; --bs-btn-hover-border-color: #004a8a;
+  --bs-btn-active-color: #fff; --bs-btn-active-bg: #004a8a; --bs-btn-active-border-color: #004a8a;
+  --bs-btn-disabled-color: #fff; --bs-btn-disabled-bg: #006dcc; --bs-btn-disabled-border-color: #0058a5;
+}
+
+.btn-warning {
+  --bs-btn-color: #fff; --bs-btn-bg: #faa732; --bs-btn-border-color: #f89406;
+  --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #f89406; --bs-btn-hover-border-color: #c67605;
+  --bs-btn-active-color: #fff; --bs-btn-active-bg: #c67605; --bs-btn-active-border-color: #c67605;
+  --bs-btn-disabled-color: #fff; --bs-btn-disabled-bg: #faa732; --bs-btn-disabled-border-color: #f89406;
+}
+
+/* .btn-info: verde-água do Matrix */
+.btn-info {
+  --bs-btn-color: #fff; --bs-btn-bg: #26a38e; --bs-btn-border-color: #088a74;
+  --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #1fb5a8; --bs-btn-hover-border-color: #088a74;
+  --bs-btn-active-color: #fff; --bs-btn-active-bg: #1fb5a8; --bs-btn-active-border-color: #088a74;
+  --bs-btn-disabled-color: #fff; --bs-btn-disabled-bg: #26a38e; --bs-btn-disabled-border-color: #088a74;
+}
+
+.btn-success {
+  --bs-btn-color: #090909; --bs-btn-bg: #54c795; --bs-btn-border-color: #45b283;
+  --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #3cd391; --bs-btn-hover-border-color: #34b87e;
+  --bs-btn-active-color: #fff; --bs-btn-active-bg: #34b87e; --bs-btn-active-border-color: #34b87e;
+  --bs-btn-disabled-color: #090909; --bs-btn-disabled-bg: #54c795; --bs-btn-disabled-border-color: #45b283;
+}
+
+.btn-danger {
+  --bs-btn-color: #2c2b31; --bs-btn-bg: #e56982; --bs-btn-border-color: #d9536e;
+  --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #f55776; --bs-btn-hover-border-color: #e23d5e;
+  --bs-btn-active-color: #fff; --bs-btn-active-bg: #e23d5e; --bs-btn-active-border-color: #e23d5e;
+  --bs-btn-disabled-color: #2c2b31; --bs-btn-disabled-bg: #e56982; --bs-btn-disabled-border-color: #d9536e;
+}
+
+.btn-dark {
+  --bs-btn-color: #fff; --bs-btn-bg: #363636; --bs-btn-border-color: #222222;
+  --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #222222; --bs-btn-hover-border-color: #111111;
+  --bs-btn-active-color: #fff; --bs-btn-active-bg: #111111; --bs-btn-active-border-color: #111111;
+  --bs-btn-disabled-color: #fff; --bs-btn-disabled-bg: #363636; --bs-btn-disabled-border-color: #222222;
+}
+
+/* Tabelas: o BS5 pinta toda célula com --bs-table-bg (branco) e fixa a cor do texto;
+   no Matrix a tabela herda o fundo do widget e a cor do tema. */
+.table {
+  --bs-table-bg           : transparent;
+  --bs-table-color        : inherit;
+  --bs-table-striped-color: inherit;
+  --bs-table-hover-color  : inherit;
+  --bs-table-active-color : inherit;
+  --bs-table-border-color : #dddddd;
+}
+
+.table-sm > :not(caption) > * > * {
+  padding: 4px 5px;
+}
+
+/* Modais: o BS2 tinha 560px de largura; no BS5 o .modal é a camada de tela cheia e a
+   caixa é a .modal-dialog/.modal-content */
+.modal {
+  --bs-modal-width       : 560px;
+  --bs-modal-padding     : 15px;
+  --bs-modal-border-radius: 6px;
+  --bs-modal-inner-border-radius: 5px;
+  --bs-modal-footer-bg   : #f5f5f5;
+}
+
+/* Acordeões do Matrix (accordion-item + widget-box): o widget já dá fundo, borda e padding */
+.accordion {
+  --bs-accordion-bg            : transparent;
+  --bs-accordion-color         : currentColor;
+  --bs-accordion-border-width  : 0;
+  --bs-accordion-body-padding-x: 0;
+  --bs-accordion-body-padding-y: 0;
+}
+
+/* Cards vindos do .well (class="card card-body"): mesmo fundo/borda do well do BS2 */
+.card.card-body {
+  --bs-card-bg          : #f5f5f5;
+  --bs-card-border-color: #e3e3e3;
+  padding      : 19px;
+  margin-bottom: 20px;
+}
+
+/* .label sem cor do BS2 era cinza; o .badge do BS5 sem text-bg-* não tem fundo
+   (texto branco sumia) */
+.badge:not([class*="bg-"]) {
+  background-color: #999999;
+}
+
+/* Menu do perfil no topo: #user-nav > ul.user-nav-lista (não usa mais navbar/nav) */
+#user-nav {
+  display: block;
+  padding: 0;
+}
+
+/* o BS5 desenha um triângulo em todo .dropdown-toggle; o menu do perfil nunca teve */
+#user-nav .dropdown-toggle::after {
+  display: none;
 }
 
 .form-actions {
@@ -258,7 +443,7 @@ h3 {
   background: rgba(0, 0, 0, 0.08);
 }
 
-.accordion-heading h5 {
+.accordion-header h5 {
   width: 70%;
 }
 
@@ -290,17 +475,16 @@ hr {
   float: right;
 }
 
-.row-fluid [class*="span"] {
-  float: left !important;
+.row > [class*="col-"] {
   font-size: 12px;
 }
 
-.row-fluid select[class*="span"],
-.row-fluid textarea[class*="span"],
-.row-fluid .uneditable-input[class*="span"] {
-  margin-top  : 0;
-  background  : #e6e9f3;
-  border-color: #b1bac0;
+.form-select,
+textarea.form-control,
+.uneditable-input {
+  margin-top      : 0;
+  background-color: #e6e9f3;
+  border-color    : #b1bac0;
 }
 
 .trumbowyg-box.trumbowyg-editor-visible .trumbowyg-textarea {
@@ -385,7 +569,8 @@ hr {
   margin-left: 5px;
 }
 
-.navbar .nav {
+.navbar .nav,
+#user-nav > ul {
   position: relative;
   right   : 0;
   display : block;
@@ -419,12 +604,13 @@ hr {
 }
 
 #user-nav>ul>li>a:hover,
-#user-nav>ul>li.open>a {
+#user-nav>ul>li > a.show {
   color     : var(--laranja0);
   background: var(--corfun);
 }
 
-.navbar-inverse .nav>li>a {
+.navbar-inverse .nav>li>a,
+#user-nav > ul > li > a {
   color: #c4c4cc;
 }
 
@@ -434,11 +620,11 @@ hr {
 }
 
 #user-nav>ul>li>a:hover>i,
-#user-nav>ul>li.open>a>i {
+#user-nav>ul>li > a.show>i {
   opacity: 1;
 }
 
-#user-nav>ul>li>a>.label {
+#user-nav>ul>li>a>.badge {
   vertical-align: middle;
   padding       : 1px 4px 1px;
   margin        : -2px 4px 0;
@@ -1064,7 +1250,7 @@ section .profile .profile-img {
   padding: 11px 14px 9px;
 }
 
-#content-header .btn-group .btn .label {
+#content-header .btn-group .btn .badge {
   position: absolute;
   top     : -7px;
 }
@@ -1224,7 +1410,7 @@ section .profile .profile-img {
   position: relative;
 }
 
-.quick-actions_homepage .quick-actions li .label {
+.quick-actions_homepage .quick-actions li .badge {
   position: absolute;
   padding : 5px;
   top     : -10px;
@@ -1265,7 +1451,7 @@ section .profile .profile-img {
   border-radius: 12px;
 }
 
-.quick-actions_homepage .quick-actions .span3 {
+.quick-actions_homepage .quick-actions .col-md-3 {
   width: 30%;
 }
 
@@ -1647,31 +1833,6 @@ section .profile .profile-img {
 }
 
 /* Botoes calendar*/
-#source-calendar .btn-xs {
-  color     : #5b5656;
-  background: none;
-  border    : none;
-  font-size : 20px;
-  position  : absolute;
-  bottom    : 28px;
-  left      : 25px;
-}
-
-.btn-xsx {
-  color     : #8c98a6;
-  background: none;
-  border    : none;
-  position  : absolute;
-  top       : 41px;
-  right     : 101px;
-}
-
-.post .span12 {
-  padding-left: 25px;
-  margin-top  : 10px;
-  background  : #fdfdfdb8;
-}
-
 .fc .fc-button-primary:disabled {
   color           : #04395b !important;
   font-weight     : 500;
@@ -1878,7 +2039,7 @@ div.dataTables_wrapper .ui-widget-header {
   border-bottom: 0 none;
 }
 
-.widget-title .nav-tabs li a {
+.widget-title .nav-tabs .nav-link {
   border-bottom: medium none !important;
   border-left  : 1px solid #dddddd;
   border-radius: 0 0 0 0;
@@ -1892,18 +2053,18 @@ div.dataTables_wrapper .ui-widget-header {
   text-shadow  : 0 1px 0 #ffffff;
 }
 
-.widget-title .nav-tabs li:first-child a {
+.widget-title .nav-tabs .nav-item:first-child .nav-link {
   border-left: medium none !important;
 }
 
-.widget-title .nav-tabs li a:hover {
+.widget-title .nav-tabs .nav-link:hover {
   background-color: transparent !important;
   border-color    : #d6d6d6;
   border-width    : 0 1px;
   color           : #2b2b2b;
 }
 
-.widget-title .nav-tabs li.active a {
+.widget-title .nav-tabs .nav-link.active {
   background-color: #f9f9f9 !important;
   color           : #444444;
 }
@@ -1935,14 +2096,14 @@ div.dataTables_wrapper .ui-widget-header {
   margin   : 8px;
 }
 
-.widget-title .label {
+.widget-title .badge {
   padding   : 3px 5px 2px;
   float     : right;
   margin    : 9px 11px 0 0;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) inset, 0 1px 0 #ffffff;
 }
 
-.widget-calendar .widget-title .label {
+.widget-calendar .widget-title .badge {
   margin-right: 190px;
 }
 
@@ -1954,7 +2115,7 @@ div.dataTables_wrapper .ui-widget-header {
   padding: 12px 0 0;
 }
 
-.widget-box.collapsible .collapse.in .widget-content {
+.widget-box.collapsible .collapse.show .widget-content {
   border-bottom: 1px solid #cdcdcd;
 }
 
@@ -2427,7 +2588,7 @@ span.icon .checker {
 }
 
 .dataTables_paginate .ui-button,
-.pagination.alternate li a {
+.pagination.alternate li > a {
   font-size   : 12px;
   padding     : 4px 10px !important;
   border-style: solid;
@@ -2443,7 +2604,7 @@ span.icon .checker {
 }
 
 .dataTables_paginate .ui-button:hover,
-.pagination.alternate li a:hover {
+.pagination.alternate li > a:hover {
   background : #e8e8e8;
   color      : #222222;
   text-shadow: 0 1px 0 #ffffff;
@@ -2460,22 +2621,67 @@ span.icon .checker {
 
 .dataTables_paginate .ui-state-disabled,
 .fc-state-disabled,
-.pagination.alternate li.disabled a {
+.pagination.alternate li.disabled > a {
   color: #aaaaaa !important;
 }
 
 .dataTables_paginate .ui-state-disabled:hover,
 .fc-state-disabled:hover,
-.pagination.alternate li.disabled a:hover {
+.pagination.alternate li.disabled > a:hover {
   background: #f5f5f5;
   cursor    : default !important;
 }
 
 .dataTables_paginate span .ui-state-disabled,
-.pagination.alternate li.active a {
+.pagination.alternate li.active > a {
   background: #41bedd !important;
   color     : #ffffff !important;
   cursor    : default !important;
+}
+
+/* Paginação do CodeIgniter no BS5 (ul.pagination > li.page-item > a.page-link):
+   mesmo visual do .pagination.alternate do Matrix, por variáveis para os temas trocarem */
+.pagination {
+  --bs-pagination-padding-x         : 10px;
+  --bs-pagination-padding-y         : 4px;
+  --bs-pagination-font-size         : 12px;
+  --bs-pagination-color             : #333333;
+  --bs-pagination-bg                : #f5f5f5;
+  --bs-pagination-border-color      : rgba(0, 0, 0, 0.1);
+  --bs-pagination-border-radius     : 4px;
+  --bs-pagination-hover-color       : #222222;
+  --bs-pagination-hover-bg          : #e8e8e8;
+  --bs-pagination-hover-border-color: rgba(0, 0, 0, 0.1);
+  --bs-pagination-focus-color       : #222222;
+  --bs-pagination-focus-bg          : #e8e8e8;
+  --bs-pagination-focus-box-shadow  : none;
+  --bs-pagination-active-color      : #ffffff;
+  --bs-pagination-active-bg         : #41bedd;
+  --bs-pagination-active-border-color: #41bedd;
+  --bs-pagination-disabled-color    : #aaaaaa;
+  --bs-pagination-disabled-bg       : #f5f5f5;
+  --bs-pagination-disabled-border-color: rgba(0, 0, 0, 0.1);
+  flex-wrap      : wrap;
+  justify-content: center;
+  margin         : 20px 0;
+}
+
+.pagination .page-link {
+  line-height: 16px;
+}
+
+/* paginação montada à mão no formato antigo (div.pagination > ul > li > a) */
+.pagination > ul {
+  display    : flex;
+  flex-wrap  : wrap;
+  justify-content: center;
+  margin     : 0;
+  padding    : 0;
+  list-style : none;
+}
+
+.pagination.alternate li > a {
+  margin-left: -1px;
 }
 
 div.dataTables_wrapper .ui-widget-header {
@@ -2550,40 +2756,6 @@ div.dataTables_wrapper .ui-widget-header {
 .nopadding .table-bordered {
   border: 0;
 }
-
-.thumbnails {
-  margin-left: -2.12766% !important;
-}
-
-.thumbnails [class*="span"] {
-  margin-left: 2.12766% !important;
-  position   : relative;
-}
-
-.thumbnails .actions {
-  width           : auto;
-  height          : 16px;
-  background-color: #000;
-  padding         : 4px 8px 8px 8px;
-  position        : absolute;
-  bottom          : 0%;
-  left            : 50%;
-  margin-top      : -13px;
-  margin-left     : -24px;
-  opacity         : 0;
-  top             : 10%;
-  transition      : 1s ease-out;
-  -moz-transition : opacity 0.3s ease-in-out;
-}
-
-.thumbnails li:hover .actions,
-.thumbnails li:hover .actions a:hover {
-  opacity   : 1;
-  color     : #fff;
-  top       : 50%;
-  transition: 1s ease-out;
-}
-
 .line {
   background: url("../img/line.png") repeat-x scroll 0 0 transparent;
   display   : block;
@@ -2610,8 +2782,29 @@ div.dataTables_wrapper .ui-widget-header {
   text-align-last        : center;
 }
 
+/* no BS5 o cabeçalho é flex e o botão fechar vai para o fim: o título ocupa o resto e
+   continua centralizado como no Matrix */
+.modal-header > h1,
+.modal-header > h2,
+.modal-header > h3,
+.modal-header > h4,
+.modal-header > h5,
+.modal-header > .modal-title {
+  flex      : 1 1 auto;
+  margin    : 0;
+  text-align: center;
+}
+
+/* cabeçalho é azul em todos os temas: o X fica branco */
+.modal-header .btn-close {
+  filter : var(--bs-btn-close-white-filter);
+  opacity: 0.8;
+  margin : 0 0 0 auto;
+}
+
 .modal-footer {
   border-radius: 0 0 4px 4px;
+  padding      : 14px 15px 15px;
 }
 
 .modal-header h5 {
@@ -2656,28 +2849,49 @@ form {
   margin-bottom: 0;
 }
 
-.form-horizontal .control-group {
-  border-top   : 0px solid #ffffff;
-  border-bottom: 0px solid #eeeeee;
-  margin-bottom: 0;
+/* form-horizontal: control-group virou "row mb-2", control-label "col-sm-3 col-form-label"
+   e controls "col-sm-9" (offset-sm-3 sem rótulo). No Matrix o rótulo tinha 180px e os
+   campos começavam em 200px com 10px de respiro; o espaçamento vem das controls, então
+   a linha não tem margem própria. */
+.form-horizontal .row.mb-2 {
+  margin-bottom: 0 !important;
 }
 
-.form-horizontal .control-group:last-child {
-  border-bottom: 0;
+.form-horizontal .row.mb-2 > .col-sm-9 {
+  padding-top   : 10px;
+  padding-bottom: 10px;
 }
 
-.form-horizontal .control-label {
-  padding-top: 15px;
-  width      : 180px;
+@media (min-width: 576px) {
+  .form-horizontal .row.mb-2 > .col-form-label {
+    flex      : 0 0 192px;
+    width     : 192px;
+    max-width : 192px;
+    padding-top: 15px;
+    text-align: right;
+  }
+
+  .form-horizontal .row.mb-2 > .col-sm-9 {
+    flex : 1 1 0;
+    width: auto;
+  }
+
+  .form-horizontal .row.mb-2 > .col-sm-9.offset-sm-3 {
+    margin-left: 192px;
+  }
 }
 
-.form-horizontal .controls {
-  margin-left: 200px;
-  padding    : 10px 0;
-}
-
-.row-fluid .span20 {
-  width: 97.8%;
+/* No BS2 responsivo os campos spanN viravam 100% no celular; as larguras w-25/50/75
+   que substituíram o spanN fazem o mesmo abaixo de 768px */
+@media (max-width: 767.98px) {
+  .form-control.w-25,
+  .form-control.w-50,
+  .form-control.w-75,
+  .form-select.w-25,
+  .form-select.w-50,
+  .form-select.w-75 {
+    width: 100% !important;
+  }
 }
 
 .form-horizontal .form-actions {
@@ -2685,8 +2899,7 @@ form {
   margin-bottom: 0;
 }
 
-.help-block,
-.help-inline {
+.form-text {
   color: #999999;
 }
 
@@ -2811,27 +3024,6 @@ form {
   height    : 115px;
   overflow-x: auto;
 }
-
-.input-append .add-on:last-child,
-.input-append .btn:last-child {
-  border-radius: 0px;
-  padding      : 6px 5px 2px;
-}
-
-.input-prepend input,
-.input-append input,
-.input-prepend input[class*="span"],
-.input-append input[class*="span"] {
-  width: none;
-}
-
-.input-append input,
-.input-append select,
-.input-prepend span,
-.input-prepend input {
-  border-radius: 0px !important;
-}
-
 /***********pop-over********************/
 .bs-docs-tooltip-examples {
   list-style: none outside none;
@@ -2846,25 +3038,6 @@ form {
   list-style: none;
   position  : relative;
 }
-
-.row-fluid .Sspan12 {
-  position             : relative;
-  width                : 100%;
-  display              : grid;
-  grid-template-columns: 3fr 1fr;
-  grid-gap             : 19px;
-}
-
-.span12A {
-  position             : relative;
-  display              : grid !important;
-  grid-template-columns: repeat(2, 2fr);
-  grid-gap             : 19px;
-  margin-top           : 19px;
-  margin-bottom        : 30px;
-  width                : 100%;
-}
-
 .rowN12 {
   position             : relative;
   display              : grid;
@@ -2918,7 +3091,7 @@ form {
     font-size: 20px;
   }
 
-  .dropdown-menu>li>a {
+  .dropdown-menu .dropdown-item {
     padding  : 6px 20px;
     font-size: 14px;
   }
@@ -2974,11 +3147,6 @@ form {
   .table th {
     font-size: 16px;
   }
-
-  .row-fluid .Sspan12 {
-    grid-gap: 25px;
-  }
-
   .cardBox {
     grid-gap: 25px;
   }
@@ -2988,15 +3156,6 @@ form {
     margin-top: 25px;
   }
 
-  .span12A {
-    grid-gap  : 25px;
-    margin-top: 25px;
-  }
-
-  .btn-xsx {
-    top  : 53px;
-    right: 96px;
-  }
 }
 
 @media (min-width: 1367px) and (max-width: 2000px) {
@@ -3021,11 +3180,6 @@ form {
   body {
     font-size: 0.69em;
   }
-
-  .btn-xsx {
-    top: 36px;
-  }
-
   .search-box input {
     margin    : 5px 0px;
     background: transparent;
@@ -3189,17 +3343,7 @@ form {
     grid-gap: 15px;
     margin-bottom: 5px;
   }
-
-  .row-fluid .Sspan12 {
-    grid-gap: 15px;
-  }
-
   .new-balance {
-    grid-gap  : 15px;
-    margin-top: 15px;
-  }
-
-  .span12A {
     grid-gap  : 15px;
     margin-top: 15px;
   }
@@ -3336,28 +3480,9 @@ form {
     grid-gap: 0;
   }
 
-  .row-fluid .Sspan12 {
-    grid-template-columns: 3fr 1fr;
-    grid-gap: 12px;
-  }
-
-  [class*="span"],
-  .row-fluid [class*="span"] {
-    float      : left;
-  }
-
   .new-balance {
     grid-gap: 12px;
     margin-top: 12px;
-  }
-
-  .span12A {
-    position             : relative;
-    width                : 100%;
-    display              : grid;
-    grid-template-columns: 1fr;
-    grid-gap             : 12px;
-    margin-top           : 12px;
   }
 }
 
@@ -3375,14 +3500,6 @@ form {
   }
 
   .new-balance {
-    grid-template-columns: 1fr;
-  }
-
-  .row-fluid .Sspan12 {
-    grid-template-columns: 1fr;
-  }
-
-  .span12A {
     grid-template-columns: 1fr;
   }
 
@@ -3474,13 +3591,6 @@ form {
   .new-balance {
     grid-template-columns: 1fr;
   }
-
-  .span12A {
-    grid-template-columns: 1fr;
-    grid-gap             : 12px;
-    margin-top           : 12px;
-  }
-
   .cardBox .card-cl {
     display: none;
   }
@@ -3556,13 +3666,6 @@ form {
   .fc .fc-toolbar-title {
     font-size: 1.5em!important;
   }
-
-  .row-fluid .Sspan12 {
-    grid-template-columns: 2fr 1fr !important;
-    grid-gap             : 12px;
-    margin-top           : 12px;
-  }
-
   .cardHeader {
     font-size: 1.5em;
   }
@@ -3654,7 +3757,7 @@ form {
     opacity: 0;
   }
 
-  #sidebar>ul>li>a>.label {
+  #sidebar>ul>li>a>.badge {
     font-size: 0;
   }
 
@@ -3724,11 +3827,8 @@ form {
     font-size: 15px;
   }
 
-  .form-horizontal .controls {
-    margin-left: 0 !important;
-  }
 
-  .dropdown-menu>li>a {
+  .dropdown-menu .dropdown-item {
     padding  : 5px 13px;
     font-size: 13px;
   }
@@ -3778,18 +3878,6 @@ form {
     margin-bottom: 0;
   }
 
-  .row-fluid .Sspan12 {
-    grid-template-columns: 1fr !important;
-    margin-top           : 19px;
-    grid-gap             : 20px;
-  }
-
-  .span12A {
-    margin-top           : 19px;
-    margin-bottom        : 19px;
-    grid-template-columns: 1fr;
-  }
-
   .new-balance {
     grid-template-columns: 1fr !important;
   }
@@ -3827,7 +3915,7 @@ form {
     left       : 3px;
   }
 
-  .row-fluid select[class*="span"] {
+  select.form-select {
     width     : 100% !important;
     margin-top: 0px;
   }
@@ -3896,11 +3984,6 @@ form {
     box-shadow     : none;
     justify-content: space-between;
   }
-
-  .span4S {
-    grid-template-columns: 1fr;
-  }
-
   #search label input[type="text"] {
     height: 16px;
   }
@@ -3909,9 +3992,6 @@ form {
     top  : 36px;
   }
 
-  .form-horizontal .control-label {
-    padding-top: 0;
-  }
 
   #tabela_wrapper {
     margin-top: 20px;
@@ -3926,10 +4006,6 @@ form {
     margin: -8px 2px;
   }
 
-  .btn-xs {
-    bottom: 23px;
-    left  : 20px;
-  }
 
   .ionicon s-ion-icon {
     left: 20px;
@@ -4014,7 +4090,8 @@ form {
     margin-left: 7px;
   }
 
-  .navbar>.nav {
+  .navbar>.nav,
+  #user-nav > ul {
     float: none;
   }
 
@@ -4058,7 +4135,8 @@ form {
     padding: 0px 2px;
   }
 
-  .navbar-inverse .nav>li>a {
+  .navbar-inverse .nav>li>a,
+  #user-nav > ul > li > a {
     color: #606772;
   }
 
@@ -4260,7 +4338,8 @@ form {
   }
 
   .dataTables_paginate .ui-button,
-  .pagination.alternate li a {
+  .pagination .page-link,
+  .pagination.alternate li > a {
     padding: 4px 9px !important;
   }
 
@@ -4269,48 +4348,7 @@ form {
   }
 }
 
-/* My buttons */
-/* btn-info */
-.btn-info {
-  color           : #ffffff;
-  background-color: #26a38e;
-  border-color    : #088a74;
-}
-
-.btn-info:hover,
-.btn-info:focus,
-.btn-info:active,
-.btn-info.active,
-.open .dropdown-toggle.btn-info {
-  color           : #ffffff;
-  background-color: #1fb5a8;
-  border-color    : #088a74;
-}
-
-.btn-info:active,
-.btn-info.active,
-.open .dropdown-toggle.btn-info {
-  background-image: none;
-}
-
-.btn-info.disabled,
-.btn-info[disabled],
-fieldset[disabled] .btn-info,
-.btn-info.disabled:hover,
-.btn-info[disabled]:hover,
-fieldset[disabled] .btn-info:hover,
-.btn-info.disabled:focus,
-.btn-info[disabled]:focus,
-fieldset[disabled] .btn-info:focus,
-.btn-info.disabled:active,
-.btn-info[disabled]:active,
-fieldset[disabled] .btn-info:active,
-.btn-info.disabled.active,
-.btn-info[disabled].active,
-fieldset[disabled] .btn-info.active {
-  background-color: #26a38e;
-  border-color    : #088a74;
-}
+/* My buttons: .btn-info do Matrix definido por variáveis junto das outras variantes, no topo */
 
 .btn-info .badge {
   color           : #26a38e;
