@@ -154,9 +154,8 @@ $configNfeBoleto = $this->nfe_model->getConfig();
 <?php if (! defined('MAPOS_BOLETO_NOTA_JS')) { define('MAPOS_BOLETO_NOTA_JS', true); ?>
 <div id="modal-gerar-boleto" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        
-        <h5>Gerar Boleto/PIX (Cora)</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <h5 class="modal-title">Gerar Boleto/PIX (Cora)</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <input type="hidden" id="boletoNotaId" value="" />
         <p style="margin-bottom:4px">Valor da nota fiscal: <strong id="boletoValorNota">—</strong></p>
@@ -166,8 +165,8 @@ $configNfeBoleto = $this->nfe_model->getConfig();
         </div>
         <div class="mb-3">
             <label><strong>Como cobrar esta nota</strong></label>
-            <label class="radio" style="margin:2px 0"><input class="form-check-input" type="radio" name="boletoModo" value="unico" checked /> <strong>Um boleto com o valor da nota</strong> (à vista ou parcelado)</label>
-            <label class="radio" style="margin:2px 0"><input class="form-check-input" type="radio" name="boletoModo" value="por_item" /> <strong>Um boleto para cada item da nota</strong> (cada serviço/produto separado)</label>
+            <label class="form-check" style="margin:2px 0"><input class="form-check-input" type="radio" name="boletoModo" value="unico" checked /> <strong>Um boleto com o valor da nota</strong> (à vista ou parcelado)</label>
+            <label class="form-check" style="margin:2px 0"><input class="form-check-input" type="radio" name="boletoModo" value="por_item" /> <strong>Um boleto para cada item da nota</strong> (cada serviço/produto separado)</label>
             <span style="color:#999;font-size:11px">Por item: o valor da nota é dividido entre os itens, cada um no seu boleto, todos com o mesmo vencimento. Mínimo de R$ 5,00 por boleto.</span>
         </div>
         <div class="mb-3" id="boletoParcelasBox">

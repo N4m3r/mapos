@@ -35,10 +35,10 @@ $canvas_id = $modal_id . '-canvas';
         <div style="border: 1px solid var(--tec-input-line,#8a90a8); padding: 5px; background: #fff; max-width: 300px;">
             <img src="" alt="Assinatura Salva" style="max-width: 100%; height: auto; display: block;">
             <div style="margin-top: 5px; text-align: center;">
-                <button type="button" class="btn btn-sm btn-warning btn-editar-assinatura" data-modal="<?php echo $modal_id; ?>">
+                <button type="button" class="btn btn-sm btn-outline-secondary btn-warning btn-editar-assinatura" data-modal="<?php echo $modal_id; ?>">
                     <i class="bx bx-edit"></i> Editar
                 </button>
-                <button type="button" class="btn btn-sm btn-danger btn-limpar-assinatura" data-preview="<?php echo $preview_id; ?>">
+                <button type="button" class="btn btn-sm btn-outline-secondary btn-danger btn-limpar-assinatura" data-preview="<?php echo $preview_id; ?>">
                     <i class="bx bx-trash"></i> Limpar
                 </button>
             </div>
@@ -61,7 +61,7 @@ $canvas_id = $modal_id . '-canvas';
 
 <style nonce="<?= csp_nonce() ?>">
     @media (max-width: 768px) {
-        .modal-assinatura { width: 96% !important; left: 2% !important; margin-left: 0 !important; top: 8px !important; }
+        .modal-assinatura .modal-dialog { margin: 8px auto; max-width: 96% !important; }
         .modal-assinatura .modal-body { max-height: 74vh; overflow-y: auto; }
         .assinatura-botoes-modal .btn, .modal-assinatura .modal-footer .btn { min-height: 46px; font-size: 15px; }
         .modal-assinatura .modal-footer .btn { display: block; width: 100%; box-sizing: border-box; margin: 6px 0 0; float: none; }
@@ -70,9 +70,8 @@ $canvas_id = $modal_id . '-canvas';
 <!-- Modal de Assinatura -->
 <div class="modal fade modal-assinatura" id="<?php echo $modal_id; ?>" tabindex="-1" role="dialog" aria-labelledby="<?php echo $modal_id; ?>Label" aria-hidden="true" ><div class="modal-dialog" style="max-width: 600px"><div class="modal-content">
     <div class="modal-header">
-        
-        <h5 id="<?php echo $modal_id; ?>Label"><i class="bx bx-pencil"></i> <?php echo $titulo; ?></h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <h5 class="modal-title" id="<?php echo $modal_id; ?>Label"><i class="bx bx-pencil"></i> <?php echo $titulo; ?></h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body" style="text-align: center;">
         <!-- Instrução -->
         <p class="text-info" style="margin-bottom: 15px;">
@@ -86,10 +85,10 @@ $canvas_id = $modal_id . '-canvas';
 
         <!-- Botões do canvas -->
         <div class="assinatura-botoes-modal" style="margin-bottom: 15px;">
-            <button type="button" class="btn btn-sm btn-desfazer-canvas" data-canvas="<?php echo $canvas_id; ?>">
+            <button type="button" class="btn btn-sm btn-outline-secondary btn-desfazer-canvas" data-canvas="<?php echo $canvas_id; ?>">
                 <i class="bx bx-undo"></i> Desfazer
             </button>
-            <button type="button" class="btn btn-sm btn-limpar-canvas" data-canvas="<?php echo $canvas_id; ?>">
+            <button type="button" class="btn btn-sm btn-outline-secondary btn-limpar-canvas" data-canvas="<?php echo $canvas_id; ?>">
                 <i class="bx bx-eraser"></i> Limpar Canvas
             </button>
         </div>
@@ -114,7 +113,7 @@ $canvas_id = $modal_id . '-canvas';
         <?php endif; ?>
     </div>
     <div class="modal-footer">
-        <button type="button" class="btn" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
         <button type="button" class="btn btn-success btn-salvar-assinatura-modal"
                 data-modal="<?php echo $modal_id; ?>"
                 data-canvas="<?php echo $canvas_id; ?>"

@@ -182,7 +182,7 @@ $emitente = isset($emitente) ? $emitente : null;
             border-radius: 10px;
         }
 
-        .ap-actions .controls input[type=text],
+        .ap-actions input[type=text],
         .ap-actions textarea {
             width: 100%;
             box-sizing: border-box;

@@ -294,7 +294,7 @@ $statusSimples = function ($st) {
     <?php if (!empty($assinaturas_exibicao)): ?>
         <div class="info-card">
             <h3><i class='bx bx-pen'></i> Assinaturas</h3>
-            <div class="row" style="display:flex; flex-wrap:wrap; gap:14px;">
+            <div style="display:flex; flex-wrap:wrap; gap:14px;">
                 <?php foreach ($assinaturas_exibicao as $assinatura): ?>
                     <div style="flex:1 1 140px; text-align:center;">
                         <h5 style="font-size:12px; color:var(--tec-muted, #8a8fa3); margin:0 0 8px;"><?= in_array($assinatura->tipo, ['solicitante', 'cliente_aceite'], true) ? 'Solicitante' : ucfirst(str_replace('_', ' ', $assinatura->tipo)) ?></h5>
@@ -481,6 +481,7 @@ $statusSimples = function ($st) {
 .obs-tec-card textarea{width:100%;box-sizing:border-box;min-height:90px;padding:11px 12px;border:1px solid rgba(0,0,0,.2);border-radius:10px;font-size:16px;}
 .obs-tec-card .obs-tec-btn{display:block;width:100%;min-height:52px;margin-top:8px;border:0;border-radius:12px;background:var(--tec-primary, #667eea);color:var(--tec-on-primary, #fff);font-size:16px;font-weight:700;}
 .obs-tec-card .obs-tec-btn[disabled]{opacity:.6;}
+.obs-tec-card.hidden{display:none;}
 .obs-tec-item{padding:8px 0;border-bottom:1px solid var(--tec-line, #eee);font-size:14px;word-wrap:break-word;}
 .obs-tec-item small{display:block;color:var(--tec-muted, #777);}
 .obs-tec-msg{font-size:13px;margin-top:6px;color:var(--tec-danger, #c0392b);}

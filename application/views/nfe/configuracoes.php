@@ -9,8 +9,6 @@ $temAliqSimples = property_exists($configNfe, 'simples_aliquota_efetiva');
 <style>
     .fiscal-passo { margin-bottom: 18px; padding: 14px 16px; border: 1px solid rgba(128,128,128,.35); border-radius: 8px; }
     .fiscal-passo h4 { margin: 0 0 10px; }
-    .fiscal-passo .control-label { width: 200px; padding-top: 9px; }
-    .fiscal-passo .controls { margin-left: 220px; }
     .hint { display: block; opacity: .7; font-size: 12px; margin-top: 2px; }
     .perfil-cards { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
     .perfil-card { flex: 1 1 200px; cursor: pointer; padding: 12px; border: 2px solid rgba(128,128,128,.4); border-radius: 8px; }
@@ -21,8 +19,6 @@ $temAliqSimples = property_exists($configNfe, 'simples_aliquota_efetiva');
     .reforma-previa { padding: 8px 12px; border-radius: 6px; background: rgba(45,156,219,.12); display: inline-block; margin: 6px 0; }
     .fiscal-avancado summary { cursor: pointer; font-weight: bold; padding: 6px 0; }
     @media (max-width: 767px) {
-        .fiscal-passo .control-label { width: auto; text-align: left; }
-        .fiscal-passo .controls { margin-left: 0; }
     }
 </style>
 
@@ -213,7 +209,7 @@ $temAliqSimples = property_exists($configNfe, 'simples_aliquota_efetiva');
                         <div class="row mb-2">
                             <label class="col-sm-3 col-form-label" for="reforma_ativa">Mostrar IBS/CBS na nota</label>
                             <div class="col-sm-9">
-                                <label class="checkbox" style="display:inline-flex;align-items:center;gap:8px">
+                                <label class="form-check-label" style="display:inline-flex;align-items:center;gap:8px">
                                     <input class="form-check-input" type="checkbox" id="reforma_ativa" name="reforma_ativa" value="1" <?= (!empty($configNfe->reforma_ativa) || (int) $configNfe->op_simp_nac === 1) ? 'checked' : '' ?> />
                                     Ligar (desligado, a nota sai como hoje)
                                 </label>
@@ -419,7 +415,7 @@ $temAliqSimples = property_exists($configNfe, 'simples_aliquota_efetiva');
                         <div class="row mb-2">
                             <label class="col-sm-3 col-form-label" for="reforma_indfinal">Consumidor final (NFS-e)</label>
                             <div class="col-sm-9">
-                                <label class="checkbox" style="display:inline-flex;align-items:center;gap:8px">
+                                <label class="form-check-label" style="display:inline-flex;align-items:center;gap:8px">
                                     <input class="form-check-input" type="checkbox" id="reforma_indfinal" name="reforma_indfinal" value="1" <?= ! empty($configNfe->reforma_indfinal) ? 'checked' : '' ?> />
                                     A maioria dos meus clientes é consumidor final (pessoa física / uso próprio)
                                 </label>

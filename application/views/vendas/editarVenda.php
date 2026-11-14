@@ -182,10 +182,10 @@ foreach ($produtos as $p) {
     $total = $total + $p->subTotal;
     echo '<tr>';
     echo '<td>' . $p->descricao . '</td>';
-    echo '<td><div align="center">' . $p->quantidade . '</td>';
-    echo '<td><div align="center">R$: ' . $preco . '</td>';
-    echo '<td><div align="center"><a href="" idAcao="' . $p->idItens . '" prodAcao="' . $p->idProdutos . '" quantAcao="' . $p->quantidade . '" title="Excluir Produto" class="btn-nwe4"><i class="bx bx-trash-alt"></i></a></td>';
-    echo '<td><div align="center">R$: ' . number_format($p->subTotal, 2, '.', '') . '</td>';
+    echo '<td><div align="center">' . $p->quantidade . '</div></td>';
+    echo '<td><div align="center">R$: ' . $preco . '</div></td>';
+    echo '<td><div align="center"><a href="" idAcao="' . $p->idItens . '" prodAcao="' . $p->idProdutos . '" quantAcao="' . $p->quantidade . '" title="Excluir Produto" class="btn-nwe4"><i class="bx bx-trash-alt"></i></a></div></td>';
+    echo '<td><div align="center">R$: ' . number_format($p->subTotal, 2, '.', '') . '</div></td>';
     echo '</tr>';
 } ?>
                                     </tbody>
@@ -228,9 +228,8 @@ foreach ($produtos as $p) {
 <div id="modal-faturar" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form id="formFaturar" action="<?php echo current_url() ?>" method="post">
         <div class="modal-header">
-            
-            <h3 id="myModalLabel">Faturar Venda</h3>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+            <h3 class="modal-title" id="myModalLabel">Faturar Venda</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body"><div class="row">
             <div class="col-md-12 alert alert-info" style="margin-left: 0"> Obrigatório o preenchimento dos campos com asterisco.</div>
             <div class="col-md-12" style="margin-left: 0">
@@ -394,7 +393,7 @@ foreach ($produtos as $p) {
         $('#formDesconto').submit(function(e) {
             e.preventDefault();
             var form = $(this);
-            $("#divProdutos").html("<div class='progress progress-info active'><div class='bar' style='width: 100%'></div></div>");
+            $("#divProdutos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
             $.ajax({
                 url: form.attr('action'),
                 type: form.attr('method'),
@@ -602,7 +601,7 @@ foreach ($produtos as $p) {
                     });
                 } else {
                     var dados = $(form).serialize();
-                    $("#divProdutos").html("<div class='progress progress-info active'><div class='bar' style='width: 100%'></div></div>");
+                    $("#divProdutos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
                     $.ajax({
                         type: "POST",
                         url: "<?php echo base_url(); ?>index.php/vendas/adicionarProduto",
@@ -636,7 +635,7 @@ foreach ($produtos as $p) {
             var quantidade = $(this).attr('quantAcao');
             var produto = $(this).attr('prodAcao');
             if ((idProduto % 1) == 0) {
-                $("#divProdutos").html("<div class='progress progress-info active'><div class='bar' style='width: 100%'></div></div>");
+                $("#divProdutos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
                 $.ajax({
                     type: "POST",
                     url: "<?php echo base_url(); ?>index.php/vendas/excluirProduto",

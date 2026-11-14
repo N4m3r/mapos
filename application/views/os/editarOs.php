@@ -301,8 +301,8 @@
                         <div class="tab-pane" id="tab2"><div class="row">
                             <div class="col-md-12 card card-body" style="padding: 1%; margin-left: 0">
                                 <form class="row" id="formDesconto" action="<?php echo base_url(); ?>index.php/os/adicionarDesconto" method="POST">
-                                    <div class="row" id="divValorTotal">
-                                        <div class="col-md-2">
+                                    <div class="col-md-2" id="divValorTotal">
+                                        <div>
                                             <label for="">Valor Total Da OS:</label>
                                             <input class="money w-100 form-control" id="valorTotal" name="valorTotal" type="text" data-affixes-stay="true" data-thousands="" data-decimal="." name="valor" value="<?php echo number_format($totals + $total, 2, '.', ''); ?>" readonly />
                                         </div>
@@ -527,7 +527,7 @@
                                         </div>
                                     </form>
                                 </div>
-                                <div class="col-md-12 float-start" id="divAnexos" style="margin-left: 0">
+                                <div class="row g-2" id="divAnexos" style="margin-left: 0">
                                     <?php
                                     foreach ($anexos as $a) {
                                         if ($a->thumb == null) {
@@ -538,7 +538,7 @@
                                             $link = $a->url . '/' . $a->anexo;
                                         }
                                         echo '<div class="col-md-3" style="min-height: 150px; margin-left: 0">
-                                                    <a style="min-height: 150px;" href="#modal-anexo" imagem="' . $a->idAnexos . '" link="' . $link . '" role="button" class="btn anexo col-md-12" data-bs-toggle="modal">
+                                                    <a style="min-height: 150px;" href="#modal-anexo" imagem="' . $a->idAnexos . '" link="' . $link . '" role="button" class="btn btn-light anexo w-100" data-bs-toggle="modal">
                                                         <img src="' . $thumb . '" alt="">
                                                     </a>
                                                 </div>';
@@ -644,7 +644,7 @@
                                             <button type="button" class="btn btn-primary" id="btn-confirmar-inicio">
                                                 <i class="bx bx-check"></i> Confirmar Início do Atendimento
                                             </button>
-                                            <button type="button" class="btn btn-secondary" id="btn-cancelar-inicio">Cancelar</button>
+                                            <button type="button" class="btn btn-light border" id="btn-cancelar-inicio">Cancelar</button>
                                         </div>
                                     </div></div>
                                 </div>
@@ -712,7 +712,7 @@
                                             <button type="button" class="btn btn-success" id="btn-confirmar-fim">
                                                 <i class="bx bx-check-double"></i> Confirmar Finalização
                                             </button>
-                                            <button type="button" class="btn btn-secondary" id="btn-cancelar-fim">Cancelar</button>
+                                            <button type="button" class="btn btn-light border" id="btn-cancelar-fim">Cancelar</button>
                                         </div>
                                     </div></div>
                                 </div>
@@ -778,9 +778,8 @@
 <div id="modal-anexo" class="modal fade" data-excluir-url="<?php echo base_url(); ?>index.php/os/excluirAnexo/" data-download-url="<?php echo base_url(); ?>index.php/os/downloadanexo/" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
     aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        
-        <h3 id="myModalLabel">Visualizar Anexo</h3>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <h3 class="modal-title" id="myModalLabel">Visualizar Anexo</h3>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body"><div class="row">
         <div class="col-md-12" id="div-visualizar-anexo" style="text-align: center">
             <div class='progress'>
@@ -789,7 +788,7 @@
         </div>
     </div></div>
     <div class="modal-footer">
-        <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Fechar</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Fechar</button>
         <a href="" id-imagem="" class="btn btn-dark" id="download">Download</a>
         <a href="" link="" class="btn btn-danger" id="excluir-anexo">Excluir Anexo</a>
     </div>
@@ -800,9 +799,8 @@
     aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="#" method="POST" id="formAnotacao">
         <div class="modal-header">
-            
-            <h3 id="myModalLabel">Adicionar Anotação</h3>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+            <h3 class="modal-title" id="myModalLabel">Adicionar Anotação</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body"><div class="row">
             <div class="col-md-12" id="divFormAnotacoes" style="margin-left: 0"></div>
             <div class="col-md-12" style="margin-left: 0">
@@ -812,7 +810,7 @@
             </div>
         </div></div>
         <div class="modal-footer" style="display:flex;justify-content: center">
-            <button class="btn" data-bs-dismiss="modal" aria-hidden="true" id="btn-close-anotacao">Fechar</button>
+            <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true" id="btn-close-anotacao">Fechar</button>
             <button class="btn btn-primary">Adicionar</button>
         </div>
     </form>
@@ -823,9 +821,8 @@
     aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form id="formFaturar" action="<?php echo current_url() ?>" method="post">
         <div class="modal-header">
-            
-            <h3 id="myModalLabel">Faturar OS</h3>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+            <h3 class="modal-title" id="myModalLabel">Faturar OS</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body"><div class="row">
             <div class="col-md-12 alert alert-info" style="margin-left: 0"> Obrigatório o preenchimento dos campos com
                 asterisco.</div>
@@ -1325,7 +1322,7 @@
                     });
                 } else {
                     var dados = $(form).serialize();
-                    $("#divProdutos").html("<div class='progress progress-info active'><div class='bar' style='width: 100%'></div></div>");
+                    $("#divProdutos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
                     $.ajax({
                         type: "POST",
                         url: "<?php echo base_url(); ?>index.php/os/adicionarProduto",
@@ -1380,7 +1377,7 @@
             submitHandler: function (form) {
                 var dados = $(form).serialize();
 
-                $("#divServicos").html("<div class='progress progress-info active'><div class='bar' style='width: 100%'></div></div>");
+                $("#divServicos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
                 $.ajax({
                     type: "POST",
                     url: "<?php echo base_url(); ?>index.php/os/adicionarServico",
@@ -1421,7 +1418,7 @@
             },
             submitHandler: function (form) {
                 var dados = $(form).serialize();
-                $("#divFormAnotacoes").html("<div class='progress progress-info active'><div class='bar' style='width: 100%'></div></div>");
+                $("#divFormAnotacoes").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
 
                 $.ajax({
                     type: "POST",
@@ -1452,7 +1449,7 @@
                 //var dados = $( form ).serialize();
                 var dados = new FormData(form);
                 $("#form-anexos").hide('1000');
-                $("#divAnexos").html("<div class='progress progress-info active'><div class='bar' style='width: 100%'></div></div>");
+                $("#divAnexos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
                 $.ajax({
                     type: "POST",
                     url: "<?php echo base_url(); ?>index.php/os/anexar",
@@ -1468,11 +1465,11 @@
                             $("#userfile").val('');
 
                         } else {
-                            $("#divAnexos").html('<div class="alert fade show"><button type="button" class="btn-close" data-bs-dismiss="alert"></button><strong>Atenção!</strong> ' + data.mensagem + '</div>');
+                            $("#divAnexos").html('<div class="alert alert-warning alert-dismissible fade show"><strong>Atenção!</strong> ' + data.mensagem + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button></div>');
                         }
                     },
                     error: function () {
-                        $("#divAnexos").html('<div class="alert alert-danger fade show"><button type="button" class="btn-close" data-bs-dismiss="alert"></button><strong>Atenção!</strong> Ocorreu um erro. Verifique se você anexou o(s) arquivo(s).</div>');
+                        $("#divAnexos").html('<div class="alert alert-danger alert-dismissible fade show"><strong>Atenção!</strong> Ocorreu um erro. Verifique se você anexou o(s) arquivo(s).<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button></div>');
                     }
                 });
                 $("#form-anexos").show('1000');
@@ -1486,7 +1483,7 @@
             var produto = $(this).attr('prodAcao');
             var idOS = "<?php echo $result->idOs ?>"
             if ((idProduto % 1) == 0) {
-                $("#divProdutos").html("<div class='progress progress-info active'><div class='bar' style='width: 100%'></div></div>");
+                $("#divProdutos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
                 $.ajax({
                     type: "POST",
                     url: "<?php echo base_url(); ?>index.php/os/excluirProduto",
@@ -1525,7 +1522,7 @@
                 cancelButtonText: "Cancelar"
             }).then(function (result) {
                 if (result.value) {
-                    $("#divProdutos").html("<div class='progress progress-info active'><div class='bar' style='width: 100%'></div></div>");
+                    $("#divProdutos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
                     $.ajax({
                         type: "POST",
                         url: "<?php echo base_url(); ?>index.php/os/zerarProdutos",
@@ -1564,7 +1561,7 @@
             var idServico = $(this).attr('idAcao');
             var idOS = "<?php echo $result->idOs ?>"
             if ((idServico % 1) == 0) {
-                $("#divServicos").html("<div class='progress progress-info active'><div class='bar' style='width: 100%'></div></div>");
+                $("#divServicos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
                 $.ajax({
                     type: "POST",
                     url: "<?php echo base_url(); ?>index.php/os/excluirServico",
@@ -1596,7 +1593,7 @@
             var link = $(this).attr('link');
             var idOS = "<?php echo $result->idOs ?>"
             $('#modal-anexo').modal('hide');
-            $("#divAnexos").html("<div class='progress progress-info active'><div class='bar' style='width: 100%'></div></div>");
+            $("#divAnexos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
 
             $.ajax({
                 type: "POST",
@@ -1621,7 +1618,7 @@
             var idAnotacao = $(this).attr('idAcao');
             var idOS = "<?php echo $result->idOs ?>"
             if ((idAnotacao % 1) == 0) {
-                $("#divAnotacoes").html("<div class='progress progress-info active'><div class='bar' style='width: 100%'></div></div>");
+                $("#divAnotacoes").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
                 $.ajax({
                     type: "POST",
                     url: "<?php echo base_url(); ?>index.php/os/excluirAnotacao",
@@ -2257,15 +2254,14 @@
 <div id="modal-editar-produto" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
     aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        
-        <h5 id="myModalLabel"><i class="bx bx-edit"></i> Editar Produto</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <h5 class="modal-title" id="myModalLabel"><i class="bx bx-edit"></i> Editar Produto</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body"><div class="row">
         <input type="hidden" id="editar-idProdutoOs" />
         <input type="hidden" id="editar-idOsProduto" value="<?php echo $result->idOs; ?>" />
-        <div class="col-md-12 row" style="margin-left: 0">
+        <div class="col-md-12" style="margin-left: 0">
             <label><strong>Produto:</strong></label>
-            <span id="editar-descricao-produto" class="form-control col-md-12"></span>
+            <div id="editar-descricao-produto" class="form-control-plaintext fw-semibold"></div>
         </div>
         <div class="col-md-6" style="margin-left: 0">
             <label for="editar-quantidade-produto">Quantidade</label>
@@ -2277,7 +2273,7 @@
         </div>
     </div></div>
     <div class="modal-footer">
-        <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
         <button class="btn btn-primary" id="btn-salvar-produto"><i class="bx bx-save"></i> Salvar</button>
     </div>
 </div></div></div>
@@ -2286,15 +2282,14 @@
 <div id="modal-editar-servico" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
     aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        
-        <h5 id="myModalLabel"><i class="bx bx-edit"></i> Editar Serviço</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <h5 class="modal-title" id="myModalLabel"><i class="bx bx-edit"></i> Editar Serviço</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body"><div class="row">
         <input type="hidden" id="editar-idServicoOs" />
         <input type="hidden" id="editar-idOsServico" value="<?php echo $result->idOs; ?>" />
-        <div class="col-md-12 row" style="margin-left: 0">
+        <div class="col-md-12" style="margin-left: 0">
             <label><strong>Serviço:</strong></label>
-            <span id="editar-nome-servico" class="form-control col-md-12"></span>
+            <div id="editar-nome-servico" class="form-control-plaintext fw-semibold"></div>
         </div>
         <div class="col-md-6" style="margin-left: 0">
             <label for="editar-quantidade-servico">Quantidade</label>
@@ -2306,7 +2301,7 @@
         </div>
     </div></div>
     <div class="modal-footer">
-        <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
         <button class="btn btn-primary" id="btn-salvar-servico"><i class="bx bx-save"></i> Salvar</button>
     </div>
 </div></div></div>

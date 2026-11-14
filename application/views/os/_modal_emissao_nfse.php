@@ -4,9 +4,8 @@
 ?>
 <div id="modal-nfse" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        
-        <h5>Emitir NFS-e (serviços) — <span id="nfseStepLabel">Revisão</span></h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <h5 class="modal-title">Emitir NFS-e (serviços) — <span id="nfseStepLabel">Revisão</span></h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <input type="hidden" id="nfseIdOs" value="" />
 
@@ -22,8 +21,8 @@
                 </table>
                 <div id="nfseProdutosBox" style="display:none;margin:6px 0;padding:8px;border:1px solid rgba(128,128,128,.35);border-radius:4px">
                     <strong>Esta OS também tem produtos (<span id="nfseProdutosTotal"></span>). O que entra nesta nota?</strong>
-                    <label class="radio" style="margin:4px 0 0"><input class="form-check-input" type="radio" name="nfseEscopo" value="servicos" checked /> <strong>Só os serviços</strong> &mdash; os produtos ficam para a NF-e (botão "Emitir NF-e") ou para cobrar à parte.</label>
-                    <label class="radio" style="margin:2px 0 0"><input class="form-check-input" type="radio" name="nfseEscopo" value="tudo" /> <strong>Serviços + produtos numa nota só</strong> &mdash; nota de serviço única com o valor total da OS. Não emita NF-e dos produtos depois, para não duplicar.</label>
+                    <label class="form-check" style="margin:4px 0 0"><input class="form-check-input" type="radio" name="nfseEscopo" value="servicos" checked /> <strong>Só os serviços</strong> &mdash; os produtos ficam para a NF-e (botão "Emitir NF-e") ou para cobrar à parte.</label>
+                    <label class="form-check" style="margin:2px 0 0"><input class="form-check-input" type="radio" name="nfseEscopo" value="tudo" /> <strong>Serviços + produtos numa nota só</strong> &mdash; nota de serviço única com o valor total da OS. Não emita NF-e dos produtos depois, para não duplicar.</label>
                     <input class="form-check-input" type="checkbox" id="nfseIncluirProdutos" style="display:none" />
                 </div>
                 <div id="nfseAvisos"></div>

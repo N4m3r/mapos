@@ -47,7 +47,7 @@ $resumo = $caixa->resumo_fechamento ? json_decode($caixa->resumo_fechamento, tru
                         <select class="form-select" name="tipo" style="width:130px; margin:0"><option value="sangria">Sangria (retirada)</option><option value="suprimento">Suprimento (reforço)</option></select>
                         <input class="form-control" type="text" name="valor" inputmode="decimal" placeholder="Valor" required style="width:90px; margin:0; text-align:right">
                         <input class="form-control" type="text" name="descricao" placeholder="Motivo" style="width:160px; margin:0">
-                        <button type="submit" class="btn btn-sm">Registrar</button>
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">Registrar</button>
                     </form>
 
                     <h5 style="margin-top:18px">Fechar caixa</h5>

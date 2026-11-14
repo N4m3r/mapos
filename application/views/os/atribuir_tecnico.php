@@ -32,16 +32,16 @@ a.ui-kpi:hover{color:inherit;text-decoration:none;box-shadow:var(--ui-sombra-alt
 </style>
 
 <?php if ($this->session->flashdata('success') != null) { ?>
-    <div class="alert alert-success">
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="alert alert-success alert-dismissible fade show">
         <?php echo $this->session->flashdata('success'); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
     </div>
 <?php } ?>
 
 <?php if ($this->session->flashdata('error') != null) { ?>
-    <div class="alert alert-danger">
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="alert alert-danger alert-dismissible fade show">
         <?php echo $this->session->flashdata('error'); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
     </div>
 <?php } ?>
 
@@ -122,7 +122,7 @@ $kpiLista = [
             <?php if ($podeAdicionar) { ?>
                 <a href="<?= base_url() ?>index.php/os/adicionar" class="btn btn-success"><i class='bx bx-plus'></i> Nova OS</a>
             <?php } ?>
-            <a href="<?= base_url() ?>index.php/agenda" class="btn"><i class='bx bx-calendar'></i> Agenda</a>
+            <a href="<?= base_url() ?>index.php/agenda" class="btn btn-outline-secondary"><i class='bx bx-calendar'></i> Agenda</a>
         </div>
     </div>
 
@@ -200,7 +200,7 @@ $kpiLista = [
             <div class="ui-campo-acao">
                 <button type="submit" class="btn btn-primary"><i class='bx bx-filter'></i> Filtrar</button>
                 <?php if ($temFiltro) { ?>
-                    <a href="<?= $base ?>?aba=<?= $aba ?>" class="btn" title="Limpar filtros"><i class='bx bx-x'></i> Limpar</a>
+                    <a href="<?= $base ?>?aba=<?= $aba ?>" class="btn btn-outline-secondary" title="Limpar filtros"><i class='bx bx-x'></i> Limpar</a>
                 <?php } ?>
             </div>
         <?php } ?>
@@ -274,7 +274,7 @@ $kpiLista = [
                         <strong>Nenhuma OS encontrada</strong>
                         <?php if ($temFiltro || $aba !== 'todos') { ?>
                             Nada corresponde à situação "<?= html_escape($abasDisponiveis[$aba] ?? $aba) ?>"<?= $temFiltro ? ' com os filtros aplicados' : '' ?>.<br>
-                            <a href="<?= $base ?>?aba=todos" class="btn btn-sm ui-mt"><i class='bx bx-x'></i> Limpar filtros</a>
+                            <a href="<?= $base ?>?aba=todos" class="btn btn-sm btn-outline-secondary ui-mt"><i class='bx bx-x'></i> Limpar filtros</a>
                         <?php } else { ?>
                             Não há chamados abertos no momento.
                         <?php } ?>
@@ -351,7 +351,7 @@ $kpiLista = [
         </div>
 
         <?php if (isset($pagination) && $pagination) { ?>
-            <div class="pagination alternate" style="text-align: center;"><?= $pagination ?></div>
+            <div class="d-flex justify-content-center"><?= $pagination ?></div>
         <?php } ?>
     <?php } ?>
 </div>
@@ -359,9 +359,8 @@ $kpiLista = [
 <!-- Modal Atribuir Técnico -->
 <div id="modalAtribuir" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalAtribuirLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        
-        <h4 id="modalAtribuirLabel"><i class='bx bx-user-plus'></i> Atribuir Técnico</h4>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <h4 class="modal-title" id="modalAtribuirLabel"><i class='bx bx-user-plus'></i> Atribuir Técnico</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <form action="<?= base_url() ?>index.php/os/atribuirTecnicoAction" method="POST" id="formAtribuir">
         <div class="modal-body">
             <input type="hidden" name="os_id" id="os_id_atribuir">
@@ -403,13 +402,13 @@ $kpiLista = [
                 </div>
             </div>
 
-            <div id="tecnico-atual-info" class="alert alert-info hide">
+            <div id="tecnico-atual-info" class="alert alert-info d-none">
                 <strong>Técnico atual:</strong> <span id="tecnico-atual-nome"></span><br>
                 <small>Ao atribuir um novo técnico, o atual será substituído.</small>
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
+            <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
             <button type="submit" class="btn btn-success"><i class='bx bx-check'></i> Confirmar Atribuição</button>
         </div>
     </form>
@@ -418,9 +417,8 @@ $kpiLista = [
 <!-- Modal Remover Técnico -->
 <div id="modalRemover" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalRemoverLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        
-        <h4 id="modalRemoverLabel"><i class='bx bx-user-x'></i> Remover Técnico</h4>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <h4 class="modal-title" id="modalRemoverLabel"><i class='bx bx-user-x'></i> Remover Técnico</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <form action="<?= base_url() ?>index.php/os/removerTecnicoAction" method="POST" id="formRemover">
         <div class="modal-body">
             <input type="hidden" name="os_id" id="os_id_remover">
@@ -438,7 +436,7 @@ $kpiLista = [
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
+            <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
             <button type="submit" class="btn btn-danger"><i class='bx bx-trash'></i> Confirmar Remoção</button>
         </div>
     </form>
@@ -447,9 +445,8 @@ $kpiLista = [
 <!-- Modal Reagendar (Não Realizada) -->
 <div id="modalReagendar" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        
-        <h4><i class='bx bx-calendar'></i> Reagendar OS #<span id="reag_os"></span></h4>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <h4 class="modal-title"><i class='bx bx-calendar'></i> Reagendar OS #<span id="reag_os"></span></h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <input type="hidden" id="reag_ocorrencia">
         <div class="mb-3">
@@ -461,7 +458,7 @@ $kpiLista = [
         <small style="color:#888">A OS volta para a agenda como "Aberto" na data informada.</small>
     </div>
     <div class="modal-footer">
-        <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
         <button type="button" class="btn btn-success" id="btnConfirmarReagendar"><i class='bx bx-check'></i> Confirmar</button>
     </div>
 </div></div></div>
@@ -497,10 +494,10 @@ $kpiLista = [
 
             if (tecnicoAtual) {
                 $('#tecnico-atual-nome').text(tecnicoNome);
-                $('#tecnico-atual-info').removeClass('hide');
+                $('#tecnico-atual-info').removeClass('d-none');
                 $('#modalAtribuirLabel').html('<i class="bx bx-calendar-edit"></i> Agendar / trocar técnico');
             } else {
-                $('#tecnico-atual-info').addClass('hide');
+                $('#tecnico-atual-info').addClass('d-none');
                 $('#modalAtribuirLabel').html('<i class="bx bx-user-plus"></i> Atribuir Técnico');
             }
             $('#modalAtribuir').modal('show');

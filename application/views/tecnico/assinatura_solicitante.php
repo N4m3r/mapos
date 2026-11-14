@@ -48,7 +48,7 @@ $emailCliente = !empty($cliente->email) ? $cliente->email : '';
     <?php if (!empty($assinaturas)): ?>
         <div class="info-card">
             <h3><i class='bx bx-check-shield'></i> Assinaturas registradas</h3>
-            <div class="row" style="display:flex; flex-wrap:wrap; gap:14px;">
+            <div style="display:flex; flex-wrap:wrap; gap:14px;">
                 <?php foreach ($assinaturas as $a): ?>
                     <div style="flex:1 1 140px; text-align:center;">
                         <h5 style="font-size:12px; color:var(--tec-muted, #8a8fa3); margin:0 0 8px;"><?= ucfirst(str_replace('_', ' ', $a->tipo)) ?></h5>

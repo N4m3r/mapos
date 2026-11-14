@@ -36,16 +36,16 @@ $container_preview_id = $id . '-preview';
         @media (max-width: 768px) { .assinatura-botoes .btn { min-height: 44px; font-size: 15px; padding: 8px 14px; margin-bottom: 6px; } }
     </style>
     <div class="assinatura-botoes" style="margin-bottom: 15px;">
-        <button type="button" class="btn btn-sm btn-primary btn-assinatura-ampliar" data-target="<?php echo $id; ?>" data-titulo="<?php echo htmlspecialchars($titulo, ENT_QUOTES); ?>">
+        <button type="button" class="btn btn-sm btn-outline-secondary btn-primary btn-assinatura-ampliar" data-target="<?php echo $id; ?>" data-titulo="<?php echo htmlspecialchars($titulo, ENT_QUOTES); ?>">
             <i class="bx bx-fullscreen"></i> Assinar em tela cheia
         </button>
-        <button type="button" class="btn btn-sm" id="<?php echo $id; ?>-desfazer">
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="<?php echo $id; ?>-desfazer">
             <i class="bx bx-undo"></i> Desfazer
         </button>
-        <button type="button" class="btn btn-sm" id="<?php echo $btn_limpar_id; ?>">
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="<?php echo $btn_limpar_id; ?>">
             <i class="bx bx-eraser"></i> Limpar
         </button>
-        <button type="button" class="btn btn-sm btn-info btn-assinatura-preview" data-target="<?php echo $id; ?>">
+        <button type="button" class="btn btn-sm btn-outline-secondary btn-info btn-assinatura-preview" data-target="<?php echo $id; ?>">
             <i class="bx bx-show"></i> Pré-visualizar
         </button>
     </div>
