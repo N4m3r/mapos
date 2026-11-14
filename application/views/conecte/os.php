@@ -1,8 +1,8 @@
 <?php
 // alterar para permissão de o cliente adicionar ou não a ordem de serviço
 if (!$this->session->userdata('cadastra_os')) { ?>
-    <div class="span12" style="margin-left: 0">
-        <div class="span3">
+    <div class="col-md-12 row" style="margin-left: 0">
+        <div class="col-md-3">
             <a href="<?php echo base_url(); ?>index.php/mine/adicionarOs" class="button btn btn-success" style="max-width: 150px">
               <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Adicionar</span></a>
         </div>
@@ -17,7 +17,7 @@ $this->load->view('conecte/filtros_portal', ['acaoFiltro' => 'mine/os']);
 <?php
 if (!$results) {
     ?>
-    <div class="span12" style="margin-left: 0">
+    <div class="col-md-12" style="margin-left: 0">
         <div class="widget-box">
             <div class="widget-title" style="margin: -20px 0 0">
                 <span class="icon">
@@ -60,7 +60,7 @@ if (!$results) {
 <?php
 } else { ?>
 
-    <div class="span12" style="margin-left: 0">
+    <div class="col-md-12" style="margin-left: 0">
         <div class="widget-box">
             <div class="widget-title">
                 <span class="icon">

@@ -32,16 +32,16 @@
             <span>Aberto em <?= date('d/m/Y H:i', strtotime($caixa->aberto_em)) ?></span>
             <span>· Vendido: <strong>R$ <?= number_format($totais['vendas'], 2, ',', '.') ?></strong></span>
             <span>· Dinheiro na gaveta: <strong>R$ <?= number_format($totais['esperado_dinheiro'], 2, ',', '.') ?></strong></span>
-            <a href="<?= site_url('caixa/ver/' . (int) $caixa->id) ?>" class="btn btn-mini" style="margin-left:auto"><i class="bx bx-wallet"></i> Caixa (sangria, suprimento, fechar)</a>
+            <a href="<?= site_url('caixa/ver/' . (int) $caixa->id) ?>" class="btn btn-sm" style="margin-left:auto"><i class="bx bx-wallet"></i> Caixa (sangria, suprimento, fechar)</a>
         </div>
 
         <div class="pdv">
             <div class="pdv-esq">
                 <div class="pdv-busca">
-                    <input type="text" id="pdvBusca" placeholder="Código de barras ou nome do produto (F2)" autocomplete="off" autofocus>
+                    <input class="form-control" type="text" id="pdvBusca" placeholder="Código de barras ou nome do produto (F2)" autocomplete="off" autofocus>
                     <div class="pdv-resultados" id="pdvResultados"></div>
                 </div>
-                <table class="table table-bordered table-condensed pdv-carrinho">
+                <table class="table table-bordered table-sm pdv-carrinho">
                     <thead><tr><th>Produto</th><th style="width:80px; text-align:center">Qtd</th><th style="width:100px; text-align:right">Unitário</th><th style="width:110px; text-align:right">Subtotal</th><th style="width:36px"></th></tr></thead>
                     <tbody id="pdvItens"><tr class="vazio"><td colspan="5" style="color:#999; text-align:center; padding:30px">Nenhum item. Leia o código de barras ou busque pelo nome.</td></tr></tbody>
                 </table>
@@ -50,23 +50,23 @@
             <div class="pdv-dir">
                 <div class="pdv-linha"><span>Itens</span><strong id="pdvQtdItens">0</strong></div>
                 <div class="pdv-linha"><span>Subtotal</span><strong id="pdvSubtotal">R$ 0,00</strong></div>
-                <div class="pdv-linha"><span>Desconto (R$)</span><input type="text" id="pdvDesconto" inputmode="decimal" value="0,00" style="width:100px; text-align:right; margin:0"></div>
+                <div class="pdv-linha"><span>Desconto (R$)</span><input class="form-control" type="text" id="pdvDesconto" inputmode="decimal" value="0,00" style="width:100px; text-align:right; margin:0"></div>
                 <div class="pdv-total" id="pdvTotal">R$ 0,00</div>
 
                 <hr style="margin:10px 0">
                 <label style="margin:0">Cliente (opcional)</label>
                 <div style="position:relative">
-                    <input type="text" id="pdvCliente" placeholder="Buscar cliente..." autocomplete="off" style="width:100%; box-sizing:border-box; margin:0">
+                    <input class="form-control" type="text" id="pdvCliente" placeholder="Buscar cliente..." autocomplete="off" style="width:100%; box-sizing:border-box; margin:0">
                     <div class="pdv-resultados" id="pdvClientes"></div>
                 </div>
                 <label style="margin:6px 0 0">CPF/CNPJ na nota (opcional)</label>
-                <input type="text" id="pdvCpf" inputmode="numeric" maxlength="18" style="width:100%; box-sizing:border-box; margin:0">
+                <input class="form-control" type="text" id="pdvCpf" inputmode="numeric" maxlength="18" style="width:100%; box-sizing:border-box; margin:0">
 
                 <hr style="margin:10px 0">
                 <strong>Pagamento</strong>
                 <div class="pdv-formas">
                     <?php foreach ($formas as $chave => $nome) { ?>
-                        <button type="button" class="btn btn-small" data-forma="<?= $chave ?>"><?= $nome ?></button>
+                        <button type="button" class="btn btn-sm" data-forma="<?= $chave ?>"><?= $nome ?></button>
                     <?php } ?>
                 </div>
                 <div class="pdv-pagamentos" id="pdvPagamentos"></div>
@@ -75,7 +75,7 @@
 
                 <button type="button" id="pdvFinalizar" class="button btn btn-success" style="width:100%; margin-top:8px" disabled>
                     <span class="button__icon"><i class="bx bx-check"></i></span><span class="button__text2">Finalizar venda (F4)</span></button>
-                <button type="button" id="pdvCancelar" class="btn btn-mini btn-danger" style="width:100%; margin-top:6px">Cancelar venda</button>
+                <button type="button" id="pdvCancelar" class="btn btn-sm btn-danger" style="width:100%; margin-top:6px">Cancelar venda</button>
                 <div class="pdv-atalhos">F2 busca · Enter adiciona · F4 finaliza · Esc limpa a busca</div>
             </div>
         </div>
@@ -133,7 +133,7 @@
                 '<td style="text-align:center"><input type="number" min="1" step="1" value="' + i.quantidade + '" data-n="' + n + '" class="pdv-qtd"></td>' +
                 '<td style="text-align:right">' + dinheiro(i.preco) + '</td>' +
                 '<td style="text-align:right">' + dinheiro(arred(i.preco * i.quantidade)) + '</td>' +
-                '<td><button type="button" class="btn btn-mini btn-danger pdv-remover" data-n="' + n + '" title="Remover">&times;</button></td></tr>');
+                '<td><button type="button" class="btn btn-sm btn-danger pdv-remover" data-n="' + n + '" title="Remover">&times;</button></td></tr>');
         });
         var t = totais();
         $('#pdvQtdItens').text(itens.reduce(function (s, i) { return s + i.quantidade; }, 0));
@@ -144,7 +144,7 @@
         var pag = $('#pdvPagamentos').empty();
         pagamentos.forEach(function (p, n) {
             pag.append('<div><span>' + escapar(FORMAS[p.forma]) + '</span><span>' + dinheiro(p.valor) +
-                ' <button type="button" class="btn btn-mini pdv-rem-pag" data-n="' + n + '">&times;</button></span></div>');
+                ' <button type="button" class="btn btn-sm pdv-rem-pag" data-n="' + n + '">&times;</button></span></div>');
         });
         var temDinheiro = pagamentos.some(function (p) { return p.forma === 'dinheiro'; });
         var trocoInvalido = t.troco > 0 && !temDinheiro;

@@ -33,8 +33,8 @@ $kpis = [
         </div>
     </div>
 
-    <div class="row-fluid">
-        <div class="span8">
+    <div class="row">
+        <div class="col-md-8">
             <div class="widget-box">
                 <div class="widget-title"><span class="icon"><i class="fas fa-clock"></i></span><h5>Últimas batidas</h5></div>
                 <div class="widget-content nopadding ui-tabela-rolagem">
@@ -59,7 +59,7 @@ $kpis = [
                 </div>
             </div>
         </div>
-        <div class="span4">
+        <div class="col-md-4">
             <div class="widget-box">
                 <div class="widget-title"><span class="icon"><i class="fas fa-birthday-cake"></i></span><h5>Aniversariantes do mês</h5></div>
                 <div class="widget-content">

@@ -103,7 +103,7 @@
         <div class="loc-pane active" id="pane-tempo-real">
             <div class="loc-toolbar">
                 <span class="loc-badge"><span id="loc-total">0</span> técnico(s) em campo</span>
-                <select id="loc-tecnico" style="height:32px;max-width:220px;">
+                <select class="form-select" id="loc-tecnico" style="height:32px;max-width:220px;">
                     <option value="">Todos os técnicos</option>
                     <?php foreach ($tecnicos as $t): ?>
                         <option value="<?= (int) $t->usuarios_id ?>"><?= htmlspecialchars($t->nome, ENT_QUOTES) ?></option>
@@ -111,10 +111,10 @@
                 </select>
                 <span class="loc-status">Atualizado: <span id="loc-atualizado">—</span></span>
                 <label style="margin:0; font-size:13px;">
-                    <input type="checkbox" id="loc-auto" checked> Atualização automática
+                    <input class="form-check-input" type="checkbox" id="loc-auto" checked> Atualização automática
                 </label>
-                <button class="btn btn-small" id="loc-refresh"><i class="bx bx-refresh"></i> Atualizar agora</button>
-                <button class="btn btn-small" id="loc-fit"><i class="bx bx-expand"></i> Enquadrar</button>
+                <button class="btn btn-sm" id="loc-refresh"><i class="bx bx-refresh"></i> Atualizar agora</button>
+                <button class="btn btn-sm" id="loc-fit"><i class="bx bx-expand"></i> Enquadrar</button>
             </div>
 
             <div class="loc-legenda">
@@ -136,7 +136,7 @@
             <div class="traj-toolbar">
                 <div class="campo">
                     <label for="traj-tecnico">Técnico</label>
-                    <select id="traj-tecnico">
+                    <select class="form-select" id="traj-tecnico">
                         <option value="">— selecione —</option>
                         <?php foreach ($tecnicos as $t): ?>
                             <option value="<?= (int) $t->usuarios_id ?>"><?= htmlspecialchars($t->nome, ENT_QUOTES) ?></option>
@@ -145,27 +145,27 @@
                 </div>
                 <div class="campo">
                     <label for="traj-data">Data inicial</label>
-                    <input type="date" id="traj-data" value="<?= date('Y-m-d') ?>">
+                    <input class="form-control" type="date" id="traj-data" value="<?= date('Y-m-d') ?>">
                 </div>
                 <div class="campo">
                     <label for="traj-data-fim">Data final</label>
-                    <input type="date" id="traj-data-fim" value="<?= date('Y-m-d') ?>">
+                    <input class="form-control" type="date" id="traj-data-fim" value="<?= date('Y-m-d') ?>">
                 </div>
                 <div class="campo">
                     <label for="traj-os">OS (opcional)</label>
-                    <input type="number" id="traj-os" placeholder="nº da OS" min="1" style="width:110px;">
+                    <input class="form-control" type="number" id="traj-os" placeholder="nº da OS" min="1" style="width:110px;">
                 </div>
                 <button class="btn btn-primary" id="traj-buscar"><i class="bx bx-search"></i> Ver percurso</button>
-                <button class="btn btn-small" id="traj-gpx" disabled><i class="bx bx-download"></i> GPX</button>
-                <button class="btn btn-small" id="traj-kml" disabled><i class="bx bx-download"></i> KML</button>
+                <button class="btn btn-sm" id="traj-gpx" disabled><i class="bx bx-download"></i> GPX</button>
+                <button class="btn btn-sm" id="traj-kml" disabled><i class="bx bx-download"></i> KML</button>
             </div>
 
             <div class="traj-toolbar2">
-                <label><input type="checkbox" id="traj-rota-plan"> Rota planejada</label>
-                <label><input type="checkbox" id="traj-vias"> Seguir vias (OSRM)</label>
-                <label><input type="checkbox" id="traj-heat"> Heatmap</label>
-                <button class="btn btn-mini" id="traj-otimizar" disabled><i class="bx bx-shuffle"></i> Sugerir roteiro</button>
-                <button class="btn btn-mini" id="traj-replay-btn" disabled><i class="bx bx-play"></i> Replay</button>
+                <label><input class="form-check-input" type="checkbox" id="traj-rota-plan"> Rota planejada</label>
+                <label><input class="form-check-input" type="checkbox" id="traj-vias"> Seguir vias (OSRM)</label>
+                <label><input class="form-check-input" type="checkbox" id="traj-heat"> Heatmap</label>
+                <button class="btn btn-sm" id="traj-otimizar" disabled><i class="bx bx-shuffle"></i> Sugerir roteiro</button>
+                <button class="btn btn-sm" id="traj-replay-btn" disabled><i class="bx bx-play"></i> Replay</button>
             </div>
 
             <div class="traj-kpis" id="traj-kpis" style="display:none;">
@@ -183,7 +183,7 @@
                 <div class="traj-mapa-col">
                     <div id="mapa-trajeto"></div>
                     <div class="traj-replay" id="traj-replay">
-                        <button class="btn btn-mini" id="rp-play"><i class="bx bx-play"></i></button>
+                        <button class="btn btn-sm" id="rp-play"><i class="bx bx-play"></i></button>
                         <input type="range" id="rp-range" min="0" max="0" value="0">
                         <span class="rp-hora" id="rp-hora">—</span>
                     </div>
@@ -288,10 +288,10 @@
             html += '<div class="loc-popup-linha" style="margin-top:4px;color:#888;">Última posição: ' + quando + '</div>';
             html += '<div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">';
             if (t.os_id) {
-                html += '<a class="btn btn-mini" href="' + BASE +
+                html += '<a class="btn btn-sm" href="' + BASE +
                         'index.php/os/visualizar/' + t.os_id + '" target="_blank">Abrir OS</a>';
             }
-            html += '<a class="btn btn-mini" href="#" data-chamar="locVerPercursoHoje" data-args="[' + parseInt(t.usuarios_id, 10) + ']">Percurso de hoje</a>';
+            html += '<a class="btn btn-sm" href="#" data-chamar="locVerPercursoHoje" data-args="[' + parseInt(t.usuarios_id, 10) + ']">Percurso de hoje</a>';
             html += '</div>';
             return html;
         }
@@ -554,7 +554,7 @@
                             (os.cliente ? '<br>' + escapar(os.cliente) : '') +
                             (os.endereco ? '<br><span style="color:#888">' + escapar(os.endereco) + '</span>' : '') +
                             (distReal != null ? '<br><span style="color:#b9770e">Atendida a ' + fmtDist(distReal) + ' do local</span>' : '') +
-                            '<br><a class="btn btn-mini" style="margin-top:6px" href="' + BASE +
+                            '<br><a class="btn btn-sm" style="margin-top:6px" href="' + BASE +
                             'index.php/os/visualizar/' + os.idOs + '" target="_blank">Abrir OS</a>');
                     pinosOs[os.idOs] = m;
                     comCoord.push({ os: os, latlng: [os.latitude, os.longitude] });

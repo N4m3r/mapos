@@ -60,11 +60,11 @@ $configNfeBoleto = $this->nfe_model->getConfig();
                     $boletosAtivos = array_filter($boletosDaNota, fn ($b) => ! in_array($b->status, ['CANCELLED', 'cancelada'], true));
                     ?>
                     <tr>
-                        <td><i class="bx <?php echo $tipoIcon; ?>"></i> <?php echo $tipoLabel; ?><?php echo $nota->ambiente == 2 ? ' <span class="badge" style="background:#AEB404">Homolog.</span>' : ''; ?></td>
+                        <td><i class="bx <?php echo $tipoIcon; ?>"></i> <?php echo $tipoLabel; ?><?php echo $nota->ambiente == 2 ? ' <span class="badge text-bg-secondary" style="background:#AEB404">Homolog.</span>' : ''; ?></td>
                         <td><?php echo html_escape($nota->numero); ?> / <?php echo html_escape($nota->serie); ?></td>
                         <td>R$ <?php echo number_format($nota->valor_total, 2, ',', '.'); ?></td>
                         <td><?php echo $nota->data_emissao ? date('d/m/Y H:i', strtotime($nota->data_emissao)) : '-'; ?></td>
-                        <td><span class="badge" style="background-color:<?php echo $corStatus; ?>;border-color:<?php echo $corStatus; ?>"><?php echo ucfirst($nota->status); ?></span></td>
+                        <td><span class="badge text-bg-secondary" style="background-color:<?php echo $corStatus; ?>;border-color:<?php echo $corStatus; ?>"><?php echo ucfirst($nota->status); ?></span></td>
                         <td style="font-size:11px;max-width:240px;word-break:break-all">
                             <?php echo $nota->chave ? html_escape($nota->chave) : ''; ?>
                             <?php echo $nota->motivo ? '<br><span style="color:#888">' . html_escape(mb_substr($nota->motivo, 0, 140)) . '</span>' : ''; ?>
@@ -87,7 +87,7 @@ $configNfeBoleto = $this->nfe_model->getConfig();
                                     ?>
                                     <div style="padding:3px 0<?php echo $indiceParcela < $totalParcelas ? ';border-bottom:1px dashed #e0e0e0' : ''; ?>">
                                         <?php if ($totalParcelas > 1) { ?><strong title="Parcela"><?php echo $indiceParcela . '/' . $totalParcelas; ?></strong> <?php } ?>
-                                        <span class="badge badge-status-boleto" data-id="<?php echo $boleto->idCobranca; ?>" style="background-color:<?php echo $corBoleto; ?>;border-color:<?php echo $corBoleto; ?>"><?php echo html_escape($statusLabel); ?></span>
+                                        <span class="badge badge-status-boleto text-bg-secondary" data-id="<?php echo $boleto->idCobranca; ?>" style="background-color:<?php echo $corBoleto; ?>;border-color:<?php echo $corBoleto; ?>"><?php echo html_escape($statusLabel); ?></span>
                                         R$ <?php echo number_format($boleto->total / 100, 2, ',', '.'); ?>
                                         <?php if (! empty($boleto->expire_at)) { ?>
                                             <span style="color:#888">venc. <?php echo date('d/m/Y', strtotime($boleto->expire_at)); ?></span>
@@ -113,7 +113,7 @@ $configNfeBoleto = $this->nfe_model->getConfig();
                                 <?php }
                             } elseif ($nota->status === 'autorizada' && $podeGerarBoleto) {
                                 $valBoleto = boletoValoresNota($nota, $configNfeBoleto); ?>
-                                <button type="button" class="btn btn-mini btn-info btn-gerar-boleto" data-nota="<?php echo $nota->idNota; ?>" data-valor="<?php echo number_format($valBoleto['bruto'], 2, '.', ''); ?>" data-iss="<?php echo number_format($valBoleto['iss'], 2, '.', ''); ?>" data-liquido="<?php echo number_format($valBoleto['liquido'], 2, '.', ''); ?>" title="Gerar boleto híbrido (boleto + PIX) na Cora, à vista ou parcelado">
+                                <button type="button" class="btn btn-sm btn-info btn-gerar-boleto" data-nota="<?php echo $nota->idNota; ?>" data-valor="<?php echo number_format($valBoleto['bruto'], 2, '.', ''); ?>" data-iss="<?php echo number_format($valBoleto['iss'], 2, '.', ''); ?>" data-liquido="<?php echo number_format($valBoleto['liquido'], 2, '.', ''); ?>" title="Gerar boleto híbrido (boleto + PIX) na Cora, à vista ou parcelado">
                                     <i class="bx bx-dollar bx-xs"></i> Gerar Boleto/PIX
                                 </button>
                             <?php } else { ?>
@@ -134,7 +134,7 @@ $configNfeBoleto = $this->nfe_model->getConfig();
                                 $classeRetransmitir = $nota->tipo === 'nfe' ? 'btn-transmitir-nfe' : 'btn-transmitir-nfse';
                                 $modalRetransmitir = $nota->tipo === 'nfe' ? '#modal-nfe' : '#modal-nfse';
                                 ?>
-                                <a href="<?php echo $modalRetransmitir; ?>" role="button" data-toggle="modal" class="btn-nwe3 <?php echo $classeRetransmitir; ?>" data-os="<?php echo $nota->os_id; ?>" title="Corrigir e retransmitir (mantém o nº <?php echo html_escape($nota->numero); ?>)"><i class="bx bx-refresh bx-xs"></i></a>
+                                <a href="<?php echo $modalRetransmitir; ?>" role="button" data-bs-toggle="modal" class="btn-nwe3 <?php echo $classeRetransmitir; ?>" data-os="<?php echo $nota->os_id; ?>" title="Corrigir e retransmitir (mantém o nº <?php echo html_escape($nota->numero); ?>)"><i class="bx bx-refresh bx-xs"></i></a>
                             <?php } ?>
                         </td>
                     </tr>
@@ -145,18 +145,18 @@ $configNfeBoleto = $this->nfe_model->getConfig();
 </div>
 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vNfe')) { ?>
     <div style="text-align:right;margin-top:6px">
-        <a href="<?php echo site_url('nfe/gerenciar'); ?>" class="button btn btn-mini btn-inverse">
+        <a href="<?php echo site_url('nfe/gerenciar'); ?>" class="button btn btn-sm btn-dark">
             <span class="button__icon"><i class='bx bx-list-ul'></i></span><span class="button__text2">Gerenciar Notas Fiscais</span>
         </a>
     </div>
 <?php } ?>
 
 <?php if (! defined('MAPOS_BOLETO_NOTA_JS')) { define('MAPOS_BOLETO_NOTA_JS', true); ?>
-<div id="modal-gerar-boleto" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-gerar-boleto" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        
         <h5>Gerar Boleto/PIX (Cora)</h5>
-    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <input type="hidden" id="boletoNotaId" value="" />
         <p style="margin-bottom:4px">Valor da nota fiscal: <strong id="boletoValorNota">—</strong></p>
@@ -164,49 +164,49 @@ $configNfeBoleto = $this->nfe_model->getConfig();
             <div>ISS retido pelo tomador (descontado): <strong id="boletoIssValor" style="color:#c0392b">—</strong></div>
             <div>Valor líquido cobrado no boleto: <strong id="boletoLiquido">—</strong></div>
         </div>
-        <div class="control-group">
+        <div class="mb-3">
             <label><strong>Como cobrar esta nota</strong></label>
-            <label class="radio" style="margin:2px 0"><input type="radio" name="boletoModo" value="unico" checked /> <strong>Um boleto com o valor da nota</strong> (à vista ou parcelado)</label>
-            <label class="radio" style="margin:2px 0"><input type="radio" name="boletoModo" value="por_item" /> <strong>Um boleto para cada item da nota</strong> (cada serviço/produto separado)</label>
+            <label class="radio" style="margin:2px 0"><input class="form-check-input" type="radio" name="boletoModo" value="unico" checked /> <strong>Um boleto com o valor da nota</strong> (à vista ou parcelado)</label>
+            <label class="radio" style="margin:2px 0"><input class="form-check-input" type="radio" name="boletoModo" value="por_item" /> <strong>Um boleto para cada item da nota</strong> (cada serviço/produto separado)</label>
             <span style="color:#999;font-size:11px">Por item: o valor da nota é dividido entre os itens, cada um no seu boleto, todos com o mesmo vencimento. Mínimo de R$ 5,00 por boleto.</span>
         </div>
-        <div class="control-group" id="boletoParcelasBox">
+        <div class="mb-3" id="boletoParcelasBox">
             <label for="boletoParcelas"><strong>Parcelas</strong></label>
-            <select id="boletoParcelas" class="span12">
+            <select id="boletoParcelas" class="w-100 form-select">
                 <?php for ($p = 1; $p <= 12; $p++) { ?>
                     <option value="<?php echo $p; ?>"><?php echo $p; ?>x<?php echo $p === 1 ? ' (à vista)' : ''; ?></option>
                 <?php } ?>
             </select>
             <span style="color:#999;font-size:11px">Cada parcela é um boleto próprio, vencendo a partir da data do 1º vencimento (intervalo configurável abaixo). Mínimo de R$ 5,00 por parcela.</span>
         </div>
-        <div class="control-group">
+        <div class="mb-3">
             <label for="boletoVencimento"><strong>1º vencimento</strong></label>
-            <input type="date" id="boletoVencimento" class="span12" />
+            <input type="date" id="boletoVencimento" class="w-100 form-control" />
             <span style="color:#999;font-size:11px">Deixe em branco para usar o prazo padrão configurado na Cora.</span>
         </div>
-        <div class="control-group" id="boletoIntervaloBox" style="display:none">
+        <div class="mb-3" id="boletoIntervaloBox" style="display:none">
             <label for="boletoIntervaloTipo"><strong>Vencimento da 2ª parcela em diante</strong></label>
-            <select id="boletoIntervaloTipo" class="span12">
+            <select id="boletoIntervaloTipo" class="w-100 form-select">
                 <option value="mensal">A cada mês (mesmo dia)</option>
                 <option value="dias">A cada N dias</option>
             </select>
             <div id="boletoIntervaloDiasBox" style="display:none;margin-top:6px">
                 <label for="boletoIntervaloDias">Dias entre as parcelas</label>
-                <input type="number" id="boletoIntervaloDias" class="span12" min="1" max="365" value="30" />
+                <input type="number" id="boletoIntervaloDias" class="w-100 form-control" min="1" max="365" value="30" />
             </div>
             <span style="color:#999;font-size:11px">Define o espaçamento a partir da 2ª parcela: por mês (mesmo dia) ou por um prazo em dias a contar do 1º vencimento.</span>
         </div>
         <div id="boletoResumoParcela" style="color:#555;font-size:12px;margin-top:4px"></div>
     </div>
     <div class="modal-footer" style="display:flex;justify-content:center">
-        <button type="button" class="button btn btn-warning" data-dismiss="modal">
+        <button type="button" class="button btn btn-warning" data-bs-dismiss="modal">
             <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span>
         </button>
         <button type="button" id="boletoConfirmarGerar" class="button btn btn-success">
             <span class="button__icon"><i class="bx bx-dollar"></i></span><span class="button__text2">Gerar</span>
         </button>
     </div>
-</div>
+</div></div></div>
 <script nonce="<?= csp_nonce() ?>" type="text/javascript">
 (function () {
     var urlGerar = "<?php echo site_url('cobrancas/gerarPorNota'); ?>";

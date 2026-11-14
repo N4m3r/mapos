@@ -34,7 +34,7 @@ $plural = function ($n, $s, $p) { return $n . ' ' . ($n === 1 ? $s : $p); };
             <p class="ui-subtitulo">O que precisa de atenção hoje e como estão os projetos.</p>
         </div>
         <div class="ui-acoes">
-            <a href="<?= site_url('relatorioprojetos') ?>" class="button btn btn-mini pl-btn">
+            <a href="<?= site_url('relatorioprojetos') ?>" class="button btn btn-sm pl-btn">
                 <span class="button__icon"><i class='bx bx-file'></i></span><span class="button__text2">Relatório da semana</span></a>
         </div>
     </div>
@@ -54,7 +54,7 @@ $plural = function ($n, $s, $p) { return $n . ' ' . ($n === 1 ? $s : $p); };
                             <div class="pl-atencao-motivo"><?= $mot ? html_escape((string) $mot[0]) . (count($mot) > 1 ? ' (+' . (count($mot) - 1) . ')' : '') : 'Sem registro ' . $quando($p['dias_sem_registro'] ?? null) ?>
                                 <?php if (! empty($p['cliente'])): ?> · <?= $txt($p['cliente']) ?><?php endif; ?></div>
                         </div>
-                        <a href="<?= html_escape(site_url('obras/visualizar/' . (int) $p['idObra'])) ?>" class="button btn btn-mini pl-btn"><span class="button__text2">Abrir projeto</span></a>
+                        <a href="<?= html_escape(site_url('obras/visualizar/' . (int) $p['idObra'])) ?>" class="button btn btn-sm pl-btn"><span class="button__text2">Abrir projeto</span></a>
                     </li>
                 <?php endforeach; ?>
             </ul>
@@ -78,7 +78,7 @@ $plural = function ($n, $s, $p) { return $n . ' ' . ($n === 1 ? $s : $p); };
                 <thead><tr><th>Situação</th><th>Projeto</th><th>Cliente</th><th>Responsável</th><th>Avanço</th><th>Pontos</th><th>Último registro</th><th>Registros 7d</th><th>Motivos</th><th></th></tr></thead>
                 <tbody>
                     <?php if (empty($acomp['projetos'])): ?>
-                        <tr><td colspan="10"><div class="ui-vazio"><i class="bx bx-heart"></i><strong>Nenhum projeto em planejamento ou execução.</strong><?php if ($perm('cObras')): ?><a href="<?= site_url('obras/adicionar') ?>" class="button btn btn-mini pl-btn"><span class="button__text2">Novo projeto</span></a><?php endif; ?></div></td></tr>
+                        <tr><td colspan="10"><div class="ui-vazio"><i class="bx bx-heart"></i><strong>Nenhum projeto em planejamento ou execução.</strong><?php if ($perm('cObras')): ?><a href="<?= site_url('obras/adicionar') ?>" class="button btn btn-sm pl-btn"><span class="button__text2">Novo projeto</span></a><?php endif; ?></div></td></tr>
                     <?php endif; ?>
                     <?php foreach ($acomp['projetos'] as $p): $s = $p['saude'] ?? []; $nv = $s['nivel'] ?? 'ok'; $esp = $s['esperado'] ?? null; $mot = $s['motivos'] ?? []; ?>
                         <tr>
@@ -105,7 +105,7 @@ $plural = function ($n, $s, $p) { return $n . ' ' . ($n === 1 ? $s : $p); };
                                     </ul>
                                 <?php else: ?><small>—</small><?php endif; ?>
                             </td>
-                            <td><a href="<?= html_escape(site_url('relatorioprojetos?tipo=semanal&obra_id=' . (int) $p['idObra'])) ?>" class="button btn btn-mini pl-btn"><span class="button__icon"><i class='bx bx-file'></i></span><span class="button__text2">Relatório</span></a></td>
+                            <td><a href="<?= html_escape(site_url('relatorioprojetos?tipo=semanal&obra_id=' . (int) $p['idObra'])) ?>" class="button btn btn-sm pl-btn"><span class="button__icon"><i class='bx bx-file'></i></span><span class="button__text2">Relatório</span></a></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

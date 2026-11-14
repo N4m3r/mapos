@@ -16,12 +16,12 @@ $temArquivo = $holerite && ! empty($holerite->arquivo_base64);
     <div style="margin-bottom:10px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center">
         <div>
             <label style="display:inline">Competência: </label>
-            <input type="month" value="<?= $competencia ?>" data-ao-mudar-ir="<?= site_url('rh/holerite/'.$colaborador->id) ?>/">
+            <input class="form-control" type="month" value="<?= $competencia ?>" data-ao-mudar-ir="<?= site_url('rh/holerite/'.$colaborador->id) ?>/">
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <a href="<?= site_url("rh/holeritePdf/{$colaborador->id}/{$competencia}") ?>" target="_blank" class="button btn btn-mini btn-inverse">
+            <a href="<?= site_url("rh/holeritePdf/{$colaborador->id}/{$competencia}") ?>" target="_blank" class="button btn btn-sm btn-dark">
                 <span class="button__icon"><i class='bx bx-printer'></i></span><span class="button__text2"> Pré-visualizar PDF</span></a>
-            <a href="<?= site_url("rh/holeritePdf/{$colaborador->id}/{$competencia}?liberar=1") ?>" class="button btn btn-mini btn-success"
+            <a href="<?= site_url("rh/holeritePdf/{$colaborador->id}/{$competencia}?liberar=1") ?>" class="button btn btn-sm btn-success"
                data-confirmar="Gerar o holerite e liberar para o colaborador ver na área dele?">
                 <span class="button__icon"><i class='bx bx-send'></i></span><span class="button__text2"> Gerar e liberar para o colaborador</span></a>
         </div>
@@ -34,11 +34,11 @@ $temArquivo = $holerite && ! empty($holerite->arquivo_base64);
         <div class="alert alert-warning"><i class='bx bx-hide'></i> Arquivo anexado, mas <strong>ainda não liberado</strong> para o colaborador.</div>
     <?php endif; ?>
 
-    <div class="row-fluid">
-        <div class="span6">
+    <div class="row">
+        <div class="col-md-6">
             <div class="widget-box">
                 <div class="widget-title"><span class="icon"><i class="fas fa-list"></i></span><h5>Demonstrativo (lançamentos + CLT)</h5>
-                    <a href="<?= site_url('rh/lancamentos?competencia='.$competencia.'&colaborador_id='.$colaborador->id) ?>" class="btn btn-mini" style="float:right;margin:8px">Editar lançamentos</a>
+                    <a href="<?= site_url('rh/lancamentos?competencia='.$competencia.'&colaborador_id='.$colaborador->id) ?>" class="btn btn-sm" style="float:right;margin:8px">Editar lançamentos</a>
                 </div>
                 <div class="widget-content">
                     <?php
@@ -67,7 +67,7 @@ $temArquivo = $holerite && ! empty($holerite->arquivo_base64);
             </div>
         </div>
 
-        <div class="span6">
+        <div class="col-md-6">
             <div class="widget-box">
                 <div class="widget-title"><span class="icon"><i class="fas fa-file-pdf"></i></span><h5>Holerite oficial (PDF)</h5></div>
                 <div class="widget-content">
@@ -81,10 +81,10 @@ $temArquivo = $holerite && ! empty($holerite->arquivo_base64);
                             <input type="hidden" name="competencia" value="<?= $competencia ?>">
                             <?php if ($liberado): ?>
                                 <input type="hidden" name="liberar" value="0">
-                                <button class="button btn btn-mini btn-warning"><span class="button__text2">Ocultar do colaborador</span></button>
+                                <button class="button btn btn-sm btn-warning"><span class="button__text2">Ocultar do colaborador</span></button>
                             <?php else: ?>
                                 <input type="hidden" name="liberar" value="1">
-                                <button class="button btn btn-mini btn-success"><span class="button__text2">Liberar para o colaborador</span></button>
+                                <button class="button btn btn-sm btn-success"><span class="button__text2">Liberar para o colaborador</span></button>
                             <?php endif; ?>
                         </form>
                     <?php else: ?>
@@ -95,13 +95,13 @@ $temArquivo = $holerite && ! empty($holerite->arquivo_base64);
                         <input type="hidden" name="colaborador_id" value="<?= $colaborador->id ?>">
                         <input type="hidden" name="competencia" value="<?= $competencia ?>">
                         <label>Arquivo PDF <?= $temArquivo ? '(enviar substitui o atual)' : '' ?></label>
-                        <input type="file" name="arquivo" accept="application/pdf,image/*" class="span12">
+                        <input type="file" name="arquivo" accept="application/pdf,image/*" class="w-100 form-control">
                         <label style="margin-top:8px">Valor líquido (opcional)</label>
-                        <input type="text" name="valor_liquido" class="span12" value="<?= $holerite && $holerite->valor_liquido ? number_format($holerite->valor_liquido,2,',','.') : '' ?>" placeholder="0,00">
+                        <input type="text" name="valor_liquido" class="w-100 form-control" value="<?= $holerite && $holerite->valor_liquido ? number_format($holerite->valor_liquido,2,',','.') : '' ?>" placeholder="0,00">
                         <label style="margin-top:8px">Observação</label>
-                        <textarea name="observacao" rows="2" class="span12"><?= $holerite ? htmlspecialchars($holerite->observacao) : '' ?></textarea>
+                        <textarea name="observacao" rows="2" class="w-100 form-control"><?= $holerite ? htmlspecialchars($holerite->observacao) : '' ?></textarea>
                         <label style="font-weight:normal;margin-top:8px">
-                            <input type="checkbox" name="liberar_colaborador" value="1" <?= $liberado ? 'checked' : '' ?>>
+                            <input class="form-check-input" type="checkbox" name="liberar_colaborador" value="1" <?= $liberado ? 'checked' : '' ?>>
                             Liberar para o colaborador ao salvar
                         </label>
                         <small style="display:block;color:#6b7280;margin-top:2px">Marcado: o colaborador passa a ver este holerite na área dele. Desmarcado: fica guardado só para o RH.</small>

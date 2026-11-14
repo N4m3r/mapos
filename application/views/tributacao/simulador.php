@@ -23,8 +23,8 @@ $campos = [
     body.dark-mode .sim-reco, .dark .sim-reco, [data-theme="dark"] .sim-reco { background:#22303f; color:#e6e6e6; }
     body.dark-mode .sim-grid small, .dark .sim-grid small, [data-theme="dark"] .sim-grid small { color:#aaa; }
 </style>
-<div class="row-fluid" style="margin-top:0">
-    <div class="span12">
+<div class="row" style="margin-top:0">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="widget-content" style="padding:16px">
                 <div class="ui-cabecalho">
@@ -40,7 +40,7 @@ $campos = [
                     <?php foreach ($campos as [$k, $rot, $dica]) { ?>
                         <div>
                             <label for="sim-<?= $k ?>"><?= html_escape($rot) ?></label>
-                            <input type="number" step="0.01" min="0" id="sim-<?= $k ?>" data-sim="<?= $k ?>" value="<?= html_escape((string) $padrao[$k]) ?>">
+                            <input class="form-control" type="number" step="0.01" min="0" id="sim-<?= $k ?>" data-sim="<?= $k ?>" value="<?= html_escape((string) $padrao[$k]) ?>">
                             <small><?= html_escape($dica) ?></small>
                         </div>
                     <?php } ?>

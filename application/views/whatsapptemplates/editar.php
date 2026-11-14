@@ -17,30 +17,30 @@ $tags = array_filter(array_map('trim', explode(',', (string) $tpl->tags)));
             <input type="hidden" name="<?= $tokenName ?>" value="<?= $tokenHash ?>">
             <input type="hidden" name="slug" value="<?= html_escape($tpl->slug) ?>">
 
-            <div class="control-group">
-                <label class="control-label" style="display:flex; align-items:center; gap:8px;">
-                    <input type="checkbox" name="ativo" value="1" <?= (int) $tpl->ativo === 1 ? 'checked' : '' ?>>
+            <div class="mb-3">
+                <label class="form-label" style="display:flex; align-items:center; gap:8px;">
+                    <input class="form-check-input" type="checkbox" name="ativo" value="1" <?= (int) $tpl->ativo === 1 ? 'checked' : '' ?>>
                     Modelo ativo (desmarque para usar a mensagem padrão do sistema)
                 </label>
             </div>
 
-            <div class="control-group">
-                <label class="control-label" for="conteudo">Mensagem</label>
-                <div class="controls">
-                    <textarea id="conteudo" name="conteudo" rows="8" style="width:100%; box-sizing:border-box;"><?= html_escape($tpl->conteudo) ?></textarea>
+            <div class="mb-3">
+                <label class="form-label" for="conteudo">Mensagem</label>
+                <div class="">
+                    <textarea class="form-control" id="conteudo" name="conteudo" rows="8" style="width:100%; box-sizing:border-box;"><?= html_escape($tpl->conteudo) ?></textarea>
                 </div>
             </div>
 
             <?php if ($tags) { ?>
-                <div class="control-group">
-                    <label class="control-label">Tags disponíveis</label>
-                    <div class="controls">
+                <div class="mb-3">
+                    <label class="form-label">Tags disponíveis</label>
+                    <div class="">
                         <div style="display:flex; flex-wrap:wrap; gap:6px;">
                             <?php foreach ($tags as $tag) { ?>
-                                <button type="button" class="btn btn-mini tag-btn" data-tag="<?= html_escape($tag) ?>"><?= html_escape($tag) ?></button>
+                                <button type="button" class="btn btn-sm tag-btn" data-tag="<?= html_escape($tag) ?>"><?= html_escape($tag) ?></button>
                             <?php } ?>
                         </div>
-                        <span class="help-inline">Clique para inserir no texto. Formatação do WhatsApp: <strong>*negrito*</strong>, _itálico_, ~riscado~. Enter cria nova linha.</span>
+                        <span class="form-text">Clique para inserir no texto. Formatação do WhatsApp: <strong>*negrito*</strong>, _itálico_, ~riscado~. Enter cria nova linha.</span>
                     </div>
                 </div>
             <?php } ?>

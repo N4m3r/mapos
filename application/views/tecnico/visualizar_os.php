@@ -413,7 +413,7 @@ $statusSimples = function ($st) {
         <p class="nr-modal-sub">Conte o motivo. A OS fica em espera para ser reagendada depois.</p>
 
         <label class="nr-label">Motivo</label>
-        <select id="nr-motivo" class="atv-input">
+        <select id="nr-motivo" class="atv-input form-select">
             <option value="">— Selecione um motivo —</option>
             <?php foreach ($motivos_nao_realizado as $m): ?>
                 <option value="<?= (int) $m->idMotivo ?>"><?= html_escape($m->nome) ?></option>
@@ -421,7 +421,7 @@ $statusSimples = function ($st) {
         </select>
 
         <label class="nr-label">Observação</label>
-        <textarea id="nr-obs" class="atv-input" rows="3" placeholder="Descreva o que aconteceu (opcional se escolheu um motivo)"></textarea>
+        <textarea id="nr-obs" class="atv-input form-control" rows="3" placeholder="Descreva o que aconteceu (opcional se escolheu um motivo)"></textarea>
 
         <div class="nr-modal-actions">
             <button type="button" class="btn-tec ghost" data-chamar="fecharNaoRealizado">Cancelar</button>
@@ -439,7 +439,7 @@ $statusSimples = function ($st) {
         <p class="nr-modal-sub">Escolha a nova data. A OS volta para a sua agenda como "Aberto".</p>
         <input type="hidden" id="reag-ocorrencia" value="">
         <label class="nr-label">Nova data</label>
-        <input type="date" id="reag-data" class="atv-input" min="<?= date('Y-m-d') ?>" value="<?= date('Y-m-d') ?>">
+        <input type="date" id="reag-data" class="atv-input form-control" min="<?= date('Y-m-d') ?>" value="<?= date('Y-m-d') ?>">
         <div class="nr-modal-actions">
             <button type="button" class="btn-tec ghost" data-chamar="fecharReagendar">Cancelar</button>
             <button type="button" class="btn-tec warning" data-chamar="confirmarReagendar"><i class='bx bx-check'></i> Reagendar</button>
@@ -487,7 +487,7 @@ $statusSimples = function ($st) {
 </style>
 <div class="obs-tec-card<?= empty($checkin_ativo) ? ' hidden' : '' ?>" id="obs-tec-card">
     <h3><i class="bx bx-note"></i> Observações do técnico</h3>
-    <textarea id="obs-tec-texto" maxlength="2000" placeholder="O que você fez / constatou neste atendimento..."></textarea>
+    <textarea class="form-control" id="obs-tec-texto" maxlength="2000" placeholder="O que você fez / constatou neste atendimento..."></textarea>
     <button type="button" class="obs-tec-btn" id="obs-tec-add"><i class="bx bx-plus"></i> Adicionar</button>
     <div class="obs-tec-msg" id="obs-tec-msg" role="alert"></div>
     <div id="obs-tec-lista"></div>

@@ -56,16 +56,16 @@ $qs = function ($extra) use ($busca, $filtroStatus, $aba) {
 
     <form method="get" action="<?= site_url('cobrancas/cobrancas') ?>" class="cb-filtros">
         <?php if ($aba === 'acobrar') { ?><input type="hidden" name="aba" value="acobrar"><?php } ?>
-        <input type="text" name="q" value="<?= html_escape($busca) ?>" placeholder="Buscar por cliente" aria-label="Buscar por cliente">
+        <input class="form-control" type="text" name="q" value="<?= html_escape($busca) ?>" placeholder="Buscar por cliente" aria-label="Buscar por cliente">
         <?php if ($aba === 'cobrancas') { ?>
-            <select name="status" aria-label="Filtrar por status">
+            <select class="form-select" name="status" aria-label="Filtrar por status">
                 <option value="">Todos os status</option>
                 <?php foreach (['pendente' => 'A receber', 'vencida' => 'Vencidas', 'paga' => 'Pagas', 'cancelada' => 'Canceladas'] as $k => $n) { ?>
                     <option value="<?= $k ?>" <?= $filtroStatus === $k ? 'selected' : '' ?>><?= $n ?></option>
                 <?php } ?>
             </select>
         <?php } ?>
-        <button class="button btn btn-mini btn-info" type="submit"><span class="button__icon"><i class="bx bx-search"></i></span><span class="button__text2">Filtrar</span></button>
+        <button class="button btn btn-sm btn-info" type="submit"><span class="button__icon"><i class="bx bx-search"></i></span><span class="button__text2">Filtrar</span></button>
     </form>
 
     <div class="widget-box">
@@ -95,7 +95,7 @@ $qs = function ($extra) use ($busca, $filtroStatus, $aba) {
                             <td><strong><?= $brl($r->valor) ?></strong></td>
                             <td>
                                 <?php if ($perm('aCobranca')) { ?>
-                                    <a href="<?= site_url($rota . $r->ref_id . '?cobrar=1') ?>" class="button btn btn-mini btn-primary" title="Cobrar">
+                                    <a href="<?= site_url($rota . $r->ref_id . '?cobrar=1') ?>" class="button btn btn-sm btn-primary" title="Cobrar">
                                         <span class="button__icon"><i class="bx bx-dollar"></i></span><span class="button__text2">Cobrar</span>
                                     </a>
                                 <?php } ?>
@@ -148,9 +148,9 @@ $qs = function ($extra) use ($busca, $filtroStatus, $aba) {
                         echo '<td><span class="label ' . $bcls . '" title="' . html_escape($descStatus) . '">' . $btxt . '</span></td>';
                         echo '<td><span class="ui-acoes-linha">';
                         if ($perm('vCobranca')) {
-                            echo '<a href="#modal-cancelar" role="button" data-toggle="modal" cancela_id="' . $r->idCobranca . '" class="btn-nwe4" title="Cancelar Cobrança" aria-label="Cancelar Cobrança"><i class="bx bx-x" ></i></a>';
+                            echo '<a href="#modal-cancelar" role="button" data-bs-toggle="modal" cancela_id="' . $r->idCobranca . '" class="btn-nwe4" title="Cancelar Cobrança" aria-label="Cancelar Cobrança"><i class="bx bx-x" ></i></a>';
                             echo '<a href="' . base_url() . 'index.php/cobrancas/atualizar/' . $r->idCobranca . '" class="btn-nwe" title="Atualizar Cobrança" aria-label="Atualizar Cobrança"><i class="bx bx-refresh"></i></a>';
-                            echo '<a href="#modal-confirmar" role="button" data-toggle="modal" confirma_id="' . $r->idCobranca . '" class="btn-nwe3" title="Confirmar pagamento" aria-label="Confirmar pagamento"><i class="bx bx-check"></i></a>';
+                            echo '<a href="#modal-confirmar" role="button" data-bs-toggle="modal" confirma_id="' . $r->idCobranca . '" class="btn-nwe3" title="Confirmar pagamento" aria-label="Confirmar pagamento"><i class="bx bx-check"></i></a>';
                             echo '<a href="' . base_url() . 'index.php/cobrancas/visualizar/' . $r->idCobranca . '" class="btn-nwe2" title="Ver mais detalhes" aria-label="Ver mais detalhes"><i class="bx bx-show" ></i></a>';
                             echo '<a href="' . base_url() . 'index.php/cobrancas/enviarEmail/' . $r->idCobranca . '" class="btn-nwe5" title="Enviar por E-mail" aria-label="Enviar por E-mail"><i class="bx bx-envelope" ></i></a>';
                         }
@@ -158,7 +158,7 @@ $qs = function ($extra) use ($busca, $filtroStatus, $aba) {
                             echo '<a href="' . html_escape($r->link) . '" target="_blank" class="btn-nwe" title="Visualizar boleto" aria-label="Visualizar boleto"><i class="bx bx-barcode" ></i></a>';
                         }
                         if ($perm('dCobranca')) {
-                            echo '<a href="#modal-excluir" role="button" data-toggle="modal" excluir_id="' . $r->idCobranca . '" class="btn-nwe4" title="Excluir Cobrança" aria-label="Excluir Cobrança"><i class="bx bx-trash-alt"></i></a>';
+                            echo '<a href="#modal-excluir" role="button" data-bs-toggle="modal" excluir_id="' . $r->idCobranca . '" class="btn-nwe4" title="Excluir Cobrança" aria-label="Excluir Cobrança"><i class="bx bx-trash-alt"></i></a>';
                         }
                         echo '</span></td>';
                         echo '</tr>';
@@ -172,56 +172,56 @@ $qs = function ($extra) use ($busca, $filtroStatus, $aba) {
 
 
     <!-- Modal -->
-    <div id="modal-excluir" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div id="modal-excluir" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
         <form action="<?php echo base_url() ?>index.php/cobrancas/excluir" method="post">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                
                 <h5 id="myModalLabel">Excluir cobrança</h5>
-            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
             <div class="modal-body">
                 <input type="hidden" id="excluir_id" name="excluir_id" value="" />
                 <h5 style="text-align: center">Deseja realmente excluir esta cobrança? A cobrança será cancelada.</h5>
             </div>
             <div class="modal-footer" style="display:flex;justify-content: center">
-                <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
+                <button class="button btn btn-warning" data-bs-dismiss="modal" aria-hidden="true"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
                 <button class="button btn btn-danger"><span class="button__icon"><i class='bx bx-trash'></i></span> <span class="button__text2">Excluir</span></button>
             </div>
         </form>
-    </div>
+    </div></div></div>
 
-    <div id="modal-confirmar" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div id="modal-confirmar" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
         <form action="<?php echo base_url() ?>index.php/cobrancas/confirmarpagamento" method="post">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                
                 <h5 id="myModalLabel">Confirmar pagamento</h5>
-            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
             <div class="modal-body">
                 <input type="hidden" id="confirma_id" name="confirma_id" value="" />
                 <h5 style="text-align: center">Deseja realmente confirmar pagamento desta cobrança?</h5>
             </div>
             <div class="modal-footer">
-                <button class="btn" data-dismiss="modal" aria-hidden="true">Cancelar</button>
+                <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
                 <button class="btn btn-success">Confirmar</button>
             </div>
         </form>
-    </div>
+    </div></div></div>
 
-    <div id="modal-cancelar" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div id="modal-cancelar" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
         <form action="<?php echo base_url() ?>index.php/cobrancas/cancelar" method="post">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                
                 <h5 id="myModalLabel">Cancelar cobrança</h5>
-            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
             <div class="modal-body">
                 <input type="hidden" id="cancela_id" name="cancela_id" value="" />
                 <h5 style="text-align: center">Deseja realmente Cancelar esta cobrança?</h5>
             </div>
             <div class="modal-footer">
-                <button class="btn" data-dismiss="modal" aria-hidden="true">Cancelar</button>
+                <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
                 <button class="btn btn-danger">Confirmar</button>
             </div>
         </form>
-    </div>
+    </div></div></div>
 </div>
     <script nonce="<?= csp_nonce() ?>" type="text/javascript">
         $(document).ready(function() {

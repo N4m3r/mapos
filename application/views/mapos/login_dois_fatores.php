@@ -43,7 +43,7 @@
     <?php } ?>
 
     <?= form_open('login/verificarDoisFatores') ?>
-      <input type="text" name="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="9" placeholder="000000" autofocus required>
+      <input class="form-control" type="text" name="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="9" placeholder="000000" autofocus required>
       <button type="submit"><i class="fa fa-sign-in"></i> Confirmar</button>
     <?= form_close() ?>
 

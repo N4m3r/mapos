@@ -1,4 +1,4 @@
-<div class="span12" style="margin-left: 0">
+<div class="col-md-12" style="margin-left: 0">
     <div class="widget-box">
         <div class="widget-title">
             <span class="icon">
@@ -41,11 +41,11 @@
                                 <td>
                                     <form method="post" action="<?= site_url('mine/aprovarOs') ?>" class="form-aprovacao" style="margin:0">
                                         <input type="hidden" name="idOs" value="<?= $r->idOs ?>">
-                                        <input type="text" name="obs" placeholder="Observação (opcional)" style="width:100%;margin-bottom:6px">
-                                        <button type="submit" name="decisao" value="aprovado" class="button btn btn-success btn-mini">
+                                        <input class="form-control" type="text" name="obs" placeholder="Observação (opcional)" style="width:100%;margin-bottom:6px">
+                                        <button type="submit" name="decisao" value="aprovado" class="button btn btn-success btn-sm">
                                             <span class="button__icon"><i class="bx bx-check"></i></span><span class="button__text2">Aprovar</span>
                                         </button>
-                                        <button type="submit" name="decisao" value="reprovado" class="button btn btn-danger btn-mini btn-reprovar">
+                                        <button type="submit" name="decisao" value="reprovado" class="button btn btn-danger btn-sm btn-reprovar">
                                             <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Reprovar</span>
                                         </button>
                                     </form>

@@ -56,34 +56,34 @@ $urlCsv = site_url('obras/exportarCsv') . ($pCsv ? '?' . http_build_query($pCsv)
     <form action="<?= site_url('obras/gerenciar') ?>" method="get" class="pl-busca">
         <?php if ($statusAtual !== ''): ?><input type="hidden" name="status" value="<?= html_escape($statusAtual) ?>"><?php endif; ?>
         <label for="filtro-pesquisa" class="pl-sr">Buscar</label>
-        <input type="text" id="filtro-pesquisa" name="pesquisa" placeholder="Buscar por nome, código ou cliente" value="<?= html_escape($pesquisa) ?>">
+        <input class="form-control" type="text" id="filtro-pesquisa" name="pesquisa" placeholder="Buscar por nome, código ou cliente" value="<?= html_escape($pesquisa) ?>">
         <label for="filtro-tipo" class="pl-sr">Tipo</label>
-        <select id="filtro-tipo" name="tipo">
+        <select class="form-select" id="filtro-tipo" name="tipo">
             <option value="">Todos os tipos</option>
             <?php foreach (($tipos_projeto ?? []) as $t): ?>
                 <option value="<?= html_escape($t) ?>" <?= $tipoAtual === $t ? 'selected' : '' ?>><?= html_escape($t) ?></option>
             <?php endforeach; ?>
         </select>
         <label for="filtro-resp" class="pl-sr">Responsável</label>
-        <select id="filtro-resp" name="responsavel">
+        <select class="form-select" id="filtro-resp" name="responsavel">
             <option value="">Todos os responsáveis</option>
             <?php foreach (($responsaveis_projeto ?? []) as $u): ?>
                 <option value="<?= (int) $u->idUsuarios ?>" <?= $respAtual === (int) $u->idUsuarios ? 'selected' : '' ?>><?= html_escape($u->nome) ?></option>
             <?php endforeach; ?>
         </select>
         <label for="filtro-ordem" class="pl-sr">Ordenar por</label>
-        <select id="filtro-ordem" name="ordem">
+        <select class="form-select" id="filtro-ordem" name="ordem">
             <?php foreach ($ordens as $k => $v): ?>
                 <option value="<?= html_escape($k) ?>" <?= $ordemAtual === $k ? 'selected' : '' ?>><?= html_escape($v) ?></option>
             <?php endforeach; ?>
         </select>
-        <select name="dir" aria-label="Sentido da ordenação">
+        <select class="form-select" name="dir" aria-label="Sentido da ordenação">
             <option value="asc" <?= $dirAtual === 'asc' ? 'selected' : '' ?>>Crescente</option>
             <option value="desc" <?= $dirAtual === 'desc' ? 'selected' : '' ?>>Decrescente</option>
         </select>
-        <label><input type="checkbox" name="atrasados" value="1" <?= $atrasados ? 'checked' : '' ?>> Só atrasados</label>
-        <button class="button btn btn-mini pl-btn" type="submit"><span class="button__icon"><i class='bx bx-search'></i></span><span class="button__text2">Filtrar</span></button>
-        <a href="<?= html_escape($urlCsv) ?>" class="button btn btn-mini pl-btn"><span class="button__icon"><i class='bx bx-download'></i></span><span class="button__text2">Exportar CSV</span></a>
+        <label><input class="form-check-input" type="checkbox" name="atrasados" value="1" <?= $atrasados ? 'checked' : '' ?>> Só atrasados</label>
+        <button class="button btn btn-sm pl-btn" type="submit"><span class="button__icon"><i class='bx bx-search'></i></span><span class="button__text2">Filtrar</span></button>
+        <a href="<?= html_escape($urlCsv) ?>" class="button btn btn-sm pl-btn"><span class="button__icon"><i class='bx bx-download'></i></span><span class="button__text2">Exportar CSV</span></a>
     </form>
 
     <?php if (! $results): ?>
@@ -91,11 +91,11 @@ $urlCsv = site_url('obras/exportarCsv') . ($pCsv ? '?' . http_build_query($pCsv)
             <i class="bx bx-building-house"></i>
             <?php if ($temFiltro): ?>
                 <strong>Nenhum projeto encontrado com esses filtros.</strong>
-                <a href="<?= site_url('obras/gerenciar') ?>" class="button btn btn-mini pl-btn"><span class="button__text2">Limpar filtros</span></a>
+                <a href="<?= site_url('obras/gerenciar') ?>" class="button btn btn-sm pl-btn"><span class="button__text2">Limpar filtros</span></a>
             <?php else: ?>
                 <strong>Nenhum projeto ainda.</strong>
                 <?php if ($perm('cObras')): ?>
-                    <a href="<?= site_url('obras/adicionar') ?>" class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Novo projeto</span></a>
+                    <a href="<?= site_url('obras/adicionar') ?>" class="button btn btn-sm btn-primary"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Novo projeto</span></a>
                 <?php endif; ?>
             <?php endif; ?>
         </div>
@@ -137,7 +137,7 @@ $urlCsv = site_url('obras/exportarCsv') . ($pCsv ? '?' . http_build_query($pCsv)
                             <summary aria-label="Mais ações"><i class="bx bx-dots-vertical-rounded"></i></summary>
                             <div class="pl-menu-itens">
                                 <?php if ($perm('eObras')): ?><a href="<?= site_url('obras/editar/' . $r->idObra) ?>"><i class="bx bx-edit"></i> Editar</a><?php endif; ?>
-                                <?php if ($perm('dObras')): ?><a href="#modal-excluir" role="button" data-toggle="modal" obra="<?= $r->idObra ?>"><i class="bx bx-trash-alt"></i> Excluir</a><?php endif; ?>
+                                <?php if ($perm('dObras')): ?><a href="#modal-excluir" role="button" data-bs-toggle="modal" obra="<?= $r->idObra ?>"><i class="bx bx-trash-alt"></i> Excluir</a><?php endif; ?>
                             </div>
                         </details>
                     <?php endif; ?>
@@ -149,22 +149,22 @@ $urlCsv = site_url('obras/exportarCsv') . ($pCsv ? '?' . http_build_query($pCsv)
 </div>
 <?= $this->pagination->create_links(); ?>
 
-<div id="modal-excluir" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-excluir" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('obras/excluir') ?>" method="post">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            
             <h5>Excluir projeto</h5>
-        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <input type="hidden" id="idObra" name="idObra" value="" />
             <h5 style="text-align:center">Excluir este projeto e todos os seus dados (etapas, pontos, registros do dia, medições, material)?</h5>
         </div>
         <div class="modal-footer" style="display:flex;justify-content:center">
-            <button class="button btn btn-warning" data-dismiss="modal" type="button"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
+            <button class="button btn btn-warning" data-bs-dismiss="modal" type="button"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
             <button class="button btn btn-danger"><span class="button__icon"><i class='bx bx-trash'></i></span><span class="button__text2">Excluir</span></button>
         </div>
     </form>
-</div>
+</div></div></div>
 
 <script nonce="<?= csp_nonce() ?>">
     $(function () {

@@ -1,4 +1,4 @@
-<div class="new122">
+<div class="new122 row">
     <?php $this->load->view('rh/_subnav', ['ativo' => 'unidades']); ?>
     <div class="ui-cabecalho">
         <div>
@@ -6,8 +6,8 @@
             <p class="ui-subtitulo">Locais onde o colaborador pode bater o ponto. O GPS do celular precisa estar dentro do raio definido.</p>
         </div>
     </div>
-    <div class="span12" style="margin-left:0">
-        <a href="#modal-unidade" role="button" data-toggle="modal" class="button btn btn-mini btn-success" data-chamar="novaUnidade">
+    <div class="col-md-12" style="margin-left:0">
+        <a href="#modal-unidade" role="button" data-bs-toggle="modal" class="button btn btn-sm btn-success" data-chamar="novaUnidade">
             <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2"> Unidade</span>
         </a>
     </div>
@@ -16,7 +16,7 @@
             <thead><tr><th>Nome</th><th>Endereço</th><th>Localização (GPS)</th><th>Raio da área</th><th>Situação</th><th>Ações</th></tr></thead>
             <tbody>
             <?php if (empty($unidades)): ?>
-                <tr><td colspan="6"><div class="ui-vazio"><i class='bx bx-buildings'></i><strong>Nenhuma unidade cadastrada</strong>Cadastre os locais de trabalho e marque no mapa a área permitida para o ponto.<div style="margin-top:10px"><a href="#modal-unidade" role="button" data-toggle="modal" class="button btn btn-success" data-chamar="novaUnidade"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2"> Nova unidade</span></a></div></div></td></tr>
+                <tr><td colspan="6"><div class="ui-vazio"><i class='bx bx-buildings'></i><strong>Nenhuma unidade cadastrada</strong>Cadastre os locais de trabalho e marque no mapa a área permitida para o ponto.<div style="margin-top:10px"><a href="#modal-unidade" role="button" data-bs-toggle="modal" class="button btn btn-success" data-chamar="novaUnidade"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2"> Nova unidade</span></a></div></div></td></tr>
             <?php else: foreach ($unidades as $u): ?>
                 <tr>
                     <td><?= htmlspecialchars($u->nome) ?></td>
@@ -28,9 +28,9 @@
                     <td><?= (int) $u->raio_metros ?>m</td>
                     <td><?= $u->situacao ? '<span class="ui-selo sucesso">Ativa</span>' : '<span class="ui-selo neutro">Inativa</span>' ?></td>
                     <td>
-                        <a href="#modal-unidade" role="button" data-toggle="modal" class="btn-nwe3" title="Editar" aria-label="Editar"
+                        <a href="#modal-unidade" role="button" data-bs-toggle="modal" class="btn-nwe3" title="Editar" aria-label="Editar"
                            data-chamar="editarUnidade" data-args="<?= html_escape(json_encode([$u])) ?>"><i class="bx bx-edit bx-xs"></i></a>
-                        <a href="#modal-excluir-u" role="button" data-toggle="modal" reg="<?= (int) $u->id ?>" data-nome="<?= html_escape($u->nome) ?>" class="btn-nwe4" title="Excluir" aria-label="Excluir"><i class="bx bx-trash-alt bx-xs"></i></a>
+                        <a href="#modal-excluir-u" role="button" data-bs-toggle="modal" reg="<?= (int) $u->id ?>" data-nome="<?= html_escape($u->nome) ?>" class="btn-nwe4" title="Excluir" aria-label="Excluir"><i class="bx bx-trash-alt bx-xs"></i></a>
                     </td>
                 </tr>
             <?php endforeach; endif; ?>
@@ -43,28 +43,28 @@
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 
 <!-- Modal unidade (com mapa) -->
-<div id="modal-unidade" class="modal hide fade rh-modal-wide" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-unidade" class="modal fade rh-modal-wide" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('rh/salvarUnidade') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5 id="u-titulo">Unidade</h5></div>
+        <div class="modal-header"><h5 id="u-titulo">Unidade</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <div class="rh-modal-cols">
                 <div class="rh-modal-form">
                     <input type="hidden" name="id" id="u-id">
-                    <label>Nome *</label><input type="text" name="nome" id="u-nome" class="span12" required>
+                    <label>Nome *</label><input type="text" name="nome" id="u-nome" class="w-100 form-control" required>
                     <label>Endereço</label>
                     <div style="display:flex;gap:6px">
-                        <input type="text" name="endereco" id="u-endereco" class="span12" style="flex:1" placeholder="Rua, número, cidade...">
+                        <input type="text" name="endereco" id="u-endereco" class="w-100 form-control" style="flex:1" placeholder="Rua, número, cidade...">
                         <button type="button" class="btn" data-chamar="buscarEndereco" title="Buscar no mapa"><i class='bx bx-search'></i></button>
                     </div>
                     <div style="display:flex;gap:8px">
-                        <div style="flex:1"><label>Latitude</label><input type="text" name="latitude" id="u-lat" class="span12"></div>
-                        <div style="flex:1"><label>Longitude</label><input type="text" name="longitude" id="u-lng" class="span12"></div>
+                        <div style="flex:1"><label>Latitude</label><input type="text" name="latitude" id="u-lat" class="w-100 form-control"></div>
+                        <div style="flex:1"><label>Longitude</label><input type="text" name="longitude" id="u-lng" class="w-100 form-control"></div>
                     </div>
                     <label>Raio da área permitida (metros)</label>
-                    <input type="number" name="raio_metros" id="u-raio" class="span12" value="150" min="20" step="10">
-                    <button type="button" class="btn btn-mini" data-chamar="minhaLoc" style="margin-top:6px"><i class='bx bx-current-location'></i> Usar minha localização</button>
+                    <input type="number" name="raio_metros" id="u-raio" class="w-100 form-control" value="150" min="20" step="10">
+                    <button type="button" class="btn btn-sm" data-chamar="minhaLoc" style="margin-top:6px"><i class='bx bx-current-location'></i> Usar minha localização</button>
                     <div style="margin-top:8px"><label>Situação</label>
-                        <select name="situacao" id="u-situacao" class="span12"><option value="1">Ativa</option><option value="0">Inativa</option></select>
+                        <select name="situacao" id="u-situacao" class="w-100 form-select"><option value="1">Ativa</option><option value="0">Inativa</option></select>
                     </div>
                 </div>
                 <div class="rh-modal-map">
@@ -75,15 +75,15 @@
         </div>
         <div class="modal-footer"><button class="button btn btn-success"><span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2"> Salvar</span></button></div>
     </form>
-</div>
+</div></div></div>
 
-<div id="modal-excluir-u" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-excluir-u" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('rh/excluirUnidade') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Excluir unidade</h5></div>
+        <div class="modal-header"><h5>Excluir unidade</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body"><input type="hidden" id="u-del-id" name="id"><h5 style="text-align:center">Deseja excluir a unidade <strong id="u-del-nome"></strong>?</h5></div>
         <div class="modal-footer"><button class="button btn btn-danger"><span class="button__text2">Excluir</span></button></div>
     </form>
-</div>
+</div></div></div>
 
 <script nonce="<?= csp_nonce() ?>" src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -150,8 +150,8 @@ function abrirMapaUnidade(){
 }
 // Robusto: tanto no evento 'shown' do modal quanto num fallback pós-clique do gatilho
 // (funciona mesmo que o tema não dispare 'shown').
-$('#modal-unidade').on('shown', abrirMapaUnidade);
-$(document).on('click', 'a[href="#modal-unidade"][data-toggle="modal"]', function(){ setTimeout(abrirMapaUnidade, 350); });
+$('#modal-unidade').on('shown.bs.modal', abrirMapaUnidade);
+$(document).on('click', 'a[href="#modal-unidade"][data-bs-toggle="modal"]', function(){ setTimeout(abrirMapaUnidade, 350); });
 
 $(document).on('click','a[reg]',function(){ $('#u-del-id').val($(this).attr('reg')); $('#u-del-nome').text($(this).attr('data-nome') || ''); });
 </script>

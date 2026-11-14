@@ -6,8 +6,8 @@ $h = fn ($v) => number_format((float) $v, 2, ',', '.') . ' h';
 $cor = fn ($v) => $v < 0 ? 'color:#d9534f' : 'color:#2e9e5b';
 $t = $res['totais'];
 ?>
-<div class="row-fluid" style="margin-top: 0">
-    <div class="span12">
+<div class="row" style="margin-top: 0">
+    <div class="col-md-12">
         <div class="ui-cabecalho">
             <div>
                 <h1><i class="bx bx-line-chart"></i> Custo real e margem por OS</h1>
@@ -18,11 +18,11 @@ $t = $res['totais'];
         <form action="<?= site_url('margem') ?>" method="get" class="ui-filtros">
             <div class="ui-campo">
                 <label for="dataInicial">OS concluídas de</label>
-                <input type="date" id="dataInicial" name="dataInicial" value="<?= html_escape($filtro['dataInicial']) ?>" />
+                <input class="form-control" type="date" id="dataInicial" name="dataInicial" value="<?= html_escape($filtro['dataInicial']) ?>" />
             </div>
             <div class="ui-campo">
                 <label for="dataFinal">Até</label>
-                <input type="date" id="dataFinal" name="dataFinal" value="<?= html_escape($filtro['dataFinal']) ?>" />
+                <input class="form-control" type="date" id="dataFinal" name="dataFinal" value="<?= html_escape($filtro['dataFinal']) ?>" />
             </div>
             <div class="ui-campo ui-campo-acao">
                 <button class="btn btn-info"><i class="bx bx-search-alt"></i> Filtrar</button>
@@ -34,7 +34,7 @@ $t = $res['totais'];
                 <input type="hidden" name="<?= $this->security->get_csrf_token_name() ?>" value="<?= $this->security->get_csrf_hash() ?>">
                 <div class="ui-campo">
                     <label for="custo_hora_tecnico">Custo-hora do técnico (R$)</label>
-                    <input type="text" id="custo_hora_tecnico" name="custo_hora_tecnico" value="<?= html_escape(number_format($custoHora, 2, '.', '')) ?>" />
+                    <input class="form-control" type="text" id="custo_hora_tecnico" name="custo_hora_tecnico" value="<?= html_escape(number_format($custoHora, 2, '.', '')) ?>" />
                 </div>
                 <div class="ui-campo ui-campo-acao">
                     <button class="btn btn-success"><i class="bx bx-save"></i> Salvar</button>

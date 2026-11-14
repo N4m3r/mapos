@@ -34,16 +34,16 @@ $slaBadge = function ($os) {
         </div>
         <div class="ui-acoes">
             <?php if ($perm('eContrato')): ?>
-                <a href="<?= site_url('contratos/editar/' . $contrato->idContrato) ?>" class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-edit'></i></span><span class="button__text2">Editar</span></a>
+                <a href="<?= site_url('contratos/editar/' . $contrato->idContrato) ?>" class="button btn btn-sm btn-primary"><span class="button__icon"><i class='bx bx-edit'></i></span><span class="button__text2">Editar</span></a>
             <?php endif; ?>
         </div>
     </div>
 
     <?php $this->load->view('contratos/_nav', ['contrato_menu' => 'contratos']); ?>
 
-    <div class="row-fluid">
+    <div class="row">
         <!-- Dados do contrato -->
-        <div class="span5" style="margin-left:0">
+        <div class="col-md-5" style="margin-left:0">
             <div class="widget-box">
                 <div class="widget-title"><h5><i class='bx bx-info-circle'></i> Dados do contrato</h5></div>
                 <div class="widget-content">
@@ -84,7 +84,7 @@ $slaBadge = function ($os) {
         </div>
 
         <!-- Faturamento recorrente -->
-        <div class="span7">
+        <div class="col-md-7">
             <div class="widget-box">
                 <div class="widget-title"><h5><i class='bx bx-dollar-circle'></i> Faturamento (mensalidades)</h5></div>
                 <div class="widget-content">
@@ -92,8 +92,8 @@ $slaBadge = function ($os) {
                         <form action="<?= site_url('contratos/faturar') ?>" method="post" class="form-inline" style="margin-bottom:10px">
                             <input type="hidden" name="idContrato" value="<?= $contrato->idContrato ?>">
                             <label style="display:inline">Competência</label>
-                            <input type="month" name="competencia" value="<?= date('Y-m') ?>" style="width:auto">
-                            <button class="button btn btn-mini btn-success" <?= $jaFaturadoMes ? 'disabled title="Já faturado neste mês"' : '' ?>>
+                            <input class="form-control" type="month" name="competencia" value="<?= date('Y-m') ?>" style="width:auto">
+                            <button class="button btn btn-sm btn-success" <?= $jaFaturadoMes ? 'disabled title="Já faturado neste mês"' : '' ?>>
                                 <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Gerar mensalidade</span></button>
                             <?php if ($jaFaturadoMes): ?>
                                 <small style="color:#b26a00">Competência <?= html_escape($mesAtual) ?> já gerada.</small>

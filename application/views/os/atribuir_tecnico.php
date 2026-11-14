@@ -33,14 +33,14 @@ a.ui-kpi:hover{color:inherit;text-decoration:none;box-shadow:var(--ui-sombra-alt
 
 <?php if ($this->session->flashdata('success') != null) { ?>
     <div class="alert alert-success">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         <?php echo $this->session->flashdata('success'); ?>
     </div>
 <?php } ?>
 
 <?php if ($this->session->flashdata('error') != null) { ?>
     <div class="alert alert-danger">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         <?php echo $this->session->flashdata('error'); ?>
     </div>
 <?php } ?>
@@ -168,7 +168,7 @@ $kpiLista = [
     <form method="get" action="<?= $base ?>" class="ui-filtros" id="formFiltros">
         <div class="ui-campo">
             <label for="filtroAba">Situação</label>
-            <select name="aba" id="filtroAba">
+            <select class="form-select" name="aba" id="filtroAba">
                 <?php foreach ($abasDisponiveis as $valor => $rotulo) { ?>
                     <option value="<?= $valor ?>" <?= $aba === $valor ? 'selected' : '' ?>><?= $rotulo ?></option>
                 <?php } ?>
@@ -177,7 +177,7 @@ $kpiLista = [
         <?php if ($aba !== 'nao_realizadas') { ?>
             <div class="ui-campo">
                 <label for="filtroTecnico">Técnico</label>
-                <select name="tecnico" id="filtroTecnico">
+                <select class="form-select" name="tecnico" id="filtroTecnico">
                     <option value="">Todos</option>
                     <?php foreach ($tecnicos as $t) {
                         if (! is_object($t)) { continue; } ?>
@@ -187,14 +187,14 @@ $kpiLista = [
             </div>
             <div class="ui-campo" style="flex-grow:2">
                 <label for="filtroBusca">Busca</label>
-                <input type="text" name="busca" id="filtroBusca" value="<?= html_escape($busca) ?>" placeholder="Cliente, nº da OS ou descrição">
+                <input class="form-control" type="text" name="busca" id="filtroBusca" value="<?= html_escape($busca) ?>" placeholder="Cliente, nº da OS ou descrição">
             </div>
             <div class="ui-campo ui-campo-periodo">
                 <label for="filtroDe">Período (data da OS)</label>
                 <div class="ui-par">
-                    <input type="date" name="data_de" id="filtroDe" value="<?= html_escape($data_de) ?>" title="Data inicial (de)" aria-label="Data inicial">
+                    <input class="form-control" type="date" name="data_de" id="filtroDe" value="<?= html_escape($data_de) ?>" title="Data inicial (de)" aria-label="Data inicial">
                     <span>até</span>
-                    <input type="date" name="data_ate" id="filtroAte" value="<?= html_escape($data_ate) ?>" title="Data final (até)" aria-label="Data final">
+                    <input class="form-control" type="date" name="data_ate" id="filtroAte" value="<?= html_escape($data_ate) ?>" title="Data final (até)" aria-label="Data final">
                 </div>
             </div>
             <div class="ui-campo-acao">
@@ -236,23 +236,23 @@ $kpiLista = [
                                         <td>
                                             <?= html_escape($nr->motivo_texto ?? '—') ?>
                                             <?php if (!empty($nr->observacao)) { ?>
-                                                <br><small class="help-block"><?= html_escape($nr->observacao) ?></small>
+                                                <br><small class="form-text"><?= html_escape($nr->observacao) ?></small>
                                             <?php } ?>
                                         </td>
                                         <td><?= html_escape($nr->nome_tecnico ?? '—') ?></td>
                                         <td><?= !empty($nr->data_registro) ? date('d/m/Y H:i', strtotime($nr->data_registro)) : '—' ?></td>
                                         <td>
-                                            <button class="button btn btn-mini btn-success btn-reagendar"
+                                            <button class="button btn btn-sm btn-success btn-reagendar"
                                                 data-ocorrencia="<?= (int) $nr->idOcorrencia ?>" data-os="<?= (int) $nr->os_id ?>">
                                                 <span class="button__icon"><i class='bx bx-calendar'></i></span>
                                                 <span class="button__text2">Reagendar</span>
                                             </button>
-                                            <button class="button btn btn-mini btn-warning btn-reabrir"
+                                            <button class="button btn btn-sm btn-warning btn-reabrir"
                                                 data-ocorrencia="<?= (int) $nr->idOcorrencia ?>" data-os="<?= (int) $nr->os_id ?>">
                                                 <span class="button__icon"><i class='bx bx-revision'></i></span>
                                                 <span class="button__text2">Reabrir</span>
                                             </button>
-                                            <a href="<?= base_url() ?>index.php/os/visualizar/<?= (int) $nr->os_id ?>" class="button btn btn-mini btn-inverse" title="Ver OS" aria-label="Ver OS">
+                                            <a href="<?= base_url() ?>index.php/os/visualizar/<?= (int) $nr->os_id ?>" class="button btn btn-sm btn-dark" title="Ver OS" aria-label="Ver OS">
                                                 <span class="button__icon"><i class='bx bx-show'></i></span><span class="button__text2">Ver OS</span>
                                             </a>
                                         </td>
@@ -274,7 +274,7 @@ $kpiLista = [
                         <strong>Nenhuma OS encontrada</strong>
                         <?php if ($temFiltro || $aba !== 'todos') { ?>
                             Nada corresponde à situação "<?= html_escape($abasDisponiveis[$aba] ?? $aba) ?>"<?= $temFiltro ? ' com os filtros aplicados' : '' ?>.<br>
-                            <a href="<?= $base ?>?aba=todos" class="btn btn-small ui-mt"><i class='bx bx-x'></i> Limpar filtros</a>
+                            <a href="<?= $base ?>?aba=todos" class="btn btn-sm ui-mt"><i class='bx bx-x'></i> Limpar filtros</a>
                         <?php } else { ?>
                             Não há chamados abertos no momento.
                         <?php } ?>
@@ -296,7 +296,7 @@ $kpiLista = [
                                 <div class="ct-topo">
                                     <span class="ct-os">OS #<?= sprintf('%04d', $os->idOs) ?></span>
                                     <?php if ($podeMudarStatus) { ?>
-                                        <select class="status-inline ct-status" data-os="<?= (int) $os->idOs ?>" data-atual="<?= html_escape($os->status) ?>" style="border-left:4px solid <?= $cor ?>" aria-label="Status da OS <?= (int) $os->idOs ?>">
+                                        <select class="status-inline ct-status form-select" data-os="<?= (int) $os->idOs ?>" data-atual="<?= html_escape($os->status) ?>" style="border-left:4px solid <?= $cor ?>" aria-label="Status da OS <?= (int) $os->idOs ?>">
                                             <?php foreach ($statusDisponiveis as $st) { ?>
                                                 <option value="<?= html_escape($st) ?>" <?= $os->status === $st ? 'selected' : '' ?>><?= html_escape($st) ?></option>
                                             <?php } ?>
@@ -324,7 +324,7 @@ $kpiLista = [
                                 </div>
                                 <div class="ct-acoes">
                                     <?php if (! $chamadoConcluido) { ?>
-                                        <button class="button btn btn-mini btn-success btn-atribuir"
+                                        <button class="button btn btn-sm btn-success btn-atribuir"
                                             data-os="<?= (int) $os->idOs ?>"
                                             data-cliente="<?= html_escape($os->nomeCliente) ?>"
                                             data-tecnico-atual="<?= html_escape($os->tecnico_responsavel) ?>"
@@ -334,11 +334,11 @@ $kpiLista = [
                                             <span class="button__text2"><?= $temTec ? 'Agendar ou trocar' : 'Atribuir' ?></span>
                                         </button>
                                     <?php } ?>
-                                    <a href="<?= base_url() ?>index.php/os/visualizar/<?= (int) $os->idOs ?>" class="button btn btn-mini btn-inverse" title="Ver OS" aria-label="Ver OS <?= (int) $os->idOs ?>">
+                                    <a href="<?= base_url() ?>index.php/os/visualizar/<?= (int) $os->idOs ?>" class="button btn btn-sm btn-dark" title="Ver OS" aria-label="Ver OS <?= (int) $os->idOs ?>">
                                         <span class="button__icon"><i class='bx bx-show'></i></span><span class="button__text2">Ver OS</span>
                                     </a>
                                     <?php if (! $chamadoConcluido && $temTec) { ?>
-                                        <button class="button btn btn-mini btn-danger btn-remover" data-os="<?= (int) $os->idOs ?>" data-cliente="<?= html_escape($os->nomeCliente) ?>" title="Remover técnico" aria-label="Remover técnico da OS <?= (int) $os->idOs ?>">
+                                        <button class="button btn btn-sm btn-danger btn-remover" data-os="<?= (int) $os->idOs ?>" data-cliente="<?= html_escape($os->nomeCliente) ?>" title="Remover técnico" aria-label="Remover técnico da OS <?= (int) $os->idOs ?>">
                                             <span class="button__icon"><i class='bx bx-user-x'></i></span><span class="button__text2">Remover técnico</span>
                                         </button>
                                     <?php } ?>
@@ -357,23 +357,23 @@ $kpiLista = [
 </div>
 
 <!-- Modal Atribuir Técnico -->
-<div id="modalAtribuir" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="modalAtribuirLabel" aria-hidden="true">
+<div id="modalAtribuir" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalAtribuirLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        
         <h4 id="modalAtribuirLabel"><i class='bx bx-user-plus'></i> Atribuir Técnico</h4>
-    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
     <form action="<?= base_url() ?>index.php/os/atribuirTecnicoAction" method="POST" id="formAtribuir">
         <div class="modal-body">
             <input type="hidden" name="os_id" id="os_id_atribuir">
 
-            <div class="control-group">
-                <label class="control-label">OS #<span id="os_numero"></span> - <span id="os_cliente"></span></label>
+            <div class="mb-3">
+                <label class="form-label">OS #<span id="os_numero"></span> - <span id="os_cliente"></span></label>
             </div>
 
-            <div class="control-group">
-                <label class="control-label" for="tecnico_id">Técnico Responsável:</label>
-                <div class="controls">
-                    <select name="tecnico_id" id="tecnico_id" class="span12" required>
+            <div class="mb-3">
+                <label class="form-label" for="tecnico_id">Técnico Responsável:</label>
+                <div class="">
+                    <select name="tecnico_id" id="tecnico_id" class="w-100 form-select" required>
                         <option value="">Selecione um técnico...</option>
                         <?php if (!empty($tecnicos) && is_array($tecnicos)) {
                             foreach ($tecnicos as $t) {
@@ -388,18 +388,18 @@ $kpiLista = [
                 </div>
             </div>
 
-            <div class="control-group">
-                <label class="control-label" for="data_agendamento"><i class='bx bx-calendar-event'></i> Agendar atendimento (data e hora):</label>
-                <div class="controls">
-                    <input type="datetime-local" name="data_agendamento" id="data_agendamento" class="span12">
-                    <span class="help-inline">Opcional. Notifica o técnico com o horário marcado da visita.</span>
+            <div class="mb-3">
+                <label class="form-label" for="data_agendamento"><i class='bx bx-calendar-event'></i> Agendar atendimento (data e hora):</label>
+                <div class="">
+                    <input type="datetime-local" name="data_agendamento" id="data_agendamento" class="w-100 form-control">
+                    <span class="form-text">Opcional. Notifica o técnico com o horário marcado da visita.</span>
                 </div>
             </div>
 
-            <div class="control-group">
-                <label class="control-label" for="observacao">Observação:</label>
-                <div class="controls">
-                    <textarea name="observacao" id="observacao" class="span12" rows="2" placeholder="Motivo da atribuição (opcional)"></textarea>
+            <div class="mb-3">
+                <label class="form-label" for="observacao">Observação:</label>
+                <div class="">
+                    <textarea name="observacao" id="observacao" class="w-100 form-control" rows="2" placeholder="Motivo da atribuição (opcional)"></textarea>
                 </div>
             </div>
 
@@ -409,18 +409,18 @@ $kpiLista = [
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancelar</button>
+            <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
             <button type="submit" class="btn btn-success"><i class='bx bx-check'></i> Confirmar Atribuição</button>
         </div>
     </form>
-</div>
+</div></div></div>
 
 <!-- Modal Remover Técnico -->
-<div id="modalRemover" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="modalRemoverLabel" aria-hidden="true">
+<div id="modalRemover" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalRemoverLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        
         <h4 id="modalRemoverLabel"><i class='bx bx-user-x'></i> Remover Técnico</h4>
-    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
     <form action="<?= base_url() ?>index.php/os/removerTecnicoAction" method="POST" id="formRemover">
         <div class="modal-body">
             <input type="hidden" name="os_id" id="os_id_remover">
@@ -430,41 +430,41 @@ $kpiLista = [
                 <p>Cliente: <strong id="os_cliente_remover"></strong></p>
             </div>
 
-            <div class="control-group">
-                <label class="control-label" for="motivo">Motivo da remoção:</label>
-                <div class="controls">
-                    <textarea name="motivo" id="motivo" class="span12" rows="2" placeholder="Informe o motivo (opcional)"></textarea>
+            <div class="mb-3">
+                <label class="form-label" for="motivo">Motivo da remoção:</label>
+                <div class="">
+                    <textarea name="motivo" id="motivo" class="w-100 form-control" rows="2" placeholder="Informe o motivo (opcional)"></textarea>
                 </div>
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancelar</button>
+            <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
             <button type="submit" class="btn btn-danger"><i class='bx bx-trash'></i> Confirmar Remoção</button>
         </div>
     </form>
-</div>
+</div></div></div>
 
 <!-- Modal Reagendar (Não Realizada) -->
-<div id="modalReagendar" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modalReagendar" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        
         <h4><i class='bx bx-calendar'></i> Reagendar OS #<span id="reag_os"></span></h4>
-    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <input type="hidden" id="reag_ocorrencia">
-        <div class="control-group">
-            <label class="control-label" for="reag_data">Nova data de atendimento:</label>
-            <div class="controls">
-                <input type="date" id="reag_data" class="span12">
+        <div class="mb-3">
+            <label class="form-label" for="reag_data">Nova data de atendimento:</label>
+            <div class="">
+                <input type="date" id="reag_data" class="w-100 form-control">
             </div>
         </div>
         <small style="color:#888">A OS volta para a agenda como "Aberto" na data informada.</small>
     </div>
     <div class="modal-footer">
-        <button class="btn" data-dismiss="modal" aria-hidden="true">Cancelar</button>
+        <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
         <button type="button" class="btn btn-success" id="btnConfirmarReagendar"><i class='bx bx-check'></i> Confirmar</button>
     </div>
-</div>
+</div></div></div>
 
 <script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {

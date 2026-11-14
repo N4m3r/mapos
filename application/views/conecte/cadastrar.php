@@ -29,7 +29,7 @@
             cursor: pointer;
         }
 
-        .control-group.error .help-inline {
+        .control-group.error .form-text {
             display: flex;
         }
 
@@ -68,7 +68,7 @@
         }
 
         @media (max-width: 480px) {
-            .row-fluid {
+            .row {
                 display: block;
             }
             
@@ -124,137 +124,137 @@
                 align-items: center;
             }
 
-            .form-actions .span12 {
+            .form-actions .col-md-12 {
                 display: flex;
                 justify-content: center;
             }
         }
     </style>
 
-    <div class="row-fluid" style="width: 100vw;height: 96%;display: grid;align-items: center;justify-content: center">
+    <div class="row" style="width: 100vw;height: 96%;display: grid;align-items: center;justify-content: center">
         <div class="widget-box">
             <div class="widget-title">
                 <h5>Cadastre-se no Sistema</h5>
             </div>
-            <form action="<?= current_url() ?>" id="formCliente" method="post" class="form-horizontal">
+            <form action="<?= current_url() ?>" id="formCliente" method="post" class="form-horizontal row">
                 <div class="widget-content nopadding tab-content">
                     <input type="hidden" name="<?= $this->security->get_csrf_token_name(); ?>" value="<?= $this->security->get_csrf_hash(); ?>">
-                    <div class="control-group">
-                        <label for="nomeCliente" class="control-label"><span class="required"></span></label>
-                        <div class="controls">
-                            <input id="nomeCliente" type="text" placeholder="Nome*" name="nomeCliente" value="<?= set_value('nomeCliente') ?>" />
+                    <div class="row mb-2">
+                        <label for="nomeCliente" class="col-sm-3 col-form-label"><span class="required"></span></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="nomeCliente" type="text" placeholder="Nome*" name="nomeCliente" value="<?= set_value('nomeCliente') ?>" />
                         </div>
                     </div>
-                    <div class="control-group">
+                    <div class="row mb-2">
                         <?php if (isset($custom_error) && $custom_error != '') {
                             echo '<div class="alert alert-danger">' . $custom_error . '</div>';
                         } ?>
-                        <label for="documento" class="control-label"><span class="required"></span></label>
-                        <div class="controls">
-                            <input id="documento" class="cpfcnpj" type="text" placeholder="CPF/CNPJ*" name="documento" value="<?= set_value('documento') ?>" />
-                            <button style="top:70px;right:40px;position:absolute" id="buscar_info_cnpj" class="btn btn-xs" type="button"><i class="fas fa-search"></i></button>
+                        <label for="documento" class="col-sm-3 col-form-label"><span class="required"></span></label>
+                        <div class="col-sm-9">
+                            <input id="documento" class="cpfcnpj form-control" type="text" placeholder="CPF/CNPJ*" name="documento" value="<?= set_value('documento') ?>" />
+                            <button style="top:70px;right:40px;position:absolute" id="buscar_info_cnpj" class="btn btn-sm" type="button"><i class="fas fa-search"></i></button>
                         </div>
                     </div>
 
-                    <div class="control-group">
-                        <label for="telefone" class="control-label"><span class="required"></span></label>
-                        <div class="controls">
-                            <input id="telefone" type="text" placeholder="Telefone*" name="telefone" value="<?= set_value('telefone') ?>" />
+                    <div class="row mb-2">
+                        <label for="telefone" class="col-sm-3 col-form-label"><span class="required"></span></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="telefone" type="text" placeholder="Telefone*" name="telefone" value="<?= set_value('telefone') ?>" />
                         </div>
                     </div>
 
-                    <div class="control-group">
-                        <label for="celular" class="control-label"></label>
-                        <div class="controls">
-                            <input id="celular" type="text" placeholder="Celular" name="celular" value="<?= set_value('celular') ?>" />
+                    <div class="row mb-2">
+                        <label for="celular" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="celular" type="text" placeholder="Celular" name="celular" value="<?= set_value('celular') ?>" />
                         </div>
                     </div>
 
-                    <div class="control-group">
-                        <label for="email" class="control-label"><span class="required"></span></label>
-                        <div class="controls">
-                            <input id="email" type="text" placeholder="Email*" name="email" value="<?= set_value('email') ?>" />
+                    <div class="row mb-2">
+                        <label for="email" class="col-sm-3 col-form-label"><span class="required"></span></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="email" type="text" placeholder="Email*" name="email" value="<?= set_value('email') ?>" />
                         </div>
                     </div>
 
-                    <div class="control-group">
-                        <label for="senha" class="control-label"><span class="required"></span></label>
-                        <div class="controls">
-                            <input id="senha" type="password" placeholder="Senha*" name="senha" value="<?= set_value('senha') ?>" />
+                    <div class="row mb-2">
+                        <label for="senha" class="col-sm-3 col-form-label"><span class="required"></span></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="senha" type="password" placeholder="Senha*" name="senha" value="<?= set_value('senha') ?>" />
                             <img id="imgSenha" src="<?= base_url() ?>assets/img/eye.svg" alt="">
                         </div>
                     </div>
 
-                    <div class="control-group" class="control-label">
-                        <label for="cep" class="control-label"><span class="required"></span></label>
-                        <div class="controls">
-                            <input id="cep" type="text" placeholder="CEP*" name="cep" value="<?= set_value('cep') ?>" />
+                    <div class="row mb-2" class="form-label">
+                        <label for="cep" class="col-sm-3 col-form-label"><span class="required"></span></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="cep" type="text" placeholder="CEP*" name="cep" value="<?= set_value('cep') ?>" />
                         </div>
                     </div>
 
-                    <div class="control-group" class="control-label">
-                        <label for="rua" class="control-label"><span class="required"></span></label>
-                        <div class="controls">
-                            <input id="rua" type="text" placeholder="Rua*" name="rua" value="<?= set_value('rua') ?>" />
+                    <div class="row mb-2" class="form-label">
+                        <label for="rua" class="col-sm-3 col-form-label"><span class="required"></span></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="rua" type="text" placeholder="Rua*" name="rua" value="<?= set_value('rua') ?>" />
                         </div>
                     </div>
 
-                    <div class="control-group">
-                        <label for="numero" class="control-label"><span class="required"></span></label>
-                        <div class="controls">
-                            <input id="numero" type="text" placeholder="Número*" name="numero" value="<?= set_value('numero') ?>" />
+                    <div class="row mb-2">
+                        <label for="numero" class="col-sm-3 col-form-label"><span class="required"></span></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="numero" type="text" placeholder="Número*" name="numero" value="<?= set_value('numero') ?>" />
                         </div>
                     </div>
-                    <div class="control-group">
-                        <label for="complemento" class="control-label"></label>
-                        <div class="controls">
-                            <input id="complemento" type="text" placeholder="Complemento" name="complemento" value="<?= set_value('complemento') ?>" />
+                    <div class="row mb-2">
+                        <label for="complemento" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="complemento" type="text" placeholder="Complemento" name="complemento" value="<?= set_value('complemento') ?>" />
                         </div>
                     </div>
-                    <div class="control-group" class="control-label">
-                        <label for="bairro" class="control-label"><span class="required"></span></label>
-                        <div class="controls">
-                            <input id="bairro" type="text" placeholder="Bairro*" name="bairro" value="<?= set_value('bairro') ?>" />
-                        </div>
-                    </div>
-
-                    <div class="control-group" class="control-label">
-                        <label for="cidade" class="control-label"><span class="required"></span></label>
-                        <div class="controls">
-                            <input id="cidade" type="text" placeholder="Cidade*" name="cidade" value="<?= set_value('cidade') ?>" />
+                    <div class="row mb-2" class="form-label">
+                        <label for="bairro" class="col-sm-3 col-form-label"><span class="required"></span></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="bairro" type="text" placeholder="Bairro*" name="bairro" value="<?= set_value('bairro') ?>" />
                         </div>
                     </div>
 
-                    <div class="control-group" class="control-label">
-                        <label for="contato" class="control-label"></label>
-                        <div class="controls">
-                            <input id="contato" type="text" placeholder="Contato*" name="contato" value="<?= set_value('contato') ?>" />
+                    <div class="row mb-2" class="form-label">
+                        <label for="cidade" class="col-sm-3 col-form-label"><span class="required"></span></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="cidade" type="text" placeholder="Cidade*" name="cidade" value="<?= set_value('cidade') ?>" />
                         </div>
                     </div>
 
-                    <div class="control-group" class="control-label">
-                        <label for="estado" class="control-label"><span class="required"></span></label>
-                        <div class="controls">
-                            <select id="estado" name="estado">
+                    <div class="row mb-2" class="form-label">
+                        <label for="contato" class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="contato" type="text" placeholder="Contato*" name="contato" value="<?= set_value('contato') ?>" />
+                        </div>
+                    </div>
+
+                    <div class="row mb-2" class="form-label">
+                        <label for="estado" class="col-sm-3 col-form-label"><span class="required"></span></label>
+                        <div class="col-sm-9">
+                            <select class="form-select" id="estado" name="estado">
                                 <option value="">Selecione Seu Estado...</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
-                <div class="control-group span12" style="background-color:transparent;border:none;padding: 10px;margin-left: 0;margin-bottom: 0;">
+                <div class="col-md-12 row mb-2" style="background-color:transparent;border:none;padding: 10px;margin-left: 0;margin-bottom: 0;">
                     <div style="display:flex; justify-content: center; flex-direction: column; align-items: center;">
                         <img src="<?= base_url() ?>index.php/mine/captcha" alt="">
-                        <div class="controls" style="margin-left: 0;">
-                            <input id="captcha" type="text" placeholder="Digite o texto da imagem*" name="captcha" value="" />
+                        <div class="" style="margin-left: 0;">
+                            <input class="form-control" id="captcha" type="text" placeholder="Digite o texto da imagem*" name="captcha" value="" />
                         </div>
                     </div>
                 </div>
 
-                <div class="form-actions" style="background-color:transparent;border:none;padding: 10px;margin-bottom: 0">
-                    <div class="span12">
-                        <div class="span6 offset3" style="display:flex;justify-content: center">
-                            <button type="submit" class="button btn btn-success btn-large"><span class="button__icon"><i class='bx bx-user-plus'></i></span><span class="button__text2">Cadastrar</span></button>
+                <div class="form-actions row" style="background-color:transparent;border:none;padding: 10px;margin-bottom: 0">
+                    <div class="col-md-12 row">
+                        <div class="col-md-6 offset-md-3" style="display:flex;justify-content: center">
+                            <button type="submit" class="button btn btn-success btn-lg"><span class="button__icon"><i class='bx bx-user-plus'></i></span><span class="button__text2">Cadastrar</span></button>
                             <a href="<?= base_url() ?>index.php/mine" id="" class="button btn btn-warning"><span class="button__icon"><i class='bx bx-undo'></i></span><span class="button__text2">Voltar</span></a>
                         </div>
                     </div>
@@ -386,14 +386,14 @@
                     }
                 },
 
-                errorClass: "help-inline",
+                errorClass: "invalid-feedback",
                 errorElement: "span",
                 highlight: function(element, errorClass, validClass) {
-                    $(element).parents('.control-group').addClass('error');
+                    $(element).addClass('is-invalid');
                 },
                 unhighlight: function(element, errorClass, validClass) {
-                    $(element).parents('.control-group').removeClass('error');
-                    $(element).parents('.control-group').addClass('success');
+                    $(element).removeClass('is-invalid');
+                    $(element).addClass('is-valid');
                 }
             });
         });
@@ -401,8 +401,8 @@
 
 
     <!--Footer-part-->
-    <div class="row-fluid">
-        <div id="footer" class="span12" style="padding: 10px">
+    <div class="row">
+        <div id="footer" class="col-md-12" style="padding: 10px">
             <a class="pecolor" href="https://github.com/RamonSilva20/mapos" target="_blank">
                 <?= date('Y') ?> &copy; Ramon Silva - <?= $this->config->item('app_name') ?> - Versão: <?= $this->config->item('app_version'); ?>
             </a>

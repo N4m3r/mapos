@@ -27,7 +27,7 @@
 </head>
 
 <body>
-    <div class="row-fluid" style="width: 100vw;height: 100vh;display: flex;align-items: center;justify-content: center">
+    <div class="row" style="width: 100vw;height: 100vh;display: flex;align-items: center;justify-content: center">
         <div class="widget-box" style="align-items: center;padding: 0 15px">
             <div class="widget-title">
                 <h5 style="padding-left: 10px">Recuperar Senha do Sistema</h5>
@@ -36,17 +36,17 @@
 
                 <form action="<?php echo base_url() . "index.php/mine/gerarTokenResetarSenha" ?>" id="formCliente" method="post" class="form-horizontal">
 
-                    <div class="control-group" style="display: flex;margin-bottom: 7pxpx;grid-column-gap: 5px;justify-content: space-evenly;border-bottom: 0px">
-                        <label style="width: auto" for="email" class="control-label">Email<span class="required">*</span></label>
-                        <div class="controls" style="margin: 0">
-                            <input id="email" type="text" name="email" value="" />
+                    <div class="row mb-2" style="display: flex;margin-bottom: 7pxpx;grid-column-gap: 5px;justify-content: space-evenly;border-bottom: 0px">
+                        <label style="width: auto" for="email" class="col-sm-3 col-form-label">Email<span class="required">*</span></label>
+                        <div class="col-sm-9" style="margin: 0">
+                            <input class="form-control" id="email" type="text" name="email" value="" />
                         </div>
                     </div>
 
-                    <div class="form-actions" style="background-color:transparent;border:none;padding: 10px;margin-top: 15px">
-                        <div class="span12">
-                            <div class="span6 offset3" style="display:flex;justify-content: center">
-                                <button type="submit" class="button btn btn-success btn-large"><span class="button__icon"><i class='bx bx-mail-send'></i></span><span class="button__text2">Enviar</span></button>
+                    <div class="form-actions row" style="background-color:transparent;border:none;padding: 10px;margin-top: 15px">
+                        <div class="col-md-12 row">
+                            <div class="col-md-6 offset-md-3" style="display:flex;justify-content: center">
+                                <button type="submit" class="button btn btn-success btn-lg"><span class="button__icon"><i class='bx bx-mail-send'></i></span><span class="button__text2">Enviar</span></button>
                                 <a href="<?php echo base_url() ?>index.php/mine" id="" class="button btn btn-warning"><span class="button__icon"><i class='bx bx-lock-alt'></i></span><span class="button__text2">Acessar</span></a>
                             </div>
                         </div>
@@ -95,14 +95,14 @@
                     }
                 },
 
-                errorClass: "help-inline",
+                errorClass: "invalid-feedback",
                 errorElement: "span",
                 highlight: function(element, errorClass, validClass) {
-                    $(element).parents('.control-group').addClass('error');
+                    $(element).addClass('is-invalid');
                 },
                 unhighlight: function(element, errorClass, validClass) {
-                    $(element).parents('.control-group').removeClass('error');
-                    $(element).parents('.control-group').addClass('success');
+                    $(element).removeClass('is-invalid');
+                    $(element).addClass('is-valid');
                 }
             });
         });
@@ -110,8 +110,8 @@
 
 
     <!--Footer-part-->
-    <div class="row-fluid">
-        <div id="footer" class="span12" style="padding: 10px"> <a class="pecolor" href="https://github.com/RamonSilva20/mapos" target="_blank">
+    <div class="row">
+        <div id="footer" class="col-md-12" style="padding: 10px"> <a class="pecolor" href="https://github.com/RamonSilva20/mapos" target="_blank">
                 <?= date('Y') ?> &copy; Ramon Silva - <?php echo $this->config->item('app_name') ?> - Versão: <?= $this->config->item('app_version'); ?>
             </a></div>
     </div>

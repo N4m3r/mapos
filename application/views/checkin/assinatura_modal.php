@@ -35,10 +35,10 @@ $canvas_id = $modal_id . '-canvas';
         <div style="border: 1px solid var(--tec-input-line,#8a90a8); padding: 5px; background: #fff; max-width: 300px;">
             <img src="" alt="Assinatura Salva" style="max-width: 100%; height: auto; display: block;">
             <div style="margin-top: 5px; text-align: center;">
-                <button type="button" class="btn btn-small btn-warning btn-editar-assinatura" data-modal="<?php echo $modal_id; ?>">
+                <button type="button" class="btn btn-sm btn-warning btn-editar-assinatura" data-modal="<?php echo $modal_id; ?>">
                     <i class="bx bx-edit"></i> Editar
                 </button>
-                <button type="button" class="btn btn-small btn-danger btn-limpar-assinatura" data-preview="<?php echo $preview_id; ?>">
+                <button type="button" class="btn btn-sm btn-danger btn-limpar-assinatura" data-preview="<?php echo $preview_id; ?>">
                     <i class="bx bx-trash"></i> Limpar
                 </button>
             </div>
@@ -68,11 +68,11 @@ $canvas_id = $modal_id . '-canvas';
     }
 </style>
 <!-- Modal de Assinatura -->
-<div class="modal hide fade modal-assinatura" id="<?php echo $modal_id; ?>" tabindex="-1" role="dialog" aria-labelledby="<?php echo $modal_id; ?>Label" aria-hidden="true" style="width: 600px; margin-left: -300px;">
+<div class="modal fade modal-assinatura" id="<?php echo $modal_id; ?>" tabindex="-1" role="dialog" aria-labelledby="<?php echo $modal_id; ?>Label" aria-hidden="true" ><div class="modal-dialog" style="max-width: 600px"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        
         <h5 id="<?php echo $modal_id; ?>Label"><i class="bx bx-pencil"></i> <?php echo $titulo; ?></h5>
-    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
     <div class="modal-body" style="text-align: center;">
         <!-- Instrução -->
         <p class="text-info" style="margin-bottom: 15px;">
@@ -86,10 +86,10 @@ $canvas_id = $modal_id . '-canvas';
 
         <!-- Botões do canvas -->
         <div class="assinatura-botoes-modal" style="margin-bottom: 15px;">
-            <button type="button" class="btn btn-small btn-desfazer-canvas" data-canvas="<?php echo $canvas_id; ?>">
+            <button type="button" class="btn btn-sm btn-desfazer-canvas" data-canvas="<?php echo $canvas_id; ?>">
                 <i class="bx bx-undo"></i> Desfazer
             </button>
-            <button type="button" class="btn btn-small btn-limpar-canvas" data-canvas="<?php echo $canvas_id; ?>">
+            <button type="button" class="btn btn-sm btn-limpar-canvas" data-canvas="<?php echo $canvas_id; ?>">
                 <i class="bx bx-eraser"></i> Limpar Canvas
             </button>
         </div>
@@ -100,21 +100,21 @@ $canvas_id = $modal_id . '-canvas';
             <?php if (isset($campos['nome']) && $campos['nome']): ?>
             <div style="margin-bottom: 10px;">
                 <label for="<?php echo $modal_id; ?>-nome">Nome do Assinante:</label>
-                <input type="text" class="span12 modal-assinatura-nome" id="<?php echo $modal_id; ?>-nome" placeholder="Digite o nome completo" style="margin-bottom: 0;">
+                <input type="text" class="modal-assinatura-nome w-100 form-control" id="<?php echo $modal_id; ?>-nome" placeholder="Digite o nome completo" style="margin-bottom: 0;">
             </div>
             <?php endif; ?>
 
             <?php if (isset($campos['documento']) && $campos['documento']): ?>
             <div>
                 <label for="<?php echo $modal_id; ?>-documento">Documento (CPF/RG):</label>
-                <input type="text" class="span12 modal-assinatura-documento" id="<?php echo $modal_id; ?>-documento" placeholder="Digite o CPF ou RG" style="margin-bottom: 0;">
+                <input type="text" class="modal-assinatura-documento w-100 form-control" id="<?php echo $modal_id; ?>-documento" placeholder="Digite o CPF ou RG" style="margin-bottom: 0;">
             </div>
             <?php endif; ?>
         </div>
         <?php endif; ?>
     </div>
     <div class="modal-footer">
-        <button type="button" class="btn" data-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn" data-bs-dismiss="modal">Cancelar</button>
         <button type="button" class="btn btn-success btn-salvar-assinatura-modal"
                 data-modal="<?php echo $modal_id; ?>"
                 data-canvas="<?php echo $canvas_id; ?>"
@@ -123,7 +123,7 @@ $canvas_id = $modal_id . '-canvas';
             <i class="bx bx-check"></i> Salvar Assinatura
         </button>
     </div>
-</div>
+</div></div></div>
 
 <script nonce="<?= csp_nonce() ?>">
 (function() {
@@ -132,7 +132,7 @@ $canvas_id = $modal_id . '-canvas';
     var canvasId = '<?php echo $canvas_id; ?>';
 
     // Quando o modal for mostrado, inicializa o canvas
-    $('#' + modalId).on('shown', function() {
+    $('#' + modalId).on('shown.bs.modal', function() {
         // Se a assinatura já existe no input hidden, carrega no canvas
         var inputDestino = '<?php echo $input_destino; ?>';
         var assinaturaSalva = $('#' + inputDestino).val();

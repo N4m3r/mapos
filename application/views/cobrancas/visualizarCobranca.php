@@ -2,12 +2,12 @@
     <div class="accordion-group widget-box">
         <div class="accordion-heading">
             <div class="widget-title" style="margin: -20px 0 0">
-                <a data-parent="#collapse-group" href="#collapseGOne" data-toggle="collapse">
+                <a data-bs-parent="#collapse-group" href="#collapseGOne" data-bs-toggle="collapse">
                     <h5>Detalhes da Cobrança</h5>
                 </a>
             </div>
         </div>
-        <div class="collapse in accordion-body">
+        <div class="collapse show accordion-body">
             <div class="widget-content">
                 <table class="table table-bordered">
                     <tbody>
@@ -81,7 +81,7 @@
                                 <?php echo number_format((float) $result->v_ibs_estimado + (float) $result->v_cbs_estimado, 2, ',', '.'); ?>
                                 · Líquido estimado: R$
                                 <?php echo number_format((float) $result->v_liquido_estimado, 2, ',', '.'); ?>
-                                <br><small class="muted">informativo — preparação para o split payment</small>
+                                <br><small class="text-muted">informativo — preparação para o split payment</small>
                             </td>
                         </tr>
                         <?php } ?>

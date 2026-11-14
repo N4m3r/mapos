@@ -96,14 +96,14 @@ $totalFotos = count($fotos_etapa['entrada']) + count($fotos_etapa['durante']) + 
                     <div class="ac-state">
                         <i class="fa fa-unlink" style="color:#c0392b"></i>
                         <h2>Link inválido</h2>
-                        <p class="muted">Este link de aceite não existe ou foi revogado. Entre em contato com a empresa.</p>
+                        <p class="text-muted">Este link de aceite não existe ou foi revogado. Entre em contato com a empresa.</p>
                     </div>
 
                 <?php } elseif ($situacao === 'expirado') { ?>
                     <div class="ac-state">
                         <i class="fa fa-clock-o" style="color:#e67e22"></i>
                         <h2>Link expirado</h2>
-                        <p class="muted">O prazo para confirmar o aceite da OS nº <?= (int) $os->idOs ?> expirou em <?= ac_data($os->aceite_expira) ?>. Solicite um novo link à empresa.</p>
+                        <p class="text-muted">O prazo para confirmar o aceite da OS nº <?= (int) $os->idOs ?> expirou em <?= ac_data($os->aceite_expira) ?>. Solicite um novo link à empresa.</p>
                     </div>
 
                 <?php } else { ?>
@@ -118,7 +118,7 @@ $totalFotos = count($fotos_etapa['entrada']) + count($fotos_etapa['durante']) + 
                             <strong>Serviço aceito</strong> por <?= html_escape($os->aceite_nome) ?> em <?= $os->aceite_data ? date('d/m/Y H:i', strtotime($os->aceite_data)) : '' ?>.
                         </div>
                     <?php } elseif ($situacao === 'recusado') { ?>
-                        <div class="alert alert-error" style="text-align:center">
+                        <div class="alert alert-danger" style="text-align:center">
                             <i class="fa fa-times-circle"></i>
                             <strong>Serviço recusado</strong> por <?= html_escape($os->aceite_nome) ?> em <?= $os->aceite_data ? date('d/m/Y H:i', strtotime($os->aceite_data)) : '' ?>.
                             <?php if (! empty($os->aceite_obs)) { ?><br><em>Motivo: <?= html_escape($os->aceite_obs) ?></em><?php } ?>
@@ -230,7 +230,7 @@ $totalFotos = count($fotos_etapa['entrada']) + count($fotos_etapa['durante']) + 
                         <div class="ac-actions">
                             <div class="ui-dica"><i class="bx bx-info-circle"></i><div><strong>Falta só 1 passo:</strong> confira o serviço, assine no quadro e toque em confirmar.</div></div>
                             <h4 style="margin-top:0">Confirme o aceite do serviço</h4>
-                            <p class="muted">Confirme que o serviço foi realizado a contento. Ao aceitar, assine no quadro abaixo.</p>
+                            <p class="text-muted">Confirme que o serviço foi realizado a contento. Ao aceitar, assine no quadro abaixo.</p>
 
                             <form method="post" action="<?= site_url('aceite/confirmar') ?>" id="formAceite">
                                 <input type="hidden" name="<?= $this->security->get_csrf_token_name() ?>" value="<?= $this->security->get_csrf_hash() ?>">
@@ -238,37 +238,37 @@ $totalFotos = count($fotos_etapa['entrada']) + count($fotos_etapa['durante']) + 
                                 <input type="hidden" name="decisao" id="decisao" value="">
                                 <input type="hidden" name="assinatura" id="assinatura" value="">
 
-                                <div class="control-group">
-                                    <label class="control-label" for="nome"><strong>Seu nome *</strong></label>
-                                    <div class="controls">
-                                        <input type="text" name="nome" id="nome" maxlength="150" placeholder="Nome de quem confirma o aceite" required>
+                                <div class="mb-3">
+                                    <label class="form-label" for="nome"><strong>Seu nome *</strong></label>
+                                    <div class="">
+                                        <input class="form-control" type="text" name="nome" id="nome" maxlength="150" placeholder="Nome de quem confirma o aceite" required>
                                     </div>
                                 </div>
 
                                 <?php if (! empty($exigeChamado)) { ?>
-                                <div class="control-group">
-                                    <label class="control-label" for="chamado_id"><strong>N&ordm; do chamado *</strong></label>
-                                    <div class="controls">
-                                        <input type="text" name="chamado_id" id="chamado_id" maxlength="60" required
+                                <div class="mb-3">
+                                    <label class="form-label" for="chamado_id"><strong>N&ordm; do chamado *</strong></label>
+                                    <div class="">
+                                        <input class="form-control" type="text" name="chamado_id" id="chamado_id" maxlength="60" required
                                             value="<?= html_escape((string) ($os->chamado_id ?? '')) ?>"
                                             placeholder="N&uacute;mero do chamado aberto para este servi&ccedil;o">
-                                        <span class="help-block">Obrigat&oacute;rio para aprovar este atendimento.</span>
+                                        <span class="form-text">Obrigat&oacute;rio para aprovar este atendimento.</span>
                                     </div>
                                 </div>
                                 <?php } ?>
 
-                                <div class="control-group" id="assinaturaBox">
-                                    <label class="control-label"><strong>Assinatura *</strong></label>
+                                <div class="mb-3" id="assinaturaBox">
+                                    <label class="form-label"><strong>Assinatura *</strong></label>
                                     <div class="ac-canvas-box">
                                         <canvas id="canvasAssinatura"></canvas>
                                     </div>
-                                    <button type="button" class="btn btn-mini" id="btnLimparAssinatura" style="margin-top:6px"><i class="fa fa-eraser"></i> Limpar</button>
+                                    <button type="button" class="btn btn-sm" id="btnLimparAssinatura" style="margin-top:6px"><i class="fa fa-eraser"></i> Limpar</button>
                                 </div>
 
-                                <div class="control-group" id="obsBox">
-                                    <label class="control-label" for="obs"><strong>Motivo da recusa *</strong></label>
-                                    <div class="controls">
-                                        <textarea name="obs" id="obs" rows="3" placeholder="Descreva o motivo da recusa"></textarea>
+                                <div class="mb-3" id="obsBox">
+                                    <label class="form-label" for="obs"><strong>Motivo da recusa *</strong></label>
+                                    <div class="">
+                                        <textarea class="form-control" name="obs" id="obs" rows="3" placeholder="Descreva o motivo da recusa"></textarea>
                                     </div>
                                 </div>
 

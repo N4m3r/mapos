@@ -74,13 +74,13 @@
 
     <div class="container-fluid page" id="viaCliente">
         <div class="subpage">
-            <div class="row-fluid">
-                <div class="span12">
+            <div class="row">
+                <div class="col-md-12">
 
                     <div class="invoice-content">
                         <div class="invoice-head" style="margin-bottom: 0">
 
-                            <table class="table table-condensed">
+                            <table class="table table-sm">
                                 <tbody>
                                     <?php if ($emitente == null) { ?>
                                         <tr>
@@ -136,7 +136,7 @@
                                     </tr>
                                 </tbody>
                             </table>
-                            <table class="table table-bordered table-condensed">
+                            <table class="table table-bordered table-sm">
                                 <tbody>
                                     <tr>
                                         <td>Data

@@ -44,9 +44,9 @@ foreach ((array) $this->config->item('payment_gateways') as $chave => $gw) {
         <form id="form-gerar-cobranca" name="cobranca" method="post" action="<?php echo base_url() . 'index.php/cobrancas/adicionar'; ?>">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    
                     <h4 class="modal-title">Gerar cobrança</h4>
-                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>
                 <div class="modal-body">
                     <input value="<?= html_escape($id) ?>" name="id" type="hidden">
                     <input value="<?= html_escape($tipo) ?>" name="tipo" type="hidden">
@@ -72,7 +72,7 @@ foreach ((array) $this->config->item('payment_gateways') as $chave => $gw) {
                     </div>
                 </div>
                 <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-                    <button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
+                    <button type="button" class="button btn btn-warning" data-bs-dismiss="modal"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
                     <button id="payment" type="submit" class="button btn btn-info" disabled>
                         <span class="button__icon"><i class='bx bx-qr'></i></span><span class="button__text" id="payment-texto">Gerar cobrança</span></button>
                 </div>

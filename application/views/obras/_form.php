@@ -12,8 +12,8 @@ $dt = function ($campo) use ($o) {
 $statusAtual = $o ? $o->status : 'planejamento';
 ?>
 <link rel="stylesheet" href="<?= base_url('assets/css/projeto-assistente.css') ?>?v=<?= asset_versao('assets/css/projeto-assistente.css') ?>">
-<div class="row-fluid" style="margin-top:0">
-    <div class="span12">
+<div class="row" style="margin-top:0">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="widget-content pa">
                 <div class="ui-cabecalho">
@@ -26,13 +26,13 @@ $statusAtual = $o ? $o->status : 'planejamento';
                     <div class="ui-secao">
                         <h4>Projeto e cliente</h4>
                         <div class="ui-grade">
-                            <div class="control-group" style="grid-column:span 2">
+                            <div class="mb-3" style="grid-column:span 2">
                                 <label for="nome">Nome do projeto <span class="required">*</span></label>
-                                <input type="text" id="nome" name="nome" required value="<?= $val('nome') ?>">
+                                <input class="form-control" type="text" id="nome" name="nome" required value="<?= $val('nome') ?>">
                             </div>
-                            <div class="control-group">
+                            <div class="mb-3">
                                 <label for="tipo_obra">Tipo</label>
-                                <input type="text" id="tipo_obra" name="tipo_obra" list="tipos_projeto" placeholder="Rede estruturada, CFTV IP..." value="<?= $val('tipo_obra') ?>">
+                                <input class="form-control" type="text" id="tipo_obra" name="tipo_obra" list="tipos_projeto" placeholder="Rede estruturada, CFTV IP..." value="<?= $val('tipo_obra') ?>">
                                 <datalist id="tipos_projeto">
                                     <option value="Rede estruturada">
                                     <option value="CFTV IP">
@@ -57,18 +57,18 @@ $statusAtual = $o ? $o->status : 'planejamento';
                                 }
                             }
                             ?>
-                            <div class="control-group" style="grid-column:span 2">
+                            <div class="mb-3" style="grid-column:span 2">
                                 <label for="cliente_busca">Cliente</label>
                                 <div style="position:relative">
-                                    <input type="text" id="cliente_busca" autocomplete="off" placeholder="Buscar por nome ou CNPJ/CPF..." value="<?= html_escape($clienteAtualNome) ?>">
+                                    <input class="form-control" type="text" id="cliente_busca" autocomplete="off" placeholder="Buscar por nome ou CNPJ/CPF..." value="<?= html_escape($clienteAtualNome) ?>">
                                     <input type="hidden" name="clientes_id" id="clientes_id" value="<?= $o ? (int) $o->clientes_id : '' ?>">
                                     <a href="#" id="cliente_limpar" title="Limpar seleção de cliente" aria-label="Limpar seleção de cliente" style="position:absolute;right:8px;top:6px;color:#999;<?= $clienteAtualNome ? '' : 'display:none' ?>"><i class="bx bx-x"></i></a>
                                 </div>
-                                <small class="help-block">Digite o nome ou o documento do cliente.</small>
+                                <small class="form-text">Digite o nome ou o documento do cliente.</small>
                             </div>
-                            <div class="control-group">
+                            <div class="mb-3">
                                 <label for="status">Status</label>
-                                <select id="status" name="status">
+                                <select class="form-select" id="status" name="status">
                                     <?php foreach (['planejamento' => 'Planejamento', 'em_execucao' => 'Em execução', 'paralisada' => 'Paralisada', 'concluida' => 'Concluída', 'entregue' => 'Entregue', 'cancelada' => 'Cancelada'] as $k => $v): ?>
                                         <option value="<?= $k ?>" <?= $statusAtual === $k ? 'selected' : '' ?>><?= $v ?></option>
                                     <?php endforeach; ?>
@@ -80,10 +80,10 @@ $statusAtual = $o ? $o->status : 'planejamento';
                     <div class="ui-secao">
                         <h4>Prazos</h4>
                         <div class="ui-grade">
-                            <div class="control-group"><label for="data_inicio_prevista">Início previsto</label><input type="text" id="data_inicio_prevista" class="datepicker" name="data_inicio_prevista" value="<?= $dt('data_inicio_prevista') ?>"></div>
-                            <div class="control-group"><label for="data_fim_prevista">Fim previsto</label><input type="text" id="data_fim_prevista" class="datepicker" name="data_fim_prevista" value="<?= $dt('data_fim_prevista') ?>"></div>
-                            <div class="control-group"><label for="data_inicio_real">Início real</label><input type="text" id="data_inicio_real" class="datepicker" name="data_inicio_real" value="<?= $dt('data_inicio_real') ?>"></div>
-                            <div class="control-group"><label for="data_fim_real">Fim real</label><input type="text" id="data_fim_real" class="datepicker" name="data_fim_real" value="<?= $dt('data_fim_real') ?>"></div>
+                            <div class="mb-3"><label for="data_inicio_prevista">Início previsto</label><input type="text" id="data_inicio_prevista" class="datepicker form-control" name="data_inicio_prevista" value="<?= $dt('data_inicio_prevista') ?>"></div>
+                            <div class="mb-3"><label for="data_fim_prevista">Fim previsto</label><input type="text" id="data_fim_prevista" class="datepicker form-control" name="data_fim_prevista" value="<?= $dt('data_fim_prevista') ?>"></div>
+                            <div class="mb-3"><label for="data_inicio_real">Início real</label><input type="text" id="data_inicio_real" class="datepicker form-control" name="data_inicio_real" value="<?= $dt('data_inicio_real') ?>"></div>
+                            <div class="mb-3"><label for="data_fim_real">Fim real</label><input type="text" id="data_fim_real" class="datepicker form-control" name="data_fim_real" value="<?= $dt('data_fim_real') ?>"></div>
                         </div>
                     </div>
 
@@ -91,51 +91,51 @@ $statusAtual = $o ? $o->status : 'planejamento';
                         <details class="pe-detalhes">
                             <summary>Mais detalhes</summary>
                             <div class="ui-grade">
-                            <div class="control-group">
+                            <div class="mb-3">
                                 <label for="codigo">Código</label>
-                                <input type="text" id="codigo" name="codigo" value="<?= $val('codigo') ?>">
+                                <input class="form-control" type="text" id="codigo" name="codigo" value="<?= $val('codigo') ?>">
                             </div>
-                            <div class="control-group">
+                            <div class="mb-3">
                                 <label for="responsavel_id">Responsável técnico</label>
-                                <select id="responsavel_id" name="responsavel_id">
+                                <select class="form-select" id="responsavel_id" name="responsavel_id">
                                     <option value="">— Selecione —</option>
                                     <?php foreach ($usuarios as $u): ?>
                                         <option value="<?= $u->idUsuarios ?>" <?= $o && $o->responsavel_id == $u->idUsuarios ? 'selected' : '' ?>><?= html_escape($u->nome) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                            <div class="control-group">
+                            <div class="mb-3">
                                 <label for="contrato_numero">Nº do contrato</label>
-                                <input type="text" id="contrato_numero" name="contrato_numero" value="<?= $val('contrato_numero') ?>">
+                                <input class="form-control" type="text" id="contrato_numero" name="contrato_numero" value="<?= $val('contrato_numero') ?>">
                             </div>
-                            <div class="control-group">
+                            <div class="mb-3">
                                 <label for="valor_contrato">Valor do contrato (R$)</label>
-                                <input type="number" id="valor_contrato" step="0.01" name="valor_contrato" value="<?= $val('valor_contrato', '0') ?>">
+                                <input class="form-control" type="number" id="valor_contrato" step="0.01" name="valor_contrato" value="<?= $val('valor_contrato', '0') ?>">
                             </div>
-                            <div class="control-group">
+                            <div class="mb-3">
                                 <label for="bdi_percentual">BDI (%)</label>
-                                <input type="number" id="bdi_percentual" step="0.01" name="bdi_percentual" value="<?= $val('bdi_percentual', '0') ?>"><small class="help-block">Margem aplicada sobre o custo.</small>
+                                <input class="form-control" type="number" id="bdi_percentual" step="0.01" name="bdi_percentual" value="<?= $val('bdi_percentual', '0') ?>"><small class="form-text">Margem aplicada sobre o custo.</small>
                             </div>
                             </div>
                             <h4 style="margin-top:14px">Endereço do projeto</h4>
                             <div class="ui-grade">
-                            <div class="control-group"><label for="cep">CEP</label><input type="text" id="cep" name="cep" value="<?= $val('cep') ?>"></div>
-                            <div class="control-group" style="grid-column:span 2"><label for="logradouro">Logradouro</label><input type="text" id="logradouro" name="logradouro" value="<?= $val('logradouro') ?>"></div>
-                            <div class="control-group"><label for="numero">Número</label><input type="text" id="numero" name="numero" value="<?= $val('numero') ?>"></div>
-                            <div class="control-group"><label for="complemento">Complemento</label><input type="text" id="complemento" name="complemento" value="<?= $val('complemento') ?>"></div>
-                            <div class="control-group"><label for="bairro">Bairro</label><input type="text" id="bairro" name="bairro" value="<?= $val('bairro') ?>"></div>
-                            <div class="control-group" style="grid-column:span 2"><label for="cidade">Cidade</label><input type="text" id="cidade" name="cidade" value="<?= $val('cidade') ?>"></div>
-                            <div class="control-group"><label for="uf">UF</label><input type="text" id="uf" name="uf" maxlength="2" value="<?= $val('uf') ?>"></div>
+                            <div class="mb-3"><label for="cep">CEP</label><input class="form-control" type="text" id="cep" name="cep" value="<?= $val('cep') ?>"></div>
+                            <div class="mb-3" style="grid-column:span 2"><label for="logradouro">Logradouro</label><input class="form-control" type="text" id="logradouro" name="logradouro" value="<?= $val('logradouro') ?>"></div>
+                            <div class="mb-3"><label for="numero">Número</label><input class="form-control" type="text" id="numero" name="numero" value="<?= $val('numero') ?>"></div>
+                            <div class="mb-3"><label for="complemento">Complemento</label><input class="form-control" type="text" id="complemento" name="complemento" value="<?= $val('complemento') ?>"></div>
+                            <div class="mb-3"><label for="bairro">Bairro</label><input class="form-control" type="text" id="bairro" name="bairro" value="<?= $val('bairro') ?>"></div>
+                            <div class="mb-3" style="grid-column:span 2"><label for="cidade">Cidade</label><input class="form-control" type="text" id="cidade" name="cidade" value="<?= $val('cidade') ?>"></div>
+                            <div class="mb-3"><label for="uf">UF</label><input class="form-control" type="text" id="uf" name="uf" maxlength="2" value="<?= $val('uf') ?>"></div>
                             </div>
-                            <div class="control-group">
+                            <div class="mb-3">
                                 <label for="observacoes">Observações</label>
-                                <textarea id="observacoes" name="observacoes" rows="3"><?= $val('observacoes') ?></textarea>
+                                <textarea class="form-control" id="observacoes" name="observacoes" rows="3"><?= $val('observacoes') ?></textarea>
                             </div>
                         </details>
                     </div>
 
                     <div class="ui-rodape-form">
-                        <a href="<?= site_url('obras') ?>" class="button btn btn-mini btn-warning"><span class="button__icon"><i class="bx bx-undo"></i></span><span class="button__text2">Voltar</span></a>
+                        <a href="<?= site_url('obras') ?>" class="button btn btn-sm btn-warning"><span class="button__icon"><i class="bx bx-undo"></i></span><span class="button__text2">Voltar</span></a>
                         <button class="button btn btn-primary"><span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Salvar alterações</span></button>
                     </div>
                 </form>

@@ -47,7 +47,7 @@ $rotuloDestino = Notification_triggers_model::destinatariosDisponiveis();
 <?php if (! empty($tabelaGatilhos) && $podeSistema) { ?>
     <form class="nt-criar-evento" method="get" action="<?= site_url('notificacoes/novo') ?>">
         <label for="nt-novo-evento"><strong>Criar evento de notificação</strong></label>
-        <select id="nt-novo-evento" name="evento" required>
+        <select class="form-select" id="nt-novo-evento" name="evento" required>
             <option value="">Escolha quando o aviso deve sair…</option>
             <?php foreach ($ordem as $grupoSel) { ?>
                 <?php if (empty($grupos[$grupoSel])) { continue; } ?>
@@ -134,12 +134,12 @@ $rotuloDestino = Notification_triggers_model::destinatariosDisponiveis();
                     </div>
 
                     <div class="nt-evento-acoes">
-                        <a href="<?= $linkEvento ?>" class="btn btn-mini btn-primary" title="Configurar este evento" aria-label="Configurar <?= $e($info['nome']) ?>">
+                        <a href="<?= $linkEvento ?>" class="btn btn-sm btn-primary" title="Configurar este evento" aria-label="Configurar <?= $e($info['nome']) ?>">
                             <i class="bx bx-slider-alt"></i>
                         </a>
                         <?php if ($podeSistema && $principal) { ?>
                             <a href="<?= site_url('notificacoes/alternar/' . rawurlencode($slug)) ?>"
-                               class="btn btn-mini <?= $resumo['ativo'] ? 'btn-warning' : 'btn-success' ?>"
+                               class="btn btn-sm <?= $resumo['ativo'] ? 'btn-warning' : 'btn-success' ?>"
                                data-confirmar="<?= $resumo['ativo'] ? 'Desligar os avisos deste evento?' : 'Ligar os avisos deste evento?' ?>"
                                title="<?= $resumo['ativo'] ? 'Desligar' : 'Ligar' ?>"
                                aria-label="<?= $resumo['ativo'] ? 'Desligar' : 'Ligar' ?>">

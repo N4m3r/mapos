@@ -22,8 +22,8 @@
 
 <body>
     <div class="container-fluid">
-        <div class="row-fluid">
-            <div class="span12">
+        <div class="row">
+            <div class="col-md-12">
                 <div class="invoice-content">
                     <div class="invoice-head">
                         <table class="table">
@@ -82,7 +82,7 @@
                     </div>
                     <div style="margin-top: 0; padding-top: 0">
                         <?php if ($produtos != null) { ?>
-                            <table class="table table-bordered table-condensed" id="tblProdutos">
+                            <table class="table table-bordered table-sm" id="tblProdutos">
                                 <thead>
                                     <tr>
                                         <th style="font-size: 15px">Produto</th>
@@ -139,7 +139,7 @@
                                 <?php endif; ?>
                             <?php } ?>
                             </table>
-                            <table class="table table-bordered table-condensed" style="font-size: 15px">
+                            <table class="table table-bordered table-sm" style="font-size: 15px">
                                 <tbody>
                                     <tr>
                                         <td colspan="5">

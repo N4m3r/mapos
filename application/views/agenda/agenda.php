@@ -27,7 +27,7 @@
         <div class="ui-filtros">
             <div class="ui-campo">
                 <label for="filtroTecnico">Técnico</label>
-                <select id="filtroTecnico">
+                <select class="form-select" id="filtroTecnico">
                     <option value="">Todos</option>
                     <?php foreach ($tecnicos as $t) { ?><option value="<?= (int) $t->idUsuarios ?>"><?= html_escape($t->nome) ?></option><?php } ?>
                 </select>
@@ -39,14 +39,14 @@
             <span><i style="background:#95a5a6"></i>Sem técnico</span>
         </div>
 
-        <div class="row-fluid">
-            <div class="span9"><div id="agendaEquipe"></div></div>
-            <div class="span3">
+        <div class="row">
+            <div class="col-md-9"><div id="agendaEquipe"></div></div>
+            <div class="col-md-3">
                 <div class="ui-secao"><h4 style="margin-top:0">Com técnico e sem data</h4></div>
                 <?php if (empty($semData)) { ?>
                     <div class="ui-vazio" style="padding:16px 8px"><i class="bx bx-check-circle"></i><strong>Nenhuma OS</strong>Todas as OS com técnico já têm data.</div>
                 <?php } else { ?>
-                    <ul class="unstyled">
+                    <ul class="list-unstyled">
                         <?php foreach ($semData as $os) { ?>
                             <li style="padding:6px 0; border-bottom:1px solid #eee">
                                 <a href="<?= site_url('os/visualizar/' . (int) $os->idOs) ?>">#<?= (int) $os->idOs ?></a> <?= html_escape($os->nomeCliente) ?><br>

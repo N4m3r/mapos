@@ -114,7 +114,7 @@ $rotuloCanal = ['email' => 'E-mail', 'whatsapp' => 'WhatsApp'];
                                 <span class="nt-erro"><?= $e(mb_substr($item['erro'], 0, 220)) ?></span>
                             <?php } ?>
                             <?php if ($item['canal'] === 'email' && ! $ok && ! empty($item['fila_id'])) { ?>
-                                <a href="<?= site_url('mapos/reenviarEmail/' . (int) $item['id']) ?>" class="btn btn-mini btn-inverse" style="margin-top:6px"
+                                <a href="<?= site_url('mapos/reenviarEmail/' . (int) $item['id']) ?>" class="btn btn-sm btn-dark" style="margin-top:6px"
                                    data-confirmar="Reenviar este e-mail para <?= $e($item['destino']) ?> com os mesmos anexos?">
                                     <i class="bx bx-mail-send"></i> Reenviar
                                 </a>

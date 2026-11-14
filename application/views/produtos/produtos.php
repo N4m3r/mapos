@@ -11,13 +11,13 @@
         </div>
         <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'aProduto')) : ?>
             <div class="ui-acoes">
-                <a href="<?= base_url() ?>index.php/produtos/adicionar" class="button btn btn-mini btn-success">
+                <a href="<?= base_url() ?>index.php/produtos/adicionar" class="button btn btn-sm btn-success">
                     <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2"> Produtos</span>
                 </a>
-                <a href="#modal-etiquetas" role="button" data-toggle="modal" class="button btn btn-mini btn-warning">
+                <a href="#modal-etiquetas" role="button" data-bs-toggle="modal" class="button btn btn-sm btn-warning">
                     <span class="button__icon"><i class='bx bx-barcode-reader' ></i></span><span class="button__text2">Gerar Etiquetas</span>
                 </a>
-                <a href="<?= site_url('produtos/movimentacoes') ?>" class="button btn btn-mini btn-info">
+                <a href="<?= site_url('produtos/movimentacoes') ?>" class="button btn btn-sm btn-info">
                     <span class="button__icon"><i class='bx bx-transfer'></i></span><span class="button__text2">Movimentações</span>
                 </a>
             </div>
@@ -27,10 +27,10 @@
     <form class="ui-filtros" method="get" action="<?= base_url() ?>index.php/produtos">
         <div class="ui-campo">
             <label for="pesquisa">Buscar</label>
-            <input type="text" name="pesquisa" id="pesquisa" placeholder="Nome ou código de barras" value="<?= html_escape($this->input->get('pesquisa')) ?>">
+            <input class="form-control" type="text" name="pesquisa" id="pesquisa" placeholder="Nome ou código de barras" value="<?= html_escape($this->input->get('pesquisa')) ?>">
         </div>
         <div class="ui-campo ui-campo-acao">
-            <button class="button btn btn-mini btn-warning" title="Buscar" aria-label="Buscar">
+            <button class="button btn btn-sm btn-warning" title="Buscar" aria-label="Buscar">
                 <span class="button__icon"><i class='bx bx-search-alt'></i></span><span class="button__text2">Buscar</span></button>
         </div>
     </form>
@@ -72,10 +72,10 @@
                         echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/produtos/editar/' . $r->idProdutos . '" class="btn-nwe3" title="Editar Produto" aria-label="Editar Produto"><i class="bx bx-edit bx-xs"></i></a>';
                     }
                     if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dProduto')) {
-                        echo '<a style="margin-right: 1%" href="#modal-excluir" role="button" data-toggle="modal" produto="' . $r->idProdutos . '" class="btn-nwe4" title="Excluir Produto" aria-label="Excluir Produto"><i class="bx bx-trash-alt bx-xs"></i></a>';
+                        echo '<a style="margin-right: 1%" href="#modal-excluir" role="button" data-bs-toggle="modal" produto="' . $r->idProdutos . '" class="btn-nwe4" title="Excluir Produto" aria-label="Excluir Produto"><i class="bx bx-trash-alt bx-xs"></i></a>';
                     }
                     if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eProduto')) {
-                        echo '<a href="#atualizar-estoque" role="button" data-toggle="modal" produto="' . $r->idProdutos . '" estoque="' . $r->estoque . '" class="btn-nwe5" title="Atualizar Estoque" aria-label="Atualizar Estoque"><i class="bx bx-plus-circle bx-xs"></i></a>';
+                        echo '<a href="#atualizar-estoque" role="button" data-bs-toggle="modal" produto="' . $r->idProdutos . '" estoque="' . $r->estoque . '" class="btn-nwe5" title="Atualizar Estoque" aria-label="Atualizar Estoque"><i class="bx bx-plus-circle bx-xs"></i></a>';
                     }
                     echo '</td>';
                     echo '</tr>';
@@ -88,84 +88,84 @@
 <?php echo $this->pagination->create_links(); ?>
 
 <!-- Modal -->
-<div id="modal-excluir" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div id="modal-excluir" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?php echo base_url() ?>index.php/produtos/excluir" method="post">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            
             <h5 id="myModalLabel"><i class="fas fa-trash-alt"></i> Excluir Produto</h5>
-        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <input type="hidden" id="idProduto" class="idProduto" name="id" value=""/>
             <h5 style="text-align: center">Deseja realmente excluir este produto?</h5>
         </div>
         <div class="modal-footer" style="display:flex;justify-content: center">
-            <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true">
+            <button class="button btn btn-warning" data-bs-dismiss="modal" aria-hidden="true">
               <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
             <button class="button btn btn-danger"><span class="button__icon"><i class='bx bx-trash'></i></span> <span class="button__text2">Excluir</span></button>
         </div>
     </form>
-</div>
+</div></div></div>
 
 <!-- Modal Estoque -->
-<div id="atualizar-estoque" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div id="atualizar-estoque" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?php echo base_url() ?>index.php/produtos/atualizar_estoque" method="post" id="formEstoque">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            
             <h5 id="myModalLabel"><i class="fas fa-plus-square"></i> Atualizar Estoque</h5>
-        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
         <div class="modal-body">
-            <div class="control-group">
-                <label for="estoqueAtual" class="control-label">Estoque Atual</label>
-                <div class="controls">
-                    <input id="estoqueAtual" type="text" name="estoqueAtual" value="" readonly />
+            <div class="mb-3">
+                <label for="estoqueAtual" class="form-label">Estoque Atual</label>
+                <div class="">
+                    <input class="form-control" id="estoqueAtual" type="text" name="estoqueAtual" value="" readonly />
                 </div>
             </div>
 
-            <div class="control-group">
-                <label for="estoque" class="control-label">Adicionar Produtos<span class="required">*</span></label>
-                <div class="controls">
+            <div class="mb-3">
+                <label for="estoque" class="form-label">Adicionar Produtos<span class="required">*</span></label>
+                <div class="">
                     <input type="hidden" id="idProduto" class="idProduto" name="id" value=""/>
-                    <input id="estoque" type="text" name="estoque" value=""/>
+                    <input class="form-control" id="estoque" type="text" name="estoque" value=""/>
                 </div>
             </div>
         </div>
         <div class="modal-footer" style="display:flex;justify-content: center">
           <button class="button btn btn-primary"><span class="button__icon"><i class="bx bx-sync"></i></span><span class="button__text2">Atualizar</span></button>
-          <button class="button btn btn-warning"  data-dismiss="modal" aria-hidden="true"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
+          <button class="button btn btn-warning"  data-bs-dismiss="modal" aria-hidden="true"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
         </div>
     </form>
-</div>
+</div></div></div>
 
 <!-- Modal Etiquetas -->
-<div id="modal-etiquetas" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div id="modal-etiquetas" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?php echo base_url() ?>index.php/relatorios/produtosEtiquetas" method="get">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            
             <h5 id="myModalLabel">Gerar etiquetas com Código de Barras</h5>
-        </div>
-        <div class="modal-body">
-            <div class="span12 alert alert-info" style="margin-left: 0"> Escolha o intervalo de produtos para gerar as etiquetas.</div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <div class="modal-body"><div class="row">
+            <div class="col-md-12 alert alert-info" style="margin-left: 0"> Escolha o intervalo de produtos para gerar as etiquetas.</div>
 
-            <div class="span12" style="margin-left: 0;">
-                <div class="span6" style="margin-left: 0;">
+            <div class="col-md-12 row" style="margin-left: 0;">
+                <div class="col-md-6" style="margin-left: 0;">
                     <label for="valor">De</label>
-                    <input class="span9" style="margin-left: 0" type="text" id="de_id" name="de_id" placeholder="ID do primeiro produto" value=""/>
+                    <input class="w-75 form-control" style="margin-left: 0" type="text" id="de_id" name="de_id" placeholder="ID do primeiro produto" value=""/>
                 </div>
 
 
-                <div class="span6">
+                <div class="col-md-6">
                     <label for="valor">Até</label>
-                    <input class="span9" type="text" id="ate_id" name="ate_id" placeholder="ID do último produto" value=""/>
+                    <input class="w-75 form-control" type="text" id="ate_id" name="ate_id" placeholder="ID do último produto" value=""/>
                 </div>
 
-                <div class="span4">
+                <div class="col-md-4">
                     <label for="valor">Qtd. do Estoque</label>
-                    <input class="span12" type="checkbox" name="qtdEtiqueta" value="true"/>
+                    <input class="w-100 form-check-input" type="checkbox" name="qtdEtiqueta" value="true"/>
                 </div>
 
-                <div class="span6">
-                    <label class="span12" for="valor">Formato Etiqueta</label>
-                    <select class="span5" name="etiquetaCode">
+                <div class="col-md-6 row">
+                    <label class="col-md-12" for="valor">Formato Etiqueta</label>
+                    <select class="w-50 form-select" name="etiquetaCode">
                         <option value="EAN13">EAN-13</option>
                         <option value="UPCA">UPCA</option>
                         <option value="C93">CODE 93</option>
@@ -176,13 +176,13 @@
                 </div>
 
             </div>
-        </div>
+        </div></div>
         <div class="modal-footer" style="display:flex;justify-content: center">
-          <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
+          <button class="button btn btn-warning" data-bs-dismiss="modal" aria-hidden="true"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
           <button class="button btn btn-success"><span class="button__icon"><i class='bx bx-barcode'></i></span><span class="button__text2">Gerar</span></button>
         </div>
     </form>
-</div>
+</div></div></div>
 <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/jquery.validate.js"></script>
 <!-- Modal Etiquetas e Estoque-->
 <script nonce="<?= csp_nonce() ?>" type="text/javascript">
@@ -207,14 +207,14 @@
                     number: 'Informe um número válido.'
                 }
             },
-            errorClass: "help-inline",
+            errorClass: "invalid-feedback",
             errorElement: "span",
             highlight: function (element, errorClass, validClass) {
-                $(element).parents('.control-group').addClass('error');
+                $(element).addClass('is-invalid');
             },
             unhighlight: function (element, errorClass, validClass) {
-                $(element).parents('.control-group').removeClass('error');
-                $(element).parents('.control-group').addClass('success');
+                $(element).removeClass('is-invalid');
+                $(element).addClass('is-valid');
             }
         });
     });

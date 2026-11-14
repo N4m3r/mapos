@@ -110,7 +110,7 @@ $rotuloSituacao = [
         <input type="hidden" name="<?= $e($tokenName) ?>" value="<?= $e($tokenHash) ?>">
 
         <div class="aut-liga">
-            <input type="checkbox" id="automacao_aprovacao_ativa" name="automacao_aprovacao_ativa" value="1"
+            <input class="form-check-input" type="checkbox" id="automacao_aprovacao_ativa" name="automacao_aprovacao_ativa" value="1"
                 <?= $automacao_ativa ? 'checked' : '' ?>>
             <label class="aut-liga-txt" for="automacao_aprovacao_ativa">
                 <strong>Ativar automação (NFS-e + boleto) no aceite da OS</strong>
@@ -133,43 +133,43 @@ $rotuloSituacao = [
 
         <div class="ui-secao">
             <div class="ui-grade">
-                <div class="control-group">
-                    <label class="control-label" for="automacao_desc_servico">Descrição do serviço</label>
-                    <div class="controls">
-                        <textarea id="automacao_desc_servico" name="automacao_desc_servico" rows="3"><?= $e($automacao_desc_servico) ?></textarea>
+                <div class="mb-3">
+                    <label class="form-label" for="automacao_desc_servico">Descrição do serviço</label>
+                    <div class="">
+                        <textarea class="form-control" id="automacao_desc_servico" name="automacao_desc_servico" rows="3"><?= $e($automacao_desc_servico) ?></textarea>
                     </div>
                 </div>
-                <div class="control-group">
-                    <label class="control-label" for="automacao_info_complementar">Informações complementares</label>
-                    <div class="controls">
-                        <textarea id="automacao_info_complementar" name="automacao_info_complementar" rows="3"><?= $e($automacao_info_complementar) ?></textarea>
+                <div class="mb-3">
+                    <label class="form-label" for="automacao_info_complementar">Informações complementares</label>
+                    <div class="">
+                        <textarea class="form-control" id="automacao_info_complementar" name="automacao_info_complementar" rows="3"><?= $e($automacao_info_complementar) ?></textarea>
                     </div>
                 </div>
-                <div class="control-group">
-                    <label class="control-label" for="automacao_ctribnac">Cód. tributação nacional</label>
-                    <div class="controls">
-                        <input id="automacao_ctribnac" type="text" name="automacao_ctribnac" maxlength="6"
+                <div class="mb-3">
+                    <label class="form-label" for="automacao_ctribnac">Cód. tributação nacional</label>
+                    <div class="">
+                        <input class="form-control" id="automacao_ctribnac" type="text" name="automacao_ctribnac" maxlength="6"
                             value="<?= $e($automacao_ctribnac) ?>" placeholder="Padrão: 010701">
                     </div>
                 </div>
-                <div class="control-group">
-                    <label class="control-label" for="automacao_ctribmun">Cód. tributação municipal</label>
-                    <div class="controls">
-                        <input id="automacao_ctribmun" type="text" name="automacao_ctribmun" maxlength="10"
+                <div class="mb-3">
+                    <label class="form-label" for="automacao_ctribmun">Cód. tributação municipal</label>
+                    <div class="">
+                        <input class="form-control" id="automacao_ctribmun" type="text" name="automacao_ctribmun" maxlength="10"
                             value="<?= $e($automacao_ctribmun) ?>" placeholder="Padrão: 100">
                     </div>
                 </div>
-                <div class="control-group">
-                    <label class="control-label" for="automacao_aliquota_iss">Alíquota ISS (%)</label>
-                    <div class="controls">
-                        <input id="automacao_aliquota_iss" type="text" name="automacao_aliquota_iss"
+                <div class="mb-3">
+                    <label class="form-label" for="automacao_aliquota_iss">Alíquota ISS (%)</label>
+                    <div class="">
+                        <input class="form-control" id="automacao_aliquota_iss" type="text" name="automacao_aliquota_iss"
                             value="<?= $e($automacao_aliquota_iss) ?>" placeholder="ex.: 5">
                     </div>
                 </div>
-                <div class="control-group">
-                    <label class="control-label" for="automacao_tp_ret_issqn">Retenção de ISS</label>
-                    <div class="controls">
-                        <select id="automacao_tp_ret_issqn" name="automacao_tp_ret_issqn">
+                <div class="mb-3">
+                    <label class="form-label" for="automacao_tp_ret_issqn">Retenção de ISS</label>
+                    <div class="">
+                        <select class="form-select" id="automacao_tp_ret_issqn" name="automacao_tp_ret_issqn">
                             <option value="" <?= $automacao_tp_ret_issqn === '' ? 'selected' : '' ?>>— padrão do config fiscal —</option>
                             <option value="1" <?= (string) $automacao_tp_ret_issqn === '1' ? 'selected' : '' ?>>Não retido</option>
                             <option value="2" <?= (string) $automacao_tp_ret_issqn === '2' ? 'selected' : '' ?>>Retido</option>
@@ -186,13 +186,13 @@ $rotuloSituacao = [
                 não emite na hora: a NFS-e e o boleto ficam em espera e entram no lote do dia abaixo.
             </p>
             <div class="ui-grade">
-                <div class="control-group">
-                    <label class="control-label" for="automacao_faturamento_dia">Dia do lote</label>
-                    <div class="controls">
-                        <input id="automacao_faturamento_dia" type="number" min="1" max="28"
+                <div class="mb-3">
+                    <label class="form-label" for="automacao_faturamento_dia">Dia do lote</label>
+                    <div class="">
+                        <input class="form-control" id="automacao_faturamento_dia" type="number" min="1" max="28"
                             name="automacao_faturamento_dia" value="<?= $e($automacao_faturamento_dia) ?>">
                     </div>
-                    <span class="help-block">De 1 a 28, para existir em todos os meses. Próximo lote: <?= $e($fmtData($proxima_data)) ?>.</span>
+                    <span class="form-text">De 1 a 28, para existir em todos os meses. Próximo lote: <?= $e($fmtData($proxima_data)) ?>.</span>
                 </div>
             </div>
         </div>
@@ -287,7 +287,7 @@ $rotuloSituacao = [
                                             data-confirmar="Devolver este item para a fila? Ele será tentado de novo automaticamente.">
                                             <input type="hidden" name="<?= $e($tokenName) ?>" value="<?= $e($tokenHash) ?>">
                                             <input type="hidden" name="id" value="<?= (int) $a->id ?>">
-                                            <button type="submit" class="btn btn-mini"><i class="bx bx-refresh"></i> Tentar de novo</button>
+                                            <button type="submit" class="btn btn-sm"><i class="bx bx-refresh"></i> Tentar de novo</button>
                                         </form>
                                     <?php endif; ?>
                                     <?php if (AutomacaoRegras::podeCancelar($a->status ?? '')): ?>
@@ -295,7 +295,7 @@ $rotuloSituacao = [
                                             data-confirmar="Cancelar este faturamento agendado? A nota não será emitida.">
                                             <input type="hidden" name="<?= $e($tokenName) ?>" value="<?= $e($tokenHash) ?>">
                                             <input type="hidden" name="id" value="<?= (int) $a->id ?>">
-                                            <button type="submit" class="btn btn-danger btn-mini"><i class="bx bx-x"></i> Cancelar</button>
+                                            <button type="submit" class="btn btn-danger btn-sm"><i class="bx bx-x"></i> Cancelar</button>
                                         </form>
                                     <?php endif; ?>
                                 </div>

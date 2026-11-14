@@ -14,8 +14,8 @@
             </p>
             <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eProduto')) { ?>
                 <form action="<?= site_url('inventarios/abrir') ?>" method="post" style="display:flex; gap:8px; align-items:center; margin:0">
-                    <input type="text" name="descricao" placeholder="Descrição (ex.: Inventário mensal)" aria-label="Descrição do inventário" style="margin:0; width:240px">
-                    <button class="button btn btn-mini btn-success" type="submit"><span class="button__icon"><i class="bx bx-plus-circle"></i></span><span class="button__text2">Novo inventário</span></button>
+                    <input class="form-control" type="text" name="descricao" placeholder="Descrição (ex.: Inventário mensal)" aria-label="Descrição do inventário" style="margin:0; width:240px">
+                    <button class="button btn btn-sm btn-success" type="submit"><span class="button__icon"><i class="bx bx-plus-circle"></i></span><span class="button__text2">Novo inventário</span></button>
                 </form>
             <?php } ?>
         </div>
@@ -43,12 +43,12 @@
                     <tr>
                         <td><?= (int) $i->id ?></td>
                         <td><?= html_escape($i->descricao) ?></td>
-                        <td style="text-align:center"><span class="badge <?= $cores[$i->status] ?? '' ?>"><?= html_escape(ucfirst($i->status)) ?></span></td>
+                        <td style="text-align:center"><span class="badge text-bg-secondary <?= $cores[$i->status] ?? '' ?>"><?= html_escape(ucfirst($i->status)) ?></span></td>
                         <td style="text-align:center"><?= (int) $i->contados ?> / <?= (int) $i->itens ?></td>
                         <td><?= date('d/m/Y H:i', strtotime($i->criado_em)) ?></td>
                         <td><?= $i->finalizado_em ? date('d/m/Y H:i', strtotime($i->finalizado_em)) : '-' ?></td>
                         <td><?= html_escape($i->usuario ?: '-') ?></td>
-                        <td style="text-align:center"><a href="<?= site_url('inventarios/contar/' . (int) $i->id) ?>" class="btn btn-mini btn-info" title="Abrir" aria-label="Abrir inventário"><i class="bx bx-show"></i></a></td>
+                        <td style="text-align:center"><a href="<?= site_url('inventarios/contar/' . (int) $i->id) ?>" class="btn btn-sm btn-info" title="Abrir" aria-label="Abrir inventário"><i class="bx bx-show"></i></a></td>
                     </tr>
                 <?php } ?>
             </tbody>

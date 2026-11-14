@@ -24,14 +24,14 @@
 
 <body>
     <div class="container-fluid">
-        <div class="row-fluid">
-            <div class="span12">
+        <div class="row">
+            <div class="col-md-12">
                 <?php
                     $totalServico = 0;
                     $totalProdutos = 0;
                 ?>
-                <div class="row-fluid" style="margin-top: 0">
-                    <div class="span12">
+                <div class="row" style="margin-top: 0">
+                    <div class="col-md-12">
                         <div class="widget-box">
                             <div class="widget-title">
                                 <span class="icon">
@@ -40,14 +40,14 @@
                                 <h5>Ordem de Serviço</h5>
                                 <div class="buttons">
 
-                                    <a id="imprimir" title="Imprimir" class="btn btn-mini btn-inverse" href=""><i class="fas fa-print"></i> Imprimir</a>
+                                    <a id="imprimir" title="Imprimir" class="btn btn-sm btn-dark" href=""><i class="fas fa-print"></i> Imprimir</a>
                                 </div>
                             </div>
                             <div class="widget-content" id="printOs">
                                 <div class="invoice-content">
                                     <div class="invoice-head" style="margin-bottom: 0">
 
-                                        <table class="table table-condensed">
+                                        <table class="table table-sm">
                                             <tbody>
                                                 <?php if ($emitente == null) { ?>
 
@@ -68,7 +68,7 @@
                                             </tbody>
                                         </table>
 
-                                        <table class="table table-condensed">
+                                        <table class="table table-sm">
                                             <tbody>
                                                 <tr>
                                                     <td style="width: 50%; padding-left: 0">
@@ -104,7 +104,7 @@
 
                                         <?php if ($result->descricaoProduto != null || $result->defeito != null || $result->laudoTecnico != null || $result->observacoes) { ?>
 
-                                            <table class="table table-condensed">
+                                            <table class="table table-sm">
                                                 <tbody>
                                                     <?php if ($result->descricaoProduto != null) { ?>
                                                         <tr>
@@ -150,7 +150,7 @@
 
                                         <?php if ($produtos != null || $servicos != null) { ?>
                                             <br />
-                                            <table class="table table-condensed" id="tblProdutos">
+                                            <table class="table table-sm" id="tblProdutos">
                                                 <thead>
                                                     <tr>
                                                         <th style="font-size: large">Item</th>
@@ -236,8 +236,8 @@
 
     </div>
     <!--Footer-part-->
-    <div class="row-fluid">
-        <div id="footer" class="span12"> <?= date('Y') ?> &copy; <?php echo $this->config->item('app_name'); ?> - Versão <?php echo $this->config->item('app_version'); ?></div>
+    <div class="row">
+        <div id="footer" class="col-md-12"> <?= date('Y') ?> &copy; <?php echo $this->config->item('app_name'); ?> - Versão <?php echo $this->config->item('app_version'); ?></div>
     </div>
 
     <!-- javascript

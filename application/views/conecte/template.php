@@ -37,11 +37,11 @@
         <div id="user-nav" class="navbar navbar-inverse">
             <ul class="nav">
                 <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class='bx bx-user-circle iconN1'></i> <?= $this->session->userdata('nome') ?> </a>
+                    <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown"><i class='bx bx-user-circle iconN1'></i> <?= $this->session->userdata('nome') ?> </a>
                     <ul class="dropdown-menu">
-                        <li class=""><a title="Meu Perfil" href="<?php echo base_url() ?>index.php/mine/conta"><i class="fas fa-user"></i> <span class="text">Meu Perfil</span></a></li>
-                        <li class="divider"></li>
-                        <li class=""><a title="Sair" href="<?php echo base_url() ?>index.php/mine/sair"><i class="fas fa-sign-out-alt"></i> <span class="text">Sair</span></a></li>
+                        <li class=""><a class="dropdown-item" title="Meu Perfil" href="<?php echo base_url() ?>index.php/mine/conta"><i class="fas fa-user"></i> <span class="text">Meu Perfil</span></a></li>
+                        <li class=""><hr class="dropdown-divider"></li>
+                        <li class=""><a class="dropdown-item" title="Sair" href="<?php echo base_url() ?>index.php/mine/sair"><i class="fas fa-sign-out-alt"></i> <span class="text">Sair</span></a></li>
                     </ul>
                 </li>
             </ul>
@@ -67,7 +67,7 @@
             </div>
         </div>
         <?php } ?>
-        <a href="#" class="visible-phone">
+        <a href="#" class="d-md-none">
             <div class="mode">
                 <div class="moon-menu">
                     <i class='bx bx-chevron-right iconX open-2'></i>
@@ -123,9 +123,9 @@
         </div>
 
         <div class="container-fluid">
-            <div class="row-fluid">
+            <div class="row">
 
-                <div class="span12">
+                <div class="col-md-12">
                     <?php if ($var = $this->session->flashdata('success')) : ?><script nonce="<?= csp_nonce() ?>">
                             swal("Sucesso!", "<?php echo str_replace('"', '', $var); ?>", "success");
                         </script><?php endif; ?>
@@ -142,8 +142,8 @@
         </div>
     </div>
     <!--Footer-part-->
-    <div class="row-fluid">
-        <div id="footer" class="span12">
+    <div class="row">
+        <div id="footer" class="col-md-12">
             <?= date('Y') ?> &copy;
             <?php echo $this->config->item('app_name'); ?> - Versão:
             <?php echo $this->config->item('app_version'); ?>

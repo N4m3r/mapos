@@ -79,7 +79,7 @@
     }
 
     @media (max-width: 480px) {
-        .table-condensed td {
+        .table-sm td {
             padding: 4px 5px;
         }
 
@@ -100,7 +100,7 @@
         <p class="ui-subtitulo">Foto, senha e verificação em duas etapas do seu acesso.</p>
     </div>
 </div>
-<div class="span6" style="margin-left: 0">
+<div class="col-md-6" style="margin-left: 0">
     <div class="widget-box">
         <div class="widget-contentMC" style="margin: 20px 0 0;">
             <div id="userMC">
@@ -110,7 +110,7 @@
                             <div class="profileMC">
                                 <div class="profile-img">
                                     <img src="<?= (!$usuario->url_image_user || !is_file(FCPATH . "assets/userImage/" . $usuario->url_image_user)) ?  base_url() . "assets/img/User.png" : base_url() . "assets/userImage/" . $usuario->url_image_user ?>" alt="">
-                                    <a href="#modalImageUser" data-toggle="modal" role="button"><span class="tip-top img-user button__icon" title="Alterar Foto"><i class='bx bxs-camera'></i></span></a>
+                                    <a href="#modalImageUser" data-bs-toggle="modal" role="button"><span class="tip-top img-user button__icon" title="Alterar Foto"><i class='bx bxs-camera'></i></span></a>
                                 </div>
                             </div>
                         </section>
@@ -118,18 +118,18 @@
                 </div>
             </div>
 
-            <div class="row-fluid">
-                <div class="span12">
+            <div class="row">
+                <div class="col-md-12">
                     <ul class="site-stats">
-                        <li class="bg_ls span12"><strong>Nome:
+                        <li class="bg_ls col-md-12"><strong>Nome:
                                 <?= html_escape($usuario->nome) ?></strong></li>
-                        <li class="bg_lb span12" style="margin-left: 0"><strong>Telefone:
+                        <li class="bg_lb col-md-12" style="margin-left: 0"><strong>Telefone:
                                 <?= html_escape($usuario->telefone) ?></strong></li>
-                        <li class="bg_lg span12" style="margin-left: 0"><strong>Email:
+                        <li class="bg_lg col-md-12" style="margin-left: 0"><strong>Email:
                                 <?= html_escape($usuario->email) ?></strong></li>
-                        <li class="bg_lo span12" style="margin-left: 0"><strong>Nível:
+                        <li class="bg_lo col-md-12" style="margin-left: 0"><strong>Nível:
                                 <?= $usuario->permissao; ?></strong></li>
-                        <li class="bg_lh span12" style="margin-left: 0; border-bottom-left-radius: 9px;border-bottom-right-radius: 9px"><strong>Acesso expira em:
+                        <li class="bg_lh col-md-12" style="margin-left: 0; border-bottom-left-radius: 9px;border-bottom-right-radius: 9px"><strong>Acesso expira em:
                                 <?php
                                 // Validade em branco = conta sem expiracao. Sem a checagem,
                                 // strtotime(null) vira 01/01/1970 na tela.
@@ -149,7 +149,7 @@
     </div>
 </div>
 
-<div class="span6">
+<div class="col-md-6">
     <div class="widget-box">
         <div class="widget-title" style="margin: -20px 0 0">
             <span class="icon">
@@ -158,21 +158,21 @@
             <h5>Alterar Minha Senha</h5>
         </div>
         <div class="widget-content">
-            <div class="row-fluid">
-                <div class="span12" style="min-height: 260px">
-                    <form id="formSenha" action="<?= site_url('mapos/alterarSenha'); ?>" method="post">
+            <div class="row">
+                <div class="col-md-12" style="min-height: 260px">
+                    <form class="row" id="formSenha" action="<?= site_url('mapos/alterarSenha'); ?>" method="post">
 
-                        <div class="span12" style="margin-left: 0">
+                        <div class="col-md-12" style="margin-left: 0">
                             <label for="">Senha Atual</label>
-                            <input type="password" id="oldSenha" name="oldSenha" class="span12" />
+                            <input type="password" id="oldSenha" name="oldSenha" class="w-100 form-control" />
                         </div>
-                        <div class="span12" style="margin-left: 0">
+                        <div class="col-md-12" style="margin-left: 0">
                             <label for="">Nova Senha</label>
-                            <input type="password" id="novaSenha" name="novaSenha" class="span12" />
+                            <input type="password" id="novaSenha" name="novaSenha" class="w-100 form-control" />
                         </div>
-                        <div class="span12" style="margin-left: 0">
+                        <div class="col-md-12" style="margin-left: 0">
                             <label for="">Confirmar Senha</label>
-                            <input type="password" name="confirmarSenha" class="span12" />
+                            <input type="password" name="confirmarSenha" class="w-100 form-control" />
                         </div>
                             <button class="button btn btn-primary" style="max-width: 140px;text-align: center">
                               <span class="button__icon"><i class='bx bx-lock-alt'></i></span><span class="button__text2">Alterar Senha</span></button>
@@ -184,7 +184,7 @@
     </div>
 </div>
 
-<div class="span6" style="margin-left: 0">
+<div class="col-md-6" style="margin-left: 0">
     <div class="widget-box">
         <div class="widget-title" style="margin: -20px 0 0">
             <span class="icon"><i class="fas fa-shield-alt"></i></span>
@@ -204,12 +204,12 @@
                 <?php } ?>
                 <form action="<?= site_url('mapos/doisFatoresNovosCodigos') ?>" method="post" style="display:inline-block;margin-right:16px">
                     <label>Senha atual</label>
-                    <input type="password" name="senha" required autocomplete="current-password">
+                    <input class="form-control" type="password" name="senha" required autocomplete="current-password">
                     <br><button class="button btn btn-info" type="submit"><span class="button__icon"><i class="bx bx-key"></i></span><span class="button__text2">Novos códigos</span></button>
                 </form>
                 <form action="<?= site_url('mapos/doisFatoresDesativar') ?>" method="post" style="display:inline-block" data-confirmar="Desativar a verificação em duas etapas?">
                     <label>Senha atual</label>
-                    <input type="password" name="senha" required autocomplete="current-password">
+                    <input class="form-control" type="password" name="senha" required autocomplete="current-password">
                     <br><button class="button btn btn-danger" type="submit"><span class="button__icon"><i class="bx bx-shield-x"></i></span><span class="button__text2">Desativar</span></button>
                 </form>
             <?php } ?>
@@ -217,27 +217,27 @@
     </div>
 </div>
 
-<div id="modalImageUser" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div id="modalImageUser" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('mapos/uploadUserImage'); ?>" id="formImageUser" enctype="multipart/form-data" method="post" class="form-horizontal">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            
             <h3 id="">MapOS - Atualizar Imagem do Usuario</h3>
-        </div>
-        <div class="modal-body">
-            <div class="span12 alert alert-info">Selecione uma nova imagem do usuario. Tamanho indicado (130 X 130).</div>
-            <div class="control-group">
-                <label for="userfile" class="control-label"><span class="required">Foto*</span></label>
-                <div class="controls">
-                    <input type="file" name="userfile" value="" />
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <div class="modal-body"><div class="row">
+            <div class="col-md-12 alert alert-info">Selecione uma nova imagem do usuario. Tamanho indicado (130 X 130).</div>
+            <div class="row mb-2">
+                <label for="userfile" class="col-sm-3 col-form-label"><span class="required">Foto*</span></label>
+                <div class="col-sm-9">
+                    <input class="form-control" type="file" name="userfile" value="" />
                 </div>
             </div>
-        </div>
+        </div></div>
         <div class="modal-footer" style="display:flex;justify-content: center">
-            <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true" id="btnCancelExcluir"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
+            <button class="button btn btn-warning" data-bs-dismiss="modal" aria-hidden="true" id="btnCancelExcluir"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
             <button class="button btn btn-primary"><span class="button__icon"><i class="bx bx-sync"></i></span><span class="button__text2">Atualizar</span></button>
         </div>
     </form>
-</div>
+</div></div></div>
 
 
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/jquery.validate.js"></script>
@@ -256,15 +256,15 @@
                 }
             },
 
-            errorClass: "help-inline",
+            errorClass: "invalid-feedback",
             errorElement: "span",
             highlight: function(element, errorClass, validClass) {
-                $(element).parents('.control-group').addClass('error');
-                $(element).parents('.control-group').removeClass('success');
+                $(element).addClass('is-invalid');
+                $(element).removeClass('is-valid');
             },
             unhighlight: function(element, errorClass, validClass) {
-                $(element).parents('.control-group').removeClass('error');
-                $(element).parents('.control-group').addClass('success');
+                $(element).removeClass('is-invalid');
+                $(element).addClass('is-valid');
             }
         });
 
@@ -292,14 +292,14 @@
                 }
             },
 
-            errorClass: "help-inline",
+            errorClass: "invalid-feedback",
             errorElement: "span",
             highlight: function(element, errorClass, validClass) {
-                $(element).parents('.control-group').addClass('error');
+                $(element).addClass('is-invalid');
             },
             unhighlight: function(element, errorClass, validClass) {
-                $(element).parents('.control-group').removeClass('error');
-                $(element).parents('.control-group').addClass('success');
+                $(element).removeClass('is-invalid');
+                $(element).addClass('is-valid');
             }
         });
     });

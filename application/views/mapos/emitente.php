@@ -39,7 +39,7 @@ $tudoPronto = $resumo['total'] > 0 && $resumo['prontos'] === $resumo['total'];
         </div>
         <div class="ui-acoes">
             <?php if (! empty($configFiscalExiste)) { ?>
-                <a href="<?= site_url('nfe/configuracoes') ?>" class="button btn btn-inverse">
+                <a href="<?= site_url('nfe/configuracoes') ?>" class="button btn btn-dark">
                     <span class="button__icon"><i class="bx bx-receipt"></i></span><span class="button__text2">Configurações fiscais</span>
                 </a>
             <?php } ?>
@@ -83,43 +83,43 @@ $tudoPronto = $resumo['total'] > 0 && $resumo['prontos'] === $resumo['total'];
                 <div class="ui-secao">
                     <h4 class="ui-secao-titulo">Identificação</h4>
                     <div class="ui-grade">
-                        <div class="control-group">
-                            <label for="nomeEmitente" class="control-label">Razão social<span class="required">*</span></label>
-                            <div class="controls">
-                                <input id="nomeEmitente" type="text" name="nome" maxlength="255" value="<?= $e($v('nome')) ?>" required>
+                        <div class="mb-3">
+                            <label for="nomeEmitente" class="form-label">Razão social<span class="required">*</span></label>
+                            <div class="">
+                                <input class="form-control" id="nomeEmitente" type="text" name="nome" maxlength="255" value="<?= $e($v('nome')) ?>" required>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="nome_fantasia" class="control-label">Nome fantasia</label>
-                            <div class="controls">
-                                <input id="nome_fantasia" type="text" name="nome_fantasia" maxlength="255" value="<?= $e($v('nome_fantasia')) ?>">
-                                <span class="help-inline">É o nome que o cliente reconhece. Vai como xFant na NF-e.</span>
+                        <div class="mb-3">
+                            <label for="nome_fantasia" class="form-label">Nome fantasia</label>
+                            <div class="">
+                                <input class="form-control" id="nome_fantasia" type="text" name="nome_fantasia" maxlength="255" value="<?= $e($v('nome_fantasia')) ?>">
+                                <span class="form-text">É o nome que o cliente reconhece. Vai como xFant na NF-e.</span>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="documento" class="control-label">CNPJ<span class="required">*</span></label>
-                            <div class="controls">
+                        <div class="mb-3">
+                            <label for="documento" class="form-label">CNPJ<span class="required">*</span></label>
+                            <div class="">
                                 <div class="emitente-campo-botao">
-                                    <input id="documento" class="cnpjEmitente" type="text" name="cnpj" maxlength="45" value="<?= $e($v('cnpj')) ?>" required>
-                                    <button id="buscar_info_cnpj" class="btn btn-xs" type="button" title="Buscar dados do CNPJ">
+                                    <input id="documento" class="cnpjEmitente form-control" type="text" name="cnpj" maxlength="45" value="<?= $e($v('cnpj')) ?>" required>
+                                    <button id="buscar_info_cnpj" class="btn btn-sm" type="button" title="Buscar dados do CNPJ">
                                         <i class="bx bx-search"></i>
                                     </button>
                                 </div>
-                                <span class="help-inline">Digite 00.000.000/0000-00 para ocultar o CNPJ nos documentos.</span>
+                                <span class="form-text">Digite 00.000.000/0000-00 para ocultar o CNPJ nos documentos.</span>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="ie" class="control-label">Inscrição estadual</label>
-                            <div class="controls">
-                                <input id="ie" type="text" name="ie" maxlength="50" value="<?= $e($v('ie')) ?>">
-                                <span class="help-inline">Ou ISENTO, se não for contribuinte de ICMS.</span>
+                        <div class="mb-3">
+                            <label for="ie" class="form-label">Inscrição estadual</label>
+                            <div class="">
+                                <input class="form-control" id="ie" type="text" name="ie" maxlength="50" value="<?= $e($v('ie')) ?>">
+                                <span class="form-text">Ou ISENTO, se não for contribuinte de ICMS.</span>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="inscricao_municipal" class="control-label">Inscrição municipal</label>
-                            <div class="controls">
-                                <input id="inscricao_municipal" type="text" name="inscricao_municipal" maxlength="20" value="<?= $e($v('inscricao_municipal')) ?>">
-                                <span class="help-inline">Exigida pela NFS-e na maioria dos municípios. Se preenchida aqui, vale na próxima nota.</span>
+                        <div class="mb-3">
+                            <label for="inscricao_municipal" class="form-label">Inscrição municipal</label>
+                            <div class="">
+                                <input class="form-control" id="inscricao_municipal" type="text" name="inscricao_municipal" maxlength="20" value="<?= $e($v('inscricao_municipal')) ?>">
+                                <span class="form-text">Exigida pela NFS-e na maioria dos municípios. Se preenchida aqui, vale na próxima nota.</span>
                             </div>
                         </div>
                     </div>
@@ -128,47 +128,47 @@ $tudoPronto = $resumo['total'] > 0 && $resumo['prontos'] === $resumo['total'];
                 <div class="ui-secao">
                     <h4 class="ui-secao-titulo">Endereço</h4>
                     <div class="ui-grade">
-                        <div class="control-group">
-                            <label for="cep" class="control-label">CEP<span class="required">*</span></label>
-                            <div class="controls">
-                                <input id="cep" type="text" name="cep" maxlength="20" value="<?= $e($v('cep')) ?>" required>
+                        <div class="mb-3">
+                            <label for="cep" class="form-label">CEP<span class="required">*</span></label>
+                            <div class="">
+                                <input class="form-control" id="cep" type="text" name="cep" maxlength="20" value="<?= $e($v('cep')) ?>" required>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="rua" class="control-label">Logradouro<span class="required">*</span></label>
-                            <div class="controls">
-                                <input id="rua" type="text" name="logradouro" maxlength="70" value="<?= $e($v('rua')) ?>" required>
+                        <div class="mb-3">
+                            <label for="rua" class="form-label">Logradouro<span class="required">*</span></label>
+                            <div class="">
+                                <input class="form-control" id="rua" type="text" name="logradouro" maxlength="70" value="<?= $e($v('rua')) ?>" required>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="numero" class="control-label">Número<span class="required">*</span></label>
-                            <div class="controls">
-                                <input id="numero" type="text" name="numero" maxlength="15" value="<?= $e($v('numero')) ?>" required>
+                        <div class="mb-3">
+                            <label for="numero" class="form-label">Número<span class="required">*</span></label>
+                            <div class="">
+                                <input class="form-control" id="numero" type="text" name="numero" maxlength="15" value="<?= $e($v('numero')) ?>" required>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="complemento" class="control-label">Complemento</label>
-                            <div class="controls">
-                                <input id="complemento" type="text" name="complemento" maxlength="45" value="<?= $e($v('complemento')) ?>">
-                                <span class="help-inline">Sala, loja, bloco. Vai como xCpl na NF-e.</span>
+                        <div class="mb-3">
+                            <label for="complemento" class="form-label">Complemento</label>
+                            <div class="">
+                                <input class="form-control" id="complemento" type="text" name="complemento" maxlength="45" value="<?= $e($v('complemento')) ?>">
+                                <span class="form-text">Sala, loja, bloco. Vai como xCpl na NF-e.</span>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="bairro" class="control-label">Bairro<span class="required">*</span></label>
-                            <div class="controls">
-                                <input id="bairro" type="text" name="bairro" maxlength="45" value="<?= $e($v('bairro')) ?>" required>
+                        <div class="mb-3">
+                            <label for="bairro" class="form-label">Bairro<span class="required">*</span></label>
+                            <div class="">
+                                <input class="form-control" id="bairro" type="text" name="bairro" maxlength="45" value="<?= $e($v('bairro')) ?>" required>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="cidade" class="control-label">Cidade<span class="required">*</span></label>
-                            <div class="controls">
-                                <input id="cidade" type="text" name="cidade" maxlength="45" value="<?= $e($v('cidade')) ?>" required>
+                        <div class="mb-3">
+                            <label for="cidade" class="form-label">Cidade<span class="required">*</span></label>
+                            <div class="">
+                                <input class="form-control" id="cidade" type="text" name="cidade" maxlength="45" value="<?= $e($v('cidade')) ?>" required>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="estado" class="control-label">UF<span class="required">*</span></label>
-                            <div class="controls">
-                                <input id="estado" type="text" name="uf" maxlength="2" value="<?= $e($v('uf')) ?>" required placeholder="AM">
+                        <div class="mb-3">
+                            <label for="estado" class="form-label">UF<span class="required">*</span></label>
+                            <div class="">
+                                <input class="form-control" id="estado" type="text" name="uf" maxlength="2" value="<?= $e($v('uf')) ?>" required placeholder="AM">
                             </div>
                         </div>
                     </div>
@@ -177,17 +177,17 @@ $tudoPronto = $resumo['total'] > 0 && $resumo['prontos'] === $resumo['total'];
                 <div class="ui-secao">
                     <h4 class="ui-secao-titulo">Contato</h4>
                     <div class="ui-grade">
-                        <div class="control-group">
-                            <label for="telefone" class="control-label">Telefone<span class="required">*</span></label>
-                            <div class="controls">
-                                <input id="telefone" type="text" name="telefone" maxlength="20" value="<?= $e($v('telefone')) ?>" required>
+                        <div class="mb-3">
+                            <label for="telefone" class="form-label">Telefone<span class="required">*</span></label>
+                            <div class="">
+                                <input class="form-control" id="telefone" type="text" name="telefone" maxlength="20" value="<?= $e($v('telefone')) ?>" required>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label for="email" class="control-label">E-mail<span class="required">*</span></label>
-                            <div class="controls">
-                                <input id="email" type="email" name="email" maxlength="255" value="<?= $e($v('email')) ?>" required>
-                                <span class="help-inline">Usado como remetente das cobranças e das notificações.</span>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">E-mail<span class="required">*</span></label>
+                            <div class="">
+                                <input class="form-control" id="email" type="email" name="email" maxlength="255" value="<?= $e($v('email')) ?>" required>
+                                <span class="form-text">Usado como remetente das cobranças e das notificações.</span>
                             </div>
                         </div>
                     </div>
@@ -196,11 +196,11 @@ $tudoPronto = $resumo['total'] > 0 && $resumo['prontos'] === $resumo['total'];
                 <?php if ($id === 0) { ?>
                     <div class="ui-secao">
                         <h4 class="ui-secao-titulo">Logo</h4>
-                        <div class="control-group">
-                            <label for="userfile" class="control-label">Arquivo</label>
-                            <div class="controls">
-                                <input type="file" id="userfile" name="userfile" accept="image/png,image/jpeg,image/bmp">
-                                <span class="help-inline">PNG, JPG ou BMP, até 2 MB. Indicado 130 × 130 px.</span>
+                        <div class="mb-3">
+                            <label for="userfile" class="form-label">Arquivo</label>
+                            <div class="">
+                                <input class="form-control" type="file" id="userfile" name="userfile" accept="image/png,image/jpeg,image/bmp">
+                                <span class="form-text">PNG, JPG ou BMP, até 2 MB. Indicado 130 × 130 px.</span>
                             </div>
                         </div>
                     </div>
@@ -234,8 +234,8 @@ $tudoPronto = $resumo['total'] > 0 && $resumo['prontos'] === $resumo['total'];
                         <form action="<?= site_url('mapos/editarLogo') ?>" method="post" enctype="multipart/form-data" class="emitente-logo-form">
                             <input type="hidden" name="<?= $e($tokenName) ?>" value="<?= $e($tokenHash) ?>">
                             <input type="hidden" name="id" value="<?= $id ?>">
-                            <input type="file" name="userfile" accept="image/png,image/jpeg,image/bmp" required>
-                            <button type="submit" class="button btn btn-inverse btn-mini">
+                            <input class="form-control" type="file" name="userfile" accept="image/png,image/jpeg,image/bmp" required>
+                            <button type="submit" class="button btn btn-dark btn-sm">
                                 <span class="button__icon"><i class="bx bx-upload"></i></span><span class="button__text2"><?= $temLogo ? 'Trocar logo' : 'Enviar logo' ?></span>
                             </button>
                         </form>
@@ -243,7 +243,7 @@ $tudoPronto = $resumo['total'] > 0 && $resumo['prontos'] === $resumo['total'];
                             <form action="<?= site_url('mapos/removerLogo') ?>" method="post" data-confirmar="Remover a logo atual? Os documentos passam a sair sem ela.">
                                 <input type="hidden" name="<?= $e($tokenName) ?>" value="<?= $e($tokenHash) ?>">
                                 <input type="hidden" name="id" value="<?= $id ?>">
-                                <button type="submit" class="button btn btn-danger btn-mini">
+                                <button type="submit" class="button btn btn-danger btn-sm">
                                     <span class="button__icon"><i class="bx bx-trash"></i></span><span class="button__text2">Remover</span>
                                 </button>
                             </form>

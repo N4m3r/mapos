@@ -8,13 +8,13 @@
     <div class="accordion-group widget-box">
         <div class="accordion-heading">
             <div class="widget-title" style="margin: -20px 0 0">
-                <a data-parent="#collapse-group" href="#collapseGOne" data-toggle="collapse">
+                <a data-bs-parent="#collapse-group" href="#collapseGOne" data-bs-toggle="collapse">
                     <span class="icon"><i class="fas fa-shopping-bag"></i></span>
                     <h5>Dados do Produto</h5>
                 </a>
             </div>
         </div>
-        <div class="collapse in accordion-body">
+        <div class="collapse show accordion-body">
             <div class="widget-content">
                 <table class="table table-bordered">
                     <tbody>

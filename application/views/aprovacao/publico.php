@@ -251,14 +251,14 @@ $emitente = isset($emitente) ? $emitente : null;
                     <div class="ap-state">
                         <i class="fa fa-unlink" style="color:#c0392b"></i>
                         <h2>Link inválido</h2>
-                        <p class="muted">Este link de aprovação não existe ou foi revogado. Entre em contato com a empresa para obter um novo link.</p>
+                        <p class="text-muted">Este link de aprovação não existe ou foi revogado. Entre em contato com a empresa para obter um novo link.</p>
                     </div>
 
                 <?php } elseif ($situacao === 'expirado') { ?>
                     <div class="ap-state">
                         <i class="fa fa-clock-o" style="color:#e67e22"></i>
                         <h2>Link expirado</h2>
-                        <p class="muted">O prazo para aprovação desta Ordem de Serviço (nº <?= (int) $os->idOs ?>) expirou em <?= ap_data($os->aprovacao_expira) ?>. Solicite um novo link à empresa.</p>
+                        <p class="text-muted">O prazo para aprovação desta Ordem de Serviço (nº <?= (int) $os->idOs ?>) expirou em <?= ap_data($os->aprovacao_expira) ?>. Solicite um novo link à empresa.</p>
                     </div>
 
                 <?php } else { ?>
@@ -277,7 +277,7 @@ $emitente = isset($emitente) ? $emitente : null;
                             <strong>Orçamento aprovado</strong> por <?= html_escape($os->aprovacao_nome) ?> em <?= $os->aprovacao_data ? date('d/m/Y H:i', strtotime($os->aprovacao_data)) : '' ?>.
                         </div>
                     <?php } elseif ($situacao === 'reprovado') { ?>
-                        <div class="alert alert-error" style="text-align:center">
+                        <div class="alert alert-danger" style="text-align:center">
                             <i class="fa fa-times-circle"></i>
                             <strong>Orçamento reprovado</strong> por <?= html_escape($os->aprovacao_nome) ?> em <?= $os->aprovacao_data ? date('d/m/Y H:i', strtotime($os->aprovacao_data)) : '' ?>.
                             <?php if (! empty($os->aprovacao_obs)) { ?><br><em>Motivo: <?= html_escape($os->aprovacao_obs) ?></em><?php } ?>
@@ -379,7 +379,7 @@ $emitente = isset($emitente) ? $emitente : null;
                         <div class="ap-actions">
                             <div class="ui-dica"><i class="bx bx-info-circle"></i><div><strong>Passo 1 de 2:</strong> peça o código e digite-o para liberar a aprovação.</div></div>
                             <h4 style="margin-top:0"><i class="fa fa-lock"></i> Verificação de segurança</h4>
-                            <p class="muted">Para sua proteção, é preciso confirmar sua identidade com um código antes de aprovar. Enviaremos o código para <strong><?= html_escape($canalMascarado ?: 'seu contato cadastrado') ?></strong><?php if (! empty($qtdDestinos) && $qtdDestinos > 1) { ?> e mais <?= (int) $qtdDestinos - 1 ?> contato(s) cadastrado(s)<?php } ?>.</p>
+                            <p class="text-muted">Para sua proteção, é preciso confirmar sua identidade com um código antes de aprovar. Enviaremos o código para <strong><?= html_escape($canalMascarado ?: 'seu contato cadastrado') ?></strong><?php if (! empty($qtdDestinos) && $qtdDestinos > 1) { ?> e mais <?= (int) $qtdDestinos - 1 ?> contato(s) cadastrado(s)<?php } ?>.</p>
 
                             <form method="post" action="<?= site_url('aprovacao/enviarCodigo') ?>" style="display:inline">
                                 <input type="hidden" name="<?= $this->security->get_csrf_token_name() ?>" value="<?= $this->security->get_csrf_hash() ?>">
@@ -391,10 +391,10 @@ $emitente = isset($emitente) ? $emitente : null;
                                 <form method="post" action="<?= site_url('aprovacao/validarCodigo') ?>" style="margin-top:16px">
                                     <input type="hidden" name="<?= $this->security->get_csrf_token_name() ?>" value="<?= $this->security->get_csrf_hash() ?>">
                                     <input type="hidden" name="token" value="<?= html_escape($token) ?>">
-                                    <div class="control-group">
-                                        <label class="control-label" for="codigo"><strong>Código recebido</strong></label>
-                                        <div class="controls">
-                                            <input type="text" name="codigo" id="codigo" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="000000" style="letter-spacing:6px;font-size:20px;max-width:180px" required>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="codigo"><strong>Código recebido</strong></label>
+                                        <div class="">
+                                            <input class="form-control" type="text" name="codigo" id="codigo" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="000000" style="letter-spacing:6px;font-size:20px;max-width:180px" required>
                                         </div>
                                     </div>
                                     <button type="submit" class="btn btn-success"><i class="fa fa-check"></i> Validar código</button>
@@ -407,24 +407,24 @@ $emitente = isset($emitente) ? $emitente : null;
                         <div class="ap-actions">
                             <div class="ui-dica"><i class="bx bx-info-circle"></i><div><strong>Seu próximo passo:</strong> revise o orçamento e escolha Aprovar ou Reprovar.</div></div>
                             <h4 style="margin-top:0">Confirme sua decisão</h4>
-                            <p class="muted">Revise o orçamento acima e informe se autoriza a execução do serviço.</p>
+                            <p class="text-muted">Revise o orçamento acima e informe se autoriza a execução do serviço.</p>
 
                             <form method="post" action="<?= site_url('aprovacao/confirmar') ?>" id="formDecisao">
                                 <input type="hidden" name="<?= $this->security->get_csrf_token_name() ?>" value="<?= $this->security->get_csrf_hash() ?>">
                                 <input type="hidden" name="token" value="<?= html_escape($token) ?>">
                                 <input type="hidden" name="decisao" id="decisao" value="">
 
-                                <div class="control-group">
-                                    <label class="control-label" for="nome"><strong>Seu nome *</strong></label>
-                                    <div class="controls">
-                                        <input type="text" name="nome" id="nome" maxlength="150" placeholder="Nome de quem está aprovando" required>
+                                <div class="mb-3">
+                                    <label class="form-label" for="nome"><strong>Seu nome *</strong></label>
+                                    <div class="">
+                                        <input class="form-control" type="text" name="nome" id="nome" maxlength="150" placeholder="Nome de quem está aprovando" required>
                                     </div>
                                 </div>
 
-                                <div class="control-group" id="obsBox">
-                                    <label class="control-label" for="obs"><strong>Motivo da reprovação *</strong></label>
-                                    <div class="controls">
-                                        <textarea name="obs" id="obs" rows="3" placeholder="Descreva o motivo da reprovação"></textarea>
+                                <div class="mb-3" id="obsBox">
+                                    <label class="form-label" for="obs"><strong>Motivo da reprovação *</strong></label>
+                                    <div class="">
+                                        <textarea class="form-control" name="obs" id="obs" rows="3" placeholder="Descreva o motivo da reprovação"></textarea>
                                     </div>
                                 </div>
 

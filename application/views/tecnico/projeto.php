@@ -10,7 +10,7 @@ $blocoFoto = function ($rotulo, $etiqueta = false) {
     ?>
     <label class="btn-tec ghost block" style="cursor:pointer;margin-top:8px;">
         <i class='bx <?= $etiqueta ? 'bx-barcode-reader' : 'bx-camera' ?>'></i> <?= html_escape($rotulo) ?>
-        <input type="file" accept="image/*"<?= $etiqueta ? ' capture="environment"' : '' ?> multiple data-foto-compacta<?= $etiqueta ? ' data-etiqueta data-foto-nome="fotos_etiqueta[]"' : '' ?> style="display:none;">
+        <input class="form-control" type="file" accept="image/*"<?= $etiqueta ? ' capture="environment"' : '' ?> multiple data-foto-compacta<?= $etiqueta ? ' data-etiqueta data-foto-nome="fotos_etiqueta[]"' : '' ?> style="display:none;">
     </label>
     <div data-foto-preview style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
     <div data-foto-erro role="alert" style="display:none;color:var(--tec-danger, #e74c3c);font-weight:600;margin-top:6px;"></div>
@@ -192,16 +192,16 @@ foreach ($os_servicos as $ms) {
                             <?php $blocoFoto(Obra_pontos_model::exigeEtiqueta('instalado', $pt->tipo) ? 'Foto do equipamento instalado (opcional)' : ($temInstalado ? 'Foto do equipamento e etiqueta (opcional, já tem foto)' : 'Foto do equipamento e etiqueta (obrigatória)')); ?>
                             <?php $blocoFoto($exigeEtiqueta ? 'Foto da etiqueta (obrigatória, preenche modelo e série)' : 'Foto da etiqueta (preenche modelo e série)', true); ?>
                             <label class="ponto-campo">Modelo
-                                <input type="text" name="modelo" value="<?= html_escape((string) $pt->modelo) ?>" maxlength="80" class="ponto-input">
+                                <input type="text" name="modelo" value="<?= html_escape((string) $pt->modelo) ?>" maxlength="80" class="ponto-input form-control">
                             </label>
                             <label class="ponto-campo">Série / MAC
-                                <input type="text" name="serie" value="<?= html_escape((string) $pt->serie) ?>" maxlength="60" class="ponto-input">
+                                <input type="text" name="serie" value="<?= html_escape((string) $pt->serie) ?>" maxlength="60" class="ponto-input form-control">
                             </label>
                             <label class="ponto-campo">Local
-                                <input type="text" name="local" value="<?= html_escape((string) $pt->local) ?>" maxlength="150" class="ponto-input">
+                                <input type="text" name="local" value="<?= html_escape((string) $pt->local) ?>" maxlength="150" class="ponto-input form-control">
                             </label>
                             <label class="ponto-campo">Quem vai configurar?
-                                <select name="repassar_para" class="ponto-input">
+                                <select name="repassar_para" class="ponto-input form-select">
                                     <option value="">Eu mesmo</option>
                                     <option value="equipe">Equipe (qualquer técnico)</option>
                                     <?php foreach ($executores ?? [] as $ex):
@@ -212,7 +212,7 @@ foreach ($os_servicos as $ms) {
                                 </select>
                             </label>
                             <label class="ponto-campo">Instrução para quem configura
-                                <textarea name="instrucao" rows="2" maxlength="255" placeholder="Ex.: canal 7, lente 2.8 mm. Não escreva senhas aqui." class="ponto-input"></textarea>
+                                <textarea name="instrucao" rows="2" maxlength="255" placeholder="Ex.: canal 7, lente 2.8 mm. Não escreva senhas aqui." class="ponto-input form-control"></textarea>
                             </label>
                             <div class="ponto-meta">Senhas de câmera ou NVR não são guardadas no sistema.</div>
                             <button type="submit" class="btn-tec primary block lg ponto-acao" style="margin-top:10px;"><?= html_escape($infoProx['acao'] ?? 'Instalei') ?> ✓</button>
@@ -231,7 +231,7 @@ foreach ($os_servicos as $ms) {
                             <?php endif; ?>
                             <?php if ($proximo === 'cabeado'): ?>
                                 <label class="ponto-campo">Metros de cabo (opcional)
-                                    <input type="number" name="metragem_cabo" min="0" step="0.01" inputmode="decimal" placeholder="0" class="ponto-input">
+                                    <input type="number" name="metragem_cabo" min="0" step="0.01" inputmode="decimal" placeholder="0" class="ponto-input form-control">
                                 </label>
                             <?php endif; ?>
                             <button type="submit" class="btn-tec primary block lg ponto-acao"><?= html_escape($infoProx['acao'] ?? $infoProx['rotulo']) ?> ✓</button>
@@ -245,26 +245,26 @@ foreach ($os_servicos as $ms) {
                                 <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
                                 <input type="hidden" name="ponto_id" value="<?= $pid ?>">
                                 <label class="ponto-campo">Status
-                                    <select name="status" class="ponto-input">
+                                    <select name="status" class="ponto-input form-select">
                                         <?php foreach ($status_lista as $sk => $sinfo): ?>
                                             <option value="<?= html_escape($sk) ?>"<?= $sk === $pt->status ? ' selected' : '' ?>><?= html_escape($sinfo['rotulo']) ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </label>
                                 <label class="ponto-campo">IP
-                                    <input type="text" name="ip" value="<?= html_escape((string) $pt->ip) ?>" maxlength="45" class="ponto-input">
+                                    <input type="text" name="ip" value="<?= html_escape((string) $pt->ip) ?>" maxlength="45" class="ponto-input form-control">
                                 </label>
                                 <label class="ponto-campo">Canal (NVR) / porta do controlador
-                                    <input type="text" name="canal" value="<?= html_escape((string) $pt->canal) ?>" maxlength="10" class="ponto-input">
+                                    <input type="text" name="canal" value="<?= html_escape((string) $pt->canal) ?>" maxlength="10" class="ponto-input form-control">
                                 </label>
                                 <label class="ponto-campo">Porta (patch panel / switch)
-                                    <input type="text" name="porta" value="<?= html_escape((string) $pt->porta) ?>" maxlength="30" class="ponto-input">
+                                    <input type="text" name="porta" value="<?= html_escape((string) $pt->porta) ?>" maxlength="30" class="ponto-input form-control">
                                 </label>
                                 <label class="ponto-campo">Metros de cabo nesta etapa
-                                    <input type="number" name="metragem_cabo" min="0" step="0.01" inputmode="decimal" placeholder="0" class="ponto-input">
+                                    <input type="number" name="metragem_cabo" min="0" step="0.01" inputmode="decimal" placeholder="0" class="ponto-input form-control">
                                 </label>
                                 <label class="ponto-campo">Observação
-                                    <input type="text" name="observacao" maxlength="255" class="ponto-input">
+                                    <input type="text" name="observacao" maxlength="255" class="ponto-input form-control">
                                 </label>
                                 <?php $blocoFoto('Foto do equipamento (opcional)'); ?>
                                 <button type="submit" class="btn-tec success block lg ponto-acao" style="margin-top:10px;"><i class='bx bx-save'></i> Salvar</button>
@@ -275,7 +275,7 @@ foreach ($os_servicos as $ms) {
                                 <input type="hidden" name="ponto_id" value="<?= $pid ?>">
                                 <strong><i class='bx bx-transfer-alt'></i> Repassar este ponto</strong>
                                 <label class="ponto-campo">Para quem
-                                    <select name="repassar_para" class="ponto-input" required>
+                                    <select name="repassar_para" class="ponto-input form-select" required>
                                         <option value="">Escolha...</option>
                                         <option value="equipe">Equipe (qualquer técnico)</option>
                                         <?php foreach ($executores ?? [] as $ex):
@@ -286,7 +286,7 @@ foreach ($os_servicos as $ms) {
                                     </select>
                                 </label>
                                 <label class="ponto-campo">Instrução
-                                    <textarea name="instrucao" rows="2" maxlength="255" placeholder="Ex.: canal 7, lente 2.8 mm. Não escreva senhas aqui." class="ponto-input"></textarea>
+                                    <textarea name="instrucao" rows="2" maxlength="255" placeholder="Ex.: canal 7, lente 2.8 mm. Não escreva senhas aqui." class="ponto-input form-control"></textarea>
                                 </label>
                                 <button type="submit" class="btn-tec ghost block lg ponto-acao" style="margin-top:10px;"><i class='bx bx-transfer-alt'></i> Repassar</button>
                             </form>
@@ -304,7 +304,7 @@ foreach ($os_servicos as $ms) {
     <form action="<?= site_url('tecnico/salvar_registro_projeto') ?>" method="post" class="info-card" id="formRegistro">
         <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
         <label style="font-weight:600;display:block;margin-bottom:6px;">O que você fez hoje? (<?= date('d/m/Y') ?>)</label>
-        <textarea name="atividades" rows="4" placeholder="Descreva a atividade realizada... (opcional)" style="width:100%;background: var(--tec-input-bg, #fff); color: var(--tec-input-ink, #000); border:1px solid var(--tec-input-line, #ccc);border-radius:8px;padding:10px;font-size:15px;"></textarea>
+        <textarea class="form-control" name="atividades" rows="4" placeholder="Descreva a atividade realizada... (opcional)" style="width:100%;background: var(--tec-input-bg, #fff); color: var(--tec-input-ink, #000); border:1px solid var(--tec-input-line, #ccc);border-radius:8px;padding:10px;font-size:15px;"></textarea>
 
         <?php if (!empty($matDistinct)): ?>
             <details style="margin-top:10px;border:1px solid var(--tec-line, #eee);border-radius:8px;padding:6px 10px;">
@@ -314,7 +314,7 @@ foreach ($os_servicos as $ms) {
                     <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--tec-line, #f2f2f2);">
                         <span style="flex:1;"><?= html_escape($pnome) ?></span>
                         <input type="hidden" name="material_nome[<?= $pid ?>]" value="<?= html_escape($pnome) ?>">
-                        <input type="number" name="material[<?= $pid ?>]" min="0" step="0.01" placeholder="0" style="width:80px;background: var(--tec-input-bg, #fff); color: var(--tec-input-ink, #000); border:1px solid var(--tec-input-line, #ccc);border-radius:6px;padding:6px;text-align:center;">
+                        <input class="form-control" type="number" name="material[<?= $pid ?>]" min="0" step="0.01" placeholder="0" style="width:80px;background: var(--tec-input-bg, #fff); color: var(--tec-input-ink, #000); border:1px solid var(--tec-input-line, #ccc);border-radius:6px;padding:6px;text-align:center;">
                     </div>
                 <?php endforeach; ?>
             </details>
@@ -328,7 +328,7 @@ foreach ($os_servicos as $ms) {
                     <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--tec-line, #f2f2f2);">
                         <span style="flex:1;"><?= html_escape($snome) ?></span>
                         <input type="hidden" name="servico_nome[<?= $sid ?>]" value="<?= html_escape($snome) ?>">
-                        <input type="number" name="servico[<?= $sid ?>]" min="0" step="0.01" placeholder="0" style="width:80px;background: var(--tec-input-bg, #fff); color: var(--tec-input-ink, #000); border:1px solid var(--tec-input-line, #ccc);border-radius:6px;padding:6px;text-align:center;">
+                        <input class="form-control" type="number" name="servico[<?= $sid ?>]" min="0" step="0.01" placeholder="0" style="width:80px;background: var(--tec-input-bg, #fff); color: var(--tec-input-ink, #000); border:1px solid var(--tec-input-line, #ccc);border-radius:6px;padding:6px;text-align:center;">
                     </div>
                 <?php endforeach; ?>
             </details>
@@ -336,14 +336,14 @@ foreach ($os_servicos as $ms) {
 
         <label class="btn-tec ghost block" style="margin-top:10px;cursor:pointer;">
             <i class='bx bx-camera'></i> Adicionar fotos (opcional)
-            <input type="file" accept="image/*" multiple id="regFotos" data-foto-compacta style="display:none;">
+            <input class="form-control" type="file" accept="image/*" multiple id="regFotos" data-foto-compacta style="display:none;">
         </label>
         <div data-foto-preview id="regFotosPrev" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
         <div data-foto-erro role="alert" style="display:none;color:var(--tec-danger, #e74c3c);font-weight:600;margin-top:6px;"></div>
 
         <!-- Assinatura do cliente (opcional) -->
         <label style="display:flex;align-items:center;gap:10px;margin-top:14px;cursor:pointer;">
-            <input type="checkbox" id="reg-quer-assinatura" style="width:20px;height:20px;">
+            <input class="form-check-input" type="checkbox" id="reg-quer-assinatura" style="width:20px;height:20px;">
             <span style="font-weight:600;"><i class='bx bx-pen'></i> Coletar assinatura do cliente</span>
         </label>
         <div id="reg-assinatura-box" style="display:none;margin-top:8px;">

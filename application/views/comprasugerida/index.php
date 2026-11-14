@@ -7,8 +7,8 @@ foreach ($itens as $i) {
 $qs = http_build_query(['janela' => $filtro['janela'], 'prazo' => $filtro['prazo'], 'cobertura' => $filtro['cobertura'], 'somente' => $filtro['somente'] ? 1 : 0]);
 ?>
 
-<div class="row-fluid" style="margin-top: 0">
-    <div class="span12">
+<div class="row" style="margin-top: 0">
+    <div class="col-md-12">
         <div class="ui-cabecalho">
             <div>
                 <h1><i class="bx bx-cart"></i> Compra sugerida</h1>
@@ -27,21 +27,21 @@ $qs = http_build_query(['janela' => $filtro['janela'], 'prazo' => $filtro['prazo
         <form action="<?= site_url('comprasugerida') ?>" method="get" class="ui-filtros">
             <div class="ui-campo">
                 <label for="janela">Janela de consumo (dias)</label>
-                <input type="number" id="janela" min="1" max="730" name="janela" value="<?= (int) $filtro['janela'] ?>" />
+                <input class="form-control" type="number" id="janela" min="1" max="730" name="janela" value="<?= (int) $filtro['janela'] ?>" />
             </div>
             <div class="ui-campo">
                 <label for="prazo">Prazo de reposição (dias)</label>
-                <input type="number" id="prazo" min="1" max="365" name="prazo" value="<?= (int) $filtro['prazo'] ?>" />
+                <input class="form-control" type="number" id="prazo" min="1" max="365" name="prazo" value="<?= (int) $filtro['prazo'] ?>" />
             </div>
             <div class="ui-campo">
                 <label for="cobertura">Cobertura desejada (dias)</label>
-                <input type="number" id="cobertura" min="1" max="365" name="cobertura" value="<?= (int) $filtro['cobertura'] ?>" />
+                <input class="form-control" type="number" id="cobertura" min="1" max="365" name="cobertura" value="<?= (int) $filtro['cobertura'] ?>" />
             </div>
             <div class="ui-campo">
-                <label class="checkbox"><input type="checkbox" name="somente" value="1" <?= $filtro['somente'] ? 'checked' : '' ?> /> Só o que precisa comprar</label>
+                <label class="checkbox"><input class="form-check-input" type="checkbox" name="somente" value="1" <?= $filtro['somente'] ? 'checked' : '' ?> /> Só o que precisa comprar</label>
             </div>
             <div class="ui-campo ui-campo-acao">
-                <button class="button btn btn-inverse"><span class="button__icon"><i class="bx bx-filter-alt"></i></span><span class="button__text">Calcular</span></button>
+                <button class="button btn btn-dark"><span class="button__icon"><i class="bx bx-filter-alt"></i></span><span class="button__text">Calcular</span></button>
             </div>
         </form>
 
@@ -70,7 +70,7 @@ $qs = http_build_query(['janela' => $filtro['janela'], 'prazo' => $filtro['prazo
                         <?php endif; ?>
                         <?php foreach ($itens as $i) : ?>
                             <tr<?= $i['abaixo'] ? ' style="background:#fdecea"' : '' ?>>
-                                <td><?= html_escape($i['descricao']) ?> <?= $i['unidade'] ? '<small class="muted">(' . html_escape($i['unidade']) . ')</small>' : '' ?></td>
+                                <td><?= html_escape($i['descricao']) ?> <?= $i['unidade'] ? '<small class="text-muted">(' . html_escape($i['unidade']) . ')</small>' : '' ?></td>
                                 <td><?= html_escape(number_format($i['estoque'], 3, ',', '.')) ?></td>
                                 <td><?= html_escape(number_format($i['estoqueMinimo'], 3, ',', '.')) ?></td>
                                 <td><?= html_escape(number_format($i['saidas'], 3, ',', '.')) ?></td>

@@ -1,6 +1,6 @@
 <?php $totalProdutos = 0; ?>
-<div class="row-fluid" style="margin-top: 0">
-    <div class="span12">
+<div class="row" style="margin-top: 0">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="widget-title" style="margin: -20px 0 0">
                 <span class="icon">
@@ -9,7 +9,7 @@
                 <h5>Venda</h5>
                 <div class="buttons">
 
-                    <a id="imprimir" target="_blank" title="Imprimir" class="btn btn-mini btn-inverse" href="<?php echo site_url(); ?>/mine/imprimirCompra/<?php echo $result->idVendas; ?>"><i class="fas fa-print"></i> Imprimir</a>
+                    <a id="imprimir" target="_blank" title="Imprimir" class="btn btn-sm btn-dark" href="<?php echo site_url(); ?>/mine/imprimirCompra/<?php echo $result->idVendas; ?>"><i class="fas fa-print"></i> Imprimir</a>
                 </div>
             </div>
             <div class="widget-content" id="printOs">
@@ -84,7 +84,7 @@
                         </table>
                     
                     <div style="margin-top: 0; padding-top: 0">
-                        <table class="table table-condensed">
+                        <table class="table table-sm">
                             <tbody>
                                 <?php if ($result->dataVenda != null) { ?>
                                     <tr>
@@ -123,7 +123,7 @@
                     <div style="margin-top: 0; padding-top: 0">
                         <?php if ($produtos != null) { ?>
 
-                            <table class="table table-bordered table-condensed" id="tblProdutos" style="margin-top: 0; padding-top: 0">
+                            <table class="table table-bordered table-sm" id="tblProdutos" style="margin-top: 0; padding-top: 0">
                                 <thead>
                                     <tr>
                                         <th style="font-size: 15px">Produto</th>

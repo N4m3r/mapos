@@ -14,8 +14,8 @@ $kpis = [
 ];
 ?>
 
-<div class="row-fluid" style="margin-top: 0">
-    <div class="span12">
+<div class="row" style="margin-top: 0">
+    <div class="col-md-12">
         <div class="ui-cabecalho">
             <div>
                 <h1><i class="bx bx-line-chart"></i> Painel gerencial</h1>
@@ -26,14 +26,14 @@ $kpis = [
         <form action="<?= site_url('painelgerencial') ?>" method="get" class="ui-filtros">
             <div class="ui-campo">
                 <label for="dataInicial">De</label>
-                <input type="date" id="dataInicial" name="dataInicial" value="<?= html_escape($filtro['dataInicial']) ?>" />
+                <input class="form-control" type="date" id="dataInicial" name="dataInicial" value="<?= html_escape($filtro['dataInicial']) ?>" />
             </div>
             <div class="ui-campo">
                 <label for="dataFinal">Até</label>
-                <input type="date" id="dataFinal" name="dataFinal" value="<?= html_escape($filtro['dataFinal']) ?>" />
+                <input class="form-control" type="date" id="dataFinal" name="dataFinal" value="<?= html_escape($filtro['dataFinal']) ?>" />
             </div>
             <div class="ui-campo ui-campo-acao">
-                <button class="button btn btn-inverse"><span class="button__icon"><i class="bx bx-filter-alt"></i></span><span class="button__text">Filtrar</span></button>
+                <button class="button btn btn-dark"><span class="button__icon"><i class="bx bx-filter-alt"></i></span><span class="button__text">Filtrar</span></button>
             </div>
         </form>
 
@@ -46,12 +46,12 @@ $kpis = [
             <?php endforeach; ?>
         </div>
 
-        <div class="row-fluid">
-            <div class="span6">
+        <div class="row">
+            <div class="col-md-6">
                 <div class="widget-box">
                     <div class="widget-title"><span class="icon"><i class="bx bx-user"></i></span><h5>Faturamento por técnico</h5></div>
                     <div class="widget-content">
-                        <p class="muted">Total no período: <strong><?= html_escape($moeda($ind['faturamento'])) ?></strong></p>
+                        <p class="text-muted">Total no período: <strong><?= html_escape($moeda($ind['faturamento'])) ?></strong></p>
                         <?php if (! $ind['porTecnico']) : ?>
                             <div class="ui-vazio"><i class="bx bx-user-x"></i><strong>Sem OS concluídas no período</strong></div>
                         <?php endif; ?>
@@ -65,7 +65,7 @@ $kpis = [
                 </div>
             </div>
 
-            <div class="span6">
+            <div class="col-md-6">
                 <div class="widget-box">
                     <div class="widget-title"><span class="icon"><i class="bx bx-trophy"></i></span><h5>Top 10 serviços</h5></div>
                     <div class="widget-content">

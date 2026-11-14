@@ -15,13 +15,13 @@ $podeGerir = $perm('cObraEquipe');
         <p class="ui-subtitulo">Membros da equipe e alocação em projetos.</p>
     </div>
     <div class="ui-acoes">
-        <a href="<?= site_url('obraequipe') ?>" class="button btn btn-mini btn-warning"><span class="button__icon"><i class="bx bx-undo"></i></span><span class="button__text2">Voltar</span></a>
+        <a href="<?= site_url('obraequipe') ?>" class="button btn btn-sm btn-warning"><span class="button__icon"><i class="bx bx-undo"></i></span><span class="button__text2">Voltar</span></a>
     </div>
 </div>
 
-<div class="row-fluid">
+<div class="row">
     <!-- Membros -->
-    <div class="span6" style="margin-left:0">
+    <div class="col-md-6" style="margin-left:0">
         <div class="widget-box"><div class="widget-title"><h5><i class='bx bx-group'></i> Membros</h5></div>
             <div class="widget-content nopadding ui-tabela-rolagem">
                 <table class="table table-bordered">
@@ -41,19 +41,19 @@ $podeGerir = $perm('cObraEquipe');
                     </tbody>
                 </table>
                 <?php if ($podeGerir): ?>
-                    <form action="<?= site_url('obraequipe/salvarMembro') ?>" method="post" style="padding:8px">
+                    <form class="row" action="<?= site_url('obraequipe/salvarMembro') ?>" method="post" style="padding:8px">
                         <input type="hidden" name="equipe_id" value="<?= $equipe->idEquipe ?>">
-                        <div class="span6" style="margin-left:0"><label>Colaborador (cadastrado)</label>
-                            <select name="colaborador_id" class="span12">
+                        <div class="col-md-6" style="margin-left:0"><label>Colaborador (cadastrado)</label>
+                            <select name="colaborador_id" class="w-100 form-select">
                                 <option value="">— usar nome livre —</option>
                                 <?php foreach ($usuarios as $u): ?><option value="<?= $u->idUsuarios ?>"><?= html_escape($u->nome) ?></option><?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="span6"><label>ou Nome</label><input type="text" class="span12" name="nome"></div>
-                        <div class="span4" style="margin-left:0"><label>Função</label><input type="text" class="span12" name="funcao" placeholder="Técnico, Instalador..."></div>
-                        <div class="span4"><label>Diária (R$)</label><input type="number" step="0.01" class="span12" name="valor_diaria" value="0"></div>
-                        <div class="span4"><label>Valor/hora</label><input type="number" step="0.01" class="span12" name="valor_hora" value="0"></div>
-                        <div class="span12" style="margin-left:0;margin-top:6px"><button class="button btn btn-mini btn-success"><span class="button__icon"><i class='bx bx-plus'></i></span><span class="button__text2">Adicionar membro</span></button></div>
+                        <div class="col-md-6"><label>ou Nome</label><input type="text" class="w-100 form-control" name="nome"></div>
+                        <div class="col-md-4" style="margin-left:0"><label>Função</label><input type="text" class="w-100 form-control" name="funcao" placeholder="Técnico, Instalador..."></div>
+                        <div class="col-md-4"><label>Diária (R$)</label><input type="number" step="0.01" class="w-100 form-control" name="valor_diaria" value="0"></div>
+                        <div class="col-md-4"><label>Valor/hora</label><input type="number" step="0.01" class="w-100 form-control" name="valor_hora" value="0"></div>
+                        <div class="col-md-12" style="margin-left:0;margin-top:6px"><button class="button btn btn-sm btn-success"><span class="button__icon"><i class='bx bx-plus'></i></span><span class="button__text2">Adicionar membro</span></button></div>
                     </form>
                 <?php endif; ?>
             </div>
@@ -61,7 +61,7 @@ $podeGerir = $perm('cObraEquipe');
     </div>
 
     <!-- Alocações -->
-    <div class="span6">
+    <div class="col-md-6">
         <div class="widget-box"><div class="widget-title"><h5><i class='bx bx-network-chart'></i> Alocação em projetos</h5></div>
             <div class="widget-content nopadding ui-tabela-rolagem">
                 <table class="table table-bordered">
@@ -81,17 +81,17 @@ $podeGerir = $perm('cObraEquipe');
                     </tbody>
                 </table>
                 <?php if ($podeGerir): ?>
-                    <form action="<?= site_url('obraequipe/alocar') ?>" method="post" style="padding:8px">
+                    <form class="row" action="<?= site_url('obraequipe/alocar') ?>" method="post" style="padding:8px">
                         <input type="hidden" name="equipe_id" value="<?= $equipe->idEquipe ?>">
-                        <div class="span5" style="margin-left:0"><label>Projeto</label>
-                            <select name="obra_id" class="span12" required>
+                        <div class="col-md-5" style="margin-left:0"><label>Projeto</label>
+                            <select name="obra_id" class="w-100 form-select" required>
                                 <option value="">— Selecione —</option>
                                 <?php foreach ($obras as $o): ?><option value="<?= $o->idObra ?>"><?= html_escape($o->nome) ?></option><?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="span3"><label>Início</label><input type="text" class="span12 datepicker" name="data_inicio"></div>
-                        <div class="span3"><label>Fim</label><input type="text" class="span12 datepicker" name="data_fim"></div>
-                        <div class="span1" style="padding-top:22px"><button class="button btn btn-mini btn-success" title="Alocar" aria-label="Alocar equipe ao projeto"><span class="button__icon"><i class='bx bx-plus'></i></span></button></div>
+                        <div class="col-md-3"><label>Início</label><input type="text" class="datepicker w-100 form-control" name="data_inicio"></div>
+                        <div class="col-md-3"><label>Fim</label><input type="text" class="datepicker w-100 form-control" name="data_fim"></div>
+                        <div class="col-md-1" style="padding-top:22px"><button class="button btn btn-sm btn-success" title="Alocar" aria-label="Alocar equipe ao projeto"><span class="button__icon"><i class='bx bx-plus'></i></span></button></div>
                     </form>
                 <?php endif; ?>
             </div>

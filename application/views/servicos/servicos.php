@@ -11,7 +11,7 @@
         </div>
         <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'aServico')) : ?>
             <div class="ui-acoes">
-                <a href="<?= base_url() ?>index.php/servicos/adicionar" class="button btn btn-mini btn-success">
+                <a href="<?= base_url() ?>index.php/servicos/adicionar" class="button btn btn-sm btn-success">
                     <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2"> Serviços</span>
                 </a>
             </div>
@@ -21,10 +21,10 @@
     <form class="ui-filtros" method="get" action="<?= base_url() ?>index.php/servicos">
         <div class="ui-campo">
             <label for="pesquisa">Buscar</label>
-            <input type="text" name="pesquisa" id="pesquisa" placeholder="Nome ou descrição" value="<?= html_escape($this->input->get('pesquisa')) ?>">
+            <input class="form-control" type="text" name="pesquisa" id="pesquisa" placeholder="Nome ou descrição" value="<?= html_escape($this->input->get('pesquisa')) ?>">
         </div>
         <div class="ui-campo ui-campo-acao">
-            <button class="button btn btn-mini btn-warning" title="Buscar" aria-label="Buscar">
+            <button class="button btn btn-sm btn-warning" title="Buscar" aria-label="Buscar">
                 <span class="button__icon"><i class='bx bx-search-alt'></i></span><span class="button__text2">Buscar</span></button>
         </div>
     </form>
@@ -60,7 +60,7 @@
                                 echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/servicos/editar/' . $r->idServicos . '" class="btn-nwe3" title="Editar Serviço" aria-label="Editar Serviço"><i class="bx bx-edit bx-xs"></i></a>';
                             }
                             if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dServico')) {
-                                echo '<a href="#modal-excluir" role="button" data-toggle="modal" servico="' . $r->idServicos . '" class="btn-nwe4" title="Excluir Serviço" aria-label="Excluir Serviço"><i class="bx bx-trash-alt bx-xs"></i></a>  ';
+                                echo '<a href="#modal-excluir" role="button" data-bs-toggle="modal" servico="' . $r->idServicos . '" class="btn-nwe4" title="Excluir Serviço" aria-label="Excluir Serviço"><i class="bx bx-trash-alt bx-xs"></i></a>  ';
                             }
                             echo '</td>';
                             echo '</tr>';
@@ -73,22 +73,22 @@
 <?php echo $this->pagination->create_links(); ?>
 
 <!-- Modal -->
-<div id="modal-excluir" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div id="modal-excluir" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?php echo base_url() ?>index.php/servicos/excluir" method="post">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            
             <h5 id="myModalLabel">Excluir Serviço</h5>
-        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <input type="hidden" id="idServico" name="id" value="" />
             <h5 style="text-align: center">Deseja realmente excluir este serviço?</h5>
         </div>
         <div class="modal-footer" style="display:flex;justify-content: center">
-          <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
+          <button class="button btn btn-warning" data-bs-dismiss="modal" aria-hidden="true"><span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
           <button class="button btn btn-danger"><span class="button__icon"><i class='bx bx-trash'></i></span> <span class="button__text2">Excluir</span></button>
         </div>
     </form>
-</div>
+</div></div></div>
 
 <script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {

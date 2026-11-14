@@ -44,7 +44,7 @@ $linkAlvo = function ($alvo, $rotulo, $classe, $icone = '') use ($ptEdita, $plan
     if (empty($ok[$alvo])) {
         return '';
     }
-    return '<a href="' . html_escape($alvo) . '" data-toggle="modal" class="button btn ' . $classe . '">' . $conteudo . '</a>';
+    return '<a href="' . html_escape($alvo) . '" data-bs-toggle="modal" class="button btn ' . $classe . '">' . $conteudo . '</a>';
 };
 
 $fasePasso = (int) $guia['fase'];
@@ -99,7 +99,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                 <?php endif; ?>
                 <?php if ($perm('rObraMaterial')): ?><li><a href="<?= site_url('obramaterial/receber/' . $obra->idObra) ?>"><i class="bx bx-down-arrow-circle"></i> Receber material</a></li><?php endif; ?>
                 <?php if ($perm('sObraMaterial')): ?><li><a href="<?= site_url('obramaterial/entregar/' . $obra->idObra) ?>"><i class="bx bx-up-arrow-circle"></i> Entregar material</a></li><?php endif; ?>
-                <?php if ($ptEdita): ?><li><a href="#modal-vincular-os" data-toggle="modal"><i class="bx bx-link"></i> Vincular OS existente</a></li><?php endif; ?>
+                <?php if ($ptEdita): ?><li><a href="#modal-vincular-os" data-bs-toggle="modal"><i class="bx bx-link"></i> Vincular OS existente</a></li><?php endif; ?>
                 <li><a href="<?= site_url('obras/gerenciar') ?>"><i class="bx bx-undo"></i> Voltar para Projetos</a></li>
                 <?php if ($perm('dObras')): ?>
                     <li class="pj-mais-perigo">
@@ -140,12 +140,12 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
 </div>
 
 <ul class="nav nav-tabs obra-tabs pj-abas" id="obraTabs">
-    <li class="active"><a href="#tab-resumo" data-tab="resumo">Resumo</a></li>
-    <li><a href="#tab-planejamento" data-tab="planejamento">Planejamento <span class="pj-aba-n"><?= count($etapas) ?></span></a></li>
-    <li><a href="#tab-pontos" data-tab="pontos">Pontos<?php if ($pontos_resumo['total'] > 0): ?> <span class="pj-aba-n"><?= $ptTestados ?>/<?= (int) $pontos_resumo['total'] ?></span><?php endif; ?></a></li>
-    <li><a href="#tab-execucao" data-tab="execucao">Execução</a></li>
-    <li><a href="#tab-material" data-tab="material">Material</a></li>
-    <li><a href="#tab-financeiro" data-tab="financeiro">Financeiro</a></li>
+    <li class="nav-item"><a class="nav-link active" href="#tab-resumo" data-tab="resumo">Resumo</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-planejamento" data-tab="planejamento">Planejamento <span class="pj-aba-n"><?= count($etapas) ?></span></a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-pontos" data-tab="pontos">Pontos<?php if ($pontos_resumo['total'] > 0): ?> <span class="pj-aba-n"><?= $ptTestados ?>/<?= (int) $pontos_resumo['total'] ?></span><?php endif; ?></a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-execucao" data-tab="execucao">Execução</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-material" data-tab="material">Material</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-financeiro" data-tab="financeiro">Financeiro</a></li>
 </ul>
 
 <div class="obra-tab-content">
@@ -205,7 +205,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                             <i class="bx bx-cctv"></i>
                             <strong>Nenhum ponto ainda.</strong>
                             Cadastre câmeras, leitores e tomadas para acompanhar cada um até o teste.
-                            <?php if ($ptEdita): ?><div class="pj-vazio-acao"><a href="#modal-lote" data-toggle="modal" class="button btn btn-primary"><span class="button__icon"><i class="bx bx-layer-plus"></i></span><span class="button__text2">Adicionar pontos</span></a></div><?php endif; ?>
+                            <?php if ($ptEdita): ?><div class="pj-vazio-acao"><a href="#modal-lote" data-bs-toggle="modal" class="button btn btn-primary"><span class="button__icon"><i class="bx bx-layer-plus"></i></span><span class="button__text2">Adicionar pontos</span></a></div><?php endif; ?>
                         </div>
                     <?php endif; ?>
                 </section>
@@ -260,13 +260,13 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                         <form action="<?= site_url('obras/vincularUsuario') ?>" method="post" class="pj-vincular">
                             <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
                             <label for="pj-usuario-id" class="pj-sr">Vincular técnico</label>
-                            <select name="usuario_id" id="pj-usuario-id" required>
+                            <select class="form-select" name="usuario_id" id="pj-usuario-id" required>
                                 <option value="">Escolha um técnico</option>
                                 <?php foreach ($usuarios_disponiveis as $ud): ?>
                                     <option value="<?= (int) $ud->idUsuarios ?>"><?= html_escape($ud->nome) ?></option>
                                 <?php endforeach; ?>
                             </select>
-                            <button class="button btn btn-mini"><span class="button__icon"><i class="bx bx-plus"></i></span><span class="button__text2">Vincular</span></button>
+                            <button class="button btn btn-sm"><span class="button__icon"><i class="bx bx-plus"></i></span><span class="button__text2">Vincular</span></button>
                         </form>
                     <?php endif; ?>
                     <?php if ($equipes): ?>
@@ -286,7 +286,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                     </div>
                     <?php if (! $os_vinculadas): ?>
                         <div class="ui-vazio pj-vazio-p"><strong>Nenhuma OS ainda.</strong>
-                            <?php if ($planOk && $etapas): ?>Gere uma OS para cada etapa.<div class="pj-vazio-acao"><a href="#modal-os-lote" data-toggle="modal" class="button btn btn-mini"><span class="button__icon"><i class="bx bx-receipt"></i></span><span class="button__text2">Gerar OS das etapas</span></a></div><?php endif; ?>
+                            <?php if ($planOk && $etapas): ?>Gere uma OS para cada etapa.<div class="pj-vazio-acao"><a href="#modal-os-lote" data-bs-toggle="modal" class="button btn btn-sm"><span class="button__icon"><i class="bx bx-receipt"></i></span><span class="button__text2">Gerar OS das etapas</span></a></div><?php endif; ?>
                         </div>
                     <?php else: ?>
                         <ul class="pj-lista">
@@ -309,13 +309,13 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
             <h2>Pontos <?php if ($pontos_resumo['total'] > 0): ?><small><?= (int) $pontos_resumo['total'] ?> no total, <?= $ptTestados ?> testados</small><?php endif; ?></h2>
             <div class="pj-secao-acoes">
                 <?php if ($ptEdita): ?>
-                    <a href="#modal-ponto" data-toggle="modal" class="button btn btn-mini" data-chamar="novoPonto"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Novo ponto</span></a>
-                    <a href="#modal-lote" data-toggle="modal" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-layer-plus'></i></span><span class="button__text2">Gerar em lote</span></a>
-                    <a href="#modal-importar-pontos" data-toggle="modal" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-upload'></i></span><span class="button__text2">Importar planilha</span></a>
+                    <a href="#modal-ponto" data-bs-toggle="modal" class="button btn btn-sm" data-chamar="novoPonto"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Novo ponto</span></a>
+                    <a href="#modal-lote" data-bs-toggle="modal" class="button btn btn-sm"><span class="button__icon"><i class='bx bx-layer-plus'></i></span><span class="button__text2">Gerar em lote</span></a>
+                    <a href="#modal-importar-pontos" data-bs-toggle="modal" class="button btn btn-sm"><span class="button__icon"><i class='bx bx-upload'></i></span><span class="button__text2">Importar planilha</span></a>
                 <?php endif; ?>
                 <?php if ($pontos_resumo['total'] > 0): ?>
-                    <a href="<?= site_url('obraetiquetas/etiquetas/' . (int) $obra->idObra) ?>" target="_blank" rel="noopener" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-qr'></i></span><span class="button__text2">Imprimir etiquetas (QR)</span></a>
-                    <a href="<?= site_url('obraetiquetas/asbuiltPlanilha/' . (int) $obra->idObra) ?>" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-spreadsheet'></i></span><span class="button__text2">As-built (planilha)</span></a>
+                    <a href="<?= site_url('obraetiquetas/etiquetas/' . (int) $obra->idObra) ?>" target="_blank" rel="noopener" class="button btn btn-sm"><span class="button__icon"><i class='bx bx-qr'></i></span><span class="button__text2">Imprimir etiquetas (QR)</span></a>
+                    <a href="<?= site_url('obraetiquetas/asbuiltPlanilha/' . (int) $obra->idObra) ?>" class="button btn btn-sm"><span class="button__icon"><i class='bx bx-spreadsheet'></i></span><span class="button__text2">As-built (planilha)</span></a>
                 <?php endif; ?>
             </div>
         </div>
@@ -332,19 +332,19 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
 
         <?php if ($pontos_resumo['total'] > 0): ?>
         <form action="<?= site_url('obras/visualizar/' . (int) $obra->idObra) ?>#pontos" method="get" class="pj-filtros">
-            <select name="pt_tipo" aria-label="Filtrar por tipo">
+            <select class="form-select" name="pt_tipo" aria-label="Filtrar por tipo">
                 <option value="">Todos os tipos</option>
                 <?php foreach ($pontos_tipos as $k => $t): ?>
                     <option value="<?= html_escape($k) ?>" <?= $pontos_filtro['tipo'] === $k ? 'selected' : '' ?>><?= html_escape($t['rotulo']) ?></option>
                 <?php endforeach; ?>
             </select>
-            <select name="pt_status" aria-label="Filtrar por status">
+            <select class="form-select" name="pt_status" aria-label="Filtrar por status">
                 <option value="">Todos os status</option>
                 <?php foreach ($pontos_status as $k => $st): ?>
                     <option value="<?= html_escape($k) ?>" <?= $pontos_filtro['status'] === $k ? 'selected' : '' ?>><?= html_escape($st['rotulo']) ?></option>
                 <?php endforeach; ?>
             </select>
-            <select name="pt_aguardando" aria-label="Filtrar por etapa aguardando">
+            <select class="form-select" name="pt_aguardando" aria-label="Filtrar por etapa aguardando">
                 <option value="">Qualquer etapa</option>
                 <?php foreach ($pontos_status as $k => $st):
                     $rotAg = $k === 'previsto' ? '' : Obra_pontos_model::rotuloAguardando($k);
@@ -352,14 +352,14 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                     <option value="<?= html_escape($k) ?>" <?= ($pontos_filtro['aguardando'] ?? '') === $k ? 'selected' : '' ?>><?= html_escape($rotAg) ?></option>
                 <?php endforeach; ?>
             </select>
-            <select name="pt_resp" aria-label="Filtrar por quem está com o ponto">
+            <select class="form-select" name="pt_resp" aria-label="Filtrar por quem está com o ponto">
                 <option value="">Com quem: todos</option>
                 <option value="equipe" <?= ($pontos_filtro['resp'] ?? '') === 'equipe' ? 'selected' : '' ?>>Equipe (livre)</option>
                 <?php foreach ($executores as $ex): $exId = (string) (int) $ex['idUsuarios']; ?>
                     <option value="<?= html_escape($exId) ?>" <?= ($pontos_filtro['resp'] ?? '') === $exId ? 'selected' : '' ?>><?= html_escape($ex['nome']) ?></option>
                 <?php endforeach; ?>
             </select>
-            <button class="button btn btn-mini"><span class="button__icon"><i class='bx bx-filter-alt'></i></span><span class="button__text2">Filtrar</span></button>
+            <button class="button btn btn-sm"><span class="button__icon"><i class='bx bx-filter-alt'></i></span><span class="button__text2">Filtrar</span></button>
             <?php if ($ptFiltrado): ?><a href="<?= site_url('obras/visualizar/' . (int) $obra->idObra) ?>#pontos" class="pj-link">Limpar filtros</a><?php endif; ?>
         </form>
         <?php endif; ?>
@@ -370,17 +370,17 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                 <strong class="pj-selecao-qtd"><span id="pj-sel-qtd">0</span> selecionado(s)</strong>
                 <form id="form-repasse-lote" action="<?= site_url('obras/repassarPontos') ?>" method="post" class="pj-selecao-form">
                     <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
-                    <select name="destinatario" aria-label="Quem recebe os pontos selecionados">
+                    <select class="form-select" name="destinatario" aria-label="Quem recebe os pontos selecionados">
                         <option value="">Equipe (livre)</option>
                         <?php foreach ($executores as $ex): ?>
                             <option value="<?= (int) $ex['idUsuarios'] ?>"><?= html_escape($ex['nome']) ?></option>
                         <?php endforeach; ?>
                     </select>
-                    <input type="text" name="instrucao" maxlength="255" placeholder="Instrução (não escreva senhas)" aria-label="Instrução para quem recebe">
-                    <button class="button btn btn-mini" title="Passar os pontos marcados para outro técnico"><span class="button__icon"><i class='bx bx-transfer-alt'></i></span><span class="button__text2">Passar para outro técnico</span></button>
+                    <input class="form-control" type="text" name="instrucao" maxlength="255" placeholder="Instrução (não escreva senhas)" aria-label="Instrução para quem recebe">
+                    <button class="button btn btn-sm" title="Passar os pontos marcados para outro técnico"><span class="button__icon"><i class='bx bx-transfer-alt'></i></span><span class="button__text2">Passar para outro técnico</span></button>
                 </form>
                 <?php if (! empty($plan_ativo) && $etapas): ?>
-                    <a href="#modal-os-pontos" data-toggle="modal" class="button btn btn-mini btn-primary js-os-pontos" title="Gerar uma OS com os pontos marcados que ainda não têm OS"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2">Gerar OS</span></a>
+                    <a href="#modal-os-pontos" data-bs-toggle="modal" class="button btn btn-sm btn-primary js-os-pontos" title="Gerar uma OS com os pontos marcados que ainda não têm OS"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2">Gerar OS</span></a>
                 <?php endif; ?>
             </div>
         <?php endif; ?>
@@ -388,7 +388,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
         <div class="pj-tabela-caixa ui-tabela-rolagem">
             <table class="table pt-tabela pj-tab-cartao">
                 <thead><tr>
-                    <?php if ($ptEdita): ?><th class="pt-col-sel"><input type="checkbox" id="pt-selecionar-todos" title="Selecionar todos" aria-label="Selecionar todos os pontos"></th><?php endif; ?>
+                    <?php if ($ptEdita): ?><th class="pt-col-sel"><input class="form-check-input" type="checkbox" id="pt-selecionar-todos" title="Selecionar todos" aria-label="Selecionar todos os pontos"></th><?php endif; ?>
                     <th class="pt-col-foto">Foto</th><th>Ponto</th><th>Local</th><th>Rede</th><th>Cabo</th><th>Status</th><th>Com quem</th><?php if ($ptMuda): ?><th class="pj-col-atualizar">Atualizar status</th><?php endif; ?>
                 </tr></thead>
                 <tbody>
@@ -398,7 +398,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                                 <div class="ui-vazio"><i class="bx bx-filter-alt"></i><strong>Nenhum ponto com esse filtro.</strong>Tire um filtro para ver mais pontos.</div>
                             <?php else: ?>
                                 <div class="ui-vazio"><i class="bx bx-cctv"></i><strong>Nenhum ponto ainda.</strong>Gere os pontos em lote, por exemplo 16 câmeras de CAM-01 a CAM-16. Depois cada um avança até o teste e o progresso do projeto é calculado sozinho.
-                                    <?php if ($ptEdita): ?><div class="pj-vazio-acao"><a href="#modal-lote" data-toggle="modal" class="button btn btn-primary"><span class="button__icon"><i class="bx bx-layer-plus"></i></span><span class="button__text2">Adicionar pontos</span></a></div><?php endif; ?></div>
+                                    <?php if ($ptEdita): ?><div class="pj-vazio-acao"><a href="#modal-lote" data-bs-toggle="modal" class="button btn btn-primary"><span class="button__icon"><i class="bx bx-layer-plus"></i></span><span class="button__text2">Adicionar pontos</span></a></div><?php endif; ?></div>
                             <?php endif; ?>
                         </td></tr>
                     <?php endif; ?>
@@ -411,7 +411,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                         ?>
                         <tr id="pt-linha-<?= (int) $pt->idPonto ?>">
                             <?php if ($ptEdita): ?>
-                                <td class="pt-col-sel"><input type="checkbox" name="ponto_ids[]" value="<?= (int) $pt->idPonto ?>" form="form-repasse-lote" data-sem-os="<?= isset($pontosSemOs[(int) $pt->idPonto]) ? 1 : 0 ?>" aria-label="Selecionar <?= html_escape($pt->identificacao) ?>"></td>
+                                <td class="pt-col-sel"><input class="form-check-input" type="checkbox" name="ponto_ids[]" value="<?= (int) $pt->idPonto ?>" form="form-repasse-lote" data-sem-os="<?= isset($pontosSemOs[(int) $pt->idPonto]) ? 1 : 0 ?>" aria-label="Selecionar <?= html_escape($pt->identificacao) ?>"></td>
                             <?php endif; ?>
                             <td data-label="Foto" class="pt-col-foto">
                                 <?php if ($nFotosPt): ?>
@@ -462,22 +462,22 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                                     <form action="<?= site_url('obras/statusPonto') ?>" method="post" class="pt-status-form">
                                         <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
                                         <input type="hidden" name="ponto_id" value="<?= (int) $pt->idPonto ?>">
-                                        <select name="status" aria-label="Novo status de <?= html_escape($pt->identificacao) ?>">
+                                        <select class="form-select" name="status" aria-label="Novo status de <?= html_escape($pt->identificacao) ?>">
                                             <?php foreach ($pontos_status as $k => $s2): ?>
                                                 <option value="<?= html_escape($k) ?>" <?= $pt->status === $k ? 'selected' : '' ?>><?= html_escape($s2['rotulo']) ?></option>
                                             <?php endforeach; ?>
                                         </select>
-                                        <input type="number" step="0.01" min="0" name="metragem_cabo" placeholder="m" title="Metros de cabo passados agora" aria-label="Metros de cabo">
+                                        <input class="form-control" type="number" step="0.01" min="0" name="metragem_cabo" placeholder="m" title="Metros de cabo passados agora" aria-label="Metros de cabo">
                                         <?php if (($pt->tipo ?? '') === 'camera' && $pt->status !== 'testado'): ?>
                                             <details class="pt-teste" style="display:inline-block;text-align:left;">
                                                 <summary title="Obrigatório ao marcar a câmera como Testado">Teste de imagem</summary>
                                                 <?php foreach (Obra_pontos_model::TESTE_ITENS as $tk => $trot): ?>
-                                                    <label style="display:block;"><input type="checkbox" name="teste_itens[<?= html_escape($tk) ?>]" value="1" style="margin:0 4px 0 0;"> <?= html_escape($trot) ?></label>
+                                                    <label style="display:block;"><input class="form-check-input" type="checkbox" name="teste_itens[<?= html_escape($tk) ?>]" value="1" style="margin:0 4px 0 0;"> <?= html_escape($trot) ?></label>
                                                 <?php endforeach; ?>
-                                                <input type="number" min="1" max="<?= (int) Obra_pontos_model::TESTE_RETENCAO_MAX ?>" step="1" name="retencao_dias" placeholder="Retenção (dias)" aria-label="Retenção da gravação em dias">
+                                                <input class="form-control" type="number" min="1" max="<?= (int) Obra_pontos_model::TESTE_RETENCAO_MAX ?>" step="1" name="retencao_dias" placeholder="Retenção (dias)" aria-label="Retenção da gravação em dias">
                                             </details>
                                         <?php endif; ?>
-                                        <button class="btn btn-mini btn-success" title="Atualizar status">OK</button>
+                                        <button class="btn btn-sm btn-success" title="Atualizar status">OK</button>
                                     </form>
                                     <?php if ($ptEdita): ?>
                                         <span class="pj-icones">
@@ -500,16 +500,16 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
             <h2>Etapas <?php if ($etapas): ?><small><?= count($etapas) ?> no total<?= $etapasSemOs && ! empty($plan_ativo) ? ', ' . count($etapasSemOs) . ' sem OS' : '' ?></small><?php endif; ?></h2>
             <div class="pj-secao-acoes">
                 <?php if ($perm('eObraCronograma')): ?>
-                    <a href="#modal-etapa" data-toggle="modal" class="button btn btn-mini" data-chamar="novaEtapa"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova etapa</span></a>
+                    <a href="#modal-etapa" data-bs-toggle="modal" class="button btn btn-sm" data-chamar="novaEtapa"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova etapa</span></a>
                 <?php endif; ?>
                 <?php if ($perm('eObras') && trim((string) $obra->tipo_obra) !== ''): ?>
                     <form action="<?= site_url('obras/aplicarEtapasPadrao') ?>" method="post" class="pj-form-linha">
                         <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
-                        <button class="button btn btn-mini" data-confirmar="Criar as etapas padrão para &quot;<?= html_escape($obra->tipo_obra) ?>&quot;? As que já existem não são repetidas."><span class="button__icon"><i class='bx bx-list-plus'></i></span><span class="button__text2">Criar etapas padrão</span></button>
+                        <button class="button btn btn-sm" data-confirmar="Criar as etapas padrão para &quot;<?= html_escape($obra->tipo_obra) ?>&quot;? As que já existem não são repetidas."><span class="button__icon"><i class='bx bx-list-plus'></i></span><span class="button__text2">Criar etapas padrão</span></button>
                     </form>
                 <?php endif; ?>
                 <?php if ($planOk && $etapas): ?>
-                    <a href="#modal-os-lote" data-toggle="modal" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2">Gerar OS das etapas sem OS</span></a>
+                    <a href="#modal-os-lote" data-bs-toggle="modal" class="button btn btn-sm"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2">Gerar OS das etapas sem OS</span></a>
                 <?php endif; ?>
             </div>
         </div>
@@ -524,7 +524,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                                 <?php if ($perm('eObras') && trim((string) $obra->tipo_obra) !== ''): ?>
                                     <form action="<?= site_url('obras/aplicarEtapasPadrao') ?>" method="post" class="pj-form-linha"><input type="hidden" name="obra_id" value="<?= $obra->idObra ?>"><button class="button btn btn-primary"><span class="button__icon"><i class='bx bx-list-plus'></i></span><span class="button__text2">Criar etapas padrão</span></button></form>
                                 <?php elseif ($perm('eObraCronograma')): ?>
-                                    <a href="#modal-etapa" data-toggle="modal" class="button btn btn-primary" data-chamar="novaEtapa"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova etapa</span></a>
+                                    <a href="#modal-etapa" data-bs-toggle="modal" class="button btn btn-primary" data-chamar="novaEtapa"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova etapa</span></a>
                                 <?php endif; ?>
                             </div></div></td></tr>
                     <?php endif; ?>
@@ -551,9 +551,9 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                                         <a href="<?= site_url('os/visualizar/' . (int) $oe->idOs) ?>" class="ui-selo <?= $coresOs[$oe->status] ?? 'neutro' ?>" title="<?= html_escape(($oe->status ?? '') . (! empty($oe->tecnico_nome) ? ' - ' . $oe->tecnico_nome : '')) ?>">#<?= (int) $oe->idOs ?> <?= html_escape($oe->status ?? '') ?></a>
                                     <?php endforeach; ?>
                                     <?php if ($planOk && ! $osEt): ?>
-                                        <a href="#modal-os-etapa" data-toggle="modal" class="button btn btn-mini js-gerar-os" data-etapa="<?= (int) $e->idEtapa ?>" data-nome="<?= html_escape($e->nome) ?>" data-inicio="<?= html_escape($iniOs) ?>"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2">Gerar OS</span></a>
+                                        <a href="#modal-os-etapa" data-bs-toggle="modal" class="button btn btn-sm js-gerar-os" data-etapa="<?= (int) $e->idEtapa ?>" data-nome="<?= html_escape($e->nome) ?>" data-inicio="<?= html_escape($iniOs) ?>"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2">Gerar OS</span></a>
                                     <?php elseif ($planOk): ?>
-                                        <a href="#modal-os-etapa" data-toggle="modal" class="pj-link-fraco js-gerar-os" data-etapa="<?= (int) $e->idEtapa ?>" data-nome="<?= html_escape($e->nome) ?>" data-inicio="<?= html_escape($iniOs) ?>">Gerar outra</a>
+                                        <a href="#modal-os-etapa" data-bs-toggle="modal" class="pj-link-fraco js-gerar-os" data-etapa="<?= (int) $e->idEtapa ?>" data-nome="<?= html_escape($e->nome) ?>" data-inicio="<?= html_escape($iniOs) ?>">Gerar outra</a>
                                     <?php elseif (! $osEt): ?>—<?php endif; ?>
                                 </td>
                             <?php endif; ?>
@@ -578,7 +578,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                                     <div>
                                         Todas as OS desta etapa terminaram, mas <?= (int) $sugEtapa['pontos_pendentes'] ?> ponto(s) ainda não foram testados.
                                         <div class="pj-sugestao-acoes">
-                                            <a href="<?= site_url('obras/visualizar/' . (int) $obra->idObra) ?>?pt_etapa=<?= (int) $e->idEtapa ?>#pontos" class="button btn btn-mini"><span class="button__icon"><i class="bx bx-cctv"></i></span><span class="button__text2">Ver pontos pendentes</span></a>
+                                            <a href="<?= site_url('obras/visualizar/' . (int) $obra->idObra) ?>?pt_etapa=<?= (int) $e->idEtapa ?>#pontos" class="button btn btn-sm"><span class="button__icon"><i class="bx bx-cctv"></i></span><span class="button__text2">Ver pontos pendentes</span></a>
                                             <?php if ($perm('eObraCronograma')): ?>
                                             <form action="<?= site_url('obras/salvarEtapa') ?>" method="post" class="pj-form-linha" data-confirmar="Concluir esta etapa mesmo com pontos pendentes?">
                                                 <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
@@ -591,7 +591,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                                                 <input type="hidden" name="data_inicio_prevista" value="<?= html_escape((string) $e->data_inicio_prevista) ?>">
                                                 <input type="hidden" name="data_fim_prevista" value="<?= html_escape((string) $e->data_fim_prevista) ?>">
                                                 <input type="hidden" name="status" value="concluida">
-                                                <button class="button btn btn-mini btn-success"><span class="button__icon"><i class="bx bx-check-circle"></i></span><span class="button__text2">Concluir etapa assim mesmo</span></button>
+                                                <button class="button btn btn-sm btn-success"><span class="button__icon"><i class="bx bx-check-circle"></i></span><span class="button__text2">Concluir etapa assim mesmo</span></button>
                                             </form>
                                             <?php endif; ?>
                                         </div>
@@ -634,11 +634,11 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                                     <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
                                     <input type="hidden" name="etapa_id" value="<?= (int) $e->idEtapa ?>">
                                     <input type="hidden" name="referencia_id" class="js-ref">
-                                    <select name="tipo" class="js-tipo" aria-label="Tipo do item"><option value="produto">Produto</option><option value="servico">Serviço</option></select>
-                                    <input type="text" class="js-busca" placeholder="Buscar produto ou serviço" autocomplete="off" aria-label="Buscar item">
-                                    <input type="text" name="quantidade" value="1" class="pj-curto" aria-label="Quantidade">
-                                    <input type="text" name="preco" class="js-preco pj-curto" placeholder="Preço" aria-label="Preço (opcional)">
-                                    <button class="button btn btn-mini"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Adicionar item</span></button>
+                                    <select name="tipo" class="js-tipo form-select" aria-label="Tipo do item"><option value="produto">Produto</option><option value="servico">Serviço</option></select>
+                                    <input type="text" class="js-busca form-control" placeholder="Buscar produto ou serviço" autocomplete="off" aria-label="Buscar item">
+                                    <input type="text" name="quantidade" value="1" class="pj-curto form-control" aria-label="Quantidade">
+                                    <input type="text" name="preco" class="js-preco pj-curto form-control" placeholder="Preço" aria-label="Preço (opcional)">
+                                    <button class="button btn btn-sm"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Adicionar item</span></button>
                                 </form>
                                 <?php endif; ?>
                                 </div>
@@ -659,8 +659,8 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
             <div class="pj-secao-cab">
                 <h2 id="pj-t-reg">Registros do dia</h2>
                 <div class="pj-secao-acoes">
-                    <?php if (! empty($pode_executar)): ?><a href="#modal-registro" data-toggle="modal" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-check-circle'></i></span><span class="button__text2">Registrar execução</span></a><?php endif; ?>
-                    <?php if ($podeRdo): ?><a href="#modal-rdo" data-toggle="modal" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Registro completo</span></a><?php endif; ?>
+                    <?php if (! empty($pode_executar)): ?><a href="#modal-registro" data-bs-toggle="modal" class="button btn btn-sm"><span class="button__icon"><i class='bx bx-check-circle'></i></span><span class="button__text2">Registrar execução</span></a><?php endif; ?>
+                    <?php if ($podeRdo): ?><a href="#modal-rdo" data-bs-toggle="modal" class="button btn btn-sm"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Registro completo</span></a><?php endif; ?>
                 </div>
             </div>
             <?php
@@ -718,8 +718,8 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                     <form action="<?= site_url('obras/consolidarPonto') ?>" method="post" class="pj-form-linha pj-consolidar">
                         <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
                         <label for="pj-cons-data" class="pj-sr">Data do ponto</label>
-                        <input type="text" id="pj-cons-data" class="datepicker" name="data" value="<?= date('d/m/Y') ?>" autocomplete="off">
-                        <button class="button btn btn-mini" data-confirmar="Consolidar as batidas de ponto vinculadas a este projeto nesse dia?" title="Transforma as batidas de ponto (facial/GPS) do dia em horas e custo de mão de obra"><span class="button__icon"><i class='bx bx-sync'></i></span><span class="button__text2">Consolidar ponto do dia</span></button>
+                        <input type="text" id="pj-cons-data" class="datepicker form-control" name="data" value="<?= date('d/m/Y') ?>" autocomplete="off">
+                        <button class="button btn btn-sm" data-confirmar="Consolidar as batidas de ponto vinculadas a este projeto nesse dia?" title="Transforma as batidas de ponto (facial/GPS) do dia em horas e custo de mão de obra"><span class="button__icon"><i class='bx bx-sync'></i></span><span class="button__text2">Consolidar ponto do dia</span></button>
                     </form>
                 </div>
                 <?php endif; ?>
@@ -757,13 +757,13 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                     <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
                     <strong>Lançar horas manualmente</strong>
                     <div class="pj-campos">
-                        <label>Data<input type="text" class="datepicker" name="data" value="<?= date('d/m/Y') ?>" autocomplete="off"></label>
-                        <label>Colaborador<input type="text" name="nome" placeholder="Nome"></label>
-                        <label>Função<input type="text" name="funcao"></label>
-                        <label>Horas<input type="number" step="0.5" name="horas" value="0"></label>
-                        <label>Valor (R$)<input type="number" step="0.01" name="valor" value="0"></label>
-                        <label class="pj-check"><input type="checkbox" name="diaria" value="1"> Diária</label>
-                        <button class="button btn btn-mini"><span class="button__icon"><i class='bx bx-plus'></i></span><span class="button__text2">Lançar</span></button>
+                        <label>Data<input type="text" class="datepicker form-control" name="data" value="<?= date('d/m/Y') ?>" autocomplete="off"></label>
+                        <label>Colaborador<input class="form-control" type="text" name="nome" placeholder="Nome"></label>
+                        <label>Função<input class="form-control" type="text" name="funcao"></label>
+                        <label>Horas<input class="form-control" type="number" step="0.5" name="horas" value="0"></label>
+                        <label>Valor (R$)<input class="form-control" type="number" step="0.01" name="valor" value="0"></label>
+                        <label class="pj-check"><input class="form-check-input" type="checkbox" name="diaria" value="1"> Diária</label>
+                        <button class="button btn btn-sm"><span class="button__icon"><i class='bx bx-plus'></i></span><span class="button__text2">Lançar</span></button>
                     </div>
                 </form>
             <?php endif; ?>
@@ -773,7 +773,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
             <div class="pj-secao-cab">
                 <h2 id="pj-t-osv">OS vinculadas <?php if ($os_vinculadas): ?><small><?= count($os_vinculadas) ?></small><?php endif; ?></h2>
                 <div class="pj-secao-acoes">
-                    <?php if ($ptEdita): ?><a href="#modal-vincular-os" data-toggle="modal" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-link'></i></span><span class="button__text2">Vincular OS existente</span></a><?php endif; ?>
+                    <?php if ($ptEdita): ?><a href="#modal-vincular-os" data-bs-toggle="modal" class="button btn btn-sm"><span class="button__icon"><i class='bx bx-link'></i></span><span class="button__text2">Vincular OS existente</span></a><?php endif; ?>
                 </div>
             </div>
             <div class="pj-tabela-caixa ui-tabela-rolagem">
@@ -789,7 +789,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                                 <td data-label="Status"><span class="ui-selo <?= $coresOs[$o->status] ?? 'neutro' ?>"><?= html_escape($o->status ?: '—') ?></span></td>
                                 <td data-label="Etapa"><?= html_escape($o->etapa_nome ?: '—') ?></td>
                                 <td class="pj-col-acoes">
-                                    <a href="<?= site_url('tecnico/visualizar/' . $o->idOs) ?>" class="button btn btn-mini" title="Executar em campo"><span class="button__icon"><i class='bx bx-play-circle'></i></span><span class="button__text2">Executar</span></a>
+                                    <a href="<?= site_url('tecnico/visualizar/' . $o->idOs) ?>" class="button btn btn-sm" title="Executar em campo"><span class="button__icon"><i class='bx bx-play-circle'></i></span><span class="button__text2">Executar</span></a>
                                     <?php if ($ptEdita): ?><a href="#" class="btn-nwe4" title="Desvincular" aria-label="Desvincular OS <?= (int) $o->idOs ?>" data-chamar="desvincularOs" data-args="[<?= (int) $o->idVinculo ?>]" data-cancelar><i class="bx bx-unlink bx-xs"></i></a><?php endif; ?>
                                 </td>
                             </tr>
@@ -830,8 +830,8 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
         <div class="pj-secao-cab">
             <h2>Material</h2>
             <div class="pj-secao-acoes">
-                <?php if ($perm('rObraMaterial')): ?><a href="<?= site_url('obramaterial/receber/' . $obra->idObra) ?>" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-down-arrow-circle'></i></span><span class="button__text2">Receber material</span></a><?php endif; ?>
-                <?php if ($perm('sObraMaterial')): ?><a href="<?= site_url('obramaterial/entregar/' . $obra->idObra) ?>" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-up-arrow-circle'></i></span><span class="button__text2">Entregar à equipe</span></a><?php endif; ?>
+                <?php if ($perm('rObraMaterial')): ?><a href="<?= site_url('obramaterial/receber/' . $obra->idObra) ?>" class="button btn btn-sm"><span class="button__icon"><i class='bx bx-down-arrow-circle'></i></span><span class="button__text2">Receber material</span></a><?php endif; ?>
+                <?php if ($perm('sObraMaterial')): ?><a href="<?= site_url('obramaterial/entregar/' . $obra->idObra) ?>" class="button btn btn-sm"><span class="button__icon"><i class='bx bx-up-arrow-circle'></i></span><span class="button__text2">Entregar à equipe</span></a><?php endif; ?>
             </div>
         </div>
         <div class="pj-cartao pj-compras">
@@ -942,7 +942,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
             <div class="pj-secao-cab">
                 <h2 id="pj-t-med">Medições</h2>
                 <div class="pj-secao-acoes">
-                    <?php if ($perm('cObraMedicao') && $etapas): ?><a href="#modal-medicao" data-toggle="modal" class="button btn btn-mini"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova medição</span></a><?php endif; ?>
+                    <?php if ($perm('cObraMedicao') && $etapas): ?><a href="#modal-medicao" data-bs-toggle="modal" class="button btn btn-sm"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Nova medição</span></a><?php endif; ?>
                 </div>
             </div>
             <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Medição é a cobrança parcial do que foi executado. Informe o novo percentual de cada etapa e o valor é calculado.<?php if (! $etapas): ?> Crie as etapas no Planejamento para poder medir.<?php endif; ?></div></div>
@@ -963,7 +963,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                                         <form action="<?= site_url('obras/aprovarMedicao') ?>" method="post" class="pj-form-linha">
                                             <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
                                             <input type="hidden" name="idMedicao" value="<?= $m->idMedicao ?>">
-                                            <button class="button btn btn-mini btn-success" data-confirmar="Aprovar medição?"><span class="button__text2">Aprovar</span></button>
+                                            <button class="button btn btn-sm btn-success" data-confirmar="Aprovar medição?"><span class="button__text2">Aprovar</span></button>
                                         </form>
                                     <?php endif; ?>
                                 </td>
@@ -979,13 +979,13 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
 
 <?php if ($perm('eObras')): ?>
 <!-- Modal Vincular OS -->
-<div id="modal-vincular-os" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-vincular-os" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('obras/vincularOs') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Vincular OS existente</h5></div>
-        <div class="modal-body">
+        <div class="modal-header"><h5>Vincular OS existente</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+        <div class="modal-body"><div class="row">
             <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
-            <div class="span12" style="margin-left:0"><label>Ordem de serviço *</label>
-                <select name="os_id" class="span12" required>
+            <div class="col-md-12" style="margin-left:0"><label>Ordem de serviço *</label>
+                <select name="os_id" class="w-100 form-select" required>
                     <option value="">Selecione a OS...</option>
                     <?php foreach ($os_disponiveis as $d): ?>
                         <option value="<?= (int) $d->idOs ?>">#<?= (int) $d->idOs ?> — <?= html_escape($d->nomeCliente ?: 'sem cliente') ?><?= $d->status ? ' (' . html_escape($d->status) . ')' : '' ?></option>
@@ -993,84 +993,84 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                 </select>
                 <?php if (! $os_disponiveis): ?><small>Nenhuma OS livre para vincular (todas já estão em algum projeto).</small><?php endif; ?>
             </div>
-            <div class="span12" style="margin-left:0"><label>Etapa (opcional)</label>
-                <select name="etapa_id" class="span12">
+            <div class="col-md-12" style="margin-left:0"><label>Etapa (opcional)</label>
+                <select name="etapa_id" class="w-100 form-select">
                     <option value="">Sem etapa</option>
                     <?php foreach ($etapas as $e): ?>
                         <option value="<?= (int) $e->idEtapa ?>"><?= html_escape($e->nome) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
-        </div>
-        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Vincular</span></button></div>
+        </div></div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-bs-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Vincular</span></button></div>
     </form>
-</div>
+</div></div></div>
 <?php if (! empty($plan_ativo)):
     $camposOs = function ($com_data) use ($tecnicos_os, $equipes_os) { ob_start(); ?>
-        <div class="span6" style="margin-left:0"><label>Técnico</label>
-            <select name="tecnico_id" class="span12"><option value="">— nenhum —</option>
+        <div class="col-md-6" style="margin-left:0"><label>Técnico</label>
+            <select name="tecnico_id" class="w-100 form-select"><option value="">— nenhum —</option>
                 <?php foreach ($tecnicos_os as $t): ?><option value="<?= (int) $t->idUsuarios ?>"><?= html_escape($t->nome) ?></option><?php endforeach; ?>
             </select></div>
-        <div class="span6"><label>Equipe</label>
-            <select name="equipe_id" class="span12"><option value="">— nenhuma —</option>
+        <div class="col-md-6"><label>Equipe</label>
+            <select name="equipe_id" class="w-100 form-select"><option value="">— nenhuma —</option>
                 <?php foreach ($equipes_os as $q): ?><option value="<?= (int) $q->idEquipe ?>"><?= html_escape($q->nome) ?></option><?php endforeach; ?>
             </select></div>
         <?php if ($com_data): ?>
-        <div class="span6" style="margin-left:0"><label>Data de agendamento</label>
-            <input type="text" name="data_agendamento" class="span12 datepicker js-os-data" autocomplete="off" placeholder="dd/mm/aaaa"></div>
+        <div class="col-md-6" style="margin-left:0"><label>Data de agendamento</label>
+            <input type="text" name="data_agendamento" class="datepicker js-os-data w-100 form-control" autocomplete="off" placeholder="dd/mm/aaaa"></div>
         <?php endif; ?>
-        <div class="span6" <?= $com_data ? '' : 'style="margin-left:0"' ?>><label>Tipo de vínculo</label>
-            <select name="tipo_vinculo" class="span12"><option value="execucao">Execução</option><option value="complementar">Complementar</option><option value="garantia">Garantia</option></select></div>
-        <div class="span12" style="margin-left:0"><label><input type="checkbox" name="fatura_no_projeto" value="1" checked style="margin:0 6px 0 0"> Faturar no projeto</label></div>
+        <div class="col-md-6" <?= $com_data ? '' : 'style="margin-left:0"' ?>><label>Tipo de vínculo</label>
+            <select name="tipo_vinculo" class="w-100 form-select"><option value="execucao">Execução</option><option value="complementar">Complementar</option><option value="garantia">Garantia</option></select></div>
+        <div class="col-md-12" style="margin-left:0"><label><input class="form-check-input" type="checkbox" name="fatura_no_projeto" value="1" checked style="margin:0 6px 0 0"> Faturar no projeto</label></div>
     <?php return ob_get_clean(); }; ?>
 <!-- Modal Gerar OS da etapa -->
-<div id="modal-os-etapa" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-os-etapa" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('obras/gerarOsEtapa') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Gerar OS da etapa <span id="os_etapa_nome"></span></h5></div>
+        <div class="modal-header"><h5>Gerar OS da etapa <span id="os_etapa_nome"></span></h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
             <input type="hidden" name="etapa_id" id="os_etapa_id">
             <?= $camposOs(true) ?>
             <small>Os materiais e serviços da etapa são copiados para a OS.</small>
         </div>
-        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Gerar OS</span></button></div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-bs-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Gerar OS</span></button></div>
     </form>
-</div>
+</div></div></div>
 <!-- Modal Gerar OS em lote -->
-<div id="modal-os-lote" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-os-lote" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('obras/gerarOsLote') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Gerar OS das etapas sem OS</h5></div>
-        <div class="modal-body">
+        <div class="modal-header"><h5>Gerar OS das etapas sem OS</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+        <div class="modal-body"><div class="row">
             <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
-            <div class="span12" style="margin-left:0"><label>Etapas (nenhuma marcada = todas sem OS)</label>
+            <div class="col-md-12" style="margin-left:0"><label>Etapas (nenhuma marcada = todas sem OS)</label>
                 <?php foreach ($etapasSemOs as $es): ?>
-                    <label style="display:block"><input type="checkbox" name="etapas[]" value="<?= (int) $es->idEtapa ?>" style="margin:0 6px 0 0"> <?= html_escape(trim($es->codigo_eap . ' ' . $es->nome)) ?></label>
+                    <label style="display:block"><input class="form-check-input" type="checkbox" name="etapas[]" value="<?= (int) $es->idEtapa ?>" style="margin:0 6px 0 0"> <?= html_escape(trim($es->codigo_eap . ' ' . $es->nome)) ?></label>
                 <?php endforeach; ?>
                 <?php if (! $etapasSemOs): ?><small>Todas as etapas já têm OS.</small><?php endif; ?>
             </div>
             <?= $camposOs(false) ?>
-            <div class="span12" style="margin-left:0"><label><input type="checkbox" name="forcar" value="1" style="margin:0 6px 0 0"> Gerar mesmo se a etapa já tiver OS ou não tiver itens</label></div>
-        </div>
-        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Gerar OS</span></button></div>
+            <div class="col-md-12" style="margin-left:0"><label><input class="form-check-input" type="checkbox" name="forcar" value="1" style="margin:0 6px 0 0"> Gerar mesmo se a etapa já tiver OS ou não tiver itens</label></div>
+        </div></div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-bs-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Gerar OS</span></button></div>
     </form>
-</div>
+</div></div></div>
 <!-- Modal Gerar OS por pontos -->
-<div id="modal-os-pontos" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-os-pontos" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('obras/gerarOsPontos') ?>" method="post" id="form-os-pontos">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Gerar OS dos pontos marcados</h5></div>
-        <div class="modal-body">
+        <div class="modal-header"><h5>Gerar OS dos pontos marcados</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+        <div class="modal-body"><div class="row">
             <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
             <div id="os_pontos_ids"></div>
             <p><strong id="os_pontos_qtd">0</strong> ponto(s) sem OS selecionado(s).</p>
-            <div class="span12" style="margin-left:0"><label>Etapa *</label>
-                <select name="etapa_id" class="span12" required><option value="">Selecione a etapa...</option>
+            <div class="col-md-12" style="margin-left:0"><label>Etapa *</label>
+                <select name="etapa_id" class="w-100 form-select" required><option value="">Selecione a etapa...</option>
                     <?php foreach ($etapas as $e): ?><option value="<?= (int) $e->idEtapa ?>"><?= html_escape($e->nome) ?></option><?php endforeach; ?>
                 </select></div>
             <?= $camposOs(false) ?>
-        </div>
-        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Gerar OS</span></button></div>
+        </div></div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-bs-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Gerar OS</span></button></div>
     </form>
-</div>
+</div></div></div>
 <script nonce="<?= csp_nonce() ?>">
     $(function () {
         $('.js-itens-toggle').on('click', function (ev) { ev.preventDefault(); var $l = $(this), $r = $('#' + $l.data('alvo')); $r.toggle(); var aberto = $r.is(':visible'); $l.attr('aria-expanded', aberto).toggleClass('aberto', aberto); });
@@ -1125,22 +1125,22 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
 
 <?php if (! empty($pode_executar)): ?>
 <!-- Modal Registro rápido de execução (reusa RDO) -->
-<div id="modal-registro" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-registro" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('obras/registrarExecucao') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5><i class='bx bx-check-circle'></i> Registrar execução do dia — <?= date('d/m/Y') ?></h5></div>
-        <div class="modal-body">
+        <div class="modal-header"><h5><i class='bx bx-check-circle'></i> Registrar execução do dia — <?= date('d/m/Y') ?></h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+        <div class="modal-body"><div class="row">
             <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
-            <div class="span12" style="margin-left:0"><label>O que foi feito hoje? *</label>
-                <textarea name="atividades" id="reg_atividades" class="span12" rows="4" placeholder="Descreva a atividade executada..." required></textarea>
+            <div class="col-md-12" style="margin-left:0"><label>O que foi feito hoje? *</label>
+                <textarea name="atividades" id="reg_atividades" class="w-100 form-control" rows="4" placeholder="Descreva a atividade executada..." required></textarea>
             </div>
-            <div class="span12" style="margin-left:0"><label>Fotos (opcional)</label>
-                <input type="file" accept="image/*" multiple id="regFotos" capture="environment">
+            <div class="col-md-12" style="margin-left:0"><label>Fotos (opcional)</label>
+                <input class="form-control" type="file" accept="image/*" multiple id="regFotos" capture="environment">
                 <div id="regFotosHidden"></div><div id="regFotosPrev" class="obra-fotos-prev"></div>
             </div>
-        </div>
-        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Registrar</span></button></div>
+        </div></div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-bs-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Registrar</span></button></div>
     </form>
-</div>
+</div></div></div>
 <?php endif; ?>
 
 <?php if ($perm('cObraRdo')): ?>
@@ -1153,14 +1153,14 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
 <?php endif; ?>
 
 <!-- Modal Detalhes do ponto -->
-<div id="modal-ponto-detalhes" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="ptd-titulo" aria-hidden="true">
-    <div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Fechar">×</button><h5 id="ptd-titulo" tabindex="-1">Detalhes do ponto</h5></div>
+<div id="modal-ponto-detalhes" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ptd-titulo" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 id="ptd-titulo" tabindex="-1">Detalhes do ponto</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body" id="ptd-corpo" aria-live="polite"></div>
     <div class="modal-footer">
         <?php if ($ptEdita): ?><button type="button" class="button btn btn-primary" id="ptd-editar" style="display:none"><span class="button__icon"><i class="bx bx-edit"></i></span><span class="button__text2">Editar ponto</span></button><?php endif; ?>
-        <button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Fechar</span></button>
+        <button type="button" class="button btn btn-warning" data-bs-dismiss="modal"><span class="button__text2">Fechar</span></button>
     </div>
-</div>
+</div></div></div>
 <script nonce="<?= csp_nonce() ?>">
     (function () {
         var editArgs = null, req = 0;
@@ -1172,7 +1172,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
             $('#ptd-titulo').text('Detalhes do ponto');
             $('#ptd-corpo').html('<p>Carregando...</p>');
             // dois modais abertos no Bootstrap 2 disputam o foco sem fim: fecha os outros antes
-            $('.modal.in').not('#modal-ponto-detalhes').modal('hide');
+            $('.modal.show').not('#modal-ponto-detalhes').modal('hide');
             $('#modal-ponto-detalhes').modal('show');
             $.get('<?= site_url('obras/pontoDetalhes') ?>', { obra_id: <?= (int) $obra->idObra ?>, ponto_id: id })
                 .done(function (html) {
@@ -1184,7 +1184,7 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
                 .fail(function () { if (n === req) { $('#ptd-corpo').html('<p>Não foi possível carregar os detalhes. Verifique a conexão e tente novamente.</p>'); } });
         });
         // foco nativo: trigger('focus') do jQuery 3 entra em laco com o controle de foco do modal do Bootstrap 2
-        $('#modal-ponto-detalhes').on('shown', function (e) { if (e.target === this) { var t = document.getElementById('ptd-titulo'); if (t) { t.focus(); } } });
+        $('#modal-ponto-detalhes').on('shown.bs.modal', function (e) { if (e.target === this) { var t = document.getElementById('ptd-titulo'); if (t) { t.focus(); } } });
         $(document).on('click', '#ptd-editar', function () {
             var args = editArgs;
             $('#modal-ponto-detalhes').one('hidden', function () { if (args) { editarPonto.apply(null, args); } }).modal('hide');
@@ -1194,77 +1194,77 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
 
 <?php if ($perm('eObras')): ?>
 <!-- Modal Ponto -->
-<div id="modal-ponto" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-ponto" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('obras/salvarPonto') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Ponto do projeto</h5></div>
-        <div class="modal-body">
+        <div class="modal-header"><h5>Ponto do projeto</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+        <div class="modal-body"><div class="row">
             <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
             <input type="hidden" name="idPonto" id="pt_id" value="">
-            <div class="span6" style="margin-left:0"><label>Tipo *</label>
-                <select name="tipo" id="pt_tipo" class="span12" required>
+            <div class="col-md-6" style="margin-left:0"><label>Tipo *</label>
+                <select name="tipo" id="pt_tipo" class="w-100 form-select" required>
                     <?php foreach ($pontos_tipos as $k => $t): ?><option value="<?= html_escape($k) ?>"><?= html_escape($t['rotulo']) ?></option><?php endforeach; ?>
                 </select>
             </div>
-            <div class="span6"><label>Identificação *</label><input type="text" class="span12" name="identificacao" id="pt_ident" maxlength="30" placeholder="CAM-07" required></div>
-            <div class="span12" style="margin-left:0"><label>Local</label><input type="text" class="span12" name="local" id="pt_local" maxlength="150" placeholder="Ex.: Corredor 2, entrada de funcionários"></div>
-            <div class="span6" style="margin-left:0"><label>IP</label><input type="text" class="span12" name="ip" id="pt_ip" maxlength="45" placeholder="192.168.1.107" inputmode="decimal" pattern="[0-9A-Fa-f:.]*" title="IPv4 (192.168.1.107) ou IPv6"></div>
-            <div class="span3"><label>Canal</label><input type="text" class="span12" name="canal" id="pt_canal" maxlength="10" pattern="[A-Za-z]{0,3} ?[0-9]{1,4}" title="Número do canal, ex.: 5 ou D5"></div>
-            <div class="span3"><label>Porta</label><input type="text" class="span12" name="porta" id="pt_porta" maxlength="30"></div>
-            <div class="span12" style="margin-left:0"><label for="pt_etiqueta">Foto da etiqueta (preenche modelo e série)</label>
-                <input type="file" id="pt_etiqueta" accept="image/*" capture="environment" data-foto-compacta data-foto-nome="fotos_etiqueta[]" data-etiqueta data-etiqueta-modelo="#pt_modelo" data-etiqueta-serie="#pt_serie">
+            <div class="col-md-6"><label>Identificação *</label><input type="text" class="w-100 form-control" name="identificacao" id="pt_ident" maxlength="30" placeholder="CAM-07" required></div>
+            <div class="col-md-12" style="margin-left:0"><label>Local</label><input type="text" class="w-100 form-control" name="local" id="pt_local" maxlength="150" placeholder="Ex.: Corredor 2, entrada de funcionários"></div>
+            <div class="col-md-6" style="margin-left:0"><label>IP</label><input type="text" class="w-100 form-control" name="ip" id="pt_ip" maxlength="45" placeholder="192.168.1.107" inputmode="decimal" pattern="[0-9A-Fa-f:.]*" title="IPv4 (192.168.1.107) ou IPv6"></div>
+            <div class="col-md-3"><label>Canal</label><input type="text" class="w-100 form-control" name="canal" id="pt_canal" maxlength="10" pattern="[A-Za-z]{0,3} ?[0-9]{1,4}" title="Número do canal, ex.: 5 ou D5"></div>
+            <div class="col-md-3"><label>Porta</label><input type="text" class="w-100 form-control" name="porta" id="pt_porta" maxlength="30"></div>
+            <div class="col-md-12" style="margin-left:0"><label for="pt_etiqueta">Foto da etiqueta (preenche modelo e série)</label>
+                <input class="form-control" type="file" id="pt_etiqueta" accept="image/*" capture="environment" data-foto-compacta data-foto-nome="fotos_etiqueta[]" data-etiqueta data-etiqueta-modelo="#pt_modelo" data-etiqueta-serie="#pt_serie">
             </div>
-            <div class="span6" style="margin-left:0"><label>Modelo</label><input type="text" class="span12" name="modelo" id="pt_modelo" maxlength="80"></div>
-            <div class="span6"><label>Série / MAC</label><input type="text" class="span12" name="serie" id="pt_serie" maxlength="60"></div>
-            <div class="span12" style="margin-left:0"><label>Observação</label><input type="text" class="span12" name="observacao" id="pt_obs" maxlength="255"></div>
-            <div class="span12 pt-modal-fotos" style="margin-left:0">
+            <div class="col-md-6" style="margin-left:0"><label>Modelo</label><input type="text" class="w-100 form-control" name="modelo" id="pt_modelo" maxlength="80"></div>
+            <div class="col-md-6"><label>Série / MAC</label><input type="text" class="w-100 form-control" name="serie" id="pt_serie" maxlength="60"></div>
+            <div class="col-md-12" style="margin-left:0"><label>Observação</label><input type="text" class="w-100 form-control" name="observacao" id="pt_obs" maxlength="255"></div>
+            <div class="col-md-12 pt-modal-fotos" style="margin-left:0">
                 <label for="pt_fotos">Fotos do equipamento e da etiqueta (até 6)</label>
-                <input type="file" id="pt_fotos" accept="image/*" multiple data-foto-compacta>
+                <input class="form-control" type="file" id="pt_fotos" accept="image/*" multiple data-foto-compacta>
                 <div class="pt-foto-preview" data-foto-preview></div>
                 <small>As fotos são reduzidas no seu navegador antes de enviar. Não fotografe senhas.</small>
             </div>
-        </div>
-        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Salvar</span></button></div>
+        </div></div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-bs-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Salvar</span></button></div>
     </form>
-</div>
+</div></div></div>
 
 <!-- Modal Gerar em lote -->
-<div id="modal-lote" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-lote" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('obras/gerarPontos') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Adicionar pontos em lote</h5></div>
-        <div class="modal-body">
+        <div class="modal-header"><h5>Adicionar pontos em lote</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+        <div class="modal-body"><div class="row">
             <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
-            <div class="span12" style="margin-left:0"><label>Tipo *</label>
-                <select name="tipo" id="lt_tipo" class="span12" required>
+            <div class="col-md-12" style="margin-left:0"><label>Tipo *</label>
+                <select name="tipo" id="lt_tipo" class="w-100 form-select" required>
                     <?php foreach ($pontos_tipos as $k => $t): ?><option value="<?= html_escape($k) ?>" data-prefixo="<?= html_escape($t['prefixo']) ?>"><?= html_escape($t['rotulo']) ?></option><?php endforeach; ?>
                 </select>
             </div>
-            <div class="span4" style="margin-left:0"><label>Prefixo</label><input type="text" class="span12" name="prefixo" id="lt_prefixo" maxlength="20"></div>
-            <div class="span4"><label>Número inicial</label><input type="number" min="1" class="span12" name="inicio" value="1"></div>
-            <div class="span4"><label>Quantidade (1 a 500)</label><input type="number" min="1" max="500" class="span12" name="quantidade" value="16" required></div>
-            <div class="span12" style="margin-left:0"><label>Local (opcional, igual para todos)</label><input type="text" class="span12" name="local" maxlength="150"></div>
-            <div class="span12" style="margin-left:0"><strong id="lt_previa" aria-live="polite"></strong></div>
-            <div class="span12" style="margin-left:0"><small>Ex.: tipo Câmera, prefixo CAM, início 1, quantidade 16 cria CAM-01 a CAM-16. Identificações que já existem são ignoradas.</small></div>
-        </div>
-        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Gerar</span></button></div>
+            <div class="col-md-4" style="margin-left:0"><label>Prefixo</label><input type="text" class="w-100 form-control" name="prefixo" id="lt_prefixo" maxlength="20"></div>
+            <div class="col-md-4"><label>Número inicial</label><input type="number" min="1" class="w-100 form-control" name="inicio" value="1"></div>
+            <div class="col-md-4"><label>Quantidade (1 a 500)</label><input type="number" min="1" max="500" class="w-100 form-control" name="quantidade" value="16" required></div>
+            <div class="col-md-12" style="margin-left:0"><label>Local (opcional, igual para todos)</label><input type="text" class="w-100 form-control" name="local" maxlength="150"></div>
+            <div class="col-md-12" style="margin-left:0"><strong id="lt_previa" aria-live="polite"></strong></div>
+            <div class="col-md-12" style="margin-left:0"><small>Ex.: tipo Câmera, prefixo CAM, início 1, quantidade 16 cria CAM-01 a CAM-16. Identificações que já existem são ignoradas.</small></div>
+        </div></div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-bs-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Gerar</span></button></div>
     </form>
-</div>
+</div></div></div>
 
 <!-- Modal Importar planilha -->
-<div id="modal-importar-pontos" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-importar-pontos" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('obraimportar/previa') ?>" method="post" enctype="multipart/form-data">
         <input type="hidden" name="<?= $this->security->get_csrf_token_name() ?>" value="<?= $this->security->get_csrf_hash() ?>">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Importar pontos de planilha</h5></div>
-        <div class="modal-body">
+        <div class="modal-header"><h5>Importar pontos de planilha</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+        <div class="modal-body"><div class="row">
             <input type="hidden" name="obra_id" value="<?= (int) $obra->idObra ?>">
-            <div class="span12" style="margin-left:0"><label>Arquivo CSV (até 2 MB e 1000 linhas) *</label><input type="file" name="planilha" class="span12" accept=".csv,.xlsx" required></div>
-            <div class="span12" style="margin-left:0"><label>Identificação que já existe no projeto</label>
-                <select name="existentes" class="span12"><option value="pular">Pular (não altera)</option><option value="atualizar">Atualizar com os dados da planilha</option></select>
+            <div class="col-md-12" style="margin-left:0"><label>Arquivo CSV (até 2 MB e 1000 linhas) *</label><input type="file" name="planilha" class="w-100 form-control" accept=".csv,.xlsx" required></div>
+            <div class="col-md-12" style="margin-left:0"><label>Identificação que já existe no projeto</label>
+                <select name="existentes" class="w-100 form-select"><option value="pular">Pular (não altera)</option><option value="atualizar">Atualizar com os dados da planilha</option></select>
             </div>
-            <div class="span12" style="margin-left:0"><small>Colunas: identificacao, tipo, local, ip, canal, porta, modelo, serie, observacao. <a href="<?= site_url('obraimportar/modelo') ?>">Baixar modelo</a>. Você verá uma prévia antes de gravar.</small></div>
-        </div>
-        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Ver prévia</span></button></div>
+            <div class="col-md-12" style="margin-left:0"><small>Colunas: identificacao, tipo, local, ip, canal, porta, modelo, serie, observacao. <a href="<?= site_url('obraimportar/modelo') ?>">Baixar modelo</a>. Você verá uma prévia antes de gravar.</small></div>
+        </div></div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-bs-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Ver prévia</span></button></div>
     </form>
-</div>
+</div></div></div>
 <form id="formExcluirPonto"action="<?= site_url('obras/excluirPonto') ?>" method="post" style="display:none">
     <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>"><input type="hidden" name="idPonto" id="del_ponto">
 </form>
@@ -1273,65 +1273,65 @@ $botaoPasso = $linkAlvo($guia['alvo'], $guia['botao_rotulo'], 'pj-secundario');
 <?php endif; ?>
 
 <!-- Modal Etapa -->
-<div id="modal-etapa" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-etapa" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('obras/salvarEtapa') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Etapa do projeto</h5></div>
-        <div class="modal-body">
+        <div class="modal-header"><h5>Etapa do projeto</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+        <div class="modal-body"><div class="row">
             <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
             <input type="hidden" name="idEtapa" id="et_id" value="">
-            <div class="span5" style="margin-left:0"><label>Nº</label><input type="text" class="span12" name="codigo_eap" id="et_cod"></div>
-            <div class="span7"><label>Nome *</label><input type="text" class="span12" name="nome" id="et_nome" required></div>
-            <div class="span4" style="margin-left:0"><label>Peso</label><input type="number" step="0.01" class="span12" name="peso_percentual" id="et_peso" value="0"></div>
-            <div class="span4"><label>Valor previsto</label><input type="number" step="0.01" class="span12" name="valor_previsto" id="et_valor" value="0"></div>
-            <div class="span4"><label>% concluído</label><input type="number" step="0.01" class="span12" name="percentual_concluido" id="et_pct" value="0"></div>
-            <div class="span6" style="margin-left:0"><label>Início previsto</label><input type="text" class="span12 datepicker" name="data_inicio_prevista" id="et_ini"></div>
-            <div class="span6"><label>Fim previsto</label><input type="text" class="span12 datepicker" name="data_fim_prevista" id="et_fim"></div>
-        </div>
-        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Salvar</span></button></div>
+            <div class="col-md-5" style="margin-left:0"><label>Nº</label><input type="text" class="w-100 form-control" name="codigo_eap" id="et_cod"></div>
+            <div class="col-md-7"><label>Nome *</label><input type="text" class="w-100 form-control" name="nome" id="et_nome" required></div>
+            <div class="col-md-4" style="margin-left:0"><label>Peso</label><input type="number" step="0.01" class="w-100 form-control" name="peso_percentual" id="et_peso" value="0"></div>
+            <div class="col-md-4"><label>Valor previsto</label><input type="number" step="0.01" class="w-100 form-control" name="valor_previsto" id="et_valor" value="0"></div>
+            <div class="col-md-4"><label>% concluído</label><input type="number" step="0.01" class="w-100 form-control" name="percentual_concluido" id="et_pct" value="0"></div>
+            <div class="col-md-6" style="margin-left:0"><label>Início previsto</label><input type="text" class="datepicker w-100 form-control" name="data_inicio_prevista" id="et_ini"></div>
+            <div class="col-md-6"><label>Fim previsto</label><input type="text" class="datepicker w-100 form-control" name="data_fim_prevista" id="et_fim"></div>
+        </div></div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-bs-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Salvar</span></button></div>
     </form>
-</div>
+</div></div></div>
 <form id="formExcluirEtapa" action="<?= site_url('obras/excluirEtapa') ?>" method="post" style="display:none">
     <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>"><input type="hidden" name="idEtapa" id="del_etapa">
 </form>
 
 <!-- Modal RDO -->
-<div id="modal-rdo" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-rdo" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('obras/salvarRdo') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Registro do dia</h5></div>
-        <div class="modal-body">
+        <div class="modal-header"><h5>Registro do dia</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+        <div class="modal-body"><div class="row">
             <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
-            <div class="span4" style="margin-left:0"><label>Data</label><input type="text" class="span12 datepicker" name="data" value="<?= date('d/m/Y') ?>"></div>
-            <div class="span4"><label>Técnicos no local</label><input type="number" class="span12" name="efetivo_total" value="0"></div>
-            <div class="span4"><label>Condição</label><select name="condicao" class="span12"><option value="praticavel">Normal</option><option value="parcial">Impedimento parcial</option><option value="impraticavel">Sem acesso</option></select></div>
-            <div class="span12" style="margin-left:0"><label>Atividades executadas</label><textarea class="span12" name="atividades" rows="3"></textarea></div>
-            <div class="span6" style="margin-left:0"><label>Ocorrências</label><textarea class="span12" name="ocorrencias" rows="2"></textarea></div>
-            <div class="span6"><label>Observações</label><textarea class="span12" name="observacoes" rows="2"></textarea></div>
-            <div class="span12" style="margin-left:0"><label>Fotos</label><input type="file" accept="image/*" multiple id="rdoFotos" capture="environment"><div id="rdoFotosHidden"></div><div id="rdoFotosPrev" class="obra-fotos-prev"></div></div>
-        </div>
-        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Registrar</span></button></div>
+            <div class="col-md-4" style="margin-left:0"><label>Data</label><input type="text" class="datepicker w-100 form-control" name="data" value="<?= date('d/m/Y') ?>"></div>
+            <div class="col-md-4"><label>Técnicos no local</label><input type="number" class="w-100 form-control" name="efetivo_total" value="0"></div>
+            <div class="col-md-4"><label>Condição</label><select name="condicao" class="w-100 form-select"><option value="praticavel">Normal</option><option value="parcial">Impedimento parcial</option><option value="impraticavel">Sem acesso</option></select></div>
+            <div class="col-md-12" style="margin-left:0"><label>Atividades executadas</label><textarea class="w-100 form-control" name="atividades" rows="3"></textarea></div>
+            <div class="col-md-6" style="margin-left:0"><label>Ocorrências</label><textarea class="w-100 form-control" name="ocorrencias" rows="2"></textarea></div>
+            <div class="col-md-6"><label>Observações</label><textarea class="w-100 form-control" name="observacoes" rows="2"></textarea></div>
+            <div class="col-md-12" style="margin-left:0"><label>Fotos</label><input class="form-control" type="file" accept="image/*" multiple id="rdoFotos" capture="environment"><div id="rdoFotosHidden"></div><div id="rdoFotosPrev" class="obra-fotos-prev"></div></div>
+        </div></div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-bs-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Registrar</span></button></div>
     </form>
-</div>
+</div></div></div>
 
 <!-- Modal Medição -->
-<div id="modal-medicao" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-medicao" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('obras/salvarMedicao') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Nova medição</h5></div>
-        <div class="modal-body">
+        <div class="modal-header"><h5>Nova medição</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+        <div class="modal-body"><div class="row">
             <input type="hidden" name="obra_id" value="<?= $obra->idObra ?>">
-            <div class="span6" style="margin-left:0"><label>Período de</label><input type="text" class="span12 datepicker" name="periodo_inicio"></div>
-            <div class="span6"><label>até</label><input type="text" class="span12 datepicker" name="periodo_fim"></div>
-            <div class="span12" style="margin-left:0"><label>% concluído por etapa (medição é a cobrança parcial do que foi executado)</label>
+            <div class="col-md-6" style="margin-left:0"><label>Período de</label><input type="text" class="datepicker w-100 form-control" name="periodo_inicio"></div>
+            <div class="col-md-6"><label>até</label><input type="text" class="datepicker w-100 form-control" name="periodo_fim"></div>
+            <div class="col-md-12" style="margin-left:0"><label>% concluído por etapa (medição é a cobrança parcial do que foi executado)</label>
                 <table class="table table-bordered"><thead><tr><th>Etapa</th><th>Atual</th><th>Novo %</th></tr></thead><tbody>
                     <?php foreach ($etapas as $e): ?>
                         <tr><td><?= html_escape($e->nome) ?></td><td><?= $fmt($e->percentual_concluido) ?>%</td>
-                            <td><input type="number" step="0.01" min="<?= (float) $e->percentual_concluido ?>" max="100" name="pct_<?= $e->idEtapa ?>" value="<?= (float) $e->percentual_concluido ?>" style="width:80px"></td></tr>
+                            <td><input class="form-control" type="number" step="0.01" min="<?= (float) $e->percentual_concluido ?>" max="100" name="pct_<?= $e->idEtapa ?>" value="<?= (float) $e->percentual_concluido ?>" style="width:80px"></td></tr>
                     <?php endforeach; ?>
                 </tbody></table>
             </div>
-        </div>
-        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Registrar</span></button></div>
+        </div></div>
+        <div class="modal-footer"><button type="button" class="button btn btn-warning" data-bs-dismiss="modal"><span class="button__text2">Cancelar</span></button><button class="button btn btn-success"><span class="button__text2">Registrar</span></button></div>
     </form>
-</div>
+</div></div></div>
 
 <link rel="stylesheet" href="<?= base_url() ?>assets/js/jquery-ui/css/smoothness/jquery-ui-1.9.2.custom.css" />
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>

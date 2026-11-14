@@ -72,58 +72,58 @@ $this->load->view('conecte/filtros_portal', ['acaoFiltro' => 'mine/cobrancas']);
 <?php echo $this->pagination->create_links(); ?>
 
 <!-- Modal -->
-<div id="modal-excluir" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div id="modal-excluir" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?php echo base_url() ?>index.php/cobrancas/excluir" method="post">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            
             <h5 id="myModalLabel">Excluir cobrança</h5>
-        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <input type="hidden" id="charge_id" name="charge_id" value="" />
             <h5 style="text-align: center">Deseja realmente excluir esta cobrança? A cobrança será cancelada.</h5>
         </div>
         <div class="modal-footer">
-            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancelar</button>
+            <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
             <button class="btn btn-danger">Excluir</button>
         </div>
     </form>
-</div>
+</div></div></div>
 
 
-<div id="modal-confirmar" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div id="modal-confirmar" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?php echo base_url() ?>index.php/cobrancas/confirmarpagamento" method="post">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            
             <h5 id="myModalLabel">Confirmar pagamento</h5>
-        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <input type="hidden" id="confirma_id" name="confirma_id" value="" />
             <h5 style="text-align: center">Deseja realmente confirmar pagamento desta cobrança?</h5>
         </div>
         <div class="modal-footer">
-            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancelar</button>
+            <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
             <button class="btn btn-success">Confirmar</button>
         </div>
     </form>
-</div>
+</div></div></div>
 
 
-<div id="modal-cancelar" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div id="modal-cancelar" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?php echo base_url() ?>index.php/cobrancas/cancelar" method="post">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            
             <h5 id="myModalLabel">Cancelar cobrança</h5>
-        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <input type="hidden" id="cancela_id" name="cancela_id" value="" />
             <h5 style="text-align: center">Deseja realmente Cancelar esta cobrança?</h5>
         </div>
         <div class="modal-footer">
-            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancelar</button>
+            <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
             <button class="btn btn-danger">Confirmar</button>
         </div>
     </form>
-</div>
+</div></div></div>
 
 <script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {

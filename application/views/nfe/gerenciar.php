@@ -28,7 +28,7 @@
     <form method="get" action="<?= site_url('nfe/gerenciar') ?>" class="ui-filtros">
         <div class="ui-campo">
             <label for="status">Status</label>
-            <select id="status" name="status">
+            <select class="form-select" id="status" name="status">
                 <option value="">Todos os status</option>
                 <?php foreach (['autorizada', 'rejeitada', 'cancelada', 'substituida', 'erro', 'pendente'] as $st) { ?>
                     <option value="<?= $st ?>" <?= $this->input->get('status') == $st ? 'selected' : '' ?>><?= ucfirst($st) ?></option>
@@ -91,10 +91,10 @@
                                 echo '<a href="' . site_url('nfe/danfe/' . $nota->idNota) . '" target="_blank" class="btn-nwe6" title="Imprimir ' . ($nota->tipo === 'nfe' ? 'DANFE' : 'DANFSe') . '" aria-label="Imprimir ' . ($nota->tipo === 'nfe' ? 'DANFE' : 'DANFSe') . '"><i class="bx bx-printer bx-xs"></i></a>';
                                 // Substituir NFS-e (só Padrão Nacional / serviços)
                                 if ($nota->tipo === 'nfse' && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) {
-                                    echo '<a href="#modal-substituir-nota" role="button" data-toggle="modal" data-nota="' . $nota->idNota . '" data-numero="' . $nota->numero . '" class="btn-nwe3 btn-substituir-nota" title="Substituir NFS-e" aria-label="Substituir NFS-e"><i class="bx bx-transfer bx-xs"></i></a>';
+                                    echo '<a href="#modal-substituir-nota" role="button" data-bs-toggle="modal" data-nota="' . $nota->idNota . '" data-numero="' . $nota->numero . '" class="btn-nwe3 btn-substituir-nota" title="Substituir NFS-e" aria-label="Substituir NFS-e"><i class="bx bx-transfer bx-xs"></i></a>';
                                 }
                                 if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dNfe')) {
-                                    echo '<a href="#modal-cancelar-nota" role="button" data-toggle="modal" data-nota="' . $nota->idNota . '" data-numero="' . $nota->numero . '" class="btn-nwe4 btn-cancelar-nota" title="Cancelar Nota" aria-label="Cancelar Nota"><i class="bx bx-x-circle bx-xs"></i></a>';
+                                    echo '<a href="#modal-cancelar-nota" role="button" data-bs-toggle="modal" data-nota="' . $nota->idNota . '" data-numero="' . $nota->numero . '" class="btn-nwe4 btn-cancelar-nota" title="Cancelar Nota" aria-label="Cancelar Nota"><i class="bx bx-x-circle bx-xs"></i></a>';
                                 }
                             }
                         } elseif (in_array($nota->status, ['rejeitada', 'erro'])) {
@@ -113,7 +113,7 @@
                                 } else {
                                     $endpoint = site_url('nfe/emitirNfe/' . $nota->vendas_id);
                                 }
-                                echo '<a href="#modal-retransmitir" role="button" data-toggle="modal" data-endpoint="' . $endpoint . '" data-numero="' . $nota->numero . '" class="btn-nwe5 btn-retransmitir" title="Retransmitir (mantém o nº ' . $nota->numero . ')" aria-label="Retransmitir (mantém o nº ' . $nota->numero . ')"><i class="bx bx-refresh bx-xs"></i></a>';
+                                echo '<a href="#modal-retransmitir" role="button" data-bs-toggle="modal" data-endpoint="' . $endpoint . '" data-numero="' . $nota->numero . '" class="btn-nwe5 btn-retransmitir" title="Retransmitir (mantém o nº ' . $nota->numero . ')" aria-label="Retransmitir (mantém o nº ' . $nota->numero . ')"><i class="bx bx-refresh bx-xs"></i></a>';
                             }
                         }
                         echo '</span></td>';
@@ -127,65 +127,65 @@
 </div>
 
 <!-- Modal de cancelamento -->
-<div id="modal-cancelar-nota" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-cancelar-nota" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        
         <h5>Cancelar Nota Fiscal</h5>
-    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <input type="hidden" id="cancelarIdNota" value="" />
         <p>Cancelar a nota <strong id="cancelarNumeroNota"></strong>? Esta ação é registrada na SEFAZ/Sefin e não pode ser desfeita.</p>
         <label for="justificativa">Justificativa (mínimo 15 caracteres):</label>
-        <textarea id="justificativa" rows="3" class="span12" maxlength="255"></textarea>
+        <textarea id="justificativa" rows="3" class="w-100 form-control" maxlength="255"></textarea>
         <div id="cancelarRetorno"></div>
     </div>
     <div class="modal-footer" style="display:flex;justify-content:center">
-        <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true">
+        <button class="button btn btn-warning" data-bs-dismiss="modal" aria-hidden="true">
             <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Fechar</span>
         </button>
         <button id="btnConfirmarCancelamento" class="button btn btn-danger">
             <span class="button__icon"><i class='bx bx-x-circle'></i></span><span class="button__text2">Cancelar Nota</span>
         </button>
     </div>
-</div>
+</div></div></div>
 
 <!-- Modal de retransmissão -->
-<div id="modal-retransmitir" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-retransmitir" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        
         <h5>Retransmitir Nota Fiscal</h5>
-    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <input type="hidden" id="retransmitirEndpoint" value="" />
         <p>Retransmitir a nota <strong id="retransmitirNumero"></strong>? O <strong>mesmo número</strong> será reaproveitado. Corrija os dados na origem (OS/Venda) antes, se necessário.</p>
         <div id="retransmitirRetorno"></div>
         <div id="retransmitirAcoes" style="display:none;text-align:center;margin-top:10px">
-            <a id="retransmitirBtnDanfe" href="#" target="_blank" class="button btn btn-inverse">
+            <a id="retransmitirBtnDanfe" href="#" target="_blank" class="button btn btn-dark">
                 <span class="button__icon"><i class='bx bx-printer'></i></span><span class="button__text2">Imprimir</span>
             </a>
         </div>
     </div>
     <div class="modal-footer" style="display:flex;justify-content:center">
-        <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true">
+        <button class="button btn btn-warning" data-bs-dismiss="modal" aria-hidden="true">
             <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Fechar</span>
         </button>
         <button id="btnConfirmarRetransmitir" class="button btn btn-success">
             <span class="button__icon"><i class='bx bx-send'></i></span><span class="button__text2">Retransmitir</span>
         </button>
     </div>
-</div>
+</div></div></div>
 
 <!-- Modal de substituição de NFS-e -->
-<div id="modal-substituir-nota" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-substituir-nota" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        
         <h5>Substituir NFS-e</h5>
-    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <input type="hidden" id="substituirIdNota" value="" />
         <p>Substituir a NFS-e <strong id="substituirNumero"></strong> por uma <strong>nova</strong> NFS-e (com os dados atuais da OS). A original ficará marcada como <strong>substituída</strong>.</p>
         <label for="substituirMotivo">Motivo da substituição:</label>
-        <select id="substituirMotivo" class="span12">
+        <select id="substituirMotivo" class="w-100 form-select">
             <option value="99">99 - Outros (descreva abaixo)</option>
             <option value="1">01 - Desenquadramento de NFS-e do Simples Nacional</option>
             <option value="2">02 - Enquadramento de NFS-e no Simples Nacional</option>
@@ -194,18 +194,18 @@
             <option value="5">05 - Rejeição da NFS-e pelo tomador/intermediário</option>
         </select>
         <label for="substituirDescricao" style="margin-top:8px">Descrição do motivo (mín. 15 caracteres p/ "Outros"):</label>
-        <textarea id="substituirDescricao" rows="2" class="span12" maxlength="255" placeholder="Ex.: correção de valor/descrição do serviço"></textarea>
+        <textarea id="substituirDescricao" rows="2" class="w-100 form-control" maxlength="255" placeholder="Ex.: correção de valor/descrição do serviço"></textarea>
         <div id="substituirRetorno" style="margin-top:6px"></div>
     </div>
     <div class="modal-footer" style="display:flex;justify-content:center">
-        <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true">
+        <button class="button btn btn-warning" data-bs-dismiss="modal" aria-hidden="true">
             <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Fechar</span>
         </button>
         <button id="btnConfirmarSubstituir" class="button btn btn-primary">
             <span class="button__icon"><i class='bx bx-transfer'></i></span><span class="button__text2">Substituir</span>
         </button>
     </div>
-</div>
+</div></div></div>
 
 <script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {

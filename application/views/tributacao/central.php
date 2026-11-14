@@ -8,8 +8,8 @@ foreach ($itens as $i) {
     }
 }
 ?>
-<div class="row-fluid" style="margin-top:0">
-    <div class="span12">
+<div class="row" style="margin-top:0">
+    <div class="col-md-12">
         <div class="ui-cabecalho">
             <div>
                 <h1><i class="fas fa-balance-scale"></i> Central da Reforma Tributária</h1>

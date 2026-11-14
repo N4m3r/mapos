@@ -10,7 +10,7 @@ $comOpcoes = $tiposComOpcoes ?? ['select', 'radio', 'checkbox'];
                 <p class="ui-subtitulo">Defina o nome, quando o formulário aparece e os campos que o técnico preenche.</p>
             </div>
             <div class="ui-acoes">
-                <a href="<?= site_url('formularios') ?>" class="button btn btn-mini btn-warning"><span class="button__icon"><i class="bx bx-undo"></i></span><span class="button__text2">Voltar</span></a>
+                <a href="<?= site_url('formularios') ?>" class="button btn btn-sm btn-warning"><span class="button__icon"><i class="bx bx-undo"></i></span><span class="button__text2">Voltar</span></a>
             </div>
         </div>
 
@@ -19,16 +19,16 @@ $comOpcoes = $tiposComOpcoes ?? ['select', 'radio', 'checkbox'];
                 <input type="hidden" name="idFormulario" value="<?= (int) $formulario->idFormulario ?>">
             <?php } ?>
 
-            <div class="row-fluid">
-                <div class="span8">
+            <div class="row">
+                <div class="col-md-8">
                     <label><strong>Nome do formulário</strong></label>
-                    <input type="text" name="nome" class="span12" maxlength="150" required
+                    <input type="text" name="nome" class="w-100 form-control" maxlength="150" required
                            placeholder="Ex.: Vistoria de chegada"
                            value="<?= $isEdit ? html_escape($formulario->nome) : '' ?>">
                 </div>
-                <div class="span4">
+                <div class="col-md-4">
                     <label><strong>Etapa do atendimento</strong></label>
-                    <select name="etapa" class="span12">
+                    <select name="etapa" class="w-100 form-select">
                         <?php foreach ($etapas as $chave => $rotulo) { ?>
                             <option value="<?= $chave ?>" <?= ($isEdit && $formulario->etapa === $chave) ? 'selected' : '' ?>>
                                 <?= html_escape($rotulo) ?>
@@ -38,33 +38,33 @@ $comOpcoes = $tiposComOpcoes ?? ['select', 'radio', 'checkbox'];
                 </div>
             </div>
 
-            <div class="row-fluid" style="margin-top:10px">
-                <div class="span4">
+            <div class="row" style="margin-top:10px">
+                <div class="col-md-4">
                     <label>Tipo de serviço</label>
-                    <select name="tipo_servico" class="span12">
+                    <select name="tipo_servico" class="w-100 form-select">
                         <option value="">Todos</option>
                         <?php foreach (tipos_servico() as $k => $t) { ?>
                             <option value="<?= $k ?>" <?= ($isEdit && ($formulario->tipo_servico ?? '') === $k) ? 'selected' : '' ?>><?= html_escape($t['rotulo']) ?></option>
                         <?php } ?>
                     </select>
                 </div>
-                <div class="span4">
+                <div class="col-md-4">
                     <label>Descrição (opcional)</label>
-                    <input type="text" name="descricao" class="span12" maxlength="255"
+                    <input type="text" name="descricao" class="w-100 form-control" maxlength="255"
                            placeholder="Uma breve explicação exibida ao técnico"
                            value="<?= $isEdit ? html_escape($formulario->descricao) : '' ?>">
                 </div>
-                <div class="span2">
+                <div class="col-md-2">
                     <label>Ordem</label>
-                    <input type="number" name="ordem" class="span12" value="<?= $isEdit ? (int) $formulario->ordem : 0 ?>">
+                    <input type="number" name="ordem" class="w-100 form-control" value="<?= $isEdit ? (int) $formulario->ordem : 0 ?>">
                 </div>
-                <div class="span2">
+                <div class="col-md-2">
                     <label>&nbsp;</label>
                     <label class="checkbox">
-                        <input type="checkbox" name="ativo" value="1" <?= (! $isEdit || (int) $formulario->ativo === 1) ? 'checked' : '' ?>> Ativo
+                        <input class="form-check-input" type="checkbox" name="ativo" value="1" <?= (! $isEdit || (int) $formulario->ativo === 1) ? 'checked' : '' ?>> Ativo
                     </label>
                     <label class="checkbox">
-                        <input type="checkbox" name="obrigatorio" value="1" <?= ($isEdit && (int) $formulario->obrigatorio === 1) ? 'checked' : '' ?>> Obrigatório
+                        <input class="form-check-input" type="checkbox" name="obrigatorio" value="1" <?= ($isEdit && (int) $formulario->obrigatorio === 1) ? 'checked' : '' ?>> Obrigatório
                     </label>
                 </div>
             </div>
@@ -131,25 +131,25 @@ $comOpcoes = $tiposComOpcoes ?? ['select', 'radio', 'checkbox'];
 
             var html =
                 '<div class="campo-item" style="border:1px solid #e2e5ef;border-radius:6px;padding:12px;margin-bottom:10px;background:#fafbff">'
-                + '<div class="row-fluid">'
-                +   '<div class="span5"><label>Rótulo do campo</label>'
-                +     '<input type="text" name="' + p + '[label]" class="span12" maxlength="200" placeholder="Ex.: Nível do óleo" value="' + escAttr(dados.label) + '"></div>'
-                +   '<div class="span4"><label>Tipo</label>'
-                +     '<select name="' + p + '[tipo]" class="span12 campo-tipo">' + opcoesTipo(tipo) + '</select></div>'
-                +   '<div class="span3"><label>&nbsp;</label><br>'
+                + '<div class="row">'
+                +   '<div class="col-md-5"><label>Rótulo do campo</label>'
+                +     '<input type="text" name="' + p + '[label]" class="col-md-12" maxlength="200" placeholder="Ex.: Nível do óleo" value="' + escAttr(dados.label) + '"></div>'
+                +   '<div class="col-md-4"><label>Tipo</label>'
+                +     '<select name="' + p + '[tipo]" class="col-md-12 campo-tipo">' + opcoesTipo(tipo) + '</select></div>'
+                +   '<div class="col-md-3"><label>&nbsp;</label><br>'
                 +     '<label class="checkbox inline"><input type="checkbox" name="' + p + '[obrigatorio]" value="1"' + (dados.obrigatorio ? ' checked' : '') + '> Obrigatório</label>'
-                +     '<button type="button" class="btn btn-danger btn-mini btn-remover-campo" style="margin-left:6px" title="Remover"><i class="bx bx-trash"></i></button>'
+                +     '<button type="button" class="btn btn-danger btn-sm btn-remover-campo" style="margin-left:6px" title="Remover"><i class="bx bx-trash"></i></button>'
                 +   '</div>'
                 + '</div>'
-                + '<div class="row-fluid campo-opcoes-wrap" style="margin-top:6px;' + (mostraOpcoes ? '' : 'display:none') + '"><div class="span12">'
+                + '<div class="row campo-opcoes-wrap" style="margin-top:6px;' + (mostraOpcoes ? '' : 'display:none') + '"><div class="col-md-12">'
                 +   '<label>Opções (uma por linha)</label>'
-                +   '<textarea name="' + p + '[opcoes]" class="span12" rows="3" placeholder="Opção 1&#10;Opção 2&#10;Opção 3">' + escHtml(dados.opcoes) + '</textarea>'
+                +   '<textarea name="' + p + '[opcoes]" class="col-md-12" rows="3" placeholder="Opção 1&#10;Opção 2&#10;Opção 3">' + escHtml(dados.opcoes) + '</textarea>'
                 + '</div></div>'
-                + '<div class="row-fluid" style="margin-top:6px">'
-                +   '<div class="span6"><label>Texto de exemplo (placeholder)</label>'
-                +     '<input type="text" name="' + p + '[placeholder]" class="span12" maxlength="200" value="' + escAttr(dados.placeholder) + '"></div>'
-                +   '<div class="span6"><label>Texto de ajuda</label>'
-                +     '<input type="text" name="' + p + '[ajuda]" class="span12" maxlength="255" value="' + escAttr(dados.ajuda) + '"></div>'
+                + '<div class="row" style="margin-top:6px">'
+                +   '<div class="col-md-6"><label>Texto de exemplo (placeholder)</label>'
+                +     '<input type="text" name="' + p + '[placeholder]" class="col-md-12" maxlength="200" value="' + escAttr(dados.placeholder) + '"></div>'
+                +   '<div class="col-md-6"><label>Texto de ajuda</label>'
+                +     '<input type="text" name="' + p + '[ajuda]" class="col-md-12" maxlength="255" value="' + escAttr(dados.ajuda) + '"></div>'
                 + '</div>'
                 + '</div>';
 

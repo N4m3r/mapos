@@ -537,9 +537,9 @@
                                     </td>
                                     <td>
                                         <?php if ($checkin->data_saida) { ?>
-                                            <span class="badge badge-success">Finalizado</span>
+                                            <span class="badge text-bg-success">Finalizado</span>
                                         <?php } else { ?>
-                                            <span class="badge badge-warning">Em Andamento</span>
+                                            <span class="badge text-bg-warning">Em Andamento</span>
                                         <?php } ?>
                                     </td>
                                 </tr>

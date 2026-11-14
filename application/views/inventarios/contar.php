@@ -13,10 +13,10 @@ $aberto = $inventario->status === 'aberto';
             </div>
         </div>
         <div style="padding:12px 14px 0; display:flex; gap:12px; flex-wrap:wrap; align-items:center">
-            <a href="<?= site_url('inventarios') ?>" class="btn btn-mini"><i class="bx bx-arrow-back"></i> Inventários</a>
-            <span class="badge <?= $aberto ? 'badge-warning' : ($inventario->status === 'finalizado' ? 'badge-success' : '') ?>"><?= html_escape(ucfirst($inventario->status)) ?></span>
-            <input type="search" id="filtroInventario" placeholder="Filtrar por nome ou código..." aria-label="Filtrar por nome ou código" style="margin:0; width:260px">
-            <label style="margin:0"><input type="checkbox" id="soDiferencas"> Só diferenças</label>
+            <a href="<?= site_url('inventarios') ?>" class="btn btn-sm"><i class="bx bx-arrow-back"></i> Inventários</a>
+            <span class="badge text-bg-secondary <?= $aberto ? 'badge-warning' : ($inventario->status === 'finalizado' ? 'badge-success' : '') ?>"><?= html_escape(ucfirst($inventario->status)) ?></span>
+            <input class="form-control" type="search" id="filtroInventario" placeholder="Filtrar por nome ou código..." aria-label="Filtrar por nome ou código" style="margin:0; width:260px">
+            <label style="margin:0"><input class="form-check-input" type="checkbox" id="soDiferencas"> Só diferenças</label>
             <?php if ($aberto) { ?>
                 <span style="color:#777; font-size:12px">"Sistema" é o estoque na abertura; a diferença é calculada sobre o estoque atual ao finalizar.</span>
             <?php } ?>
@@ -24,7 +24,7 @@ $aberto = $inventario->status === 'aberto';
 
         <form action="<?= site_url('inventarios/salvar/' . (int) $inventario->id) ?>" method="post" id="formInventario">
             <div class="ui-tabela-rolagem">
-            <table class="table table-bordered table-condensed" style="margin-top:12px" id="tabelaInventario">
+            <table class="table table-bordered table-sm" style="margin-top:12px" id="tabelaInventario">
                 <thead>
                     <tr>
                         <th style="width:110px">Código</th>
@@ -50,7 +50,7 @@ $aberto = $inventario->status === 'aberto';
                             <td style="text-align:center">
                                 <?php if ($podeEditar) { ?>
                                     <input type="text" inputmode="decimal" name="contado[<?= (int) $item->produtos_id ?>]" value="<?= $numero($item->contado) ?>"
-                                           data-atual="<?= (float) $item->estoque_atual ?>" class="campo-contado" style="width:80px; margin:0; text-align:right">
+                                           data-atual="<?= (float) $item->estoque_atual ?>" class="campo-contado form-control" style="width:80px; margin:0; text-align:right">
                                 <?php } else {
                                     echo $item->contado === null ? '<span style="color:#aaa">-</span>' : $numero($item->contado);
                                 } ?>
@@ -80,7 +80,7 @@ $aberto = $inventario->status === 'aberto';
         <?php if ($podeEditar) { ?>
             <form action="<?= site_url('inventarios/cancelar/' . (int) $inventario->id) ?>" method="post" style="padding:0 14px 14px"
                   data-confirmar="Cancelar este inventário? Nenhum estoque será alterado.">
-                <button type="submit" class="btn btn-mini btn-danger">Cancelar inventário</button>
+                <button type="submit" class="btn btn-sm btn-danger">Cancelar inventário</button>
             </form>
         <?php } ?>
     </div>

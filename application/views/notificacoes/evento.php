@@ -57,10 +57,10 @@ $marcado = function ($valor, $lista) {
         <div class="widget-content">
             <div class="ui-opcoes ui-mb">
                 <label class="ui-opcao">
-                    <input type="checkbox" name="ativo" value="1" <?= (int) ($gatilho->ativo ?? 0) === 1 ? 'checked' : '' ?>>
+                    <input class="form-check-input" type="checkbox" name="ativo" value="1" <?= (int) ($gatilho->ativo ?? 0) === 1 ? 'checked' : '' ?>>
                     Evento ligado
                 </label>
-                <span class="help-inline">Desligado, o sistema não avisa nada para este evento.</span>
+                <span class="form-text">Desligado, o sistema não avisa nada para este evento.</span>
             </div>
 
             <div class="ui-secao">
@@ -68,7 +68,7 @@ $marcado = function ($valor, $lista) {
                 <div class="ui-opcoes">
                     <?php foreach ($canais as $valor => $rotulo) { ?>
                         <label class="ui-opcao">
-                            <input type="checkbox" name="canais[]" value="<?= $e($valor) ?>" <?= $marcado($valor, $selCanais) ?>>
+                            <input class="form-check-input" type="checkbox" name="canais[]" value="<?= $e($valor) ?>" <?= $marcado($valor, $selCanais) ?>>
                             <i class="bx <?= $e(notif_canal_icone($valor)) ?>"></i> <?= $e($rotulo) ?>
                         </label>
                     <?php } ?>
@@ -80,7 +80,7 @@ $marcado = function ($valor, $lista) {
                 <div class="ui-opcoes">
                     <?php foreach ($destinatarios as $valor => $rotulo) { ?>
                         <label class="ui-opcao">
-                            <input type="checkbox" name="destinatarios[]" value="<?= $e($valor) ?>" <?= $marcado($valor, $selDest) ?>>
+                            <input class="form-check-input" type="checkbox" name="destinatarios[]" value="<?= $e($valor) ?>" <?= $marcado($valor, $selDest) ?>>
                             <?= $e($rotulo) ?>
                         </label>
                     <?php } ?>
@@ -91,9 +91,9 @@ $marcado = function ($valor, $lista) {
                 <div class="ui-secao">
                     <h4>Texto no WhatsApp</h4>
                     <div class="ui-grade">
-                        <div class="control-group">
+                        <div class="row mb-2">
                             <label for="whatsapp_template">Modelo de mensagem</label>
-                            <select id="whatsapp_template" name="whatsapp_template">
+                            <select class="form-select" id="whatsapp_template" name="whatsapp_template">
                                 <option value="">— padrão do sistema —</option>
                                 <?php foreach ($whatsappTemplates as $wt) { ?>
                                     <option value="<?= $e($wt->slug) ?>" <?= (string) ($gatilho->whatsapp_template ?? '') === (string) $wt->slug ? 'selected' : '' ?>><?= $e($wt->nome) ?></option>
@@ -108,9 +108,9 @@ $marcado = function ($valor, $lista) {
                 <div class="ui-secao">
                     <h4>Texto no e-mail</h4>
                     <div class="ui-grade">
-                        <div class="control-group">
+                        <div class="row mb-2">
                             <label for="template_slug">Modelo de e-mail</label>
-                            <select id="template_slug" name="template_slug">
+                            <select class="form-select" id="template_slug" name="template_slug">
                                 <option value="">— padrão do sistema —</option>
                                 <?php foreach ($emailTemplates as $et) { ?>
                                     <option value="<?= $e($et->slug) ?>" <?= (string) ($gatilho->template_slug ?? '') === (string) $et->slug ? 'selected' : '' ?>><?= $e($et->nome) ?></option>
@@ -126,14 +126,14 @@ $marcado = function ($valor, $lista) {
                 <p style="font-size:12px;color:var(--ui-texto-2);margin:0 0 8px">
                     Além dos destinatários acima, envia também para os grupos escolhidos. Requer o canal WhatsApp e a Evolution API ativa.
                 </p>
-                <button type="button" id="nt-carregar-grupos" class="btn btn-mini btn-primary" data-url="<?= site_url('whatsapp/grupos') ?>">
+                <button type="button" id="nt-carregar-grupos" class="btn btn-sm btn-primary" data-url="<?= site_url('whatsapp/grupos') ?>">
                     <i class="bx bx-download"></i> Carregar grupos
                 </button>
                 <span id="nt-grupos-msg" style="margin-left:8px;font-size:12px"></span>
                 <div id="nt-grupos" style="margin-top:10px">
                     <?php foreach ($selGrupos as $jid) { ?>
                         <label style="display:block;margin-bottom:6px">
-                            <input type="checkbox" name="whatsapp_grupos[]" value="<?= $e($jid) ?>" checked> <?= $e($jid) ?>
+                            <input class="form-check-input" type="checkbox" name="whatsapp_grupos[]" value="<?= $e($jid) ?>" checked> <?= $e($jid) ?>
                         </label>
                     <?php } ?>
                     <?php if (empty($selGrupos)) { ?>
@@ -144,7 +144,7 @@ $marcado = function ($valor, $lista) {
 
             <div class="ui-secao">
                 <h4>Filtro de clientes <small style="font-weight:normal;color:var(--ui-texto-2)">— sem clientes, vale para todos</small></h4>
-                <input type="text" id="nt-busca-cliente" class="span8" placeholder="Buscar cliente por nome, documento ou telefone..." autocomplete="off">
+                <input type="text" id="nt-busca-cliente" class="w-75 form-control" placeholder="Buscar cliente por nome, documento ou telefone..." autocomplete="off">
                 <div id="nt-clientes" style="display:flex;flex-wrap:wrap;gap:6px;min-height:36px;padding:8px;border:1px solid var(--ui-borda);border-radius:6px;margin-top:8px">
                     <?php foreach ($clientesSelecionados as $c) : ?>
                         <?php $doc = trim((string) $c->documento); $rot = $c->nomeCliente . ($doc !== '' ? ' — ' . $doc : ''); ?>
@@ -160,16 +160,16 @@ $marcado = function ($valor, $lista) {
             <?php if ($ehProjeto) { ?>
                 <div class="ui-secao">
                     <h4>E-mails fixos de acompanhamento <small style="font-weight:normal;color:var(--ui-texto-2)">— um por linha</small></h4>
-                    <textarea name="email_destinatarios_raw" class="span12" rows="3" placeholder="responsavel1@empresa.com"><?= $e($emailDestRaw) ?></textarea>
+                    <textarea name="email_destinatarios_raw" class="w-100 form-control" rows="3" placeholder="responsavel1@empresa.com"><?= $e($emailDestRaw) ?></textarea>
                     <label style="display:flex;align-items:flex-start;gap:8px;margin-top:12px">
-                        <input type="checkbox" name="email_conversa" value="1" <?= (int) ($gatilho->email_conversa ?? 0) === 1 ? 'checked' : '' ?>>
+                        <input class="form-check-input" type="checkbox" name="email_conversa" value="1" <?= (int) ($gatilho->email_conversa ?? 0) === 1 ? 'checked' : '' ?>>
                         <span>Manter os e-mails deste projeto como uma única conversa (thread)</span>
                     </label>
                 </div>
 
                 <div class="ui-secao">
                     <h4>Filtro de projetos <small style="font-weight:normal;color:var(--ui-texto-2)">— sem projetos, vale para todos</small></h4>
-                    <input type="text" id="nt-busca-projeto" class="span8" placeholder="Buscar projeto por nome ou código..." autocomplete="off">
+                    <input type="text" id="nt-busca-projeto" class="w-75 form-control" placeholder="Buscar projeto por nome ou código..." autocomplete="off">
                     <div id="nt-projetos" style="display:flex;flex-wrap:wrap;gap:6px;min-height:36px;padding:8px;border:1px solid var(--ui-borda);border-radius:6px;margin-top:8px">
                         <?php foreach ($projetosSelecionados as $p) : ?>
                             <?php $cod = trim((string) $p->codigo); $rot = $p->nome . ($cod !== '' ? ' — ' . $cod : ''); ?>
@@ -192,13 +192,13 @@ $marcado = function ($valor, $lista) {
                         Precisa do agendamento <code>php index.php lembretes/aceite</code> a cada 15 minutos.
                     </p>
                     <div class="ui-grade">
-                        <div class="control-group">
+                        <div class="row mb-2">
                             <label for="reenvio_intervalo_horas">Reenviar a cada (horas)</label>
-                            <input type="number" min="0" max="<?= (int) Aceite_reenvio::INTERVALO_MAX_HORAS ?>" id="reenvio_intervalo_horas" name="reenvio_intervalo_horas" value="<?= $e($gatilho->reenvio_intervalo_horas ?? '') ?>" placeholder="24">
+                            <input class="form-control" type="number" min="0" max="<?= (int) Aceite_reenvio::INTERVALO_MAX_HORAS ?>" id="reenvio_intervalo_horas" name="reenvio_intervalo_horas" value="<?= $e($gatilho->reenvio_intervalo_horas ?? '') ?>" placeholder="24">
                         </div>
-                        <div class="control-group">
+                        <div class="row mb-2">
                             <label for="reenvio_max_tentativas">Máximo de reenvios</label>
-                            <input type="number" min="0" max="<?= (int) Aceite_reenvio::TENTATIVAS_MAX ?>" id="reenvio_max_tentativas" name="reenvio_max_tentativas" value="<?= $e($gatilho->reenvio_max_tentativas ?? '') ?>" placeholder="5">
+                            <input class="form-control" type="number" min="0" max="<?= (int) Aceite_reenvio::TENTATIVAS_MAX ?>" id="reenvio_max_tentativas" name="reenvio_max_tentativas" value="<?= $e($gatilho->reenvio_max_tentativas ?? '') ?>" placeholder="5">
                         </div>
                     </div>
                 </div>
@@ -210,7 +210,7 @@ $marcado = function ($valor, $lista) {
                     <div class="ui-opcoes">
                         <?php foreach ($blocos as $valor => $rotulo) { ?>
                             <label class="ui-opcao">
-                                <input type="checkbox" name="blocos[]" value="<?= $e($valor) ?>" <?= $marcado($valor, $selBlocos) ?>>
+                                <input class="form-check-input" type="checkbox" name="blocos[]" value="<?= $e($valor) ?>" <?= $marcado($valor, $selBlocos) ?>>
                                 <?= $e($rotulo) ?>
                             </label>
                         <?php } ?>
@@ -221,7 +221,7 @@ $marcado = function ($valor, $lista) {
             <div class="ui-opcoes ui-mb">
                 <?php foreach ($anexos as $valor => $rotulo) { ?>
                     <label class="ui-opcao">
-                        <input type="checkbox" name="anexos[]" value="<?= $e($valor) ?>" <?= $marcado($valor, $selAnexos) ?>>
+                        <input class="form-check-input" type="checkbox" name="anexos[]" value="<?= $e($valor) ?>" <?= $marcado($valor, $selAnexos) ?>>
                         Anexar <?= mb_strtolower($e($rotulo)) ?> no e-mail
                     </label>
                 <?php } ?>

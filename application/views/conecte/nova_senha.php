@@ -27,7 +27,7 @@
 </head>
 
 <body>
-    <div class="row-fluid" style="width: 100vw;height: 100vh;display: flex;align-items: center;justify-content: center">
+    <div class="row" style="width: 100vw;height: 100vh;display: flex;align-items: center;justify-content: center">
         <div class="widget-box" style="align-items: center;padding: 0 15px">
             <div class="widget-title">
                 <h5 style="padding-left: 10px">Cadastra Nova Senha</h5>
@@ -39,18 +39,18 @@
 
                 <form action="" id="formCliente" method="post" class="form-horizontal">
                     <input type="hidden" name="<?= $this->security->get_csrf_token_name(); ?>" value="<?= $this->security->get_csrf_hash(); ?>">
-                    <div class="control-group" style="display: flex;margin-bottom: 7pxpx;grid-column-gap: 5px;justify-content: space-evenly">
-                        <label style="width: auto" for="senha" class="control-label">Senha<span class="required">*</span></label>
-                        <div class="controls" style="margin: 0">
-                            <input id="senha" type="password" name="senha" value="" />
+                    <div class="row mb-2" style="display: flex;margin-bottom: 7pxpx;grid-column-gap: 5px;justify-content: space-evenly">
+                        <label style="width: auto" for="senha" class="col-sm-3 col-form-label">Senha<span class="required">*</span></label>
+                        <div class="col-sm-9" style="margin: 0">
+                            <input class="form-control" id="senha" type="password" name="senha" value="" />
                         </div>
                     </div>
 
             </div>
-            <div class="form-actions" style="background-color:transparent;border:none;padding: 10px;margin-top: 5px;margin-bottom:0">
-                <div class="span12">
-                    <div class="span6 offset3" style="display:flex;justify-content: center">
-                        <button name="senhaClient" id="senhaClient" type="submit" class="button btn btn-success btn-large"><span class="button__icon"><i class='bx bx-lock-open'></i></span><span class="button__text2">Alterar</span></button>
+            <div class="form-actions row" style="background-color:transparent;border:none;padding: 10px;margin-top: 5px;margin-bottom:0">
+                <div class="col-md-12 row">
+                    <div class="col-md-6 offset-md-3" style="display:flex;justify-content: center">
+                        <button name="senhaClient" id="senhaClient" type="submit" class="button btn btn-success btn-lg"><span class="button__icon"><i class='bx bx-lock-open'></i></span><span class="button__text2">Alterar</span></button>
                         <a href="<?php echo base_url() ?>index.php/mine" id="" class="button btn btn-warning"><span class="button__icon"><i class='bx bx-lock-alt'></i></span><span class="button__text2">Acessar</span></a>
                     </div>
                 </div>
@@ -106,8 +106,8 @@
 
 
     <!--Footer-part-->
-    <div class="row-fluid">
-        <div id="footer" class="span12" style="padding: 10px"> <a class="pecolor" href="https://github.com/RamonSilva20/mapos" target="_blank">
+    <div class="row">
+        <div id="footer" class="col-md-12" style="padding: 10px"> <a class="pecolor" href="https://github.com/RamonSilva20/mapos" target="_blank">
                 <?= date('Y') ?> &copy; Ramon Silva - <?php echo $this->config->item('app_name') ?> - Versão: <?= $this->config->item('app_version'); ?>
             </a></div>
     </div>

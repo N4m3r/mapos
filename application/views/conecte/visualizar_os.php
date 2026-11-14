@@ -15,14 +15,14 @@ foreach ($notasFiscais as $n) {
 $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido', 'CANCELLED' => 'Cancelado', 'IN_PROTEST' => 'Em protesto'];
 ?>
 <?php if (! empty($timeline)) { ?>
-<div class="row-fluid" style="margin-top: 0">
-    <div class="span12">
+<div class="row" style="margin-top: 0">
+    <div class="col-md-12">
         <?php $this->load->view('os/_timeline', ['timeline' => $timeline]); ?>
     </div>
 </div>
 <?php } ?>
-<div class="row-fluid" style="margin-top: 0">
-    <div class="span12">
+<div class="row" style="margin-top: 0">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="widget-title" style="margin: -20px 0 0">
                 <span class="icon"><i class="fas fa-file-invoice-dollar"></i></span>
@@ -30,8 +30,8 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
             </div>
             <div class="widget-content">
                 <ul class="nav nav-tabs" style="margin-bottom: 12px">
-                    <li class="active"><a href="#" class="doc-tab-link" data-target="docNota"><i class="fas fa-file-invoice"></i> Nota Fiscal <span class="badge"><?= count($notasAut) ?></span></a></li>
-                    <li><a href="#" class="doc-tab-link" data-target="docBoleto"><i class="fas fa-barcode"></i> Boleto <span class="badge"><?= count($boletos) ?></span></a></li>
+                    <li class="nav-item"><a href="#" class="doc-tab-link nav-link active" data-target="docNota"><i class="fas fa-file-invoice"></i> Nota Fiscal <span class="badge text-bg-secondary"><?= count($notasAut) ?></span></a></li>
+                    <li class="nav-item"><a href="#" class="doc-tab-link nav-link" data-target="docBoleto"><i class="fas fa-barcode"></i> Boleto <span class="badge text-bg-secondary"><?= count($boletos) ?></span></a></li>
                 </ul>
 
                 <!-- Aba Nota Fiscal -->
@@ -39,7 +39,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                     <?php if (empty($notasAut)) { ?>
                         <p style="color:#888; margin:6px 0">Nenhuma nota fiscal autorizada para esta OS.</p>
                     <?php } else { ?>
-                        <table class="table table-bordered table-condensed">
+                        <table class="table table-bordered table-sm">
                             <thead>
                                 <tr>
                                     <th>Número</th>
@@ -58,7 +58,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                         <td><?= $dataNota ? date('d/m/Y', strtotime($dataNota)) : '—' ?></td>
                                         <td style="text-align:right">R$ <?= number_format((float) $n->valor_total, 2, ',', '.') ?></td>
                                         <td style="text-align:center">
-                                            <a target="_blank" class="btn btn-mini btn-inverse" href="<?= site_url('mine/notaDanfe/' . (int) $n->idNota) ?>">
+                                            <a target="_blank" class="btn btn-sm btn-dark" href="<?= site_url('mine/notaDanfe/' . (int) $n->idNota) ?>">
                                                 <i class="bx bx-printer"></i> Ver / Imprimir
                                             </a>
                                         </td>
@@ -94,8 +94,8 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                     <div style="margin-top:10px">
                                         <div style="font-size:12px; color:#6b7191; margin-bottom:3px">PIX copia e cola</div>
                                         <div style="display:flex; gap:6px; align-items:center">
-                                            <input type="text" readonly value="<?= html_escape($b->pix) ?>" class="span10" style="font-size:11px; margin:0" data-acao="selecionar">
-                                            <button type="button" class="btn btn-mini copiar-doc" data-valor="<?= html_escape($b->pix) ?>"><i class="bx bx-copy"></i> Copiar</button>
+                                            <input type="text" readonly value="<?= html_escape($b->pix) ?>" class="w-100 form-control" style="font-size:11px; margin:0" data-acao="selecionar">
+                                            <button type="button" class="btn btn-sm copiar-doc" data-valor="<?= html_escape($b->pix) ?>"><i class="bx bx-copy"></i> Copiar</button>
                                         </div>
                                     </div>
                                 <?php } ?>
@@ -103,8 +103,8 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                     <div style="margin-top:8px">
                                         <div style="font-size:12px; color:#6b7191; margin-bottom:3px">Linha digitável</div>
                                         <div style="display:flex; gap:6px; align-items:center">
-                                            <input type="text" readonly value="<?= html_escape($b->barcode) ?>" class="span10" style="font-size:11px; margin:0" data-acao="selecionar">
-                                            <button type="button" class="btn btn-mini copiar-doc" data-valor="<?= html_escape($b->barcode) ?>"><i class="bx bx-copy"></i> Copiar</button>
+                                            <input type="text" readonly value="<?= html_escape($b->barcode) ?>" class="w-100 form-control" style="font-size:11px; margin:0" data-acao="selecionar">
+                                            <button type="button" class="btn btn-sm copiar-doc" data-valor="<?= html_escape($b->barcode) ?>"><i class="bx bx-copy"></i> Copiar</button>
                                         </div>
                                     </div>
                                 <?php } ?>
@@ -116,8 +116,8 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
         </div>
     </div>
 </div>
-<div class="row-fluid" style="margin-top: 0">
-    <div class="span12">
+<div class="row" style="margin-top: 0">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="widget-title" style="margin: -20px 0 0">
                 <span class="icon">
@@ -125,12 +125,12 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                 </span>
                 <h5>Ordem de Serviço</h5>
                 <div class="buttons" style=" padding-left:5px;">
-                    <a target="_blank" title="Imprimir Relatório" class="button btn btn-mini btn-inverse" href="<?php echo site_url() ?>/mine/imprimirOs/<?php echo $result->idOs; ?>">
+                    <a target="_blank" title="Imprimir Relatório" class="button btn btn-sm btn-dark" href="<?php echo site_url() ?>/mine/imprimirOs/<?php echo $result->idOs; ?>">
                         <span class="button__icon"><i class="bx bx-printer"></i></span> <span class="button__text">Imprimir Relatório</span></a>
                     <?php if (! empty($temAtendimento)) { ?>
-                        <a title="Ver atendimento do técnico" class="button btn btn-mini" style="background-color: #6c757d; border-color: #6c757d; color: white;" href="#atendimento-tecnico">
+                        <a title="Ver atendimento do técnico" class="button btn btn-sm" style="background-color: #6c757d; border-color: #6c757d; color: white;" href="#atendimento-tecnico">
                             <span class="button__icon"><i class="bx bx-user-check"></i></span> <span class="button__text">Atendimento do Técnico</span></a>
-                        <a target="_blank" title="Visualizar relatório / detalhe do atendimento" class="button btn btn-mini btn-success" href="<?php echo site_url('mine/relatorioAtendimento/' . $result->idOs); ?>">
+                        <a target="_blank" title="Visualizar relatório / detalhe do atendimento" class="button btn btn-sm btn-success" href="<?php echo site_url('mine/relatorioAtendimento/' . $result->idOs); ?>">
                             <span class="button__icon"><i class="bx bx-show"></i></span> <span class="button__text">Visualizar Atendimento</span></a>
                     <?php } ?>
                 </div>
@@ -139,7 +139,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                 <div class="invoice-content">
                     <div class="invoice-head" style="margin-bottom: 0">
 
-                        <table class="table table-condensed">
+                        <table class="table table-sm">
                             <tbody>
                                 <?php if ($emitente == null) { ?>
                                     <tr>
@@ -166,7 +166,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                     </div>
                     
                     <div style="margin-top: 0; padding-top: 0">
-                        <table class="table table-condensed">
+                        <table class="table table-sm">
                             <tbody>
                                     <?php if ($result->dataInicial != null) { ?>
                                         <tr>
@@ -196,7 +196,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                             </tbody>
                         </table>
 
-                        <table class="table table-condensed">
+                        <table class="table table-sm">
                             <?php if ($result->descricaoProduto != null || $result->defeito != null || $result->laudoTecnico != null || $result->observacoes) { ?>
                                     <?php if ($result->descricaoProduto != null) { ?>
                                         <tr>
@@ -247,7 +247,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                         </table>
                         
                         <?php if ($anexos != null) { ?>
-                            <table class="table table-bordered table-condensed">
+                            <table class="table table-bordered table-sm">
                                 <thead>
                                     <tr>
                                         <th>Anexo</th>
@@ -263,7 +263,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                                             $thumb = $a->url . '/thumbs/' . $a->thumb;
                                             $link = $a->url . '/' . $a->anexo;
                                         }
-                                        echo '<div class="span3" style="min-height: 150px; margin-left: 0"><a style="min-height: 150px;" href="#modal-anexo" imagem="' . (int) $a->idAnexos . '" link="' . html_escape($link) . '" role="button" class="btn anexo span12" data-toggle="modal"><img src="' . html_escape($thumb) . '" alt=""></a></div>';
+                                        echo '<div class="col-md-3" style="min-height: 150px; margin-left: 0"><a style="min-height: 150px;" href="#modal-anexo" imagem="' . (int) $a->idAnexos . '" link="' . html_escape($link) . '" role="button" class="btn anexo col-md-12" data-bs-toggle="modal"><img src="' . html_escape($thumb) . '" alt=""></a></div>';
                                     } ?>
                                     </th>
                                 </tbody>
@@ -273,7 +273,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                         <?php $totalServico = 0; $totalProdutos = 0; ?>
                         <?php if ($produtos != null) { ?>
                             <br />
-                            <table class="table table-bordered table-condensed" id="tblProdutos">
+                            <table class="table table-bordered table-sm" id="tblProdutos">
                                 <thead>
                                     <tr>
                                         <th>PRODUTO</th>
@@ -303,7 +303,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                         <?php } ?>
 
                         <?php if ($servicos != null) { ?>
-                            <table class="table table-bordered table-condensed">
+                            <table class="table table-bordered table-sm">
                                 <thead>
                                     <tr>
                                         <th>SERVIÇO</th>
@@ -333,7 +333,7 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
                             </table>
                         <?php } ?>
 
-                        <table class="table table-condensed">
+                        <table class="table table-sm">
                             <thead>
                                 <td>
                                     <?php if ($totalProdutos != 0 || $totalServico != 0) {
@@ -407,23 +407,23 @@ $mapaStatusBoleto = ['OPEN' => 'Em aberto', 'PAID' => 'Pago', 'LATE' => 'Vencido
 <!-- Inicio Modal visualizar anexo -->
 <link rel="stylesheet" href="<?= base_url('assets/css/anexo-viewer.css') ?>?v=<?= asset_versao('assets/css/anexo-viewer.css') ?>">
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/anexo-viewer.js') ?>?v=<?= asset_versao('assets/js/anexo-viewer.js') ?>"></script>
-<div id="modal-anexo" class="modal hide fade" data-excluir-url="" data-download-url="<?php echo base_url(); ?>index.php/mine/downloadanexo/" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div id="modal-anexo" class="modal fade" data-excluir-url="" data-download-url="<?php echo base_url(); ?>index.php/mine/downloadanexo/" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        
         <h3 id="myModalLabel">Visualizar Anexo</h3>
-    </div>
-    <div class="modal-body">
-        <div class="span12" id="div-visualizar-anexo" style="text-align: center">
-            <div class='progress progress-info progress-striped active'>
-                <div class='bar' style='width: 100%'></div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+    <div class="modal-body"><div class="row">
+        <div class="col-md-12" id="div-visualizar-anexo" style="text-align: center">
+            <div class='progress'>
+                <div class='progress-bar bg-info progress-bar-striped progress-bar-animated' style='width: 100%'></div>
             </div>
         </div>
-    </div>
+    </div></div>
     <div class="modal-footer">
-        <button class="btn" data-dismiss="modal" aria-hidden="true">Fechar</button>
-        <a href="" id-imagem="" class="btn btn-inverse" id="download">Download</a>
+        <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Fechar</button>
+        <a href="" id-imagem="" class="btn btn-dark" id="download">Download</a>
     </div>
-</div>
+</div></div></div>
 <script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
             });

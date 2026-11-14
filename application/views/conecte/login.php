@@ -55,12 +55,12 @@ $logo = $logoEmitente !== null ? $logoEmitente : base_url('assets/img/logo-mapos
 
                 <div class="cftv-campo">
                     <i class="bx bx-envelope"></i>
-                    <input id="email" name="email" type="email" placeholder="E-mail" aria-label="E-mail" autocomplete="username" value="<?= htmlspecialchars($parse_email, ENT_QUOTES, 'UTF-8') ?>" />
+                    <input class="form-control" id="email" name="email" type="email" placeholder="E-mail" aria-label="E-mail" autocomplete="username" value="<?= htmlspecialchars($parse_email, ENT_QUOTES, 'UTF-8') ?>" />
                 </div>
 
                 <div class="cftv-campo">
                     <i class="bx bx-lock-alt"></i>
-                    <input id="senha" name="senha" type="password" placeholder="Senha" aria-label="Senha" autocomplete="current-password" />
+                    <input class="form-control" id="senha" name="senha" type="password" placeholder="Senha" aria-label="Senha" autocomplete="current-password" />
                     <button type="button" class="cftv-olho" id="lcEye" aria-label="Mostrar senha"><i class="bx bx-show"></i></button>
                 </div>
 
@@ -147,7 +147,7 @@ $logo = $logoEmitente !== null ? $logoEmitente : base_url('assets/img/logo-mapos
                     });
                     return false;
                 },
-                errorClass: "help-inline",
+                errorClass: "invalid-feedback",
                 errorElement: "span",
                 errorPlacement: function(error, element) { error.appendTo(element.closest('.cftv-campo')); },
                 highlight: function(element) { $(element).closest('.cftv-campo').addClass('erro'); },

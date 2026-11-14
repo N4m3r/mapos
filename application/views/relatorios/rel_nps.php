@@ -10,8 +10,8 @@ $classeNps = function ($nps) {
 };
 ?>
 
-<div class="row-fluid" style="margin-top: 0">
-    <div class="span12">
+<div class="row" style="margin-top: 0">
+    <div class="col-md-12">
         <div class="ui-cabecalho">
             <div>
                 <h1><i class="bx bx-happy-beaming"></i> Satisfação dos clientes (NPS)</h1>
@@ -22,14 +22,14 @@ $classeNps = function ($nps) {
         <form action="<?= site_url('relatorios/nps') ?>" method="get" class="ui-filtros">
             <div class="ui-campo">
                 <label for="dataInicial">Avaliações de</label>
-                <input type="date" id="dataInicial" name="dataInicial" value="<?= html_escape($filtro['dataInicial']) ?>" />
+                <input class="form-control" type="date" id="dataInicial" name="dataInicial" value="<?= html_escape($filtro['dataInicial']) ?>" />
             </div>
             <div class="ui-campo">
                 <label for="dataFinal">Até</label>
-                <input type="date" id="dataFinal" name="dataFinal" value="<?= html_escape($filtro['dataFinal']) ?>" />
+                <input class="form-control" type="date" id="dataFinal" name="dataFinal" value="<?= html_escape($filtro['dataFinal']) ?>" />
             </div>
             <div class="ui-campo ui-campo-acao">
-                <button class="button btn btn-inverse"><span class="button__icon"><i class="bx bx-filter-alt"></i></span><span class="button__text">Filtrar</span></button>
+                <button class="button btn btn-dark"><span class="button__icon"><i class="bx bx-filter-alt"></i></span><span class="button__text">Filtrar</span></button>
             </div>
         </form>
 

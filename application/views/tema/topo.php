@@ -88,12 +88,12 @@
     <div id="user-nav" class="navbar navbar-inverse">
       <ul class="nav">
         <li class="dropdown">
-          <a href="#" class="tip-right dropdown-toggle" data-toggle="dropdown" title="Perfis"><i class='bx bx-user-circle iconN'></i><span class="text"></span></a>
+          <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" title="Perfis" aria-expanded="false"><i class='bx bx-user-circle iconN'></i><span class="text"></span></a>
           <ul class="dropdown-menu">
-            <li class=""><a title="Área do Cliente" href="<?= site_url(); ?>/mine" target="_blank"> <span class="text">Área do Cliente</span></a></li>
-            <li class=""><a title="Meu Perfil" href="<?= site_url('mapos/minhaConta'); ?>"><span class="text">Meu Perfil</span></a></li>
-            <li class="divider"></li>
-            <li class=""><a title="Sair do Sistema" href="<?= site_url('login/sair'); ?>"><i class='bx bx-log-out-circle'></i> <span class="text">Sair do Sistema</span></a></li>
+            <li class=""><a class="dropdown-item" title="Área do Cliente" href="<?= site_url(); ?>/mine" target="_blank"> <span class="text">Área do Cliente</span></a></li>
+            <li class=""><a class="dropdown-item" title="Meu Perfil" href="<?= site_url('mapos/minhaConta'); ?>"><span class="text">Meu Perfil</span></a></li>
+            <li class=""><hr class="dropdown-divider"></li>
+            <li class=""><a class="dropdown-item" title="Sair do Sistema" href="<?= site_url('login/sair'); ?>"><i class='bx bx-log-out-circle'></i> <span class="text">Sair do Sistema</span></a></li>
           </ul>
         </li>
       </ul>
@@ -136,7 +136,7 @@
   <!--start-top-serch-->
   <div style="display: none" id="search">
     <form action="<?= site_url('mapos/pesquisar') ?>">
-      <input type="text" name="termo" placeholder="Pesquisar..." />
+      <input class="form-control" type="text" name="termo" placeholder="Pesquisar..." />
       <button type="submit" class="tip-bottom" title="Pesquisar"><i class="fas fa-search fa-white"></i></button>
     </form>
   </div>

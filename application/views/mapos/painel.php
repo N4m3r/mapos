@@ -87,7 +87,7 @@ $rotuloPrazo = function ($data) {
                 </a>
             <?php } ?>
             <?php if ($pode('eOs')) { ?>
-                <a href="<?= site_url('os/atribuir') ?>" class="button btn btn-inverse">
+                <a href="<?= site_url('os/atribuir') ?>" class="button btn btn-dark">
                     <span class="button__icon"><i class="bx bx-headphone"></i></span><span class="button__text2">Central de atendimento</span>
                 </a>
             <?php } ?>
@@ -372,9 +372,9 @@ $rotuloPrazo = function ($data) {
                     </div>
                     <div class="widget-content">
                         <form method="get" action="<?= site_url('mapos') ?>" class="pi-filtro-ano" style="justify-content:flex-end;margin-bottom:8px">
-                            <label for="year" class="muted" style="font-size:12px;margin:0">Ano</label>
-                            <input type="number" id="year" name="year" min="2000" max="2100" value="<?= (int) $pi_ano ?>" />
-                            <button type="submit" class="btn btn-mini" aria-label="Trocar ano"><i class="bx bx-refresh"></i></button>
+                            <label for="year" class="text-muted" style="font-size:12px;margin:0">Ano</label>
+                            <input class="form-control" type="number" id="year" name="year" min="2000" max="2100" value="<?= (int) $pi_ano ?>" />
+                            <button type="submit" class="btn btn-sm" aria-label="Trocar ano"><i class="bx bx-refresh"></i></button>
                         </form>
 
                         <?php

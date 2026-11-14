@@ -13,41 +13,41 @@
         <p>Escolha o cliente e o vendedor. Depois de continuar, você adiciona os produtos da venda.</p>
     </div>
 </div>
-<div class="row-fluid" style="margin-top:0">
-    <div class="span12">
+<div class="row" style="margin-top:0">
+    <div class="col-md-12">
         <div class="widget-box">
-            <div class="widget-content nopadding tab-content">
-                <div class="span12" id="divProdutosServicos" style=" margin-left: 0">
+            <div class="widget-content nopadding tab-content"><div class="row">
+                <div class="col-md-12" id="divProdutosServicos" style=" margin-left: 0">
                     <ul class="nav nav-tabs">
-                        <li class="active" id="tabDetalhes"><a href="#tab1" data-toggle="tab">Detalhes da venda</a></li>
+                        <li class="nav-item" id="tabDetalhes"><a class="nav-link active" href="#tab1" data-bs-toggle="tab">Detalhes da venda</a></li>
                     </ul>
                     <div class="tab-content">
-                        <div class="tab-pane active" id="tab1">
-                            <div class="span12" id="divCadastrarOs">
+                        <div class="tab-pane active" id="tab1"><div class="row">
+                            <div class="col-md-12 row" id="divCadastrarOs">
                                 <?php if ($custom_error == true) { ?>
-                                    <div class="span12 alert alert-danger" id="divInfo" style="padding: 1%;">Dados incompletos, verifique os campos com asterisco ou se selecionou corretamente cliente e responsável.</div>
+                                    <div class="col-md-12 alert alert-danger" id="divInfo" style="padding: 1%;">Dados incompletos, verifique os campos com asterisco ou se selecionou corretamente cliente e responsável.</div>
                                 <?php } ?>
-                                <form action="<?php echo current_url(); ?>" method="post" id="formVendas">
-                                    <div class="span12" style="padding: 1%">
-                                        <div class="span2">
+                                <form class="row" action="<?php echo current_url(); ?>" method="post" id="formVendas">
+                                    <div class="col-md-12" style="padding: 1%">
+                                        <div class="col-md-2">
                                             <label for="dataInicial">Data da Venda<span class="required">*</span></label>
-                                            <input id="dataVenda" class="span12 datepicker" type="text" name="dataVenda" value="<?php echo date('d/m/Y'); ?>" />
+                                            <input id="dataVenda" class="datepicker w-100 form-control" type="text" name="dataVenda" value="<?php echo date('d/m/Y'); ?>" />
                                         </div>
-                                        <div class="span3">
+                                        <div class="col-md-3">
                                             <label for="cliente">Cliente<span class="required">*</span></label>
-                                            <input id="cliente" class="span12" type="text" name="cliente" value="" />
-                                            <input id="clientes_id" class="span12" type="hidden" name="clientes_id" value="" />
+                                            <input id="cliente" class="w-100 form-control" type="text" name="cliente" value="" />
+                                            <input id="clientes_id" class="w-100" type="hidden" name="clientes_id" value="" />
                                             <div class="addclient"><?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'aCliente')) { ?>
                                               <a href="<?php echo base_url(); ?>index.php/clientes/adicionar" class="btn btn-success"><i class="fas fa-plus"></i> Adicionar Cliente</a><?php } ?></div>
                                         </div>
-                                        <div class="span3">
+                                        <div class="col-md-3">
                                             <label for="tecnico">Vendedor<span class="required">*</span></label>
-                                            <input id="tecnico" class="span12" type="text" name="tecnico" value="<?= $this->session->userdata('nome_admin'); ?>" />
-                                            <input id="usuarios_id" class="span12" type="hidden" name="usuarios_id" value="<?= $this->session->userdata('id_admin'); ?>" />
+                                            <input id="tecnico" class="w-100 form-control" type="text" name="tecnico" value="<?= $this->session->userdata('nome_admin'); ?>" />
+                                            <input id="usuarios_id" class="w-100" type="hidden" name="usuarios_id" value="<?= $this->session->userdata('id_admin'); ?>" />
                                         </div>
-                                        <div class="span2">
+                                        <div class="col-md-2">
                                             <label for="status">Status<span class="required">*</span></label>
-                                            <select class="span12" name="status" id="status" value="">
+                                            <select class="w-100 form-select" name="status" id="status" value="">
                                                 <option value="Orçamento">Orçamento</option>
                                                 <option value="Aberto">Aberto</option>
                                                 <option value="Faturado">Faturado</option>
@@ -58,38 +58,38 @@
                                                 <option value="Aprovado">Aprovado</option>
                                             </select>
                                         </div>
-                                        <div class="span2">
+                                        <div class="col-md-2">
                                             <label for="garantia">Garantia (dias)</label>
-                                            <input id="garantia" type="number" placeholder="Em Dias" min="0" max="9999" class="span12" name="garantia" value="" />
+                                            <input id="garantia" type="number" placeholder="Em Dias" min="0" max="9999" class="w-100 form-control" name="garantia" value="" />
                                             <?php echo form_error('garantia'); ?>
                                         </div>
 
-                                    <div class="span6" style="padding: 1%; margin-left: 0">
+                                    <div class="col-md-6" style="padding: 1%; margin-left: 0">
                                         <label for="observacoes">
                                             <h4>Observações</h4>
                                         </label>
-                                        <textarea class="editor" name="observacoes" id="observacoes" cols="30" rows="5"></textarea>
+                                        <textarea class="editor form-control" name="observacoes" id="observacoes" cols="30" rows="5"></textarea>
                                     </div>
 
-                                    <div class="span6" style="padding: 1%; margin-left: 0">
+                                    <div class="col-md-6" style="padding: 1%; margin-left: 0">
                                         <label for="observacoes_cliente">
                                             <h4>Observações para o Cliente</h4>
                                         </label>
-                                        <textarea class="editor" name="observacoes_cliente" id="observacoes_cliente" cols="30" rows="5"></textarea>
+                                        <textarea class="editor form-control" name="observacoes_cliente" id="observacoes_cliente" cols="30" rows="5"></textarea>
                                     </div>
 
-                                    <div class="span12" style="padding: 1%; margin-left: 0">
-                                        <div class="span6 offset3" style="display:flex;justify-content: center">
+                                    <div class="col-md-12 row" style="padding: 1%; margin-left: 0">
+                                        <div class="col-md-6 offset-md-3" style="display:flex;justify-content: center">
                                           <button class="button btn btn-success" id="btnContinuar"><span class="button__icon"><i class='bx bx-chevrons-right'></i></span><span class="button__text2">Continuar</span></button>
-                                            <a href="<?php echo base_url() ?>index.php/vendas" class="button btn btn-mini btn-warning"><span class="button__icon"><i class="bx bx-undo"></i></span> <span class="button__text2">Voltar</span></a>
+                                            <a href="<?php echo base_url() ?>index.php/vendas" class="button btn btn-sm btn-warning"><span class="button__icon"><i class="bx bx-undo"></i></span> <span class="button__text2">Voltar</span></a>
                                         </div>
                                     </div>
                                 </form>
                             </div>
-                        </div>
+                        </div></div>
                     </div>
                 </div>
-            </div>
+            </div></div>
         </div>
     </div>
 </div>
@@ -140,14 +140,14 @@
                     required: 'Campo Requerido.'
                 }
             },
-            errorClass: "help-inline",
+            errorClass: "invalid-feedback",
             errorElement: "span",
             highlight: function(element, errorClass, validClass) {
-                $(element).parents('.control-group').addClass('error');
+                $(element).addClass('is-invalid');
             },
             unhighlight: function(element, errorClass, validClass) {
-                $(element).parents('.control-group').removeClass('error');
-                $(element).parents('.control-group').addClass('success');
+                $(element).removeClass('is-invalid');
+                $(element).addClass('is-valid');
             }
         });
         $(".datepicker").datepicker({

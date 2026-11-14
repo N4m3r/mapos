@@ -18,11 +18,11 @@ $filtrando = ($busca !== null && $busca !== '') || $filtro_situacao !== '';
     <form method="get" action="<?= site_url('rh/colaboradores') ?>" class="ui-filtros">
         <div class="ui-campo">
             <label for="filtro-busca">Buscar</label>
-            <input type="text" id="filtro-busca" name="busca" placeholder="Nome, CPF ou cargo" value="<?= html_escape($busca) ?>">
+            <input class="form-control" type="text" id="filtro-busca" name="busca" placeholder="Nome, CPF ou cargo" value="<?= html_escape($busca) ?>">
         </div>
         <div class="ui-campo">
             <label for="filtro-situacao">Situação</label>
-            <select name="situacao" id="filtro-situacao" data-ao-mudar="enviar">
+            <select class="form-select" name="situacao" id="filtro-situacao" data-ao-mudar="enviar">
                 <option value="" <?= $filtro_situacao===''?'selected':'' ?>>Todos</option>
                 <option value="1" <?= $filtro_situacao==='1'?'selected':'' ?>>Ativos</option>
                 <option value="0" <?= $filtro_situacao==='0'?'selected':'' ?>>Inativos e desligados</option>
@@ -69,7 +69,7 @@ $filtrando = ($busca !== null && $busca !== '') || $filtro_situacao !== '';
                             <?php if ($podeEditar): ?>
                                 <a href="<?= site_url('rh/biometria/'.$c->id) ?>" class="btn-nwe3" title="Biometria facial" aria-label="Biometria facial"><i class="bx bx-face bx-xs"></i></a>
                                 <a href="<?= site_url('rh/editarColaborador/'.$c->id.$voltarLista) ?>" class="btn-nwe3" title="Editar" aria-label="Editar"><i class="bx bx-edit bx-xs"></i></a>
-                                <a href="#modal-excluir" role="button" data-toggle="modal" reg="<?= (int) $c->id ?>" data-nome="<?= html_escape($c->nome) ?>" class="btn-nwe4" title="Excluir" aria-label="Excluir"><i class="bx bx-trash-alt bx-xs"></i></a>
+                                <a href="#modal-excluir" role="button" data-bs-toggle="modal" reg="<?= (int) $c->id ?>" data-nome="<?= html_escape($c->nome) ?>" class="btn-nwe4" title="Excluir" aria-label="Excluir"><i class="bx bx-trash-alt bx-xs"></i></a>
                             <?php endif; ?>
                         </td>
                     </tr>
@@ -81,20 +81,20 @@ $filtrando = ($busca !== null && $busca !== '') || $filtro_situacao !== '';
     </div>
 </div>
 
-<div id="modal-excluir" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-excluir" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('rh/excluirColaborador') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Fechar">×</button><h5>Excluir colaborador</h5></div>
+        <div class="modal-header"><h5>Excluir colaborador</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <input type="hidden" id="reg-id" name="id" value="">
             <h5 style="text-align:center">Deseja realmente excluir <strong id="reg-nome">este colaborador</strong>?</h5>
             <p style="text-align:center" class="ui-subtitulo">Para manter o histórico, prefira desligar o colaborador na tela de edição.</p>
         </div>
         <div class="modal-footer" style="display:flex;justify-content:center">
-            <button type="button" class="button btn btn-warning" data-dismiss="modal"><span class="button__text2">Cancelar</span></button>
+            <button type="button" class="button btn btn-warning" data-bs-dismiss="modal"><span class="button__text2">Cancelar</span></button>
             <button class="button btn btn-danger"><span class="button__text2">Excluir</span></button>
         </div>
     </form>
-</div>
+</div></div></div>
 <script nonce="<?= csp_nonce() ?>">
 $(document).on('click', 'a[reg]', function(){ $('#reg-id').val($(this).attr('reg')); $('#reg-nome').text($(this).attr('data-nome') || 'este colaborador'); });
 </script>

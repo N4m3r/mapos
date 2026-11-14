@@ -66,15 +66,15 @@ $link = static function ($situacao) use ($filtros) {
 
         <form method="get" action="<?= site_url('sla') ?>" class="ui-filtros">
             <div class="ui-campo"><label>Técnico</label>
-                <select name="tecnico"><option value="">Todos</option>
+                <select class="form-select" name="tecnico"><option value="">Todos</option>
                     <?php foreach ($tecnicos as $t) { ?><option value="<?= (int) $t->idUsuarios ?>" <?= (int) $filtros['tecnico'] === (int) $t->idUsuarios ? 'selected' : '' ?>><?= html_escape($t->nome) ?></option><?php } ?>
                 </select></div>
             <div class="ui-campo"><label>Contrato</label>
-                <select name="contrato"><option value="">Todos</option>
+                <select class="form-select" name="contrato"><option value="">Todos</option>
                     <?php foreach ($contratos as $c) { ?><option value="<?= (int) $c->id ?>" <?= (int) $filtros['contrato'] === (int) $c->id ? 'selected' : '' ?>><?= html_escape(trim(($c->codigo ? $c->codigo . ' - ' : '') . $c->descricao)) ?></option><?php } ?>
                 </select></div>
             <div class="ui-campo"><label>Prioridade</label>
-                <select name="prioridade"><option value="">Todas</option>
+                <select class="form-select" name="prioridade"><option value="">Todas</option>
                     <?php foreach ($prioridades as $p) { ?><option <?= $filtros['prioridade'] === $p ? 'selected' : '' ?>><?= html_escape($p) ?></option><?php } ?>
                 </select></div>
             <?php if ($filtros['situacao']) { ?><input type="hidden" name="situacao" value="<?= html_escape($filtros['situacao']) ?>"><?php } ?>
@@ -82,7 +82,7 @@ $link = static function ($situacao) use ($filtros) {
         </form>
 
         <div class="ui-tabela-rolagem">
-        <table class="table table-bordered table-condensed">
+        <table class="table table-bordered table-sm">
             <thead>
                 <tr>
                     <th style="width:60px">OS</th>

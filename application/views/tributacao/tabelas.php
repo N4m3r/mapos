@@ -1,5 +1,5 @@
-<div class="row-fluid" style="margin-top:0">
-    <div class="span12">
+<div class="row" style="margin-top:0">
+    <div class="col-md-12">
         <div class="ui-cabecalho">
             <div>
                 <h1><i class="fas fa-table"></i> Tabelas da Reforma Tributária</h1>
@@ -36,9 +36,9 @@
                 <form method="post" action="<?= site_url('tributacao/tabelas') ?>" enctype="multipart/form-data" class="form-inline">
                     <input type="hidden" name="<?= $this->security->get_csrf_token_name() ?>" value="<?= $this->security->get_csrf_hash() ?>">
                     <input type="hidden" name="tabela" value="<?= htmlspecialchars($k) ?>">
-                    <input type="file" name="arquivo" accept=".csv,.txt" required>
-                    <input type="text" name="versao" placeholder="Versão (ex.: IT 2025.002 v1.31)" maxlength="40">
-                    <input type="date" name="vigencia_inicio" title="Vigência desde">
+                    <input class="form-control" type="file" name="arquivo" accept=".csv,.txt" required>
+                    <input class="form-control" type="text" name="versao" placeholder="Versão (ex.: IT 2025.002 v1.31)" maxlength="40">
+                    <input class="form-control" type="date" name="vigencia_inicio" title="Vigência desde">
                     <button type="submit" class="button btn btn-success"><span class="button__icon"><i class="bx bx-upload"></i></span><span class="button__text2">Importar CSV</span></button>
                 </form>
             </div>

@@ -2,8 +2,8 @@
 <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/sweetalert2.all.min.js"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url() ?>assets/js/funcoes.js"></script>
 
-<div class="row-fluid" style="margin-top:0">
-    <div class="span12">
+<div class="row" style="margin-top:0">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="widget-title">
                 <span class="icon">
@@ -15,114 +15,114 @@
 
                 <form action="<?php echo current_url(); ?>" id="formCliente" method="post" class="form-horizontal">
                 <input type="hidden" name="<?= $this->security->get_csrf_token_name(); ?>" value="<?= $this->security->get_csrf_hash(); ?>">
-                    <div class="control-group">
+                    <div class="row mb-2">
                         <input type="hidden" name="idClientes" id="idClientes" value="<?php echo $result->idClientes; ?>" />
-                        <label for="nomeCliente" class="control-label">Nome<span class="required">*</span></label>
-                        <div class="controls">
-                            <input id="nomeCliente" type="text" name="nomeCliente" value="<?php echo html_escape($result->nomeCliente); ?>" />
+                        <label for="nomeCliente" class="col-sm-3 col-form-label">Nome<span class="required">*</span></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="nomeCliente" type="text" name="nomeCliente" value="<?php echo html_escape($result->nomeCliente); ?>" />
                         </div>
                     </div>
 
-                    <div class="control-group">
-                        <label for="contato" class="control-label">Contato</label>
-                        <div class="controls">
-                            <input id="contato" type="text" name="contato" value="<?php echo html_escape($result->contato); ?>" />
+                    <div class="row mb-2">
+                        <label for="contato" class="col-sm-3 col-form-label">Contato</label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="contato" type="text" name="contato" value="<?php echo html_escape($result->contato); ?>" />
                         </div>
                     </div>
 
-                    <div class="control-group">
+                    <div class="row mb-2">
                         <?php if ($custom_error != '') {
                             echo '<div class="alert alert-danger">' . $custom_error . '</div>';
                         } ?>
-                        <label for="documento" class="control-label">CPF/CNPJ<span class="required">*</span></label>
-                        <div class="controls">
-                            <input id="documento" class="cpfcnpjmine" type="text" name="documento" value="<?php echo html_escape($result->documento); ?>" />
-                            <button id="buscar_info_cnpj" class="btn btn-xs" type="button"><i class="fas fa-search"></i></button>
+                        <label for="documento" class="col-sm-3 col-form-label">CPF/CNPJ<span class="required">*</span></label>
+                        <div class="col-sm-9">
+                            <input id="documento" class="cpfcnpjmine form-control" type="text" name="documento" value="<?php echo html_escape($result->documento); ?>" />
+                            <button id="buscar_info_cnpj" class="btn btn-sm" type="button"><i class="fas fa-search"></i></button>
                         </div>
                     </div>
-                    <div class="control-group">
-                        <label for="telefone" class="control-label">Telefone<span class="required">*</span></label>
-                        <div class="controls">
-                            <input id="telefone" type="text" name="telefone" value="<?php echo html_escape($result->telefone); ?>" />
-                        </div>
-                    </div>
-
-                    <div class="control-group">
-                        <label for="celular" class="control-label">Celular</label>
-                        <div class="controls">
-                            <input id="celular" type="text" name="celular" value="<?php echo html_escape($result->celular); ?>" />
+                    <div class="row mb-2">
+                        <label for="telefone" class="col-sm-3 col-form-label">Telefone<span class="required">*</span></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="telefone" type="text" name="telefone" value="<?php echo html_escape($result->telefone); ?>" />
                         </div>
                     </div>
 
-                    <div class="control-group">
-                        <label for="email" class="control-label">Email<span class="required">*</span></label>
-                        <div class="controls">
-                            <input id="email" type="text" name="email" value="<?php echo html_escape($result->email); ?>" />
+                    <div class="row mb-2">
+                        <label for="celular" class="col-sm-3 col-form-label">Celular</label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="celular" type="text" name="celular" value="<?php echo html_escape($result->celular); ?>" />
                         </div>
                     </div>
 
-                    <div class="control-group">
-                        <label for="senha" class="control-label">Senha</label>
-                        <div class="controls">
-                            <input id="senha" type="password" name="senha" value="" placeholder="Não preencha se não quiser alterar." />
+                    <div class="row mb-2">
+                        <label for="email" class="col-sm-3 col-form-label">Email<span class="required">*</span></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="email" type="text" name="email" value="<?php echo html_escape($result->email); ?>" />
+                        </div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <label for="senha" class="col-sm-3 col-form-label">Senha</label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="senha" type="password" name="senha" value="" placeholder="Não preencha se não quiser alterar." />
                             <img id="imgSenha" src="<?php echo base_url() ?>assets/img/eye.svg" alt="" style="width: 18px; cursor: pointer;">
                         </div>
                     </div>
 
-                    <div class="control-group" class="control-label">
-                        <label for="cep" class="control-label">CEP<span class="required">*</span></label>
-                        <div class="controls">
-                            <input id="cep" type="text" name="cep" value="<?php echo html_escape($result->cep); ?>" />
+                    <div class="row mb-2" class="form-label">
+                        <label for="cep" class="col-sm-3 col-form-label">CEP<span class="required">*</span></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="cep" type="text" name="cep" value="<?php echo html_escape($result->cep); ?>" />
                         </div>
                     </div>
 
-                    <div class="control-group" class="control-label">
-                        <label for="rua" class="control-label">Rua<span class="required">*</span></label>
-                        <div class="controls">
-                            <input id="rua" type="text" name="rua" value="<?php echo html_escape($result->rua); ?>" />
+                    <div class="row mb-2" class="form-label">
+                        <label for="rua" class="col-sm-3 col-form-label">Rua<span class="required">*</span></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="rua" type="text" name="rua" value="<?php echo html_escape($result->rua); ?>" />
                         </div>
                     </div>
 
-                    <div class="control-group">
-                        <label for="numero" class="control-label">Número<span class="required">*</span></label>
-                        <div class="controls">
-                            <input id="numero" type="text" name="numero" value="<?php echo html_escape($result->numero); ?>" />
+                    <div class="row mb-2">
+                        <label for="numero" class="col-sm-3 col-form-label">Número<span class="required">*</span></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="numero" type="text" name="numero" value="<?php echo html_escape($result->numero); ?>" />
                         </div>
                     </div>
-                    <div class="control-group">
-                        <label for="complemento" class="control-label">Complmento</label>
-                        <div class="controls">
-                            <input id="complemento" type="text" name="complemento" value="<?php echo html_escape($result->complemento); ?>" />
+                    <div class="row mb-2">
+                        <label for="complemento" class="col-sm-3 col-form-label">Complmento</label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="complemento" type="text" name="complemento" value="<?php echo html_escape($result->complemento); ?>" />
                         </div>
                     </div>
-                    <div class="control-group" class="control-label">
-                        <label for="bairro" class="control-label">Bairro<span class="required">*</span></label>
-                        <div class="controls">
-                            <input id="bairro" type="text" name="bairro" value="<?php echo html_escape($result->bairro); ?>" />
-                        </div>
-                    </div>
-
-                    <div class="control-group" class="control-label">
-                        <label for="cidade" class="control-label">Cidade<span class="required">*</span></label>
-                        <div class="controls">
-                            <input id="cidade" type="text" name="cidade" value="<?php echo html_escape($result->cidade); ?>" />
+                    <div class="row mb-2" class="form-label">
+                        <label for="bairro" class="col-sm-3 col-form-label">Bairro<span class="required">*</span></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="bairro" type="text" name="bairro" value="<?php echo html_escape($result->bairro); ?>" />
                         </div>
                     </div>
 
-                    <div class="control-group" class="control-label">
-                        <label for="estado" class="control-label">Estado<span class="required">*</span></label>
-                        <div class="controls">
-                            <input id="estado" type="text" name="estado" value="<?php echo html_escape($result->estado); ?>" />
+                    <div class="row mb-2" class="form-label">
+                        <label for="cidade" class="col-sm-3 col-form-label">Cidade<span class="required">*</span></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="cidade" type="text" name="cidade" value="<?php echo html_escape($result->cidade); ?>" />
+                        </div>
+                    </div>
+
+                    <div class="row mb-2" class="form-label">
+                        <label for="estado" class="col-sm-3 col-form-label">Estado<span class="required">*</span></label>
+                        <div class="col-sm-9">
+                            <input class="form-control" id="estado" type="text" name="estado" value="<?php echo html_escape($result->estado); ?>" />
                         </div>
                     </div>
 
 
-                    <div class="form-actions">
-                        <div class="span12">
-                            <div class="span6 offset3" style="display:flex;justify-content: center">
+                    <div class="form-actions row">
+                        <div class="col-md-12 row">
+                            <div class="col-md-6 offset-md-3" style="display:flex;justify-content: center">
                                 <button type="submit" class="button btn btn-primary">
                                     <span class="button__icon"><i class="bx bx-sync"></i></span><span class="button__text2">Atualizar</span></button>
-                                <a href="<?php echo base_url() ?>index.php/mine/conta" id="" class="button btn btn-mini btn-warning">
+                                <a href="<?php echo base_url() ?>index.php/mine/conta" id="" class="button btn btn-sm btn-warning">
                                     <span class="button__icon"><i class="bx bx-undo"></i></span> <span class="button__text2">Voltar</span></a>
                             </div>
                         </div>
@@ -219,14 +219,14 @@
 
             },
 
-            errorClass: "help-inline",
+            errorClass: "invalid-feedback",
             errorElement: "span",
             highlight: function(element, errorClass, validClass) {
-                $(element).parents('.control-group').addClass('error');
+                $(element).addClass('is-invalid');
             },
             unhighlight: function(element, errorClass, validClass) {
-                $(element).parents('.control-group').removeClass('error');
-                $(element).parents('.control-group').addClass('success');
+                $(element).removeClass('is-invalid');
+                $(element).addClass('is-valid');
             }
         });
     });

@@ -59,7 +59,7 @@ $data = fn ($d, $hora = false) => ($d && strpos($d, '0000') !== 0) ? date($hora 
             <div class="alert alert-success" style="margin-top:16px"><?= html_escape($this->session->flashdata('success')) ?></div>
         <?php endif; ?>
         <?php if ($this->session->flashdata('error')) : ?>
-            <div class="alert alert-error" style="margin-top:16px"><?= html_escape($this->session->flashdata('error')) ?></div>
+            <div class="alert alert-danger" style="margin-top:16px"><?= html_escape($this->session->flashdata('error')) ?></div>
         <?php endif; ?>
 
         <div class="ac-card">
@@ -99,7 +99,7 @@ $data = fn ($d, $hora = false) => ($d && strpos($d, '0000') !== 0) ? date($hora 
                 <div class="ac-body">
                     <b>Sua avaliação: <?= (int) $avaliacao->nota ?>/10</b>
                     <?php if ($avaliacao->comentario) : ?>
-                        <p class="muted" style="margin:8px 0 0"><?= nl2br(html_escape($avaliacao->comentario)) ?></p>
+                        <p class="text-muted" style="margin:8px 0 0"><?= nl2br(html_escape($avaliacao->comentario)) ?></p>
                     <?php endif; ?>
                     <p style="margin:8px 0 0">Obrigado por nos ajudar a melhorar.</p>
                 </div>
@@ -113,13 +113,13 @@ $data = fn ($d, $hora = false) => ($d && strpos($d, '0000') !== 0) ? date($hora 
                         <b>De 0 a 10, quanto você recomendaria nosso serviço a um amigo?</b>
                         <div class="ac-nps">
                             <?php for ($n = 0; $n <= 10; $n++) : ?>
-                                <input type="radio" name="nota" id="nota<?= $n ?>" value="<?= $n ?>" required>
+                                <input class="form-check-input" type="radio" name="nota" id="nota<?= $n ?>" value="<?= $n ?>" required>
                                 <label for="nota<?= $n ?>"><?= $n ?></label>
                             <?php endfor; ?>
                         </div>
                         <div class="ac-legenda"><span>Nada provável</span><span>Muito provável</span></div>
                         <label for="comentario" style="margin-top:14px">Quer deixar um comentário? (opcional)</label>
-                        <textarea name="comentario" id="comentario" rows="3" maxlength="1000"></textarea>
+                        <textarea class="form-control" name="comentario" id="comentario" rows="3" maxlength="1000"></textarea>
                         <button type="submit" class="btn btn-primary" style="margin-top:10px">Enviar avaliação</button>
                     </form>
                 </div>

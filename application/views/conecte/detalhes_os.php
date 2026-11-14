@@ -13,8 +13,8 @@
     }
 </style>
 
-<div class="row-fluid" style="margin-top:0">
-    <div class="span12">
+<div class="row" style="margin-top:0">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="widget-title">
                 <span class="icon">
@@ -22,88 +22,88 @@
                 </span>
                 <h5>Detalhes OS</h5>
             </div>
-            <div class="widget-content nopadding tab-content">
+            <div class="widget-content nopadding tab-content"><div class="row">
 
 
-                <div class="span12" id="divProdutosServicos" style=" margin-left: 0">
+                <div class="col-md-12" id="divProdutosServicos" style=" margin-left: 0">
                     <ul class="nav nav-tabs">
-                        <li class="active" id="tabDetalhes"><a href="#tab1" data-toggle="tab">Detalhes da OS</a></li>
-                        <li id="tabProdutos"><a href="#tab2" data-toggle="tab">Produtos</a></li>
-                        <li id="tabServicos"><a href="#tab3" data-toggle="tab">Serviços</a></li>
-                        <li id="tabAnexos"><a href="#tab4" data-toggle="tab">Anexos</a></li>
+                        <li class="nav-item" id="tabDetalhes"><a class="nav-link active" href="#tab1" data-bs-toggle="tab">Detalhes da OS</a></li>
+                        <li class="nav-item" id="tabProdutos"><a class="nav-link" href="#tab2" data-bs-toggle="tab">Produtos</a></li>
+                        <li class="nav-item" id="tabServicos"><a class="nav-link" href="#tab3" data-bs-toggle="tab">Serviços</a></li>
+                        <li class="nav-item" id="tabAnexos"><a class="nav-link" href="#tab4" data-bs-toggle="tab">Anexos</a></li>
                     </ul>
                     <div class="tab-content">
-                        <div class="tab-pane active" id="tab1">
+                        <div class="tab-pane active" id="tab1"><div class="row">
 
-                            <div class="span12" id="divCadastrarOs">
-
-
-                                <div class="span12" style="padding: 1%; margin-left: 0">
+                            <div class="col-md-12 row" id="divCadastrarOs">
 
 
-                                    <div class="span6" style="margin-left: 0">
+                                <div class="col-md-12 row" style="padding: 1%; margin-left: 0">
+
+
+                                    <div class="col-md-6" style="margin-left: 0">
                                         <h3>#Protocolo:
                                             <?php echo $result->idOs ?>
                                         </h3>
                                         <input id="valorTotal" type="hidden" name="valorTotal" value="" />
                                     </div>
-                                    <div class="span6">
+                                    <div class="col-md-6">
                                         <label for="tecnico">Técnico / Responsável</label>
-                                        <input disabled="disabled" id="tecnico" class="span12" type="text" name="tecnico" value="<?php echo html_escape($result->nome); ?>" />
+                                        <input disabled="disabled" id="tecnico" class="w-100 form-control" type="text" name="tecnico" value="<?php echo html_escape($result->nome); ?>" />
 
                                     </div>
                                 </div>
-                                <div class="span12" style="padding: 1%; margin-left: 0">
-                                    <div class="span3">
+                                <div class="col-md-12 row" style="padding: 1%; margin-left: 0">
+                                    <div class="col-md-3">
                                         <label for="status">Status<span class="required"></span></label>
-                                        <input disabled="disabled" type="text" name="status" id="status" value="<?php echo $result->status; ?>">
+                                        <input class="form-control" disabled="disabled" type="text" name="status" id="status" value="<?php echo $result->status; ?>">
 
                                     </div>
-                                    <div class="span3">
+                                    <div class="col-md-3">
                                         <label for="dataInicial">Data Inicial<span class="required">*</span></label>
-                                        <input id="dataInicial" disabled="disabled" class="span12 datepicker" type="text" name="dataInicial" value="<?php echo date('d/m/Y', strtotime($result->dataInicial)); ?>" />
+                                        <input id="dataInicial" disabled="disabled" class="datepicker w-100 form-control" type="text" name="dataInicial" value="<?php echo date('d/m/Y', strtotime($result->dataInicial)); ?>" />
                                     </div>
-                                    <div class="span3">
+                                    <div class="col-md-3">
                                         <label for="dataFinal">Data Final</label>
-                                        <input id="dataFinal" disabled="disabled" class="span12 datepicker" type="text" name="dataFinal" value="<?php echo date('d/m/Y', strtotime($result->dataFinal)); ?>" />
+                                        <input id="dataFinal" disabled="disabled" class="datepicker w-100 form-control" type="text" name="dataFinal" value="<?php echo date('d/m/Y', strtotime($result->dataFinal)); ?>" />
                                     </div>
 
-                                    <div class="span3">
+                                    <div class="col-md-3">
                                         <label for="garantia">Garantia</label>
-                                        <input id="garantia" disabled="disabled" type="text" class="span12" name="garantia" value="<?php echo $result->garantia ?>" />
+                                        <input id="garantia" disabled="disabled" type="text" class="w-100 form-control" name="garantia" value="<?php echo $result->garantia ?>" />
                                     </div>
                                 </div>
 
 
-                                <div class="span12" style="padding: 1%; margin-left: 0">
+                                <div class="col-md-12" style="padding: 1%; margin-left: 0">
                                     <label for="descricaoProduto">Descrição Produto/Serviço</label>
-                                    <textarea class="span12 editor" name="descricaoProduto" id="descricaoProduto" cols="30" rows="5" disabled><?php echo html_escape($result->descricaoProduto); ?></textarea>
+                                    <textarea class="editor w-100 form-control" name="descricaoProduto" id="descricaoProduto" cols="30" rows="5" disabled><?php echo html_escape($result->descricaoProduto); ?></textarea>
                                 </div>
 
-                                <div class="span12" style="padding: 1%; margin-left: 0">
+                                <div class="col-md-12" style="padding: 1%; margin-left: 0">
                                     <label for="defeito">Defeito</label>
-                                    <textarea class="span12 editor" name="defeito" id="defeito" cols="30" rows="5" disabled><?php echo html_escape($result->defeito); ?></textarea>
+                                    <textarea class="editor w-100 form-control" name="defeito" id="defeito" cols="30" rows="5" disabled><?php echo html_escape($result->defeito); ?></textarea>
                                 </div>
 
-                                <div class="span12" style="padding: 1%; margin-left: 0">
+                                <div class="col-md-12" style="padding: 1%; margin-left: 0">
                                     <label for="observacoes">Observações</label>
-                                    <textarea class="span12 editor" name="observacoes" id="observacoes" cols="30" rows="5" disabled><?php echo html_escape($result->observacoes); ?></textarea>
+                                    <textarea class="editor w-100 form-control" name="observacoes" id="observacoes" cols="30" rows="5" disabled><?php echo html_escape($result->observacoes); ?></textarea>
                                 </div>
 
-                                <div class="span12" style="padding: 1%; margin-left: 0">
+                                <div class="col-md-12" style="padding: 1%; margin-left: 0">
                                     <label for="laudoTecnico">Laudo Técnico</label>
-                                    <textarea class="span12 editor" name="laudoTecnico" id="laudoTecnico" cols="30" rows="5" disabled><?php echo html_escape($result->laudoTecnico); ?></textarea>
+                                    <textarea class="editor w-100 form-control" name="laudoTecnico" id="laudoTecnico" cols="30" rows="5" disabled><?php echo html_escape($result->laudoTecnico); ?></textarea>
                                 </div>
 
                             </div>
 
-                        </div>
+                        </div></div>
 
 
                         <!--Produtos-->
-                        <div class="tab-pane" id="tab2">
+                        <div class="tab-pane" id="tab2"><div class="row">
 
-                            <div class="span12" id="divProdutos" style="margin-left: 0">
+                            <div class="col-md-12" id="divProdutos" style="margin-left: 0">
                                 <table class="table table-bordered" id="tblProdutos">
                                     <thead>
                                         <tr>
@@ -135,13 +135,13 @@ foreach ($produtos as $p) {
                                 </table>
                             </div>
 
-                        </div>
+                        </div></div>
 
                         <!--Serviços-->
-                        <div class="tab-pane" id="tab3">
-                            <div class="span12" style="padding: 1%; margin-left: 0">
+                        <div class="tab-pane" id="tab3"><div class="row">
+                            <div class="col-md-12 row" style="padding: 1%; margin-left: 0">
 
-                                <div class="span12" id="divServicos" style="margin-left: 0">
+                                <div class="col-md-12" id="divServicos" style="margin-left: 0">
                                     <table class="table table-bordered">
                                         <thead>
                                             <tr>
@@ -174,32 +174,32 @@ foreach ($servicos as $s) {
                                 </div>
 
                             </div>
-                        </div>
+                        </div></div>
 
 
                         <!--Anexos-->
-                        <div class="tab-pane" id="tab4">
-                            <div class="span12" style="padding: 1%; margin-left: 0">
+                        <div class="tab-pane" id="tab4"><div class="row">
+                            <div class="col-md-12 row" style="padding: 1%; margin-left: 0">
 
                                 <?php if ($this->session->userdata('cliente_anexa')) { ?>
-                                    <div class="span12 well" style="padding: 1%; margin-left: 0" id="form-anexos">
-                                        <form id="formAnexos" enctype="multipart/form-data" action="#" data-bloquear-envio accept-charset="utf-8" s method="post">
-                                            <div class="span10">
+                                    <div class="col-md-12 card card-body" style="padding: 1%; margin-left: 0" id="form-anexos">
+                                        <form class="row" id="formAnexos" enctype="multipart/form-data" action="#" data-bloquear-envio accept-charset="utf-8" s method="post">
+                                            <div class="col-md-10">
 
                                                 <input type="hidden" name="idOsServico" id="idOsServico" value="<?php echo $result->idOs ?>" />
                                                 <label for="">Anexo</label>
-                                                <input type="file" class="span12" name="userfile[]" multiple="multiple" size="20" />
+                                                <input type="file" class="w-100 form-control" name="userfile[]" multiple="multiple" size="20" />
                                             </div>
-                                            <div class="span2">
+                                            <div class="col-md-2 row">
                                                 <label for="">.</label>
-                                                <button class="btn btn-success span12"><i class="fas fa-paperclip"></i> Anexar</button>
+                                                <button class="btn btn-success col-md-12"><i class="fas fa-paperclip"></i> Anexar</button>
                                             </div>
                                         </form>
                                     </div>
                                 <?php
                                 } ?>
 
-                                <div class="span12" id="divAnexos" style="margin-left: 0">
+                                <div class="col-md-12" id="divAnexos" style="margin-left: 0">
                                     <?php foreach ($anexos as $a) {
                                         if ($a->thumb == null) {
                                             $thumb = base_url() . 'assets/img/icon-file.png';
@@ -208,8 +208,8 @@ foreach ($servicos as $s) {
                                             $thumb = $a->url . '/thumbs/' . $a->thumb;
                                             $link = $a->url . '/' . $a->anexo;
                                         }
-                                        echo '<div class="span3" style="min-height: 150px; margin-left: 0">
-                                            <a style="min-height: 150px;" href="#modal-anexo" imagem="' . $a->idAnexos . '" link="' . $link . '" role="button" class="btn anexo span12" data-toggle="modal">
+                                        echo '<div class="col-md-3" style="min-height: 150px; margin-left: 0">
+                                            <a style="min-height: 150px;" href="#modal-anexo" imagem="' . $a->idAnexos . '" link="' . $link . '" role="button" class="btn anexo col-md-12" data-bs-toggle="modal">
                                             <img src="' . $thumb . '" alt="">
                                             </a>
                                             <span>' . $a->anexo . '</span>
@@ -218,7 +218,7 @@ foreach ($servicos as $s) {
                                 </div>
 
                             </div>
-                        </div>
+                        </div></div>
 
 
 
@@ -229,7 +229,7 @@ foreach ($servicos as $s) {
 
                 .
 
-            </div>
+            </div></div>
 
         </div>
     </div>
@@ -240,79 +240,79 @@ foreach ($servicos as $s) {
 
 
 <!-- Modal visualizar anexo -->
-<div id="modal-anexo" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div id="modal-anexo" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        
         <h3 id="myModalLabel">Visualizar Anexo</h3>
-    </div>
-    <div class="modal-body">
-        <div class="span12" id="div-visualizar-anexo" style="text-align: center">
-            <div class='progress progress-info progress-striped active'>
-                <div class='bar' style='width: 100%'></div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+    <div class="modal-body"><div class="row">
+        <div class="col-md-12" id="div-visualizar-anexo" style="text-align: center">
+            <div class='progress'>
+                <div class='progress-bar bg-info progress-bar-striped progress-bar-animated' style='width: 100%'></div>
             </div>
         </div>
-    </div>
+    </div></div>
     <div class="modal-footer">
-        <button class="btn" data-dismiss="modal" aria-hidden="true">Fechar</button>
-        <a href="" id-imagem="" class="btn btn-inverse" id="download">Download</a>
+        <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Fechar</button>
+        <a href="" id-imagem="" class="btn btn-dark" id="download">Download</a>
     </div>
-</div>
+</div></div></div>
 
 
 
 
 
 <!-- Modal Faturar-->
-<div id="modal-faturar" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div id="modal-faturar" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form id="formFaturar" action="<?php echo current_url() ?>" method="post">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            
             <h3 id="myModalLabel">Faturar Venda</h3>
-        </div>
-        <div class="modal-body">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
+        <div class="modal-body"><div class="row">
 
-            <div class="span12 alert alert-info" style="margin-left: 0"> Obrigatório o preenchimento dos campos com asterisco.</div>
-            <div class="span12" style="margin-left: 0">
+            <div class="col-md-12 alert alert-info" style="margin-left: 0"> Obrigatório o preenchimento dos campos com asterisco.</div>
+            <div class="col-md-12" style="margin-left: 0">
                 <label for="descricao">Descrição*</label>
-                <input class="span12" id="descricao" type="text" name="descricao" value="Fatura de Venda - #<?php echo $result->idOs; ?> " />
+                <input class="w-100 form-control" id="descricao" type="text" name="descricao" value="Fatura de Venda - #<?php echo $result->idOs; ?> " />
 
             </div>
-            <div class="span12" style="margin-left: 0">
-                <div class="span12" style="margin-left: 0">
+            <div class="col-md-12 row" style="margin-left: 0">
+                <div class="col-md-12" style="margin-left: 0">
                     <label for="cliente">Cliente*</label>
-                    <input class="span12" id="cliente" type="text" name="cliente" value="<?php echo html_escape($result->nomeCliente); ?>" />
+                    <input class="w-100 form-control" id="cliente" type="text" name="cliente" value="<?php echo html_escape($result->nomeCliente); ?>" />
                     <input type="hidden" name="clientes_id" id="clientes_id" value="<?php echo $result->clientes_id ?>">
                     <input type="hidden" name="os_id" id="os_id" value="<?php echo $result->idOs; ?>">
                 </div>
 
 
             </div>
-            <div class="span12" style="margin-left: 0">
-                <div class="span4" style="margin-left: 0">
+            <div class="col-md-12 row" style="margin-left: 0">
+                <div class="col-md-4" style="margin-left: 0">
                     <label for="valor">Valor*</label>
                     <input type="hidden" id="tipo" name="tipo" value="receita" />
-                    <input class="span12 money" id="valor" type="text" name="valor" value="<?php echo number_format($total, 2, '.', ''); ?> " />
+                    <input class="money w-100 form-control" id="valor" type="text" name="valor" value="<?php echo number_format($total, 2, '.', ''); ?> " />
                 </div>
-                <div class="span4">
+                <div class="col-md-4">
                     <label for="vencimento">Data Vencimento*</label>
-                    <input class="span12 datepicker" id="vencimento" type="text" name="vencimento" />
+                    <input class="datepicker w-100 form-control" id="vencimento" type="text" name="vencimento" />
                 </div>
 
             </div>
 
-            <div class="span12" style="margin-left: 0">
-                <div class="span4" style="margin-left: 0">
+            <div class="col-md-12 row" style="margin-left: 0">
+                <div class="col-md-4" style="margin-left: 0">
                     <label for="recebido">Recebido?</label>
-                    &nbsp &nbsp &nbsp &nbsp <input id="recebido" type="checkbox" name="recebido" value="1" />
+                    &nbsp &nbsp &nbsp &nbsp <input class="form-check-input" id="recebido" type="checkbox" name="recebido" value="1" />
                 </div>
-                <div id="divRecebimento" class="span8" style=" display: none">
-                    <div class="span6">
+                <div id="divRecebimento" class="col-md-8 row" style=" display: none">
+                    <div class="col-md-6">
                         <label for="recebimento">Data Recebimento</label>
-                        <input class="span12 datepicker" id="recebimento" type="text" name="recebimento" />
+                        <input class="datepicker w-100 form-control" id="recebimento" type="text" name="recebimento" />
                     </div>
-                    <div class="span6">
+                    <div class="col-md-6">
                         <label for="formaPgto">Forma Pgto</label>
-                        <select name="formaPgto" id="formaPgto" class="span12">
+                        <select name="formaPgto" id="formaPgto" class="w-100 form-select">
                             <option value="Dinheiro">Dinheiro</option>
                             <option value="Cartão de Crédito">Cartão de Crédito</option>
                             <option value="Cheque">Cheque</option>
@@ -327,13 +327,13 @@ foreach ($servicos as $s) {
 
 
             </div>
-        </div>
+        </div></div>
         <div class="modal-footer">
-            <button class="btn" data-dismiss="modal" aria-hidden="true" id="btn-cancelar-faturar">Cancelar</button>
+            <button class="btn" data-bs-dismiss="modal" aria-hidden="true" id="btn-cancelar-faturar">Cancelar</button>
             <button class="btn btn-primary">Faturar</button>
         </div>
     </form>
-</div>
+</div></div></div>
 
 <script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {

@@ -5,7 +5,7 @@
         <p class="ui-subtitulo">Registro das ações feitas no sistema por usuário, data, hora e IP.</p>
     </div>
     <div class="ui-acoes">
-        <a href="#modal-excluir" role="button" data-toggle="modal" class="button btn btn-danger tip-top" title="Remover logs com 30 dias ou mais"><span class="button__icon"><i class='bx bx-trash'></i></span> <span class="button__text2">Remover Logs - 30 dias ou mais</span></a>
+        <a href="#modal-excluir" role="button" data-bs-toggle="modal" class="button btn btn-danger tip-top" title="Remover logs com 30 dias ou mais"><span class="button__icon"><i class='bx bx-trash'></i></span> <span class="button__text2">Remover Logs - 30 dias ou mais</span></a>
     </div>
 </div>
 
@@ -43,19 +43,19 @@
 <?php echo $this->pagination->create_links(); ?>
 
 <!-- Modal -->
-<div id="modal-excluir" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div id="modal-excluir" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?php echo site_url('auditoria/clean') ?>" method="post">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            
             <h5>Limpeza de Logs</h5>
-        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <h5 style="text-align: center">Deseja realmente remover os logs mais antigos?</h5>
         </div>
         <div class="modal-footer">
-            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancelar</button>
+            <button class="btn" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
             <button class="btn btn-danger">Excluir</button>
         </div>
     </form>
-</div>
+</div></div></div>
 </div>

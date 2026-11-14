@@ -49,7 +49,7 @@ $situacaoTexto = $filtro['situacao']
         .so-impressao { display: block !important; margin-bottom: 12px; }
         .so-impressao h2 { margin: 0 0 4px; font-size: 18px; color: #000 !important; }
         .so-impressao p { margin: 0; font-size: 12px; color: #000 !important; }
-        body, #content, #content-header, .container-fluid, .row-fluid, .span12 {
+        body, #content, #content-header, .container-fluid, .row, .col-md-12 {
             background: #fff !important; color: #000 !important; margin: 0 !important; padding: 0 !important;
             width: 100% !important; min-height: 0 !important;
         }
@@ -72,8 +72,8 @@ $situacaoTexto = $filtro['situacao']
     }
 </style>
 
-<div class="row-fluid" style="margin-top: 0">
-    <div class="span12">
+<div class="row" style="margin-top: 0">
+    <div class="col-md-12">
         <div class="so-impressao">
             <h2>Cobrança do mês <?= html_escape($mesTitulo) ?></h2>
             <p>
@@ -89,18 +89,18 @@ $situacaoTexto = $filtro['situacao']
                 <p>O que foi feito, o que está pendente e o que ainda não foi cobrado, por cliente, no mês escolhido.</p>
             </div>
             <div class="ui-acoes">
-                <button type="button" class="button btn btn-mini btn-inverse" data-acao="imprimir"><span class="button__icon"><i class="bx bx-printer"></i></span><span class="button__text">Imprimir</span></button>
+                <button type="button" class="button btn btn-sm btn-dark" data-acao="imprimir"><span class="button__icon"><i class="bx bx-printer"></i></span><span class="button__text">Imprimir</span></button>
             </div>
         </div>
 
         <form action="<?= site_url('relatoriocobranca') ?>" method="get" class="ui-filtros">
             <div class="ui-campo">
                 <label for="competencia">Mês</label>
-                <input type="month" id="competencia" name="competencia" value="<?= html_escape($competencia) ?>" />
+                <input class="form-control" type="month" id="competencia" name="competencia" value="<?= html_escape($competencia) ?>" />
             </div>
             <div class="ui-campo">
                 <label for="clientes_id">Cliente</label>
-                <select id="clientes_id" name="clientes_id">
+                <select class="form-select" id="clientes_id" name="clientes_id">
                     <option value="">Todos</option>
                     <?php foreach ($clientes as $c) : ?>
                         <option value="<?= (int) $c->idClientes ?>" <?= $filtro['clientes_id'] !== null && (int) $filtro['clientes_id'] === (int) $c->idClientes ? 'selected' : '' ?>><?= html_escape($c->nomeCliente) ?></option>
@@ -109,7 +109,7 @@ $situacaoTexto = $filtro['situacao']
             </div>
             <div class="ui-campo">
                 <label for="origem">Origem</label>
-                <select id="origem" name="origem">
+                <select class="form-select" id="origem" name="origem">
                     <option value="">Todas</option>
                     <?php foreach ($origens as $chave => $rotulo) : ?>
                         <option value="<?= html_escape($chave) ?>" <?= $filtro['origem'] === $chave ? 'selected' : '' ?>><?= html_escape($rotulo) ?></option>
@@ -117,14 +117,14 @@ $situacaoTexto = $filtro['situacao']
                 </select>
             </div>
             <div class="ui-campo ui-campo-acao">
-                <button class="button btn btn-inverse"><span class="button__icon"><i class="bx bx-filter-alt"></i></span><span class="button__text">Filtrar</span></button>
+                <button class="button btn btn-dark"><span class="button__icon"><i class="bx bx-filter-alt"></i></span><span class="button__text">Filtrar</span></button>
                 <a class="btn" href="<?= site_url('relatoriocobranca') ?>" title="Limpar filtros"><i class="bx bx-x"></i> Limpar</a>
             </div>
             <div class="cobranca-chips-linha">
                 <span>Situação (marque para filtrar a tabela):</span>
                     <?php foreach ($situacoes as $chave => $s) : ?>
                         <label class="cobranca-chip">
-                            <input type="checkbox" name="situacao[]" value="<?= html_escape($chave) ?>" <?= in_array($chave, $filtro['situacao'], true) ? 'checked' : '' ?> />
+                            <input class="form-check-input" type="checkbox" name="situacao[]" value="<?= html_escape($chave) ?>" <?= in_array($chave, $filtro['situacao'], true) ? 'checked' : '' ?> />
                             <span class="ui-selo <?= html_escape($s['classe']) ?>"><?= html_escape($s['rotulo']) ?> (<?= $totalQtd($chave) ?>)</span>
                         </label>
                     <?php endforeach; ?>

@@ -41,7 +41,7 @@ $logoEmitenteEsc = $logoEmitente !== null ? htmlspecialchars($logoEmitente, ENT_
         </div>
     </div>
     <?php } ?>
-    <a href="#" class="visible-phone">
+    <a href="#" class="d-md-none">
         <div class="mode">
             <div class="moon-menu">
                 <i class='bx bx-chevron-right iconX open-2'></i>
@@ -54,7 +54,7 @@ $logoEmitenteEsc = $logoEmitente !== null ? htmlspecialchars($logoEmitente, ENT_
         <form style="display: flex" action="<?= site_url('mapos/pesquisar') ?>">
         <button style="background:transparent;border:transparent" type="submit" class="tip-bottom" title="">
                 <i class='bx bx-search iconX'></i></button>
-                <input style="background:transparent;<?= $configuration['app_theme'] == 'white' ? 'color:#313030;' : 'color:#fff;' ?>border:transparent" type="search" name="termo" placeholder="Pesquise aqui...">
+                <input class="form-control" style="background:transparent;<?= $configuration['app_theme'] == 'white' ? 'color:#313030;' : 'color:#fff;' ?>border:transparent" type="search" name="termo" placeholder="Pesquise aqui...">
             <span class="title-tooltip">Pesquisar</span>
         </form>
     </li>
