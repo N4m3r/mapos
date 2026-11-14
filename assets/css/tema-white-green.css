@@ -8,7 +8,7 @@ input[type="text"],
 .form-control,
 input[type="number"],
 .form-select {
-  background  : var(--white);
+  background-color  : var(--white);
   border-color: var(--white-gre0);
   color: var(--white-gre2);
 }
@@ -430,6 +430,12 @@ label {
 .modal-header {
     background: var(--white-gre0);
     color: var(--white-gre2);
+}
+
+/* cabeçalho claro neste tema: o X volta a ser escuro (matrix-style o deixa branco) */
+.modal-header .btn-close {
+    filter: none;
+    opacity: 0.6;
 }
 
 .modal-body {
