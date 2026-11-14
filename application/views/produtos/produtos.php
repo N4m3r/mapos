@@ -160,7 +160,7 @@
 
                 <div class="col-md-4">
                     <label for="valor">Qtd. do Estoque</label>
-                    <input class="w-100 form-check-input" type="checkbox" name="qtdEtiqueta" value="true"/>
+                    <input class="w-100" type="checkbox" name="qtdEtiqueta" value="true"/>
                 </div>
 
                 <div class="col-md-6 row">

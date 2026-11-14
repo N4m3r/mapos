@@ -122,7 +122,7 @@ foreach ($salvas as $valor) {
                                 <?php foreach ($secao['chaves'] as $item) { ?>
                                     <?php $marcada = (int) ($salvas[$item['chave']] ?? 0) === 1; ?>
                                     <label class="perfil-chave" data-busca="<?= $e(mb_strtolower($secao['titulo'] . ' ' . $item['rotulo'] . ' ' . $item['descricao'] . ' ' . $item['chave'])) ?>">
-                                        <input type="checkbox" name="<?= $e($item['chave']) ?>" value="1" class="marcar form-check-input" <?= $marcada ? 'checked' : '' ?>>
+                                        <input type="checkbox" name="<?= $e($item['chave']) ?>" value="1" class="marcar" <?= $marcada ? 'checked' : '' ?>>
                                         <span class="perfil-chave-texto">
                                             <strong><?= $e($item['rotulo']) ?></strong>
                                             <?php if ($item['descricao'] !== '') { ?>

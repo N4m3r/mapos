@@ -1847,25 +1847,25 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
                 <h5><i class="bx bx-check-square"></i> Checklist de Finalização</h5>
 
                 <label class="mobile-checkbox-item">
-                    <input type="checkbox" id="mobile-check-servico" class="mobile-check-item form-check-input">
+                    <input type="checkbox" id="mobile-check-servico" class="mobile-check-item">
                     <span class="checkmark"></span>
                     <span class="label-text">Serviço foi realizado</span>
                 </label>
 
                 <label class="mobile-checkbox-item">
-                    <input type="checkbox" id="mobile-check-testes" class="mobile-check-item form-check-input">
+                    <input type="checkbox" id="mobile-check-testes" class="mobile-check-item">
                     <span class="checkmark"></span>
                     <span class="label-text">Testes realizados</span>
                 </label>
 
                 <label class="mobile-checkbox-item">
-                    <input type="checkbox" id="mobile-check-cliente" class="mobile-check-item form-check-input">
+                    <input type="checkbox" id="mobile-check-cliente" class="mobile-check-item">
                     <span class="checkmark"></span>
                     <span class="label-text">Cliente foi informado</span>
                 </label>
 
                 <label class="mobile-checkbox-item">
-                    <input type="checkbox" id="mobile-check-limpeza" class="mobile-check-item form-check-input">
+                    <input type="checkbox" id="mobile-check-limpeza" class="mobile-check-item">
                     <span class="checkmark"></span>
                     <span class="label-text">Área de trabalho limpa</span>
                 </label>

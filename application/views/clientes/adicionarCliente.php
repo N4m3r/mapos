@@ -213,7 +213,7 @@
                             <label class="col-sm-3 col-form-label">Tipo de Cliente</label>
                             <div class="col-sm-9">
                                 <label for="fornecedor" class="btn btn-secondary">Fornecedor
-                                    <input type="checkbox" id="fornecedor" name="fornecedor" class="badgebox form-check-input" value="1">
+                                    <input type="checkbox" id="fornecedor" name="fornecedor" class="badgebox" value="1">
                                     <span class="badge text-bg-secondary">&check;</span>
                                 </label>
                             </div>
@@ -223,7 +223,7 @@
                             <label class="col-sm-3 col-form-label">Atividade n&atilde;o programada</label>
                             <div class="col-sm-9">
                                 <label for="exige_chamado" class="btn btn-secondary">Exige N&ordm; do chamado
-                                    <input type="checkbox" id="exige_chamado" name="exige_chamado" class="badgebox form-check-input" value="1">
+                                    <input type="checkbox" id="exige_chamado" name="exige_chamado" class="badgebox" value="1">
                                     <span class="badge text-bg-secondary">&check;</span>
                                 </label>
                                 <span class="form-text">O t&eacute;cnico s&oacute; abre atividade n&atilde;o programada informando o chamado do cliente.</span>
