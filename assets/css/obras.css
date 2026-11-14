@@ -7,9 +7,9 @@
 .obra-header .badge { margin-top:6px; display:inline-block; }
 
 .obra-tabs { margin:0 0 10px; border-bottom:2px solid #dcdcdc; padding-left:0; display:flex; flex-wrap:wrap; list-style:none; }
-.obra-tabs li { margin:0 2px -2px 0; }
-.obra-tabs li a { display:block; padding:8px 14px; color:#555; text-decoration:none; border:1px solid transparent; border-radius:6px 6px 0 0; }
-.obra-tabs li.active a { background:#fff; border-color:#dcdcdc; border-bottom-color:#fff; color:#2e7d32; font-weight:bold; }
+.obra-tabs .nav-item { margin:0 2px -2px 0; }
+.obra-tabs .nav-link { display:block; padding:8px 14px; color:#555; text-decoration:none; border:1px solid transparent; border-radius:6px 6px 0 0; }
+.obra-tabs .nav-link.active { background:#fff; border-color:#dcdcdc; border-bottom-color:#fff; color:#2e7d32; font-weight:bold; }
 
 .obra-fotos-prev { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
 .obra-fotos-prev img { width:70px; height:70px; object-fit:cover; border-radius:6px; border:1px solid #ccc; }
@@ -82,13 +82,13 @@ body[data-theme="puredark"] .obra-tabs,
 body[data-theme="darkviolet"] .obra-tabs,
 body[data-theme="darkorange"] .obra-tabs { border-bottom-color:rgba(255,255,255,.12); }
 
-body[data-theme="puredark"] .obra-tabs li a,
-body[data-theme="darkviolet"] .obra-tabs li a,
-body[data-theme="darkorange"] .obra-tabs li a { color:var(--branco); }
+body[data-theme="puredark"] .obra-tabs .nav-link,
+body[data-theme="darkviolet"] .obra-tabs .nav-link,
+body[data-theme="darkorange"] .obra-tabs .nav-link { color:var(--branco); }
 
-body[data-theme="puredark"] .obra-tabs li.active a,
-body[data-theme="darkviolet"] .obra-tabs li.active a,
-body[data-theme="darkorange"] .obra-tabs li.active a { background:var(--dark-2); border-color:rgba(255,255,255,.12); border-bottom-color:var(--dark-2); color:#66bb6a; }
+body[data-theme="puredark"] .obra-tabs .nav-link.active,
+body[data-theme="darkviolet"] .obra-tabs .nav-link.active,
+body[data-theme="darkorange"] .obra-tabs .nav-link.active { background:var(--dark-2); border-color:rgba(255,255,255,.12); border-bottom-color:var(--dark-2); color:#66bb6a; }
 
 /* Scanner e barra de progresso em fundo escuro */
 body[data-theme="puredark"] .scanner-box,

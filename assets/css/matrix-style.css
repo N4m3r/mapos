@@ -128,6 +128,29 @@ a:focus {
   display: none;
 }
 
+/* o BS2 limitava toda imagem ao contêiner; o Reboot do BS5 não (a logo do menu
+   lateral saía do #sidebar) */
+img {
+  max-width     : 100%;
+  height        : auto;
+  vertical-align: middle;
+  border        : 0;
+}
+
+#newlog .icon2 img,
+#newlog .title1 img {
+  display: block;
+  width  : 100%;
+}
+
+/* checkbox/radio do BS5 em fundo claro: borda mais visível e no tamanho do texto do tema */
+.form-check-input {
+  --bs-border-color: #8a8f98;
+  width : 1.15em;
+  height: 1.15em;
+  border-color: #8a8f98;
+}
+
 .pecolor {
   color: var(--cinza0);
 }
@@ -358,8 +381,8 @@ input[type="number"],
   background-color: #999999;
 }
 
-/* Barra de navegação do topo (#user-nav): no BS2 era bloco simples, no BS5 é flex com padding */
-#user-nav.navbar {
+/* Menu do perfil no topo: #user-nav > ul.user-nav-lista (não usa mais navbar/nav) */
+#user-nav {
   display: block;
   padding: 0;
 }
@@ -546,7 +569,8 @@ textarea.form-control,
   margin-left: 5px;
 }
 
-.navbar .nav {
+.navbar .nav,
+#user-nav > ul {
   position: relative;
   right   : 0;
   display : block;
@@ -585,7 +609,8 @@ textarea.form-control,
   background: var(--corfun);
 }
 
-.navbar-inverse .nav>li>a {
+.navbar-inverse .nav>li>a,
+#user-nav > ul > li > a {
   color: #c4c4cc;
 }
 
@@ -4065,7 +4090,8 @@ form {
     margin-left: 7px;
   }
 
-  .navbar>.nav {
+  .navbar>.nav,
+  #user-nav > ul {
     float: none;
   }
 
@@ -4109,7 +4135,8 @@ form {
     padding: 0px 2px;
   }
 
-  .navbar-inverse .nav>li>a {
+  .navbar-inverse .nav>li>a,
+  #user-nav > ul > li > a {
     color: #606772;
   }
 

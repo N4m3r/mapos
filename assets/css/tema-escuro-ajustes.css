@@ -255,7 +255,16 @@
         --bs-tertiary-color: rgba(202, 206, 216, 0.5);
         --bs-border-color: rgba(255, 255, 255, 0.12);
         --bs-border-color-translucent: rgba(255, 255, 255, 0.12);
+        /* .invalid-feedback/.valid-feedback e bordas is-invalid/is-valid com contraste no escuro */
+        --bs-form-invalid-color: #ff8a80;
+        --bs-form-invalid-border-color: #ff8a80;
+        --bs-form-valid-color: #5fd18a;
+        --bs-form-valid-border-color: #5fd18a;
     }
+
+    body[data-theme="puredark"] .form-text,
+    body[data-theme="darkviolet"] .form-text,
+    body[data-theme="darkorange"] .form-text { color: #a2a6ae; }
 
     /* seta do .form-select em cinza claro */
     body[data-theme="puredark"] .form-select,

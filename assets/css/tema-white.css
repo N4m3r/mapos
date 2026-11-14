@@ -229,7 +229,7 @@ body {
   border-left: none;
 }
 
-.navbar-inverse .brand, .navbar-inverse .nav > li > a {
+.navbar-inverse .brand, .navbar-inverse .nav > li > a, #user-nav > ul > li > a {
   color: #8c98a5;
   text-shadow: none;
 }
