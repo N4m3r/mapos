@@ -10,7 +10,7 @@
   /* Listagem de OS: a tabela cabe na tela sem rolagem lateral. Colunas
      agrupadas (periodo, valores), acoes secundarias num menu e colunas
      menos importantes somem em telas menores. */
-  .os-lista-wrap { overflow: visible; }
+  .ui-tabela-rolagem.os-lista-wrap { overflow: visible; }
   .os-lista { width: 100%; table-layout: auto; }
   .os-lista th, .os-lista td { vertical-align: middle; white-space: nowrap; }
   .os-lista .os-col-num .badge { display: inline-block; margin-top: 2px; font-size: .78em; }
@@ -37,7 +37,7 @@
   @media (max-width: 768px) {
     .os-lista .os-col-periodo { display: none; }
     /* No celular, se ainda nao couber, rola so a tabela (nunca a pagina) */
-    .os-lista-wrap { overflow-x: auto; }
+    .ui-tabela-rolagem.os-lista-wrap { overflow-x: auto; }
   }
 </style>
 <div class="new122">
@@ -107,7 +107,7 @@
 
     <div class="widget-box">
         <div class="widget-content nopadding">
-            <div class="os-lista-wrap">
+            <div class="ui-tabela-rolagem os-lista-wrap">
                 <table class="table table-bordered os-lista">
                     <thead>
                         <tr>
