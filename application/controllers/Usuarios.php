@@ -56,6 +56,10 @@ class Usuarios extends MY_Controller
         $this->data['results'] = $this->usuarios_model->get($config['per_page'], $pagina, false, $filtros);
         $this->data['filtros'] = $filtros;
         $this->data['perfis'] = $this->permissoes_model->todos();
+        $this->load->library('limite_login');
+        $this->data['bloqueios'] = $this->limite_login->bloqueiosPorEmail(array_map(static function ($u) {
+            return (string) $u->email;
+        }, $this->data['results'] ?: []));
         $this->data['view'] = 'usuarios/usuarios';
 
         return $this->layout();
@@ -124,7 +128,9 @@ class Usuarios extends MY_Controller
             }
         }
 
-        $this->load->library('dois_fatores');
+        $this->load->library(['dois_fatores', 'limite_login']);
+        $bloqueio = $this->limite_login->bloqueiosPorEmail([(string) $usuario->email]);
+        $this->data['bloqueioSegundos'] = (int) (reset($bloqueio) ?: 0);
         $this->data['doisFatoresAtivo'] = ! empty($usuario->totp_ativo);
         $this->data['codigosRestantes'] = Dois_fatores::codigosRestantes($usuario->totp_recuperacao ?? null);
         $this->carregarAuxiliares();
@@ -132,6 +138,44 @@ class Usuarios extends MY_Controller
         $this->data['view'] = 'usuarios/formulario';
 
         return $this->layout();
+    }
+
+    /**
+     * Libera o login de quem ficou bloqueado por errar a senha várias vezes
+     * ("Muitas tentativas de acesso. Aguarde X minutos"), sem esperar os 15
+     * minutos. Vale para o painel, a Área do Técnico, o app e o código de
+     * duas etapas. Só por POST.
+     */
+    public function liberarAcesso()
+    {
+        if ($this->input->method() !== 'post') {
+            show_404();
+
+            return;
+        }
+
+        $id = (int) $this->input->post('id');
+        $usuario = $id > 0 ? $this->usuarios_model->getById($id) : null;
+        $voltar = $this->input->post('voltar') === 'editar' && $usuario
+            ? site_url('usuarios/editar/' . $id)
+            : site_url('usuarios');
+
+        if (! $usuario) {
+            $this->session->set_flashdata('error', 'Usuário não encontrado.');
+            redirect($voltar);
+        }
+
+        $this->load->library('limite_login');
+        $apagados = $this->limite_login->liberar($usuario->email);
+        log_info('Liberou o acesso (tentativas de login) do usuário ID: ' . $id);
+
+        $this->session->set_flashdata(
+            'success',
+            $apagados > 0
+                ? 'Acesso liberado. A pessoa já pode entrar de novo.'
+                : 'Esta conta não tinha bloqueio por tentativas de acesso.'
+        );
+        redirect($voltar);
     }
 
     /**
@@ -285,7 +329,7 @@ class Usuarios extends MY_Controller
 
         $senha = (string) $this->input->post('senha');
         if ($senha !== '') {
-            $dados['senha'] = password_hash($senha, PASSWORD_DEFAULT);
+            $dados = array_merge($dados, $this->usuarios_model->camposSenha($senha));
         }
         if (! $usuario) {
             $dados['dataCadastro'] = date('Y-m-d');

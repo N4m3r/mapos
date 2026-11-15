@@ -95,6 +95,115 @@ class Limite_login
         $this->ci->db->where('chave', $this->chave($contexto, $email))->delete('login_tentativas');
     }
 
+    /** Contextos de login de uma conta de usuario (painel/area do tecnico, app e 2FA). */
+    const CONTEXTOS_USUARIO = ['painel', 'api', '2fa'];
+
+    /**
+     * Bloqueios por e-mail em andamento: [email minusculo => segundos que faltam].
+     *
+     * A chave gravada e sha1(contexto|email|ip), entao ela e recalculada para
+     * cada IP que errou na janela (poucos, porque a tabela e limpa sempre).
+     *
+     * @param array<int, string> $emails
+     *
+     * @return array<string, int>
+     */
+    public function bloqueiosPorEmail(array $emails)
+    {
+        if (! $this->ativo || empty($emails)) {
+            return [];
+        }
+        $desde = date('Y-m-d H:i:s', time() - self::JANELA_SEGUNDOS);
+        $mapa = $this->mapaDeChaves($emails, $desde);
+        if (empty($mapa)) {
+            return [];
+        }
+
+        $linhas = $this->ci->db->select('chave, COUNT(*) AS total, MAX(criado_em) AS ultima', false)
+            ->where_in('chave', array_keys($mapa))
+            ->where('criado_em >=', $desde)
+            ->group_by('chave')
+            ->get('login_tentativas')->result();
+
+        $bloqueios = [];
+        foreach ($linhas as $linha) {
+            if ((int) $linha->total < self::MAX_POR_EMAIL) {
+                continue;
+            }
+            $email = $mapa[$linha->chave];
+            $resta = max(1, strtotime($linha->ultima) + self::JANELA_SEGUNDOS - time());
+            $bloqueios[$email] = max($bloqueios[$email] ?? 0, $resta);
+        }
+
+        return $bloqueios;
+    }
+
+    /**
+     * Libera o login da conta antes dos 15 minutos: apaga os erros gravados
+     * para o e-mail (de qualquer IP) e, nos IPs de onde ela errou, o contador
+     * por IP daquele contexto, que tambem bloqueia.
+     *
+     * @return int registros apagados
+     */
+    public function liberar($email)
+    {
+        if (! $this->ativo || trim((string) $email) === '') {
+            return 0;
+        }
+        $mapa = $this->mapaDeChaves([$email], null);
+        if (empty($mapa)) {
+            return 0;
+        }
+
+        $origens = $this->ci->db->select('DISTINCT ip, contexto', false)
+            ->where_in('chave', array_keys($mapa))
+            ->get('login_tentativas')->result();
+
+        $this->ci->db->where_in('chave', array_keys($mapa))->delete('login_tentativas');
+        $apagados = (int) $this->ci->db->affected_rows();
+
+        foreach ($origens as $origem) {
+            $this->ci->db->where('ip', $origem->ip)->where('contexto', $origem->contexto)->delete('login_tentativas');
+            $apagados += (int) $this->ci->db->affected_rows();
+        }
+
+        return $apagados;
+    }
+
+    /**
+     * [chave => email minusculo] para cada e-mail x contexto de usuario x IP
+     * que aparece na tabela (desde $desde, ou em todo o historico).
+     *
+     * @param array<int, string> $emails
+     *
+     * @return array<string, string>
+     */
+    private function mapaDeChaves(array $emails, $desde)
+    {
+        $this->ci->db->select('DISTINCT ip', false)->where_in('contexto', self::CONTEXTOS_USUARIO);
+        if ($desde !== null) {
+            $this->ci->db->where('criado_em >=', $desde);
+        }
+        $ips = array_map(static function ($linha) {
+            return (string) $linha->ip;
+        }, $this->ci->db->get('login_tentativas')->result());
+
+        $mapa = [];
+        foreach ($emails as $email) {
+            $email = mb_strtolower(trim((string) $email));
+            if ($email === '') {
+                continue;
+            }
+            foreach (self::CONTEXTOS_USUARIO as $contexto) {
+                foreach ($ips as $ip) {
+                    $mapa[sha1($contexto . '|' . $email . '|' . $ip)] = $email;
+                }
+            }
+        }
+
+        return $mapa;
+    }
+
     /** Mensagem padrao para o usuario bloqueado. */
     public function mensagem($segundos)
     {

@@ -85,6 +85,23 @@ class Usuarios_model extends CI_Model
         return true;
     }
 
+    /**
+     * Campos a gravar quando a senha muda: o hash e, se a coluna existir
+     * (migration add_usuarios_senha_forca), o nível de segurança calculado
+     * agora, porque depois só resta o hash.
+     *
+     * @return array<string, mixed>
+     */
+    public function camposSenha($senha)
+    {
+        $campos = ['senha' => password_hash((string) $senha, PASSWORD_DEFAULT)];
+        if ($this->db->field_exists('senha_forca', 'usuarios')) {
+            $campos['senha_forca'] = senha_forca($senha);
+        }
+
+        return $campos;
+    }
+
     /** E-mail já usado por outra conta (o próprio cadastro não conta). */
     public function emailEmUso($email, $ignorarId = 0)
     {

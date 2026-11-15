@@ -421,3 +421,77 @@ if (! function_exists('senha_nova_erro')) {
         return null;
     }
 }
+
+if (! function_exists('senha_forca')) {
+    /**
+     * Nivel de seguranca de uma senha, de 1 (fraca) a 4 (forte); 0 para vazia.
+     *
+     * Mesma pontuacao do medidor de Minha Conta (assets/js/minha-conta.js):
+     * comprimento (6 e 10 caracteres) e variedade (maiusculas com minusculas,
+     * numeros, simbolos). Senhas obvias (123456, senha, mapos...) e de um
+     * caractere so repetido ficam sempre como fracas.
+     *
+     * Calculado so no momento em que a senha e definida: o banco guarda o
+     * hash, entao nao da para avaliar uma senha ja salva.
+     */
+    function senha_forca($senha)
+    {
+        $senha = (string) $senha;
+        if ($senha === '') {
+            return 0;
+        }
+
+        $tamanho = mb_strlen($senha);
+        $obvias = ['123456', '1234567', '12345678', '123456789', '1234567890', '654321', '111111', '000000',
+            'senha', 'senha123', 'senha1234', 'password', 'qwerty', 'abc123', 'admin', 'admin123', 'mapos', 'mapos123'];
+        if (in_array(mb_strtolower($senha), $obvias, true) || preg_match('/^(.)\1*$/u', $senha)) {
+            return 1;
+        }
+
+        $pontos = 0;
+        if ($tamanho >= 6) {
+            $pontos++;
+        }
+        if ($tamanho >= 10) {
+            $pontos++;
+        }
+        if (preg_match('/[a-z]/', $senha) && preg_match('/[A-Z]/', $senha)) {
+            $pontos++;
+        }
+        if (preg_match('/\d/', $senha)) {
+            $pontos++;
+        }
+        if (preg_match('/[^A-Za-z0-9]/', $senha)) {
+            $pontos++;
+        }
+
+        if ($tamanho < 6) {
+            return 1;
+        }
+
+        return max(1, min($pontos, 4));
+    }
+}
+
+if (! function_exists('senha_forca_rotulo')) {
+    /**
+     * Rotulo e classe de selo (ui-selo) do nivel guardado em usuarios.senha_forca.
+     * Nulo = senha definida antes de existir a avaliacao.
+     *
+     * @return array{0: string, 1: string}
+     */
+    function senha_forca_rotulo($nivel)
+    {
+        if ($nivel === null || $nivel === '') {
+            return ['não avaliada', 'neutro'];
+        }
+        $mapa = [
+            1 => ['Fraca', 'perigo'],
+            2 => ['Razoável', 'alerta'],
+            3 => ['Boa', 'info'],
+            4 => ['Forte', 'sucesso'],
+        ];
+
+        return $mapa[(int) $nivel] ?? ['não avaliada', 'neutro'];
+    }
+}

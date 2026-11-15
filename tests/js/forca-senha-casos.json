@@ -1,0 +1,13 @@
+{
+    "vazia": ["", 0],
+    "curta": ["Ab1!", 1],
+    "obvia numerica": ["12345678", 1],
+    "obvia palavra com maiuscula": ["Senha123", 1],
+    "repetida": ["aaaaaaaaaaaa", 1],
+    "so letras minusculas": ["cavalo", 1],
+    "letras e numeros": ["cavalo7", 2],
+    "longa com numeros": ["cavalobranco7", 3],
+    "maiusculas numeros simbolo": ["Cavalo7!", 4],
+    "longa variada": ["Cavalo-Branco-77", 4],
+    "acentos contam como simbolo": ["coração9", 3]
+}
