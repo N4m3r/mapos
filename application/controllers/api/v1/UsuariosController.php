@@ -292,6 +292,15 @@ class UsuariosController extends REST_Controller
 
             // Verificar credenciais do usuário
             if (password_verify($password, $user->senha)) {
+                // Senha temporaria: a troca e feita no navegador, no primeiro acesso
+                if (! empty($user->senha_temporaria)) {
+                    $this->limite_login->sucesso('api', $email);
+                    $this->response([
+                        'status' => false,
+                        'message' => 'Sua senha é temporária. Entre uma vez pelo navegador para criar a sua senha e depois volte ao aplicativo.',
+                        'senha_temporaria' => true,
+                    ], REST_Controller::HTTP_FORBIDDEN);
+                }
                 // Verificacao em duas etapas: quem ativou envia tambem "codigo" (app ou recuperacao)
                 if (! empty($user->totp_ativo)) {
                     $this->load->library('dois_fatores');

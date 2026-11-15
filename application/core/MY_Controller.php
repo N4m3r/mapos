@@ -46,6 +46,11 @@ class MY_Controller extends CI_Controller
             redirect('login');
         }
 
+        // Entrou com senha temporaria: nenhuma tela abre antes de definir a propria senha
+        if (PHP_SAPI !== 'cli' && $this->session->userdata('troca_senha_obrigatoria')) {
+            redirect('login/novaSenha');
+        }
+
         // Carregar library de permissoes
         $this->load->library('permission');
 

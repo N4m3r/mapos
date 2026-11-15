@@ -14,7 +14,8 @@ if (! defined('BASEPATH')) {
  *
  * Variaveis: $usuario (objeto|null), $editar, $custom_error, $perfis,
  * $tokenName, $tokenHash, $doisFatoresAtivo, $codigosRestantes, $proprioId,
- * $bloqueioSegundos (espera por tentativas de senha erradas; 0 = liberado).
+ * $bloqueioSegundos (espera por tentativas de senha erradas; 0 = liberado),
+ * $senhaTemporariaMarcada (opcional; estado da caixa depois de um POST).
  */
 $e = static function ($v) {
     return htmlspecialchars((string) ($v ?? ''), ENT_QUOTES, 'UTF-8');
@@ -227,12 +228,22 @@ if (strpos($validade, '0000-00-00') === 0) {
                             <div class="mb-3">
                                 <label for="senha" class="form-label">Senha<?= $editar ? '' : '<span class="required">*</span>' ?></label>
                                 <div class="">
-                                    <input class="form-control" id="senha" type="password" name="senha" value="" autocomplete="new-password"
-                                        placeholder="<?= $editar ? 'Deixe em branco para manter a atual' : 'Mínimo 6 caracteres' ?>">
+                                    <div class="input-group">
+                                        <input class="form-control" id="senha" type="password" name="senha" value="" autocomplete="new-password"
+                                            placeholder="<?= $editar ? 'Deixe em branco para manter a atual' : 'Mínimo 6 caracteres' ?>">
+                                        <button class="btn btn-outline-secondary" type="button" data-gerar-senha title="Gera uma senha forte e mostra para você passar à pessoa">
+                                            <i class="bx bx-key"></i> Gerar senha temporária
+                                        </button>
+                                    </div>
                                     <div class="progress mt-1" role="presentation" style="height:6px"><div class="progress-bar" id="forcaSenhaBarra" style="width: 0%"></div></div>
                                     <span class="form-text d-block" id="forcaSenhaTexto" aria-live="polite">
                                         <?= $editar ? 'Só preencha se quiser trocar a senha desta conta.' : 'Mínimo de 6 caracteres. Misture letras, números e símbolos.' ?>
                                     </span>
+                                    <?php $temporariaMarcada = isset($senhaTemporariaMarcada) ? (bool) $senhaTemporariaMarcada : ($editar ? ! empty($usuario->senha_temporaria) : true); ?>
+                                    <label class="ui-opcao mt-2" style="display:inline-flex">
+                                        <input class="form-check-input" type="checkbox" name="senha_temporaria" id="senha_temporaria" value="1" <?= $temporariaMarcada ? 'checked' : '' ?>>
+                                        Senha temporária: pedir para a pessoa criar a própria senha no próximo acesso
+                                    </label>
                                     <?php if ($editar) { ?>
                                         <span class="form-text d-block">
                                             Segurança da senha atual:

@@ -164,6 +164,9 @@ $dataBr = static function ($data) {
                                 </td>
                                 <td>
                                     <span class="ui-selo <?= $forcaClasse ?>" title="Nível de segurança medido quando a senha foi definida"><?= $e($forcaTexto) ?></span>
+                                    <?php if (! empty($r->senha_temporaria)) { ?>
+                                        <span class="ui-selo info" title="Vai criar a própria senha no próximo acesso">temporária</span>
+                                    <?php } ?>
                                 </td>
                                 <td><?= $dataBr($r->ultimo_acesso ?? null) ?></td>
                                 <td>

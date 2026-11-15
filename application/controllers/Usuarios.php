@@ -335,6 +335,12 @@ class Usuarios extends MY_Controller
             $dados['dataCadastro'] = date('Y-m-d');
         }
 
+        // Senha temporaria: no proximo login a pessoa cria a propria senha
+        // (Login::novaSenha). Silencioso antes da migration add_usuarios_senha_temporaria.
+        if ($this->db->field_exists('senha_temporaria', 'usuarios')) {
+            $dados['senha_temporaria'] = $this->input->post('senha_temporaria') ? 1 : 0;
+        }
+
         // Administrador desliga a verificação em duas etapas de quem perdeu o
         // celular e os códigos de recuperação.
         if ($usuario && $this->input->post('desativar_dois_fatores')) {
@@ -360,6 +366,10 @@ class Usuarios extends MY_Controller
 
     private function carregarAuxiliares()
     {
+        // Depois de um POST com erro, o formulario volta como foi enviado
+        if ($this->input->post()) {
+            $this->data['senhaTemporariaMarcada'] = (bool) $this->input->post('senha_temporaria');
+        }
         $this->data['perfis'] = $this->permissoes_model->todos();
         $this->data['tokenName'] = $this->security->get_csrf_token_name();
         $this->data['tokenHash'] = $this->security->get_csrf_hash();

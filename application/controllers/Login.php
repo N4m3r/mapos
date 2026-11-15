@@ -141,12 +141,74 @@ class Login extends CI_Controller
         $this->load->model('usuarios_model');
         $this->usuarios_model->marcarAcesso($user->idUsuarios);
 
+        // Senha temporaria (definida pelo administrador): antes de qualquer tela,
+        // a pessoa escolhe a propria senha. MY_Controller segura o resto do sistema.
+        if (! empty($user->senha_temporaria)) {
+            $this->session->set_userdata('troca_senha_obrigatoria', true);
+            log_info('Entrou com senha temporária; troca obrigatória');
+
+            return 'login/novaSenha';
+        }
+
+        return $this->destinoPorPerfil($user->permissoes_id);
+    }
+
+    /**
+     * Primeiro acesso com senha temporaria: tela para definir a senha propria.
+     */
+    public function novaSenha()
+    {
+        if (! $this->session->userdata('logado') || ! $this->session->userdata('troca_senha_obrigatoria')) {
+            redirect('login');
+        }
+        $this->load->helper('form');
+        $this->load->view('mapos/login_nova_senha');
+    }
+
+    public function salvarNovaSenha()
+    {
+        if ($this->input->method() !== 'post' || ! $this->session->userdata('logado') || ! $this->session->userdata('troca_senha_obrigatoria')) {
+            redirect('login');
+        }
+
+        $id = (int) $this->session->userdata('id_admin');
+        $usuario = $this->db->where('idUsuarios', $id)->get('usuarios')->row();
+        if (! $usuario) {
+            $this->session->sess_destroy();
+            redirect('login');
+        }
+
+        $senha = (string) $this->input->post('novaSenha');
+        $erro = senha_nova_erro($senha, $this->input->post('confirmarSenha'));
+        if ($erro === null && password_verify($senha, $usuario->senha)) {
+            $erro = 'Escolha uma senha diferente da temporária.';
+        }
+        if ($erro !== null) {
+            $this->session->set_flashdata('error', $erro);
+            redirect('login/novaSenha');
+        }
+
+        $this->load->model('usuarios_model');
+        $dados = $this->usuarios_model->camposSenha($senha);
+        $dados['senha_temporaria'] = 0;
+        $this->db->where('idUsuarios', $id)->update('usuarios', $dados);
+
+        $this->session->unset_userdata('troca_senha_obrigatoria');
+        log_info('Definiu a própria senha no primeiro acesso');
+        $this->session->set_flashdata('success', 'Senha definida. Use esta senha nos próximos acessos.');
+
+        redirect($this->destinoPorPerfil($usuario->permissoes_id));
+    }
+
+    /** Rota inicial do perfil: Area do Tecnico, Area do Colaborador ou painel. */
+    private function destinoPorPerfil($permissoesId)
+    {
         // Redirecionamento inteligente por perfil: tecnicos vao direto para a Area do Tecnico
         // e colaboradores para a Area do Colaborador (ambas mobile). Demais perfis seguem para o painel.
-        $temOs = $this->permission->checkPermission($user->permissoes_id, 'vOs');
-        $isTecnico = $this->permission->checkPermission($user->permissoes_id, 'vTecnicoDashboard') && ! $temOs;
+        $temOs = $this->permission->checkPermission($permissoesId, 'vOs');
+        $isTecnico = $this->permission->checkPermission($permissoesId, 'vTecnicoDashboard') && ! $temOs;
         $isColaborador = ! $isTecnico && ! $temOs
-            && $this->permission->checkPermission($user->permissoes_id, 'vAreaColaborador');
+            && $this->permission->checkPermission($permissoesId, 'vAreaColaborador');
 
         if ($isTecnico) {
             return 'tecnico';

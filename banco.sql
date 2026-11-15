@@ -115,6 +115,7 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
   `estado` VARCHAR(20) NULL DEFAULT NULL,
   `email` VARCHAR(80) NOT NULL,
   `senha` VARCHAR(200) NOT NULL,
+  `senha_temporaria` TINYINT(1) NOT NULL DEFAULT 0,
   `senha_forca` TINYINT(1) NULL DEFAULT NULL,
   `telefone` VARCHAR(20) NOT NULL,
   `celular` VARCHAR(20) NULL DEFAULT NULL,

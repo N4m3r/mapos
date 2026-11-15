@@ -13,3 +13,13 @@ for (const [nome, [senha, esperado]] of Object.entries(casos)) {
         assert.equal(forcaSenha(senha), esperado);
     });
 }
+
+test('senha temporaria gerada e sempre forte e legivel', () => {
+    const { gerarSenha } = require('../../assets/js/forca-senha.js');
+    for (let i = 0; i < 200; i++) {
+        const senha = gerarSenha();
+        assert.equal(senha.length, 10);
+        assert.equal(forcaSenha(senha), 4, senha);
+        assert.doesNotMatch(senha, /[0O1lI]/);
+    }
+});
