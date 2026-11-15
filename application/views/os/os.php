@@ -6,6 +6,39 @@
   select {
     width: 70px;
   }
+
+  /* Listagem de OS: a tabela cabe na tela sem rolagem lateral. Colunas
+     agrupadas (periodo, valores), acoes secundarias num menu e colunas
+     menos importantes somem em telas menores. */
+  .os-lista-wrap { overflow: visible; }
+  .os-lista { width: 100%; table-layout: auto; }
+  .os-lista th, .os-lista td { vertical-align: middle; white-space: nowrap; }
+  .os-lista .os-col-num .badge { display: inline-block; margin-top: 2px; font-size: .78em; }
+  .os-lista .os-col-num { white-space: normal; min-width: 64px; }
+  .os-lista .os-col-cli { white-space: normal; min-width: 140px; overflow-wrap: anywhere; }
+  .os-lista .os-col-resp { white-space: normal; max-width: 140px; }
+  .os-lista .os-sub { display: block; font-size: .85em; opacity: .7; }
+  .os-lista .os-col-valor strong { font-weight: 600; }
+  .os-lista .os-col-acoes { width: 1%; }
+  .os-lista .os-col-acoes .dropdown-menu { font-size: 13px; min-width: 220px; }
+  .os-lista .os-col-acoes .dropdown-item i { width: 18px; margin-right: 6px; text-align: center; }
+  .os-lista .ui-acoes-linha .dropdown-item { padding: 6px 14px; }
+  .os-lista .btn-mais { padding: 4px 6px; line-height: 1; background: transparent; border: 0; color: inherit; cursor: pointer; }
+
+  @media (max-width: 1366px) {
+    .os-lista .os-col-garantia { display: none; }
+  }
+  @media (max-width: 1200px) {
+    .os-lista .os-col-chamado { display: none; }
+  }
+  @media (max-width: 1024px) {
+    .os-lista .os-col-resp { display: none; }
+  }
+  @media (max-width: 768px) {
+    .os-lista .os-col-periodo { display: none; }
+    /* No celular, se ainda nao couber, rola so a tabela (nunca a pagina) */
+    .os-lista-wrap { overflow-x: auto; }
+  }
 </style>
 <div class="new122">
     <div class="ui-cabecalho">
@@ -74,30 +107,26 @@
 
     <div class="widget-box">
         <div class="widget-content nopadding">
-            <div class="table-responsive ui-tabela-rolagem">
-                <table class="table table-bordered ">
+            <div class="os-lista-wrap">
+                <table class="table table-bordered os-lista">
                     <thead>
                         <tr>
-                            <th>N°</th>
-                            <th>Chamado</th>
-                            <th>Cliente</th>
-                            <th class="ph1">Responsável</th>
-                            <th>Data Inicial</th>
-                            <th class="ph2">Data Final</th>
-                            <th class="ph3">Venc. Garantia</th>
+                            <th class="os-col-num">N°</th>
+                            <th class="os-col-chamado">Chamado</th>
+                            <th class="os-col-cli">Cliente</th>
+                            <th class="os-col-resp">Responsável</th>
+                            <th class="os-col-periodo">Período</th>
+                            <th class="os-col-garantia">Garantia</th>
                             <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) { ?>
-                            <th>Valor Total</th>
-                            <th>Desconto</th>
-                            <th>Valor com Desconto</th>
-                            <th class="ph4">V.T (Faturado)</th>
+                            <th class="os-col-valor">Valor</th>
                             <?php } ?>
                             <th>Status</th>
-                            <th>Ações</th>
+                            <th class="os-col-acoes">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php
-                        $colspan = $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs') ? 13 : 9;
+                        $colspan = $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs') ? 9 : 8;
                         if (!$results) {
                             echo '<tr>
                             <td colspan="' . $colspan . '"><div class="ui-vazio"><i class="bx bx-clipboard"></i><strong>Nenhuma OS encontrada</strong>Ajuste os filtros' . ($this->permission->checkPermission($this->session->userdata('permissao'), 'aOs') ? ' ou <a href="' . base_url() . 'index.php/os/adicionar">crie uma nova OS</a>' : '') . '.</div></td>
@@ -175,18 +204,31 @@
                                 $vp = $vinculosPorOs[(int) $r->idOs] ?? null;
                                 $seloProjeto = $vp ? ' <span title="Projeto: ' . html_escape($vp->obra_nome . ($vp->etapa_nome ? ' › ' . $vp->etapa_nome : '')) . '" style="color:#436eee"><i class="bx bx-buildings"></i></span>' : '';
                                 $this->load->helper('tipo_servico');
-                                echo '<td>' . $r->idOs . $seloProjeto . tipo_servico_selo($r->tipo_servico ?? '') . '</td>';
-                                echo '<td>' . (! empty($r->chamado_id) ? html_escape($r->chamado_id) : '-') . '</td>';
-                                echo '<td class="cli1"><a href="' . base_url() . 'index.php/clientes/visualizar/' . $r->idClientes . '" style="margin-right: 1%">' . html_escape($r->nomeCliente) . '</a></td>';
-                                echo '<td class="ph1">' . html_escape($r->nome) . '</td>';
-                                echo '<td>' . $dataInicial . '</td>';
-                                echo '<td class="ph2">' . $dataFinal . '</td>';
-                                echo '<td class="ph3"><span class="badge text-bg-secondary" style="background-color: ' . $corGarantia . '; border-color: ' . $corGarantia . '">' . $vencGarantia . '</span> </td>';
+                                echo '<td class="os-col-num">' . $r->idOs . $seloProjeto . tipo_servico_selo($r->tipo_servico ?? '') . '</td>';
+                                echo '<td class="os-col-chamado">' . (! empty($r->chamado_id) ? html_escape($r->chamado_id) : '-') . '</td>';
+                                echo '<td class="os-col-cli"><a href="' . base_url() . 'index.php/clientes/visualizar/' . $r->idClientes . '">' . html_escape($r->nomeCliente) . '</a></td>';
+                                echo '<td class="os-col-resp">' . html_escape($r->nome) . '</td>';
+                                echo '<td class="os-col-periodo">' . $dataInicial . ($dataFinal !== '' ? '<span class="os-sub">até ' . $dataFinal . '</span>' : '') . '</td>';
+                                echo '<td class="os-col-garantia">' . ($vencGarantia !== '' ? '<span class="badge text-bg-secondary" style="background-color: ' . $corGarantia . '; border-color: ' . $corGarantia . '">' . $vencGarantia . '</span>' : '') . '</td>';
                                 if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
-                                    echo '<td>R$ ' . number_format($r->totalProdutos + $r->totalServicos, 2, ',', '.') . '</td>';
-                                    echo '<td>R$ ' . number_format(floatval($r->desconto), 2, ',', '.') . '</td>';
-                                    echo '<td>R$ ' . number_format(floatval($r->valor_desconto), 2, ',', '.') . '</td>';
-                                    echo '<td class="ph4">R$ ' . number_format($r->faturado ? floatval($r->valor_desconto) : 0.00, 2, ',', '.') . '</td>';
+                                    // Total, desconto e faturado agrupados numa coluna so
+                                    $valorTotal = $r->totalProdutos + $r->totalServicos;
+                                    $temDesconto = floatval($r->desconto) > 0 && floatval($r->valor_desconto) > 0;
+                                    $valorFinal = $temDesconto ? floatval($r->valor_desconto) : $valorTotal;
+                                    $descTexto = ($r->tipo_desconto ?? '') === 'porcento'
+                                        ? number_format(floatval($r->desconto), 2, ',', '.') . '%'
+                                        : 'R$ ' . number_format(floatval($r->desconto), 2, ',', '.');
+                                    $titulo = 'Valor total: R$ ' . number_format($valorTotal, 2, ',', '.')
+                                        . ($temDesconto ? ' | Desconto: ' . $descTexto . ' | Com desconto: R$ ' . number_format($valorFinal, 2, ',', '.') : '')
+                                        . ' | Faturado: ' . ($r->faturado ? 'sim' : 'não');
+                                    echo '<td class="os-col-valor" title="' . html_escape($titulo) . '"><strong>R$ ' . number_format($valorFinal, 2, ',', '.') . '</strong>';
+                                    if ($temDesconto) {
+                                        echo '<span class="os-sub">de R$ ' . number_format($valorTotal, 2, ',', '.') . ' (−' . $descTexto . ')</span>';
+                                    }
+                                    if ($r->faturado) {
+                                        echo '<span class="os-sub"><i class="bx bx-check-circle"></i> faturado</span>';
+                                    }
+                                    echo '</td>';
                                 }
                                 // Acao rapida: clicar no status abre a troca (so status de fluxo; os que
                                 // mexem em estoque/faturamento continuam so pela tela da OS)
@@ -198,34 +240,43 @@
                                 } else {
                                     echo '<td><span class="badge text-bg-secondary" style="background-color: ' . $cor . '; border-color: ' . $cor . '">' . $r->status . '</span> </td>';
                                 }
-                                echo '<td><span class="ui-acoes-linha">';
+                                echo '<td class="os-col-acoes"><span class="ui-acoes-linha">';
 
                                 $editavel = $this->os_model->isEditable($r->idOs);
+                                $podeVer = $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs');
+                                // Acoes principais ficam visiveis; as demais vao para o menu "mais"
+                                $menu = [];
 
-                                if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
-                                    echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/os/visualizar/' . $r->idOs . '" class="btn-nwe" title="Ver mais detalhes"><i class="bx bx-show"></i></a>';
-                                    echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/os/imprimir/' . $r->idOs . '" target="_blank" class="btn-nwe6" title="Imprimir A4"><i class="bx bx-printer bx-xs"></i></a>';
-                                    echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/os/imprimirTermica/' . $r->idOs . '" target="_blank" class="btn-nwe6" title="Imprimir Não Fiscal"><i class="bx bx-printer bx-xs"></i></a>';
-
+                                if ($podeVer) {
+                                    echo '<a href="' . base_url() . 'index.php/os/visualizar/' . $r->idOs . '" class="btn-nwe" title="Ver mais detalhes"><i class="bx bx-show"></i></a>';
+                                }
+                                if ($editavel) {
+                                    echo '<a href="' . base_url() . 'index.php/os/editar/' . $r->idOs . '" class="btn-nwe3" title="Editar OS"><i class="bx bx-edit"></i></a>';
+                                }
+                                if ($podeVer) {
                                     // WhatsApp com o mesmo texto do botao da tela da OS
                                     $zapnumber = preg_replace('/[^0-9]/', '', (string) $r->celular_cliente);
                                     if (strlen($zapnumber) >= 10 && ! empty($texto_de_notificacao)) {
                                         $troca = [$r->nomeCliente, $r->idOs, $r->status, 'R$ ' . ($r->desconto != 0 && $r->valor_desconto != 0 ? number_format($r->valor_desconto, 2, ',', '.') : number_format($r->totalProdutos + $r->totalServicos, 2, ',', '.')), strip_tags((string) $r->descricaoProduto), ($emitente ? $emitente->nome : ''), ($emitente ? $emitente->telefone : ''), strip_tags((string) $r->observacoes), strip_tags((string) $r->defeito), strip_tags((string) $r->laudoTecnico), $r->dataFinal ? date('d/m/Y', strtotime($r->dataFinal)) : '', date('d/m/Y', strtotime($r->dataInicial)), formatar_garantia($r->garantia)];
-                                        echo '<a style="margin-right: 1%" href="https://api.whatsapp.com/send?phone=55' . $zapnumber . '&text=' . $this->os_model->criarTextoWhats($texto_de_notificacao, $troca) . '" target="_blank" rel="noopener" class="btn-nwe" title="Enviar por WhatsApp"><i class="bx bxl-whatsapp"></i></a>';
+                                        echo '<a href="https://api.whatsapp.com/send?phone=55' . $zapnumber . '&text=' . $this->os_model->criarTextoWhats($texto_de_notificacao, $troca) . '" target="_blank" rel="noopener" class="btn-nwe" title="Enviar por WhatsApp"><i class="bx bxl-whatsapp"></i></a>';
                                     }
-                                }
-                                if ($editavel) {
-                                    echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/os/editar/' . $r->idOs . '" class="btn-nwe3" title="Editar OS"><i class="bx bx-edit"></i></a>';
+                                    $menu[] = '<a class="dropdown-item" href="' . base_url() . 'index.php/os/imprimir/' . $r->idOs . '" target="_blank"><i class="bx bx-printer"></i>Imprimir A4</a>';
+                                    $menu[] = '<a class="dropdown-item" href="' . base_url() . 'index.php/os/imprimirTermica/' . $r->idOs . '" target="_blank"><i class="bx bx-printer"></i>Imprimir não fiscal</a>';
                                 }
                                 if ($this->permission->checkPermission($this->session->userdata('permissao'), 'aOs')) {
-                                    echo '<a style="margin-right: 1%" href="#modal-duplicar" role="button" data-bs-toggle="modal" data-os-origem="' . $r->idOs . '" class="btn-nwe3 btn-duplicar-os" title="Copiar OS para outro cliente/CNPJ"><i class="bx bx-copy"></i></a>';
-                                }
-                                if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dOs') && $editavel) {
-                                    echo '<a href="#modal-excluir" role="button" data-bs-toggle="modal" os="' . $r->idOs . '" class="btn-nwe4" title="Excluir OS"><i class="bx bx-trash-alt"></i></a>  ';
+                                    $menu[] = '<a class="dropdown-item btn-duplicar-os" href="#modal-duplicar" role="button" data-bs-toggle="modal" data-os-origem="' . $r->idOs . '"><i class="bx bx-copy"></i>Copiar para outro cliente/CNPJ</a>';
                                 }
                                 if (in_array($r->status, ['Finalizado', 'Faturado', 'Aprovado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) {
-                                    echo '<a style="margin-right: 1%" href="#modal-nfse" role="button" data-bs-toggle="modal" data-os="' . $r->idOs . '" class="btn-nwe5 btn-transmitir-nfse" title="Transmitir NFS-e (serviços)"><i class="bx bx-receipt bx-xs"></i></a>';
-                                    echo '<a style="margin-right: 1%" href="#modal-nfe" role="button" data-bs-toggle="modal" data-os="' . $r->idOs . '" class="btn-nwe5 btn-transmitir-nfe" title="Transmitir NF-e (produtos)"><i class="bx bx-box bx-xs"></i></a>';
+                                    $menu[] = '<a class="dropdown-item btn-transmitir-nfse" href="#modal-nfse" role="button" data-bs-toggle="modal" data-os="' . $r->idOs . '"><i class="bx bx-receipt"></i>Transmitir NFS-e (serviços)</a>';
+                                    $menu[] = '<a class="dropdown-item btn-transmitir-nfe" href="#modal-nfe" role="button" data-bs-toggle="modal" data-os="' . $r->idOs . '"><i class="bx bx-box"></i>Transmitir NF-e (produtos)</a>';
+                                }
+                                if ($this->permission->checkPermission($this->session->userdata('permissao'), 'dOs') && $editavel) {
+                                    $menu[] = '<hr class="dropdown-divider">';
+                                    $menu[] = '<a class="dropdown-item text-danger" href="#modal-excluir" role="button" data-bs-toggle="modal" os="' . $r->idOs . '"><i class="bx bx-trash-alt"></i>Excluir OS</a>';
+                                }
+                                if ($menu) {
+                                    echo '<span class="dropdown"><button type="button" class="btn-mais os-menu-acoes" data-bs-toggle="dropdown" aria-expanded="false" title="Mais ações" aria-label="Mais ações da OS ' . $r->idOs . '"><i class="bx bx-dots-vertical-rounded"></i></button>'
+                                        . '<ul class="dropdown-menu dropdown-menu-end"><li>' . implode('</li><li>', $menu) . '</li></ul></span>';
                                 }
                                 echo '</span></td>';
                                 echo '</tr>';
@@ -287,6 +338,13 @@
 
 <script nonce="<?= csp_nonce() ?>" type="text/javascript">
     $(document).ready(function() {
+        // Menu de acoes da linha: posicao fixa para nao ser cortado pela tabela
+        if (window.bootstrap && bootstrap.Dropdown) {
+            document.querySelectorAll('.os-menu-acoes').forEach(function(el) {
+                bootstrap.Dropdown.getOrCreateInstance(el, { popperConfig: function(cfg) { cfg.strategy = 'fixed'; return cfg; } });
+            });
+        }
+
         // ---- Acao rapida: mudar status pela listagem (mesmo endpoint da Central de Atendimento) ----
         var statusRapidos = <?= json_encode(isset($statusRapidos) ? $statusRapidos : []) ?>;
         $(document).on('click keydown', '.os-status-rapido', function(e) {

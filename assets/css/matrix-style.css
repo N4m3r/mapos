@@ -3418,7 +3418,7 @@ form {
 
 @media (min-width: 1200px) {
   .ph3 {
-    display: block;
+    display: table-cell;
   }
 }
 
