@@ -37,6 +37,9 @@ class Mapos_model extends CI_Model
     public function alterarSenha($senha)
     {
         $this->db->set('senha', password_hash($senha, PASSWORD_DEFAULT));
+        if ($this->db->field_exists('senha_forca', 'usuarios')) {
+            $this->db->set('senha_forca', senha_forca($senha));
+        }
         $this->db->where('idUsuarios', $this->session->userdata('id_admin'));
         $this->db->update('usuarios');
 

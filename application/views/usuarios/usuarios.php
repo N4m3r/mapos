@@ -11,7 +11,10 @@ if (! defined('BASEPATH')) {
  * ativo, até quando vale e quando entrou pela última vez. Filtros por texto,
  * perfil e situação usam query string, para a paginação manter o recorte.
  *
- * Variáveis: $results, $filtros, $perfis, $pagination.
+ * Variáveis: $results, $filtros, $perfis, $bloqueios, $pagination.
+ *
+ * $bloqueios: [email minúsculo => segundos] de quem errou a senha demais e
+ * está esperando os 15 minutos; o botão de cadeado libera na hora.
  */
 $e = static function ($v) {
     return htmlspecialchars((string) ($v ?? ''), ENT_QUOTES, 'UTF-8');
@@ -20,6 +23,7 @@ $hoje = date('Y-m-d');
 $tokenName = $this->security->get_csrf_token_name();
 $tokenHash = $this->security->get_csrf_hash();
 $proprioId = (int) $this->session->userdata('id_admin');
+$bloqueios = $bloqueios ?? [];
 $podePerfis = $this->permission->checkPermission($this->session->userdata('permissao'), 'cPermissao');
 
 $dataBr = static function ($data) {
@@ -99,6 +103,7 @@ $dataBr = static function ($data) {
                         <th>Perfil</th>
                         <th>Situação</th>
                         <th>Validade</th>
+                        <th>Senha</th>
                         <th>Último acesso</th>
                         <th>Ações</th>
                     </tr>
@@ -106,7 +111,7 @@ $dataBr = static function ($data) {
                 <tbody>
                     <?php if (empty($results)): ?>
                         <tr>
-                            <td colspan="8">
+                            <td colspan="9">
                                 <div class="ui-vazio">
                                     <i class="bx bx-user"></i>
                                     <strong><?= $filtros['pesquisa'] !== '' || $filtros['perfil'] > 0 || $filtros['situacao'] !== '' ? 'Nenhum usuário para este filtro' : 'Nenhum usuário cadastrado' ?></strong>
@@ -121,6 +126,8 @@ $dataBr = static function ($data) {
                             $vencido = ! empty($r->dataExpiracao) && $r->dataExpiracao < $hoje;
                             $perfilInativo = isset($r->permissao_situacao) && (int) $r->permissao_situacao !== 1;
                             $proprio = (int) $r->idUsuarios === $proprioId;
+                            $bloqueio = (int) ($bloqueios[mb_strtolower(trim((string) $r->email))] ?? 0);
+                            [$forcaTexto, $forcaClasse] = senha_forca_rotulo($r->senha_forca ?? null);
                             ?>
                             <tr>
                                 <td><?= (int) $r->idUsuarios ?></td>
@@ -139,6 +146,11 @@ $dataBr = static function ($data) {
                                 </td>
                                 <td>
                                     <span class="ui-selo <?= $ativo ? 'sucesso' : 'perigo' ?>"><?= $ativo ? 'Ativo' : 'Inativo' ?></span>
+                                    <?php if ($bloqueio > 0) { ?>
+                                        <span class="ui-selo alerta" title="Errou a senha várias vezes. Libera sozinho em <?= (int) ceil($bloqueio / 60) ?> min ou pelo botão de cadeado.">
+                                            bloqueado <?= (int) ceil($bloqueio / 60) ?> min
+                                        </span>
+                                    <?php } ?>
                                 </td>
                                 <td>
                                     <?php if (empty($r->dataExpiracao)) { ?>
@@ -150,6 +162,9 @@ $dataBr = static function ($data) {
                                         <?php } ?>
                                     <?php } ?>
                                 </td>
+                                <td>
+                                    <span class="ui-selo <?= $forcaClasse ?>" title="Nível de segurança medido quando a senha foi definida"><?= $e($forcaTexto) ?></span>
+                                </td>
                                 <td><?= $dataBr($r->ultimo_acesso ?? null) ?></td>
                                 <td>
                                     <div class="ui-acoes-linha">
@@ -157,6 +172,14 @@ $dataBr = static function ($data) {
                                             title="Editar usuário" aria-label="Editar usuário">
                                             <i class="bx bx-edit"></i>
                                         </a>
+                                        <form action="<?= site_url('usuarios/liberarAcesso') ?>" method="post" style="display:inline">
+                                            <input type="hidden" name="<?= $e($tokenName) ?>" value="<?= $e($tokenHash) ?>">
+                                            <input type="hidden" name="id" value="<?= (int) $r->idUsuarios ?>">
+                                            <button type="submit" class="btn-nwe2"<?= $bloqueio > 0 ? ' style="color:#e78606"' : '' ?>
+                                                title="Liberar acesso (zera o bloqueio por tentativas de senha)" aria-label="Liberar acesso">
+                                                <i class="bx bx-lock-open-alt"></i>
+                                            </button>
+                                        </form>
                                         <?php if (! $proprio && (int) $r->idUsuarios !== 1) { ?>
                                             <form action="<?= site_url('usuarios/excluir') ?>" method="post" style="display:inline"
                                                 data-confirmar="Excluir a conta de <?= $e($r->nome) ?>? Só funciona se ela não tiver histórico.">

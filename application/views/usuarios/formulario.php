@@ -13,7 +13,8 @@ if (! defined('BASEPATH')) {
  * endereco, acesso e seguranca - e a senha so e obrigatoria na criacao.
  *
  * Variaveis: $usuario (objeto|null), $editar, $custom_error, $perfis,
- * $tokenName, $tokenHash, $doisFatoresAtivo, $codigosRestantes, $proprioId.
+ * $tokenName, $tokenHash, $doisFatoresAtivo, $codigosRestantes, $proprioId,
+ * $bloqueioSegundos (espera por tentativas de senha erradas; 0 = liberado).
  */
 $e = static function ($v) {
     return htmlspecialchars((string) ($v ?? ''), ENT_QUOTES, 'UTF-8');
@@ -26,6 +27,8 @@ $proprio = $id > 0 && $id === (int) ($proprioId ?? 0);
 $superAdmin = $id === 1;
 $doisFatoresAtivo = ! empty($doisFatoresAtivo);
 $codigosRestantes = (int) ($codigosRestantes ?? 0);
+$bloqueioSegundos = (int) ($bloqueioSegundos ?? 0);
+[$forcaTexto, $forcaClasse] = senha_forca_rotulo($usuario->senha_forca ?? null);
 
 // set_value() devolve o POST quando houve erro e o valor atual na edicao.
 $v = static function ($campo, $padrao = '') use ($usuario) {
@@ -226,12 +229,35 @@ if (strpos($validade, '0000-00-00') === 0) {
                                 <div class="">
                                     <input class="form-control" id="senha" type="password" name="senha" value="" autocomplete="new-password"
                                         placeholder="<?= $editar ? 'Deixe em branco para manter a atual' : 'Mínimo 6 caracteres' ?>">
+                                    <div class="progress mt-1" role="presentation" style="height:6px"><div class="progress-bar" id="forcaSenhaBarra" style="width: 0%"></div></div>
+                                    <span class="form-text d-block" id="forcaSenhaTexto" aria-live="polite">
+                                        <?= $editar ? 'Só preencha se quiser trocar a senha desta conta.' : 'Mínimo de 6 caracteres. Misture letras, números e símbolos.' ?>
+                                    </span>
                                     <?php if ($editar) { ?>
-                                        <span class="form-text">Só preencha se quiser trocar a senha desta conta.</span>
+                                        <span class="form-text d-block">
+                                            Segurança da senha atual:
+                                            <span class="ui-selo <?= $forcaClasse ?>"><?= $e($forcaTexto) ?></span>
+                                            <?php if ($forcaTexto === 'não avaliada') { ?>
+                                                (definida antes desta avaliação; aparece na próxima troca)
+                                            <?php } ?>
+                                        </span>
                                     <?php } ?>
                                 </div>
                             </div>
                         </div>
+
+                        <?php if ($editar && $bloqueioSegundos > 0) { ?>
+                            <div class="ui-dica alerta">
+                                <i class="bx bx-lock-alt"></i>
+                                <div>
+                                    <strong>Acesso bloqueado por tentativas de senha.</strong>
+                                    Libera sozinho em <?= (int) ceil($bloqueioSegundos / 60) ?> min.
+                                    <button type="submit" form="formLiberarAcesso" class="btn btn-sm btn-warning ms-1">
+                                        <i class="bx bx-lock-open-alt"></i> Liberar agora
+                                    </button>
+                                </div>
+                            </div>
+                        <?php } ?>
 
                         <?php if ($editar) { ?>
                             <div class="ui-dica">
@@ -279,8 +305,17 @@ if (strpos($validade, '0000-00-00') === 0) {
             </button>
         </div>
     </form>
+
+    <?php if ($editar) { ?>
+        <form id="formLiberarAcesso" action="<?= site_url('usuarios/liberarAcesso') ?>" method="post" class="d-none">
+            <input type="hidden" name="<?= $e($tokenName ?? $this->security->get_csrf_token_name()) ?>" value="<?= $e($tokenHash ?? $this->security->get_csrf_hash()) ?>">
+            <input type="hidden" name="id" value="<?= $id ?>">
+            <input type="hidden" name="voltar" value="editar">
+        </form>
+    <?php } ?>
 </div>
 
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/jquery.mask.min.js"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/sweetalert2.all.min.js"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url() ?>assets/js/funcoes.js"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/forca-senha.js') ?>?v=<?= asset_versao('assets/js/forca-senha.js') ?>"></script>

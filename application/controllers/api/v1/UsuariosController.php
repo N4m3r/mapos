@@ -94,7 +94,6 @@ class UsuariosController extends REST_Controller
             'cidade' => $this->post('cidade', true),
             'estado' => $this->post('estado', true),
             'email' => $this->post('email', true),
-            'senha' => password_hash($this->post('senha', true), PASSWORD_DEFAULT),
             'telefone' => $this->post('telefone', true),
             'celular' => $this->post('celular', true),
             'dataExpiracao' => $this->post('dataExpiracao', true),
@@ -102,6 +101,7 @@ class UsuariosController extends REST_Controller
             'permissoes_id' => $this->post('permissoes_id', true),
             'dataCadastro' => date('Y-m-d'),
         ];
+        $data = array_merge($data, $this->usuarios_model->camposSenha($this->post('senha', true)));
 
         if ($this->usuarios_model->add('usuarios', $data)) {
 
@@ -190,7 +190,7 @@ class UsuariosController extends REST_Controller
 
         if ($this->put('senha', true)) {
             // O login confere com password_verify: senha gravada em claro tranca o usuário fora.
-            $data['senha'] = password_hash($this->put('senha', true), PASSWORD_DEFAULT);
+            $data = array_merge($data, $this->usuarios_model->camposSenha($this->put('senha', true)));
         }
 
         if ($this->usuarios_model->edit('usuarios', $data, 'idUsuarios', $id)) {
