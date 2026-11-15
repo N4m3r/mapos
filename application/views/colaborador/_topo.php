@@ -20,7 +20,7 @@ $voltar_url   = isset($voltar_url) ? $voltar_url : null;
     <meta name="csrf-cookie-name" content="<?= config_item('csrf_cookie_name') ?>">
     <title><?= isset($titulo) ? $titulo : 'Área do Colaborador' ?></title>
     <link rel="shortcut icon" type="image/png" href="<?= base_url('assets/img/favicon.png') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/bootstrap.min.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/bootstrap.min.css') ?>?v=<?= asset_versao('assets/css/bootstrap.min.css') ?>">
     <link href="<?= base_url('assets/boxicons/css/boxicons.min.css') ?>" rel="stylesheet">
     <link rel="stylesheet" href="<?= base_url('assets/css/tecnico.css') ?>?v=<?= asset_versao('assets/css/tecnico.css', '4') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/rh.css') ?>?v=<?= asset_versao('assets/css/rh.css', '3') ?>">

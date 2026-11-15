@@ -3,7 +3,7 @@
 // eOs && !técnico. Default defensivo caso a view seja renderizada sem ele.
 $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
 ?>
-<link href="<?= base_url('assets/css/custom.css'); ?>" rel="stylesheet">
+<link href="<?= base_url('assets/css/custom.css'); ?>?v=<?= asset_versao('assets/css/custom.css') ?>" rel="stylesheet">
 
 <!-- Scripts do Sistema de Check-in (carregados antes dos modais) -->
 <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/assinatura-canvas.js?v=4"></script>
@@ -22,28 +22,28 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
     };
 </script>
 
-<div class="row-fluid" style="margin-top: 0">
-    <div class="span12">
+<div class="row" style="margin-top: 0">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="widget-title" style="margin: 10px 0 0">
                 <div class="buttons">
                     <?php if ($editavel) {
-                        echo '<a title="Editar OS" class="button btn btn-mini btn-success" href="' . base_url() . 'index.php/os/editar/' . $result->idOs . '">
+                        echo '<a title="Editar OS" class="button btn btn-sm btn-success" href="' . base_url() . 'index.php/os/editar/' . $result->idOs . '">
                             <span class="button__icon"><i class="bx bx-edit"></i> </span> <span class="button__text">Editar</span>
                         </a>';
                     } ?>
 
                     <div class="button-container">
-                        <a target="_blank" title="Imprimir Ordem de Serviço" class="button btn btn-mini btn-inverse"> <span class="button__icon"><i class="bx bx-printer"></i></span><span class="button__text">Imprimir</span></a>
+                        <a target="_blank" title="Imprimir Ordem de Serviço" class="button btn btn-sm btn-dark"> <span class="button__icon"><i class="bx bx-printer"></i></span><span class="button__text">Imprimir</span></a>
                         <div class="cascading-buttons">
-                            <a target="_blank" title="Impressão em Papel A4" class="button btn btn-mini btn-inverse" href="<?php echo site_url() ?>/os/imprimir/<?php echo $result->idOs; ?>">
+                            <a target="_blank" title="Impressão em Papel A4" class="button btn btn-sm btn-dark" href="<?php echo site_url() ?>/os/imprimir/<?php echo $result->idOs; ?>">
                                 <span class="button__icon"><i class='bx bx-file'></i></span> <span class="button__text">Papel A4</span>
                             </a>
-                            <a target="_blank" title="Impressão Cupom Não Fical" class="button btn btn-mini btn-inverse" href="<?php echo site_url() ?>/os/imprimirTermica/<?php echo $result->idOs; ?>">
+                            <a target="_blank" title="Impressão Cupom Não Fical" class="button btn btn-sm btn-dark" href="<?php echo site_url() ?>/os/imprimirTermica/<?php echo $result->idOs; ?>">
                                 <span class="button__icon"><i class='bx bx-receipt'></i></span> <span class="button__text">Cupom 80mm</span>
                             </a>
                             <?php if ($result->garantias_id) { ?>
-                                <a target="_blank" title="Imprimir Termo de Garantia" class="button btn btn-mini btn-inverse" href="<?php echo site_url() ?>/garantias/imprimirGarantiaOs/<?php echo $result->garantias_id; ?>">
+                                <a target="_blank" title="Imprimir Termo de Garantia" class="button btn btn-sm btn-dark" href="<?php echo site_url() ?>/garantias/imprimirGarantiaOs/<?php echo $result->garantias_id; ?>">
                                     <span class="button__icon"><i class="bx bx-paperclip"></i></span> <span class="button__text">Termo Garantia</span>
                                 </a>
                             <?php } ?>
@@ -69,30 +69,30 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                         if (!empty($zapnumber)) {
                             if ($whatsappApiAtivo) {
                                 // Envio direto (server-side) pela Evolution API.
-                                echo '<a title="Enviar Por WhatsApp (Evolution API)" class="button btn btn-mini btn-success" id="enviarWhatsAppApi" href="#" data-os="' . $result->idOs . '">
+                                echo '<a title="Enviar Por WhatsApp (Evolution API)" class="button btn btn-sm btn-success" id="enviarWhatsAppApi" href="#" data-os="' . $result->idOs . '">
                                 <span class="button__icon"><i class="bx bxl-whatsapp"></i></span> <span class="button__text">WhatsApp</span>
                             </a>';
                             } else {
                                 // Fallback: link click-to-chat (abre o WhatsApp).
-                                echo '<a title="Enviar Por WhatsApp" class="button btn btn-mini btn-success" id="enviarWhatsApp" target="_blank" href="https://api.whatsapp.com/send?phone=55' . $zapnumber . '&text=' . $texto_de_notificacao . '">
+                                echo '<a title="Enviar Por WhatsApp" class="button btn btn-sm btn-success" id="enviarWhatsApp" target="_blank" href="https://api.whatsapp.com/send?phone=55' . $zapnumber . '&text=' . $texto_de_notificacao . '">
                                 <span class="button__icon"><i class="bx bxl-whatsapp"></i></span> <span class="button__text">WhatsApp</span>
                             </a>';
                             }
                         }
                     } ?>
 
-                    <a title="Enviar OS por E-mail" class="button btn btn-mini btn-warning" href="<?php echo site_url() ?>/os/enviar_email/<?php echo $result->idOs; ?>">
+                    <a title="Enviar OS por E-mail" class="button btn btn-sm btn-warning" href="<?php echo site_url() ?>/os/enviar_email/<?php echo $result->idOs; ?>">
                         <span class="button__icon"><i class="bx bx-envelope"></i></span> <span class="button__text">via E-mail</span>
                     </a>
 
                     <?php
                     $notaFiscal = isset($notaFiscal) ? $notaFiscal : null;
                     if ($notaFiscal && $notaFiscal->status === 'autorizada') { ?>
-                        <a title="Imprimir DANFSe" target="_blank" class="button btn btn-mini btn-inverse" href="<?php echo site_url('nfe/danfe/' . $notaFiscal->idNota); ?>">
+                        <a title="Imprimir DANFSe" target="_blank" class="button btn btn-sm btn-dark" href="<?php echo site_url('nfe/danfe/' . $notaFiscal->idNota); ?>">
                             <span class="button__icon"><i class="bx bx-receipt"></i></span> <span class="button__text">NFS-e nº <?php echo html_escape($notaFiscal->numero); ?></span>
                         </a>
                     <?php } elseif (in_array($result->status, ['Finalizado', 'Faturado', 'Aprovado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) { ?>
-                        <a title="Transmitir NFS-e (serviços)" href="#modal-nfse" role="button" data-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-mini btn-success btn-transmitir-nfse">
+                        <a title="Transmitir NFS-e (serviços)" href="#modal-nfse" role="button" data-bs-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-sm btn-success btn-transmitir-nfse">
                             <span class="button__icon"><i class="bx bx-receipt"></i></span> <span class="button__text">Emitir NFS-e</span>
                         </a>
                     <?php } ?>
@@ -100,11 +100,11 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                     <?php
                     $notaFiscalNfe = isset($notaFiscalNfe) ? $notaFiscalNfe : null;
                     if ($notaFiscalNfe && $notaFiscalNfe->status === 'autorizada') { ?>
-                        <a title="Imprimir DANFE" target="_blank" class="button btn btn-mini btn-inverse" href="<?php echo site_url('nfe/danfe/' . $notaFiscalNfe->idNota); ?>">
+                        <a title="Imprimir DANFE" target="_blank" class="button btn btn-sm btn-dark" href="<?php echo site_url('nfe/danfe/' . $notaFiscalNfe->idNota); ?>">
                             <span class="button__icon"><i class="bx bx-box"></i></span> <span class="button__text">NF-e nº <?php echo html_escape($notaFiscalNfe->numero); ?></span>
                         </a>
                     <?php } elseif (in_array($result->status, ['Finalizado', 'Faturado', 'Aprovado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) { ?>
-                        <a title="Transmitir NF-e (produtos)" href="#modal-nfe" role="button" data-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-mini btn-primary btn-transmitir-nfe">
+                        <a title="Transmitir NF-e (produtos)" href="#modal-nfe" role="button" data-bs-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-sm btn-primary btn-transmitir-nfe">
                             <span class="button__icon"><i class="bx bx-box"></i></span> <span class="button__text">Emitir NF-e</span>
                         </a>
                     <?php } ?>
@@ -132,7 +132,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                 $valTopo = boletoValoresNota($n, $configNfeTopo);
                                 ?>
                                 <a title="Gerar boleto/PIX (Cora) da <?php echo $rot . ' nº ' . $n->numero; ?>, à vista ou parcelado" href="#modal-gerar-boleto" role="button"
-                                   class="button btn btn-mini btn-info btn-gerar-boleto"
+                                   class="button btn btn-sm btn-info btn-gerar-boleto"
                                    data-nota="<?php echo $n->idNota; ?>" data-valor="<?php echo number_format($valTopo['bruto'], 2, '.', ''); ?>" data-iss="<?php echo number_format($valTopo['iss'], 2, '.', ''); ?>" data-liquido="<?php echo number_format($valTopo['liquido'], 2, '.', ''); ?>">
                                     <span class="button__icon"><i class="bx bx-barcode"></i></span> <span class="button__text">Boleto <?php echo $rot; ?></span>
                                 </a>
@@ -142,12 +142,12 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                     ?>
 
                     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vCobranca')): ?>
-                        <a href="#modal-gerar-pagamento" id="btn-forma-pagamento" role="button" data-toggle="modal" class="button btn btn-mini btn-primary">
+                        <a href="#modal-gerar-pagamento" id="btn-forma-pagamento" role="button" data-bs-toggle="modal" class="button btn btn-sm btn-primary">
                             <span class="button__icon"><i class='bx bx-dollar'></i></span><span class="button__text">Gerar Pagamento</span>
                         </a>
 
                         <?php if ($qrCode): ?>
-                            <a href="#modal-pix" id="btn-pix" role="button" data-toggle="modal" class="button btn btn-mini btn-info">
+                            <a href="#modal-pix" id="btn-pix" role="button" data-bs-toggle="modal" class="button btn btn-sm btn-info">
                                 <span class="button__icon"><i class='bx bx-qr'></i></span><span class="button__text">Chave PIX</span>
                             </a>
                         <?php endif ?>
@@ -158,7 +158,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                     // Só aparece se a migration do módulo já foi aplicada (coluna aprovacao_token).
                     $aprovacaoSuportada = $this->db->field_exists('aprovacao_token', 'os');
                     if ($aprovacaoSuportada && $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) { ?>
-                        <a title="Gerar link de aprovação para o cliente" href="#modal-aprovacao" role="button" data-toggle="modal" class="button btn btn-mini btn-primary">
+                        <a title="Gerar link de aprovação para o cliente" href="#modal-aprovacao" role="button" data-bs-toggle="modal" class="button btn btn-sm btn-primary">
                             <span class="button__icon"><i class="bx bx-check-shield"></i></span> <span class="button__text">Link Aprovação</span>
                         </a>
                     <?php } ?>
@@ -179,7 +179,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                         ?>
                         <a title="<?= $automacaoGlobalAtiva ? 'Ativar/desativar a automação de aprovação só nesta OS' : 'Automação global desligada (Configurações > Automação)' ?>"
                            href="#" id="btnToggleAutomacao" data-idos="<?= $result->idOs ?>" data-valor="<?= $automacaoNestaOs ? 0 : 1 ?>"
-                           class="button btn btn-mini <?= $automacaoNestaOs ? 'btn-success' : 'btn-inverse' ?>">
+                           class="button btn btn-sm <?= $automacaoNestaOs ? 'btn-success' : 'btn-dark' ?>">
                             <span class="button__icon"><i class="bx bx-slider"></i></span>
                             <span class="button__text">Automação: <?= $automacaoNestaOs ? 'ON' : 'OFF' ?></span>
                         </a>
@@ -211,13 +211,13 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                     // Só aparece com a migration aplicada (coluna aceite_token) e OS concluída.
                     $aceiteSuportado = $this->db->field_exists('aceite_token', 'os');
                     if ($aceiteSuportado && in_array($result->status, ['Finalizado', 'Faturado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) { ?>
-                        <a title="Solicitar aceite do serviço realizado ao cliente" href="#modal-aceite" role="button" data-toggle="modal" class="button btn btn-mini btn-success">
+                        <a title="Solicitar aceite do serviço realizado ao cliente" href="#modal-aceite" role="button" data-bs-toggle="modal" class="button btn btn-sm btn-success">
                             <span class="button__icon"><i class="bx bx-badge-check"></i></span> <span class="button__text">Link Aceite</span>
                         </a>
                     <?php } ?>
 
                     <?php if ($this->db->field_exists('acompanhar_token', 'os') && $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) { ?>
-                        <a title="Abrir o link público de acompanhamento (para enviar ao cliente)" href="<?= site_url('os/acompanhamento/' . $result->idOs) ?>" target="_blank" rel="noopener" class="button btn btn-mini btn-info">
+                        <a title="Abrir o link público de acompanhamento (para enviar ao cliente)" href="<?= site_url('os/acompanhamento/' . $result->idOs) ?>" target="_blank" rel="noopener" class="button btn btn-sm btn-info">
                             <span class="button__icon"><i class="bx bx-map-pin"></i></span> <span class="button__text">Acompanhamento</span>
                         </a>
                     <?php } ?>
@@ -237,13 +237,13 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                         // Usa a variável checkinAtivo passada pelo controller
                         if (!$checkinAtivo) {
                             // Não há atendimento em andamento - mostrar botão Iniciar
-                            echo '<button type="button" id="btn-iniciar-atendimento" class="button btn btn-mini" style="background-color: #28a745; border-color: #28a745; color: white;">';
+                            echo '<button type="button" id="btn-iniciar-atendimento" class="button btn btn-sm" style="background-color: #28a745; border-color: #28a745; color: white;">';
                             echo '<span class="button__icon"><i class="bx bx-log-in"></i></span>';
                             echo '<span class="button__text">Iniciar Atendimento</span>';
                             echo '</button>';
                         } else {
                             // Há atendimento em andamento - mostrar botão Finalizar
-                            echo '<button type="button" id="btn-finalizar-atendimento" class="button btn btn-mini" style="background-color: #dc3545; border-color: #dc3545; color: white;">';
+                            echo '<button type="button" id="btn-finalizar-atendimento" class="button btn btn-sm" style="background-color: #dc3545; border-color: #dc3545; color: white;">';
                             echo '<span class="button__icon"><i class="bx bx-log-out"></i></span>';
                             echo '<span class="button__text">Finalizar Atendimento</span>';
                             echo '</button>';
@@ -251,7 +251,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
 
                         // Botão de impressão do relatório de atendimento (se houver checkin)
                         if (!empty($checkins)) {
-                            echo '<a target="_blank" title="Imprimir Relatório de Atendimento" class="button btn btn-mini" style="background-color: #6c757d; border-color: #6c757d; color: white;" href="' . site_url('checkin/imprimir/' . $result->idOs) . '">';
+                            echo '<a target="_blank" title="Imprimir Relatório de Atendimento" class="button btn btn-sm" style="background-color: #6c757d; border-color: #6c757d; color: white;" href="' . site_url('checkin/imprimir/' . $result->idOs) . '">';
                             echo '<span class="button__icon"><i class="bx bx-time"></i></span>';
                             echo '<span class="button__text">Relatório Atendimento</span>';
                             echo '</a>';
@@ -266,7 +266,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
             <div class="widget-content" id="printOs">
                 <div class="invoice-content">
                     <div class="invoice-head" style="margin-bottom: 0; margin-top:-30px">
-                        <table class="table table-condensed">
+                        <table class="table table-sm">
                             <tbody>
                                 <?php if ($emitente == null) { ?>
                                     <tr>
@@ -338,7 +338,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                     </div>
 
                     <div style="margin-top: 0; padding-top: 0">
-                        <table class="table table-condensed">
+                        <table class="table table-sm">
                             <tbody>
                                 <?php if ($result->dataInicial != null) { ?>
                                     <tr>
@@ -448,30 +448,30 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                                 <p><strong>Técnico:</strong> <?php echo html_escape($checkin->nome_tecnico); ?></p>
                                                 <p><strong>Entrada:</strong> <?php echo date('d/m/Y H:i', strtotime($checkin->data_entrada)); ?>
                                                     <?php if ($checkin->latitude_entrada && $checkin->longitude_entrada) { ?>
-                                                        <a href="https://www.google.com/maps?q=<?php echo $checkin->latitude_entrada; ?>,<?php echo $checkin->longitude_entrada; ?>" target="_blank" class="btn btn-mini" title="Ver no mapa">
+                                                        <a href="https://www.google.com/maps?q=<?php echo $checkin->latitude_entrada; ?>,<?php echo $checkin->longitude_entrada; ?>" target="_blank" class="btn btn-sm btn-outline-secondary" title="Ver no mapa">
                                                             <i class="bx bx-map"></i>
                                                         </a>
                                                     <?php } ?>
                                                     <?php if (isset($checkin->dentro_geofence_entrada) && $checkin->dentro_geofence_entrada !== null) {
                                                         $distEnt = isset($checkin->distancia_entrada_metros) && $checkin->distancia_entrada_metros !== null ? ' (' . (int) $checkin->distancia_entrada_metros . 'm)' : '';
                                                         echo $checkin->dentro_geofence_entrada
-                                                            ? '<span class="label label-success" title="Dentro da área do atendimento"><i class="bx bx-check"></i> na área' . $distEnt . '</span>'
-                                                            : '<span class="label label-important" title="Fora da área do atendimento"><i class="bx bx-error"></i> fora da área' . $distEnt . '</span>';
+                                                            ? '<span class="badge text-bg-success" title="Dentro da área do atendimento"><i class="bx bx-check"></i> na área' . $distEnt . '</span>'
+                                                            : '<span class="badge text-bg-danger" title="Fora da área do atendimento"><i class="bx bx-error"></i> fora da área' . $distEnt . '</span>';
                                                     } ?>
                                                 </p>
 
                                                 <?php if ($checkin->data_saida) { ?>
                                                 <p><strong>Saída:</strong> <?php echo date('d/m/Y H:i', strtotime($checkin->data_saida)); ?>
                                                     <?php if ($checkin->latitude_saida && $checkin->longitude_saida) { ?>
-                                                        <a href="https://www.google.com/maps?q=<?php echo $checkin->latitude_saida; ?>,<?php echo $checkin->longitude_saida; ?>" target="_blank" class="btn btn-mini" title="Ver no mapa">
+                                                        <a href="https://www.google.com/maps?q=<?php echo $checkin->latitude_saida; ?>,<?php echo $checkin->longitude_saida; ?>" target="_blank" class="btn btn-sm btn-outline-secondary" title="Ver no mapa">
                                                             <i class="bx bx-map"></i>
                                                         </a>
                                                     <?php } ?>
                                                     <?php if (isset($checkin->dentro_geofence_saida) && $checkin->dentro_geofence_saida !== null) {
                                                         $distSai = isset($checkin->distancia_saida_metros) && $checkin->distancia_saida_metros !== null ? ' (' . (int) $checkin->distancia_saida_metros . 'm)' : '';
                                                         echo $checkin->dentro_geofence_saida
-                                                            ? '<span class="label label-success" title="Fechou dentro da área do atendimento"><i class="bx bx-check"></i> na área' . $distSai . '</span>'
-                                                            : '<span class="label label-important" title="Fechou fora da área do atendimento"><i class="bx bx-error"></i> fora da área' . $distSai . '</span>';
+                                                            ? '<span class="badge text-bg-success" title="Fechou dentro da área do atendimento"><i class="bx bx-check"></i> na área' . $distSai . '</span>'
+                                                            : '<span class="badge text-bg-danger" title="Fechou fora da área do atendimento"><i class="bx bx-error"></i> fora da área' . $distSai . '</span>';
                                                     } ?>
                                                 </p>
                                                 <p><strong>Tempo Total:</strong>
@@ -482,9 +482,9 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                                     echo $intervalo->format('%h horas %i minutos');
                                                     ?>
                                                 </p>
-                                                <p><span class="label label-success">Finalizado</span></p>
+                                                <p><span class="badge text-bg-success">Finalizado</span></p>
                                                 <?php } else { ?>
-                                                <p><span class="label label-warning">Em Andamento</span></p>
+                                                <p><span class="badge text-bg-warning">Em Andamento</span></p>
                                                 <?php } ?>
 
                                                 <?php if ($checkin->observacao_entrada) { ?>
@@ -527,15 +527,15 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                                 <td><?php echo date('d/m/Y H:i', strtotime($bp->data_hora)); ?></td>
                                                 <td>
                                                     <?php if (!empty($bp->latitude) && !empty($bp->longitude)) { ?>
-                                                        <a href="https://www.google.com/maps?q=<?php echo $bp->latitude; ?>,<?php echo $bp->longitude; ?>" target="_blank" class="btn btn-mini" title="Ver no mapa">
+                                                        <a href="https://www.google.com/maps?q=<?php echo $bp->latitude; ?>,<?php echo $bp->longitude; ?>" target="_blank" class="btn btn-sm btn-outline-secondary" title="Ver no mapa">
                                                             <i class="bx bx-map"></i>
                                                         </a>
                                                     <?php } ?>
                                                     <?php if (isset($bp->dentro_geofence) && $bp->dentro_geofence !== null) {
                                                         $distBp = isset($bp->distancia_metros) && $bp->distancia_metros !== null ? ' (' . (int) $bp->distancia_metros . 'm)' : '';
                                                         echo $bp->dentro_geofence
-                                                            ? '<span class="label label-success" title="Dentro da área"><i class="bx bx-check"></i> na área' . $distBp . '</span>'
-                                                            : '<span class="label label-important" title="Fora da área"><i class="bx bx-error"></i> fora' . $distBp . '</span>';
+                                                            ? '<span class="badge text-bg-success" title="Dentro da área"><i class="bx bx-check"></i> na área' . $distBp . '</span>'
+                                                            : '<span class="badge text-bg-danger" title="Fora da área"><i class="bx bx-error"></i> fora' . $distBp . '</span>';
                                                     } ?>
                                                 </td>
                                             </tr>
@@ -562,7 +562,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                         <?php foreach ($respostasFormularios[$etapaFA] as $respostaFA) { ?>
                                             <div style="border: 1px solid #e2e5ef; border-radius: 6px; padding: 10px 12px; margin-bottom: 10px; background: #fafbff;">
                                                 <div style="font-weight: 600; margin-bottom: 6px;"><?php echo htmlspecialchars($respostaFA->formulario_nome); ?></div>
-                                                <table class="table table-condensed" style="margin-bottom: 0;">
+                                                <table class="table table-sm" style="margin-bottom: 0;">
                                                     <?php foreach ($respostaFA->itens as $itemFA) { ?>
                                                         <tr>
                                                             <td style="width: 40%; color: #555; border-top: none;"><?php echo htmlspecialchars($itemFA->label); ?></td>
@@ -606,11 +606,11 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                                 <p class="foto-descricao"><?php echo html_escape($foto->descricao); ?></p>
                                                 <?php } ?>
                                                 <div class="foto-acoes">
-                                                    <a href="<?php echo site_url('checkin/downloadFoto/' . $foto->idFoto); ?>" class="btn btn-mini" title="Download">
+                                                    <a href="<?php echo site_url('checkin/downloadFoto/' . $foto->idFoto); ?>" class="btn btn-sm btn-outline-secondary" title="Download">
                                                         <i class="bx bx-download"></i>
                                                     </a>
                                                     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) { ?>
-                                                    <button type="button" class="btn btn-mini btn-danger btn-remover-foto" data-foto-id="<?php echo $foto->idFoto; ?>" title="Remover">
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-danger btn-remover-foto" data-foto-id="<?php echo $foto->idFoto; ?>" title="Remover">
                                                         <i class="bx bx-trash"></i>
                                                     </button>
                                                     <?php } ?>
@@ -622,7 +622,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                     <?php } ?>
 
                                     <?php if (!empty($fotosPorEtapa['durante'])) { ?>
-                                    <div class="foto-etapa">
+                                    <div class="foto-etapa row">
                                         <h6 style="color: #007bff;"><i class="bx bx-camera"></i> Durante o Atendimento</h6>
                                         <div class="fotos-grid">
                                             <?php foreach ($fotosPorEtapa['durante'] as $foto) { ?>
@@ -635,10 +635,10 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                                 <?php } ?>
                                                 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) { ?>
                                                 <div class="foto-acoes">
-                                                    <a href="<?php echo site_url('checkin/downloadFoto/' . $foto->idFoto); ?>" class="btn btn-mini" title="Download">
+                                                    <a href="<?php echo site_url('checkin/downloadFoto/' . $foto->idFoto); ?>" class="btn btn-sm btn-outline-secondary" title="Download">
                                                         <i class="bx bx-download"></i>
                                                     </a>
-                                                    <button type="button" class="btn btn-mini btn-danger btn-remover-foto" data-foto-id="<?php echo $foto->idFoto; ?>" title="Remover">
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-danger btn-remover-foto" data-foto-id="<?php echo $foto->idFoto; ?>" title="Remover">
                                                         <i class="bx bx-trash"></i>
                                                     </button>
                                                 </div>
@@ -652,8 +652,8 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                         // Verifica se há checkin ativo - variável $checkinAtivo já foi passada pelo controller
                                         if (isset($checkinAtivo) && $checkinAtivo && $this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) {
                                         ?>
-                                        <div class="span12" style="margin-top: 10px;">
-                                            <input type="file" id="foto-durante-input" class="checkin-foto-input" data-etapa="durante" accept="image/*" style="display: none;">
+                                        <div class="col-md-12" style="margin-top: 10px;">
+                                            <input type="file" id="foto-durante-input" class="checkin-foto-input form-control" data-etapa="durante" accept="image/*" style="display: none;">
                                             <button type="button" class="btn btn-success" data-acao="clicar" data-alvo="#foto-durante-input">
                                                 <i class="bx bx-plus"></i> Adicionar Foto
                                             </button>
@@ -675,11 +675,11 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                                 <p class="foto-descricao"><?php echo html_escape($foto->descricao); ?></p>
                                                 <?php } ?>
                                                 <div class="foto-acoes">
-                                                    <a href="<?php echo site_url('checkin/downloadFoto/' . $foto->idFoto); ?>" class="btn btn-mini" title="Download">
+                                                    <a href="<?php echo site_url('checkin/downloadFoto/' . $foto->idFoto); ?>" class="btn btn-sm btn-outline-secondary" title="Download">
                                                         <i class="bx bx-download"></i>
                                                     </a>
                                                     <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) { ?>
-                                                    <button type="button" class="btn btn-mini btn-danger btn-remover-foto" data-foto-id="<?php echo $foto->idFoto; ?>" title="Remover">
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-danger btn-remover-foto" data-foto-id="<?php echo $foto->idFoto; ?>" title="Remover">
                                                         <i class="bx bx-trash"></i>
                                                     </button>
                                                     <?php } ?>
@@ -715,9 +715,9 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                 <?php if (!empty($assinaturasExib)) { ?>
                                 <div class="assinaturas-section" style="margin-top: 20px;">
                                     <h6><i class="bx bx-pen"></i> Assinaturas</h6>
-                                    <div class="row-fluid">
+                                    <div class="row">
                                         <?php foreach ($assinaturasExib as $assinatura) { ?>
-                                        <div class="span3" id="assinatura-item-<?php echo $assinatura->idAssinatura; ?>" style="text-align: center; margin-bottom: 15px;">
+                                        <div class="col-md-3" id="assinatura-item-<?php echo $assinatura->idAssinatura; ?>" style="text-align: center; margin-bottom: 15px;">
                                             <div style="border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
                                                 <?php
                                                 // Verifica se é base64 ou arquivo
@@ -764,7 +764,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                                 </p>
                                                 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) { ?>
                                                 <p style="margin-top: 8px;">
-                                                    <button type="button" class="btn btn-mini btn-danger btn-remover-assinatura" data-assinatura-id="<?php echo $assinatura->idAssinatura; ?>" title="Remover Assinatura">
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-danger btn-remover-assinatura" data-assinatura-id="<?php echo $assinatura->idAssinatura; ?>" title="Remover Assinatura">
                                                         <i class="bx bx-trash"></i> Excluir
                                                     </button>
                                                 </p>
@@ -802,14 +802,14 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                         <?php } ?>
 
                         <?php if ($anexos != null) { ?>
-                            <table class="table table-bordered table-condensed">
+                            <table class="table table-bordered table-sm">
                                 <thead>
                                     <tr>
                                         <th>Anexo</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <th colspan="5">
+                                    <th colspan="5"><div class="row g-2">
                                         <?php foreach ($anexos as $a) {
                                             if ($a->thumb == null) {
                                                 $thumb = base_url() . 'assets/img/icon-file.png';
@@ -818,16 +818,16 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                                                 $thumb = $a->url . '/thumbs/' . $a->thumb;
                                                 $link = $a->url . '/' . $a->anexo;
                                             }
-                                            echo '<div class="span3" style="min-height: 150px; margin-left: 0"><a style="min-height: 150px;" href="#modal-anexo" imagem="' . $a->idAnexos . '" link="' . $link . '" role="button" class="btn anexo span12" data-toggle="modal"><img src="' . $thumb . '" alt=""></a></div>';
+                                            echo '<div class="col-md-3" style="min-height: 150px; margin-left: 0"><a style="min-height: 150px;" href="#modal-anexo" imagem="' . $a->idAnexos . '" link="' . $link . '" role="button" class="btn btn-light anexo w-100" data-bs-toggle="modal"><img src="' . $thumb . '" alt=""></a></div>';
                                         } ?>
-                                    </th>
+                                    </div></th>
                                 </tbody>
                             </table>
                         <?php } ?>
 
                         <?php if ($produtos != null) { ?>
                             <br />
-                            <table class="table table-bordered table-condensed" id="tblProdutos">
+                            <table class="table table-bordered table-sm" id="tblProdutos">
                                 <thead>
                                     <tr>
                                         <th>PRODUTO</th>
@@ -861,7 +861,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                             </table>
                         <?php } ?>
                         <?php if ($servicos != null) { ?>
-                            <table class="table table-bordered table-condensed">
+                            <table class="table table-bordered table-sm">
                                 <thead>
                                     <tr>
                                         <th>SERVIÇO</th>
@@ -897,7 +897,7 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                             </table>
                         <?php } ?>
                         <?php if ($permissao_eOs) { ?>
-                        <table class="table table-bordered table-condensed">
+                        <table class="table table-bordered table-sm">
                             <?php if ($totalProdutos != 0 || $totalServico != 0) {
                                 if ($result->valor_desconto != 0) {
                                     echo "<td>";
@@ -925,8 +925,8 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
 </div>
 
 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vNfe')) { ?>
-<div class="row-fluid" style="margin-top: 0">
-    <div class="span12">
+<div class="row" style="margin-top: 0">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="widget-title">
                 <span class="icon"><i class="bx bx-file"></i></span>
@@ -945,35 +945,33 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
 <!-- Modal visualizar anexo -->
 <link rel="stylesheet" href="<?= base_url('assets/css/anexo-viewer.css') ?>?v=<?= asset_versao('assets/css/anexo-viewer.css') ?>">
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/anexo-viewer.js') ?>?v=<?= asset_versao('assets/js/anexo-viewer.js') ?>"></script>
-<div id="modal-anexo" class="modal hide fade" data-excluir-url="<?php echo base_url(); ?>index.php/os/excluirAnexo/" data-download-url="<?php echo base_url(); ?>index.php/os/downloadanexo/" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
-    aria-hidden="true">
+<div id="modal-anexo" class="modal fade" data-excluir-url="<?php echo base_url(); ?>index.php/os/excluirAnexo/" data-download-url="<?php echo base_url(); ?>index.php/os/downloadanexo/" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+    aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-        <h3 id="myModalLabel">Visualizar Anexo</h3>
-    </div>
-    <div class="modal-body">
-        <div class="span12" id="div-visualizar-anexo" style="text-align: center">
-            <div class='progress progress-info progress-striped active'>
-                <div class='bar' style='width: 100%'></div>
+        <h3 class="modal-title" id="myModalLabel">Visualizar Anexo</h3>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+    <div class="modal-body"><div class="row">
+        <div class="col-md-12" id="div-visualizar-anexo" style="text-align: center">
+            <div class='progress'>
+                <div class='progress-bar bg-info progress-bar-striped progress-bar-animated' style='width: 100%'></div>
             </div>
         </div>
-    </div>
+    </div></div>
     <div class="modal-footer">
-        <button class="btn" data-dismiss="modal" aria-hidden="true">Fechar</button>
-        <a href="" id-imagem="" class="btn btn-inverse" id="download">Download</a>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Fechar</button>
+        <a href="" id-imagem="" class="btn btn-dark" id="download">Download</a>
         <a href="" link="" class="btn btn-danger" id="excluir-anexo">Excluir Anexo</a>
     </div>
-</div>
+</div></div></div>
 
 <!-- Modal PIX -->
-<div id="modal-pix" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
-    aria-hidden="true">
+<div id="modal-pix" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+    aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-        <h3 id="myModalLabel">Pagamento via PIX</h3>
-    </div>
-    <div class="modal-body">
-        <div class="span12" id="div-pix" style="text-align: center">
+        <h3 class="modal-title" id="myModalLabel">Pagamento via PIX</h3>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+    <div class="modal-body"><div class="row">
+        <div class="col-md-12" id="div-pix" style="text-align: center">
             <td style="width: 15%; padding: 0;text-align:center;">
                 <img src="<?php echo base_url(); ?>assets/img/logo_pix.png" alt="QR Code de Pagamento" /></br>
                 <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'eOs')) { ?>
@@ -991,15 +989,15 @@ $permissao_eOs = isset($permissao_eOs) ? $permissao_eOs : false;
                 <?php } ?>
             </td>
         </div>
-    </div>
+    </div></div>
     <div class="modal-footer">
         <?php if (!empty($zapnumber)) {
-            echo "<button id='pixWhatsApp' class='btn btn-success' data-dismiss='modal' aria-hidden='true' style='color: #FFF'><i class='bx bxl-whatsapp'></i> WhatsApp</button>";
+            echo "<button id='pixWhatsApp' class='btn btn-success' data-bs-dismiss='modal' aria-hidden='true' style='color: #FFF'><i class='bx bxl-whatsapp'></i> WhatsApp</button>";
         } ?>
         <button class="btn btn-primary" id="copyButton" style="margin:5px; color: #FFF"><i class="fas fa-copy"></i> Copia e Cola</button>
-        <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true" style="color: #FFF">Fechar</button>
+        <button class="btn btn-danger" data-bs-dismiss="modal" aria-hidden="true" style="color: #FFF">Fechar</button>
     </div>
-</div>
+</div></div></div>
 <?php
 // ------- Modal: Link de aprovação da OS (temporário) -------
 if (isset($aprovacaoSuportada) && $aprovacaoSuportada && $this->permission->checkPermission($this->session->userdata('permissao'), 'vOs')) {
@@ -1033,16 +1031,15 @@ if (isset($aprovacaoSuportada) && $aprovacaoSuportada && $this->permission->chec
         }
     }
 ?>
-    <div id="modal-aprovacao" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div id="modal-aprovacao" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h4><i class="bx bx-check-shield"></i> Link de Aprovação &mdash; OS #<?php echo $result->idOs; ?></h4>
-        </div>
+            <h4 class="modal-title"><i class="bx bx-check-shield"></i> Link de Aprovação &mdash; OS #<?php echo $result->idOs; ?></h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <p>Gere um link temporário para o cliente aprovar ou reprovar esta Ordem de Serviço. O link deixa de funcionar após a decisão do cliente ou ao expirar.</p>
 
             <?php if ($apStatus === 'aprovado' || $apStatus === 'reprovado') { ?>
-                <div class="alert <?php echo $apStatus === 'aprovado' ? 'alert-success' : 'alert-error'; ?>">
+                <div class="alert <?php echo $apStatus === 'aprovado' ? 'alert-success' : 'alert-danger'; ?>">
                     OS <?php echo $apStatus === 'aprovado' ? 'APROVADA' : 'REPROVADA'; ?>
                     <?php echo $result->aprovacao_nome ? ' por ' . html_escape($result->aprovacao_nome) : ''; ?>
                     <?php echo $result->aprovacao_data ? ' em ' . date('d/m/Y H:i', strtotime($result->aprovacao_data)) : ''; ?>.
@@ -1052,34 +1049,34 @@ if (isset($aprovacaoSuportada) && $aprovacaoSuportada && $this->permission->chec
                 <div class="alert alert-info">Link ativo, aguardando decisão do cliente<?php echo $apExpira ? '. Válido até ' . date('d/m/Y', strtotime($apExpira)) : ''; ?>.</div>
             <?php } ?>
 
-            <div class="control-group">
-                <label class="control-label" for="apDias">Validade do link (dias)</label>
-                <div class="controls">
-                    <input type="number" id="apDias" value="7" min="1" max="90" style="width:80px">
+            <div class="mb-3">
+                <label class="form-label" for="apDias">Validade do link (dias)</label>
+                <div class="">
+                    <input class="form-control" type="number" id="apDias" value="7" min="1" max="90" style="width:80px">
                 </div>
             </div>
 
             <?php if ($apSuportaVerificacao) { ?>
-                <div class="control-group">
-                    <label class="control-label">Segurança</label>
-                    <div class="controls">
+                <div class="mb-3">
+                    <label class="form-label">Segurança</label>
+                    <div class="">
                         <label for="apExigeToken" style="display:flex;align-items:center;gap:8px;">
-                            <input type="checkbox" id="apExigeToken" value="1" <?php echo $apExigeTokenOs ? 'checked' : ''; ?>>
+                            <input class="form-check-input" type="checkbox" id="apExigeToken" value="1" <?php echo $apExigeTokenOs ? 'checked' : ''; ?>>
                             Exigir código de verificação do cliente antes de aprovar
                         </label>
                         <?php if ($apExigeTokenCliente) { ?>
-                            <span class="help-inline" style="color:#8a6d3b">Já exigido pelo cadastro deste cliente (vale mesmo desmarcado aqui).</span>
+                            <span class="form-text" style="color:#8a6d3b">Já exigido pelo cadastro deste cliente (vale mesmo desmarcado aqui).</span>
                         <?php } else { ?>
-                            <span class="help-inline">Envia um código por WhatsApp/e-mail que o cliente digita na página. Aplicado ao gerar o link.</span>
+                            <span class="form-text">Envia um código por WhatsApp/e-mail que o cliente digita na página. Aplicado ao gerar o link.</span>
                         <?php } ?>
                     </div>
                 </div>
                 <?php if ($apTemNumerosCol) { ?>
-                    <div class="control-group">
-                        <label class="control-label" for="apTokenNumeros">Números extras (WhatsApp)</label>
-                        <div class="controls">
-                            <textarea id="apTokenNumeros" rows="2" placeholder="Um número por linha, com DDD" style="width:95%"><?php echo html_escape($apTokenNumeros); ?></textarea>
-                            <span class="help-inline">Além do celular do cliente e dos números do cadastro, envia o código para estes (avulsos desta OS). Salvo ao gerar o link.</span>
+                    <div class="mb-3">
+                        <label class="form-label" for="apTokenNumeros">Números extras (WhatsApp)</label>
+                        <div class="">
+                            <textarea class="form-control" id="apTokenNumeros" rows="2" placeholder="Um número por linha, com DDD" style="width:95%"><?php echo html_escape($apTokenNumeros); ?></textarea>
+                            <span class="form-text">Além do celular do cliente e dos números do cadastro, envia o código para estes (avulsos desta OS). Salvo ao gerar o link.</span>
                         </div>
                     </div>
                 <?php } ?>
@@ -1087,9 +1084,9 @@ if (isset($aprovacaoSuportada) && $aprovacaoSuportada && $this->permission->chec
 
             <div id="apLinkBox" style="<?php echo $apUrl ? '' : 'display:none'; ?>">
                 <label><strong>Link para o cliente</strong></label>
-                <div class="input-append" style="width:100%">
-                    <input type="text" id="apLink" readonly value="<?php echo html_escape($apUrl); ?>" style="width:75%">
-                    <button class="btn" type="button" id="apCopiar"><i class="bx bx-copy"></i> Copiar</button>
+                <div class="input-group">
+                    <input class="form-control" type="text" id="apLink" readonly value="<?php echo html_escape($apUrl); ?>">
+                    <button class="btn btn-outline-secondary" type="button" id="apCopiar"><i class="bx bx-copy"></i> Copiar</button>
                 </div>
                 <?php if (! empty($zapAprov)) { ?>
                     <a id="apWhats" target="_blank" class="btn btn-success" style="color:#fff;margin-top:8px" href="#">
@@ -1099,15 +1096,15 @@ if (isset($aprovacaoSuportada) && $aprovacaoSuportada && $this->permission->chec
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true" style="color:#fff">Fechar</button>
+            <button class="btn btn-danger" data-bs-dismiss="modal" aria-hidden="true" style="color:#fff">Fechar</button>
             <?php if ($apToken) { ?>
-                <button class="btn" type="button" id="apRevogar" style="color:#fff;background:#8a6d3b">Revogar link</button>
+                <button class="btn btn-secondary" type="button" id="apRevogar" style="color:#fff;background:#8a6d3b">Revogar link</button>
             <?php } ?>
             <button class="btn btn-primary" type="button" id="apGerar" style="color:#fff">
                 <i class="bx bx-link"></i> <?php echo $apToken ? 'Gerar novo link' : 'Gerar link'; ?>
             </button>
         </div>
-    </div>
+    </div></div></div>
 
     <script nonce="<?= csp_nonce() ?>" type="text/javascript">
         $(function() {
@@ -1254,16 +1251,15 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
     $acExpira = $result->aceite_expira ?? null;
     $acUrl = $acToken ? site_url('aceite/' . $acToken) : '';
 ?>
-    <div id="modal-aceite" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div id="modal-aceite" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h4><i class="bx bx-badge-check"></i> Aceite do Serviço &mdash; OS #<?php echo $result->idOs; ?></h4>
-        </div>
+            <h4 class="modal-title"><i class="bx bx-badge-check"></i> Aceite do Serviço &mdash; OS #<?php echo $result->idOs; ?></h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <p>Gere um link para o cliente confirmar o aceite do serviço realizado e assinar digitalmente. O link deixa de funcionar após a decisão do cliente ou ao expirar.</p>
 
             <?php if ($acStatus === 'aceito' || $acStatus === 'recusado') { ?>
-                <div class="alert <?php echo $acStatus === 'aceito' ? 'alert-success' : 'alert-error'; ?>">
+                <div class="alert <?php echo $acStatus === 'aceito' ? 'alert-success' : 'alert-danger'; ?>">
                     Serviço <?php echo $acStatus === 'aceito' ? 'ACEITO' : 'RECUSADO'; ?>
                     <?php echo $result->aceite_nome ? ' por ' . html_escape($result->aceite_nome) : ''; ?>
                     <?php echo $result->aceite_data ? ' em ' . date('d/m/Y H:i', strtotime($result->aceite_data)) : ''; ?>.
@@ -1273,18 +1269,18 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
                 <div class="alert alert-info">Link ativo, aguardando o aceite do cliente<?php echo $acExpira ? '. Válido até ' . date('d/m/Y', strtotime($acExpira)) : ''; ?>.</div>
             <?php } ?>
 
-            <div class="control-group">
-                <label class="control-label" for="acDias">Validade do link (dias)</label>
-                <div class="controls">
-                    <input type="number" id="acDias" value="7" min="1" max="90" style="width:80px">
+            <div class="mb-3">
+                <label class="form-label" for="acDias">Validade do link (dias)</label>
+                <div class="">
+                    <input class="form-control" type="number" id="acDias" value="7" min="1" max="90" style="width:80px">
                 </div>
             </div>
 
             <div id="acLinkBox" style="<?php echo $acUrl ? '' : 'display:none'; ?>">
                 <label><strong>Link para o cliente</strong></label>
-                <div class="input-append" style="width:100%">
-                    <input type="text" id="acLink" readonly value="<?php echo html_escape($acUrl); ?>" style="width:75%">
-                    <button class="btn" type="button" id="acCopiar"><i class="bx bx-copy"></i> Copiar</button>
+                <div class="input-group">
+                    <input class="form-control" type="text" id="acLink" readonly value="<?php echo html_escape($acUrl); ?>">
+                    <button class="btn btn-outline-secondary" type="button" id="acCopiar"><i class="bx bx-copy"></i> Copiar</button>
                 </div>
                 <button id="acWhats" class="btn btn-success" style="color:#fff;margin-top:8px" type="button">
                     <i class="bx bxl-whatsapp"></i> Enviar por WhatsApp
@@ -1292,15 +1288,15 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true" style="color:#fff">Fechar</button>
+            <button class="btn btn-danger" data-bs-dismiss="modal" aria-hidden="true" style="color:#fff">Fechar</button>
             <?php if ($acToken) { ?>
-                <button class="btn" type="button" id="acRevogar" style="color:#fff;background:#8a6d3b">Revogar link</button>
+                <button class="btn btn-secondary" type="button" id="acRevogar" style="color:#fff;background:#8a6d3b">Revogar link</button>
             <?php } ?>
             <button class="btn btn-primary" type="button" id="acGerar" style="color:#fff">
                 <i class="bx bx-link"></i> <?php echo $acToken ? 'Gerar novo link' : 'Gerar link'; ?>
             </button>
         </div>
-    </div>
+    </div></div></div>
 
     <script nonce="<?= csp_nonce() ?>" type="text/javascript">
         $(function() {
@@ -1405,7 +1401,7 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
         var idOS = "<?php echo $result->idOs; ?>"
 
         $('#modal-anexo').modal('hide');
-        $("#divAnexos").html("<div class='progress progress-info progress-striped active'><div class='bar' style='width: 100%'></div></div>");
+        $("#divAnexos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
 
         $.ajax({
             type: "POST",
@@ -1709,11 +1705,8 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
     }
 
     /* Ajustes no modal para mobile */
-    .modal-checkin {
-        width: 100% !important;
-        left: 0 !important;
-        margin-left: 0 !important;
-        top: 10px !important;
+    .modal-checkin .modal-dialog {
+        margin: 10px;
     }
 
     .modal-checkin .modal-body {
@@ -1722,7 +1715,7 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
     }
 
     /* Layout de assinaturas em coluna no mobile */
-    .modal-checkin .row-fluid .span6 {
+    .modal-checkin .row .col-md-6 {
         width: 100% !important;
         float: none !important;
         margin-left: 0 !important;
@@ -1766,11 +1759,10 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
 </style>
 
 <!-- Modal de Check-in (Início do Atendimento) -->
-<div id="modal-checkin" class="modal hide fade modal-checkin" tabindex="-1" role="dialog" aria-labelledby="modalCheckinLabel" aria-hidden="true">
+<div id="modal-checkin" class="modal fade modal-checkin" tabindex="-1" role="dialog" aria-labelledby="modalCheckinLabel" aria-hidden="true"><div class="modal-dialog modal-lg"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h3 id="modalCheckinLabel"><i class="bx bx-log-in"></i> Iniciar Atendimento</h3>
-    </div>
+        <h3 class="modal-title" id="modalCheckinLabel"><i class="bx bx-log-in"></i> Iniciar Atendimento</h3>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <form id="form-checkin">
             <!-- Assinatura do Técnico -->
@@ -1787,8 +1779,8 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
             <div class="checkin-section">
                 <h6><i class="bx bx-camera"></i> Fotos de Entrada</h6>
                 <div class="upload-area">
-                    <input type="file" id="fotos-entrada-input" class="checkin-foto-input" data-etapa="entrada" accept="image/*" style="display: none;">
-                    <button type="button" class="btn" data-acao="clicar" data-alvo="#fotos-entrada-input">
+                    <input type="file" id="fotos-entrada-input" class="checkin-foto-input form-control" data-etapa="entrada" accept="image/*" style="display: none;">
+                    <button type="button" class="btn btn-outline-secondary" data-acao="clicar" data-alvo="#fotos-entrada-input">
                         <i class="bx bx-upload"></i> Selecionar Fotos
                     </button>
                     <button type="button" class="btn btn-info btn-capturar-foto" data-etapa="entrada">
@@ -1802,7 +1794,7 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
             <!-- Observações -->
             <div class="checkin-section">
                 <h6><i class="bx bx-note"></i> Observações de Entrada</h6>
-                <textarea id="checkin-observacao" class="span12" rows="3" placeholder="Descreva o estado inicial, equipamentos recebidos, etc."></textarea>
+                <textarea id="checkin-observacao" class="w-100 form-control" rows="3" placeholder="Descreva o estado inicial, equipamentos recebidos, etc."></textarea>
             </div>
 
             <!-- Geolocalização capturada em segundo plano (não exibida no modal) -->
@@ -1815,17 +1807,17 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
         </form>
     </div>
     <div class="modal-footer">
-        <button class="btn" data-dismiss="modal" aria-hidden="true">Cancelar</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
         <button class="btn btn-success" id="btn-confirmar-checkin">
             <i class="bx bx-log-in"></i> Iniciar Atendimento
         </button>
     </div>
-</div>
+</div></div></div>
 
 <!-- Modal de Confirmação Mobile (Tela Cheia) - Abre antes do checkout -->
-<div id="modal-mobile-confirmacao" class="modal hide fade modal-mobile-fullscreen" tabindex="-1" role="dialog" aria-labelledby="modalMobileConfirmacaoLabel" aria-hidden="true">
+<div id="modal-mobile-confirmacao" class="modal fade modal-mobile-fullscreen" tabindex="-1" role="dialog" aria-labelledby="modalMobileConfirmacaoLabel" aria-hidden="true"><div class="modal-dialog modal-fullscreen"><div class="modal-content">
     <div class="modal-header modal-mobile-header">
-        <h3 id="modalMobileConfirmacaoLabel"><i class="bx bx-mobile"></i> Finalizar Atendimento - Mobile</h3>
+        <h3 class="modal-title" id="modalMobileConfirmacaoLabel"><i class="bx bx-mobile"></i> Finalizar Atendimento - Mobile</h3>
     </div>
     <div class="modal-body modal-mobile-body">
         <!-- Dica de orientação - não bloqueia o uso -->
@@ -1874,7 +1866,7 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
             <!-- Observações rápidas -->
             <div class="mobile-observacoes">
                 <h5><i class="bx bx-note"></i> Observações do Técnico</h5>
-                <textarea id="mobile-observacao-rapida" class="mobile-textarea" rows="3" placeholder="Descreva brevemente o serviço realizado..."></textarea>
+                <textarea id="mobile-observacao-rapida" class="mobile-textarea form-control" rows="3" placeholder="Descreva brevemente o serviço realizado..."></textarea>
             </div>
 
             <!-- Assinatura rápida do técnico -->
@@ -1888,26 +1880,17 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
         </div>
     </div>
     <div class="modal-footer modal-mobile-footer">
-        <button class="btn btn-large" data-dismiss="modal" aria-hidden="true">
+        <button class="btn btn-lg btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">
             <i class="bx bx-x"></i> Cancelar
         </button>
-        <button class="btn btn-success btn-large" id="btn-salvar-mobile-confirmacao">
+        <button class="btn btn-success btn-lg" id="btn-salvar-mobile-confirmacao">
             <i class="bx bx-save"></i> Salvar e Continuar
         </button>
     </div>
-</div>
+</div></div></div>
 
 <style>
-/* Estilos do Modal Mobile Fullscreen */
-.modal-mobile-fullscreen {
-    width: 100% !important;
-    height: 100% !important;
-    max-height: 100% !important;
-    margin: 0 !important;
-    top: 0 !important;
-    left: 0 !important;
-    border-radius: 0 !important;
-}
+/* Estilos do Modal Mobile Fullscreen (tela cheia via .modal-fullscreen no .modal-dialog) */
 
 .modal-mobile-fullscreen .modal-body {
     max-height: calc(100vh - 120px) !important;
@@ -2109,32 +2092,31 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
     color: white;
 }
 
-.modal-mobile-header .close {
-    color: white;
+.modal-mobile-header .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
     opacity: 0.8;
 }
 </style>
 
 <!-- Modal de Check-out (Finalização do Atendimento) -->
-<div id="modal-checkout" class="modal hide fade modal-checkin" tabindex="-1" role="dialog" aria-labelledby="modalCheckoutLabel" aria-hidden="true">
+<div id="modal-checkout" class="modal fade modal-checkin" tabindex="-1" role="dialog" aria-labelledby="modalCheckoutLabel" aria-hidden="true"><div class="modal-dialog modal-lg"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h3 id="modalCheckoutLabel"><i class="bx bx-log-out"></i> Finalizar Atendimento</h3>
-    </div>
+        <h3 class="modal-title" id="modalCheckoutLabel"><i class="bx bx-log-out"></i> Finalizar Atendimento</h3>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
     <div class="modal-body">
         <form id="form-checkout">
             <!-- Assinaturas -->
             <div class="checkin-section">
                 <h6><i class="bx bx-pen"></i> Assinaturas</h6>
-                <div class="row-fluid">
-                    <div class="span6">
+                <div class="row">
+                    <div class="col-md-6">
                         <?php $this->load->view('checkin/assinatura_canvas', [
                             'id' => 'assinatura-tecnico-saida',
                             'titulo' => 'Assinatura do Técnico (Saída)',
                             'mostrar_campos' => false
                         ]); ?>
                     </div>
-                    <div class="span6">
+                    <div class="col-md-6">
                         <?php $this->load->view('checkin/assinatura_canvas', [
                             'id' => 'assinatura-cliente-saida',
                             'titulo' => 'Assinatura do Cliente',
@@ -2149,8 +2131,8 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
             <div class="checkin-section">
                 <h6><i class="bx bx-camera"></i> Fotos da Saída</h6>
                 <div class="upload-area">
-                    <input type="file" id="fotos-saida-input" class="checkin-foto-input" data-etapa="saida" accept="image/*" style="display: none;">
-                    <button type="button" class="btn" data-acao="clicar" data-alvo="#fotos-saida-input">
+                    <input type="file" id="fotos-saida-input" class="checkin-foto-input form-control" data-etapa="saida" accept="image/*" style="display: none;">
+                    <button type="button" class="btn btn-outline-secondary" data-acao="clicar" data-alvo="#fotos-saida-input">
                         <i class="bx bx-upload"></i> Selecionar Fotos
                     </button>
                     <button type="button" class="btn btn-info btn-capturar-foto" data-etapa="saida">
@@ -2172,7 +2154,7 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
             <!-- Observações -->
             <div class="checkin-section">
                 <h6><i class="bx bx-note"></i> Observações de Saída</h6>
-                <textarea id="checkout-observacao" class="span12" rows="3" placeholder="Descreva o serviço realizado, peças trocadas, recomendações, etc."></textarea>
+                <textarea id="checkout-observacao" class="w-100 form-control" rows="3" placeholder="Descreva o serviço realizado, peças trocadas, recomendações, etc."></textarea>
             </div>
 
             <!-- Geolocalização capturada em segundo plano (não exibida no modal) -->
@@ -2186,12 +2168,12 @@ if ($this->db->field_exists('aceite_token', 'os') && in_array($result->status, [
         </form>
     </div>
     <div class="modal-footer">
-        <button class="btn" data-dismiss="modal" aria-hidden="true">Cancelar</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
         <button class="btn btn-danger" id="btn-confirmar-checkout">
             <i class="bx bx-log-out"></i> Finalizar Atendimento
         </button>
     </div>
-</div>
+</div></div></div>
 
 <!-- Script para inicializar assinaturas nos modais -->
 <script nonce="<?= csp_nonce() ?>">

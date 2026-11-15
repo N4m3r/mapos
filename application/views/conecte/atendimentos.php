@@ -1,4 +1,4 @@
-<div class="span12" style="margin-left: 0">
+<div class="col-md-12" style="margin-left: 0">
     <div class="widget-box">
         <div class="widget-title">
             <span class="icon">
@@ -36,9 +36,9 @@
                             echo '<td>#' . sprintf('%04d', $r->idOs) . '</td>';
                             echo '<td>' . htmlspecialchars($descricao !== '' ? $descricao : '—') . '</td>';
                             echo '<td>' . $abertura . '</td>';
-                            echo '<td><span class="badge" style="background-color:#2D335B;border-color:#2D335B">' . htmlspecialchars($r->status) . '</span></td>';
+                            echo '<td><span class="badge text-bg-secondary" style="background-color:#2D335B;border-color:#2D335B">' . htmlspecialchars($r->status) . '</span></td>';
                             echo '<td style="text-align:center">
-                                    <a href="' . base_url() . 'index.php/mine/relatorioAtendimento/' . $r->idOs . '" class="btn btn-mini btn-inverse" title="Ver relatório de atendimento" target="_blank">
+                                    <a href="' . base_url() . 'index.php/mine/relatorioAtendimento/' . $r->idOs . '" class="btn btn-sm btn-dark" title="Ver relatório de atendimento" target="_blank">
                                         <i class="bx bx-printer"></i> Ver relatório
                                     </a>
                                   </td>';

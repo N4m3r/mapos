@@ -64,9 +64,9 @@ $pode_rh = $this->permission->checkPermission($this->session->userdata('permissa
     <form class="info-card tec-perfil-form" method="post" action="<?= site_url('tecnico/salvar_perfil') ?>">
         <input type="hidden" name="<?= $this->security->get_csrf_token_name() ?>" value="<?= $this->security->get_csrf_hash() ?>">
         <label for="perfil-telefone">Telefone</label>
-        <input type="tel" id="perfil-telefone" name="telefone" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(11) 3456-7890" value="<?= html_escape(menu_tecnico_telefone($usuario->telefone ?? '')['valor']) ?>">
+        <input class="form-control" type="tel" id="perfil-telefone" name="telefone" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(11) 3456-7890" value="<?= html_escape(menu_tecnico_telefone($usuario->telefone ?? '')['valor']) ?>">
         <label for="perfil-celular">Celular</label>
-        <input type="tel" id="perfil-celular" name="celular" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(11) 91234-5678" value="<?= html_escape(menu_tecnico_telefone($usuario->celular ?? '')['valor']) ?>">
+        <input class="form-control" type="tel" id="perfil-celular" name="celular" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(11) 91234-5678" value="<?= html_escape(menu_tecnico_telefone($usuario->celular ?? '')['valor']) ?>">
         <p style="font-size:12px;margin:8px 0 0">Nome, e-mail e dados de RH só podem ser alterados pelo administrador ou pelo RH.</p>
         <button type="submit" class="tec-btn-salvar">Salvar contato</button>
     </form>

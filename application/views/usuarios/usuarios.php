@@ -39,7 +39,7 @@ $dataBr = static function ($data) {
         </div>
         <div class="ui-acoes">
             <?php if ($podePerfis) { ?>
-                <a href="<?= site_url('permissoes') ?>" class="button btn btn-inverse">
+                <a href="<?= site_url('permissoes') ?>" class="button btn btn-dark">
                     <span class="button__icon"><i class="bx bx-lock-alt"></i></span><span class="button__text2">Perfis</span>
                 </a>
             <?php } ?>
@@ -52,12 +52,12 @@ $dataBr = static function ($data) {
     <form class="ui-filtros" method="get" action="<?= site_url('usuarios') ?>">
         <div class="ui-campo">
             <label for="pesquisa">Buscar</label>
-            <input type="search" name="pesquisa" id="pesquisa" placeholder="Nome, e-mail, CPF ou telefone"
+            <input class="form-control" type="search" name="pesquisa" id="pesquisa" placeholder="Nome, e-mail, CPF ou telefone"
                 value="<?= $e($filtros['pesquisa']) ?>">
         </div>
         <div class="ui-campo">
             <label for="perfil">Perfil</label>
-            <select name="perfil" id="perfil">
+            <select class="form-select" name="perfil" id="perfil">
                 <option value="">Todos os perfis</option>
                 <?php foreach ($perfis as $perfil) { ?>
                     <option value="<?= (int) $perfil->idPermissao ?>" <?= (int) $filtros['perfil'] === (int) $perfil->idPermissao ? 'selected' : '' ?>>
@@ -68,7 +68,7 @@ $dataBr = static function ($data) {
         </div>
         <div class="ui-campo">
             <label for="situacao">Situação</label>
-            <select name="situacao" id="situacao">
+            <select class="form-select" name="situacao" id="situacao">
                 <option value="">Todas</option>
                 <option value="1" <?= $filtros['situacao'] === '1' ? 'selected' : '' ?>>Ativos</option>
                 <option value="0" <?= $filtros['situacao'] === '0' ? 'selected' : '' ?>>Inativos</option>
@@ -81,7 +81,7 @@ $dataBr = static function ($data) {
         </div>
         <?php if ($filtros['pesquisa'] !== '' || $filtros['perfil'] > 0 || $filtros['situacao'] !== '') { ?>
             <div class="ui-campo ui-campo-acao">
-                <a href="<?= site_url('usuarios') ?>" class="button btn btn-inverse">
+                <a href="<?= site_url('usuarios') ?>" class="button btn btn-dark">
                     <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Limpar</span>
                 </a>
             </div>

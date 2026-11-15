@@ -26,29 +26,29 @@ $e = function ($v) {
         <form action="<?= site_url('emailtemplates/criar') ?>" method="post">
             <input type="hidden" name="<?= $this->security->get_csrf_token_name() ?>" value="<?= $this->security->get_csrf_hash() ?>">
 
-            <div class="control-group">
-                <label class="control-label" for="nome">Nome do modelo *</label>
-                <div class="controls">
-                    <input id="nome" type="text" name="nome" class="span12" maxlength="120" required placeholder="Ex.: Aceite do serviço - clientes corporativos">
+            <div class="mb-3">
+                <label class="form-label" for="nome">Nome do modelo *</label>
+                <div class="">
+                    <input id="nome" type="text" name="nome" class="w-100 form-control" maxlength="120" required placeholder="Ex.: Aceite do serviço - clientes corporativos">
                 </div>
             </div>
 
-            <div class="control-group">
-                <label class="control-label" for="descricao">Descrição</label>
-                <div class="controls">
-                    <input id="descricao" type="text" name="descricao" class="span12" maxlength="255" placeholder="Quando este e-mail é usado">
+            <div class="mb-3">
+                <label class="form-label" for="descricao">Descrição</label>
+                <div class="">
+                    <input id="descricao" type="text" name="descricao" class="w-100 form-control" maxlength="255" placeholder="Quando este e-mail é usado">
                 </div>
             </div>
 
-            <div class="control-group">
-                <label class="control-label" for="base">Baseado em *</label>
-                <div class="controls">
-                    <select id="base" name="base" class="span12" required>
+            <div class="mb-3">
+                <label class="form-label" for="base">Baseado em *</label>
+                <div class="">
+                    <select id="base" name="base" class="w-100 form-select" required>
                         <?php foreach ($modelosBase as $m) { ?>
                             <option value="<?= $e($m->slug) ?>" <?= $m->slug === 'os' ? 'selected' : '' ?>><?= $e($m->nome) ?></option>
                         <?php } ?>
                     </select>
-                    <span class="help-block">O novo modelo copia o assunto, o corpo e as tags do modelo escolhido.</span>
+                    <span class="form-text">O novo modelo copia o assunto, o corpo e as tags do modelo escolhido.</span>
                 </div>
             </div>
 

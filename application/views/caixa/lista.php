@@ -4,9 +4,9 @@
         <p>Histórico de aberturas e fechamentos de caixa, com total vendido e diferença de dinheiro em cada turno.</p>
     </div>
     <div class="ui-acoes">
-            <a href="<?= site_url('pdv') ?>" class="button btn btn-mini btn-success"><span class="button__icon"><i class="bx bx-store"></i></span><span class="button__text2"><?= $meuCaixa ? 'Ir para o PDV' : 'Abrir caixa / PDV' ?></span></a>
+            <a href="<?= site_url('pdv') ?>" class="button btn btn-sm btn-success"><span class="button__icon"><i class="bx bx-store"></i></span><span class="button__text2"><?= $meuCaixa ? 'Ir para o PDV' : 'Abrir caixa / PDV' ?></span></a>
             <?php if ($meuCaixa) { ?>
-                <a href="<?= site_url('caixa/ver/' . (int) $meuCaixa->id) ?>" class="button btn btn-mini btn-info"><span class="button__icon"><i class="bx bx-wallet"></i></span><span class="button__text2">Meu caixa aberto (#<?= (int) $meuCaixa->id ?>)</span></a>
+                <a href="<?= site_url('caixa/ver/' . (int) $meuCaixa->id) ?>" class="button btn btn-sm btn-info"><span class="button__icon"><i class="bx bx-wallet"></i></span><span class="button__text2">Meu caixa aberto (#<?= (int) $meuCaixa->id ?>)</span></a>
         <?php } ?>
     </div>
 </div>
@@ -43,7 +43,7 @@
                         <td style="text-align:right; color:<?= $diferenca === null ? '#999' : (abs($diferenca) < 0.01 ? '#27ae60' : '#c0392b') ?>">
                             <?= $diferenca === null ? '-' : 'R$ ' . number_format($diferenca, 2, ',', '.') ?></td>
                         <td style="text-align:center"><span class="ui-selo <?= $c->status === 'aberto' ? 'alerta' : 'sucesso' ?>"><?= ucfirst(html_escape($c->status)) ?></span></td>
-                        <td style="text-align:center"><span class="ui-acoes-linha"><a href="<?= site_url('caixa/ver/' . (int) $c->id) ?>" class="btn btn-mini btn-info" title="Ver detalhes do caixa" aria-label="Ver detalhes do caixa"><i class="bx bx-show"></i></a></span></td>
+                        <td style="text-align:center"><span class="ui-acoes-linha"><a href="<?= site_url('caixa/ver/' . (int) $c->id) ?>" class="btn btn-sm btn-info" title="Ver detalhes do caixa" aria-label="Ver detalhes do caixa"><i class="bx bx-show"></i></a></span></td>
                     </tr>
                 <?php } ?>
             </tbody>

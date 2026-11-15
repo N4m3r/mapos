@@ -24,18 +24,18 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
             </div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <a href="<?= site_url('rh/espelho/'.$colaborador->id.'/'.$competencia) . $voltarFicha ?>" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-calendar-check'></i></span><span class="button__text2"> Espelho</span></a>
+            <a href="<?= site_url('rh/espelho/'.$colaborador->id.'/'.$competencia) . $voltarFicha ?>" class="button btn btn-sm btn-dark"><span class="button__icon"><i class='bx bx-calendar-check'></i></span><span class="button__text2"> Espelho</span></a>
             <?php if ($pode_editar): ?>
-                <a href="<?= site_url('rh/ajustarPonto/'.$colaborador->id.'/'.$competencia) ?>" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-edit-alt'></i></span><span class="button__text2"> Ajustar ponto</span></a>
+                <a href="<?= site_url('rh/ajustarPonto/'.$colaborador->id.'/'.$competencia) ?>" class="button btn btn-sm btn-dark"><span class="button__icon"><i class='bx bx-edit-alt'></i></span><span class="button__text2"> Ajustar ponto</span></a>
             <?php endif; ?>
             <?php if ($pode_financeiro): ?>
-                <a href="<?= site_url('rh/holerite/'.$colaborador->id.'/'.$competencia) . $voltarFicha ?>" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2"> Holerite</span></a>
+                <a href="<?= site_url('rh/holerite/'.$colaborador->id.'/'.$competencia) . $voltarFicha ?>" class="button btn btn-sm btn-dark"><span class="button__icon"><i class='bx bx-receipt'></i></span><span class="button__text2"> Holerite</span></a>
             <?php endif; ?>
-            <a href="<?= site_url('rh/fichaCadastralPdf/'.$colaborador->id) ?>" target="_blank" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-file'></i></span><span class="button__text2"> Ficha para o cliente</span></a>
-            <a href="<?= site_url('rh/crachaPdf/'.$colaborador->id) ?>" target="_blank" class="button btn btn-mini btn-inverse"><span class="button__icon"><i class='bx bx-id-card'></i></span><span class="button__text2"> Crachá</span></a>
+            <a href="<?= site_url('rh/fichaCadastralPdf/'.$colaborador->id) ?>" target="_blank" class="button btn btn-sm btn-dark"><span class="button__icon"><i class='bx bx-file'></i></span><span class="button__text2"> Ficha para o cliente</span></a>
+            <a href="<?= site_url('rh/crachaPdf/'.$colaborador->id) ?>" target="_blank" class="button btn btn-sm btn-dark"><span class="button__icon"><i class='bx bx-id-card'></i></span><span class="button__text2"> Crachá</span></a>
             <?php if ($pode_editar): ?>
-                <a href="<?= site_url('rh/biometria/'.$colaborador->id) ?>" class="button btn btn-mini <?= $tem_biometria ? 'btn-success':'btn-warning' ?>"><span class="button__icon"><i class='bx bx-face'></i></span><span class="button__text2"> Facial <?= $tem_biometria?'✓':'' ?></span></a>
-                <a href="<?= site_url('rh/editarColaborador/'.$colaborador->id) . $voltarFicha ?>" class="button btn btn-mini btn-primary"><span class="button__icon"><i class='bx bx-edit'></i></span><span class="button__text2"> Editar</span></a>
+                <a href="<?= site_url('rh/biometria/'.$colaborador->id) ?>" class="button btn btn-sm <?= $tem_biometria ? 'btn-success':'btn-warning' ?>"><span class="button__icon"><i class='bx bx-face'></i></span><span class="button__text2"> Facial <?= $tem_biometria?'✓':'' ?></span></a>
+                <a href="<?= site_url('rh/editarColaborador/'.$colaborador->id) . $voltarFicha ?>" class="button btn btn-sm btn-primary"><span class="button__icon"><i class='bx bx-edit'></i></span><span class="button__text2"> Editar</span></a>
             <?php endif; ?>
         </div>
     </div></div>
@@ -78,12 +78,12 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
 
     <form method="get" style="margin-bottom:10px">
         <label style="display:inline">Competência: </label>
-        <input type="month" name="competencia" value="<?= $competencia ?>" data-ao-mudar="enviar">
+        <input class="form-control" type="month" name="competencia" value="<?= $competencia ?>" data-ao-mudar="enviar">
     </form>
 
-    <div class="row-fluid">
+    <div class="row">
         <!-- Coluna esquerda: dados + últimas batidas -->
-        <div class="span6">
+        <div class="col-md-6">
             <div class="widget-box">
                 <div class="widget-title"><span class="icon"><i class="fas fa-id-card"></i></span><h5>Dados cadastrais</h5></div>
                 <div class="widget-content">
@@ -113,7 +113,7 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
 
             <div class="widget-box">
                 <div class="widget-title"><span class="icon"><i class="fas fa-clock"></i></span><h5>Últimas batidas</h5>
-                    <?php if ($pode_editar): ?><a href="#modal-ponto" data-toggle="modal" role="button" class="btn btn-mini" style="float:right;margin:8px">+ Manual</a><?php endif; ?>
+                    <?php if ($pode_editar): ?><a href="#modal-ponto" data-bs-toggle="modal" role="button" class="btn btn-sm btn-outline-secondary" style="float:right;margin:8px">+ Manual</a><?php endif; ?>
                 </div>
                 <div class="widget-content nopadding ui-tabela-rolagem">
                     <table class="table table-bordered" style="margin:0">
@@ -138,10 +138,10 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
         </div>
 
         <!-- Coluna direita: ausências, lançamentos, ocorrências -->
-        <div class="span6">
+        <div class="col-md-6">
             <div class="widget-box">
                 <div class="widget-title"><span class="icon"><i class="fas fa-calendar-alt"></i></span><h5>Ausências</h5>
-                    <?php if ($pode_editar): ?><a href="#modal-ausencia" data-toggle="modal" role="button" class="btn btn-mini" style="float:right;margin:8px">+ Registrar</a><?php endif; ?>
+                    <?php if ($pode_editar): ?><a href="#modal-ausencia" data-bs-toggle="modal" role="button" class="btn btn-sm btn-outline-secondary" style="float:right;margin:8px">+ Registrar</a><?php endif; ?>
                 </div>
                 <div class="widget-content nopadding ui-tabela-rolagem">
                     <table class="table table-bordered" style="margin:0">
@@ -157,7 +157,7 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
             <?php if ($pode_financeiro): ?>
             <div class="widget-box">
                 <div class="widget-title"><span class="icon"><i class="fas fa-money-bill"></i></span><h5>Lançamentos (<?= date('m/Y', strtotime($competencia.'-01')) ?>)</h5>
-                    <a href="<?= site_url('rh/lancamentos?competencia='.$competencia.'&colaborador_id='.$colaborador->id) ?>" class="btn btn-mini" style="float:right;margin:8px">Gerenciar</a>
+                    <a href="<?= site_url('rh/lancamentos?competencia='.$competencia.'&colaborador_id='.$colaborador->id) ?>" class="btn btn-sm btn-outline-secondary" style="float:right;margin:8px">Gerenciar</a>
                 </div>
                 <div class="widget-content nopadding ui-tabela-rolagem">
                     <table class="table table-bordered" style="margin:0">
@@ -191,36 +191,36 @@ $ph = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2
 
 <?php if ($pode_editar): ?>
 <!-- Modal batida manual -->
-<div id="modal-ponto" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-ponto" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('rh/registrarPontoManual') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Batida manual</h5></div>
+        <div class="modal-header"><h5>Batida manual</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <input type="hidden" name="colaborador_id" value="<?= $colaborador->id ?>">
-            <label>Data e hora</label><input type="datetime-local" name="data_hora" class="span12" required>
+            <label>Data e hora</label><input type="datetime-local" name="data_hora" class="w-100 form-control" required>
             <label>Tipo</label>
-            <select name="tipo" class="span12">
+            <select name="tipo" class="w-100 form-select">
                 <option value="entrada">Entrada</option><option value="inicio_intervalo">Início do intervalo</option>
                 <option value="fim_intervalo">Fim do intervalo</option><option value="saida">Saída</option>
             </select>
         </div>
         <div class="modal-footer"><button class="button btn btn-success"><span class="button__text2">Registrar</span></button></div>
     </form>
-</div>
+</div></div></div>
 <!-- Modal ausência -->
-<div id="modal-ausencia" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-ausencia" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('rh/salvarAusencia') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Registrar ausência</h5></div>
+        <div class="modal-header"><h5>Registrar ausência</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <input type="hidden" name="colaborador_id" value="<?= $colaborador->id ?>">
             <label>Tipo</label>
-            <select name="tipo" class="span12"><option value="ferias">Férias</option><option value="folga">Folga</option><option value="atestado">Atestado</option><option value="licenca">Licença</option></select>
+            <select name="tipo" class="w-100 form-select"><option value="ferias">Férias</option><option value="folga">Folga</option><option value="atestado">Atestado</option><option value="licenca">Licença</option></select>
             <div style="display:flex;gap:8px">
-                <div style="flex:1"><label>Início</label><input type="date" name="data_inicio" class="span12" required></div>
-                <div style="flex:1"><label>Fim</label><input type="date" name="data_fim" class="span12"></div>
+                <div style="flex:1"><label>Início</label><input type="date" name="data_inicio" class="w-100 form-control" required></div>
+                <div style="flex:1"><label>Fim</label><input type="date" name="data_fim" class="w-100 form-control"></div>
             </div>
-            <label>Motivo</label><input type="text" name="motivo" class="span12">
+            <label>Motivo</label><input type="text" name="motivo" class="w-100 form-control">
         </div>
         <div class="modal-footer"><button class="button btn btn-success"><span class="button__text2">Registrar (aprovada)</span></button></div>
     </form>
-</div>
+</div></div></div>
 <?php endif; ?>

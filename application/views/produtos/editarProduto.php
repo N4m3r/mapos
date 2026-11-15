@@ -1,5 +1,5 @@
-<div class="row-fluid" style="margin-top:0">
-    <div class="span12">
+<div class="row" style="margin-top:0">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="widget-content">
                 <div class="ui-cabecalho">
@@ -19,46 +19,46 @@
                     <div class="ui-secao">
                         <h4 class="ui-secao-titulo">Identificação</h4>
                         <div class="ui-grade">
-                            <div class="control-group">
-                                <label for="codDeBarra" class="control-label">Código de Barras</label>
-                                <div class="controls">
-                                    <input id="codDeBarra" type="text" name="codDeBarra" value="<?php echo html_escape($result->codDeBarra); ?>" />
+                            <div class="mb-3">
+                                <label for="codDeBarra" class="form-label">Código de Barras</label>
+                                <div class="">
+                                    <input class="form-control" id="codDeBarra" type="text" name="codDeBarra" value="<?php echo html_escape($result->codDeBarra); ?>" />
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="descricao" class="control-label">Descrição<span class="required">*</span></label>
-                                <div class="controls">
-                                    <input id="descricao" type="text" name="descricao" value="<?php echo html_escape($result->descricao); ?>" />
+                            <div class="mb-3">
+                                <label for="descricao" class="form-label">Descrição<span class="required">*</span></label>
+                                <div class="">
+                                    <input class="form-control" id="descricao" type="text" name="descricao" value="<?php echo html_escape($result->descricao); ?>" />
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="ncm" class="control-label">NCM <small>(fiscal)</small></label>
-                                <div class="controls">
-                                    <input id="ncm" type="text" name="ncm" maxlength="8" value="<?php echo $result->ncm ?? ''; ?>" placeholder="8 dígitos - obrigatório p/ NF-e" />
+                            <div class="mb-3">
+                                <label for="ncm" class="form-label">NCM <small>(fiscal)</small></label>
+                                <div class="">
+                                    <input class="form-control" id="ncm" type="text" name="ncm" maxlength="8" value="<?php echo $result->ncm ?? ''; ?>" placeholder="8 dígitos - obrigatório p/ NF-e" />
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="cest" class="control-label">CEST <small>(fiscal)</small></label>
-                                <div class="controls">
-                                    <input id="cest" type="text" name="cest" maxlength="7" value="<?php echo $result->cest ?? ''; ?>" placeholder="Opcional - só p/ produtos com ST" />
+                            <div class="mb-3">
+                                <label for="cest" class="form-label">CEST <small>(fiscal)</small></label>
+                                <div class="">
+                                    <input class="form-control" id="cest" type="text" name="cest" maxlength="7" value="<?php echo $result->cest ?? ''; ?>" placeholder="Opcional - só p/ produtos com ST" />
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="cfop" class="control-label">CFOP <small>(fiscal)</small></label>
-                                <div class="controls">
-                                    <input id="cfop" type="text" name="cfop" maxlength="4" value="<?php echo $result->cfop ?? ''; ?>" placeholder="Deixe em branco p/ usar o padrão da config" />
+                            <div class="mb-3">
+                                <label for="cfop" class="form-label">CFOP <small>(fiscal)</small></label>
+                                <div class="">
+                                    <input class="form-control" id="cfop" type="text" name="cfop" maxlength="4" value="<?php echo $result->cfop ?? ''; ?>" placeholder="Deixe em branco p/ usar o padrão da config" />
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label class="control-label">Tipo de movimento</label>
-                                <div class="controls">
+                            <div class="mb-3">
+                                <label class="form-label">Tipo de movimento</label>
+                                <div class="">
                                     <div class="ui-opcoes">
                                         <label for="entrada" class="ui-opcao">
-                                            <input type="checkbox" id="entrada" name="entrada" value="1" <?= ($result->entrada == 1) ? 'checked' : '' ?>>
+                                            <input class="form-check-input" type="checkbox" id="entrada" name="entrada" value="1" <?= ($result->entrada == 1) ? 'checked' : '' ?>>
                                             Entrada
                                         </label>
                                         <label for="saida" class="ui-opcao">
-                                            <input type="checkbox" id="saida" name="saida" value="1" <?= ($result->saida == 1) ? 'checked' : '' ?>>
+                                            <input class="form-check-input" type="checkbox" id="saida" name="saida" value="1" <?= ($result->saida == 1) ? 'checked' : '' ?>>
                                             Saída
                                         </label>
                                     </div>
@@ -72,34 +72,34 @@
                     <div class="ui-secao">
                         <h4 class="ui-secao-titulo">Preço</h4>
                         <div class="ui-grade">
-                            <div class="control-group">
-                                <label for="precoCompra" class="control-label">Preço de Compra<span class="required">*</span></label>
-                                <div class="controls">
-                                    <input id="precoCompra" class="money" data-affixes-stay="true" data-thousands="" data-decimal="." type="text" name="precoCompra" value="<?php echo $result->precoCompra; ?>" />
+                            <div class="mb-3">
+                                <label for="precoCompra" class="form-label">Preço de Compra<span class="required">*</span></label>
+                                <div class="">
+                                    <input id="precoCompra" class="money form-control" data-affixes-stay="true" data-thousands="" data-decimal="." type="text" name="precoCompra" value="<?php echo $result->precoCompra; ?>" />
                                     <div class="ui-combo">
                                         <span>Margem</span>
-                                        <input id="margemLucro" name="margemLucro" type="text" placeholder="%" maxlength="3" inputmode="decimal" aria-label="Margem de lucro (%)" />
+                                        <input class="form-control" id="margemLucro" name="margemLucro" type="text" placeholder="%" maxlength="3" inputmode="decimal" aria-label="Margem de lucro (%)" />
                                     </div>
-                                    <span class="help-inline ui-negativo" id="errorAlert"></span>
+                                    <span class="form-text ui-negativo" id="errorAlert"></span>
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="Lucro" class="control-label">Lucro</label>
-                                <div class="controls">
+                            <div class="mb-3">
+                                <label for="Lucro" class="form-label">Lucro</label>
+                                <div class="">
                                     <div class="ui-combo">
-                                        <select id="selectLucro" name="selectLucro">
+                                        <select class="form-select" id="selectLucro" name="selectLucro">
                                             <option value="markup">Markup</option>
                                             <option value="margemLucro">Margem de Lucro</option>
                                         </select>
-                                        <input id="Lucro" name="Lucro" type="text" placeholder="%" maxlength="3" inputmode="decimal" />
+                                        <input class="form-control" id="Lucro" name="Lucro" type="text" placeholder="%" maxlength="3" inputmode="decimal" />
                                     </div>
-                                    <span class="help-block">Markup é aplicado ao preço de compra; margem de lucro, ao preço de venda.</span>
+                                    <span class="form-text">Markup é aplicado ao preço de compra; margem de lucro, ao preço de venda.</span>
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="precoVenda" class="control-label">Preço de Venda<span class="required">*</span></label>
-                                <div class="controls">
-                                    <input id="precoVenda" class="money" data-affixes-stay="true" data-thousands="" data-decimal="." type="text" name="precoVenda" value="<?php echo $result->precoVenda; ?>" />
+                            <div class="mb-3">
+                                <label for="precoVenda" class="form-label">Preço de Venda<span class="required">*</span></label>
+                                <div class="">
+                                    <input id="precoVenda" class="money form-control" data-affixes-stay="true" data-thousands="" data-decimal="." type="text" name="precoVenda" value="<?php echo $result->precoVenda; ?>" />
                                 </div>
                             </div>
                         </div>
@@ -108,31 +108,31 @@
                     <div class="ui-secao">
                         <h4 class="ui-secao-titulo">Estoque</h4>
                         <div class="ui-grade">
-                            <div class="control-group">
-                                <label for="unidade" class="control-label">Unidade<span class="required">*</span></label>
-                                <div class="controls">
-                                    <select id="unidade" name="unidade"></select>
+                            <div class="mb-3">
+                                <label for="unidade" class="form-label">Unidade<span class="required">*</span></label>
+                                <div class="">
+                                    <select class="form-select" id="unidade" name="unidade"></select>
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="estoque" class="control-label">Estoque<span class="required">*</span></label>
-                                <div class="controls">
-                                    <input id="estoque" type="text" name="estoque" value="<?php echo $result->estoque; ?>" />
+                            <div class="mb-3">
+                                <label for="estoque" class="form-label">Estoque<span class="required">*</span></label>
+                                <div class="">
+                                    <input class="form-control" id="estoque" type="text" name="estoque" value="<?php echo $result->estoque; ?>" />
                                 </div>
                             </div>
-                            <div class="control-group">
-                                <label for="estoqueMinimo" class="control-label">Estoque Mínimo</label>
-                                <div class="controls">
-                                    <input id="estoqueMinimo" type="text" name="estoqueMinimo" value="<?php echo $result->estoqueMinimo; ?>" />
+                            <div class="mb-3">
+                                <label for="estoqueMinimo" class="form-label">Estoque Mínimo</label>
+                                <div class="">
+                                    <input class="form-control" id="estoqueMinimo" type="text" name="estoqueMinimo" value="<?php echo $result->estoqueMinimo; ?>" />
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="ui-rodape-form">
-                        <button type="submit" class="button btn btn-mini btn-primary">
+                        <button type="submit" class="button btn btn-sm btn-primary">
                             <span class="button__icon"><i class="bx bx-sync"></i></span><span class="button__text2">Atualizar</span></button>
-                        <a href="<?php echo base_url() ?>index.php/produtos" class="button btn btn-mini btn-warning">
+                        <a href="<?php echo base_url() ?>index.php/produtos" class="button btn btn-sm btn-warning">
                             <span class="button__icon"><i class="bx bx-undo"></i></span><span class="button__text2">Voltar</span></a>
                     </div>
                 </form>
@@ -249,14 +249,14 @@
                 }
             },
 
-            errorClass: "help-inline",
+            errorClass: "invalid-feedback",
             errorElement: "span",
             highlight: function(element, errorClass, validClass) {
-                $(element).parents('.control-group').addClass('error');
+                $(element).addClass('is-invalid');
             },
             unhighlight: function(element, errorClass, validClass) {
-                $(element).parents('.control-group').removeClass('error');
-                $(element).parents('.control-group').addClass('success');
+                $(element).removeClass('is-invalid');
+                $(element).addClass('is-valid');
             }
         });
     });

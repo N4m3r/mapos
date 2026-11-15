@@ -18,7 +18,7 @@ $selosHolerite = [
     'liberado' => ['sucesso', 'Liberado'],
 ];
 ?>
-<div class="new122">
+<div class="new122 row">
     <div class="ui-cabecalho">
         <div>
             <h1 class="ui-titulo"><i class="bx bx-file"></i> Folha de pagamento</h1>
@@ -26,12 +26,12 @@ $selosHolerite = [
         </div>
     </div>
 
-    <div class="span12" style="margin-left:0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <div class="col-md-12" style="margin-left:0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
         <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-            <input type="month" id="competencia" value="<?= html_escape($competencia) ?>" aria-label="Competência">
-            <label style="margin:0;font-weight:normal"><input type="checkbox" id="so-nao-liberados" style="margin:0 4px 0 0" <?= $soNaoLiberados ? 'checked' : '' ?>> Só holerites não liberados</label>
+            <input class="form-control" type="month" id="competencia" value="<?= html_escape($competencia) ?>" aria-label="Competência">
+            <label style="margin:0;font-weight:normal"><input class="form-check-input" type="checkbox" id="so-nao-liberados" style="margin:0 4px 0 0" <?= $soNaoLiberados ? 'checked' : '' ?>> Só holerites não liberados</label>
         </div>
-        <a href="<?= site_url("rh/folhaPdf/{$competencia}") ?>" target="_blank" class="button btn btn-mini btn-inverse">
+        <a href="<?= site_url("rh/folhaPdf/{$competencia}") ?>" target="_blank" class="button btn btn-sm btn-dark">
             <span class="button__icon"><i class='bx bx-printer'></i></span><span class="button__text2"> Folha em PDF</span></a>
     </div>
 
@@ -43,7 +43,7 @@ $selosHolerite = [
             </tr></thead>
             <tbody>
             <?php if (empty($linhas)): ?>
-                <tr><td colspan="10"><div class="ui-vazio"><i class='bx bx-file'></i><strong><?= $soNaoLiberados && $totalLinhas > 0 ? 'Todos os holerites desta competência já foram liberados' : 'Nenhum colaborador ativo' ?></strong><?php if ($soNaoLiberados): ?><a href="<?= site_url('rh/folha/' . $competencia) ?>" class="button btn btn-mini btn-warning"><span class="button__text2">Ver a folha completa</span></a><?php endif; ?></div></td></tr>
+                <tr><td colspan="10"><div class="ui-vazio"><i class='bx bx-file'></i><strong><?= $soNaoLiberados && $totalLinhas > 0 ? 'Todos os holerites desta competência já foram liberados' : 'Nenhum colaborador ativo' ?></strong><?php if ($soNaoLiberados): ?><a href="<?= site_url('rh/folha/' . $competencia) ?>" class="button btn btn-sm btn-warning"><span class="button__text2">Ver a folha completa</span></a><?php endif; ?></div></td></tr>
             <?php else: foreach ($linhas as $l): $c = $l['colaborador']; ?>
                 <tr>
                     <td><a href="<?= site_url('rh/ficha/'.$c->id.$voltarFolha) ?>"><?= html_escape($c->nome) ?></a>

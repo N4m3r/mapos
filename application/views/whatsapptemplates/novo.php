@@ -18,43 +18,43 @@ $tagsPadrao = array_filter(array_map('trim', explode(',', Whatsapp_templates_mod
         <form action="<?= site_url('whatsapptemplates/criar') ?>" method="post">
             <input type="hidden" name="<?= $tokenName ?>" value="<?= $tokenHash ?>">
 
-            <div class="control-group">
-                <label class="control-label" for="nome">Nome *</label>
-                <div class="controls">
-                    <input type="text" id="nome" name="nome" placeholder="Ex.: Aviso de conclusão (curto)" required>
+            <div class="mb-3">
+                <label class="form-label" for="nome">Nome *</label>
+                <div class="">
+                    <input class="form-control" type="text" id="nome" name="nome" placeholder="Ex.: Aviso de conclusão (curto)" required>
                 </div>
             </div>
 
-            <div class="control-group">
-                <label class="control-label" for="descricao">Descrição</label>
-                <div class="controls">
-                    <input type="text" id="descricao" name="descricao" placeholder="Quando/para que serve este modelo">
+            <div class="mb-3">
+                <label class="form-label" for="descricao">Descrição</label>
+                <div class="">
+                    <input class="form-control" type="text" id="descricao" name="descricao" placeholder="Quando/para que serve este modelo">
                 </div>
             </div>
 
-            <div class="control-group">
-                <label class="control-label" style="display:flex; align-items:center; gap:8px;">
-                    <input type="checkbox" name="ativo" value="1" checked> Modelo ativo
+            <div class="mb-3">
+                <label class="form-label" style="display:flex; align-items:center; gap:8px;">
+                    <input class="form-check-input" type="checkbox" name="ativo" value="1" checked> Modelo ativo
                 </label>
             </div>
 
-            <div class="control-group">
-                <label class="control-label" for="conteudo">Mensagem</label>
-                <div class="controls">
-                    <textarea id="conteudo" name="conteudo" rows="8" style="width:100%; box-sizing:border-box;" placeholder="Digite a mensagem. Use as tags abaixo."></textarea>
+            <div class="mb-3">
+                <label class="form-label" for="conteudo">Mensagem</label>
+                <div class="">
+                    <textarea class="form-control" id="conteudo" name="conteudo" rows="8" style="width:100%; box-sizing:border-box;" placeholder="Digite a mensagem. Use as tags abaixo."></textarea>
                 </div>
             </div>
 
-            <div class="control-group">
-                <label class="control-label">Tags disponíveis</label>
-                <div class="controls">
+            <div class="mb-3">
+                <label class="form-label">Tags disponíveis</label>
+                <div class="">
                     <div style="display:flex; flex-wrap:wrap; gap:6px;">
                         <?php foreach ($tagsPadrao as $tag) { ?>
-                            <button type="button" class="btn btn-mini tag-btn" data-tag="<?= html_escape($tag) ?>"><?= html_escape($tag) ?></button>
+                            <button type="button" class="btn btn-sm tag-btn" data-tag="<?= html_escape($tag) ?>"><?= html_escape($tag) ?></button>
                         <?php } ?>
                     </div>
                     <input type="hidden" name="tags" value="<?= html_escape(Whatsapp_templates_model::tagsPadraoOs()) ?>">
-                    <span class="help-inline">Formatação: <strong>*negrito*</strong>, _itálico_, ~riscado~. Enter cria nova linha.</span>
+                    <span class="form-text">Formatação: <strong>*negrito*</strong>, _itálico_, ~riscado~. Enter cria nova linha.</span>
                 </div>
             </div>
 

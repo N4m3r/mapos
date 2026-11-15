@@ -13,8 +13,8 @@ $statusAtual = $o ? $o->status : 'ativo';
 $tipoAtual = $o ? $o->tipo : 'mensal';
 $slas = isset($slas) ? $slas : [];
 ?>
-<div class="row-fluid" style="margin-top:0">
-    <div class="span12">
+<div class="row" style="margin-top:0">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="widget-content">
                 <div class="ui-cabecalho">
@@ -27,34 +27,34 @@ $slas = isset($slas) ? $slas : [];
                     <div class="ui-secao">
                         <h4>Identificação</h4>
                         <div class="ui-grade">
-                            <div class="control-group">
+                            <div class="mb-3">
                                 <label for="codigo">Código</label>
-                                <input type="text" id="codigo" name="codigo" placeholder="Ex.: CT-0001" value="<?= $val('codigo') ?>">
+                                <input class="form-control" type="text" id="codigo" name="codigo" placeholder="Ex.: CT-0001" value="<?= $val('codigo') ?>">
                             </div>
-                            <div class="control-group" style="grid-column:span 2">
+                            <div class="mb-3" style="grid-column:span 2">
                                 <label for="descricao">Descrição <span class="required">*</span></label>
-                                <input type="text" id="descricao" name="descricao" required placeholder="Manutenção CFTV + Rede — Loja Centro" value="<?= $val('descricao') ?>">
+                                <input class="form-control" type="text" id="descricao" name="descricao" required placeholder="Manutenção CFTV + Rede — Loja Centro" value="<?= $val('descricao') ?>">
                             </div>
-                            <div class="control-group">
+                            <div class="mb-3">
                                 <label for="status">Status</label>
-                                <select id="status" name="status">
+                                <select class="form-select" id="status" name="status">
                                     <?php foreach (['ativo' => 'Ativo', 'suspenso' => 'Suspenso', 'encerrado' => 'Encerrado'] as $k => $v): ?>
                                         <option value="<?= $k ?>" <?= $statusAtual === $k ? 'selected' : '' ?>><?= $v ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                            <div class="control-group">
+                            <div class="mb-3">
                                 <label for="clientes_id">Cliente</label>
-                                <select id="clientes_id" name="clientes_id">
+                                <select class="form-select" id="clientes_id" name="clientes_id">
                                     <option value="">— Selecione —</option>
                                     <?php foreach ($clientes as $c): ?>
                                         <option value="<?= $c->idClientes ?>" <?= $o && $o->clientes_id == $c->idClientes ? 'selected' : '' ?>><?= html_escape($c->nomeCliente) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                            <div class="control-group">
+                            <div class="mb-3">
                                 <label for="tipo">Periodicidade</label>
-                                <select id="tipo" name="tipo">
+                                <select class="form-select" id="tipo" name="tipo">
                                     <?php foreach (['mensal' => 'Mensal', 'trimestral' => 'Trimestral', 'semestral' => 'Semestral', 'anual' => 'Anual'] as $k => $v): ?>
                                         <option value="<?= $k ?>" <?= $tipoAtual === $k ? 'selected' : '' ?>><?= $v ?></option>
                                     <?php endforeach; ?>
@@ -66,25 +66,25 @@ $slas = isset($slas) ? $slas : [];
                     <div class="ui-secao">
                         <h4>Valor e vigência</h4>
                         <div class="ui-grade">
-                            <div class="control-group">
+                            <div class="mb-3">
                                 <label for="valor">Valor (R$)</label>
-                                <input type="number" id="valor" step="0.01" min="0" name="valor" value="<?= $val('valor', '0') ?>">
+                                <input class="form-control" type="number" id="valor" step="0.01" min="0" name="valor" value="<?= $val('valor', '0') ?>">
                             </div>
-                            <div class="control-group">
+                            <div class="mb-3">
                                 <label for="dia_vencimento">Dia de vencimento</label>
-                                <input type="number" id="dia_vencimento" min="1" max="28" name="dia_vencimento" value="<?= $val('dia_vencimento', '10') ?>">
+                                <input class="form-control" type="number" id="dia_vencimento" min="1" max="28" name="dia_vencimento" value="<?= $val('dia_vencimento', '10') ?>">
                             </div>
-                            <div class="control-group">
+                            <div class="mb-3">
                                 <label for="data_inicio">Início da vigência</label>
-                                <input type="text" id="data_inicio" class="datepicker" name="data_inicio" value="<?= $dt('data_inicio') ?>">
+                                <input type="text" id="data_inicio" class="datepicker form-control" name="data_inicio" value="<?= $dt('data_inicio') ?>">
                             </div>
-                            <div class="control-group">
+                            <div class="mb-3">
                                 <label for="data_fim">Fim da vigência</label>
-                                <input type="text" id="data_fim" class="datepicker" name="data_fim" value="<?= $dt('data_fim') ?>">
+                                <input type="text" id="data_fim" class="datepicker form-control" name="data_fim" value="<?= $dt('data_fim') ?>">
                             </div>
-                            <div class="control-group" style="grid-column:1 / -1">
+                            <div class="mb-3" style="grid-column:1 / -1">
                                 <label for="observacoes">Observações</label>
-                                <input type="text" id="observacoes" name="observacoes" value="<?= $val('observacoes') ?>">
+                                <input class="form-control" type="text" id="observacoes" name="observacoes" value="<?= $val('observacoes') ?>">
                             </div>
                         </div>
                     </div>
@@ -99,8 +99,8 @@ $slas = isset($slas) ? $slas : [];
                                     <?php foreach ($slas as $prioridade => $horas): ?>
                                         <tr>
                                             <td><strong><?= html_escape($prioridade) ?></strong></td>
-                                            <td><input type="number" min="0" style="width:90px" aria-label="Resposta em horas: <?= html_escape($prioridade) ?>" name="sla_resposta[<?= html_escape($prioridade) ?>]" value="<?= (int) $horas['resposta_horas'] ?>"></td>
-                                            <td><input type="number" min="0" style="width:90px" aria-label="Solução em horas: <?= html_escape($prioridade) ?>" name="sla_solucao[<?= html_escape($prioridade) ?>]" value="<?= (int) $horas['solucao_horas'] ?>"></td>
+                                            <td><input class="form-control" type="number" min="0" style="width:90px" aria-label="Resposta em horas: <?= html_escape($prioridade) ?>" name="sla_resposta[<?= html_escape($prioridade) ?>]" value="<?= (int) $horas['resposta_horas'] ?>"></td>
+                                            <td><input class="form-control" type="number" min="0" style="width:90px" aria-label="Solução em horas: <?= html_escape($prioridade) ?>" name="sla_solucao[<?= html_escape($prioridade) ?>]" value="<?= (int) $horas['solucao_horas'] ?>"></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
@@ -109,7 +109,7 @@ $slas = isset($slas) ? $slas : [];
                     </div>
 
                     <div class="ui-rodape-form">
-                        <a href="<?= site_url('contratos/gerenciar') ?>" class="button btn btn-mini btn-warning"><span class="button__icon"><i class="bx bx-undo"></i></span><span class="button__text2">Voltar</span></a>
+                        <a href="<?= site_url('contratos/gerenciar') ?>" class="button btn btn-sm btn-warning"><span class="button__icon"><i class="bx bx-undo"></i></span><span class="button__text2">Voltar</span></a>
                         <button class="button btn btn-success"><span class="button__icon"><i class='bx bx-save'></i></span><span class="button__text2">Salvar</span></button>
                     </div>
                 </form>

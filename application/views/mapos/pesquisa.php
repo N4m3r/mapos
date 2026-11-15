@@ -1,24 +1,24 @@
- <div class="span12" style="margin-left: 0; margin-top: 0">
+ <div class="col-md-12" style="margin-left: 0; margin-top: 0"><div class="row">
     <div class="ui-cabecalho">
         <div>
             <h1 class="ui-titulo"><i class="bx bx-search-alt"></i> Pesquisa</h1>
             <p class="ui-subtitulo">Procure produtos, clientes, serviços e OS pelo mesmo termo.</p>
         </div>
     </div>
-    <div class="span12" style="margin-left: 0">
-        <form action="<?php echo current_url() ?>">
-            <div class="span10" style="margin-left: 0">
-                <input type="text" class="span12" name="termo" placeholder="Digite o termo a pesquisar"/>
+    <div class="col-md-12" style="margin-left: 0">
+        <form class="row" action="<?php echo current_url() ?>">
+            <div class="col-md-10" style="margin-left: 0">
+                <input type="text" class="w-100 form-control" name="termo" placeholder="Digite o termo a pesquisar"/>
             </div>
-            <div class="span2">
-                <button class="button btn btn-mini btn-warning">
+            <div class="col-md-2">
+                <button class="button btn btn-sm btn-warning">
                   <span class="button__icon"><i class='bx bx-search-alt'></i></span> <span class="button__text2">Pesquisar</span></button>
             </div>
         </form>
     </div>
-    <div class="span12" style="margin-left: 0; margin-top: 0">
+    <div class="col-md-12" style="margin-left: 0; margin-top: 0"><div class="row">
         <!--Produtoss-->
-        <div class="span6" style="margin-left: 0; margin-top: 0">
+        <div class="col-md-6" style="margin-left: 0; margin-top: 0">
             <div class="widget-box" style="min-height: 200px">
                 <div class="widget-title" style="margin: -20px 0 0">
                     <span class="icon">
@@ -66,7 +66,7 @@
             </div>
         </div>
         <!--Clientes-->
-        <div class="span6">
+        <div class="col-md-6">
             <div class="widget-box" style="min-height: 200px">
                 <div class="widget-title" style="margin: -20px 0 0">
                     <span class="icon">
@@ -96,7 +96,7 @@
                             echo '<td>' . html_escape($r->nomeCliente) . '</td>';
                             echo '<td>' . html_escape($r->documento) . '</td>';
                             $cor = ($r->fornecedor ? '#CDB380' : '#CD0000');
-                            echo '<td><span class="badge" style="background-color: ' . $cor . '; border-color: ' . $cor . '">' . ($r->fornecedor ? 'Fornecedor' : 'Cliente') . '</span> </td>';
+                            echo '<td><span class="badge text-bg-secondary" style="background-color: ' . $cor . '; border-color: ' . $cor . '">' . ($r->fornecedor ? 'Fornecedor' : 'Cliente') . '</span> </td>';
                             echo '<td>';
                             if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vCliente')) {
                                 echo '<a style="margin-right: 1%" href="' . base_url() . 'index.php/clientes/visualizar/' . $r->idClientes . '" class="btn tip-top" title="Ver mais detalhes"><i class="fas fa-eye"></i></a>';
@@ -115,9 +115,9 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div></div>
     <!--Serviços-->
-    <div class="span6" style="margin-left: 0">
+    <div class="col-md-6" style="margin-left: 0">
         <div class="widget-box" style="min-height: 200px">
             <div class="widget-title" style="margin: -20px 0 0">
                 <span class="icon">
@@ -161,7 +161,7 @@
         </div>
     </div>
     <!--Ordens de Serviço-->
-    <div class="span6">
+    <div class="col-md-6">
         <div class="widget-box" style="min-height: 200px">
             <div class="widget-title" style="margin: -20px 0 0">
                 <span class="icon">
@@ -211,4 +211,4 @@
             </div>
         </div>
     </div>
-</div>
+</div></div>

@@ -7,21 +7,22 @@ class MY_Controller extends CI_Controller
             'per_page' => 10,
             'next_link' => 'Próxima',
             'prev_link' => 'Anterior',
-            'full_tag_open' => '<div class="pagination alternate"><ul>',
-            'full_tag_close' => '</ul></div>',
-            'num_tag_open' => '<li>',
+            'full_tag_open' => '<ul class="pagination">',
+            'full_tag_close' => '</ul>',
+            'attributes' => ['class' => 'page-link'],
+            'num_tag_open' => '<li class="page-item">',
             'num_tag_close' => '</li>',
-            'cur_tag_open' => '<li><a style="color: #2D335B"><b>',
-            'cur_tag_close' => '</b></a></li>',
-            'prev_tag_open' => '<li>',
+            'cur_tag_open' => '<li class="page-item active" aria-current="page"><a class="page-link" href="#">',
+            'cur_tag_close' => '</a></li>',
+            'prev_tag_open' => '<li class="page-item">',
             'prev_tag_close' => '</li>',
-            'next_tag_open' => '<li>',
+            'next_tag_open' => '<li class="page-item">',
             'next_tag_close' => '</li>',
             'first_link' => 'Primeira',
             'last_link' => 'Última',
-            'first_tag_open' => '<li>',
+            'first_tag_open' => '<li class="page-item">',
             'first_tag_close' => '</li>',
-            'last_tag_open' => '<li>',
+            'last_tag_open' => '<li class="page-item">',
             'last_tag_close' => '</li>',
             'app_name' => 'Map-OS',
             'app_theme' => 'default',
@@ -60,6 +61,15 @@ class MY_Controller extends CI_Controller
         foreach ($configuracoes as $c) {
             $this->data['configuration'][$c->config] = $c->valor;
         }
+
+        // Modo claro/escuro escolhido pelo usuario no botao do topo (cookie por usuario,
+        // lido aqui para o tema certo sair ja no HTML, sem piscar). O tema do sistema
+        // continua em app_theme_sistema para a tela de Configuracoes.
+        $temaSistema = $this->data['configuration']['app_theme'] ?? 'white';
+        $idUsuario = isset($this->session) ? (int) $this->session->userdata('id_admin') : 0;
+        $modo = $idUsuario ? $this->input->cookie('mapos_modo_' . $idUsuario) : null;
+        $this->data['configuration']['app_theme_sistema'] = $temaSistema;
+        $this->data['configuration']['app_theme'] = tema_por_modo($temaSistema, $modo);
     }
 
     /**

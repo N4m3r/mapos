@@ -87,7 +87,7 @@
         height: 120px !important;
     }
 
-    .assinatura-campos .span6 {
+    .assinatura-campos .col-md-6 {
         width: 100% !important;
         margin-left: 0 !important;
         margin-bottom: 10px;

@@ -17,7 +17,7 @@
         $m.on('click', '.av-prev', function () { go(-1); });
         $m.on('click', '.av-next', function () { go(1); });
         $m.on('dblclick', 'img.av-img', toggleZoom);
-        $m.on('hidden', function () { zoomed = false; $box.removeClass('av-zoom'); });
+        $m.on('hidden.bs.modal', function () { zoomed = false; $box.removeClass('av-zoom'); });
         $m.on('touchstart', '#div-visualizar-anexo', function (e) {
             var t = e.originalEvent.touches[0];
             if (e.originalEvent.touches.length > 1) { return; }
@@ -32,7 +32,7 @@
             if (!zoomed && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && now - st < 800) { go(dx < 0 ? 1 : -1); }
         });
         $(document).on('keydown', function (e) {
-            if (!$m.hasClass('in')) { return; }
+            if (!$m.hasClass('show')) { return; }
             if (e.which === 37) { go(-1); } else if (e.which === 39) { go(1); }
         });
     }
@@ -54,7 +54,7 @@
         var dl = $m.data('download-url') + id;
         var isFile = /icon-file\.png/.test(link);
         if (isFile) {
-            $box.html('<div class="av-file"><img class="av-icon" src="' + link + '" alt=""><div><a class="btn btn-large btn-primary" target="_blank" rel="noopener" href="' + dl + '">Abrir arquivo</a></div></div>');
+            $box.html('<div class="av-file"><img class="av-icon" src="' + link + '" alt=""><div><a class="btn btn-lg btn-primary" target="_blank" rel="noopener" href="' + dl + '">Abrir arquivo</a></div></div>');
         } else {
             $box.html('<img class="av-img" src="' + link + '" alt="">');
         }

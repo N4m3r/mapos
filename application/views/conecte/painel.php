@@ -2,10 +2,10 @@
 
 <?php $qtdPendentes = isset($pendentesAprovacao) ? count($pendentesAprovacao) : 0; ?>
 <?php if ($qtdPendentes > 0) { ?>
-    <div class="span12" style="margin-left: 0">
+    <div class="col-md-12" style="margin-left: 0">
         <div class="alert alert-warning" style="display:flex;align-items:center;justify-content:space-between">
             <span><i class='bx bx-bell'></i> Você tem <strong><?= $qtdPendentes ?></strong> Ordem(ns) de Serviço pendente(s) de aprovação.</span>
-            <a href="<?= base_url() ?>index.php/mine/aprovacoes" class="button btn btn-warning btn-mini">
+            <a href="<?= base_url() ?>index.php/mine/aprovacoes" class="button btn btn-warning btn-sm">
                 <span class="button__text2">Revisar agora</span>
             </a>
         </div>
@@ -61,7 +61,7 @@
                 </div>
             </a>
             <a href="<?php echo base_url() ?>index.php/mine/aprovacoes">
-                <div style="font-size: 1.2em" class="numbers">Aprovações<?= $qtdPendentes > 0 ? ' <span class="badge" style="background:#f0ad4e">' . $qtdPendentes . '</span>' : '' ?></div>
+                <div style="font-size: 1.2em" class="numbers">Aprovações<?= $qtdPendentes > 0 ? ' <span class="badge text-bg-secondary" style="background:#f0ad4e">' . $qtdPendentes . '</span>' : '' ?></div>
             </a>
         </li>
         <li class="card">
@@ -77,7 +77,7 @@
     </ul>
 </div>
 
-<div class="span12" style="margin-left: 0">
+<div class="col-md-12" style="margin-left: 0">
     <div class="widget-box">
         <div class="widget-title" style="margin: -20px 0 0">
             <span class="icon"><i class="fas fa-signal"></i></span>
@@ -163,8 +163,8 @@
                             echo '<td><span class="ui-selo ' . ($corGarantia === "#4d9c79" ? "sucesso" : ($corGarantia === "#f24c6f" ? "perigo" : "")) . '">' . $vencGarantia . '</span> </td>';
                             echo '<td><span class="ui-selo ' . (["Aberto"=>"sucesso","Finalizado"=>"sucesso","Faturado"=>"sucesso","Aprovado"=>"sucesso","Em Andamento"=>"info","Orçamento"=>"info","Negociação"=>"info","Aguardando Peças"=>"alerta","Cancelado"=>"perigo"][$o->status] ?? "") . '">' . $o->status . '</span> </td>';
                             echo '<td style="text-align:right">';
-                            echo '<a href="' . base_url() . 'index.php/mine/visualizarOs/' . $o->idOs . '" class="btn"> <i class="fas fa-eye" ></i></a> ';
-                            echo '<a href="' . base_url('index.php/mine/imprimirOs/' . $o->idOs) . '" class="btn" target="_blank"> <i class="fas fa-print"></i></a>';
+                            echo '<a href="' . base_url() . 'index.php/mine/visualizarOs/' . $o->idOs . '" class="btn btn-light"> <i class="fas fa-eye" ></i></a> ';
+                            echo '<a href="' . base_url('index.php/mine/imprimirOs/' . $o->idOs) . '" class="btn btn-light" target="_blank"> <i class="fas fa-print"></i></a>';
                             echo '</td>';
                             echo '</tr>';
                         }
@@ -267,8 +267,8 @@
                     echo '<td><span class="ui-selo ' . ($corGarantia === "#4d9c79" ? "sucesso" : ($corGarantia === "#f24c6f" ? "perigo" : "")) . '">' . $vencGarantia . '</span> </td>';
                     echo '<td><span class="ui-selo ' . (["Aberto"=>"sucesso","Finalizado"=>"sucesso","Faturado"=>"sucesso","Aprovado"=>"sucesso","Em Andamento"=>"info","Orçamento"=>"info","Negociação"=>"info","Aguardando Peças"=>"alerta","Cancelado"=>"perigo"][$c->status] ?? "") . '">' . $c->status . '</span> </td>';
                     echo '<td style="text-align:right">';
-                    echo '<a href="' . base_url() . 'index.php/mine/visualizarCompra/' . $c->idVendas . '" class="btn"> <i class="fas fa-eye" ></i> </a> ';
-                    echo '<a href="' . base_url() . 'index.php/mine/imprimirCompra/' . $c->idVendas . '" class="btn"> <i class="fas fa-print" ></i> </a>';
+                    echo '<a href="' . base_url() . 'index.php/mine/visualizarCompra/' . $c->idVendas . '" class="btn btn-light"> <i class="fas fa-eye" ></i> </a> ';
+                    echo '<a href="' . base_url() . 'index.php/mine/imprimirCompra/' . $c->idVendas . '" class="btn btn-light"> <i class="fas fa-print" ></i> </a>';
                     echo '</td>';
                     echo '</tr>';
                 }

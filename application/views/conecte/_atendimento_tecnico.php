@@ -24,14 +24,14 @@ $rotulosAssinatura = [
     'cliente_saida' => 'Cliente - Saída',
 ];
 ?>
-<div class="row-fluid" style="margin-top: 0">
-    <div class="span12">
+<div class="row" style="margin-top: 0">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="widget-title" style="margin: -20px 0 0">
                 <span class="icon"><i class="fas fa-user-cog"></i></span>
                 <h5>Atendimento do Técnico</h5>
                 <div class="buttons" style="padding-left:5px;">
-                    <a target="_blank" title="Imprimir Relatório de Atendimento" class="button btn btn-mini btn-inverse" href="<?php echo site_url('mine/relatorioAtendimento/' . $result->idOs); ?>">
+                    <a target="_blank" title="Imprimir Relatório de Atendimento" class="button btn btn-sm btn-dark" href="<?php echo site_url('mine/relatorioAtendimento/' . $result->idOs); ?>">
                         <span class="button__icon"><i class="bx bx-printer"></i></span> <span class="button__text">Imprimir Relatório</span></a>
                 </div>
             </div>
@@ -40,7 +40,7 @@ $rotulosAssinatura = [
                 <!-- Histórico de check-ins -->
                 <h6 style="color:#2d335b; margin:4px 0 8px"><i class="bx bx-calendar-check"></i> Histórico de Atendimento</h6>
                 <?php if (! empty($checkins)) { ?>
-                    <table class="table table-bordered table-condensed">
+                    <table class="table table-bordered table-sm">
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -67,9 +67,9 @@ $rotulosAssinatura = [
                                     <td><?= $tempo ?></td>
                                     <td>
                                         <?php if (! empty($c->data_saida)) { ?>
-                                            <span class="label label-success">Finalizado</span>
+                                            <span class="badge text-bg-success">Finalizado</span>
                                         <?php } else { ?>
-                                            <span class="label label-warning">Em andamento</span>
+                                            <span class="badge text-bg-warning">Em andamento</span>
                                         <?php } ?>
                                     </td>
                                 </tr>
@@ -101,7 +101,7 @@ $rotulosAssinatura = [
                         <?php foreach ($respostasPorEtapa[$etapa] as $resposta) { ?>
                             <div style="border:1px solid #e2e6ef; border-radius:6px; padding:10px 12px; margin-bottom:10px">
                                 <div style="font-weight:bold; margin-bottom:6px"><?= html_escape($resposta->formulario_nome) ?></div>
-                                <table class="table table-condensed" style="margin-bottom:0">
+                                <table class="table table-sm" style="margin-bottom:0">
                                     <?php foreach ($resposta->itens as $item) { ?>
                                         <tr>
                                             <td style="width:40%; color:#555; border-top:none"><?= html_escape($item->label) ?></td>
@@ -119,12 +119,12 @@ $rotulosAssinatura = [
                 $assinaturasValidas = array_filter($assinaturas, fn ($a) => is_object($a) && ! empty($a->assinatura));
                 if (! empty($assinaturasValidas)) { ?>
                     <h6 style="color:#2d335b; margin:16px 0 8px"><i class="bx bx-pen"></i> Assinaturas</h6>
-                    <div class="row-fluid">
+                    <div class="row">
                         <?php foreach ($assinaturasValidas as $tipo => $a) {
                             // URL do portal: a rota administrativa de assinatura exige
                             // sessão de usuário, que o cliente logado não tem.
                             $imgSrc = site_url('mine/assinaturaAtendimento/' . (int) $a->idAssinatura); ?>
-                            <div class="span4" style="text-align:center; margin-bottom:12px">
+                            <div class="col-md-4" style="text-align:center; margin-bottom:12px">
                                 <div style="border:1px solid #e2e6ef; border-radius:6px; padding:8px; background:#fafafa; min-height:90px; display:flex; align-items:center; justify-content:center">
                                     <img src="<?= html_escape($imgSrc) ?>" alt="Assinatura" style="max-width:100%; max-height:90px">
                                 </div>
@@ -146,12 +146,12 @@ $rotulosAssinatura = [
                     <?php foreach (['entrada', 'durante', 'saida'] as $etapa) {
                         if (empty($fotosPorEtapa[$etapa])) { continue; } ?>
                         <p style="font-weight:bold; color:#555; margin:8px 0 4px"><?= html_escape($rotulosFoto[$etapa]) ?></p>
-                        <div class="row-fluid">
+                        <div class="row">
                             <?php foreach ($fotosPorEtapa[$etapa] as $foto) {
                                 $imgUrl = ! empty($foto->imagem_base64)
                                     ? site_url('mine/fotoAtendimento/' . (int) $foto->idFoto)
                                     : $foto->url; ?>
-                                <div class="span3" style="margin-bottom:12px">
+                                <div class="col-md-3" style="margin-bottom:12px">
                                     <a href="<?= html_escape($imgUrl) ?>" target="_blank" style="display:block; border:1px solid #e2e6ef; border-radius:6px; overflow:hidden">
                                         <img src="<?= html_escape($imgUrl) ?>" alt="Foto do atendimento" style="width:100%; height:120px; object-fit:cover; display:block">
                                         <?php if (! empty($foto->descricao)) { ?>

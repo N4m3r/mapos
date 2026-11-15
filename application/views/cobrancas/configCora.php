@@ -11,13 +11,11 @@ $webhookUrl = site_url('webhook/cora');
 $pronto = $ativo && $clientId && $certPath && $chavePath;
 ?>
 <style>
-    .form-horizontal .control-label { padding-top: 9px; width: 220px; }
-    .form-horizontal .controls { margin-left: 240px; }
     .hint { display: block; color: #999; font-size: 11px; margin-top: 2px; }
 </style>
 
-<div class="row-fluid" style="margin-top:0">
-    <div class="span12">
+<div class="row" style="margin-top:0">
+    <div class="col-md-12">
         <div class="ui-cabecalho">
             <div>
                 <h1><i class="bx bx-dollar-circle"></i> Cobrança Cora (Boleto + PIX)</h1>
@@ -70,38 +68,38 @@ $pronto = $ativo && $clientId && $certPath && $chavePath;
 
                 <form action="<?= site_url('cobrancas/configCora') ?>" method="post" enctype="multipart/form-data" class="form-horizontal">
 
-                    <div class="control-group">
-                        <label class="control-label" for="ativo">Ativar cobrança Cora</label>
-                        <div class="controls">
-                            <input type="checkbox" id="ativo" name="ativo" value="1" <?= $ativo ? 'checked' : '' ?> />
+                    <div class="row mb-2">
+                        <label class="col-sm-3 col-form-label" for="ativo">Ativar cobrança Cora</label>
+                        <div class="col-sm-9">
+                            <input class="form-check-input" type="checkbox" id="ativo" name="ativo" value="1" <?= $ativo ? 'checked' : '' ?> />
                             <span class="hint">Quando ativa, o botão "Gerar Boleto/PIX" aparece nas notas fiscais da OS.</span>
                         </div>
                     </div>
 
-                    <div class="control-group">
-                        <label class="control-label" for="producao">Ambiente</label>
-                        <div class="controls">
-                            <select name="producao" id="producao">
+                    <div class="row mb-2">
+                        <label class="col-sm-3 col-form-label" for="producao">Ambiente</label>
+                        <div class="col-sm-9">
+                            <select class="form-select" name="producao" id="producao">
                                 <option value="0" <?= ! $producao ? 'selected' : '' ?>>Stage (homologação, sem cobrança real)</option>
                                 <option value="1" <?= $producao ? 'selected' : '' ?>>Produção</option>
                             </select>
                         </div>
                     </div>
 
-                    <div class="control-group">
-                        <label class="control-label" for="client_id">Client ID</label>
-                        <div class="controls">
-                            <input type="text" id="client_id" name="client_id" value="<?= html_escape($clientId) ?>" style="width:360px" autocomplete="off" />
+                    <div class="row mb-2">
+                        <label class="col-sm-3 col-form-label" for="client_id">Client ID</label>
+                        <div class="col-sm-9">
+                            <input class="form-control" type="text" id="client_id" name="client_id" value="<?= html_escape($clientId) ?>" style="max-width:360px" autocomplete="off" />
                             <span class="hint">Identificador da integração direta (ex: int-xxxxx).</span>
                         </div>
                     </div>
 
                     <h5 style="margin-top:10px">Certificado mTLS</h5>
 
-                    <div class="control-group">
-                        <label class="control-label" for="certificado">Certificado (.pem)</label>
-                        <div class="controls">
-                            <input type="file" id="certificado" name="certificado" accept=".pem,.crt,.cer" />
+                    <div class="row mb-2">
+                        <label class="col-sm-3 col-form-label" for="certificado">Certificado (.pem)</label>
+                        <div class="col-sm-9">
+                            <input class="form-control" type="file" id="certificado" name="certificado" accept=".pem,.crt,.cer" />
                             <?php if (! empty($certPath) && is_file($certPath)) { ?>
                                 <span class="hint" style="color:#4d9c79"><i class="bx bx-check-circle"></i> Arquivo em disco: <?= html_escape(basename($certPath)) ?> (<?= number_format(filesize($certPath)) ?> bytes). Envie de novo só para substituir.</span>
                             <?php } elseif (! empty($certPath)) { ?>
@@ -112,10 +110,10 @@ $pronto = $ativo && $clientId && $certPath && $chavePath;
                         </div>
                     </div>
 
-                    <div class="control-group">
-                        <label class="control-label" for="chave">Chave privada (.key)</label>
-                        <div class="controls">
-                            <input type="file" id="chave" name="chave" accept=".key,.pem" />
+                    <div class="row mb-2">
+                        <label class="col-sm-3 col-form-label" for="chave">Chave privada (.key)</label>
+                        <div class="col-sm-9">
+                            <input class="form-control" type="file" id="chave" name="chave" accept=".key,.pem" />
                             <?php if (! empty($chavePath) && is_file($chavePath)) { ?>
                                 <span class="hint" style="color:#4d9c79"><i class="bx bx-check-circle"></i> Arquivo em disco: <?= html_escape(basename($chavePath)) ?> (<?= number_format(filesize($chavePath)) ?> bytes). Envie de novo só para substituir.</span>
                             <?php } elseif (! empty($chavePath)) { ?>
@@ -128,10 +126,10 @@ $pronto = $ativo && $clientId && $certPath && $chavePath;
 
                     <h5 style="margin-top:10px">Boleto</h5>
 
-                    <div class="control-group">
-                        <label class="control-label" for="boleto_expiration">Vencimento</label>
-                        <div class="controls">
-                            <input type="text" id="boleto_expiration" name="boleto_expiration" value="<?= html_escape($expiracao) ?>" style="width:100px" />
+                    <div class="row mb-2">
+                        <label class="col-sm-3 col-form-label" for="boleto_expiration">Vencimento</label>
+                        <div class="col-sm-9">
+                            <input class="form-control" type="text" id="boleto_expiration" name="boleto_expiration" value="<?= html_escape($expiracao) ?>" style="max-width:100px" />
                             <span class="hint">Formato ISO 8601 a partir de hoje. Ex: <code>P3D</code> = 3 dias, <code>P7D</code> = 7 dias.</span>
                         </div>
                     </div>
@@ -139,7 +137,7 @@ $pronto = $ativo && $clientId && $certPath && $chavePath;
                     <div class="form-actions">
                         <button type="submit" class="btn btn-success"><i class="bx bx-save"></i> Salvar Configurações</button>
                         <button type="button" id="btn-testar-cora" class="btn btn-info"><i class="bx bx-plug"></i> Testar Conexão</button>
-                        <button type="button" id="btn-diagnostico-cora" class="btn"><i class="bx bx-search-alt"></i> Diagnóstico</button>
+                        <button type="button" id="btn-diagnostico-cora" class="btn btn-outline-secondary"><i class="bx bx-search-alt"></i> Diagnóstico</button>
                         <span id="resultado-teste-cora" style="margin-left:10px"></span>
                     </div>
                 </form>
@@ -152,11 +150,13 @@ $pronto = $ativo && $clientId && $certPath && $chavePath;
                     a cobrança é marcada como <strong>Paga</strong> e o lançamento financeiro recebe baixa automaticamente.
                     O servidor precisa estar acessível pela internet (HTTPS) nesta URL.
                 </div>
-                <div class="control-group">
-                    <label class="control-label" for="webhook_url">URL do webhook</label>
-                    <div class="controls">
-                        <input type="text" id="webhook_url" value="<?= html_escape($webhookUrl) ?>" style="width:360px" readonly />
-                        <a href="#" class="btn btn-mini" id="btn-copiar-webhook"><i class="bx bx-copy"></i> Copiar</a>
+                <div class="mb-3">
+                    <label class="form-label" for="webhook_url">URL do webhook</label>
+                    <div class="">
+                        <div class="input-group" style="max-width:460px">
+                            <input class="form-control" type="text" id="webhook_url" value="<?= html_escape($webhookUrl) ?>" readonly />
+                            <a href="#" class="btn btn-outline-secondary" id="btn-copiar-webhook"><i class="bx bx-copy"></i> Copiar</a>
+                        </div>
                         <span class="hint">
                             <?php if (! empty($webhookId)) { ?>
                                 <span style="color:#4d9c79"><i class="bx bx-check-circle"></i> Webhook registrado (id: <?= html_escape($webhookId) ?>).</span>
@@ -166,9 +166,9 @@ $pronto = $ativo && $clientId && $certPath && $chavePath;
                         </span>
                     </div>
                 </div>
-                <div class="control-group">
-                    <label class="control-label">&nbsp;</label>
-                    <div class="controls">
+                <div class="mb-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="">
                         <button type="button" id="btn-registrar-webhook" class="btn btn-warning"><i class="bx bx-link"></i> Registrar webhook na Cora</button>
                         <span id="resultado-webhook-cora" style="margin-left:10px"></span>
                         <span class="hint">Salve as credenciais antes de registrar. Registrar de novo apenas atualiza o cadastro.</span>

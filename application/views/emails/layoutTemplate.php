@@ -19,20 +19,20 @@ $tokenHash = $this->security->get_csrf_hash();
         <form action="<?= site_url('emailtemplates/salvarLayout') ?>" method="post" id="formLayout">
             <input type="hidden" name="<?= $tokenName ?>" value="<?= $tokenHash ?>">
 
-            <div class="row-fluid">
-                <div class="span6">
-                    <div class="control-group">
-                        <label class="control-label" for="email_layout">HTML do layout</label>
-                        <div class="controls">
-                            <textarea id="email_layout" name="email_layout" rows="20" class="span12" style="font-family:'Courier New', monospace; font-size:13px;"><?= html_escape($layout) ?></textarea>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label" for="email_layout">HTML do layout</label>
+                        <div class="">
+                            <textarea id="email_layout" name="email_layout" rows="20" class="w-100 form-control" style="font-family:'Courier New', monospace; font-size:13px;"><?= html_escape($layout) ?></textarea>
                         </div>
                     </div>
                 </div>
-                <div class="span6">
-                    <div class="control-group">
-                        <label class="control-label" for="email_css">CSS</label>
-                        <div class="controls">
-                            <textarea id="email_css" name="email_css" rows="20" class="span12" style="font-family:'Courier New', monospace; font-size:13px;"><?= html_escape($css) ?></textarea>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label" for="email_css">CSS</label>
+                        <div class="">
+                            <textarea id="email_css" name="email_css" rows="20" class="w-100 form-control" style="font-family:'Courier New', monospace; font-size:13px;"><?= html_escape($css) ?></textarea>
                         </div>
                     </div>
                 </div>
@@ -54,8 +54,8 @@ $tokenHash = $this->security->get_csrf_hash();
             </div>
         </form>
 
-        <div class="row-fluid" style="margin-top:18px;">
-            <div class="span12">
+        <div class="row" style="margin-top:18px;">
+            <div class="col-md-12">
                 <h5>Pré-visualização</h5>
                 <iframe id="previewFrame" name="previewFrame" style="width:100%; height:560px; border:1px solid #e2e6f0; border-radius:8px; background:#fff;"></iframe>
             </div>

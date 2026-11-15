@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="<?= base_url() ?>assets/css/obras.css">
+<link rel="stylesheet" href="<?= base_url() ?>assets/css/obras.css?v=<?= asset_versao('assets/css/obras.css') ?>">
 <?php
 $fmt = function ($v, $d = 2) { return number_format((float) $v, $d, ',', '.'); };
 $perm = function ($p) { return $this->permission->checkPermission($this->session->userdata('permissao'), $p); };

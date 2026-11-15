@@ -6,10 +6,10 @@
 <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/trumbowyg.js"></script>
 <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/langs/pt_br.js"></script>
 
-<div class="row-fluid" style="margin-top:0">
-    <div class="span12">
+<div class="row" style="margin-top:0">
+    <div class="col-md-12">
         <div class="widget-box">
-            <div class="widget-content" style="padding: 16px">
+            <div class="widget-content row" style="padding: 16px">
                 <div class="ui-cabecalho">
                     <div>
                         <h1 class="ui-titulo"><i class="fas fa-book"></i> Novo termo de garantia</h1>
@@ -18,34 +18,34 @@
                 </div>
 
                 <?php if ($custom_error == true) { ?>
-                    <div class="span12 alert alert-danger" id="divInfo" style="padding: 1%;">Dados incompletos, verifique os campos com asterisco.</div>
+                    <div class="col-md-12 alert alert-danger" id="divInfo" style="padding: 1%;">Dados incompletos, verifique os campos com asterisco.</div>
                 <?php
                 } ?>
                 <form action="<?php echo current_url(); ?>" method="post" id="formGarantia">
                     <div class="ui-grade">
                         <div>
                             <label for="dataGarantia">Data<span class="required">*</span></label>
-                            <input id="dataGarantia" class="span12 datepicker" type="text" name="dataGarantia" value="<?php echo date('d/m/Y'); ?>" disabled />
+                            <input id="dataGarantia" class="datepicker w-100 form-control" type="text" name="dataGarantia" value="<?php echo date('d/m/Y'); ?>" disabled />
                         </div>
                         <div>
                             <label for="usuarios_id">Responsável<span class="required">*</span></label>
-                            <input id="usuarios_id" class="span12" type="text" name="usuarios_id" value="<?php echo $this->session->userdata('nome_admin') ?>" disabled />
+                            <input id="usuarios_id" class="w-100 form-control" type="text" name="usuarios_id" value="<?php echo $this->session->userdata('nome_admin') ?>" disabled />
                         </div>
                         <div>
                             <label for="refGarantia">Ref Garantia<span class="required">*</span></label>
-                            <input type="text" class="span12" name="refGarantia" required placeholder="Informe uma referência: Exemplos: TV, Notebook, Celular">
+                            <input type="text" class="w-100 form-control" name="refGarantia" required placeholder="Informe uma referência: Exemplos: TV, Notebook, Celular">
                         </div>
                         <div style="grid-column: 1 / -1">
                             <label for="textoGarantia">
                                 <h4 class="text-center">Termo de Garantia<span class="required">*</span></h4>
                             </label>
-                            <textarea required class="span12 editor" name="textoGarantia" id="textoGarantia" cols="30" rows="5"></textarea></textarea>
+                            <textarea required class="editor w-100 form-control" name="textoGarantia" id="textoGarantia" cols="30" rows="5"></textarea></textarea>
                         </div>
                     </div>
                     <div class="ui-rodape-form">
                         <button class="button btn btn-success" id="btnContinuar">
                           <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Adicionar</span></button>
-                        <a href="<?php echo base_url() ?>index.php/garantias" class="button btn btn-mini btn-warning">
+                        <a href="<?php echo base_url() ?>index.php/garantias" class="button btn btn-sm btn-warning">
                           <span class="button__icon"><i class="bx bx-undo"></i></span> <span class="button__text2">Voltar</span></a>
                     </div>
                 </form>
@@ -101,14 +101,14 @@
                 }
 
             },
-            errorClass: "help-inline",
+            errorClass: "invalid-feedback",
             errorElement: "span",
             highlight: function(element, errorClass, validClass) {
-                $(element).parents('.control-group').addClass('error');
+                $(element).addClass('is-invalid');
             },
             unhighlight: function(element, errorClass, validClass) {
-                $(element).parents('.control-group').removeClass('error');
-                $(element).parents('.control-group').addClass('success');
+                $(element).removeClass('is-invalid');
+                $(element).addClass('is-valid');
             }
         });
         $(".datepicker").datepicker({

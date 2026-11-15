@@ -6,9 +6,9 @@
     <title>Map_Vendas_<?php echo $result->idVendas ?>_<?php echo html_escape($result->nomeCliente); ?></title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/bootstrap-responsive.min.css" />
-    <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/matrix-style.css" />
+    <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/bootstrap.min.css?v=<?= asset_versao('assets/css/bootstrap.min.css') ?>" />
+    
+    <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/matrix-style.css?v=<?= asset_versao('assets/css/matrix-style.css') ?>" />
     <link href="<?php echo base_url(); ?>assets/font-awesome/css/font-awesome.css" rel="stylesheet" />
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,800' rel='stylesheet' type='text/css'>
     <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url(); ?>assets/js/jquery-1.10.2.min.js"></script>
@@ -22,8 +22,8 @@
 
 <body>
     <div class="container-fluid">
-        <div class="row-fluid">
-            <div class="span12">
+        <div class="row">
+            <div class="col-md-12">
                 <div class="invoice-content">
                     <div class="invoice-head">
                         <table class="table">
@@ -82,7 +82,7 @@
                     </div>
                     <div style="margin-top: 0; padding-top: 0">
                         <?php if ($produtos != null) { ?>
-                            <table class="table table-bordered table-condensed" id="tblProdutos">
+                            <table class="table table-bordered table-sm" id="tblProdutos">
                                 <thead>
                                     <tr>
                                         <th style="font-size: 15px">Produto</th>
@@ -139,7 +139,7 @@
                                 <?php endif; ?>
                             <?php } ?>
                             </table>
-                            <table class="table table-bordered table-condensed" style="font-size: 15px">
+                            <table class="table table-bordered table-sm" style="font-size: 15px">
                                 <tbody>
                                     <tr>
                                         <td colspan="5">
@@ -156,7 +156,8 @@
             </div>
         </div>
     </div>
-    <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/bootstrap.min.js"></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/bootstrap.bundle.min.js"></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/bootstrap-jquery.js"></script>
     <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/matrix.js"></script>
     <script nonce="<?= csp_nonce() ?>">
         // Aguarda o carregamento completo de todas as imagens antes de imprimir

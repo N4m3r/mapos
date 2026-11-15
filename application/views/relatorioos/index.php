@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="<?= base_url() ?>assets/css/obras.css">
+<link rel="stylesheet" href="<?= base_url() ?>assets/css/obras.css?v=<?= asset_versao('assets/css/obras.css') ?>">
 <link rel="stylesheet" href="<?= base_url('assets/css/relatorios-escuro.css') ?>?v=<?= asset_versao('assets/css/relatorios-escuro.css') ?>">
 <?php
 // Relatorio de OS realizadas (mesmo molde do relatorio de projetos)
@@ -118,7 +118,7 @@ $link = function (array $over = []) use ($base) {
         .so-impressao { display: block !important; margin-bottom: 12px; }
         .so-impressao h2 { margin: 0 0 4px; font-size: 18px; color: #000 !important; }
         .so-impressao p { margin: 0; font-size: 12px; color: #000 !important; }
-        body, #content, #content-header, .container-fluid, .row-fluid, .span12 {
+        body, #content, #content-header, .container-fluid, .row, .col-md-12 {
             background: #fff !important; color: #000 !important; margin: 0 !important; padding: 0 !important;
             width: 100% !important; min-height: 0 !important;
         }
@@ -160,8 +160,8 @@ $link = function (array $over = []) use ($base) {
     }
 </style>
 
-<div class="row-fluid" style="margin-top: 0">
-    <div class="span12">
+<div class="row" style="margin-top: 0">
+    <div class="col-md-12">
         <div class="so-impressao">
             <h2>Relatório de OS realizadas · <?= $e($periodo['rotulo']) ?></h2>
             <p>
@@ -178,7 +178,7 @@ $link = function (array $over = []) use ($base) {
                 <p class="ui-subtitulo"><?= $e($periodo['rotulo']) ?></p>
             </div>
             <div class="ui-acoes">
-                <button type="button" class="button btn btn-mini btn-inverse" data-acao="imprimir"><span class="button__icon"><i class="bx bx-printer"></i></span><span class="button__text">Imprimir</span></button>
+                <button type="button" class="button btn btn-sm btn-dark" data-acao="imprimir"><span class="button__icon"><i class="bx bx-printer"></i></span><span class="button__text">Imprimir</span></button>
             </div>
         </div>
 
@@ -186,20 +186,20 @@ $link = function (array $over = []) use ($base) {
             <input type="hidden" name="tipo" value="<?= $e($filtro['tipo']) ?>" />
             <div class="rel-periodos">
                 <?php foreach ($tiposRotulo as $chave => $rotulo) : ?>
-                    <a class="btn <?= $filtro['tipo'] === $chave ? 'btn-inverse ativo' : '' ?>" href="<?= $e($link(['tipo' => $chave])) ?>"><?= $e($rotulo) ?></a>
+                    <a class="btn <?= $filtro['tipo'] === $chave ? 'btn-dark ativo' : 'btn-outline-secondary' ?>" href="<?= $e($link(['tipo' => $chave])) ?>"><?= $e($rotulo) ?></a>
                 <?php endforeach; ?>
                 <span class="rel-setas">
-                    <a class="btn" href="<?= $e($link(['data' => $periodo['anterior']])) ?>" title="Período anterior">&lsaquo;</a>
-                    <a class="btn" href="<?= $e($link(['data' => $periodo['proximo']])) ?>" title="Próximo período">&rsaquo;</a>
+                    <a class="btn btn-outline-secondary" href="<?= $e($link(['data' => $periodo['anterior']])) ?>" title="Período anterior">&lsaquo;</a>
+                    <a class="btn btn-outline-secondary" href="<?= $e($link(['data' => $periodo['proximo']])) ?>" title="Próximo período">&rsaquo;</a>
                 </span>
             </div>
             <div class="ui-campo">
                 <label for="data">Data de referência</label>
-                <input type="date" id="data" name="data" value="<?= $e($filtro['data']) ?>" />
+                <input class="form-control" type="date" id="data" name="data" value="<?= $e($filtro['data']) ?>" />
             </div>
             <div class="ui-campo">
                 <label for="usuario_id">Técnico</label>
-                <select id="usuario_id" name="usuario_id">
+                <select class="form-select" id="usuario_id" name="usuario_id">
                     <option value="">Todos</option>
                     <?php foreach ($usuarios as $u) : ?>
                         <option value="<?= (int) $u->idUsuarios ?>" <?= (int) $filtro['usuario_id'] === (int) $u->idUsuarios ? 'selected' : '' ?>><?= $e($u->nome) ?></option>
@@ -208,7 +208,7 @@ $link = function (array $over = []) use ($base) {
             </div>
             <div class="ui-campo">
                 <label for="cliente_id">Cliente</label>
-                <select id="cliente_id" name="cliente_id">
+                <select class="form-select" id="cliente_id" name="cliente_id">
                     <option value="">Todos</option>
                     <?php foreach ($clientes as $c) : ?>
                         <option value="<?= (int) $c->idClientes ?>" <?= (int) $filtro['cliente_id'] === (int) $c->idClientes ? 'selected' : '' ?>><?= $e($c->nomeCliente) ?></option>
@@ -217,7 +217,7 @@ $link = function (array $over = []) use ($base) {
             </div>
             <div class="ui-campo">
                 <label for="status">Status da OS</label>
-                <select id="status" name="status">
+                <select class="form-select" id="status" name="status">
                     <option value="">Todos</option>
                     <?php foreach ($statusLista as $s) : ?>
                         <option value="<?= $e($s) ?>" <?= ($filtro['status'] ?? null) === $s ? 'selected' : '' ?>><?= $e($s) ?></option>
@@ -226,15 +226,15 @@ $link = function (array $over = []) use ($base) {
             </div>
             <div class="ui-campo">
                 <label for="fotos">Fotos</label>
-                <select id="fotos" name="fotos">
+                <select class="form-select" id="fotos" name="fotos">
                     <option value="12" <?= $fotosModo === '12' ? 'selected' : '' ?>>até 12 por OS</option>
                     <option value="todas" <?= $fotosModo === 'todas' ? 'selected' : '' ?>>todas</option>
                     <option value="0" <?= $fotosModo === '0' ? 'selected' : '' ?>>não mostrar</option>
                 </select>
             </div>
             <div class="ui-campo ui-campo-acao">
-                <button class="button btn btn-inverse"><span class="button__icon"><i class="bx bx-filter-alt"></i></span><span class="button__text">Filtrar</span></button>
-                <a class="btn" href="<?= site_url('relatorioos') ?>" title="Limpar filtros"><i class="bx bx-x"></i> Limpar</a>
+                <button class="button btn btn-dark"><span class="button__icon"><i class="bx bx-filter-alt"></i></span><span class="button__text">Filtrar</span></button>
+                <a class="btn btn-outline-secondary" href="<?= site_url('relatorioos') ?>" title="Limpar filtros"><i class="bx bx-x"></i> Limpar</a>
             </div>
         </form>
 

@@ -17,7 +17,7 @@ $tokenHash = $this->security->get_csrf_hash();
             <p class="ui-subtitulo">Cada perfil define o que os usuários podem ver e fazer. Um usuário herda o perfil da sua conta.</p>
         </div>
         <div class="ui-acoes">
-            <a href="<?= site_url('usuarios') ?>" class="button btn btn-inverse">
+            <a href="<?= site_url('usuarios') ?>" class="button btn btn-dark">
                 <span class="button__icon"><i class="bx bx-user-circle"></i></span><span class="button__text2">Ver usuários</span>
             </a>
             <a href="<?= site_url('permissoes/adicionar') ?>" class="button btn btn-success">

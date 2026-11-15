@@ -26,17 +26,17 @@ $batidasRef = $batidas_ref ?? [];
         <h4 style="margin:0 0 10px"><i class='bx bx-plus-circle'></i> Nova solicitação</h4>
 
         <label>Tipo</label>
-        <select name="tipo" id="oc-tipo" class="span12" style="width:100%">
+        <select name="tipo" id="oc-tipo" class="w-100 form-select" style="width:100%">
             <?php foreach ($tipos as $k=>$v): ?>
                 <option value="<?= $k ?>" <?= ($refData && $k==='correcao_ponto') ? 'selected' : '' ?>><?= $v ?></option>
             <?php endforeach; ?>
         </select>
 
         <label style="margin-top:8px">Data de referência</label>
-        <input type="date" name="data_referencia" id="oc-data" class="span12" style="width:100%" value="<?= htmlspecialchars($refData) ?>">
+        <input type="date" name="data_referencia" id="oc-data" class="w-100 form-control" style="width:100%" value="<?= htmlspecialchars($refData) ?>">
 
         <label style="margin-top:8px">O que deseja justificar / corrigir?</label>
-        <select name="justificar_tipo" id="oc-justificar" class="span12" style="width:100%">
+        <select name="justificar_tipo" id="oc-justificar" class="w-100 form-select" style="width:100%">
             <option value="">— selecione —</option>
             <?php foreach ($lblBat as $k=>$v): ?>
                 <option value="<?= $k ?>"><?= $v ?></option>
@@ -45,7 +45,7 @@ $batidasRef = $batidas_ref ?? [];
         <small style="color:var(--tec-muted, #9ca3af)">Escolha se é entrada, intervalo ou saída.</small>
 
         <label style="margin-top:8px">Batida registrada neste dia <small>(opcional)</small></label>
-        <select name="registro_id" id="oc-registro" class="span12" style="width:100%">
+        <select name="registro_id" id="oc-registro" class="w-100 form-select" style="width:100%">
             <option value="">— nenhuma / batida faltante —</option>
             <?php foreach ($batidasRef as $b): ?>
                 <option value="<?= $b->id ?>" data-tipo="<?= htmlspecialchars($b->tipo) ?>">
@@ -59,23 +59,23 @@ $batidasRef = $batidas_ref ?? [];
         <div id="bloco-correcao" style="display:none">
             <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
                 <div style="flex:1;min-width:140px"><label>Tipo da batida desejada</label>
-                    <select name="correcao_tipo" id="oc-correcao-tipo" class="span12" style="width:100%">
+                    <select name="correcao_tipo" id="oc-correcao-tipo" class="w-100 form-select" style="width:100%">
                         <?php foreach ($lblBat as $k=>$v): ?>
                             <option value="<?= $k ?>"><?= $v ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
                 <div style="flex:1;min-width:160px"><label>Data e hora desejada</label>
-                    <input type="datetime-local" name="correcao_data_hora" id="oc-correcao-dh" class="span12" style="width:100%">
+                    <input type="datetime-local" name="correcao_data_hora" id="oc-correcao-dh" class="w-100 form-control" style="width:100%">
                 </div>
             </div>
             <small style="color:var(--tec-muted, #9ca3af)">Se o RH aprovar, essa batida é lançada/corrigida automaticamente no seu ponto.</small>
         </div>
 
         <label style="margin-top:8px">Descrição</label>
-        <textarea name="descricao" rows="3" class="span12" style="width:100%" placeholder="Explique o motivo..." required></textarea>
+        <textarea name="descricao" rows="3" class="w-100 form-control" style="width:100%" placeholder="Explique o motivo..." required></textarea>
         <label style="margin-top:8px">Anexo (atestado/comprovante) — opcional</label>
-        <input type="file" name="anexo" accept="image/*,application/pdf" class="span12" style="width:100%">
+        <input type="file" name="anexo" accept="image/*,application/pdf" class="w-100 form-control" style="width:100%">
         <button type="submit" class="btn-bater" style="margin-top:12px"><i class='bx bx-send'></i> Enviar ao RH</button>
     </form>
 

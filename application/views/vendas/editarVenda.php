@@ -6,10 +6,10 @@
 <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/trumbowyg.js"></script>
 <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/langs/pt_br.js"></script>
 
-<link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/custom.css" />
+<link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/custom.css?v=<?= asset_versao('assets/css/custom.css') ?>" />
 
-<div class="row-fluid" style="margin-top:0">
-    <div class="span12">
+<div class="row" style="margin-top:0">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="widget-title" style="margin: -20px 0 0">
                 <span class="icon">
@@ -17,39 +17,39 @@
                 </span>
                 <h5>Editar Venda</h5>
             </div>
-            <div class="widget-content nopadding tab-content">
-                <div class="span12" id="divProdutosServicos" style=" margin-left: 0">
+            <div class="widget-content nopadding tab-content"><div class="row">
+                <div class="col-md-12" id="divProdutosServicos" style=" margin-left: 0">
                     <ul class="nav nav-tabs">
-                        <li class="active" id="tabDetalhes"><a href="#tab1" data-toggle="tab">Detalhes da Venda</a></li>
-                        <li id="tabProdutos"><a href="#tab2" data-toggle="tab">Produtos</a></li>
+                        <li class="nav-item" id="tabDetalhes"><a class="nav-link active" href="#tab1" data-bs-toggle="tab">Detalhes da Venda</a></li>
+                        <li class="nav-item" id="tabProdutos"><a class="nav-link" href="#tab2" data-bs-toggle="tab">Produtos</a></li>
                     </ul>
                     <div class="tab-content">
-                        <div class="tab-pane active" id="tab1">
-                            <div class="span12" id="divEditarVenda">
-                                <form action="<?php echo current_url(); ?>" method="post" id="formVendas">
+                        <div class="tab-pane active" id="tab1"><div class="row">
+                            <div class="col-md-12" id="divEditarVenda">
+                                <form class="row" action="<?php echo current_url(); ?>" method="post" id="formVendas">
                                     <?php echo form_hidden('idVendas', $result->idVendas) ?>
-                                    <div class="span12" style="padding: 1%; margin-left: 0">
+                                    <div class="col-md-12 row" style="padding: 1%; margin-left: 0">
                                         <h3>Venda:
                                             <?php echo $result->idVendas ?>
                                         </h3>
-                                        <div class="span2" style="margin-left: 0">
+                                        <div class="col-md-2" style="margin-left: 0">
                                             <label for="dataFinal">Data Final</label>
-                                            <input id="dataVenda" class="span12 datepicker" type="text" name="dataVenda" value="<?php echo date('d/m/Y', strtotime($result->dataVenda)); ?>" />
+                                            <input id="dataVenda" class="datepicker w-100 form-control" type="text" name="dataVenda" value="<?php echo date('d/m/Y', strtotime($result->dataVenda)); ?>" />
                                         </div>
-                                        <div class="span3">
+                                        <div class="col-md-3">
                                             <label for="cliente">Cliente<span class="required">*</span></label>
-                                            <input id="cliente" class="span12" type="text" name="cliente" value="<?php echo html_escape($result->nomeCliente); ?>" />
-                                            <input id="clientes_id" class="span12" type="hidden" name="clientes_id" value="<?php echo $result->clientes_id ?>" />
+                                            <input id="cliente" class="w-100 form-control" type="text" name="cliente" value="<?php echo html_escape($result->nomeCliente); ?>" />
+                                            <input id="clientes_id" class="w-100" type="hidden" name="clientes_id" value="<?php echo $result->clientes_id ?>" />
                                             <input id="valorTotal" type="hidden" name="valorTotal" value="" />
                                         </div>
-                                        <div class="span3">
+                                        <div class="col-md-3">
                                             <label for="tecnico">Vendedor<span class="required">*</span></label>
-                                            <input id="tecnico" class="span12" type="text" name="tecnico" value="<?php echo html_escape($result->nome); ?>" />
-                                            <input id="usuarios_id" class="span12" type="hidden" name="usuarios_id" value="<?php echo $result->usuarios_id ?>" />
+                                            <input id="tecnico" class="w-100 form-control" type="text" name="tecnico" value="<?php echo html_escape($result->nome); ?>" />
+                                            <input id="usuarios_id" class="w-100" type="hidden" name="usuarios_id" value="<?php echo $result->usuarios_id ?>" />
                                         </div>
-                                        <div class="span2">
+                                        <div class="col-md-2">
                                             <label for="status">Status<span class="required">*</span></label>
-                                            <select class="span12" name="status" id="status" value="">
+                                            <select class="w-100 form-select" name="status" id="status" value="">
                                                 <option <?= $result->status == 'Orçamento' ? 'selected' : '' ?> value="Orçamento">Orçamento</option>
                                                 <option <?= $result->status == 'Aberto' ? 'selected' : '' ?> value="Aberto">Aberto</option>
                                                 <option <?= $result->status == 'Faturado' ? 'selected' : '' ?> value="Faturado">Faturado</option>
@@ -61,33 +61,33 @@
                                                 <option <?= $result->status == 'Aprovado' ? 'selected' : '' ?> value="Aprovado">Aprovado</option>
                                             </select>
                                         </div>
-                                        <div class="span2">
+                                        <div class="col-md-2">
                                             <label for="garantia">Garantia (dias)</label>
                                             <input id="garantia" type="number" placeholder="Em dias" min="0" max="9999"
-                                                class="span12" name="garantia"
+                                                class="w-100 form-control" name="garantia"
                                                 value="<?php echo $result->garantia ?>" />
                                             <?php echo form_error('garantia'); ?>
                                         </div>
                                     </div>
 
-                                    <div class="span6" style="padding: 1%; margin-left: 0">
+                                    <div class="col-md-6" style="padding: 1%; margin-left: 0">
                                         <label for="observacoes">
                                             <h4>Observações</h4>
                                         </label>
-                                        <textarea class="editor" name="observacoes" id="observacoes" cols="30" rows="5"><?php echo html_escape($result->observacoes) ?></textarea>
+                                        <textarea class="editor form-control" name="observacoes" id="observacoes" cols="30" rows="5"><?php echo html_escape($result->observacoes) ?></textarea>
                                     </div>
 
-                                    <div class="span6" style="padding: 1%; margin-left: 0">
+                                    <div class="col-md-6" style="padding: 1%; margin-left: 0">
                                         <label for="observacoes_cliente">
                                             <h4>Observações para o Cliente</h4>
                                         </label>
-                                        <textarea class="editor" name="observacoes_cliente" id="observacoes_cliente" cols="30" rows="5"><?php echo html_escape($result->observacoes_cliente) ?></textarea>
+                                        <textarea class="editor form-control" name="observacoes_cliente" id="observacoes_cliente" cols="30" rows="5"><?php echo html_escape($result->observacoes_cliente) ?></textarea>
                                     </div>
 
-                                    <div class="span12" style="padding: 1%; margin-left: 0">
-                                        <div class="span12" style="display:flex; justify-content: center;">
+                                    <div class="col-md-12 row" style="padding: 1%; margin-left: 0">
+                                        <div class="col-md-12" style="display:flex; justify-content: center;">
                                             <?php if ($result->faturado == 0) { ?>
-                                                <a href="#modal-faturar" id="btn-faturar" role="button" data-toggle="modal" class="button btn btn-danger">
+                                                <a href="#modal-faturar" id="btn-faturar" role="button" data-bs-toggle="modal" class="button btn btn-danger">
                                                     <span class="button__icon"><i class='bx bx-dollar'></i></span> 
                                                     <span class="button__text2">Faturar</span>
                                                 </a>
@@ -108,62 +108,62 @@
                                     </div>
                                 </form>
                             </div>
-                        </div>
-                        <div class="tab-pane" id="tab2">
-                            <div class="span12 well" style="padding: 1%; margin-left: 0">
-                                <div class="span11">
-                                    <form id="formProdutos" action="<?php echo base_url(); ?>index.php/vendas/adicionarProduto" method="post">
-                                        <div class="span6">
+                        </div></div>
+                        <div class="tab-pane" id="tab2"><div class="row">
+                            <div class="col-md-12 card card-body" style="padding: 1%; margin-left: 0"><div class="row">
+                                <div class="col-md-11">
+                                    <form class="row" id="formProdutos" action="<?php echo base_url(); ?>index.php/vendas/adicionarProduto" method="post">
+                                        <div class="col-md-6">
                                             <input type="hidden" name="idProduto" id="idProduto" />
                                             <input type="hidden" name="idVendasProduto" id="idVendasProduto" value="<?php echo $result->idVendas ?>" />
                                             <input type="hidden" name="estoque" id="estoque" value="" />
                                             <label for="">Produto</label>
-                                            <input type="text" class="span12" name="produto" id="produto" placeholder="Digite o nome do produto" />
+                                            <input type="text" class="w-100 form-control" name="produto" id="produto" placeholder="Digite o nome do produto" />
                                         </div>
-                                        <div class="span2">
+                                        <div class="col-md-2">
                                             <label for="">Preço</label>
-                                            <input type="text" placeholder="Preço" id="preco" name="preco" class="span12 money" />
+                                            <input type="text" placeholder="Preço" id="preco" name="preco" class="money w-100 form-control" />
                                         </div>
-                                        <div class="span2">
+                                        <div class="col-md-2">
                                             <label for="">Quantidade</label>
-                                            <input type="text" placeholder="Quantidade" id="quantidade" name="quantidade" class="span12" />
+                                            <input type="text" placeholder="Quantidade" id="quantidade" name="quantidade" class="w-100 form-control" />
                                         </div>
-                                        <div class="span2">
+                                        <div class="col-md-2">
                                             <label for="">&nbsp</label>
                                             <button class="button btn btn-success" id="btnAdicionarProduto">
                                                 <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Adicionar</span></button>
                                         </div>
                                     </form>
                                 </div>
-                                <div class="span11">
-                                    <form id="formDesconto" action="<?php echo base_url(); ?>index.php/vendas/adicionarDesconto" method="POST">
-                                        <div class="span1">
+                                <div class="col-md-11">
+                                    <form class="row" id="formDesconto" action="<?php echo base_url(); ?>index.php/vendas/adicionarDesconto" method="POST">
+                                        <div class="col-md-1">
                                             <input type="hidden" name="idVendas" id="idVendas" value="<?php echo $result->idVendas; ?>" />
                                             <label for="">Desconto</label>
-                                            <input style="width: 4em;" id="desconto" name="desconto" type="text" placeholder="0.00" maxlength="6" size="2" /><br />
+                                            <input class="form-control" style="width: 4em;" id="desconto" name="desconto" type="text" placeholder="0.00" maxlength="6" size="2" /><br />
                                             <strong><span style="color: red" id="errorAlert"></span></strong>
                                         </div>
-                                        <div class="span1">
+                                        <div class="col-md-1">
                                         <label for="">Tipo Desc.</label>
-                                        <select style="width: 4em;" name="tipoDesconto" id="tipoDesconto">
+                                        <select class="form-select" style="width: 4em;" name="tipoDesconto" id="tipoDesconto">
                                             <option value="real">R$</option>
                                             <option value="porcento" <?=$result->tipo_desconto == "porcento" ? "selected" : "" ?>>%</option>
                                         </select>
                                         <strong><span style="color: red" id="errorAlert"></span></strong>
                                         </div>
-                                        <div class="span2">
+                                        <div class="col-md-2">
                                             <label for="">Total com Desconto</label>
-                                            <input class="span12 money" id="resultado" type="text" data-affixes-stay="true" data-thousands="" data-decimal="." name="resultado" value="" readonly />
+                                            <input class="money w-100 form-control" id="resultado" type="text" data-affixes-stay="true" data-thousands="" data-decimal="." name="resultado" value="" readonly />
                                         </div>
-                                        <div class="span2">
+                                        <div class="col-md-2">
                                             <label for="">&nbsp;</label>
                                             <button class="button btn btn-success" id="btnAdicionarDesconto">
                                                 <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2">Aplicar</span></button>
                                         </div>
                                     </form>
                                 </div>
-                            </div>
-                            <div class="span12" id="divProdutos" style="margin-left: 0">
+                            </div></div>
+                            <div class="col-md-12" id="divProdutos" style="margin-left: 0">
                                 <table class="table table-bordered" id="tblProdutos">
                                     <thead>
                                         <tr>
@@ -182,10 +182,10 @@ foreach ($produtos as $p) {
     $total = $total + $p->subTotal;
     echo '<tr>';
     echo '<td>' . $p->descricao . '</td>';
-    echo '<td><div align="center">' . $p->quantidade . '</td>';
-    echo '<td><div align="center">R$: ' . $preco . '</td>';
-    echo '<td><div align="center"><a href="" idAcao="' . $p->idItens . '" prodAcao="' . $p->idProdutos . '" quantAcao="' . $p->quantidade . '" title="Excluir Produto" class="btn-nwe4"><i class="bx bx-trash-alt"></i></a></td>';
-    echo '<td><div align="center">R$: ' . number_format($p->subTotal, 2, '.', '') . '</td>';
+    echo '<td><div align="center">' . $p->quantidade . '</div></td>';
+    echo '<td><div align="center">R$: ' . $preco . '</div></td>';
+    echo '<td><div align="center"><a href="" idAcao="' . $p->idItens . '" prodAcao="' . $p->idProdutos . '" quantAcao="' . $p->quantidade . '" title="Excluir Produto" class="btn-nwe4"><i class="bx bx-trash-alt"></i></a></div></td>';
+    echo '<td><div align="center">R$: ' . number_format($p->subTotal, 2, '.', '') . '</div></td>';
     echo '</tr>';
 } ?>
                                     </tbody>
@@ -215,66 +215,65 @@ foreach ($produtos as $p) {
                                     </tfoot>
                                 </table>
                             </div>
-                        </div>
+                        </div></div>
                     </div>
                 </div>
                 &nbsp
-            </div>
+            </div></div>
         </div>
     </div>
 </div>
 
 <!-- Modal Faturar-->
-<div id="modal-faturar" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div id="modal-faturar" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form id="formFaturar" action="<?php echo current_url() ?>" method="post">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3 id="myModalLabel">Faturar Venda</h3>
-        </div>
-        <div class="modal-body">
-            <div class="span12 alert alert-info" style="margin-left: 0"> Obrigatório o preenchimento dos campos com asterisco.</div>
-            <div class="span12" style="margin-left: 0">
+            <h3 class="modal-title" id="myModalLabel">Faturar Venda</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+        <div class="modal-body"><div class="row">
+            <div class="col-md-12 alert alert-info" style="margin-left: 0"> Obrigatório o preenchimento dos campos com asterisco.</div>
+            <div class="col-md-12" style="margin-left: 0">
                 <label for="descricao">Descrição</label>
-                <input class="span12" id="descricao" type="text" name="descricao" value="Fatura de Venda Nº: <?php echo $result->idVendas; ?> " />
+                <input class="w-100 form-control" id="descricao" type="text" name="descricao" value="Fatura de Venda Nº: <?php echo $result->idVendas; ?> " />
             </div>
-            <div class="span12" style="margin-left: 0">
-                <div class="span12" style="margin-left: 0">
+            <div class="col-md-12 row" style="margin-left: 0">
+                <div class="col-md-12" style="margin-left: 0">
                     <label for="cliente">Cliente*</label>
-                    <input class="span12" id="cliente" type="text" name="cliente" value="<?php echo html_escape($result->nomeCliente); ?>" />
+                    <input class="w-100 form-control" id="cliente" type="text" name="cliente" value="<?php echo html_escape($result->nomeCliente); ?>" />
                     <input type="hidden" name="clientes_id" id="clientes_id" value="<?php echo $result->clientes_id ?>">
                     <input type="hidden" name="vendas_id" id="vendas_id" value="<?php echo $result->idVendas; ?>">
                 </div>
             </div>
-            <div class="span12" style="margin-left: 0">
-                <div class="span5" style="margin-left: 0">
+            <div class="col-md-12 row" style="margin-left: 0">
+                <div class="col-md-5" style="margin-left: 0">
                     <label for="valor">Valor*</label>
                     <input type="hidden" id="tipo" name="tipo" value="receita" />
-                    <input class="span12 money" id="valor" type="text" name="valor" value="<?php echo number_format($total, 2, '.', ''); ?> " />
+                    <input class="money w-100 form-control" id="valor" type="text" name="valor" value="<?php echo number_format($total, 2, '.', ''); ?> " />
                 </div>
-                <div class="span5" style="margin-left: 2">
+                <div class="col-md-5" style="margin-left: 2">
                     <label for="valor">Valor Com Desconto*</label>
-                    <input class="span12 money" id="faturar-desconto" type="text" name="faturar-desconto" value="<?php echo number_format($result->valor_desconto, 2, '.', ''); ?> " />
+                    <input class="money w-100 form-control" id="faturar-desconto" type="text" name="faturar-desconto" value="<?php echo number_format($result->valor_desconto, 2, '.', ''); ?> " />
                 </div>
             </div>
-            <div class="span12" style="margin-left: 0">
-                <div class="span4" style="margin-left: 0">
+            <div class="col-md-12 row" style="margin-left: 0">
+                <div class="col-md-4" style="margin-left: 0">
                     <label for="vencimento">Data Entrada*</label>
-                    <input class="span12 datepicker" autocomplete="off" id="vencimento" type="text" name="vencimento" />
+                    <input class="datepicker w-100 form-control" autocomplete="off" id="vencimento" type="text" name="vencimento" />
                 </div>
             </div>
-            <div class="span12" style="margin-left: 0">
-                <div class="span4" style="margin-left: 0">
+            <div class="col-md-12 row" style="margin-left: 0">
+                <div class="col-md-4" style="margin-left: 0">
                     <label for="recebido">Recebido?</label>
-                    &nbsp &nbsp &nbsp &nbsp<input id="recebido" type="checkbox" name="recebido" value="1" />
+                    &nbsp &nbsp &nbsp &nbsp<input class="form-check-input" id="recebido" type="checkbox" name="recebido" value="1" />
                 </div>
-                <div id="divRecebimento" class="span8" style=" display: none">
-                    <div class="span6">
+                <div id="divRecebimento" class="col-md-8 row" style=" display: none">
+                    <div class="col-md-6">
                         <label for="recebimento">Data Recebimento</label>
-                        <input class="span12 datepicker" autocomplete="off" id="recebimento" type="text" name="recebimento" />
+                        <input class="datepicker w-100 form-control" autocomplete="off" id="recebimento" type="text" name="recebimento" />
                     </div>
-                    <div class="span6">
+                    <div class="col-md-6">
                         <label for="formaPgto">Forma Pgto</label>
-                        <select name="formaPgto" id="formaPgto" class="span12">
+                        <select name="formaPgto" id="formaPgto" class="w-100 form-select">
                             <option value="Dinheiro">Dinheiro</option>
                             <option value="Cartão de Crédito">Cartão de Crédito</option>
                             <option value="Débito">Débito</option>
@@ -286,14 +285,14 @@ foreach ($produtos as $p) {
                     </div>
                 </div>
             </div>
-        </div>
+        </div></div>
         <div class="modal-footer" style="display:flex">
-            <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true" id="btn-cancelar-faturar">
+            <button class="button btn btn-warning" data-bs-dismiss="modal" aria-hidden="true" id="btn-cancelar-faturar">
                 <span class="button__icon"><i class="bx bx-x"></i></span><span class="button__text2">Cancelar</span></button>
             <button class="button btn btn-danger"><span class="button__icon"><i class='bx bx-dollar'></i></span> <span class="button__text2">Faturar</span></button>
         </div>        
     </form>
-</div>
+</div></div></div>
 <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/maskmoney.js"></script>
 <script nonce="<?= csp_nonce() ?>" type="text/javascript">
     
@@ -394,7 +393,7 @@ foreach ($produtos as $p) {
         $('#formDesconto').submit(function(e) {
             e.preventDefault();
             var form = $(this);
-            $("#divProdutos").html("<div class='progress progress-info progress-striped active'><div class='bar' style='width: 100%'></div></div>");
+            $("#divProdutos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
             $.ajax({
                 url: form.attr('action'),
                 type: form.attr('method'),
@@ -559,14 +558,14 @@ foreach ($produtos as $p) {
                     required: 'Campo Requerido.'
                 }
             },
-            errorClass: "help-inline",
+            errorClass: "invalid-feedback",
             errorElement: "span",
             highlight: function(element, errorClass, validClass) {
-                $(element).parents('.control-group').addClass('error');
+                $(element).addClass('is-invalid');
             },
             unhighlight: function(element, errorClass, validClass) {
-                $(element).parents('.control-group').removeClass('error');
-                $(element).parents('.control-group').addClass('success');
+                $(element).removeClass('is-invalid');
+                $(element).addClass('is-valid');
             }
         });
         $("#formProdutos").validate({
@@ -602,7 +601,7 @@ foreach ($produtos as $p) {
                     });
                 } else {
                     var dados = $(form).serialize();
-                    $("#divProdutos").html("<div class='progress progress-info progress-striped active'><div class='bar' style='width: 100%'></div></div>");
+                    $("#divProdutos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
                     $.ajax({
                         type: "POST",
                         url: "<?php echo base_url(); ?>index.php/vendas/adicionarProduto",
@@ -636,7 +635,7 @@ foreach ($produtos as $p) {
             var quantidade = $(this).attr('quantAcao');
             var produto = $(this).attr('prodAcao');
             if ((idProduto % 1) == 0) {
-                $("#divProdutos").html("<div class='progress progress-info progress-striped active'><div class='bar' style='width: 100%'></div></div>");
+                $("#divProdutos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
                 $.ajax({
                     type: "POST",
                     url: "<?php echo base_url(); ?>index.php/vendas/excluirProduto",

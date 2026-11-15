@@ -23,7 +23,7 @@ $gravaveis = $contagem['novo'] + $contagem['atualizar'];
             <?php endif; ?>
         </form>
         <div style="overflow-x:auto;margin-top:12px">
-            <table class="table table-bordered table-condensed">
+            <table class="table table-bordered table-sm">
                 <thead><tr><th>Linha</th><th>Situação</th><th>Identificação</th><th>Tipo</th><th>Local</th><th>IP</th><th>Canal</th><th>Porta</th><th>Modelo</th><th>Série</th><th>Motivo</th></tr></thead>
                 <tbody>
                 <?php foreach ($linhas as $l): $d = $l['dados']; ?>

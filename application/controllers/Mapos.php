@@ -80,6 +80,22 @@ class Mapos extends MY_Controller {
         $this->data['usuario'] = $this->mapos_model->getById($this->session->userdata('id_admin'));
         $this->load->library('dois_fatores');
         $this->data['codigosRestantes'] = Dois_fatores::codigosRestantes($this->data['usuario']->totp_recuperacao ?? null);
+
+        // Modo escolhido no botao claro/escuro do topo (cookie lido no MY_Controller).
+        $modo = $this->input->cookie('mapos_modo_' . (int) $this->session->userdata('id_admin'));
+        $this->data['modoTema'] = in_array($modo, ['claro', 'escuro'], true) ? $modo : 'sistema';
+
+        // Ultimos logins (a auditoria grava pelo nome do usuario; sem migration).
+        $this->data['acessosRecentes'] = [];
+        if ($this->data['usuario'] && $this->db->table_exists('logs')) {
+            $this->data['acessosRecentes'] = $this->db->select('data, hora, ip')
+                ->from('logs')
+                ->where('usuario', $this->data['usuario']->nome)
+                ->where('tarefa', 'Efetuou login no sistema')
+                ->order_by('idLogs', 'DESC')
+                ->limit(5)
+                ->get()->result();
+        }
         $this->data['view'] = 'mapos/minhaConta';
 
         return $this->layout();
@@ -94,17 +110,25 @@ class Mapos extends MY_Controller {
             redirect(site_url('mapos/minhaConta'));
         }
 
-        $oldSenha = $this->input->post('oldSenha');
-        $senha = $this->input->post('novaSenha');
+        $oldSenha = (string) $this->input->post('oldSenha');
+        $senha = (string) $this->input->post('novaSenha');
 
         if (!password_verify($oldSenha, $current_user->senha)) {
             $this->session->set_flashdata('error', 'A senha atual não corresponde com a senha informada.');
             redirect(site_url('mapos/minhaConta'));
         }
 
+        // Antes so o JS validava: um POST direto gravava senha vazia.
+        $erro = senha_nova_erro($senha, $this->input->post('confirmarSenha'));
+        if ($erro !== null) {
+            $this->session->set_flashdata('error', $erro);
+            redirect(site_url('mapos/minhaConta'));
+        }
+
         $result = $this->mapos_model->alterarSenha($senha);
 
         if ($result) {
+            log_info('Alterou a própria senha');
             $this->session->set_flashdata('success', 'Senha alterada com sucesso!');
             redirect(site_url('mapos/minhaConta'));
         }

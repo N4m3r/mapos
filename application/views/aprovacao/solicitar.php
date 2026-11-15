@@ -21,7 +21,7 @@ $emitente = isset($emitente) ? $emitente : null;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="<?= base_url() ?>assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="<?= base_url() ?>assets/css/bootstrap.min.css?v=<?= asset_versao('assets/css/bootstrap.min.css') ?>" />
     <link rel="stylesheet" href="<?= base_url() ?>assets/font-awesome/css/font-awesome.css" />
     <link rel="shortcut icon" type="image/png" href="<?= base_url() ?>assets/img/favicon.png" />
     <style>
@@ -67,7 +67,7 @@ $emitente = isset($emitente) ? $emitente : null;
                 <?php } ?>
 
                 <h2>Receber o link de aprovação</h2>
-                <p class="muted">
+                <p class="text-muted">
                     Informe o número do chamado que consta na sua Ordem de Serviço e o CPF/CNPJ do titular.
                     Enviamos o link aos contatos já cadastrados — por segurança, ele não aparece nesta tela.
                 </p>
@@ -77,14 +77,14 @@ $emitente = isset($emitente) ? $emitente : null;
 
                     <div class="ap-field">
                         <label for="chamado">Número do chamado</label>
-                        <input id="chamado" name="chamado" type="text" maxlength="60" required
+                        <input class="form-control" id="chamado" name="chamado" type="text" maxlength="60" required
                                value="<?= html_escape($this->input->post('chamado')) ?>"
                                placeholder="Ex.: CH-2026/0042" autocomplete="off" />
                     </div>
 
                     <div class="ap-field">
                         <label for="documento">CPF ou CNPJ do titular</label>
-                        <input id="documento" name="documento" type="text" maxlength="20" required
+                        <input class="form-control" id="documento" name="documento" type="text" maxlength="20" required
                                value="<?= html_escape($this->input->post('documento')) ?>"
                                placeholder="Somente números ou com pontuação" inputmode="numeric" autocomplete="off" />
                     </div>

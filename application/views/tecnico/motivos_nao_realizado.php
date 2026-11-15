@@ -26,7 +26,7 @@ $this->load->view('tecnico/_topo', [
         <h3><i class='bx bx-plus-circle'></i> Novo motivo</h3>
         <form method="post" action="<?= site_url('tecnico/salvar_motivo_nao_realizado') ?>" style="display:flex; gap:8px; align-items:stretch;">
             <input type="hidden" name="<?= $csrf_n ?>" value="<?= $csrf_h ?>">
-            <input type="text" name="nome" maxlength="120" required placeholder="Ex.: Falta de energia no local"
+            <input class="form-control" type="text" name="nome" maxlength="120" required placeholder="Ex.: Falta de energia no local"
                 style="flex:1; padding:11px 12px; border:1px solid var(--tec-input-line,rgba(0,0,0,.15)); border-radius:10px; font-size:15px; background:var(--tec-input-bg,transparent); color:inherit;">
             <button type="submit" class="btn-tec primary"><i class='bx bx-plus'></i></button>
         </form>

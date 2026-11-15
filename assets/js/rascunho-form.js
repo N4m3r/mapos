@@ -145,8 +145,8 @@
         var $aviso = $(
             '<div class="alert alert-info rascunho-aviso" style="margin-bottom:10px">' +
             '<i class="bx bx-save"></i> Existe um rascunho nao salvo deste formulario de <strong></strong>. ' +
-            '<a href="#" class="btn btn-mini btn-primary rascunho-restaurar" style="margin-left:8px">Restaurar</a> ' +
-            '<a href="#" class="btn btn-mini rascunho-descartar">Descartar</a>' +
+            '<a href="#" class="btn btn-sm btn-primary rascunho-restaurar" style="margin-left:8px">Restaurar</a> ' +
+            '<a href="#" class="btn btn-sm btn-outline-secondary rascunho-descartar">Descartar</a>' +
             '</div>'
         );
         $aviso.find('strong').text(dataHora(existente.em));

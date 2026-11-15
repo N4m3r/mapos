@@ -7,10 +7,10 @@ $totalProdutos = 0; ?>
     <title>Map_OS_<?php echo $result->idOs ?>_<?php echo html_escape($result->nomeCliente); ?></title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/matrix-style.css" />
+    <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/bootstrap.min.css?v=<?= asset_versao('assets/css/bootstrap.min.css') ?>" />
+    <link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/matrix-style.css?v=<?= asset_versao('assets/css/matrix-style.css') ?>" />
     <link href="<?php echo base_url(); ?>assets/font-awesome/css/font-awesome.css" rel="stylesheet" />
-    <link href="<?= base_url('assets/css/custom.css'); ?>" rel="stylesheet">
+    <link href="<?= base_url('assets/css/custom.css'); ?>?v=<?= asset_versao('assets/css/custom.css') ?>" rel="stylesheet">
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,800' rel='stylesheet' type='text/css'>
     <style>
         .table {
@@ -79,11 +79,11 @@ $totalProdutos = 0; ?>
 <body id=body class="body" style="background-color: rgba(0,0,0,.4)">
 <div id ="principal">
     <div class="container-fluid page">
-        <div class="row-fluid subpage">
-            <div class="span12">
+        <div class="row subpage">
+            <div class="col-md-12">
                 <div class="invoice-content">
                     <div class="invoice-head" style="margin-bottom: 0">
-                        <table class="table table-condensed">
+                        <table class="table table-sm">
                             <tbody>
                                 <?php if ($emitente == null) { ?>
                                     <tr>
@@ -142,7 +142,7 @@ $totalProdutos = 0; ?>
                         </table>
                     </div>
                     <div style="margin-top: 0; padding-top: 0; font-size: 12px;">
-                        <table class="table table-condensed">
+                        <table class="table table-sm">
                             <tbody>
                                 <?php if ($result->dataInicial != null) { ?>
                                     <tr>
@@ -185,7 +185,7 @@ $totalProdutos = 0; ?>
                             </tbody>
                         </table>
                     <?php if ($produtos != null) { ?>
-                        <table style='font-size: 11px;' class="table table-bordered table-condensed" id="tblProdutos">
+                        <table style='font-size: 11px;' class="table table-bordered table-sm" id="tblProdutos">
                             <thead>
                                 <tr>
                                     <th>Qtd</th>
@@ -219,7 +219,7 @@ $totalProdutos = 0; ?>
                         </table>
                     <?php } ?>
                     <?php if ($servicos != null) { ?>
-                        <table style='font-size: 11px;' class="table table-bordered table-condensed">
+                        <table style='font-size: 11px;' class="table table-bordered table-sm">
                             <thead>
                                 <tr>
                                     <th>Qtd</th>
@@ -254,7 +254,7 @@ $totalProdutos = 0; ?>
                         </table>
                     <?php } ?>
                     <?php if ($permissao_eOs) : ?>
-                    <table class="table table-bordered table-condensed">
+                    <table class="table table-bordered table-sm">
                         <tbody>
                             <tr>
                                 <td colspan="5"> <?php
@@ -280,7 +280,7 @@ $totalProdutos = 0; ?>
                         <?php } ?>
                     </table>
                     <?php $this->load->view('os/_aprovacao_info', ['result' => $result]); ?>
-                    <table class="table table-bordered table-condensed" style="font-size: 15px">
+                    <table class="table table-bordered table-sm" style="font-size: 15px">
                         <tbody>
                             <tr>
                                 <td colspan="5">
@@ -296,7 +296,7 @@ $totalProdutos = 0; ?>
                 <?php $totalServico = 0; $totalProdutos = 0; ?>
                     <div id="ViaEmpresa" <?php echo (!$configuration['control_2vias']) ? "style='display: none;'" : "style='display: block;'" ?>>
                         <div class="invoice-head" style="margin-bottom: 0">
-                            <table class="table table-condensed">
+                            <table class="table table-sm">
                                 <tbody>
                                     <?php if ($emitente == null) { ?>
                                         <tr>
@@ -356,7 +356,7 @@ $totalProdutos = 0; ?>
                         </table>
                     </div>
                         <div style="margin-top: 0; padding-top: 0">
-                                <table class="table table-condensed">
+                                <table class="table table-sm">
                                     <tbody>
                                         <?php if ($result->dataInicial != null) { ?>
                                             <tr>
@@ -414,7 +414,7 @@ $totalProdutos = 0; ?>
                                     </tbody>
                                 </table>
                                 <?php if ($produtos != null) { ?>
-                            <table style='font-size: 11px;' class="table table-bordered table-condensed" id="tblProdutos">
+                            <table style='font-size: 11px;' class="table table-bordered table-sm" id="tblProdutos">
                                 <thead>
                                     <tr>
                                         <th>Qtd</th>
@@ -449,7 +449,7 @@ $totalProdutos = 0; ?>
                         <?php } ?>
 
                         <?php if ($servicos != null) { ?>
-                            <table style='font-size: 11px;' class="table table-bordered table-condensed">
+                            <table style='font-size: 11px;' class="table table-bordered table-sm">
                                 <thead>
                                     <tr>
                                         <th>Qtd</th>
@@ -485,7 +485,7 @@ $totalProdutos = 0; ?>
                         <?php } ?>
 
                         <?php if ($permissao_eOs) : ?>
-                        <table class="table table-bordered table-condensed">
+                        <table class="table table-bordered table-sm">
                             <tbody>
                                 <tr>
                                     <td colspan="5"> <?php
@@ -511,7 +511,7 @@ $totalProdutos = 0; ?>
                             <?php } ?>
                         </table>
                         <?php $this->load->view('os/_aprovacao_info', ['result' => $result]); ?>
-                        <table class="table table-bordered table-condensed" style="font-size: 15px">
+                        <table class="table table-bordered table-sm" style="font-size: 15px">
                             <tbody>
                                 <tr>
 
@@ -575,7 +575,8 @@ $totalProdutos = 0; ?>
 </script>
 </body>
     <?= jquery_tags() ?>
-    <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/bootstrap.min.js"></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/bootstrap.bundle.min.js"></script>
+    <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/bootstrap-jquery.js"></script>
     <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/matrix.js"></script>
 
 </html>

@@ -16,7 +16,7 @@ $podeAprovar = $this->permission->checkPermission($this->session->userdata('perm
     <form method="get" action="<?= site_url('rh/ocorrencias') ?>" class="ui-filtros">
         <div class="ui-campo">
             <label for="filtro-status">Situação</label>
-            <select name="status" id="filtro-status" data-ao-mudar="enviar">
+            <select class="form-select" name="status" id="filtro-status" data-ao-mudar="enviar">
                 <option value="" <?= $status===''?'selected':'' ?>>Todas</option>
                 <option value="pendente" <?= $status==='pendente'?'selected':'' ?>>Pendentes</option>
                 <option value="aprovado" <?= $status==='aprovado'?'selected':'' ?>>Aprovadas</option>
@@ -33,7 +33,7 @@ $podeAprovar = $this->permission->checkPermission($this->session->userdata('perm
                     <i class='bx bx-check-circle'></i>
                     <strong><?= $status === 'pendente' ? 'Nenhuma ocorrência pendente' : 'Nenhuma ocorrência encontrada' ?></strong>
                     <?php if ($status !== ''): ?>
-                        <a href="<?= site_url('rh/ocorrencias?status=') ?>" class="button btn btn-mini btn-warning"><span class="button__text2">Ver todas as ocorrências</span></a>
+                        <a href="<?= site_url('rh/ocorrencias?status=') ?>" class="button btn btn-sm btn-warning"><span class="button__text2">Ver todas as ocorrências</span></a>
                     <?php endif; ?>
                 </div></td></tr>
             <?php else: foreach ($ocorrencias as $o):
@@ -55,7 +55,7 @@ $podeAprovar = $this->permission->checkPermission($this->session->userdata('perm
                     <td><?= ! empty($o->anexo_base64) ? '<a href="'.site_url('rh/anexo/ocorrencia/'.(int) $o->id).'" target="_blank" rel="noopener">ver anexo</a>' : '-' ?></td>
                     <td><span class="ui-selo <?= $corStatus[$o->status] ?? 'neutro' ?>"><?= html_escape($rotStatus[$o->status] ?? ucfirst($o->status)) ?></span></td>
                     <td><?php if ($o->status==='pendente' && $podeAprovar): ?>
-                        <a href="#modal-analise" role="button" data-toggle="modal" class="btn btn-mini btn-success" data-chamar="analisar" data-args="<?= html_escape(json_encode([$dadosModal])) ?>">Analisar</a>
+                        <a href="#modal-analise" role="button" data-bs-toggle="modal" class="btn btn-sm btn-success" data-chamar="analisar" data-args="<?= html_escape(json_encode([$dadosModal])) ?>">Analisar</a>
                     <?php else: echo $o->resposta ? html_escape($o->resposta) : '-'; endif; ?></td>
                 </tr>
             <?php endforeach; endif; ?>
@@ -65,9 +65,9 @@ $podeAprovar = $this->permission->checkPermission($this->session->userdata('perm
 </div>
 
 <?php if ($podeAprovar): ?>
-<div id="modal-analise" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-analise" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('rh/analisarOcorrencia') ?>" method="post" id="form-analise">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Fechar">×</button><h5>Analisar ocorrência</h5></div>
+        <div class="modal-header"><h5>Analisar ocorrência</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <input type="hidden" name="id" id="an-id">
             <div class="rh-resumo-solicitacao">
@@ -79,7 +79,7 @@ $podeAprovar = $this->permission->checkPermission($this->session->userdata('perm
                 <div id="an-anexo-box"><span>Anexo</span><a id="an-anexo" href="#" target="_blank" rel="noopener">Abrir anexo</a></div>
             </div>
             <label for="an-resposta">Resposta ao colaborador <small>(obrigatória para recusar)</small></label>
-            <textarea name="resposta" id="an-resposta" rows="2" class="span12"></textarea>
+            <textarea name="resposta" id="an-resposta" rows="2" class="w-100 form-control"></textarea>
             <small id="an-erro" class="rh-erro-campo" hidden>Informe a justificativa para recusar.</small>
             <input type="hidden" name="status" id="an-status">
         </div>
@@ -88,7 +88,7 @@ $podeAprovar = $this->permission->checkPermission($this->session->userdata('perm
             <button class="button btn btn-success" data-definir="#an-status" data-valor="aprovado"><span class="button__text2">Aprovar</span></button>
         </div>
     </form>
-</div>
+</div></div></div>
 <script nonce="<?= csp_nonce() ?>">
 function analisar(o){
     $('#an-id').val(o.id); $('#an-resposta').val(''); $('#an-erro').prop('hidden', true);

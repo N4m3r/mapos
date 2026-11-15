@@ -37,4 +37,5 @@ $pode_ver_sistema = isset($pode_ver_sistema) ? $pode_ver_sistema : false;
     </a>
 </nav>
 <?= jquery_tags() ?>
-<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/bootstrap.min.js') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/bootstrap.bundle.min.js') ?>"></script>
+<script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/bootstrap-jquery.js') ?>"></script>

@@ -7,19 +7,19 @@
 <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url() ?>assets/trumbowyg/langs/pt_br.js"></script>
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/rascunho-form.js') ?>?v=<?= asset_versao('assets/js/rascunho-form.js') ?>"></script>
 
-<link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/custom.css" />
-<link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/assinatura.css" />
+<link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/custom.css?v=<?= asset_versao('assets/css/custom.css') ?>" />
+<link rel="stylesheet" href="<?php echo base_url(); ?>assets/css/assinatura.css?v=<?= asset_versao('assets/css/assinatura.css') ?>" />
 <link rel="stylesheet" href="<?= base_url('assets/css/os-form.css') ?>?v=<?= asset_versao('assets/css/os-form.css') ?>" />
 
-<div class="row-fluid" style="margin-top:0">
-    <div class="span12">
+<div class="row" style="margin-top:0">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="widget-title os-topo">
                 <span class="icon"><i class="fas fa-diagnoses"></i></span>
                 <h5>Editar Ordem de Serviço</h5>
                 <div class="buttons">
                     <?php if ($result->faturado == 0 && (! isset($podeFaturarOs) || $podeFaturarOs)) { ?>
-                        <a href="#modal-faturar" id="btn-faturar" role="button" data-toggle="modal" class="button btn btn-mini btn-danger">
+                        <a href="#modal-faturar" id="btn-faturar" role="button" data-bs-toggle="modal" class="button btn btn-sm btn-danger">
                             <span class="button__icon"><i class='bx bx-dollar'></i></span> <span class="button__text">Faturar</span>
                         </a>
                     <?php } ?>
@@ -27,18 +27,18 @@
                         <span class="button__icon"><i class="bx bx-show"></i></span><span class="button__text">Visualizar OS</span>
                     </a>
                     <div class="button-container">
-                        <a target="_blank" title="Imprimir Ordem de Serviço" class="button btn btn-mini btn-inverse">
+                        <a target="_blank" title="Imprimir Ordem de Serviço" class="button btn btn-sm btn-dark">
                             <span class="button__icon"><i class="bx bx-printer"></i></span><span class="button__text">Imprimir</span>
                         </a>
                         <div class="cascading-buttons">
-                            <a target="_blank" title="Impressão em Papel A4" class="button btn btn-mini btn-inverse" href="<?php echo site_url() ?>/os/imprimir/<?php echo $result->idOs; ?>">
+                            <a target="_blank" title="Impressão em Papel A4" class="button btn btn-sm btn-dark" href="<?php echo site_url() ?>/os/imprimir/<?php echo $result->idOs; ?>">
                                 <span class="button__icon"><i class='bx bx-file'></i></span> <span class="button__text">Papel A4</span>
                             </a>
-                            <a target="_blank" title="Impressão Cupom Não Fical" class="button btn btn-mini btn-inverse" href="<?php echo site_url() ?>/os/imprimirTermica/<?php echo $result->idOs; ?>">
+                            <a target="_blank" title="Impressão Cupom Não Fical" class="button btn btn-sm btn-dark" href="<?php echo site_url() ?>/os/imprimirTermica/<?php echo $result->idOs; ?>">
                                 <span class="button__icon"><i class='bx bx-receipt'></i></span> <span class="button__text">Cupom 80mm</span>
                             </a>
                             <?php if ($result->garantias_id) { ?>
-                                <a target="_blank" title="Imprimir Termo de Garantia" class="button btn btn-mini btn-inverse" href="<?php echo site_url() ?>/garantias/imprimirGarantiaOs/<?php echo $result->garantias_id; ?>">
+                                <a target="_blank" title="Imprimir Termo de Garantia" class="button btn btn-sm btn-dark" href="<?php echo site_url() ?>/garantias/imprimirGarantiaOs/<?php echo $result->garantias_id; ?>">
                                     <span class="button__icon"><i class="bx bx-paperclip"></i></span> <span class="button__text">Termo Garantia</span>
                                 </a>
                             <?php } ?>
@@ -61,28 +61,28 @@
                         $texto_de_notificacao = $this->os_model->criarTextoWhats($texto_de_notificacao, $troca);
                         if (!empty($zapnumber)) {
                             if ($whatsappApiAtivo) {
-                                echo '<a title="Via WhatsApp (Evolution API)" class="button btn btn-mini btn-success" id="enviarWhatsAppApi" href="#" data-os="' . $result->idOs . '">
+                                echo '<a title="Via WhatsApp (Evolution API)" class="button btn btn-sm btn-success" id="enviarWhatsAppApi" href="#" data-os="' . $result->idOs . '">
                                 <span class="button__icon"><i class="bx bxl-whatsapp"></i></span> <span class="button__text">WhatsApp</span>
                             </a>';
                             } else {
-                                echo '<a title="Via WhatsApp" class="button btn btn-mini btn-success" id="enviarWhatsApp" target="_blank" href="https://wa.me/send?phone=55' . $zapnumber . '&text=' . $texto_de_notificacao . '">
+                                echo '<a title="Via WhatsApp" class="button btn btn-sm btn-success" id="enviarWhatsApp" target="_blank" href="https://wa.me/send?phone=55' . $zapnumber . '&text=' . $texto_de_notificacao . '">
                                 <span class="button__icon"><i class="bx bxl-whatsapp"></i></span> <span class="button__text">WhatsApp</span>
                             </a>';
                             }
                         }
                     } ?>
-                    <a title="Enviar por E-mail" class="button btn btn-mini btn-warning" href="<?php echo site_url() ?>/os/enviar_email/<?php echo $result->idOs; ?>">
+                    <a title="Enviar por E-mail" class="button btn btn-sm btn-warning" href="<?php echo site_url() ?>/os/enviar_email/<?php echo $result->idOs; ?>">
                         <span class="button__icon"><i class="bx bx-envelope"></i></span> <span class="button__text">Via E-mail</span>
                     </a>
 
                     <?php
                     $notaFiscal = isset($notaFiscal) ? $notaFiscal : null;
                     if ($notaFiscal && $notaFiscal->status === 'autorizada') { ?>
-                        <a title="Imprimir DANFSe" target="_blank" class="button btn btn-mini btn-inverse" href="<?php echo site_url('nfe/danfe/' . $notaFiscal->idNota); ?>">
+                        <a title="Imprimir DANFSe" target="_blank" class="button btn btn-sm btn-dark" href="<?php echo site_url('nfe/danfe/' . $notaFiscal->idNota); ?>">
                             <span class="button__icon"><i class="bx bx-receipt"></i></span> <span class="button__text">NFS-e nº <?php echo html_escape($notaFiscal->numero); ?></span>
                         </a>
                     <?php } elseif (in_array($result->status, ['Finalizado', 'Faturado', 'Aprovado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) { ?>
-                        <a title="Transmitir NFS-e (serviços)" href="#modal-nfse" role="button" data-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-mini btn-success btn-transmitir-nfse">
+                        <a title="Transmitir NFS-e (serviços)" href="#modal-nfse" role="button" data-bs-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-sm btn-success btn-transmitir-nfse">
                             <span class="button__icon"><i class="bx bx-receipt"></i></span> <span class="button__text">Emitir NFS-e</span>
                         </a>
                     <?php } ?>
@@ -90,28 +90,28 @@
                     <?php
                     $notaFiscalNfe = isset($notaFiscalNfe) ? $notaFiscalNfe : null;
                     if ($notaFiscalNfe && $notaFiscalNfe->status === 'autorizada') { ?>
-                        <a title="Imprimir DANFE" target="_blank" class="button btn btn-mini btn-inverse" href="<?php echo site_url('nfe/danfe/' . $notaFiscalNfe->idNota); ?>">
+                        <a title="Imprimir DANFE" target="_blank" class="button btn btn-sm btn-dark" href="<?php echo site_url('nfe/danfe/' . $notaFiscalNfe->idNota); ?>">
                             <span class="button__icon"><i class="bx bx-box"></i></span> <span class="button__text">NF-e nº <?php echo html_escape($notaFiscalNfe->numero); ?></span>
                         </a>
                     <?php } elseif (in_array($result->status, ['Finalizado', 'Faturado', 'Aprovado']) && $this->permission->checkPermission($this->session->userdata('permissao'), 'eNfe')) { ?>
-                        <a title="Transmitir NF-e (produtos)" href="#modal-nfe" role="button" data-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-mini btn-primary btn-transmitir-nfe">
+                        <a title="Transmitir NF-e (produtos)" href="#modal-nfe" role="button" data-bs-toggle="modal" data-os="<?php echo $result->idOs; ?>" class="button btn btn-sm btn-primary btn-transmitir-nfe">
                             <span class="button__icon"><i class="bx bx-box"></i></span> <span class="button__text">Emitir NF-e</span>
                         </a>
                     <?php } ?>
                 </div>
             </div>
-            <div class="widget-content nopadding tab-content">
-                <div class="span12 os-abas-wrap" id="divProdutosServicos" style=" margin-left: 0">
+            <div class="widget-content nopadding tab-content"><div class="row">
+                <div class="col-md-12 os-abas-wrap" id="divProdutosServicos" style=" margin-left: 0">
                     <ul class="nav nav-tabs">
-                        <li class="active" id="tabDetalhes"><a href="#tab1" data-toggle="tab">Detalhes da OS</a></li>
-                        <li id="tabDesconto"><a href="#tab2" data-toggle="tab">Desconto</a></li>
-                        <li id="tabProdutos"><a href="#tab3" data-toggle="tab">Produtos</a></li>
-                        <li id="tabServicos"><a href="#tab4" data-toggle="tab">Serviços</a></li>
-                        <li id="tabAnexos"><a href="#tab5" data-toggle="tab">Anexos</a></li>
-                        <li id="tabAnotacoes"><a href="#tab6" data-toggle="tab">Anotações</a></li>
-                        <li id="tabCheckin"><a href="#tab7" data-toggle="tab">Check-in</a></li>
+                        <li class="nav-item" id="tabDetalhes"><a class="nav-link active" href="#tab1" data-bs-toggle="tab">Detalhes da OS</a></li>
+                        <li class="nav-item" id="tabDesconto"><a class="nav-link" href="#tab2" data-bs-toggle="tab">Desconto</a></li>
+                        <li class="nav-item" id="tabProdutos"><a class="nav-link" href="#tab3" data-bs-toggle="tab">Produtos</a></li>
+                        <li class="nav-item" id="tabServicos"><a class="nav-link" href="#tab4" data-bs-toggle="tab">Serviços</a></li>
+                        <li class="nav-item" id="tabAnexos"><a class="nav-link" href="#tab5" data-bs-toggle="tab">Anexos</a></li>
+                        <li class="nav-item" id="tabAnotacoes"><a class="nav-link" href="#tab6" data-bs-toggle="tab">Anotações</a></li>
+                        <li class="nav-item" id="tabCheckin"><a class="nav-link" href="#tab7" data-bs-toggle="tab">Check-in</a></li>
                         <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vNfe')) { ?>
-                            <li id="tabNotas"><a href="#tab8" data-toggle="tab">Notas Fiscais</a></li>
+                            <li class="nav-item" id="tabNotas"><a class="nav-link" href="#tab8" data-bs-toggle="tab">Notas Fiscais</a></li>
                         <?php } ?>
                     </ul>
                     <div class="tab-content">
@@ -130,12 +130,12 @@
                                         <div class="os-grade">
                                             <div class="os-campo os-col-2">
                                                 <label for="cliente">Cliente<span class="required">*</span></label>
-                                                <input id="cliente" type="text" name="cliente" value="<?php echo html_escape($result->nomeCliente); ?>" placeholder="Digite o nome para buscar" autocomplete="off" />
+                                                <input class="form-control" id="cliente" type="text" name="cliente" value="<?php echo html_escape($result->nomeCliente); ?>" placeholder="Digite o nome para buscar" autocomplete="off" />
                                                 <input id="clientes_id" type="hidden" name="clientes_id" value="<?php echo $result->clientes_id ?>" />
                                             </div>
                                             <div class="os-campo os-col-2">
                                                 <label for="tecnico">Técnico / Responsável<span class="required">*</span></label>
-                                                <input id="tecnico" type="text" name="tecnico" value="<?php echo html_escape($result->nome); ?>" autocomplete="off" />
+                                                <input class="form-control" id="tecnico" type="text" name="tecnico" value="<?php echo html_escape($result->nome); ?>" autocomplete="off" />
                                                 <input id="usuarios_id" type="hidden" name="usuarios_id" value="<?php echo $result->usuarios_id ?>" />
                                             </div>
                                         </div>
@@ -146,7 +146,7 @@
                                         <div class="os-grade">
                                             <div class="os-campo">
                                                 <label for="status">Status<span class="required">*</span></label>
-                                                <select name="status" id="status">
+                                                <select class="form-select" name="status" id="status">
                                                     <?php foreach (['Aberto', 'Orçamento', 'Negociação', 'Aprovado', 'Aguardando Peças', 'Em Andamento', 'Não Realizado', 'Finalizado', 'Faturado', 'Cancelado'] as $st) { ?>
                                                         <option <?= $result->status == $st ? 'selected' : '' ?> value="<?= $st ?>"><?= $st ?></option>
                                                     <?php } ?>
@@ -154,7 +154,7 @@
                                             </div>
                                             <div class="os-campo">
                                                 <label for="tipo_servico">Tipo de serviço</label>
-                                                <select name="tipo_servico" id="tipo_servico">
+                                                <select class="form-select" name="tipo_servico" id="tipo_servico">
                                                     <option value="">Não informado</option>
                                                     <?php $this->load->helper('tipo_servico'); foreach (tipos_servico() as $k => $t) { ?>
                                                         <option value="<?= $k ?>"<?= (($result->tipo_servico ?? '') === $k) ? ' selected' : '' ?>><?= html_escape($t['rotulo']) ?></option>
@@ -163,24 +163,24 @@
                                             </div>
                                             <div class="os-campo">
                                                 <label for="chamado_id">Nº do chamado</label>
-                                                <input id="chamado_id" type="text" name="chamado_id" maxlength="60" value="<?= html_escape($result->chamado_id ?? '') ?>" placeholder="Protocolo informado pelo cliente" />
+                                                <input class="form-control" id="chamado_id" type="text" name="chamado_id" maxlength="60" value="<?= html_escape($result->chamado_id ?? '') ?>" placeholder="Protocolo informado pelo cliente" />
                                             </div>
                                             <div class="os-campo">
                                                 <label for="dataInicial">Data inicial<span class="required">*</span></label>
-                                                <input id="dataInicial" autocomplete="off" class="datepicker" type="text" name="dataInicial" value="<?php echo date('d/m/Y', strtotime($result->dataInicial)); ?>" />
+                                                <input id="dataInicial" autocomplete="off" class="datepicker form-control" type="text" name="dataInicial" value="<?php echo date('d/m/Y', strtotime($result->dataInicial)); ?>" />
                                             </div>
                                             <div class="os-campo">
                                                 <label for="dataFinal">Data final<span class="required">*</span></label>
-                                                <input id="dataFinal" autocomplete="off" class="datepicker" type="text" name="dataFinal" value="<?php echo date('d/m/Y', strtotime($result->dataFinal)); ?>" placeholder="dd/mm/aaaa" />
+                                                <input id="dataFinal" autocomplete="off" class="datepicker form-control" type="text" name="dataFinal" value="<?php echo date('d/m/Y', strtotime($result->dataFinal)); ?>" placeholder="dd/mm/aaaa" />
                                             </div>
                                             <div class="os-campo">
                                                 <label for="garantia">Garantia (dias)</label>
-                                                <input id="garantia" type="number" placeholder="0 = sem garantia" min="0" max="9999" name="garantia" value="<?php echo $result->garantia ?>" inputmode="numeric" />
+                                                <input class="form-control" id="garantia" type="number" placeholder="0 = sem garantia" min="0" max="9999" name="garantia" value="<?php echo $result->garantia ?>" inputmode="numeric" />
                                                 <?php echo form_error('garantia'); ?>
                                             </div>
                                             <div class="os-campo os-col-2">
                                                 <label for="termoGarantia">Termo de garantia</label>
-                                                <input id="termoGarantia" type="text" name="termoGarantia" value="<?php echo html_escape($result->refGarantia); ?>" placeholder="Digite para buscar um termo cadastrado" autocomplete="off" />
+                                                <input class="form-control" id="termoGarantia" type="text" name="termoGarantia" value="<?php echo html_escape($result->refGarantia); ?>" placeholder="Digite para buscar um termo cadastrado" autocomplete="off" />
                                                 <input id="garantias_id" type="hidden" name="garantias_id" value="<?php echo $result->garantias_id ?>" />
                                             </div>
                                         </div>
@@ -200,7 +200,7 @@
                                             <?php if ($temContrato): ?>
                                                 <div class="os-campo os-col-2">
                                                     <label for="contrato_id">Contrato de manutenção</label>
-                                                    <select name="contrato_id" id="contrato_id">
+                                                    <select class="form-select" name="contrato_id" id="contrato_id">
                                                         <option value="">— Sem contrato —</option>
                                                         <?php foreach ($contratosSelect as $ct): ?>
                                                             <option value="<?= $ct->idContrato ?>" <?= (isset($result->contrato_id) && $result->contrato_id == $ct->idContrato) ? 'selected' : '' ?>>
@@ -211,7 +211,7 @@
                                                 </div>
                                                 <div class="os-campo">
                                                     <label for="prioridade">Prioridade (SLA)</label>
-                                                    <select name="prioridade" id="prioridade">
+                                                    <select class="form-select" name="prioridade" id="prioridade">
                                                         <option value="">— Não definida —</option>
                                                         <?php foreach ($slaPrioridades as $p): ?>
                                                             <option value="<?= html_escape($p) ?>" <?= (isset($result->prioridade) && $result->prioridade === $p) ? 'selected' : '' ?>><?= html_escape($p) ?></option>
@@ -225,11 +225,11 @@
                                                     $statusAberto = ! in_array($result->status, ['Finalizado', 'Faturado', 'Cancelado'], true);
                                                     if (! empty($solEm)) {
                                                         $ok = strtotime($solEm) <= strtotime($prazoSol);
-                                                        $badge = $ok ? '<span class="label label-success">Solucionado no prazo</span>' : '<span class="label label-important">Solucionado fora do prazo</span>';
+                                                        $badge = $ok ? '<span class="badge text-bg-success">Solucionado no prazo</span>' : '<span class="badge text-bg-danger">Solucionado fora do prazo</span>';
                                                     } elseif ($statusAberto && strtotime($prazoSol) < time()) {
-                                                        $badge = '<span class="label label-important">SLA estourado</span>';
+                                                        $badge = '<span class="badge text-bg-danger">SLA estourado</span>';
                                                     } else {
-                                                        $badge = '<span class="label label-warning">Dentro do prazo</span>';
+                                                        $badge = '<span class="badge text-bg-warning">Dentro do prazo</span>';
                                                     }
                                                 ?>
                                                     <div class="os-campo">
@@ -244,7 +244,7 @@
                                             <?php if ($temEquipe): ?>
                                                 <div class="os-campo os-col-2">
                                                     <label for="equipe_id">Equipe designada</label>
-                                                    <select name="equipe_id" id="equipe_id">
+                                                    <select class="form-select" name="equipe_id" id="equipe_id">
                                                         <option value="">— Nenhuma —</option>
                                                         <?php foreach ($equipesSelect as $eq): ?>
                                                             <option value="<?= $eq->idEquipe ?>" <?= (isset($result->equipe_id) && $result->equipe_id == $eq->idEquipe) ? 'selected' : '' ?>>
@@ -256,7 +256,7 @@
                                                 <?php if ($verCusto): ?>
                                                     <div class="os-campo">
                                                         <label for="custo_equipe">Custo da equipe (R$)</label>
-                                                        <input type="text" id="custo_equipe" name="custo_equipe" placeholder="0,00" inputmode="decimal" value="<?= isset($result->custo_equipe) ? number_format((float) $result->custo_equipe, 2, ',', '') : '' ?>">
+                                                        <input class="form-control" type="text" id="custo_equipe" name="custo_equipe" placeholder="0,00" inputmode="decimal" value="<?= isset($result->custo_equipe) ? number_format((float) $result->custo_equipe, 2, ',', '') : '' ?>">
                                                         <small>Valor pago à equipe/terceiro por esta OS.</small>
                                                     </div>
                                                 <?php endif; ?>
@@ -270,19 +270,19 @@
                                         <div class="os-editores">
                                             <div class="os-campo">
                                                 <label for="descricaoProduto">Descrição do produto/serviço</label>
-                                                <textarea class="editor" name="descricaoProduto" id="descricaoProduto" rows="5"><?php echo html_escape($result->descricaoProduto) ?></textarea>
+                                                <textarea class="editor form-control" name="descricaoProduto" id="descricaoProduto" rows="5"><?php echo html_escape($result->descricaoProduto) ?></textarea>
                                             </div>
                                             <div class="os-campo">
                                                 <label for="defeito">Defeito relatado</label>
-                                                <textarea class="editor" name="defeito" id="defeito" rows="5"><?php echo html_escape($result->defeito) ?></textarea>
+                                                <textarea class="editor form-control" name="defeito" id="defeito" rows="5"><?php echo html_escape($result->defeito) ?></textarea>
                                             </div>
                                             <div class="os-campo">
                                                 <label for="observacoes">Observações</label>
-                                                <textarea class="editor" name="observacoes" id="observacoes" rows="5"><?php echo html_escape($result->observacoes) ?></textarea>
+                                                <textarea class="editor form-control" name="observacoes" id="observacoes" rows="5"><?php echo html_escape($result->observacoes) ?></textarea>
                                             </div>
                                             <div class="os-campo">
                                                 <label for="laudoTecnico">Laudo técnico</label>
-                                                <textarea class="editor" name="laudoTecnico" id="laudoTecnico" rows="5"><?php echo html_escape($result->laudoTecnico) ?></textarea>
+                                                <textarea class="editor form-control" name="laudoTecnico" id="laudoTecnico" rows="5"><?php echo html_escape($result->laudoTecnico) ?></textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -298,36 +298,36 @@
                         <!--Desconto-->
                         <?php $total = 0; foreach ($produtos as $p) {$total = $total + $p->subTotal;}?>
                         <?php $totals = 0; foreach ($servicos as $s) { $preco = $s->preco ?: $s->precoVenda; $subtotals = $preco * ($s->quantidade ?: 1); $totals = $totals + $subtotals;}?>
-                        <div class="tab-pane" id="tab2">
-                            <div class="span12 well" style="padding: 1%; margin-left: 0">
-                                <form id="formDesconto" action="<?php echo base_url(); ?>index.php/os/adicionarDesconto" method="POST">
-                                    <div id="divValorTotal">
-                                        <div class="span2">
+                        <div class="tab-pane" id="tab2"><div class="row">
+                            <div class="col-md-12 card card-body" style="padding: 1%; margin-left: 0">
+                                <form class="row" id="formDesconto" action="<?php echo base_url(); ?>index.php/os/adicionarDesconto" method="POST">
+                                    <div class="col-md-2" id="divValorTotal">
+                                        <div>
                                             <label for="">Valor Total Da OS:</label>
-                                            <input class="span12 money" id="valorTotal" name="valorTotal" type="text" data-affixes-stay="true" data-thousands="" data-decimal="." name="valor" value="<?php echo number_format($totals + $total, 2, '.', ''); ?>" readonly />
+                                            <input class="money w-100 form-control" id="valorTotal" name="valorTotal" type="text" data-affixes-stay="true" data-thousands="" data-decimal="." name="valor" value="<?php echo number_format($totals + $total, 2, '.', ''); ?>" readonly />
                                         </div>
                                     </div>
-                                    <div class="span1">
+                                    <div class="col-md-1">
                                         <label for="">Tipo Desc.</label>
-                                        <select style="width: 4em;" name="tipoDesconto" id="tipoDesconto">
+                                        <select class="form-select" style="width: 4em;" name="tipoDesconto" id="tipoDesconto">
                                             <option value="real">R$</option>
                                             <option value="porcento" <?= $result->tipo_desconto == "porcento" ? "selected" : "" ?>>%</option>
                                         </select>
                                         <strong><span style="color: red" id="errorAlert"></span></strong>
                                     </div>
-                                    <div class="span3">
+                                    <div class="col-md-3">
                                         <input type="hidden" name="idOs" id="idOs"
                                             value="<?php echo $result->idOs; ?>" />
                                         <label for="">Desconto</label>
-                                        <input style="width: 4em;" id="desconto" name="desconto" type="text"
+                                        <input class="form-control" style="width: 4em;" id="desconto" name="desconto" type="text"
                                             placeholder="" maxlength="6" size="2" value="<?= $result->desconto ?>" />
                                         <strong><span style="color: red" id="errorAlert"></span></strong>
                                     </div>
-                                    <div class="span2">
+                                    <div class="col-md-2">
                                         <label for="">Total com Desconto</label>
-                                        <input class="span12 money" id="resultado" type="text" data-affixes-stay="true" data-thousands="" data-decimal="." name="resultado" value="<?php echo $result->valor_desconto ?>" readonly />
+                                        <input class="money w-100 form-control" id="resultado" type="text" data-affixes-stay="true" data-thousands="" data-decimal="." name="resultado" value="<?php echo $result->valor_desconto ?>" readonly />
                                     </div>
-                                    <div class="span2">
+                                    <div class="col-md-2">
                                         <label for="">&nbsp;</label>
                                         <button class="button btn btn-success" id="btnAdicionarDesconto">
                                             <span class="button__icon"><i class='bx bx-plus-circle'></i></span> <span class="button__text2">Aplicar</span>
@@ -335,29 +335,29 @@
                                     </div>
                                 </form>
                             </div>
-                        </div>
+                        </div></div>
 
                         <!--Produtos-->
-                        <div class="tab-pane" id="tab3">
-                            <div class="span12 well" style="padding: 1%; margin-left: 0">
-                                <form id="formProdutos" action="<?php echo base_url() ?>index.php/os/adicionarProduto" method="post">
-                                    <div class="span6">
+                        <div class="tab-pane" id="tab3"><div class="row">
+                            <div class="col-md-12 card card-body" style="padding: 1%; margin-left: 0">
+                                <form class="row" id="formProdutos" action="<?php echo base_url() ?>index.php/os/adicionarProduto" method="post">
+                                    <div class="col-md-6">
                                         <input type="hidden" name="idProduto" id="idProduto" />
                                         <input type="hidden" name="idOsProduto" id="idOsProduto" value="<?php echo $result->idOs; ?>" />
                                         <input type="hidden" name="estoque" id="estoque" value="" />
                                         <label for="">Produto</label>
-                                        <input type="text" class="span12" name="produto" id="produto" placeholder="Digite o nome do produto" />
+                                        <input type="text" class="w-100 form-control" name="produto" id="produto" placeholder="Digite o nome do produto" />
                                     </div>
-                                    <div class="span2">
+                                    <div class="col-md-2">
                                         <label for="">Preço</label>
-                                        <input type="text" placeholder="Preço" id="preco" name="preco" class="span12 money" data-affixes-stay="true" data-thousands="" data-decimal="." />
+                                        <input type="text" placeholder="Preço" id="preco" name="preco" class="money w-100 form-control" data-affixes-stay="true" data-thousands="" data-decimal="." />
                                     </div>
-                                    <div class="span2">
+                                    <div class="col-md-2">
                                         <label for="">Quantidade</label>
                                         <input type="text" placeholder="Quantidade" id="quantidade" name="quantidade"
-                                            class="span12" />
+                                            class="w-100 form-control" />
                                     </div>
-                                    <div class="span2">
+                                    <div class="col-md-2">
                                         <label for="">&nbsp;</label>
                                         <button class="button btn btn-success" id="btnAdicionarProduto">
                                             <span class="button__icon"><i class='bx bx-plus-circle'></i></span> <span class="button__text2">Adicionar</span>
@@ -416,39 +416,39 @@
                                 </div>
                             </div>
                             <?php if (strtolower($result->status) != "cancelado") { ?>
-                                <div class="span12" style="margin-left: 0; text-align: right">
+                                <div class="col-md-12" style="margin-left: 0; text-align: right">
                                     <button type="button" class="button btn btn-warning" id="btnZerarProdutos">
                                         <span class="button__icon"><i class='bx bx-dollar-circle'></i></span> <span class="button__text2">Zerar valor dos produtos</span>
                                     </button>
                                 </div>
                             <?php } ?>
-                        </div>
+                        </div></div>
 
                         <!--Serviços-->
-                        <div class="tab-pane" id="tab4">
-                            <div class="span12 well" style="padding: 1%; margin-left: 0">
-                                <form id="formServicos" action="<?php echo base_url() ?>index.php/os/adicionarServico"
+                        <div class="tab-pane" id="tab4"><div class="row">
+                            <div class="col-md-12 card card-body" style="padding: 1%; margin-left: 0">
+                                <form class="row" id="formServicos" action="<?php echo base_url() ?>index.php/os/adicionarServico"
                                     method="post">
-                                    <div class="span6">
+                                    <div class="col-md-6">
                                         <input type="hidden" name="idServico" id="idServico" />
                                         <input type="hidden" name="idOsServico" id="idOsServico"
                                             value="<?php echo $result->idOs; ?>" />
                                         <label for="">Serviço</label>
-                                        <input type="text" class="span12" name="servico" id="servico"
+                                        <input type="text" class="w-100 form-control" name="servico" id="servico"
                                             placeholder="Digite o nome do serviço" />
                                     </div>
-                                    <div class="span2">
+                                    <div class="col-md-2">
                                         <label for="">Preço</label>
                                         <input type="text" placeholder="Preço" id="preco_servico" name="preco"
-                                            class="span12 money" data-affixes-stay="true" data-thousands=""
+                                            class="money w-100 form-control" data-affixes-stay="true" data-thousands=""
                                             data-decimal="." />
                                     </div>
-                                    <div class="span2">
+                                    <div class="col-md-2">
                                         <label for="">Quantidade</label>
                                         <input type="text" placeholder="Quantidade" id="quantidade_servico"
-                                            name="quantidade" class="span12" />
+                                            name="quantidade" class="w-100 form-control" />
                                     </div>
-                                    <div class="span2">
+                                    <div class="col-md-2">
                                         <label for="">&nbsp;</label>
                                         <button class="button btn btn-success">
                                             <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span
@@ -504,22 +504,22 @@
                                     </table>
                                 </div>
                             </div>
-                        </div>
+                        </div></div>
 
                         <!--Anexos-->
-                        <div class="tab-pane" id="tab5">
-                            <div class="span12" style="padding: 1%; margin-left: 0">
-                                <div class="span12 well" style="padding: 1%; margin-left: 0" id="form-anexos">
-                                    <form id="formAnexos" enctype="multipart/form-data" action="#" data-bloquear-envio
+                        <div class="tab-pane" id="tab5"><div class="row">
+                            <div class="col-md-12 row" style="padding: 1%; margin-left: 0">
+                                <div class="col-md-12 card card-body" style="padding: 1%; margin-left: 0" id="form-anexos">
+                                    <form class="row" id="formAnexos" enctype="multipart/form-data" action="#" data-bloquear-envio
                                         accept-charset="utf-8" s method="post">
-                                        <div class="span10">
+                                        <div class="col-md-10">
                                             <input type="hidden" name="idOsServico" id="idOsServico"
                                                 value="<?php echo $result->idOs; ?>" />
                                             <label for="">Anexo</label>
-                                            <input type="file" class="span12" name="userfile[]" multiple="multiple"
+                                            <input type="file" class="w-100 form-control" name="userfile[]" multiple="multiple"
                                                 size="20" />
                                         </div>
-                                        <div class="span2">
+                                        <div class="col-md-2">
                                             <label for="">.</label>
                                             <button class="button btn btn-success">
                                                 <span class="button__icon"><i class='bx bx-paperclip'></i></span><span
@@ -527,7 +527,7 @@
                                         </div>
                                     </form>
                                 </div>
-                                <div class="span12 pull-left" id="divAnexos" style="margin-left: 0">
+                                <div class="row g-2" id="divAnexos" style="margin-left: 0">
                                     <?php
                                     foreach ($anexos as $a) {
                                         if ($a->thumb == null) {
@@ -537,8 +537,8 @@
                                             $thumb = $a->url . '/thumbs/' . $a->thumb;
                                             $link = $a->url . '/' . $a->anexo;
                                         }
-                                        echo '<div class="span3" style="min-height: 150px; margin-left: 0">
-                                                    <a style="min-height: 150px;" href="#modal-anexo" imagem="' . $a->idAnexos . '" link="' . $link . '" role="button" class="btn anexo span12" data-toggle="modal">
+                                        echo '<div class="col-md-3" style="min-height: 150px; margin-left: 0">
+                                                    <a style="min-height: 150px;" href="#modal-anexo" imagem="' . $a->idAnexos . '" link="' . $link . '" role="button" class="btn btn-light anexo w-100" data-bs-toggle="modal">
                                                         <img src="' . $thumb . '" alt="">
                                                     </a>
                                                 </div>';
@@ -546,15 +546,15 @@
                                     ?>
                                 </div>
                             </div>
-                        </div>
+                        </div></div>
 
                         <!--Anotações-->
-                        <div class="tab-pane" id="tab6">
-                            <div class="span12" style="padding: 1%; margin-left: 0">
+                        <div class="tab-pane" id="tab6"><div class="row">
+                            <div class="col-md-12 row" style="padding: 1%; margin-left: 0">
 
-                                <div class="span12" id="divAnotacoes" style="margin-left: 0">
+                                <div class="col-md-12" id="divAnotacoes" style="margin-left: 0">
 
-                                    <a href="#modal-anotacao" id="btn-anotacao" role="button" data-toggle="modal"
+                                    <a href="#modal-anotacao" id="btn-anotacao" role="button" data-bs-toggle="modal"
                                         class="button btn btn-success" style="max-width: 160px">
                                         <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span
                                             class="button__text2">Adicionar anotação</span></a>
@@ -586,14 +586,14 @@
                                 </div>
 
                             </div>
-                        </div>
+                        </div></div>
                         <!-- Fim tab anotações -->
 
                         <!-- Check-in -->
-                        <div class="tab-pane" id="tab7">
-                            <div class="span12" style="padding: 1%; margin-left: 0">
+                        <div class="tab-pane" id="tab7"><div class="row">
+                            <div class="col-md-12 row" style="padding: 1%; margin-left: 0">
                                 <!-- Status do Atendimento -->
-                                <div id="checkin-status-container" class="span12 well" style="padding: 1%; margin-left: 0">
+                                <div id="checkin-status-container" class="col-md-12 card card-body" style="padding: 1%; margin-left: 0">
                                     <h4><i class="bx bx-time"></i> Status do Atendimento</h4>
                                     <div id="checkin-status-info">
                                         <div class="alert alert-info">
@@ -605,19 +605,19 @@
                                 </div>
 
                                 <!-- Botões de Ação -->
-                                <div class="span12" style="padding: 1%; margin-left: 0; text-align: center;">
-                                    <button type="button" class="btn btn-success btn-large btn-iniciar-atendimento" id="btn-iniciar-atendimento" style="display: none;">
+                                <div class="col-md-12" style="padding: 1%; margin-left: 0; text-align: center;">
+                                    <button type="button" class="btn btn-success btn-lg btn-iniciar-atendimento" id="btn-iniciar-atendimento" style="display: none;">
                                         <i class="bx bx-play-circle"></i> Iniciar Atendimento
                                     </button>
 
-                                    <button type="button" class="btn btn-danger btn-large btn-finalizar-atendimento" id="btn-finalizar-atendimento" style="display: none;">
+                                    <button type="button" class="btn btn-danger btn-lg btn-finalizar-atendimento" id="btn-finalizar-atendimento" style="display: none;">
                                         <i class="bx bx-check-circle"></i> Finalizar Atendimento
                                     </button>
                                 </div>
 
                                 <!-- Painel de Início (Check-in) -->
-                                <div id="panel-checkin" class="span12" style="display: none;">
-                                    <div class="span12 well" style="padding: 1%; margin-left: 0">
+                                <div id="panel-checkin" class="col-md-12 row" style="display: none;">
+                                    <div class="col-md-12 card card-body" style="padding: 1%; margin-left: 0"><div class="row">
                                         <h5><i class="bx bx-log-in"></i> Check-in do Técnico</h5>
 
                                         <!-- Assinatura do Técnico -->
@@ -628,47 +628,47 @@
                                         ]); ?>
 
                                         <!-- Fotos da Entrada -->
-                                        <div class="span12" style="margin-left: 0; margin-top: 20px;">
+                                        <div class="col-md-12" style="margin-left: 0; margin-top: 20px;">
                                             <h6>Fotos da Entrada:</h6>
-                                            <input type="file" id="fotos-entrada" accept="image/*" multiple class="span12">
-                                            <div id="fotos-entrada-preview" class="row-fluid" style="margin-top: 10px;"></div>
+                                            <input type="file" id="fotos-entrada" accept="image/*" multiple class="w-100 form-control">
+                                            <div id="fotos-entrada-preview" class="row" style="margin-top: 10px;"></div>
                                         </div>
 
                                         <!-- Observação de Entrada -->
-                                        <div class="span12" style="margin-left: 0; margin-top: 15px;">
+                                        <div class="col-md-12" style="margin-left: 0; margin-top: 15px;">
                                             <label for="observacao-entrada">Observação de Entrada:</label>
-                                            <textarea id="observacao-entrada" class="span12" rows="3" placeholder="Descreva o estado inicial do equipamento, local, etc."></textarea>
+                                            <textarea id="observacao-entrada" class="w-100 form-control" rows="3" placeholder="Descreva o estado inicial do equipamento, local, etc."></textarea>
                                         </div>
 
-                                        <div class="span12" style="margin-left: 0; margin-top: 15px; text-align: center;">
+                                        <div class="col-md-12" style="margin-left: 0; margin-top: 15px; text-align: center;">
                                             <button type="button" class="btn btn-primary" id="btn-confirmar-inicio">
                                                 <i class="bx bx-check"></i> Confirmar Início do Atendimento
                                             </button>
-                                            <button type="button" class="btn btn-default" id="btn-cancelar-inicio">Cancelar</button>
+                                            <button type="button" class="btn btn-light border" id="btn-cancelar-inicio">Cancelar</button>
                                         </div>
-                                    </div>
+                                    </div></div>
                                 </div>
 
                                 <!-- Painel de Fotos Durante -->
-                                <div id="panel-fotos-durante" class="span12" style="display: none;">
-                                    <div class="span12 well" style="padding: 1%; margin-left: 0">
+                                <div id="panel-fotos-durante" class="col-md-12 row" style="display: none;">
+                                    <div class="col-md-12 card card-body" style="padding: 1%; margin-left: 0">
                                         <h5><i class="bx bx-camera"></i> Fotos durante o Atendimento</h5>
 
-                                        <input type="file" id="fotos-durante" accept="image/*" multiple class="span12">
-                                        <div id="fotos-durante-preview" class="row-fluid" style="margin-top: 10px;"></div>
+                                        <input type="file" id="fotos-durante" accept="image/*" multiple class="w-100 form-control">
+                                        <div id="fotos-durante-preview" class="row" style="margin-top: 10px;"></div>
 
                                         <div id="fotos-durante-container"></div>
                                     </div>
                                 </div>
 
                                 <!-- Painel de Finalização (Check-out) -->
-                                <div id="panel-checkout" class="span12" style="display: none;">
-                                    <div class="span12 well" style="padding: 1%; margin-left: 0">
+                                <div id="panel-checkout" class="col-md-12 row" style="display: none;">
+                                    <div class="col-md-12 card card-body" style="padding: 1%; margin-left: 0"><div class="row">
                                         <h5><i class="bx bx-log-out"></i> Check-out - Finalização</h5>
 
-                                        <div class="span12" style="margin-left: 0">
+                                        <div class="col-md-12 row" style="margin-left: 0">
                                             <!-- Assinatura Técnico Saída -->
-                                            <div class="span6">
+                                            <div class="col-md-6">
                                                 <h6>Assinatura do Técnico (Saída):</h6>
                                                 <?php $this->load->view('checkin/assinatura_modal', [
                                                     'modal_id' => 'modal-assinatura-tecnico-saida',
@@ -681,7 +681,7 @@
                                             </div>
 
                                             <!-- Assinatura Cliente -->
-                                            <div class="span6">
+                                            <div class="col-md-6">
                                                 <h6>Assinatura do Cliente:</h6>
                                                 <?php $this->load->view('checkin/assinatura_modal', [
                                                     'modal_id' => 'modal-assinatura-cliente',
@@ -696,29 +696,29 @@
                                         </div>
 
                                         <!-- Fotos da Saída -->
-                                        <div class="span12" style="margin-left: 0; margin-top: 20px;">
+                                        <div class="col-md-12" style="margin-left: 0; margin-top: 20px;">
                                             <h6>Fotos da Saída:</h6>
-                                            <input type="file" id="fotos-saida" accept="image/*" multiple class="span12">
-                                            <div id="fotos-saida-preview" class="row-fluid" style="margin-top: 10px;"></div>
+                                            <input type="file" id="fotos-saida" accept="image/*" multiple class="w-100 form-control">
+                                            <div id="fotos-saida-preview" class="row" style="margin-top: 10px;"></div>
                                         </div>
 
                                         <!-- Observação de Saída -->
-                                        <div class="span12" style="margin-left: 0; margin-top: 15px;">
+                                        <div class="col-md-12" style="margin-left: 0; margin-top: 15px;">
                                             <label for="observacao-saida">Observação de Saída:</label>
-                                            <textarea id="observacao-saida" class="span12" rows="3" placeholder="Descreva o serviço realizado, estado final, etc."></textarea>
+                                            <textarea id="observacao-saida" class="w-100 form-control" rows="3" placeholder="Descreva o serviço realizado, estado final, etc."></textarea>
                                         </div>
 
-                                        <div class="span12" style="margin-left: 0; margin-top: 15px; text-align: center;">
+                                        <div class="col-md-12" style="margin-left: 0; margin-top: 15px; text-align: center;">
                                             <button type="button" class="btn btn-success" id="btn-confirmar-fim">
                                                 <i class="bx bx-check-double"></i> Confirmar Finalização
                                             </button>
-                                            <button type="button" class="btn btn-default" id="btn-cancelar-fim">Cancelar</button>
+                                            <button type="button" class="btn btn-light border" id="btn-cancelar-fim">Cancelar</button>
                                         </div>
-                                    </div>
+                                    </div></div>
                                 </div>
 
                                 <!-- Histórico -->
-                                <div id="checkin-historico" class="span12" style="margin-top: 20px;">
+                                <div id="checkin-historico" class="col-md-12" style="margin-top: 20px;">
                                     <h5>Histórico de Atendimentos</h5>
                                     <div id="checkin-historico-conteudo">
                                         <p class="text-muted">Carregando histórico...</p>
@@ -726,25 +726,25 @@
                                 </div>
 
                                 <!-- Assinaturas Salvas -->
-                                <div id="assinaturas-salvas" class="span12" style="margin-top: 20px;">
+                                <div id="assinaturas-salvas" class="col-md-12" style="margin-top: 20px;">
                                     <h5>Assinaturas Registradas</h5>
-                                    <div id="assinaturas-salvas-conteudo" class="row-fluid"></div>
+                                    <div id="assinaturas-salvas-conteudo" class="row"></div>
                                 </div>
 
                                 <!-- Fotos Salvas -->
-                                <div id="fotos-salvas" class="span12" style="margin-top: 20px;">
+                                <div id="fotos-salvas" class="col-md-12" style="margin-top: 20px;">
                                     <h5>Fotos do Atendimento</h5>
                                     <div id="fotos-salvas-conteudo">
-                                        <div class="row-fluid">
-                                            <div class="span4">
+                                        <div class="row">
+                                            <div class="col-md-4">
                                                 <h6>Entrada</h6>
                                                 <div id="fotos-entrada-salvas"></div>
                                             </div>
-                                            <div class="span4">
+                                            <div class="col-md-4">
                                                 <h6>Durante</h6>
                                                 <div id="fotos-durante-salvas"></div>
                                             </div>
-                                            <div class="span4">
+                                            <div class="col-md-4">
                                                 <h6>Saída</h6>
                                                 <div id="fotos-saida-salvas"></div>
                                             </div>
@@ -752,22 +752,22 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div></div>
                         <!-- Fim tab check-in -->
 
                         <?php if ($this->permission->checkPermission($this->session->userdata('permissao'), 'vNfe')) { ?>
-                            <div class="tab-pane" id="tab8">
-                                <div class="span12" style="padding: 1%; margin-left: 0">
+                            <div class="tab-pane" id="tab8"><div class="row">
+                                <div class="col-md-12" style="padding: 1%; margin-left: 0">
                                     <h5 style="margin-bottom:10px"><i class="bx bx-file"></i> Notas Fiscais Emitidas</h5>
                                     <?php echo $this->load->view('os/_notas_fiscais', ['notas' => (isset($notasFiscais) ? $notasFiscais : [])], true); ?>
                                 </div>
-                            </div>
+                            </div></div>
                         <?php } ?>
                         <!-- Fim tab notas fiscais -->
                     </div>
                 </div>
                 &nbsp
-            </div>
+            </div></div>
         </div>
     </div>
 </div>
@@ -775,69 +775,66 @@
 <!-- Modal visualizar anexo -->
 <link rel="stylesheet" href="<?= base_url('assets/css/anexo-viewer.css') ?>?v=<?= asset_versao('assets/css/anexo-viewer.css') ?>">
 <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/anexo-viewer.js') ?>?v=<?= asset_versao('assets/js/anexo-viewer.js') ?>"></script>
-<div id="modal-anexo" class="modal hide fade" data-excluir-url="<?php echo base_url(); ?>index.php/os/excluirAnexo/" data-download-url="<?php echo base_url(); ?>index.php/os/downloadanexo/" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
-    aria-hidden="true">
+<div id="modal-anexo" class="modal fade" data-excluir-url="<?php echo base_url(); ?>index.php/os/excluirAnexo/" data-download-url="<?php echo base_url(); ?>index.php/os/downloadanexo/" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+    aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h3 id="myModalLabel">Visualizar Anexo</h3>
-    </div>
-    <div class="modal-body">
-        <div class="span12" id="div-visualizar-anexo" style="text-align: center">
-            <div class='progress progress-info progress-striped active'>
-                <div class='bar' style='width: 100%'></div>
+        <h3 class="modal-title" id="myModalLabel">Visualizar Anexo</h3>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+    <div class="modal-body"><div class="row">
+        <div class="col-md-12" id="div-visualizar-anexo" style="text-align: center">
+            <div class='progress'>
+                <div class='progress-bar bg-info progress-bar-striped progress-bar-animated' style='width: 100%'></div>
             </div>
         </div>
-    </div>
+    </div></div>
     <div class="modal-footer">
-        <button class="btn" data-dismiss="modal" aria-hidden="true">Fechar</button>
-        <a href="" id-imagem="" class="btn btn-inverse" id="download">Download</a>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Fechar</button>
+        <a href="" id-imagem="" class="btn btn-dark" id="download">Download</a>
         <a href="" link="" class="btn btn-danger" id="excluir-anexo">Excluir Anexo</a>
     </div>
-</div>
+</div></div></div>
 
 <!-- Modal cadastro anotações -->
-<div id="modal-anotacao" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
-    aria-hidden="true">
+<div id="modal-anotacao" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+    aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="#" method="POST" id="formAnotacao">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3 id="myModalLabel">Adicionar Anotação</h3>
-        </div>
-        <div class="modal-body">
-            <div class="span12" id="divFormAnotacoes" style="margin-left: 0"></div>
-            <div class="span12" style="margin-left: 0">
+            <h3 class="modal-title" id="myModalLabel">Adicionar Anotação</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+        <div class="modal-body"><div class="row">
+            <div class="col-md-12" id="divFormAnotacoes" style="margin-left: 0"></div>
+            <div class="col-md-12" style="margin-left: 0">
                 <label for="anotacao">Anotação</label>
-                <textarea class="span12" name="anotacao" id="anotacao" cols="30" rows="3"></textarea>
+                <textarea class="w-100 form-control" name="anotacao" id="anotacao" cols="30" rows="3"></textarea>
                 <input type="hidden" name="os_id" value="<?php echo $result->idOs; ?>">
             </div>
-        </div>
+        </div></div>
         <div class="modal-footer" style="display:flex;justify-content: center">
-            <button class="btn" data-dismiss="modal" aria-hidden="true" id="btn-close-anotacao">Fechar</button>
+            <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true" id="btn-close-anotacao">Fechar</button>
             <button class="btn btn-primary">Adicionar</button>
         </div>
     </form>
-</div>
+</div></div></div>
 
 <!-- Modal Faturar-->
-<div id="modal-faturar" class="modal hide fade " tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
-    aria-hidden="true">
+<div id="modal-faturar" class="modal fade " tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+    aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form id="formFaturar" action="<?php echo current_url() ?>" method="post">
         <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3 id="myModalLabel">Faturar OS</h3>
-        </div>
-        <div class="modal-body">
-            <div class="span12 alert alert-info" style="margin-left: 0"> Obrigatório o preenchimento dos campos com
+            <h3 class="modal-title" id="myModalLabel">Faturar OS</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+        <div class="modal-body"><div class="row">
+            <div class="col-md-12 alert alert-info" style="margin-left: 0"> Obrigatório o preenchimento dos campos com
                 asterisco.</div>
-            <div class="span12" style="margin-left: 0">
+            <div class="col-md-12" style="margin-left: 0">
                 <label for="descricao">Descrição</label>
-                <input class="span12" id="descricao" type="text" name="descricao"
+                <input class="w-100 form-control" id="descricao" type="text" name="descricao"
                     value="Fatura de OS Nº: <?php echo $result->idOs; ?> " />
             </div>
-            <div class="span12" style="margin-left: 0">
-                <div class="span12" style="margin-left: 0">
+            <div class="col-md-12 row" style="margin-left: 0">
+                <div class="col-md-12" style="margin-left: 0">
                     <label for="cliente">Cliente*</label>
-                    <input class="span12" id="cliente" type="text" name="cliente"
+                    <input class="w-100 form-control" id="cliente" type="text" name="cliente"
                         value="<?php echo html_escape($result->nomeCliente); ?>" />
                     <input type="hidden" name="clientes_id" id="clientes_id" value="<?php echo $result->clientes_id ?>">
                     <input type="hidden" name="os_id" id="os_id" value="<?php echo $result->idOs; ?>">
@@ -845,41 +842,41 @@
                         value="<?php echo $result->tipo_desconto; ?>">
                 </div>
             </div>
-            <div class="span12" style="margin-left: 0">
-                <div class="span6" style="margin-left: 0">
+            <div class="col-md-12 row" style="margin-left: 0">
+                <div class="col-md-6" style="margin-left: 0">
                     <label for="valor">Valor*</label>
                     <input type="hidden" id="tipo" name="tipo" value="receita" />
-                    <input class="span12 money" id="valor" type="text" data-affixes-stay="true" data-thousands=""
+                    <input class="money w-100 form-control" id="valor" type="text" data-affixes-stay="true" data-thousands=""
                         data-decimal="." name="valor"
                         value="<?php echo number_format($totals + $total, 2, '.', ''); ?>" />
                 </div>
-                <div class="span6" style="margin-left: 2;">
+                <div class="col-md-6" style="margin-left: 2;">
                     <label for="valor">Valor Com Desconto*</label>
-                    <input class="span12 money" id="faturar-desconto" type="text" name="faturar-desconto"
+                    <input class="money w-100 form-control" id="faturar-desconto" type="text" name="faturar-desconto"
                         value="<?php echo number_format($result->valor_desconto, 2, '.', ''); ?> " />
                     <strong><span style="color: red" id="resultado"></span></strong>
                 </div>
             </div>
-            <div class="span12" style="margin-left: 0">
-                <div class="span4" style="margin-left: 0">
+            <div class="col-md-12 row" style="margin-left: 0">
+                <div class="col-md-4" style="margin-left: 0">
                     <label for="vencimento">Data Entrada*</label>
-                    <input class="span12 datepicker" autocomplete="off" id="vencimento" type="text" name="vencimento" />
+                    <input class="datepicker w-100 form-control" autocomplete="off" id="vencimento" type="text" name="vencimento" />
                 </div>
             </div>
-            <div class="span12" style="margin-left: 0">
-                <div class="span4" style="margin-left: 0">
+            <div class="col-md-12 row" style="margin-left: 0">
+                <div class="col-md-4" style="margin-left: 0">
                     <label for="recebido">Recebido?</label>
-                    &nbsp &nbsp &nbsp &nbsp <input id="recebido" type="checkbox" name="recebido" value="1" />
+                    &nbsp &nbsp &nbsp &nbsp <input class="form-check-input" id="recebido" type="checkbox" name="recebido" value="1" />
                 </div>
-                <div id="divRecebimento" class="span8" style=" display: none">
-                    <div class="span6">
+                <div id="divRecebimento" class="col-md-8 row" style=" display: none">
+                    <div class="col-md-6">
                         <label for="recebimento">Data Recebimento</label>
-                        <input class="span12 datepicker" autocomplete="off" id="recebimento" type="text"
+                        <input class="datepicker w-100 form-control" autocomplete="off" id="recebimento" type="text"
                             name="recebimento" />
                     </div>
-                    <div class="span6">
+                    <div class="col-md-6">
                         <label for="formaPgto">Forma Pgto</label>
-                        <select name="formaPgto" id="formaPgto" class="span12">
+                        <select name="formaPgto" id="formaPgto" class="w-100 form-select">
                             <option value="Dinheiro">Dinheiro</option>
                             <option value="Cartão de Crédito">Cartão de Crédito</option>
                             <option value="Cartão de Débito">Cartão de Débito</option>
@@ -891,16 +888,16 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div></div>
         <div class="modal-footer" style="display:flex;justify-content: center">
-            <button class="button btn btn-warning" data-dismiss="modal" aria-hidden="true"
+            <button class="button btn btn-warning" data-bs-dismiss="modal" aria-hidden="true"
                 id="btn-cancelar-faturar"><span class="button__icon"><i class="bx bx-x"></i></span><span
                     class="button__text2">Cancelar</span></button>
             <button class="button btn btn-danger"><span class="button__icon"><i class='bx bx-dollar'></i></span>
                 <span class="button__text2">Faturar</span></button>
         </div>
     </form>
-</div>
+</div></div></div>
 
 <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/maskmoney.js"></script>
 
@@ -1252,7 +1249,7 @@
         });
 
         // Barra de abas rola ate a aba escolhida (celular)
-        $('.os-abas-wrap > .nav-tabs a[data-toggle="tab"]').on('shown', function () {
+        $('.os-abas-wrap > .nav-tabs a[data-bs-toggle="tab"]').on('shown.bs.tab', function () {
             var ul = this.closest('.nav-tabs'), li = this.parentNode;
             if (ul && ul.scrollWidth > ul.clientWidth) { ul.scrollLeft = li.offsetLeft - (ul.clientWidth - li.offsetWidth) / 2; }
         });
@@ -1280,14 +1277,14 @@
                     required: 'Campo Requerido.'
                 }
             },
-            errorClass: "help-inline",
+            errorClass: "invalid-feedback",
             errorElement: "span",
             highlight: function (element, errorClass, validClass) {
-                $(element).parents('.control-group').addClass('error');
+                $(element).addClass('is-invalid');
             },
             unhighlight: function (element, errorClass, validClass) {
-                $(element).parents('.control-group').removeClass('error');
-                $(element).parents('.control-group').addClass('success');
+                $(element).removeClass('is-invalid');
+                $(element).addClass('is-valid');
             }
         });
 
@@ -1325,7 +1322,7 @@
                     });
                 } else {
                     var dados = $(form).serialize();
-                    $("#divProdutos").html("<div class='progress progress-info progress-striped active'><div class='bar' style='width: 100%'></div></div>");
+                    $("#divProdutos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
                     $.ajax({
                         type: "POST",
                         url: "<?php echo base_url(); ?>index.php/os/adicionarProduto",
@@ -1380,7 +1377,7 @@
             submitHandler: function (form) {
                 var dados = $(form).serialize();
 
-                $("#divServicos").html("<div class='progress progress-info progress-striped active'><div class='bar' style='width: 100%'></div></div>");
+                $("#divServicos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
                 $.ajax({
                     type: "POST",
                     url: "<?php echo base_url(); ?>index.php/os/adicionarServico",
@@ -1421,7 +1418,7 @@
             },
             submitHandler: function (form) {
                 var dados = $(form).serialize();
-                $("#divFormAnotacoes").html("<div class='progress progress-info progress-striped active'><div class='bar' style='width: 100%'></div></div>");
+                $("#divFormAnotacoes").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
 
                 $.ajax({
                     type: "POST",
@@ -1452,7 +1449,7 @@
                 //var dados = $( form ).serialize();
                 var dados = new FormData(form);
                 $("#form-anexos").hide('1000');
-                $("#divAnexos").html("<div class='progress progress-info progress-striped active'><div class='bar' style='width: 100%'></div></div>");
+                $("#divAnexos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
                 $.ajax({
                     type: "POST",
                     url: "<?php echo base_url(); ?>index.php/os/anexar",
@@ -1468,11 +1465,11 @@
                             $("#userfile").val('');
 
                         } else {
-                            $("#divAnexos").html('<div class="alert fade in"><button type="button" class="close" data-dismiss="alert">×</button><strong>Atenção!</strong> ' + data.mensagem + '</div>');
+                            $("#divAnexos").html('<div class="alert alert-warning alert-dismissible fade show"><strong>Atenção!</strong> ' + data.mensagem + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button></div>');
                         }
                     },
                     error: function () {
-                        $("#divAnexos").html('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert">×</button><strong>Atenção!</strong> Ocorreu um erro. Verifique se você anexou o(s) arquivo(s).</div>');
+                        $("#divAnexos").html('<div class="alert alert-danger alert-dismissible fade show"><strong>Atenção!</strong> Ocorreu um erro. Verifique se você anexou o(s) arquivo(s).<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button></div>');
                     }
                 });
                 $("#form-anexos").show('1000');
@@ -1486,7 +1483,7 @@
             var produto = $(this).attr('prodAcao');
             var idOS = "<?php echo $result->idOs ?>"
             if ((idProduto % 1) == 0) {
-                $("#divProdutos").html("<div class='progress progress-info progress-striped active'><div class='bar' style='width: 100%'></div></div>");
+                $("#divProdutos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
                 $.ajax({
                     type: "POST",
                     url: "<?php echo base_url(); ?>index.php/os/excluirProduto",
@@ -1525,7 +1522,7 @@
                 cancelButtonText: "Cancelar"
             }).then(function (result) {
                 if (result.value) {
-                    $("#divProdutos").html("<div class='progress progress-info progress-striped active'><div class='bar' style='width: 100%'></div></div>");
+                    $("#divProdutos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
                     $.ajax({
                         type: "POST",
                         url: "<?php echo base_url(); ?>index.php/os/zerarProdutos",
@@ -1564,7 +1561,7 @@
             var idServico = $(this).attr('idAcao');
             var idOS = "<?php echo $result->idOs ?>"
             if ((idServico % 1) == 0) {
-                $("#divServicos").html("<div class='progress progress-info progress-striped active'><div class='bar' style='width: 100%'></div></div>");
+                $("#divServicos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
                 $.ajax({
                     type: "POST",
                     url: "<?php echo base_url(); ?>index.php/os/excluirServico",
@@ -1596,7 +1593,7 @@
             var link = $(this).attr('link');
             var idOS = "<?php echo $result->idOs ?>"
             $('#modal-anexo').modal('hide');
-            $("#divAnexos").html("<div class='progress progress-info progress-striped active'><div class='bar' style='width: 100%'></div></div>");
+            $("#divAnexos").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
 
             $.ajax({
                 type: "POST",
@@ -1621,7 +1618,7 @@
             var idAnotacao = $(this).attr('idAcao');
             var idOS = "<?php echo $result->idOs ?>"
             if ((idAnotacao % 1) == 0) {
-                $("#divAnotacoes").html("<div class='progress progress-info progress-striped active'><div class='bar' style='width: 100%'></div></div>");
+                $("#divAnotacoes").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-info' style='width: 100%'></div></div>");
                 $.ajax({
                     type: "POST",
                     url: "<?php echo base_url(); ?>index.php/os/excluirAnotacao",
@@ -1751,7 +1748,7 @@
             // Atualiza texto de status
             if (checkinAtivo) {
                 $('#checkin-status-text').text('Em Andamento');
-                $('#checkin-status-text').removeClass().addClass('label label-warning');
+                $('#checkin-status-text').removeClass().addClass('badge text-bg-warning');
 
                 // Mostra botão de finalizar
                 $('#btn-iniciar-atendimento').hide();
@@ -1770,7 +1767,7 @@
                 carregarFotosDurante();
             } else {
                 $('#checkin-status-text').text('Aguardando Início');
-                $('#checkin-status-text').removeClass().addClass('label label-info');
+                $('#checkin-status-text').removeClass().addClass('badge text-bg-info');
 
                 // Mostra botão de iniciar
                 $('#btn-iniciar-atendimento').show();
@@ -1956,7 +1953,7 @@
                     var reader = new FileReader();
                     reader.onload = function(e) {
                         arrayFotos.push(e.target.result);
-                        $(container).append('<div class="span3" style="margin-bottom: 10px;"><img src="' + e.target.result + '" style="max-width: 100%; border: 1px solid #ddd;"></div>');
+                        $(container).append('<div class="col-md-3" style="margin-bottom: 10px;"><img src="' + e.target.result + '" style="max-width: 100%; border: 1px solid #ddd;"></div>');
                     };
                     reader.readAsDataURL(file);
                 });
@@ -2044,7 +2041,7 @@
         }
 
         function renderizarAssinaturaItem(titulo, assinatura) {
-            return '<div class="span4 assinatura-salva-item">' +
+            return '<div class="col-md-4 assinatura-salva-item">' +
                 '<h6>' + titulo + '</h6>' +
                 '<img src="' + assinatura.url + '/' + assinatura.assinatura + '" style="max-width: 100%;">' +
                 (assinatura.nome_assinante ? '<div class="assinatura-info"><strong>' + assinatura.nome_assinante + '</strong></div>' : '') +
@@ -2235,7 +2232,7 @@
         });
 
         // Quando o modal é fechado sem salvar, limpa o canvas mas mantém os campos
-        $('.modal-assinatura').on('hidden', function() {
+        $('.modal-assinatura').on('hidden.bs.modal', function() {
             var modalId = $(this).attr('id');
 
             // Limpa os campos do modal (mas não os hidden salvos)
@@ -2254,62 +2251,60 @@
 </script>
 
 <!-- Modal Editar Produto -->
-<div id="modal-editar-produto" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
-    aria-hidden="true">
+<div id="modal-editar-produto" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+    aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-        <h5 id="myModalLabel"><i class="bx bx-edit"></i> Editar Produto</h5>
-    </div>
-    <div class="modal-body">
+        <h5 class="modal-title" id="myModalLabel"><i class="bx bx-edit"></i> Editar Produto</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+    <div class="modal-body"><div class="row">
         <input type="hidden" id="editar-idProdutoOs" />
         <input type="hidden" id="editar-idOsProduto" value="<?php echo $result->idOs; ?>" />
-        <div class="span12" style="margin-left: 0">
+        <div class="col-md-12" style="margin-left: 0">
             <label><strong>Produto:</strong></label>
-            <span id="editar-descricao-produto" class="uneditable-input span12"></span>
+            <div id="editar-descricao-produto" class="form-control-plaintext fw-semibold"></div>
         </div>
-        <div class="span6" style="margin-left: 0">
+        <div class="col-md-6" style="margin-left: 0">
             <label for="editar-quantidade-produto">Quantidade</label>
-            <input type="text" id="editar-quantidade-produto" class="span12" />
+            <input type="text" id="editar-quantidade-produto" class="w-100 form-control" />
         </div>
-        <div class="span6" style="margin-left: 0">
+        <div class="col-md-6" style="margin-left: 0">
             <label for="editar-preco-produto">Preço Unit.</label>
-            <input type="text" id="editar-preco-produto" class="span12 money" data-affixes-stay="true" data-thousands="" data-decimal="." />
+            <input type="text" id="editar-preco-produto" class="money w-100 form-control" data-affixes-stay="true" data-thousands="" data-decimal="." />
         </div>
-    </div>
+    </div></div>
     <div class="modal-footer">
-        <button class="btn" data-dismiss="modal" aria-hidden="true">Cancelar</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
         <button class="btn btn-primary" id="btn-salvar-produto"><i class="bx bx-save"></i> Salvar</button>
     </div>
-</div>
+</div></div></div>
 
 <!-- Modal Editar Serviço -->
-<div id="modal-editar-servico" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
-    aria-hidden="true">
+<div id="modal-editar-servico" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+    aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-        <h5 id="myModalLabel"><i class="bx bx-edit"></i> Editar Serviço</h5>
-    </div>
-    <div class="modal-body">
+        <h5 class="modal-title" id="myModalLabel"><i class="bx bx-edit"></i> Editar Serviço</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+    <div class="modal-body"><div class="row">
         <input type="hidden" id="editar-idServicoOs" />
         <input type="hidden" id="editar-idOsServico" value="<?php echo $result->idOs; ?>" />
-        <div class="span12" style="margin-left: 0">
+        <div class="col-md-12" style="margin-left: 0">
             <label><strong>Serviço:</strong></label>
-            <span id="editar-nome-servico" class="uneditable-input span12"></span>
+            <div id="editar-nome-servico" class="form-control-plaintext fw-semibold"></div>
         </div>
-        <div class="span6" style="margin-left: 0">
+        <div class="col-md-6" style="margin-left: 0">
             <label for="editar-quantidade-servico">Quantidade</label>
-            <input type="text" id="editar-quantidade-servico" class="span12" />
+            <input type="text" id="editar-quantidade-servico" class="w-100 form-control" />
         </div>
-        <div class="span6" style="margin-left: 0">
+        <div class="col-md-6" style="margin-left: 0">
             <label for="editar-preco-servico">Preço Unit.</label>
-            <input type="text" id="editar-preco-servico" class="span12 money" data-affixes-stay="true" data-thousands="" data-decimal="." />
+            <input type="text" id="editar-preco-servico" class="money w-100 form-control" data-affixes-stay="true" data-thousands="" data-decimal="." />
         </div>
-    </div>
+    </div></div>
     <div class="modal-footer">
-        <button class="btn" data-dismiss="modal" aria-hidden="true">Cancelar</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-hidden="true">Cancelar</button>
         <button class="btn btn-primary" id="btn-salvar-servico"><i class="bx bx-save"></i> Salvar</button>
     </div>
-</div>
+</div></div></div>
 
 <script nonce="<?= csp_nonce() ?>">
     // ============================================

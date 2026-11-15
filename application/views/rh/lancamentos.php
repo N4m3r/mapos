@@ -3,7 +3,7 @@ $somente_pendentes = ! empty($somente_pendentes);
 $tipos = ['hora_extra'=>'Hora extra','adicional'=>'Adicional','comissao'=>'Comissão','bonus'=>'Bônus',
     'adiantamento'=>'Adiantamento','desconto'=>'Desconto','falta'=>'Falta','vale'=>'Vale'];
 ?>
-<div class="new122">
+<div class="new122 row">
     <?php $this->load->view('rh/_subnav', ['ativo' => 'lancamentos']); ?>
     <div class="ui-cabecalho">
         <div>
@@ -12,18 +12,18 @@ $tipos = ['hora_extra'=>'Hora extra','adicional'=>'Adicional','comissao'=>'Comis
         </div>
     </div>
 
-    <div class="span12" style="margin-left:0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <div class="col-md-12" style="margin-left:0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
         <form method="get" action="<?= site_url('rh/lancamentos') ?>" style="display:flex;gap:6px;align-items:center">
-            <input type="month" name="competencia" value="<?= $competencia ?>">
-            <select name="colaborador_id">
+            <input class="form-control" type="month" name="competencia" value="<?= $competencia ?>">
+            <select class="form-select" name="colaborador_id">
                 <option value="">Todos os colaboradores</option>
                 <?php foreach ($colaboradores as $c): ?>
                     <option value="<?= $c->id ?>" <?= $colaborador_id==$c->id?'selected':'' ?>><?= htmlspecialchars($c->nome) ?></option>
                 <?php endforeach; ?>
             </select>
-            <button class="button btn btn-mini btn-warning"><span class="button__text2">Filtrar</span></button>
+            <button class="button btn btn-sm btn-warning"><span class="button__text2">Filtrar</span></button>
         </form>
-        <a href="#modal-lanc" role="button" data-toggle="modal" class="button btn btn-mini btn-success" data-chamar="novoLanc">
+        <a href="#modal-lanc" role="button" data-bs-toggle="modal" class="button btn btn-sm btn-success" data-chamar="novoLanc">
             <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2"> Lançamento</span>
         </a>
     </div>
@@ -33,7 +33,7 @@ $tipos = ['hora_extra'=>'Hora extra','adicional'=>'Adicional','comissao'=>'Comis
             <thead><tr><th>Colaborador</th><th>Tipo</th><th>Descrição</th><th>Qtd</th><th>Valor</th><th>Aprovado</th><th>Ações</th></tr></thead>
             <tbody>
             <?php if (empty($lancamentos)): ?>
-                <tr><td colspan="7"><div class="ui-vazio"><i class='bx bx-money'></i><strong><?= $somente_pendentes ? 'Nenhuma hora extra pendente' : 'Nenhum lançamento na competência' ?></strong><?= $somente_pendentes ? '' : 'Registre extras, bônus, adiantamentos e descontos do mês.' ?><div style="margin-top:10px"><?php if ($somente_pendentes): ?><a href="<?= site_url('rh/lancamentos') ?>" class="button btn btn-warning"><span class="button__text2">Ver lançamentos do mês</span></a><?php else: ?><a href="#modal-lanc" role="button" data-toggle="modal" class="button btn btn-success" data-chamar="novoLanc"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2"> Novo lançamento</span></a><?php endif; ?></div></div></td></tr>
+                <tr><td colspan="7"><div class="ui-vazio"><i class='bx bx-money'></i><strong><?= $somente_pendentes ? 'Nenhuma hora extra pendente' : 'Nenhum lançamento na competência' ?></strong><?= $somente_pendentes ? '' : 'Registre extras, bônus, adiantamentos e descontos do mês.' ?><div style="margin-top:10px"><?php if ($somente_pendentes): ?><a href="<?= site_url('rh/lancamentos') ?>" class="button btn btn-warning"><span class="button__text2">Ver lançamentos do mês</span></a><?php else: ?><a href="#modal-lanc" role="button" data-bs-toggle="modal" class="button btn btn-success" data-chamar="novoLanc"><span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2"> Novo lançamento</span></a><?php endif; ?></div></div></td></tr>
             <?php else: foreach ($lancamentos as $l): ?>
                 <tr>
                     <td><?= htmlspecialchars($l->nome_colaborador ?: '#'.$l->colaborador_id) ?></td>
@@ -44,11 +44,11 @@ $tipos = ['hora_extra'=>'Hora extra','adicional'=>'Adicional','comissao'=>'Comis
                     <td><?php if ($l->aprovado): ?><span class="ui-selo sucesso">Aprovado</span><?php else: ?><span class="ui-selo alerta">Pendente</span>
                         <form method="post" action="<?= site_url('rh/aprovarLancamento') ?>" style="display:inline">
                             <input type="hidden" name="id" value="<?= $l->id ?>">
-                            <button class="btn btn-mini btn-success">Aprovar</button>
+                            <button class="btn btn-sm btn-success">Aprovar</button>
                         </form><?php endif; ?></td>
                     <td>
-                        <a href="#modal-lanc" role="button" data-toggle="modal" class="btn-nwe3" data-chamar="editarLanc" data-args="<?= html_escape(json_encode([$l])) ?>"><i class="bx bx-edit bx-xs"></i></a>
-                        <a href="#modal-excluir-l" role="button" data-toggle="modal" reg="<?= (int) $l->id ?>" data-nome="<?= html_escape(($l->nome_colaborador ?: '#' . $l->colaborador_id) . ' - ' . ($tipos[$l->tipo] ?? $l->tipo) . ' (R$ ' . number_format($l->valor, 2, ',', '.') . ')') ?>" class="btn-nwe4" title="Excluir" aria-label="Excluir"><i class="bx bx-trash-alt bx-xs"></i></a>
+                        <a href="#modal-lanc" role="button" data-bs-toggle="modal" class="btn-nwe3" data-chamar="editarLanc" data-args="<?= html_escape(json_encode([$l])) ?>"><i class="bx bx-edit bx-xs"></i></a>
+                        <a href="#modal-excluir-l" role="button" data-bs-toggle="modal" reg="<?= (int) $l->id ?>" data-nome="<?= html_escape(($l->nome_colaborador ?: '#' . $l->colaborador_id) . ' - ' . ($tipos[$l->tipo] ?? $l->tipo) . ' (R$ ' . number_format($l->valor, 2, ',', '.') . ')') ?>" class="btn-nwe4" title="Excluir" aria-label="Excluir"><i class="bx bx-trash-alt bx-xs"></i></a>
                     </td>
                 </tr>
             <?php endforeach; endif; ?>
@@ -57,40 +57,40 @@ $tipos = ['hora_extra'=>'Hora extra','adicional'=>'Adicional','comissao'=>'Comis
     </div></div>
 </div>
 
-<div id="modal-lanc" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-lanc" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('rh/salvarLancamento') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5 id="l-titulo">Lançamento</h5></div>
+        <div class="modal-header"><h5 id="l-titulo">Lançamento</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <input type="hidden" name="id" id="l-id">
             <label>Colaborador</label>
-            <select name="colaborador_id" id="l-colab" class="span12">
+            <select name="colaborador_id" id="l-colab" class="w-100 form-select">
                 <?php foreach ($colaboradores as $c): ?><option value="<?= $c->id ?>"><?= htmlspecialchars($c->nome) ?></option><?php endforeach; ?>
             </select>
             <div style="display:flex;gap:8px">
-                <div style="flex:1"><label>Competência</label><input type="month" name="competencia" id="l-comp" class="span12" value="<?= $competencia ?>"></div>
+                <div style="flex:1"><label>Competência</label><input type="month" name="competencia" id="l-comp" class="w-100 form-control" value="<?= $competencia ?>"></div>
                 <div style="flex:1"><label>Tipo</label>
-                    <select name="tipo" id="l-tipo" class="span12"><?php foreach ($tipos as $k=>$v): ?><option value="<?= $k ?>"><?= $v ?></option><?php endforeach; ?></select>
+                    <select name="tipo" id="l-tipo" class="w-100 form-select"><?php foreach ($tipos as $k=>$v): ?><option value="<?= $k ?>"><?= $v ?></option><?php endforeach; ?></select>
                 </div>
             </div>
-            <label>Descrição</label><input type="text" name="descricao" id="l-desc" class="span12">
+            <label>Descrição</label><input type="text" name="descricao" id="l-desc" class="w-100 form-control">
             <div style="display:flex;gap:8px">
-                <div style="flex:1"><label>Quantidade</label><input type="text" name="quantidade" id="l-qtd" class="span12"></div>
-                <div style="flex:1"><label>Valor (R$)</label><input type="text" name="valor" id="l-valor" class="span12"></div>
+                <div style="flex:1"><label>Quantidade</label><input type="text" name="quantidade" id="l-qtd" class="w-100 form-control"></div>
+                <div style="flex:1"><label>Valor (R$)</label><input type="text" name="valor" id="l-valor" class="w-100 form-control"></div>
             </div>
-            <label style="font-weight:normal;margin-top:6px"><input type="checkbox" name="aprovado" id="l-aprov" value="1"> Já aprovado</label>
+            <label style="font-weight:normal;margin-top:6px"><input class="form-check-input" type="checkbox" name="aprovado" id="l-aprov" value="1"> Já aprovado</label>
             <p style="font-size:11px;color:#9ca3af;margin:4px 0 0">Horas extras ficam pendentes de aprovação do administrativo (conforme config CLT).</p>
         </div>
         <div class="modal-footer"><button class="button btn btn-success"><span class="button__text2">Salvar</span></button></div>
     </form>
-</div>
+</div></div></div>
 
-<div id="modal-excluir-l" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-excluir-l" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('rh/excluirLancamento') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Excluir lançamento</h5></div>
+        <div class="modal-header"><h5>Excluir lançamento</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body"><input type="hidden" id="l-del-id" name="id"><h5 style="text-align:center">Deseja excluir o lançamento <strong id="l-del-nome"></strong>?</h5></div>
         <div class="modal-footer"><button class="button btn btn-danger"><span class="button__text2">Excluir</span></button></div>
     </form>
-</div>
+</div></div></div>
 <script nonce="<?= csp_nonce() ?>">
 function novoLanc(){ $('#l-titulo').text('Novo lançamento'); $('#l-id').val(''); $('#l-desc').val(''); $('#l-qtd').val(''); $('#l-valor').val(''); $('#l-aprov').prop('checked',false); }
 function editarLanc(l){ $('#l-titulo').text('Editar'); $('#l-id').val(l.id); $('#l-colab').val(l.colaborador_id); $('#l-comp').val(l.competencia); $('#l-tipo').val(l.tipo); $('#l-desc').val(l.descricao); $('#l-qtd').val(l.quantidade); $('#l-valor').val(l.valor); $('#l-aprov').prop('checked', l.aprovado==1); }

@@ -11,14 +11,14 @@ $acaoFiltro = isset($acaoFiltro) ? $acaoFiltro : 'mine/os';
 $temFiltro = ! empty($filtros['cliente_id']) || ! empty($filtros['data_inicio']) || ! empty($filtros['data_fim']);
 $urlAcao = base_url() . 'index.php/' . $acaoFiltro;
 ?>
-<div class="span12" style="margin-left: 0">
+<div class="col-md-12" style="margin-left: 0">
     <div class="widget-box">
         <div class="widget-content" style="padding: 15px;">
-            <form method="get" action="<?php echo $urlAcao; ?>" class="form-inline os-filtros" style="margin: 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;">
+            <form method="get" action="<?php echo $urlAcao; ?>" class="os-filtros d-flex flex-wrap gap-2 align-items-end" style="margin: 0;">
                 <?php if (count($clientesFiltro) > 1) { ?>
                     <div>
                         <label style="display:block; font-weight:600;">CNPJ / Cliente</label>
-                        <select name="cliente_id">
+                        <select class="form-select" name="cliente_id">
                             <option value="">Todos</option>
                             <?php foreach ($clientesFiltro as $c) {
                                 $sel = (! empty($filtros['cliente_id']) && (int) $filtros['cliente_id'] === (int) $c->idClientes) ? 'selected' : '';
@@ -30,16 +30,16 @@ $urlAcao = base_url() . 'index.php/' . $acaoFiltro;
                 <?php } ?>
                 <div>
                     <label style="display:block; font-weight:600;">De</label>
-                    <input type="date" name="data_inicio" value="<?php echo htmlspecialchars($filtros['data_inicio'] ?? ''); ?>">
+                    <input class="form-control" type="date" name="data_inicio" value="<?php echo htmlspecialchars($filtros['data_inicio'] ?? ''); ?>">
                 </div>
                 <div>
                     <label style="display:block; font-weight:600;">Até</label>
-                    <input type="date" name="data_fim" value="<?php echo htmlspecialchars($filtros['data_fim'] ?? ''); ?>">
+                    <input class="form-control" type="date" name="data_fim" value="<?php echo htmlspecialchars($filtros['data_fim'] ?? ''); ?>">
                 </div>
                 <div>
                     <button type="submit" class="btn btn-primary"><i class="bx bx-search"></i> Filtrar</button>
                     <?php if ($temFiltro) { ?>
-                        <a href="<?php echo $urlAcao; ?>" class="btn">Limpar</a>
+                        <a href="<?php echo $urlAcao; ?>" class="btn btn-outline-secondary">Limpar</a>
                     <?php } ?>
                 </div>
             </form>

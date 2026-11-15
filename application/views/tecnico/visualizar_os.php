@@ -294,7 +294,7 @@ $statusSimples = function ($st) {
     <?php if (!empty($assinaturas_exibicao)): ?>
         <div class="info-card">
             <h3><i class='bx bx-pen'></i> Assinaturas</h3>
-            <div class="row" style="display:flex; flex-wrap:wrap; gap:14px;">
+            <div style="display:flex; flex-wrap:wrap; gap:14px;">
                 <?php foreach ($assinaturas_exibicao as $assinatura): ?>
                     <div style="flex:1 1 140px; text-align:center;">
                         <h5 style="font-size:12px; color:var(--tec-muted, #8a8fa3); margin:0 0 8px;"><?= in_array($assinatura->tipo, ['solicitante', 'cliente_aceite'], true) ? 'Solicitante' : ucfirst(str_replace('_', ' ', $assinatura->tipo)) ?></h5>
@@ -413,7 +413,7 @@ $statusSimples = function ($st) {
         <p class="nr-modal-sub">Conte o motivo. A OS fica em espera para ser reagendada depois.</p>
 
         <label class="nr-label">Motivo</label>
-        <select id="nr-motivo" class="atv-input">
+        <select id="nr-motivo" class="atv-input form-select">
             <option value="">— Selecione um motivo —</option>
             <?php foreach ($motivos_nao_realizado as $m): ?>
                 <option value="<?= (int) $m->idMotivo ?>"><?= html_escape($m->nome) ?></option>
@@ -421,7 +421,7 @@ $statusSimples = function ($st) {
         </select>
 
         <label class="nr-label">Observação</label>
-        <textarea id="nr-obs" class="atv-input" rows="3" placeholder="Descreva o que aconteceu (opcional se escolheu um motivo)"></textarea>
+        <textarea id="nr-obs" class="atv-input form-control" rows="3" placeholder="Descreva o que aconteceu (opcional se escolheu um motivo)"></textarea>
 
         <div class="nr-modal-actions">
             <button type="button" class="btn-tec ghost" data-chamar="fecharNaoRealizado">Cancelar</button>
@@ -439,7 +439,7 @@ $statusSimples = function ($st) {
         <p class="nr-modal-sub">Escolha a nova data. A OS volta para a sua agenda como "Aberto".</p>
         <input type="hidden" id="reag-ocorrencia" value="">
         <label class="nr-label">Nova data</label>
-        <input type="date" id="reag-data" class="atv-input" min="<?= date('Y-m-d') ?>" value="<?= date('Y-m-d') ?>">
+        <input type="date" id="reag-data" class="atv-input form-control" min="<?= date('Y-m-d') ?>" value="<?= date('Y-m-d') ?>">
         <div class="nr-modal-actions">
             <button type="button" class="btn-tec ghost" data-chamar="fecharReagendar">Cancelar</button>
             <button type="button" class="btn-tec warning" data-chamar="confirmarReagendar"><i class='bx bx-check'></i> Reagendar</button>
@@ -481,13 +481,14 @@ $statusSimples = function ($st) {
 .obs-tec-card textarea{width:100%;box-sizing:border-box;min-height:90px;padding:11px 12px;border:1px solid rgba(0,0,0,.2);border-radius:10px;font-size:16px;}
 .obs-tec-card .obs-tec-btn{display:block;width:100%;min-height:52px;margin-top:8px;border:0;border-radius:12px;background:var(--tec-primary, #667eea);color:var(--tec-on-primary, #fff);font-size:16px;font-weight:700;}
 .obs-tec-card .obs-tec-btn[disabled]{opacity:.6;}
+.obs-tec-card.hidden{display:none;}
 .obs-tec-item{padding:8px 0;border-bottom:1px solid var(--tec-line, #eee);font-size:14px;word-wrap:break-word;}
 .obs-tec-item small{display:block;color:var(--tec-muted, #777);}
 .obs-tec-msg{font-size:13px;margin-top:6px;color:var(--tec-danger, #c0392b);}
 </style>
 <div class="obs-tec-card<?= empty($checkin_ativo) ? ' hidden' : '' ?>" id="obs-tec-card">
     <h3><i class="bx bx-note"></i> Observações do técnico</h3>
-    <textarea id="obs-tec-texto" maxlength="2000" placeholder="O que você fez / constatou neste atendimento..."></textarea>
+    <textarea class="form-control" id="obs-tec-texto" maxlength="2000" placeholder="O que você fez / constatou neste atendimento..."></textarea>
     <button type="button" class="obs-tec-btn" id="obs-tec-add"><i class="bx bx-plus"></i> Adicionar</button>
     <div class="obs-tec-msg" id="obs-tec-msg" role="alert"></div>
     <div id="obs-tec-lista"></div>

@@ -69,7 +69,7 @@ $this->load->view('tecnico/_topo', [
         <div class="info-card">
             <h3><i class='bx bx-user'></i> Cliente</h3>
             <div class="atv-field atv-ac" id="ac-cliente-wrap">
-                <input type="text" class="atv-input" id="ac-cliente" placeholder="Buscar cliente por nome, telefone ou documento..." autocomplete="off">
+                <input type="text" class="atv-input form-control" id="ac-cliente" placeholder="Buscar cliente por nome, telefone ou documento..." autocomplete="off">
                 <div class="atv-ac-list" id="ac-cliente-list"></div>
                 <div class="atv-hint">Digite ao menos 2 letras para buscar.</div>
             </div>
@@ -87,24 +87,24 @@ $this->load->view('tecnico/_topo', [
             <h3><i class='bx bx-detail'></i> Descrição da Atividade</h3>
             <div class="atv-field">
                 <label>O que será feito</label>
-                <textarea class="atv-input" name="descricaoProduto" placeholder="Descreva o serviço a ser realizado..."></textarea>
+                <textarea class="atv-input form-control" name="descricaoProduto" placeholder="Descreva o serviço a ser realizado..."></textarea>
             </div>
             <div class="atv-field">
                 <label>Defeito / Motivo (opcional)</label>
-                <textarea class="atv-input" name="defeito" placeholder="Defeito relatado ou motivo do atendimento..."></textarea>
+                <textarea class="atv-input form-control" name="defeito" placeholder="Defeito relatado ou motivo do atendimento..."></textarea>
             </div>
             <div class="atv-field">
                 <label id="chamado-rotulo">N&ordm; do chamado (opcional)</label>
-                <input type="text" class="atv-input" name="chamado_id" id="chamado_id" maxlength="60" placeholder="Protocolo informado pelo cliente">
+                <input type="text" class="atv-input form-control" name="chamado_id" id="chamado_id" maxlength="60" placeholder="Protocolo informado pelo cliente">
                 <small id="chamado-aviso" style="display:none;color:var(--tec-danger, #c0392b);">Este cliente exige o N&ordm; do chamado.</small>
             </div>
             <div class="atv-field" style="border:2px solid var(--tec-primary, #667eea);border-radius:12px;padding:10px;">
                 <label><strong>Atividade realizada / observações do técnico</strong></label>
-                <textarea class="atv-input" name="atividade_realizada" rows="4" maxlength="2000" placeholder="Descreva o que foi feito..."></textarea>
+                <textarea class="atv-input form-control" name="atividade_realizada" rows="4" maxlength="2000" placeholder="Descreva o que foi feito..."></textarea>
             </div>
             <div class="atv-field" style="margin-bottom:0;">
                 <label>Observações (opcional)</label>
-                <textarea class="atv-input" name="observacoes" placeholder="Anotações internas..."></textarea>
+                <textarea class="atv-input form-control" name="observacoes" placeholder="Anotações internas..."></textarea>
             </div>
         </div>
 
@@ -112,7 +112,7 @@ $this->load->view('tecnico/_topo', [
         <div class="info-card">
             <h3><i class='bx bx-wrench'></i> Serviços</h3>
             <div class="atv-field atv-ac" id="ac-servico-wrap">
-                <input type="text" class="atv-input" id="ac-servico" placeholder="Buscar serviço..." autocomplete="off">
+                <input type="text" class="atv-input form-control" id="ac-servico" placeholder="Buscar serviço..." autocomplete="off">
                 <div class="atv-ac-list" id="ac-servico-list"></div>
             </div>
             <div id="servicos-lista"><div class="atv-empty" id="servicos-vazio">Nenhum serviço adicionado.</div></div>
@@ -122,7 +122,7 @@ $this->load->view('tecnico/_topo', [
         <div class="info-card">
             <h3><i class='bx bx-package'></i> Produtos</h3>
             <div class="atv-field atv-ac" id="ac-produto-wrap">
-                <input type="text" class="atv-input" id="ac-produto" placeholder="Buscar produto..." autocomplete="off">
+                <input type="text" class="atv-input form-control" id="ac-produto" placeholder="Buscar produto..." autocomplete="off">
                 <div class="atv-ac-list" id="ac-produto-list"></div>
             </div>
             <div id="produtos-lista"><div class="atv-empty" id="produtos-vazio">Nenhum produto adicionado.</div></div>
@@ -133,7 +133,7 @@ $this->load->view('tecnico/_topo', [
             <h3><i class='bx bx-camera'></i> Fotos (opcional)</h3>
             <label class="btn-tec ghost block" style="cursor:pointer;">
                 <i class='bx bx-camera'></i> Tirar ou escolher fotos
-                <input type="file" accept="image/*" multiple data-foto-compacta style="display:none;">
+                <input class="form-control" type="file" accept="image/*" multiple data-foto-compacta style="display:none;">
             </label>
             <div data-foto-preview style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
             <div data-foto-erro role="alert" style="display:none;color:var(--tec-danger, #e74c3c);font-weight:600;margin-top:6px;"></div>
@@ -144,7 +144,7 @@ $this->load->view('tecnico/_topo', [
         <div class="info-card">
             <h3><i class='bx bx-pen'></i> Assinatura do solicitante (opcional)</h3>
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-                <input type="checkbox" id="atv-quer-assinatura" style="width:20px;height:20px;">
+                <input class="form-check-input" type="checkbox" id="atv-quer-assinatura" style="width:20px;height:20px;">
                 <span style="font-weight:600;">Coletar assinatura agora</span>
             </label>
             <div id="atv-assinatura-box" style="display:none;margin-top:8px;">
@@ -153,7 +153,7 @@ $this->load->view('tecnico/_topo', [
                     <canvas id="atv-assinatura-canvas" style="display:block;width:100%;touch-action:none;border-radius:10px;"></canvas>
                 </div>
                 <div class="atv-field" style="margin-top:8px;">
-                    <input type="text" class="atv-input" name="assinatura_nome" maxlength="100" placeholder="Nome de quem assinou (opcional)">
+                    <input type="text" class="atv-input form-control" name="assinatura_nome" maxlength="100" placeholder="Nome de quem assinou (opcional)">
                 </div>
                 <button type="button" class="btn-tec neutral" id="atv-assinatura-limpar"><i class='bx bx-eraser'></i> Limpar assinatura</button>
             </div>

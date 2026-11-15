@@ -1,7 +1,7 @@
 <?php if ($emitente): ?>
-    <div>
+    <div class="clearfix">
         <br>
-        <div style="width: 50%; float: left" class="float-left col-md-3">
+        <div style="width: 50%; float: left" class="float-start col-md-3">
             <?php if(!empty($emitente->url_logo) && file_exists(convertUrlToUploadsPath($emitente->url_logo))) { ?>
                 <img style="width: 150px" src="<?= $emitente->url_logo ?>" alt="<?= html_escape($emitente->nome) ?>"><br><br>
             <?php } else { ?>

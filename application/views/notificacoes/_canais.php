@@ -52,37 +52,37 @@ $editavel = $podeSistema && $envExiste;
             <form action="<?= site_url('notificacoes/salvarEmail') ?>" method="post">
                 <input type="hidden" name="<?= $tokenName ?>" value="<?= $tokenHash ?>">
                 <div class="nt-grade">
-                    <div class="control-group">
+                    <div class="mb-3">
                         <label for="EMAIL_PROTOCOL">Protocolo</label>
-                        <select id="EMAIL_PROTOCOL" name="EMAIL_PROTOCOL">
+                        <select class="form-select" id="EMAIL_PROTOCOL" name="EMAIL_PROTOCOL">
                             <option value="smtp" <?= ($smtp['EMAIL_PROTOCOL'] ?? '') === 'smtp' ? 'selected' : '' ?>>smtp</option>
                             <option value="mail" <?= ($smtp['EMAIL_PROTOCOL'] ?? '') === 'mail' ? 'selected' : '' ?>>mail (função do servidor)</option>
                         </select>
                     </div>
-                    <div class="control-group">
+                    <div class="mb-3">
                         <label for="EMAIL_SMTP_HOST">Servidor (host)</label>
-                        <input type="text" id="EMAIL_SMTP_HOST" name="EMAIL_SMTP_HOST" placeholder="smtp.suaempresa.com" value="<?= $e($smtp['EMAIL_SMTP_HOST'] ?? '') ?>">
+                        <input class="form-control" type="text" id="EMAIL_SMTP_HOST" name="EMAIL_SMTP_HOST" placeholder="smtp.suaempresa.com" value="<?= $e($smtp['EMAIL_SMTP_HOST'] ?? '') ?>">
                     </div>
-                    <div class="control-group">
+                    <div class="mb-3">
                         <label for="EMAIL_SMTP_CRYPTO">Criptografia</label>
                         <?php $cripto = (string) ($smtp['EMAIL_SMTP_CRYPTO'] ?? 'tls'); ?>
-                        <select id="EMAIL_SMTP_CRYPTO" name="EMAIL_SMTP_CRYPTO">
+                        <select class="form-select" id="EMAIL_SMTP_CRYPTO" name="EMAIL_SMTP_CRYPTO">
                             <option value="tls" <?= $cripto === 'tls' ? 'selected' : '' ?>>tls (porta 587)</option>
                             <option value="ssl" <?= $cripto === 'ssl' ? 'selected' : '' ?>>ssl (porta 465)</option>
                             <option value="" <?= ($cripto === '' || $cripto === 'none') ? 'selected' : '' ?>>nenhuma (porta 25)</option>
                         </select>
                     </div>
-                    <div class="control-group">
+                    <div class="mb-3">
                         <label for="EMAIL_SMTP_PORT">Porta</label>
-                        <input type="text" id="EMAIL_SMTP_PORT" name="EMAIL_SMTP_PORT" inputmode="numeric" placeholder="587" value="<?= $e($smtp['EMAIL_SMTP_PORT'] ?? '') ?>">
+                        <input class="form-control" type="text" id="EMAIL_SMTP_PORT" name="EMAIL_SMTP_PORT" inputmode="numeric" placeholder="587" value="<?= $e($smtp['EMAIL_SMTP_PORT'] ?? '') ?>">
                     </div>
-                    <div class="control-group">
+                    <div class="mb-3">
                         <label for="EMAIL_SMTP_USER">Usuário</label>
-                        <input type="text" id="EMAIL_SMTP_USER" name="EMAIL_SMTP_USER" autocomplete="off" placeholder="conta@suaempresa.com" value="<?= $e($smtp['EMAIL_SMTP_USER'] ?? '') ?>">
+                        <input class="form-control" type="text" id="EMAIL_SMTP_USER" name="EMAIL_SMTP_USER" autocomplete="off" placeholder="conta@suaempresa.com" value="<?= $e($smtp['EMAIL_SMTP_USER'] ?? '') ?>">
                     </div>
-                    <div class="control-group">
+                    <div class="mb-3">
                         <label for="EMAIL_SMTP_PASS">Senha</label>
-                        <input type="password" id="EMAIL_SMTP_PASS" name="EMAIL_SMTP_PASS" autocomplete="new-password" placeholder="deixe em branco para manter a atual" value="">
+                        <input class="form-control" type="password" id="EMAIL_SMTP_PASS" name="EMAIL_SMTP_PASS" autocomplete="new-password" placeholder="deixe em branco para manter a atual" value="">
                     </div>
                 </div>
 
@@ -91,14 +91,14 @@ $editavel = $podeSistema && $envExiste;
                         <span class="button__icon"><i class="bx bx-save"></i></span>
                         <span class="button__text2">Salvar e-mail</span>
                     </button>
-                    <input type="email" id="nt_teste_email" placeholder="e-mail para receber o teste">
-                    <button type="button" class="button btn btn-inverse" id="nt_testar_email" data-url="<?= site_url('mapos/testarEmailAnexo') ?>">
+                    <input class="form-control" type="email" id="nt_teste_email" placeholder="e-mail para receber o teste">
+                    <button type="button" class="button btn btn-dark" id="nt_testar_email" data-url="<?= site_url('mapos/testarEmailAnexo') ?>">
                         <span class="button__icon"><i class="bx bx-paper-plane"></i></span>
                         <span class="button__text2">Enviar teste</span>
                     </button>
                     <span class="nt-teste-saida" id="nt_testar_email_saida"></span>
                 </div>
-                <p class="help-block ui-m0 ui-mt">O teste usa as credenciais já salvas. A senha só é trocada quando você digita uma nova.</p>
+                <p class="form-text ui-m0 ui-mt">O teste usa as credenciais já salvas. A senha só é trocada quando você digita uma nova.</p>
             </form>
             <?php } else { ?>
                 <p class="ui-m0">Servidor: <?= $e($smtp['EMAIL_SMTP_HOST'] ?? '—') ?><br>Usuário: <?= $e($smtp['EMAIL_SMTP_USER'] ?? '—') ?></p>
@@ -119,36 +119,36 @@ $editavel = $podeSistema && $envExiste;
             <form action="<?= site_url('notificacoes/salvarWhatsapp') ?>" method="post">
                 <input type="hidden" name="<?= $tokenName ?>" value="<?= $tokenHash ?>">
                 <div class="nt-grade">
-                    <div class="control-group">
+                    <div class="mb-3">
                         <label for="WHATSAPP_EVOLUTION_ENABLED">Envio automático</label>
-                        <select id="WHATSAPP_EVOLUTION_ENABLED" name="WHATSAPP_EVOLUTION_ENABLED">
+                        <select class="form-select" id="WHATSAPP_EVOLUTION_ENABLED" name="WHATSAPP_EVOLUTION_ENABLED">
                             <option value="true" <?= $wppLigado ? 'selected' : '' ?>>Ativado</option>
                             <option value="false" <?= ! $wppLigado ? 'selected' : '' ?>>Desativado</option>
                         </select>
                     </div>
-                    <div class="control-group">
+                    <div class="mb-3">
                         <label for="WHATSAPP_EVOLUTION_URL">URL da instância</label>
-                        <input type="text" id="WHATSAPP_EVOLUTION_URL" name="WHATSAPP_EVOLUTION_URL" placeholder="https://evo.suaempresa.com" value="<?= $e($whatsapp['WHATSAPP_EVOLUTION_URL'] ?? '') ?>">
+                        <input class="form-control" type="text" id="WHATSAPP_EVOLUTION_URL" name="WHATSAPP_EVOLUTION_URL" placeholder="https://evo.suaempresa.com" value="<?= $e($whatsapp['WHATSAPP_EVOLUTION_URL'] ?? '') ?>">
                     </div>
-                    <div class="control-group">
+                    <div class="mb-3">
                         <label for="WHATSAPP_EVOLUTION_APIKEY">API Key</label>
-                        <input type="password" id="WHATSAPP_EVOLUTION_APIKEY" name="WHATSAPP_EVOLUTION_APIKEY" autocomplete="new-password" value="<?= $e($whatsapp['WHATSAPP_EVOLUTION_APIKEY'] ?? '') ?>">
+                        <input class="form-control" type="password" id="WHATSAPP_EVOLUTION_APIKEY" name="WHATSAPP_EVOLUTION_APIKEY" autocomplete="new-password" value="<?= $e($whatsapp['WHATSAPP_EVOLUTION_APIKEY'] ?? '') ?>">
                     </div>
-                    <div class="control-group">
+                    <div class="mb-3">
                         <label for="WHATSAPP_EVOLUTION_INSTANCE">Instância</label>
-                        <input type="text" id="WHATSAPP_EVOLUTION_INSTANCE" name="WHATSAPP_EVOLUTION_INSTANCE" value="<?= $e($whatsapp['WHATSAPP_EVOLUTION_INSTANCE'] ?? '') ?>">
+                        <input class="form-control" type="text" id="WHATSAPP_EVOLUTION_INSTANCE" name="WHATSAPP_EVOLUTION_INSTANCE" value="<?= $e($whatsapp['WHATSAPP_EVOLUTION_INSTANCE'] ?? '') ?>">
                     </div>
-                    <div class="control-group">
+                    <div class="mb-3">
                         <label for="WHATSAPP_EVOLUTION_VERIFY_SSL">Verificar certificado</label>
                         <?php $ssl = notif_env_booleano($whatsapp['WHATSAPP_EVOLUTION_VERIFY_SSL'] ?? 'true'); ?>
-                        <select id="WHATSAPP_EVOLUTION_VERIFY_SSL" name="WHATSAPP_EVOLUTION_VERIFY_SSL">
+                        <select class="form-select" id="WHATSAPP_EVOLUTION_VERIFY_SSL" name="WHATSAPP_EVOLUTION_VERIFY_SSL">
                             <option value="true" <?= $ssl ? 'selected' : '' ?>>Sim (recomendado)</option>
                             <option value="false" <?= ! $ssl ? 'selected' : '' ?>>Não (aceitar certificado inválido)</option>
                         </select>
                     </div>
-                    <div class="control-group">
+                    <div class="mb-3">
                         <label for="WHATSAPP_EVOLUTION_AUTO_STATUS">Status da OS que avisam sozinhos</label>
-                        <input type="text" id="WHATSAPP_EVOLUTION_AUTO_STATUS" name="WHATSAPP_EVOLUTION_AUTO_STATUS" placeholder="Ex.: Finalizado,Faturado" value="<?= $e($whatsapp['WHATSAPP_EVOLUTION_AUTO_STATUS'] ?? '') ?>">
+                        <input class="form-control" type="text" id="WHATSAPP_EVOLUTION_AUTO_STATUS" name="WHATSAPP_EVOLUTION_AUTO_STATUS" placeholder="Ex.: Finalizado,Faturado" value="<?= $e($whatsapp['WHATSAPP_EVOLUTION_AUTO_STATUS'] ?? '') ?>">
                     </div>
                 </div>
 
@@ -157,8 +157,8 @@ $editavel = $podeSistema && $envExiste;
                         <span class="button__icon"><i class="bx bx-save"></i></span>
                         <span class="button__text2">Salvar WhatsApp</span>
                     </button>
-                    <input type="tel" id="nt_teste_numero" placeholder="número com DDI e DDD">
-                    <button type="button" class="button btn btn-inverse" id="nt_testar_wpp" data-url="<?= site_url('whatsapp/testar') ?>">
+                    <input class="form-control" type="tel" id="nt_teste_numero" placeholder="número com DDI e DDD">
+                    <button type="button" class="button btn btn-dark" id="nt_testar_wpp" data-url="<?= site_url('whatsapp/testar') ?>">
                         <span class="button__icon"><i class="bx bx-plug"></i></span>
                         <span class="button__text2">Testar conexão</span>
                     </button>
@@ -168,7 +168,7 @@ $editavel = $podeSistema && $envExiste;
                     </button>
                     <span class="nt-teste-saida" id="nt_testar_wpp_saida"></span>
                 </div>
-                <p class="help-block ui-m0 ui-mt">Salve antes de testar. Sem número, "Testar conexão" só verifica a instância.</p>
+                <p class="form-text ui-m0 ui-mt">Salve antes de testar. Sem número, "Testar conexão" só verifica a instância.</p>
             </form>
             <?php } else { ?>
                 <p class="ui-m0">Instância: <?= $e($whatsapp['WHATSAPP_EVOLUTION_INSTANCE'] ?? '—') ?><br>URL: <?= $e($whatsapp['WHATSAPP_EVOLUTION_URL'] ?? '—') ?></p>
@@ -182,29 +182,29 @@ $editavel = $podeSistema && $envExiste;
 <div class="widget-box ui-mt">
     <div class="widget-content">
         <div class="ui-secao"><h4><i class="bx bx-timer"></i> Disparo automático e avisos de OS</h4></div>
-        <div class="row-fluid">
-            <div class="span5">
+        <div class="row">
+            <div class="col-md-5">
                 <form action="<?= site_url('notificacoes/salvarDespacho') ?>" method="post" class="nt-intervalo">
                     <input type="hidden" name="<?= $tokenName ?>" value="<?= $tokenHash ?>">
-                    <div class="control-group">
+                    <div class="mb-3">
                         <label for="notif_intervalo_disparo">Intervalo do disparo da fila (segundos)</label>
-                        <input type="number" min="30" step="10" id="notif_intervalo_disparo" name="notif_intervalo_disparo" value="<?= (int) $intervalo ?>">
+                        <input class="form-control" type="number" min="30" step="10" id="notif_intervalo_disparo" name="notif_intervalo_disparo" value="<?= (int) $intervalo ?>">
                     </div>
                     <button type="submit" class="button btn btn-primary">
                         <span class="button__icon"><i class="bx bx-save"></i></span>
                         <span class="button__text2">Salvar intervalo</span>
                     </button>
                 </form>
-                <p class="help-block ui-mt">O sistema envia a fila de e-mails sozinho, sem cron externo. Mínimo de 30 segundos.</p>
+                <p class="form-text ui-mt">O sistema envia a fila de e-mails sozinho, sem cron externo. Mínimo de 30 segundos.</p>
             </div>
 
-            <div class="span7">
+            <div class="col-md-7">
                 <form action="<?= site_url('notificacoes/salvarLegado') ?>" method="post">
                     <input type="hidden" name="<?= $tokenName ?>" value="<?= $tokenHash ?>">
                     <div class="nt-grade">
-                        <div class="control-group">
+                        <div class="mb-3">
                             <label for="os_notification">E-mail automático ao abrir/editar a OS</label>
-                            <select id="os_notification" name="os_notification">
+                            <select class="form-select" id="os_notification" name="os_notification">
                                 <option value="todos" <?= $osNotification === 'todos' ? 'selected' : '' ?>>Todos (cliente, técnico e empresa)</option>
                                 <option value="cliente" <?= $osNotification === 'cliente' ? 'selected' : '' ?>>Somente o cliente</option>
                                 <option value="tecnico" <?= $osNotification === 'tecnico' ? 'selected' : '' ?>>Somente o técnico</option>
@@ -212,18 +212,18 @@ $editavel = $podeSistema && $envExiste;
                                 <option value="nenhum" <?= $osNotification === 'nenhum' ? 'selected' : '' ?>>Não enviar</option>
                             </select>
                         </div>
-                        <div class="control-group">
+                        <div class="mb-3">
                             <label for="email_automatico">Envio automático no cadastro de OS</label>
-                            <select id="email_automatico" name="email_automatico">
+                            <select class="form-select" id="email_automatico" name="email_automatico">
                                 <option value="1" <?= (string) $emailAutomatico === '1' ? 'selected' : '' ?>>Ativado</option>
                                 <option value="0" <?= (string) $emailAutomatico !== '1' ? 'selected' : '' ?>>Desativado</option>
                             </select>
                         </div>
                     </div>
-                    <div class="control-group">
+                    <div class="mb-3">
                         <label for="notifica_whats">Texto do botão "Enviar por WhatsApp" (link wa.me)</label>
-                        <textarea id="notifica_whats" name="notifica_whats" rows="4" style="width:100%;box-sizing:border-box" placeholder="Prezado(a), {CLIENTE_NOME}..."><?= $e($notificaWhats) ?></textarea>
-                        <span class="help-block">
+                        <textarea class="form-control" id="notifica_whats" name="notifica_whats" rows="4" style="width:100%;box-sizing:border-box" placeholder="Prezado(a), {CLIENTE_NOME}..."><?= $e($notificaWhats) ?></textarea>
+                        <span class="form-text">
                             Tags: {CLIENTE_NOME}, {NUMERO_OS}, {STATUS_OS}, {VALOR_OS}, {DESCRI_PRODUTOS}, {EMITENTE},
                             {TELEFONE_EMITENTE}, {OBS_OS}, {DEFEITO_OS}, {LAUDO_OS}, {DATA_FINAL}, {DATA_INICIAL},
                             {DATA_GARANTIA}, {LINK_ACOMPANHAR}. Formatação: *negrito*, _itálico_, ~riscado~.

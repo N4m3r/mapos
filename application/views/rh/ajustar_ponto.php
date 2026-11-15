@@ -3,7 +3,7 @@ $this->load->view('rh/_subnav', ['ativo' => 'colaboradores']);
 $lblTipo = ['entrada'=>'Entrada','saida'=>'Saída','inicio_intervalo'=>'Início intervalo','fim_intervalo'=>'Fim intervalo'];
 $diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 ?>
-<div class="new122">
+<div class="new122 row">
     <div class="ui-cabecalho">
         <div>
             <h1 class="ui-titulo"><i class="bx bx-edit"></i> Ajustar ponto</h1>
@@ -11,9 +11,9 @@ $diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
         </div>
     </div>
 
-    <div class="span12" style="margin-left:0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
-        <input type="month" value="<?= $competencia ?>" data-ao-mudar-ir="<?= site_url('rh/ajustarPonto/'.$colaborador->id) ?>/">
-        <a href="#modal-batida" data-toggle="modal" role="button" class="button btn btn-mini btn-success" data-chamar="novaBatida">
+    <div class="col-md-12" style="margin-left:0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <input class="form-control" type="month" value="<?= $competencia ?>" data-ao-mudar-ir="<?= site_url('rh/ajustarPonto/'.$colaborador->id) ?>/">
+        <a href="#modal-batida" data-bs-toggle="modal" role="button" class="button btn btn-sm btn-success" data-chamar="novaBatida">
             <span class="button__icon"><i class='bx bx-plus-circle'></i></span><span class="button__text2"> Batida manual</span>
         </a>
     </div>
@@ -27,7 +27,7 @@ $diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
             <?php else: foreach ($registros as $r):
                 $ts = strtotime($r->data_hora);
                 $dtLocal = date('Y-m-d\TH:i', $ts); ?>
-                <tr class="<?= $r->status === 'rejeitado' ? 'text-error' : '' ?>">
+                <tr class="<?= $r->status === 'rejeitado' ? 'table-danger' : '' ?>">
                     <td><?= date('d/m', $ts) ?> <small><?= $diasSemana[(int)date('w',$ts)] ?></small></td>
                     <td><strong><?= date('H:i', $ts) ?></strong></td>
                     <td><?= $lblTipo[$r->tipo] ?? $r->tipo ?></td>
@@ -43,47 +43,49 @@ $diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
                         <?php if ($r->face_score !== null): ?><br><small>facial <?= number_format($r->face_score,2) ?></small><?php endif; ?>
                     </td>
                     <td style="white-space:nowrap">
-                        <a href="#modal-batida" data-toggle="modal" role="button" class="btn-nwe3" title="Editar" aria-label="Editar"
+                        <a href="#modal-batida" data-bs-toggle="modal" role="button" class="btn-nwe3" title="Editar" aria-label="Editar"
                            data-chamar="editarBatida" data-args="<?= html_escape(json_encode([["id"=>$r->id,"dt"=>$dtLocal,"tipo"=>$r->tipo,"status"=>$r->status]])) ?>"><i class="bx bx-edit bx-xs"></i></a>
-                        <a href="#modal-excluir-b" data-toggle="modal" role="button" reg="<?= $r->id ?>" class="btn-nwe4" title="Excluir" aria-label="Excluir"><i class="bx bx-trash-alt bx-xs"></i></a>
+                        <a href="#modal-excluir-b" data-bs-toggle="modal" role="button" reg="<?= $r->id ?>" class="btn-nwe4" title="Excluir" aria-label="Excluir"><i class="bx bx-trash-alt bx-xs"></i></a>
                     </td>
                 </tr>
             <?php endforeach; endif; ?>
             </tbody>
         </table>
     </div></div>
+    <div class="col-12 d-flex flex-wrap gap-2">
     <a href="<?= site_url('rh/ficha/'.$colaborador->id) ?>" class="button btn btn-warning"><span class="button__text2">Voltar à ficha</span></a>
-    <a href="<?= site_url('rh/espelho/'.$colaborador->id.'/'.$competencia) ?>" class="button btn btn-inverse"><span class="button__text2">Ver espelho</span></a>
+    <a href="<?= site_url('rh/espelho/'.$colaborador->id.'/'.$competencia) ?>" class="button btn btn-dark"><span class="button__text2">Ver espelho</span></a>
+    </div>
 </div>
 
 <!-- Modal criar/editar batida -->
-<div id="modal-batida" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-batida" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form id="form-batida" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5 id="b-titulo">Batida</h5></div>
+        <div class="modal-header"><h5 id="b-titulo">Batida</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <input type="hidden" name="id" id="b-id">
             <input type="hidden" name="colaborador_id" value="<?= $colaborador->id ?>">
             <input type="hidden" name="competencia" value="<?= $competencia ?>">
-            <label>Data e hora</label><input type="datetime-local" name="data_hora" id="b-dt" class="span12" required>
+            <label>Data e hora</label><input type="datetime-local" name="data_hora" id="b-dt" class="w-100 form-control" required>
             <label>Tipo</label>
-            <select name="tipo" id="b-tipo" class="span12">
+            <select name="tipo" id="b-tipo" class="w-100 form-select">
                 <option value="entrada">Entrada</option><option value="inicio_intervalo">Início do intervalo</option>
                 <option value="fim_intervalo">Fim do intervalo</option><option value="saida">Saída</option>
             </select>
             <div id="b-status-wrap" style="display:none">
                 <label>Situação</label>
-                <select name="status" id="b-status" class="span12">
+                <select name="status" id="b-status" class="w-100 form-select">
                     <option value="ajustado">Ajustado</option><option value="valido">Válido</option><option value="rejeitado">Rejeitado (desconsiderar)</option>
                 </select>
             </div>
         </div>
         <div class="modal-footer"><button class="button btn btn-success"><span class="button__text2">Salvar</span></button></div>
     </form>
-</div>
+</div></div></div>
 
-<div id="modal-excluir-b" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+<div id="modal-excluir-b" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
     <form action="<?= site_url('rh/excluirBatida') ?>" method="post">
-        <div class="modal-header"><button type="button" class="close" data-dismiss="modal">×</button><h5>Excluir batida</h5></div>
+        <div class="modal-header"><h5>Excluir batida</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
         <div class="modal-body">
             <input type="hidden" id="b-del-id" name="id">
             <input type="hidden" name="colaborador_id" value="<?= $colaborador->id ?>">
@@ -92,7 +94,7 @@ $diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
         </div>
         <div class="modal-footer"><button class="button btn btn-danger"><span class="button__text2">Excluir</span></button></div>
     </form>
-</div>
+</div></div></div>
 <script nonce="<?= csp_nonce() ?>">
 var URL_ADD = '<?= site_url('rh/registrarPontoManual') ?>';
 var URL_EDIT = '<?= site_url('rh/editarBatida') ?>';

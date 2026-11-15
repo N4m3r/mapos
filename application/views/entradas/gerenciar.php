@@ -1,8 +1,8 @@
 <?php
 $fmt = fn ($v) => number_format((float) $v, 2, ',', '.');
 ?>
-<div class="row-fluid" style="margin-top:0">
-    <div class="span12">
+<div class="row" style="margin-top:0">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="widget-content" style="padding: 16px">
                 <div class="ui-cabecalho">
@@ -29,7 +29,7 @@ $fmt = fn ($v) => number_format((float) $v, 2, ',', '.');
                 <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-bottom:14px">
                     <form action="<?= site_url('entradas') ?>" method="get" style="margin:0">
                         <label style="font-size:12px;color:#666;display:block">Competência (AAAA-MM)</label>
-                        <input type="month" name="competencia" value="<?= html_escape($competencia) ?>" data-ao-mudar="enviar" />
+                        <input class="form-control" type="month" name="competencia" value="<?= html_escape($competencia) ?>" data-ao-mudar="enviar" />
                         <?php if ($competencia) { ?><a href="<?= site_url('entradas') ?>" class="hint" style="margin-left:6px">limpar</a><?php } ?>
                     </form>
                     <button type="button" class="button btn btn-success" data-chamar="toggleBox" data-args='["boxImportar"]'>
@@ -47,7 +47,7 @@ $fmt = fn ($v) => number_format((float) $v, 2, ',', '.');
                 <div id="boxImportar" style="display:none;border:1px solid #eee;padding:12px;border-radius:6px;margin-bottom:14px">
                     <?= form_open_multipart('entradas/importar') ?>
                         <h5 style="margin-top:0">Importar NF-e de compra (XML)</h5>
-                        <input type="file" name="xml[]" accept=".xml" multiple required />
+                        <input class="form-control" type="file" name="xml[]" accept=".xml" multiple required />
                         <span class="hint">Selecione um ou vários XMLs de NF-e recebidas. A chave duplicada é ignorada automaticamente.</span>
                         <div style="margin-top:10px">
                             <button type="submit" class="button btn btn-success">
@@ -62,22 +62,22 @@ $fmt = fn ($v) => number_format((float) $v, 2, ',', '.');
                     <?= form_open('entradas/salvarManual') ?>
                         <h5 style="margin-top:0">Lançar entrada manual (ex.: serviço sem XML)</h5>
                         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
-                            <label>Fornecedor*<input type="text" name="emitente_nome" required /></label>
-                            <label>CNPJ/CPF<input type="text" name="emitente_cnpj" /></label>
-                            <label>Nº<input type="text" name="numero" /></label>
-                            <label>Série<input type="text" name="serie" /></label>
-                            <label>Data emissão*<input type="date" name="data_emissao" value="<?= date('Y-m-d') ?>" required /></label>
-                            <label>Valor total<input type="text" name="valor_total" placeholder="0,00" /></label>
-                            <label>Base IBS/CBS<input type="text" name="v_bc_ibscbs" placeholder="0,00" /></label>
-                            <label>Crédito IBS<input type="text" name="v_ibs" placeholder="0,00" /></label>
-                            <label>Crédito CBS<input type="text" name="v_cbs" placeholder="0,00" /></label>
-                            <label>Créd. presumido ZFM<input type="text" name="v_cred_pres_zfm" placeholder="0,00" /></label>
-                            <label>Data de pagamento<input type="date" name="data_pagamento" /></label>
+                            <label>Fornecedor*<input class="form-control" type="text" name="emitente_nome" required /></label>
+                            <label>CNPJ/CPF<input class="form-control" type="text" name="emitente_cnpj" /></label>
+                            <label>Nº<input class="form-control" type="text" name="numero" /></label>
+                            <label>Série<input class="form-control" type="text" name="serie" /></label>
+                            <label>Data emissão*<input class="form-control" type="date" name="data_emissao" value="<?= date('Y-m-d') ?>" required /></label>
+                            <label>Valor total<input class="form-control" type="text" name="valor_total" placeholder="0,00" /></label>
+                            <label>Base IBS/CBS<input class="form-control" type="text" name="v_bc_ibscbs" placeholder="0,00" /></label>
+                            <label>Crédito IBS<input class="form-control" type="text" name="v_ibs" placeholder="0,00" /></label>
+                            <label>Crédito CBS<input class="form-control" type="text" name="v_cbs" placeholder="0,00" /></label>
+                            <label>Créd. presumido ZFM<input class="form-control" type="text" name="v_cred_pres_zfm" placeholder="0,00" /></label>
+                            <label>Data de pagamento<input class="form-control" type="date" name="data_pagamento" /></label>
                         </div>
                         <label style="display:inline-flex;align-items:center;gap:6px;margin-top:8px">
-                            <input type="checkbox" name="credita" value="1" checked /> Aproveitar este crédito
+                            <input class="form-check-input" type="checkbox" name="credita" value="1" checked /> Aproveitar este crédito
                         </label>
-                        <div style="margin-top:6px"><label>Observação<input type="text" name="observacao" style="width:100%" /></label></div>
+                        <div style="margin-top:6px"><label>Observação<input class="form-control" type="text" name="observacao" style="width:100%" /></label></div>
                         <div style="margin-top:10px">
                             <button type="submit" class="button btn btn-primary">
                                 <span class="button__icon"><i class="bx bx-save"></i></span><span class="button__text2">Salvar entrada</span>
@@ -140,7 +140,7 @@ $fmt = fn ($v) => number_format((float) $v, 2, ',', '.');
                                     </td>
                                     <td style="text-align:center">
                                         <?= form_open('entradas/pagamento/' . $e->idEntrada, ['style' => 'margin:0']) ?>
-                                            <input type="date" name="data_pagamento" value="<?= html_escape($e->data_pagamento) ?>" data-ao-mudar="enviar" aria-label="Data de pagamento" style="width:130px;margin:0" />
+                                            <input class="form-control" type="date" name="data_pagamento" value="<?= html_escape($e->data_pagamento) ?>" data-ao-mudar="enviar" aria-label="Data de pagamento" style="width:130px;margin:0" />
                                         <?= form_close() ?>
                                         <?php if ($e->credita && !$e->data_pagamento) { ?><small style="color:#b36b00">crédito pendente de pagamento</small><?php } ?>
                                     </td>

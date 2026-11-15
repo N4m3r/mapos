@@ -41,17 +41,17 @@ window.CheckinFormularios = (function () {
 
         switch (campo.tipo) {
             case 'textarea':
-                html += '<textarea class="span12 fa-input" rows="3"' + ph + '>' + esc(valor) + '</textarea>';
+                html += '<textarea class="form-control fa-input" rows="3"' + ph + '>' + esc(valor) + '</textarea>';
                 break;
             case 'select':
-                html += '<select class="span12 fa-input"><option value="">-- selecione --</option>';
+                html += '<select class="form-control fa-input"><option value="">-- selecione --</option>';
                 opcoes.forEach(function (o) {
                     html += '<option value="' + esc(o) + '"' + (valor === String(o) ? ' selected' : '') + '>' + esc(o) + '</option>';
                 });
                 html += '</select>';
                 break;
             case 'sim_nao':
-                html += '<select class="span12 fa-input"><option value="">--</option>';
+                html += '<select class="form-control fa-input"><option value="">--</option>';
                 ['Sim', 'Não'].forEach(function (o) {
                     html += '<option value="' + o + '"' + (valor === o ? ' selected' : '') + '>' + o + '</option>';
                 });
@@ -59,33 +59,33 @@ window.CheckinFormularios = (function () {
                 break;
             case 'radio':
                 opcoes.forEach(function (o) {
-                    html += '<label class="radio inline"><input type="radio" class="fa-input" name="fa_radio_' + id + '" value="' + esc(o) + '"' + (valor === String(o) ? ' checked' : '') + '> ' + esc(o) + '</label>';
+                    html += '<label class="form-check form-check-inline"><input type="radio" class="form-check-input fa-input" name="fa_radio_' + id + '" value="' + esc(o) + '"' + (valor === String(o) ? ' checked' : '') + '> ' + esc(o) + '</label>';
                 });
                 break;
             case 'checkbox':
                 var marcados = valor ? valor.split(',').map(function (s) { return s.trim(); }) : [];
                 opcoes.forEach(function (o) {
                     var chk = marcados.indexOf(String(o)) !== -1 ? ' checked' : '';
-                    html += '<label class="checkbox inline"><input type="checkbox" class="fa-input" value="' + esc(o) + '"' + chk + '> ' + esc(o) + '</label>';
+                    html += '<label class="form-check form-check-inline"><input type="checkbox" class="form-check-input fa-input" value="' + esc(o) + '"' + chk + '> ' + esc(o) + '</label>';
                 });
                 break;
             case 'number':
-                html += '<input type="number" class="span12 fa-input"' + ph + ' value="' + esc(valor) + '">';
+                html += '<input type="number" class="form-control fa-input"' + ph + ' value="' + esc(valor) + '">';
                 break;
             case 'date':
-                html += '<input type="date" class="span12 fa-input" value="' + esc(valor) + '">';
+                html += '<input type="date" class="form-control fa-input" value="' + esc(valor) + '">';
                 break;
             case 'time':
-                html += '<input type="time" class="span12 fa-input" value="' + esc(valor) + '">';
+                html += '<input type="time" class="form-control fa-input" value="' + esc(valor) + '">';
                 break;
             case 'email':
-                html += '<input type="email" class="span12 fa-input"' + ph + ' value="' + esc(valor) + '">';
+                html += '<input type="email" class="form-control fa-input"' + ph + ' value="' + esc(valor) + '">';
                 break;
             case 'tel':
-                html += '<input type="tel" class="span12 fa-input"' + ph + ' value="' + esc(valor) + '">';
+                html += '<input type="tel" class="form-control fa-input"' + ph + ' value="' + esc(valor) + '">';
                 break;
             default: // texto
-                html += '<input type="text" class="span12 fa-input"' + ph + ' value="' + esc(valor) + '">';
+                html += '<input type="text" class="form-control fa-input"' + ph + ' value="' + esc(valor) + '">';
         }
 
         if (campo.ajuda) {

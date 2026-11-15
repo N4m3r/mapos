@@ -36,7 +36,7 @@ $labelsTipo = [
     <?php if (count($unidades) > 0): ?>
     <div style="margin-top:12px">
         <label style="font-size:13px;color:#6b7280">Local de trabalho</label>
-        <select id="unidade" class="span12" style="width:100%">
+        <select id="unidade" class="w-100 form-select" style="width:100%">
             <?php foreach ($unidades as $u): ?>
                 <option value="<?= $u->id ?>"
                     data-lat="<?= $u->latitude ?>" data-lng="<?= $u->longitude ?>" data-raio="<?= $u->raio_metros ?>"
@@ -51,7 +51,7 @@ $labelsTipo = [
     <?php if (! empty($minhas_os)): ?>
     <div style="margin-top:12px">
         <label style="font-size:13px;color:#6b7280"><i class='bx bx-wrench'></i> Vincular a uma OS (atendimento em campo)</label>
-        <select id="os-vinculo" class="span12" style="width:100%">
+        <select id="os-vinculo" class="w-100 form-select" style="width:100%">
             <option value="">— Não, ponto normal —</option>
             <?php foreach ($minhas_os as $os): ?>
                 <option value="<?= $os->idOs ?>">OS #<?= sprintf('%04d', $os->idOs) ?> — <?= htmlspecialchars($os->nomeCliente ?: 'Cliente') ?> (<?= htmlspecialchars($os->status) ?>)</option>
@@ -64,7 +64,7 @@ $labelsTipo = [
     <?php if (! empty($minhas_obras)): ?>
     <div style="margin-top:12px">
         <label style="font-size:13px;color:#6b7280"><i class='bx bx-building-house'></i> Vincular a uma Obra (canteiro)</label>
-        <select id="obra-vinculo" class="span12" style="width:100%">
+        <select id="obra-vinculo" class="w-100 form-select" style="width:100%">
             <option value="">— Não, ponto normal —</option>
             <?php foreach ($minhas_obras as $ob): ?>
                 <option value="<?= $ob->idObra ?>"><?= htmlspecialchars($ob->nome) ?> (<?= htmlspecialchars(str_replace('_', ' ', $ob->status)) ?>)</option>

@@ -12,7 +12,7 @@
 
 .pa-painel { max-width: 860px; }
 .pa-titulo { font-size: 20px; margin: 4px 0 16px; font-weight: 600; }
-.pa-painel .control-group { margin-bottom: 16px; }
+.pa-painel .mb-3 { margin-bottom: 16px !important; }
 .pa-painel label { display: block; margin-bottom: 4px; font-weight: 600; }
 .pa-campo, .pa-painel input[type=text], .pa-painel input[type=number], .pa-painel select { width: 100%; box-sizing: border-box; min-height: 40px; }
 .pa-painel textarea { width: 100%; box-sizing: border-box; }

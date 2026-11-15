@@ -10,7 +10,7 @@ $tabela = function (array $linhas) use ($fmt) {
 
         return;
     }
-    echo '<div class="ui-tabela-rolagem"><table class="table table-bordered table-condensed"><thead><tr><th>Documento</th><th>Número</th><th>Data</th><th>IBS estadual</th><th>IBS municipal</th><th>CBS</th><th>Créd. presumido ZFM</th></tr></thead><tbody>';
+    echo '<div class="ui-tabela-rolagem"><table class="table table-bordered table-sm"><thead><tr><th>Documento</th><th>Número</th><th>Data</th><th>IBS estadual</th><th>IBS municipal</th><th>CBS</th><th>Créd. presumido ZFM</th></tr></thead><tbody>';
     foreach ($linhas as $l) {
         echo '<tr><td>' . html_escape($l['documento']) . '</td><td>' . html_escape($l['numero']) . '</td><td>' . html_escape($l['data'])
             . '</td><td>' . $fmt($l['v_ibs_uf'] ?? 0) . '</td><td>' . $fmt($l['v_ibs_mun'] ?? 0) . '</td><td>' . $fmt($l['v_cbs'] ?? 0) . '</td><td>' . $fmt($l['v_zfm'] ?? 0) . '</td></tr>';
@@ -36,8 +36,8 @@ $quadro = function ($t) use ($fmt) {
         .apu-quadro { background: #fff !important; color: #000 !important; border-color: #888 !important; }
     }
 </style>
-<div class="row-fluid" style="margin-top:0">
-    <div class="span12">
+<div class="row" style="margin-top:0">
+    <div class="col-md-12">
         <div class="widget-box">
             <div class="widget-content" style="padding: 16px">
                 <div class="ui-cabecalho">
@@ -50,7 +50,7 @@ $quadro = function ($t) use ($fmt) {
                 <div class="apu-noprint" style="display:flex;gap:10px;align-items:flex-end;margin-bottom:14px;flex-wrap:wrap">
                     <form action="<?= site_url('entradas/apuracao') ?>" method="get" style="margin:0">
                         <label style="font-size:12px;color:#666;display:block">Mês</label>
-                        <input type="month" name="competencia" value="<?= html_escape($competencia) ?>" data-ao-mudar="enviar" />
+                        <input class="form-control" type="month" name="competencia" value="<?= html_escape($competencia) ?>" data-ao-mudar="enviar" />
                     </form>
                     <a href="<?= site_url('entradas/apuracaoCsv?competencia=' . urlencode($competencia)) ?>" class="button btn btn-success">
                         <span class="button__icon"><i class="bx bx-download"></i></span><span class="button__text2">Baixar CSV</span>

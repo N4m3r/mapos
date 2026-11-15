@@ -122,7 +122,7 @@ class Relatorioatendimentos extends MY_Controller
                 'status' => $atendimento->data_saida ?
                     '<span class="ui-selo sucesso">Finalizado</span>' :
                     '<span class="ui-selo alerta">Em andamento</span>',
-                'acoes' => '<a href="' . site_url('os/visualizar/' . (int) $atendimento->os_id) . '" class="btn btn-mini" title="Ver OS" aria-label="Ver OS"><i class="bx bx-show"></i> Ver OS</a>'
+                'acoes' => '<a href="' . site_url('os/visualizar/' . (int) $atendimento->os_id) . '" class="btn btn-sm btn-outline-secondary" title="Ver OS" aria-label="Ver OS"><i class="bx bx-show"></i> Ver OS</a>'
             ];
         }
 

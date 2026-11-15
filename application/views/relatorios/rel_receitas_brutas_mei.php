@@ -8,8 +8,8 @@
 </div>
 <div class="ui-dica"><i class="bx bx-info-circle"></i><div>Os relatórios abrem em uma nova aba. Use os rápidos para o caso comum ou os customizáveis para filtrar; escolha PDF para imprimir ou XLS para planilha.</div></div>
 
-<div class="row-fluid" style="margin-top: 0">
-    <div class="span4">
+<div class="row" style="margin-top: 0">
+    <div class="col-md-4">
         <div class="widget-box">
             <div class="widget-title">
                 <span class="icon">
@@ -26,7 +26,7 @@
         </div>
     </div>
 
-    <div class="span8">
+    <div class="col-md-8">
         <div class="widget-box">
             <div class="widget-title">
                 <span class="icon">
@@ -35,33 +35,33 @@
                 <h5>Relatórios Customizáveis</h5>
             </div>
             <div class="widget-content">
-                <form target="_blank" action="<?php echo base_url() ?>index.php/relatorios/receitasBrutasCustom" method="get">
-                    <div class="span12 well">
-                        <div class="span6">
+                <form class="row" target="_blank" action="<?php echo base_url() ?>index.php/relatorios/receitasBrutasCustom" method="get">
+                    <div class="col-md-12 card card-body"><div class="row">
+                        <div class="col-md-6">
                             <label for="">Data de ocorrência de:</label>
-                            <input type="date" name="dataInicial" class="span12" />
+                            <input type="date" name="dataInicial" class="w-100 form-control" />
                         </div>
-                        <div class="span6">
+                        <div class="col-md-6">
                             <label for="">até:</label>
-                            <input type="date" name="dataFinal" class="span12" />
+                            <input type="date" name="dataFinal" class="w-100 form-control" />
                         </div>
-                    </div>
+                    </div></div>
 
-                    <div class="span12 well" style="margin-left: 0">
-                        <div class="span12">
+                    <div class="col-md-12 card card-body" style="margin-left: 0"><div class="row">
+                        <div class="col-md-12">
                             <label for="">Tipo de impressão:</label>
-                            <select name="format" class="span12">
+                            <select name="format" class="w-100 form-select">
                                 <option value="pdf">PDF</option>
                                 <option value="docx">DOCX</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="span12" style="display:flex;justify-content: center">
+                    </div></div>
+                    <div class="col-md-12" style="display:flex;justify-content: center">
                         <button type="reset" class="button btn btn-warning">
                             <span class="button__icon"><i class="bx bx-brush-alt"></i></span>
                             <span class="button__text">Limpar</span>
                         </button>
-                        <button class="button btn btn-inverse">
+                        <button class="button btn btn-dark">
                             <span class="button__icon"><i class="bx bx-printer"></i></span>
                             <span class="button__text">Imprimir</span>
                         </button>
@@ -70,7 +70,6 @@
             </div>
         </div>
     </div>
-</div>
 </div>
 <script nonce="<?= csp_nonce() ?>" src="<?php echo base_url(); ?>assets/js/maskmoney.js"></script>
 <script nonce="<?= csp_nonce() ?>" type="text/javascript" src="<?php echo base_url() ?>assets/js/jquery-ui/js/jquery-ui-1.9.2.custom.js"></script>

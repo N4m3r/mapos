@@ -15,7 +15,7 @@ $numero = static function ($valor) {
     return rtrim(rtrim(number_format((float) $valor, 3, ',', '.'), '0'), ',');
 };
 ?>
-<div class="ui-tabela-rolagem"><table class="table table-bordered table-condensed">
+<div class="ui-tabela-rolagem"><table class="table table-bordered table-sm">
     <thead>
         <tr>
             <th style="width:130px">Data</th>

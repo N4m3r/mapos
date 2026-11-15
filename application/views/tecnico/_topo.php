@@ -31,7 +31,7 @@ $voltar_url   = isset($voltar_url) ? $voltar_url : null;
     <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/pwa-tecnico.js') ?>?v=<?= asset_versao('assets/js/pwa-tecnico.js') ?>"></script>
     <title><?= html_escape(isset($titulo) ? (string) $titulo : 'Área do Técnico') ?></title>
     <link rel="shortcut icon" type="image/png" href="<?= base_url('assets/img/favicon.png') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/css/bootstrap.min.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/bootstrap.min.css') ?>?v=<?= asset_versao('assets/css/bootstrap.min.css') ?>">
     <link href="<?= base_url('assets/boxicons/css/boxicons.min.css') ?>" rel="stylesheet">
     <link rel="stylesheet" href="<?= base_url('assets/css/tecnico.css') ?>?v=<?= asset_versao('assets/css/tecnico.css', '4') ?>">
     <script nonce="<?= csp_nonce() ?>" src="<?= base_url('assets/js/acoes.js') ?>?v=<?= asset_versao('assets/js/acoes.js') ?>"></script>
