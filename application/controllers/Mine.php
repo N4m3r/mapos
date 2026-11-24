@@ -216,7 +216,8 @@ class Mine extends CI_Controller
             $this->load->model('resetSenhas_model', '', true);
             $data = [
                 'email' => $cliente->email,
-                'token' => random_string('alnum', 32),
+                // random_string() usa mt_rand (previsivel); o token precisa de CSPRNG.
+                'token' => bin2hex(random_bytes(16)),
                 'data_expiracao' => date('Y-m-d H:i:s'),
             ];
             if ($this->resetSenhas_model->add('resets_de_senha', $data) == true) {
@@ -1298,7 +1299,7 @@ class Mine extends CI_Controller
 
         if ($this->form_validation->run('clientes') == false) {
             $this->data['custom_error'] = (validation_errors() ? '<div class="form_error">' . validation_errors() . '</div>' : false);
-        } elseif (strtolower($this->input->post('captcha')) != strtolower($this->session->userdata('captchaWord'))) {
+        } elseif (! $this->captchaConfere($this->input->post('captcha'))) {
             $this->session->set_flashdata('error', 'Os caracteres da imagem não foram preenchidos corretamente!');
         } else {
             $data = [
@@ -1542,6 +1543,18 @@ class Mine extends CI_Controller
         }
     }
 
+    /**
+     * Confere o captcha e o descarta (uso unico). Sem palavra na sessao -- quem
+     * nunca carregou a imagem -- recusa: antes captcha vazio == sessao vazia passava.
+     */
+    private function captchaConfere($digitado)
+    {
+        $esperado = strtolower((string) $this->session->userdata('captchaWord'));
+        $this->session->unset_userdata('captchaWord');
+
+        return $esperado !== '' && hash_equals($esperado, strtolower(trim((string) $digitado)));
+    }
+
     public function captcha()
     {
         header('Content-type: image/jpeg');
@@ -1549,7 +1562,8 @@ class Mine extends CI_Controller
         $arrFont = ['font-ZXX_Noise.otf', 'font-karabine.ttf', 'font-capture.ttf', 'font-captcha.ttf'];
         shuffle($arrFont);
 
-        $codigoCaptcha = substr(md5(time()), 0, 7);
+        // md5(time()) era calculavel por quem soubesse a hora do pedido.
+        $codigoCaptcha = substr(bin2hex(random_bytes(4)), 0, 7);
         $img = imagecreatefromjpeg('./assets/img/captcha_bg.jpg');
         $corCaptcha = imagecolorallocate($img, 255, 0, 0);
         $font = './assets/font-awesome/' . $arrFont[0];

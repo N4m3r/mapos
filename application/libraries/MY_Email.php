@@ -163,7 +163,7 @@ class MY_Email extends CI_Email
             $cc = ! empty($email->cc) ? explode(', ', $email->cc) : [];
             $bcc = ! empty($email->bcc) ? explode(', ', $email->bcc) : [];
 
-            $this->_headers = unserialize($email->headers);
+            $this->_headers = unserialize((string) $email->headers, ['allowed_classes' => false]);
             $this->alinharRemetente();
 
             $this->to($recipients);

@@ -62,6 +62,13 @@ class Os extends MY_Controller
         $permissao = $this->session->userdata('permissao');
         $idUsuario = $this->session->userdata('id_admin');
 
+        // Sem vOs nem vTecnicoOS a lista nao abre (antes listava tudo para qualquer login).
+        if (! $this->permission->checkPermission($permissao, 'vOs')
+            && ! $this->permission->checkPermission($permissao, 'vTecnicoOS')) {
+            $this->session->set_flashdata('error', 'Você não tem permissão para visualizar ordens de serviço.');
+            redirect(base_url());
+        }
+
         // Se tem permissão de técnico específica mas NÃO tem permissão de OS geral (eOs)
         if ($this->permission->checkPermission($permissao, 'vTecnicoOS') &&
             !$this->permission->checkPermission($permissao, 'eOs')) {
@@ -71,8 +78,13 @@ class Os extends MY_Controller
         $this->data['configuration']['base_url'] = site_url('os/gerenciar/');
         $this->data['configuration']['total_rows'] = $this->os_model->count('os');
         if(count($where_array) > 0) {
-            $this->data['configuration']['suffix'] = "?pesquisa={$pesquisa}&status={$status}&data={$inputDe}&data2={$inputAte}&obra_id={$filtroObra}&chamado=" . rawurlencode($filtroChamado);
-            $this->data['configuration']['first_url'] = base_url("index.php/os/gerenciar")."\?pesquisa={$pesquisa}&status={$status}&data={$inputDe}&data2={$inputAte}&obra_id={$filtroObra}&chamado=" . rawurlencode($filtroChamado);
+            // Valores do usuario codificados: a query string vai para o href da paginacao.
+            $qs = '?' . http_build_query([
+                'pesquisa' => (string) $pesquisa, 'status' => (string) $status, 'data' => (string) $inputDe,
+                'data2' => (string) $inputAte, 'obra_id' => $filtroObra, 'chamado' => $filtroChamado,
+            ]);
+            $this->data['configuration']['suffix'] = $qs;
+            $this->data['configuration']['first_url'] = base_url('index.php/os/gerenciar') . $qs;
         }
 
         $this->pagination->initialize($this->data['configuration']);
@@ -893,6 +905,7 @@ class Os extends MY_Controller
 
     public function autoCompleteProduto()
     {
+        $this->precisaAlgumaJson(['aOs', 'eOs', 'vOs']);
         if (isset($_GET['term'])) {
             $q = strtolower($_GET['term']);
             $this->os_model->autoCompleteProduto($q);
@@ -901,6 +914,7 @@ class Os extends MY_Controller
 
     public function autoCompleteProdutoSaida()
     {
+        $this->precisaAlgumaJson(['aOs', 'eOs', 'vOs', 'aVenda', 'eVenda']);
         if (isset($_GET['term'])) {
             $q = strtolower($_GET['term']);
             $this->os_model->autoCompleteProdutoSaida($q);
@@ -909,6 +923,7 @@ class Os extends MY_Controller
 
     public function autoCompleteCliente()
     {
+        $this->precisaAlgumaJson(['vOs', 'aOs', 'eOs', 'rOs', 'rVenda']);
         if (isset($_GET['term'])) {
             $q = strtolower($_GET['term']);
             $this->os_model->autoCompleteCliente($q);
@@ -917,6 +932,7 @@ class Os extends MY_Controller
 
     public function autoCompleteUsuario()
     {
+        $this->precisaAlgumaJson(['vOs', 'aOs', 'eOs', 'rOs', 'rVenda']);
         if (isset($_GET['term'])) {
             $q = strtolower($_GET['term']);
             $this->os_model->autoCompleteUsuario($q);
@@ -925,6 +941,7 @@ class Os extends MY_Controller
 
     public function autoCompleteTermoGarantia()
     {
+        $this->precisaAlgumaJson(['aOs', 'eOs', 'vOs']);
         if (isset($_GET['term'])) {
             $q = strtolower($_GET['term']);
             $this->os_model->autoCompleteTermoGarantia($q);
@@ -933,6 +950,7 @@ class Os extends MY_Controller
 
     public function autoCompleteServico()
     {
+        $this->precisaAlgumaJson(['aOs', 'eOs', 'vOs']);
         if (isset($_GET['term'])) {
             $q = strtolower($_GET['term']);
             $this->os_model->autoCompleteServico($q);

@@ -471,7 +471,8 @@ class Format
      */
     protected function _from_serialize($data)
     {
-        return unserialize(trim($data));
+        // Corpo vindo da requisicao: nunca instanciar objetos (injecao de objeto PHP).
+        return unserialize(trim($data), ['allowed_classes' => false]);
     }
 
     /**

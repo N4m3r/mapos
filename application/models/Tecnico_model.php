@@ -304,7 +304,7 @@ class Tecnico_model extends CI_Model
             set_error_handler(static function () {
                 return true;
             });
-            $perms = unserialize((string) $p->permissoes);
+            $perms = unserialize((string) $p->permissoes, ['allowed_classes' => false]);
             restore_error_handler();
 
             if (is_array($perms) && ! empty($perms[$atividade])) {

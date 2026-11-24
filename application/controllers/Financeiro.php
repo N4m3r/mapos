@@ -590,6 +590,7 @@ class Financeiro extends MY_Controller
     
     public function autoCompleteClienteFornecedor()
     {
+        $this->precisaAlgumaJson(['aLancamento', 'eLancamento', 'vLancamento']);
         if (isset($_GET['term'])) {
             $q = strtolower($_GET['term']);
             $this->financeiro_model->autoCompleteClienteFornecedor($q);
@@ -598,6 +599,7 @@ class Financeiro extends MY_Controller
 
     public function autoCompleteClienteAddReceita()
     {
+        $this->precisaAlgumaJson(['aLancamento', 'eLancamento', 'vLancamento']);
         if (isset($_GET['term'])) {
             $q = strtolower($_GET['term']);
             $this->financeiro_model->autoCompleteClienteReceita($q);

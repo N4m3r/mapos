@@ -109,7 +109,7 @@ class Authorization_Token
 
                 if (! empty($token_decode) and is_object($token_decode)) {
                     // Check Token API Time [API_TIME]
-                    if (empty($token_decode->API_TIME or ! is_numeric($token_decode->API_TIME))) {
+                    if (empty($token_decode->API_TIME) || ! is_numeric($token_decode->API_TIME)) {
 
                         return ['status' => false, 'message' => 'Token Time Not Define!'];
                     } else {
@@ -118,6 +118,11 @@ class Authorization_Token
                          */
                         $time_difference = strtotime('now') - $token_decode->API_TIME;
                         if ($time_difference >= $this->token_expire_time && $regenToken == false) {
+                            return ['status' => false, 'message' => 'Token Time Expire.'];
+
+                        } elseif ($regenToken && $time_difference >= $this->token_expire_time + $this->janelaRenovacao()) {
+                            // Renovacao so dentro da janela de carencia: antes um token
+                            // vencido havia anos ainda gerava um novo, sem fim.
                             return ['status' => false, 'message' => 'Token Time Expire.'];
 
                         } else {
@@ -138,6 +143,17 @@ class Authorization_Token
             // Authorization Header Not Found!
             return ['status' => false, 'message' => $token_data['message']];
         }
+    }
+
+    /**
+     * Quanto tempo depois de vencer o token ainda pode ser renovado (segundos).
+     * API_TOKEN_RENEW_WINDOW no .env; padrao 7 dias.
+     */
+    private function janelaRenovacao()
+    {
+        $janela = $_ENV['API_TOKEN_RENEW_WINDOW'] ?? '';
+
+        return is_numeric($janela) && (int) $janela >= 0 ? (int) $janela : 604800;
     }
 
     /**

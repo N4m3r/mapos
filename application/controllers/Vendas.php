@@ -347,6 +347,7 @@ class Vendas extends MY_Controller
 
     public function autoCompleteProduto()
     {
+        $this->precisaAlgumaJson(['aVenda', 'eVenda', 'vVenda']);
         if (isset($_GET['term'])) {
             $q = strtolower($_GET['term']);
             $this->vendas_model->autoCompleteProduto($q);
@@ -355,6 +356,7 @@ class Vendas extends MY_Controller
 
     public function autoCompleteCliente()
     {
+        $this->precisaAlgumaJson(['aVenda', 'eVenda', 'vVenda']);
         if (isset($_GET['term'])) {
             $q = strtolower($_GET['term']);
             $this->vendas_model->autoCompleteCliente($q);
@@ -363,6 +365,7 @@ class Vendas extends MY_Controller
 
     public function autoCompleteUsuario()
     {
+        $this->precisaAlgumaJson(['aVenda', 'eVenda', 'vVenda']);
         if (isset($_GET['term'])) {
             $q = strtolower($_GET['term']);
             $this->vendas_model->autoCompleteUsuario($q);

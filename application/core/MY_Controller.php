@@ -101,6 +101,26 @@ class MY_Controller extends CI_Controller
     }
 
     /**
+     * Para endpoints AJAX (autocompletes): sem nenhuma das permissoes, responde 403
+     * com lista vazia em vez de redirecionar, e encerra.
+     */
+    protected function precisaAlgumaJson(array $perms)
+    {
+        $permissao = $this->session->userdata('permissao');
+        foreach ($perms as $perm) {
+            if ($this->permission->checkPermission($permissao, $perm)) {
+                return;
+            }
+        }
+
+        $this->output->set_status_header(403)
+            ->set_content_type('application/json')
+            ->set_output('[]')
+            ->_display();
+        exit;
+    }
+
+    /**
      * Data do formulario para o banco: aceita dd/mm/aaaa ou aaaa-mm-dd; vazio vira null.
      */
     protected function dataOuNull($valor)

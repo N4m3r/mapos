@@ -309,7 +309,7 @@ class UsuariosController extends REST_Controller
                 $this->log_app('Efetuou login no sistema', $user->nome);
                 $this->usuarios_model->marcarAcesso($user->idUsuarios);
                 $permissoes = $this->getInstanceDatabase('permissoes', '*', 'idPermissao = ' . $user->permissoes_id, 1, true);
-                $permissoes = unserialize($permissoes['permissoes']);
+                $permissoes = unserialize((string) $permissoes['permissoes'], ['allowed_classes' => false]);
 
                 $token_data = [
                     'uid' => $user->idUsuarios,
@@ -353,6 +353,17 @@ class UsuariosController extends REST_Controller
     {
         $user = $this->logged_user(true)->usuario;
 
+        // Conta vencida nao renova o token (o login ja recusa depois do dia informado).
+        if (! empty($user->dataExpiracao)) {
+            $validade = DateTime::createFromFormat('Y-m-d', substr((string) $user->dataExpiracao, 0, 10));
+            if ($validade !== false && $validade->format('Y-m-d') < date('Y-m-d')) {
+                $this->response([
+                    'status' => false,
+                    'message' => 'Faça o login novamente!',
+                ], REST_Controller::HTTP_FORBIDDEN);
+            }
+        }
+
         if (! empty($user->email)) {
             if (! empty($user)) {
                 // token regeneration process
@@ -364,7 +375,7 @@ class UsuariosController extends REST_Controller
                 ];
 
                 $permissoes = $this->getInstanceDatabase('permissoes', '*', 'idPermissao = ' . $user->permissoes_id, 1, true);
-                $permissoes = unserialize($permissoes['permissoes']);
+                $permissoes = unserialize((string) $permissoes['permissoes'], ['allowed_classes' => false]);
 
                 $result = [
                     'access_token' => $this->authorization_token->generateToken($token_data),

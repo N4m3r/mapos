@@ -791,6 +791,8 @@ class OsController extends REST_Controller
 
         $this->load->library('upload');
         $this->load->library('image_lib');
+        $this->load->library('os_anexos');
+        Os_anexos::protegerPastaRaiz();
 
         $directory = FCPATH . 'assets' . DIRECTORY_SEPARATOR . 'anexos' . DIRECTORY_SEPARATOR . date('m-Y') . DIRECTORY_SEPARATOR . 'OS-' . $id;
 
@@ -825,7 +827,7 @@ class OsController extends REST_Controller
                 $upload_data = $this->upload->data();
 
                 // Gera um nome de arquivo aleatório mantendo a extensão original
-                $new_file_name = uniqid() . '.' . pathinfo($upload_data['file_name'], PATHINFO_EXTENSION);
+                $new_file_name = Os_anexos::nomeAleatorio($upload_data['file_name']);
                 $new_file_path = $upload_data['file_path'] . $new_file_name;
                 $url = base_url('assets' . DIRECTORY_SEPARATOR . 'anexos' . DIRECTORY_SEPARATOR . date('m-Y') . DIRECTORY_SEPARATOR . 'OS-' . $id);
 
