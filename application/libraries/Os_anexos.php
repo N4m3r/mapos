@@ -25,6 +25,39 @@ class Os_anexos
     }
 
     /**
+     * Nome imprevisivel para o arquivo salvo, mantendo a extensao. uniqid() e
+     * derivado do relogio: dava para adivinhar a URL de anexos alheios.
+     */
+    public static function nomeAleatorio($nomeOriginal)
+    {
+        $ext = strtolower(pathinfo((string) $nomeOriginal, PATHINFO_EXTENSION));
+
+        return bin2hex(random_bytes(16)) . ($ext !== '' ? '.' . $ext : '');
+    }
+
+    /**
+     * Garante a guarda da pasta raiz de anexos: sem listagem de diretorio e sem
+     * executar script. A pasta e ignorada pelo git, entao a guarda nasce aqui.
+     */
+    public static function protegerPastaRaiz()
+    {
+        $raiz = FCPATH . 'assets' . DIRECTORY_SEPARATOR . 'anexos' . DIRECTORY_SEPARATOR;
+        if (! is_dir($raiz) && ! @mkdir($raiz, 0755, true) && ! is_dir($raiz)) {
+            return;
+        }
+        if (! is_file($raiz . '.htaccess')) {
+            @file_put_contents($raiz . '.htaccess', "Options -Indexes\n"
+                . "<FilesMatch \"\\.(php[0-9]?|phtml|phar|cgi|pl|py|sh|htaccess)$\">\n"
+                . "    Require all denied\n"
+                . "</FilesMatch>\n"
+                . "<IfModule mod_php.c>\n    php_flag engine off\n</IfModule>\n");
+        }
+        if (! is_file($raiz . 'index.html')) {
+            @file_put_contents($raiz . 'index.html', '<!DOCTYPE html><title>403 Forbidden</title><p>Acesso negado.</p>');
+        }
+    }
+
+    /**
      * Grava os arquivos de $_FILES['userfile'] (multiplos) como anexos da OS.
      *
      * @return array{result: bool, mensagem: string, errors?: array}
@@ -42,6 +75,7 @@ class Os_anexos
         $this->ci->load->library('upload');
         $this->ci->load->library('image_lib');
 
+        self::protegerPastaRaiz();
         $subpasta = 'assets' . DIRECTORY_SEPARATOR . 'anexos' . DIRECTORY_SEPARATOR . date('m-Y') . DIRECTORY_SEPARATOR . 'OS-' . $osId;
         $directory = FCPATH . $subpasta;
         if (! is_dir($directory . DIRECTORY_SEPARATOR . 'thumbs') && ! mkdir($directory . DIRECTORY_SEPARATOR . 'thumbs', 0755, true)) {
@@ -76,7 +110,7 @@ class Os_anexos
             $dados = $this->ci->upload->data();
 
             // Nome aleatorio mantendo a extensao original
-            $novoNome = uniqid() . '.' . pathinfo($dados['file_name'], PATHINFO_EXTENSION);
+            $novoNome = self::nomeAleatorio($dados['file_name']);
             $novoCaminho = $dados['file_path'] . $novoNome;
             rename($dados['full_path'], $novoCaminho);
 

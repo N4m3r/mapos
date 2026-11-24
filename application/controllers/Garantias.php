@@ -201,6 +201,7 @@ class Garantias extends MY_Controller
 
     public function autoCompleteProduto()
     {
+        $this->precisaAlgumaJson(['aGarantia', 'eGarantia', 'vGarantia']);
         if (isset($_GET['term'])) {
             $q = strtolower($_GET['term']);
             $this->vendas_model->autoCompleteProduto($q);
@@ -209,6 +210,7 @@ class Garantias extends MY_Controller
 
     public function autoCompleteCliente()
     {
+        $this->precisaAlgumaJson(['aGarantia', 'eGarantia', 'vGarantia']);
         if (isset($_GET['term'])) {
             $q = strtolower($_GET['term']);
             $this->vendas_model->autoCompleteCliente($q);
@@ -217,6 +219,7 @@ class Garantias extends MY_Controller
 
     public function autoCompleteUsuario()
     {
+        $this->precisaAlgumaJson(['aGarantia', 'eGarantia', 'vGarantia']);
         if (isset($_GET['term'])) {
             $q = strtolower($_GET['term']);
             $this->vendas_model->autoCompleteUsuario($q);

@@ -78,7 +78,7 @@ class Permission
                 set_error_handler(static function () {
                     return true;
                 });
-                $permissoes = unserialize($raw);
+                $permissoes = unserialize($raw, ['allowed_classes' => false]);
                 restore_error_handler();
 
                 if (! is_array($permissoes)) {

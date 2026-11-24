@@ -227,10 +227,16 @@ class Mapos extends MY_Controller {
         $termo = $this->input->get('termo');
 
         $data['results'] = $this->mapos_model->pesquisar($termo);
-        $this->data['produtos'] = $data['results']['produtos'];
-        $this->data['servicos'] = $data['results']['servicos'];
-        $this->data['os'] = $data['results']['os'];
-        $this->data['clientes'] = $data['results']['clientes'];
+
+        // Cada bloco so aparece para quem pode ver aquele cadastro.
+        $permissao = $this->session->userdata('permissao');
+        $pode = function ($perm) use ($permissao) {
+            return $this->permission->checkPermission($permissao, $perm);
+        };
+        $this->data['produtos'] = $pode('vProduto') ? $data['results']['produtos'] : [];
+        $this->data['servicos'] = $pode('vServico') ? $data['results']['servicos'] : [];
+        $this->data['os'] = $pode('vOs') ? $data['results']['os'] : [];
+        $this->data['clientes'] = $pode('vCliente') ? $data['results']['clientes'] : [];
         $this->data['view'] = 'mapos/pesquisa';
 
         return $this->layout();
